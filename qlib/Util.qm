@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2018 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -411,8 +411,8 @@ bool abs = absolute_path_windows(path);
 
         list<hash> l = ();
 
-        # bracket counter hash
-        hash<string, int> bc;
+        # bracket stack
+        string bracket_stack;
 
         # active quote character
         *string quote;
@@ -423,7 +423,7 @@ bool abs = absolute_path_windows(path);
         for (int i = 0; i < len; ++i) {
             string c = arg[i];
             if (c == ",") {
-                if (!quote && !bc) {
+                if (!quote && !bracket_stack) {
                     #printf("DBG: got comma i:%d\n", i);
                     trim str;
                     if (str.val()) {
@@ -434,7 +434,7 @@ bool abs = absolute_path_windows(path);
                     continue;
                 }
             } else if (c == "=") {
-                if (!quote && !bc) {
+                if (!quote && !bracket_stack) {
                     trim str;
                     if (str.val()) {
                         l += ("type": ET_RawString, "val": str);
@@ -447,7 +447,7 @@ bool abs = absolute_path_windows(path);
                 if (quote) {
                     if (c == quote) {
                         delete quote;
-                        if (!bc) {
+                        if (!bracket_stack) {
                             l += ("type": ET_QuotedString, "val": str);
                             str = "";
                             continue;
@@ -455,7 +455,7 @@ bool abs = absolute_path_windows(path);
                     }
                 } else {
                     quote = c;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         trim str;
                         if (str.val()) {
                             l += ("type": ET_RawString, "val": str);
@@ -468,26 +468,26 @@ bool abs = absolute_path_windows(path);
                 *string p = FwdParenMap{c};
                 if (p) {
                     bool first;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         first = True;
                         trim str;
                         if (str.val()) {
-                            l += ("type": ET_RawString, "val": str);
+                            l += {"type": ET_RawString, "val": str};
                             str = "";
                         }
                     }
-                    ++bc{p};
-                    if (first)
+                    bracket_stack += p;
+                    if (first) {
                         continue;
-                } else if (ParenMap{c}) {
-                    if (bc{c} && !--bc{c}) {
-                        delete bc{c};
+                    }
+                } else if (ParenMap{c} && (c == bracket_stack[-1])) {
+                    splice bracket_stack, -1;
+                    if (!bracket_stack) {
                         #printf("DBG: got bracket string: %y\n", str);
                         l += {
                             "type": c == "}" ? ET_CurlyBracketString : ET_BracketString,
                             "val": str,
                         };
-                        delete bc{c};
                         str = "";
                         continue;
                     }
@@ -686,8 +686,9 @@ hash: (1 member)
         code check_val = sub (int i) {
             if (i) {
                 int lt = l[i-1].type;
-                if (lt != ET_Comma && lt != ET_Eq)
+                if (lt != ET_Comma && lt != ET_Eq) {
                     throw "PARSE-ERROR", sprintf("cannot parse %y (%y) after %y (%y)", EtMap{l[i].type}, l[i].val, EtMap{lt}, l[i-1].val);
+                }
             }
         };
 
@@ -892,9 +893,20 @@ string pass = get_random_string();
         string str;
 
         while (True) {
-            str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            ex.type, get_ex_pos(ex), ex.err, ex.desc,
-                            ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
+            str += sprintf("%s exception: %s: %s: %s",
+                            ex.type, get_ex_pos(ex), ex.err, ex.desc);
+            if (exists ex.arg) {
+                if (ex.arg.ex instanceof hash<ExceptionInfo>
+                    || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
+                        && ex.arg.callstack.typeCode() == NT_LIST)) {
+                    if (ex.arg.size() > 1) {
+                        str += sprintf(" (arg: %y)", ex.arg - "ex");
+                    }
+                    str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
+                } else {
+                    str += sprintf(" (arg: %y)", ex.arg);
+                }
+            }
 
             if (ex.callstack) {
                 foreach hash<auto> l in (ex.callstack) {

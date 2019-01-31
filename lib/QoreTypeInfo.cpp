@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -545,11 +545,13 @@ const char* getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
+// only called for complex hashes and lists
 static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTypeInfo* that_type, bool& may_not_match, bool& may_need_filter) {
-    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
+    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(this_type), QoreTypeInfo::getName(that_type));
     qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
-    if (may_not_match)
-        return QTI_NOT_EQUAL;
+    // with strict-types, may not match must be interpreted as no match
+    // however if we interpret "may not match" as "no match" here, then we introduce an incompatibility with
+    // non-complex types
     // even if types are 100% compatible, if they are not equal, then we perform type folding
     if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
         may_need_filter = true;
@@ -595,7 +597,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             return QTI_NOT_EQUAL;
         }
         case QTS_COMPLEXHASH: {
-            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            //printd(5, "QoreTypeSpec::match() %d: t.typespec: %d '%s'\n", typespec, (int)t.typespec, QoreTypeInfo::getName(u.ti));
             switch (t.typespec) {
                 case QTS_COMPLEXHASH:
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
@@ -616,7 +618,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
         }
         case QTS_COMPLEXSOFTLIST:
         case QTS_COMPLEXLIST: {
-            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            //printd(5, "QoreTypeSpec::match() %d: t.typespec: %d '%s'\n", typespec, (int)t.typespec, QoreTypeInfo::getName(u.ti));
             switch (t.typespec) {
                 case QTS_COMPLEXSOFTLIST:
                 case QTS_COMPLEXLIST:
@@ -910,12 +912,20 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                 if (rv == QTI_NOT_EQUAL) {
                     return rv;
                 }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const QoreObject>()->isValid()) {
+                    return QTI_NOT_EQUAL;
+                }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             } else if (ot == NT_WEAKREF) {
                 qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
                     *n.get<const WeakReferenceNode>()->get()->getClass());
                 if (rv == QTI_NOT_EQUAL) {
                     return rv;
+                }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const WeakReferenceNode>()->get()->isValid()) {
+                    return QTI_NOT_EQUAL;
                 }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             }

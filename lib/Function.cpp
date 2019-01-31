@@ -1616,51 +1616,56 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 }
 
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
-   QoreValue val;
-   if (statements) {
-      // self might be 0 if instantiated by a constructor call
-      if (self && signature.selfid)
-         signature.selfid->instantiateSelf(self);
+    QoreValue val;
+    if (statements) {
+        // self might be 0 if instantiated by a constructor call
+        if (self && signature.selfid)
+            signature.selfid->instantiateSelf(self);
 
-      // instantiate argv and push id on stack
-      signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
+        // instantiate argv and push id on stack
+        signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
 
-      {
-         ArgvContextHelper argv_helper(argv.release(), xsink);
+        {
+            ArgvContextHelper argv_helper(argv.release(), xsink);
 
-         // enter gate if necessary
-         if (!gate || (gate->enter(xsink) >= 0)) {
-            // execute function
-            val = statements->exec(xsink);
+            // enter gate if necessary
+            if (!gate || (gate->enter(xsink) >= 0)) {
+                // execute function
+                val = statements->exec(xsink);
 
-            // exit gate if necessary
-            if (gate)
-               gate->exit();
-         }
-      }
+                // exit gate if necessary
+                if (gate) {
+                    gate->exit();
+                }
+            }
+        }
 
-      // uninstantiate argv
-      signature.argvid->uninstantiate(xsink);
+        // uninstantiate argv
+        signature.argvid->uninstantiate(xsink);
 
-      // if self then uninstantiate
-      // self might be 0 if instantiated by a constructor call
-      if (self && signature.selfid)
-         signature.selfid->uninstantiateSelf();
-   }
-   else {
-      argv = 0; // dereference argv now
-   }
+        // if self then uninstantiate
+        // self might be 0 if instantiated by a constructor call
+        if (self && signature.selfid)
+            signature.selfid->uninstantiateSelf();
+    } else {
+        argv = nullptr; // dereference argv now
+    }
 
-   // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
-   // only check if there isn't an active exception
-   if (!*xsink && val.isNothing()) {
-      const QoreTypeInfo* rt = signature.getReturnTypeInfo();
+    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
+    // only check if there isn't an active exception
+    if (!*xsink && val.isNothing()) {
+        const QoreTypeInfo* rt = signature.getReturnTypeInfo();
 
-      // check return type
-      QoreTypeInfo::acceptAssignment(rt, "<block return>", val, xsink);
-   }
+        // check return type
+        QoreTypeInfo::acceptAssignment(rt, "<block return>", val, xsink, nullptr);
+        // issue #3255: make sure any exception reflects the signature location
+        if (*xsink) {
+            xsink->overrideLocation(*signature.getParseLocation());
+            xsink->appendLastDescription(": block missing return statement");
+        }
+    }
 
-   return val;
+    return val;
 }
 
 // primary function for executing user code

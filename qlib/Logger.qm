@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -354,6 +354,46 @@ public namespace Logger {
                 }
                 return default_level;
             }
+        }
+
+        #! Returns closest lower logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no lower level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextLowerLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.prev()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
+        }
+
+        #! Returns closest higher logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no higher level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextHigherLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.next()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
         }
 
         #! Converts the input argument to a level.
@@ -2484,6 +2524,34 @@ public namespace Logger {
             setLevel(LoggerLevel::getLevel(level));
         }
 
+        #! Decrement logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel decLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextLowerLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
+        #! Increment logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel incLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextHigherLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
         /**
             @param enable the additivity flag; when additivity is active, events are passed to parent loggers
@@ -2560,7 +2628,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool check_throwable, date time_stamp = now_us() ) {
+            bool check_throwable, date time_stamp = now_us()) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && check_throwable) {
@@ -2588,7 +2656,8 @@ public namespace Logger {
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date time_stamp) {
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+            *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }

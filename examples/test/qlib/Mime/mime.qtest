@@ -54,6 +54,7 @@ aωb\r
     }
 
     constructor() : Test("MimeTest", "1.0") {
+        addTestCase("mime type from ext", \mimeTypeTest());
         addTestCase("Printable test", \printableTest());
         addTestCase("Base64 test", \base64Test());
         addTestCase("Header word q test", \wordQTest());
@@ -64,6 +65,11 @@ aωb\r
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    mimeTypeTest() {
+        assertEq(MimeTypeUnknown, get_mime_type_from_ext("/"));
+        assertEq(MimeTypeHtml, get_mime_type_from_ext("/", MimeTypeHtml));
     }
 
     printableTest() {

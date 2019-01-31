@@ -862,14 +862,21 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 rethrow;
             }
 
+            on_error {
+                if (exists h.body && !exists info."response-body") {
+                    info."response-body" = h.body;
+                }
+            }
             hash<RestResponseClientInfo> sh = validator.parseResponse(m, path, h.status_code, h.body, h);
 
             if (exists h.body) {
                 h.body = sh.body;
-                info += (
-                    "response-serialization": sh.info.code ?? NullRestSchemaValidator::DataDeserializationSupport.(h."content-type").code ?? "unknown",
+                info += {
+                    "response-serialization": sh.info.code
+                        ?? NullRestSchemaValidator::DataDeserializationSupport.(h."content-type").code
+                        ?? "unknown",
                     "response-body": h.body,
-                );
+                };
             }
 
             return h;
