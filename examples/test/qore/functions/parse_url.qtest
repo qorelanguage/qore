@@ -69,6 +69,12 @@ public class parseUrlTest inherits QUnit::Test {
 
         # corner case: two leading backslashes are returned as a UNC path
         assertEq(("path": "\\\\hostname"), parse_url("\\\\hostname"));
+
+        # issue #3287: single character hostname
+        assertEq("a", parse_url("http://a").host);
+        assertEq("a", parse_url("http://a/").host);
+        assertEq("a", parse_url("http://a:1").host);
+        assertEq("a", parse_url("http://a:1/").host);
     }
 
     private portTest() {
