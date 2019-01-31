@@ -153,6 +153,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ThreadPool.qpp \
 	lib/QC_TreeMap.qpp \
 	lib/QC_AbstractThreadResource.qpp \
+	lib/QC_StreamBase.qpp \
 	lib/QC_InputStream.qpp \
 	lib/QC_BinaryInputStream.qpp \
 	lib/QC_StringInputStream.qpp \
@@ -872,6 +873,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	qore.spec-fedora \
 	qore.spec-multi \
 	cmake/QoreMacros.cmake \
+	modules/astparser/docs/mainpage.dox.tmpl \
+	modules/reflection/docs/mainpage.dox.tmpl \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC) \
