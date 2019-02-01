@@ -43,7 +43,7 @@
 
 #include <functional>
 
-class QoreProgramLocation;
+struct QoreProgramLocation;
 
 class QoreRegex : public QoreRegexBase, public QoreReferenceCounter {
 public:
