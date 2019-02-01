@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore HttpBasedConnection class definition
 
-/*  HttpBasedConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  HttpBasedConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,17 +30,40 @@
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
     #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
+    /** Example of the usage is in the RestConnection. Schema \c rest:// is internally used as \c http://
+     */
     public class HttpBasedConnection inherits AbstractConnection {
         public {
+            #! A string containing real url. With http(s) internal schema.
             string real_url;
         }
 
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-            # sets an HTTP-based URL for the URL argument
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+            constructorInit();
+        }
+
+        #! creates the invalid connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string desc, string url, hash attributes, hash options)
+            : AbstractConnection(name, desc, url, attributes, options) {
+            constructorInit();
+        }
+
+        # sets an HTTP-based URL for the URL argument
+        private:internal constructorInit() {
             string scheme = (url =~ x/^([^:]+)/)[0];
             bool ssl = (scheme =~ /s$/);
             string targ = "http" + (ssl ? "s" : "");
             real_url = regex_subst(url, "^" + scheme, targ);
         }
-    } # HttpBasedConnection class
+    }
 } # ConnectionProvider namespace

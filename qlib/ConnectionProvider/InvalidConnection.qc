@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore InvalidConnection class definition
 
-/*  InvalidConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  InvalidConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,13 +31,49 @@
 public namespace ConnectionProvider {
     #! this class is used to mark invalid connections so they can be loaded and reported as invalid
     public class InvalidConnection inherits AbstractConnection {
-        private {
-            string error;
+        public {
+            #! Error message provided by constructor's \c attributes.error
+            string error = "unknown error";
+        }
+
+        #! DEPRECATED: creates the invalid connection object
+        /** @deprecated since Qore 0.9
+         */
+        deprecated
+        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh)
+            : AbstractConnection(n_name, n_desc, n_url, {"monitor": False}, n_opts ?? {}) {
+            error = n_error;
         }
 
         #! creates the invalid connection object
-        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh) : AbstractConnection(n_name, n_desc, n_url, False, n_opts, urlh) {
-            error = n_error;
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+            @par Additional Attributes
+
+                - \c error a custom error string
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
+            if (attributes.error.val()) {
+                self.error = attributes.error;
+            }
+        }
+
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash with url - string as url
+
+            The reason for this is to avoid a unwanted Qore::parse_url() call in connections
+            with custom parseUrl() implementation.
+         */
+        private hash parseUrl(string url) {
+            return {"url": url};
         }
 
         #! throws an exception because the object is invalid
@@ -54,5 +90,5 @@ public namespace ConnectionProvider {
         string getType() {
             return "invalid";
         }
-    } # InvalidConnection class
+    }
 } # ConnectionProvider namespace

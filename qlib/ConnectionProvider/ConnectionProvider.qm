@@ -33,7 +33,7 @@
 %requires Util
 
 module ConnectionProvider {
-    version = "1.1";
+    version = "1.2";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -99,6 +99,15 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_2 ConnectionProvider 1.2
+    - the @ref ConnectionProvider::AbstractConnection::consructor() "AbstractConnection::consructor()" refactoring
+    - all connection clases have unified constructor
+    - old contructors and static make() constructors are deprecated
+    - ConnectionProvider::AbstractConnection::parseUrl() is introduced
+    - ConnectionProvider::AbstractConnection::getSafeurl() is not static anymore
+    - it allows their reimplementation in the inherited class. It can be used
+      to parse strange and unexpected URLs like eg. pure json strings, or Datasource connection strings.
 
     @subsection connectionprovider_1_1 ConnectionProvider 1.1
     - the @ref ConnectionProvider::AbstractConnection::getConstructorInfo() "AbstractConnection::getConstructorInfo()"
@@ -172,6 +181,7 @@ public namespace ConnectionProvider {
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
         hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
         bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
+        bool locked;      #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
@@ -240,8 +250,7 @@ string connstr = get_connection(str);
             foreach string mod in (pl) {
                 try {
                     return priv_try_get_connection(mod, conn);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }
             }
@@ -275,8 +284,7 @@ string connstr = get_connection(str);
             foreach string mod in (pl) {
                 try {
                     map h.($1.key) = $1.value, priv_try_get_connections(mod).pairIterator(), !exists h.($1.key);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (verbose)
                         printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }

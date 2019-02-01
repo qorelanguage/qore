@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore HttpConnection class definition
 
-/*  HttpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  HttpConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ public namespace ConnectionProvider {
     public class HttpConnection inherits AbstractConnection {
         public {
             #! HttpConnection object connection options
-            const Options = (
+            const Options = {
                 "http_version": True,
                 "max_redirects": True,
                 "proxy": True,
@@ -56,26 +56,43 @@ public namespace ConnectionProvider {
                 "ssl_key_password": True,
                 "ssl_key_path": True,
                 "ssl_verify_cert": True,
-                );
+            };
 
             #! HttpConnection default options
-            const DefaultOptions = (
+            const DefaultOptions = {
                 "timeout": 45s,
                 "connect_timeout": 45s,
-                );
+            };
 
             const OptionList = Options.keys();
         }
 
-        #! creates the HttpConnection object
+        #! DEPRECATED: creates the HttpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options (@see getOptions() for valid options)
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qorus 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the HttpConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns an @ref Qore::HTTPClient object
@@ -135,9 +152,16 @@ public namespace ConnectionProvider {
             return "http";
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static HttpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new HttpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new HttpConnection(name, desc, url, attributes, opts ?? {});
         }
-    } # HttpConnection class
+    }
 } # ConnectionProvider namespace

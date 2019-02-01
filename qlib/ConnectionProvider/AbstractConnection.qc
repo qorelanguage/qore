@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore AbstractConnection class definition
 
-/*  AbstractConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  AbstractConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,9 @@ public namespace ConnectionProvider {
 
             #! enabled/disabled indicator flag
             bool enabled = True;
+
+            #! locked/unlocked flag
+            bool locked = False;
         }
 
         #! creates the AbstractConnection object
@@ -90,6 +93,7 @@ public namespace ConnectionProvider {
             @param n_safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
             @param n_enabled enabled/disabled flag
          */
+        deprecated
         constructor(string n_name,
                     string n_desc,
                     string n_url,
@@ -98,31 +102,101 @@ public namespace ConnectionProvider {
                     hash n_urlh,
                     *string n_safe_url,
                     *bool n_enabled) {
-            name = n_name;
-            desc = n_desc;
-            url = n_url;
-            monitor = n_monitor;
-            safe_url = n_safe_url ? n_safe_url : AbstractConnection::getSafeUrl(n_urlh);
-            urlh = n_urlh;
-            orig_opts = n_opts;
-            n_opts = getDefaultOptions() + n_opts;
-            if (n_opts) {
-                *hash oh = getOptions();
-                foreach string opt in (n_opts.keyIterator()) {
+            # remove "enabled" option from option hash, if any
+            *bool opt_enabled = remove n_opts.enabled;
+            hash<auto> attributes = {
+                "monitor": n_monitor,
+                "enabled": n_enabled ?? opt_enabled ?? True,
+            };
+            constructorInit(n_name, n_desc, n_url, attributes, n_opts ?? {});
+        }
+
+        #! creates the AbstractConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            @par Attributes
+
+            Attributes are special flags for given connection - stored as public
+            attributes of the object instance.
+            For now there are:
+                - \c enabled, default \c True
+                - \c monitor, default \c True
+                - \c locked, default \c False
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
+            constructorInit(name, description, url, attributes, options);
+        }
+
+        private:internal constructorInit(string name, string description, string url, hash attributes, hash options) {
+            # metadata
+            self.name = name;
+            self.desc = description;
+
+            # url handling
+            self.url = url;
+            self.urlh = parseUrl(self.url);
+            self.safe_url = getSafeUrl(self.urlh);
+
+            # attributes to flags
+            self.monitor = attributes.monitor ?? True;
+            self.enabled = attributes.enabled ?? True;
+            self.locked = attributes.locked ?? False;
+
+            self.orig_opts = options;
+            self.opts = validateOptions(options);
+        }
+
+        #! performs options validation in the constructor
+        /** @param options a has with options from the constructor
+            @return hash validated option hash
+
+            This method can be overloaded in connections where are options
+            created dynamically for example.
+         */
+        hash validateOptions(hash options) {
+            options = getDefaultOptions() + options;
+            if (options) {
+                *hash<auto> oh = getOptions();
+                foreach string opt in (keys options) {
                     if (!oh{opt})
                         throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) has unknown option %y (known options: %y)", name, urlh.protocol, url, opt, oh.keys());
                 }
             }
-            opts = n_opts;
-            enabled = n_enabled ?? True;
+            return options;
+        }
+
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash untyped, depends on the parsing method
+
+            The base implementation calls @ref Qore::parse_url().
+
+            Reimplement \c parseUrl() if your connection uses different URL schema.
+            Like eg. Qore::Datasource connection string.
+         */
+        private hash parseUrl(string url) {
+            return Qore::parse_url(url);
         }
 
         #! creates a "safe" URL string with password information removed
-        /** @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        /** @param urlh a parsed hash (as returned from parseUrl()
+            @return string with safe URL
 
-            @return a "safe" URL string with password information removed
+            This base/default implementation expects the \c urlh
+            as returned by @ref Qore::parse_url())
+
+            Public attribute \c safe_url is created from the \c url calling
+            AbstractConnection::getSafeUrl(). Reimplement this method if your
+            connection does not follow standard URL in form:
+            @code
+schema://user:pass@hostname:port/path
+            @endcode
          */
-        private static string getSafeUrl(hash urlh) {
+        private string getSafeUrl(hash urlh) {
             string url = urlh.protocol + "://";
             if (urlh.username)
                 url += urlh.username + "@";
@@ -150,8 +224,7 @@ public namespace ConnectionProvider {
 
             try {
                 return pingIntern(rv);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 return rv += {
                     "ok": False,
                     "info": sprintf("%s: %s", ex.err, ex.desc),
@@ -176,7 +249,7 @@ public namespace ConnectionProvider {
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
@@ -230,8 +303,7 @@ public namespace ConnectionProvider {
                 up = True;
                 status = "OK";
                 return o;
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 status = sprintf("%s: %s", ex.err, ex.desc);
                 up = False;
                 rethrow;
@@ -270,5 +342,5 @@ public namespace ConnectionProvider {
 
         #! returns the string type name for the connection object
         abstract string getType();
-    } # AbstractConnection class
+    }
 } # ConnectionProvider namespace

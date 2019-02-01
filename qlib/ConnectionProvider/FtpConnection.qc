@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FtpConnection class definition
 
-/*  FtpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  FtpConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,15 +35,32 @@ public namespace ConnectionProvider {
         - \c "path_add": appends the given string to the path component of the URL at runtime
     */
     public class FtpConnection inherits AbstractConnection {
-        #! creates the FtpConnection object
+        #! DEPRECATED: creates the FtpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the FtpConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "ftp"
@@ -100,9 +117,16 @@ public namespace ConnectionProvider {
             });
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static FtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new FtpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new FtpConnection(name, desc, url, attributes, opts ?? {});
         }
-    } # FtpConnection class
+    }
 } # ConnectionProvider namespace

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FilesystemConnection class definition
 
-/*  FilesystemConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  FilesystemConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,23 +36,45 @@ public namespace ConnectionProvider {
     public class FilesystemConnection inherits AbstractConnection {
         public {
             #! FilesystemConnection object connection options
-            const Options = (
+            const Options = {
                 "readonly": True,
-                );
+            };
 
             #! FilesystemConnection object connection option list
             const OptionList = Options.keys();
         }
 
-        #! creates the FilesystemConnection object
+        #! DEPRECATED: creates the FilesystemConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param n_urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
          */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash n_urlh) : AbstractConnection(name, desc, url, monitor, opts, n_urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash n_urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+            constructorInit();
+        }
+
+        #! creates the FilesystemConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
+            constructorInit();
+        }
+
+        private:internal constructorInit() {
             # the URL hash is parsed with parse_url() which will put a string in the
             # "host" key if it does not look like an absolute path, in which case "host"
             # needs to be prepended back to the path
@@ -122,9 +144,16 @@ public namespace ConnectionProvider {
             return Options;
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static FilesystemConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new FilesystemConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new FilesystemConnection(name, desc, url, attributes, opts ?? {});
         }
-    } # FilesystemConnection class
+    }
 } # ConnectionProvider namespace
