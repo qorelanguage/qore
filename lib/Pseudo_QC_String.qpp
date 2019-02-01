@@ -33,7 +33,7 @@
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/QoreLibIntern.h"
 
-#include <ctype.h>
+#include <cctype>
 
 //! Methods in this pseudo-class can be executed on @ref string "strings"
 /**

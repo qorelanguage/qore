@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Pop3Client.qm POP3 client module definition
+#! @file Pop3Client.qm POP3 client module definition
 
 /*  Pop3Client.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -32,7 +32,7 @@
 %requires MailMessage >= 1.0
 
 # requires the ConnectionProvider module
-%requires(reexport) ConnectionProvider >= 1.1
+%requires(reexport) ConnectionProvider >= 1.2
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module Pop3Client {
-    version = "1.6";
+    version = "1.7";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -93,6 +93,9 @@ if (!h)
     @note based on http://tools.ietf.org/html/rfc1939 (POP3)
 
     @section pop3client_relnotes Pop3Client Module Release Notes
+
+    @subsection pop3client_v1_7 Pop3Client 1.7
+    - all connection clases have unified constructor
 
     @subsection pop3client_v1_6 Pop3Client 1.6
     - added the @ref Pop3Client::Pop3Connection::getConstructorInfo() "Pop3Connection::getConstructorInfo()"
@@ -974,15 +977,32 @@ pop3.clearStats();
         @since %Pop3Client 1.5
     */
     public class Pop3Connection inherits ConnectionProvider::AbstractConnection {
-        #! creates the Pop3Connection object
+        #! DEPRECATED: creates the Pop3Connection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts) {
+        }
+
+        #! creates the RestConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "pop3"
@@ -1030,9 +1050,12 @@ pop3.clearStats();
             });
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static Pop3Connection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new Pop3Connection(name, desc, url, monitor, opts, urlh);
+            return new Pop3Connection(name, desc, url, {"monitor": monitor}, opts ?? {});
         }
     }
 }

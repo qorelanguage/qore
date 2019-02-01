@@ -14,10 +14,13 @@
 class FileTest inherits QUnit::Test {
     public {
         const Data = "äsdfaä";
+
+        const Script = "printf(\"%s\", stdin.readBinary(10).toHex());";
     }
 
     constructor() : QUnit::Test("File", "1.0") {
         addTestCase("FileTest", \fileTest());
+        addTestCase("issue 3061", \issue3061());
         addTestCase("redirect test", \redirectTest());
         set_return_value(main());
     }
@@ -42,6 +45,21 @@ class FileTest inherits QUnit::Test {
         assertEq("dfaä", f.read(4));
         f.setPos(0);
         assertEq(Data, f.read(-1));
+    }
+
+    issue3061() {
+        # create a temporary Qore script
+        string fn = sprintf("%s/%s", tmp_location(), get_random_string());
+        {
+            File f();
+            f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+            f.write(Script);
+        }
+        on_exit unlink(fn);
+
+        # this test works on all platforms but was made for Windows
+        string hex = backquote('qore -ne "printf(\"a\r\n\");" | qore ' + fn);
+        assertEq("610d0a", hex);
     }
 
     redirectTest() {

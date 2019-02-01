@@ -3,7 +3,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -292,7 +292,7 @@ void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation* lo
     // FIXME: make common code with ScopedObjectCallNode
     const QoreMethod* constructor = qc ? qc->parseGetConstructor() : nullptr;
     const QoreTypeInfo* typeInfo;
-    lvids += parseArgsVariant(loc, oflag, pflag, constructor ? constructor->getFunction() : nullptr, nullptr, typeInfo);
+    lvids += parseArgsVariant(loc, oflag, pflag, constructor ? qore_method_private::get(*constructor)->getFunction() : nullptr, nullptr, typeInfo);
 
     //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
@@ -303,7 +303,7 @@ void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation* lo
             parse_error(*loc, "illegal external access to private constructor of class %s", qc->getName());
     }
 
-    //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
+    //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? qore_method_private::get(*constructor)->getFunction() : nullptr, variant);
 }
 
 void VarRefNewObjectNode::parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {

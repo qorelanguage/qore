@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TelnetClient.qm Telnet module definition
+#! @file TelnetClient.qm Telnet module definition
 
 /*  TelnetClient.qm Copyright 2012 - 2018 Qore Technologies s.r.o.
 
@@ -33,10 +33,10 @@
 %require-types
 %enable-all-warnings
 
-%requires(reexport) ConnectionProvider >= 1.1
+%requires(reexport) ConnectionProvider >= 1.2
 
 module TelnetClient {
-    version = "1.4";
+    version = "1.5";
     desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
     author = "Pavol Potancok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -65,6 +65,9 @@ module TelnetClient {
     - @ref TelnetOptionCodes "TelnetOptionCodes": telnet protocol option codes and a lookup map
 
     @section telnetclient_relnotes TelnetClient Module Release Notes
+
+    @subsection telnetclient_v1_5 TelnetClient v1.5
+    - all connection clases have unified constructor
 
     @subsection telnetclient_v1_4 TelnetClient v1.4
     - added the @ref TelnetClient::TelnetConnection::getConstructorInfo() "TelnetConnection::getConstructorInfo()"
@@ -925,15 +928,32 @@ telnet.clearStats();
         @since %TelnetClient 1.3
     */
     public class TelnetConnection inherits ConnectionProvider::AbstractConnection {
-        #! creates the TelnetConnection object
+        #! DEPRECATED: creates the TelnetConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the RestConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "telnet"
@@ -981,9 +1001,15 @@ telnet.clearStats();
             });
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static TelnetConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new TelnetConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new TelnetConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

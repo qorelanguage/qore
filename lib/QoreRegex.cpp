@@ -2,7 +2,7 @@
 /*
     QoreRegex.cpp
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,33 +33,27 @@
 #include <memory>
 
 QoreRegex::QoreRegex() {
-   init();
-   str = new QoreString();
-}
-
-QoreRegex::QoreRegex(QoreString* s) {
-   init();
-   str = s;
-   parse();
+    init();
+    str = new QoreString();
 }
 
 QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) {
-   init(opts);
-   str = 0;
+    init(opts);
+    str = nullptr;
 
-   if (check_re_options(options)) {
-      xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
-      options = 0;
-   }
+    if (check_re_options(options)) {
+        xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
+        options = 0;
+    }
 
-   parseRT(&s, xsink);
+    parseRT(&s, xsink);
 }
 
 QoreRegex::~QoreRegex() {
-   if (p)
-      pcre_free(p);
-   if (str)
-      delete str;
+    if (p) {
+        pcre_free(p);
+    }
+    delete str;
 }
 
 void QoreRegex::concat(char c) {
@@ -67,30 +61,33 @@ void QoreRegex::concat(char c) {
 }
 
 void QoreRegex::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
-   const char* err;
-   int eo;
+    const char* err;
+    int eo;
 
-   // convert to UTF-8 if necessary
-   TempEncodingHelper t(pattern, QCS_UTF8, xsink);
-   if (*xsink)
-      return;
+    // convert to UTF-8 if necessary
+    TempEncodingHelper t(pattern, QCS_UTF8, xsink);
+    if (*xsink)
+        return;
 
-   //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->getBuffer(), this);
+    //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->getBuffer(), this);
 
-   p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
-   if (err) {
-      //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
-      xsink->raiseException("REGEX-COMPILATION-ERROR", (char* )err);
-   }
+    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
+    if (err) {
+        //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
+        xsink->raiseException("REGEX-COMPILATION-ERROR", (char* )err);
+    }
 }
 
-void QoreRegex::parse() {
-   ExceptionSink xsink;
-   parseRT(str, &xsink);
-   delete str;
-   str = 0;
-   if (xsink.isEvent())
-      qore_program_private::addParseException(getProgram(), xsink);
+void QoreRegex::parse(q_get_loc_t get_loc) {
+    ExceptionSink xsink;
+    parseRT(str, &xsink);
+    delete str;
+    str = nullptr;
+    if (xsink.isEvent()) {
+        // override the exception location with the real parse location in case of an error
+        xsink.overrideLocation(*get_loc());
+        qore_program_private::addParseException(getProgram(), xsink);
+    }
 }
 
 bool QoreRegex::exec(const QoreString* target, ExceptionSink* xsink) const {

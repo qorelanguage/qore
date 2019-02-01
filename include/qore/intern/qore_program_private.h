@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -48,9 +48,8 @@ extern QoreHashNode* ENV;
 #include "qore/vector_map"
 #include "qore/vector_set"
 
-#include <stdarg.h>
-#include <errno.h>
-
+#include <cerrno>
+#include <cstdarg>
 #include <map>
 #include <vector>
 
@@ -109,27 +108,28 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 struct ThreadLocalProgramData {
 private:
     // not implemented
-    ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
+    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
 
     // thread debug types, field is read/write only in thread being debugged, no locking is needed
     DebugRunStateEnum runState;
+    // used to implement "to to statement" debugger command, reset it when program is interrupted
+    const AbstractStatement* runToStatement;
     // when stepover or until return we need calls function calls
-    int functionCallLevel = 0;
+    int functionCallLevel;
 
-    DLLLOCAL void setRunState(DebugRunStateEnum rs) {
+    inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
         assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
         if (rs == DBG_RS_UNTIL_RETURN) {
             functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
         }
-        printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d\n", this, runState, rs);
+        printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d, rts: %p\n", this, runState, rs, rts);
         runState = rs;
+        runToStatement = rts;
     }
-
     // set to true by any process do break running program asap
     volatile bool breakFlag;
-
     // called from running thread
-    DLLLOCAL void checkBreakFlag() {
+    inline void checkBreakFlag() {
         if (breakFlag && runState != DBG_RS_DETACH) {
             breakFlag = false;
             if (runState != DBG_RS_STOPPED) {
@@ -438,9 +438,8 @@ public:
             thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
-#ifdef DEBUG
+        // must set priv before calling setParent()
         pgm->priv = (qore_program_private*)this;
-#endif
 
         if (p_pgm)
             setParent(p_pgm, n_parse_options);
@@ -450,15 +449,15 @@ public:
         }
 
         // initialize global vars
-        Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
+        Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo, true);
         if (var && ARGV)
             var->setInitial(ARGV->copy());
 
-        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
+        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo, true);
         if (var && QORE_ARGV)
             var->setInitial(QORE_ARGV->copy());
 
-        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
+        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo, true);
         if (var)
             var->setInitial(ENV->copy());
         setDefines();
@@ -527,7 +526,6 @@ public:
 };
 
 class QoreBreakpoint;
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:
@@ -910,6 +908,11 @@ public:
 
         QoreParseLocationHelper qplh(sname, src, offset);
 
+        /*
+           beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+           then endParsing() coredump with "Assertion `td->plStack' failed"
+           Seems endParsing() should do rather "if (!td->plStack) return".
+        */
         beginParsing(sname, nullptr, src, offset);
 
         if (!parsing_in_progress) {
@@ -1057,7 +1060,12 @@ public:
 
             QoreParseLocationHelper qplh(sname, nullptr, 0);
 
-            beginParsing(sname);
+            /*
+                beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+                then endParsing() coredump with "Assertion `td->plStack' failed"
+                Seems endParsing() should do rather "if (!td->plStack) return".
+            */
+			beginParsing(sname);
 
             if (!parsing_in_progress) {
                 parsing_in_progress = true;
@@ -2050,13 +2058,13 @@ public:
       // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
    }
 
-   DLLLOCAL void onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onAttach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onDetach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
 
    DLLLOCAL int breakProgramThread(int tid) {
       printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
@@ -2107,6 +2115,17 @@ public:
       for (QoreBreakpointList_t::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
          bkptList.push_back(*it);
          (*it)->ref();
+      }
+   }
+
+   DLLLOCAL void getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList) {
+      QoreAutoRWReadLocker al(&lck_breakpoint);
+      bkptList.clear();
+      if (statement->breakpoints) {
+         for (std::list<QoreBreakpoint*>::iterator it = statement->breakpoints->begin(); it != statement->breakpoints->end(); ++it) {
+            bkptList.push_back(*it);
+            (*it)->ref();
+         }
       }
    }
 
@@ -2426,13 +2445,13 @@ public:
       return l.release();
    }
 
-   DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onAttach(pgm, rs, xsink);
+      dpgm->onAttach(pgm, rs, rts, xsink);
    }
-   DLLLOCAL void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onDetach(pgm, rs, xsink);
+      dpgm->onDetach(pgm, rs, rts, xsink);
    }
    /**
     * Executed on every step of StatementBlock.
@@ -2440,35 +2459,35 @@ public:
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, xsink);
+      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, rts, xsink);
 
    }
-   DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionEnter(pgm, statement, rs, xsink);
+      dpgm->onFunctionEnter(pgm, statement, rs, rts, xsink);
    }
    /**
     * Executed when a function is exited.
     */
-   DLLLOCAL void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionExit(pgm, statement, returnValue, rs, xsink);
+      dpgm->onFunctionExit(pgm, statement, returnValue, rs, rts, xsink);
    }
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, ExceptionSink* xsink) {
+   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onException(pgm, statement, rs, xsink);
+      dpgm->onException(pgm, statement, rs, rts, xsink);
    }
    /**
     * Executed when a thread/program is exited.
     */
-   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onExit(pgm, statement, returnValue, rs, xsink);
+      dpgm->onExit(pgm, statement, returnValue, rs, rts, xsink);
    }
 
    DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {
@@ -2512,5 +2531,7 @@ public:
       return debug_program_counter.getCount();
    }
 };
+
+DLLLOCAL TypedHashDecl* init_hashdecl_SourceLocationInfo(QoreNamespace& ns);
 
 #endif

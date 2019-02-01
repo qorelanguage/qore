@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+#! @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
 /*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -220,10 +220,6 @@ public namespace PgsqlSqlUtil {
             string src;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
-        }
-
         #! creates the type from the supplied arguments
         constructor(string n_name, string n_src) {
             name = n_name;
@@ -307,10 +303,6 @@ public namespace PgsqlSqlUtil {
             *string tablespace;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractIndex(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, bool n_unique, hash n_cols, *string n_tablespace) : AbstractIndex(n_name, n_unique, n_cols) {
             tablespace = n_tablespace;
@@ -340,10 +332,6 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL-specific foreign constraint
     public class PgsqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractForeignConstraint(h) {
-        }
-
         #! creates the constraint from the supplied arguments
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
@@ -369,10 +357,6 @@ public namespace PgsqlSqlUtil {
 
     #! represents a PostgreSQL-specific check constraint
     public class PgsqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractCheckConstraint(h) {
-        }
-
         #! creates the constraint from the supplied arguments
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }
@@ -405,10 +389,6 @@ public namespace PgsqlSqlUtil {
 
         #! empty constructor for subclasses
         private constructor() {
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractColumn(h) {
         }
 
         #! creates the column from the supplied arguments
@@ -525,11 +505,6 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents a PostgreSQL-specific numeric column
     public class PgsqlNumericColumn inherits PgsqlColumn, SqlUtil::NumericColumnInfo {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
-        }
-
         #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
@@ -551,10 +526,6 @@ my string $str = $col.getRenameSql($t, "new_name");
         private {
             #! any tablespace for the unique key index
             *string tablespace;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
         }
 
         #! creates the constraint with an optional tablespace name
@@ -609,11 +580,6 @@ my string $str = $col.getRenameSql($t, "new_name");
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
         }
 
         #! creates the object with the given attributes
@@ -676,11 +642,6 @@ auto v = c.name;
 
     #! represents a PostgreSQL-specific primary key constraint
     public class PgsqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, PgsqlUniqueConstraintCommon {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
-        }
-
         #! creates an empty primary key object
         constructor() {
         }
@@ -732,10 +693,6 @@ auto v = c.name;
 
     #! class for PostgreSQL sequences
     public class PgsqlSequence inherits SqlUtil::AbstractSequence {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractSequence(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -762,10 +719,6 @@ auto v = c.name;
         public {
             #! Owner of the view
             *string viewowner;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractView(h) {
         }
 
         #! creates the object from the arguments
@@ -800,10 +753,6 @@ auto v = c.name;
 
     #! represents a PostgreSQL-specific trigger
     public class PgsqlTrigger inherits SqlUtil::AbstractTrigger {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTrigger(h) {
-        }
-
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -833,10 +782,6 @@ auto v = c.name;
     public class PgsqlFunction inherits SqlUtil::AbstractFunction {
         public {
             *string args;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractFunction(h) {
         }
 
         constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
@@ -879,10 +824,6 @@ auto v = c.name;
         public {
             #! trigger name
             string trigger;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : PgsqlFunction(h) {
         }
 
         constructor(string n, string n_src, string n_trigger) : PgsqlFunction(n, n_src) {
@@ -1887,7 +1828,7 @@ auto v = c.name;
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
-            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
             if (ts)
                 sql += sprintf(" tablespace %s", ts);
 
@@ -1933,7 +1874,7 @@ auto v = c.name;
                         l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
                         triggers.take(f.trigger);
                     }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt.force), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
                 }
             }
 
@@ -2157,10 +2098,6 @@ auto v = c.name;
                 }
             }
             return ce;
-        }
-
-        #! used to deserialize table data
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTable(h) {
         }
     }
 }

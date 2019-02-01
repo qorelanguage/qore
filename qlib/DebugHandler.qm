@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DebugHandler.qm Qore handler definition for the HttpServer module for providing debug server via WebSocket server services
 
-/*  DebugHandler.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  DebugHandler.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@
 module DebugHandler {
     version = "0.1";
     desc = "user module for providing debug server via WebSocket server services";
-    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
 }
@@ -67,10 +67,10 @@ module DebugHandler {
 
 #! the DebugHandler namespace contains all the objects in the DebugHandler module
 public namespace DebugHandler {
-    #! this class represents a connection to a debug server via websocket client
-    /** @par Receiving Debug commands from Clients
+    #! The class represents a connection to a debug server via websocket client
+    /**
         The class implements @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()"
-        to handle incomming commands passed as YAML objects to control assigned @ref Qore::ProgramControl "ProgramControl" instance
+        to handle incomming commands passed to control assigned @ref Qore::ProgramControl "ProgramControl" instance
         Such a command is handled on request/response basis.
 
         Unsolicited messages are sent to client asynchronously when an event occurs in the
@@ -78,93 +78,82 @@ public namespace DebugHandler {
     */
     public class WebSocketDebugConnection inherits WebSocketHandler::WebSocketConnection {
         public {
-            WebSocketDebugHandler dhandler;
-        }
-
-        private {
-            #! websocket context, cx.id is used for sending messages to particular client
+            #! websocket context, cx.id is used for sending messages to particular client, custom field may be added as well
             hash cx;
         }
+        private {
+            AbstractWebSocketDebugHandler dhandler;
+        }
 
-        #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
-        constructor(WebSocketDebugHandler n_handler, hash n_cx): WebSocketConnection(n_handler) {
+        #! The constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client
+        /**
+            It is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()".
+        */
+        constructor(AbstractWebSocketDebugHandler n_handler, hash n_cx): WebSocketConnection(n_handler) {
             dhandler = n_handler;
             cx = n_cx;
+            cx.handler = dhandler;
             dhandler.debugProgram.registerConnection(cx);
         }
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when message from the client is received
+        #! The method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when message from the client is received
         /**
         */
         gotMessage(string msg) {
-            *hash sendData;
-            try {
-                any receiveData = parse_yaml(msg);
-                sendData = dhandler.debugProgram.processCommand(cx, receiveData);
-                if (exists sendData)
-                    dhandler.debugProgram.sendDataImpl(cx, sendData);
-            }
-            catch (hash<ExceptionInfo> ex) {
-                dhandler.log(DUV_DEBUG, "exception: %y", ex);
-                sendData.type = 'error';
-                sendData.result.err = ex.err;
-                sendData.result.desc = ex.desc;
-                sendData.result.ex = ex;
-                dhandler.debugProgram.sendDataImpl(cx, sendData);
-            }
+            dhandler.receiveData(cx, msg);
         }
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
-        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+        #! The method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
+        /**
+            Implementation unregisters connection from debug program host
         */
         connectionClosed() {
             dhandler.debugProgram.unregisterConnection(cx);
         }
-        #! send welcome message to identify itself
+
+        #! Notifies debug control host that new connection is registered.
+        /**
+            It may e.g. send welcome message to identify itself
+        */
         registered() {
             dhandler.debugProgram.connectionRegistered(cx);
         }
     }
 
-    #! the main web socket debug handler class
-    /** connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
-        @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method can be overridden in subclasses to return a custom object for each connection if required.
+    #! The abstract web socket debug handler class
+    /** Connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection" which is
+        instantiated via @ref WebSocketHandler::WebSocketHandler::getConnectionImpl().
+
+        The handler is registered via @ref HtpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive messages.
 
         @par Receiving WebSocket Messages from Clients
-        When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
+        When a message is received via @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" from the client then it is passed to @ref receiveData as is.
 
         @par Sending WebSocket Message to Clients
-        To send a message to a websocket client, call one of the following methods:
-        - @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()": send a message to single connection given its connection ID
-        - @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()": send a message to all connected clients
+        To send a message to a websocket client, call one of the following methods @ref sendData or @ref broadcastData.
 
         Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
     */
-    public class WebSocketDebugHandler inherits WebSocketHandler::WebSocketHandler {
+    public class AbstractWebSocketDebugHandler inherits WebSocketHandler::WebSocketHandler {
         public {
             WebSocketDebugProgramControl debugProgram;
             # default socket send timeout
             #const DefaultSocketSendTimeout = 30s;
             DebugLogger logger;
         }
-
-        #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
-        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
-            @param dpc the debug program controller object
-            @param args an optional list of arguments for the setLogger() method
-         */
-        constructor(*HttpServer::AbstractAuthenticator auth, WebSocketDebugProgramControl dpc, *list args) : WebSocketHandler::WebSocketHandler(auth) {
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts) : WebSocketHandler::WebSocketHandler(auth, opts) {
             debugProgram = dpc;
-            setLogger(args);
-        }
-
-        setLogger(*list args) {
-            logger = new DebugLogger();
+            dpc.addHandler(self);
         }
 
         log(int verbosity, string fmt) {
+            log2(verbosity, fmt, argv);
+        }
+
+        log2(int verbosity, string fmt, *list args) {
+
             if (logger) {
-                logger.log2(verbosity, fmt, argv);
+                logger.log2(verbosity, fmt, args);
             }
         }
 
@@ -173,30 +162,39 @@ public namespace DebugHandler {
             return new WebSocketDebugConnection(self, cx);
         }
 
+        #! returns the MIME type for serialized data
+        abstract public *string getContentType();
+
+        #! encode websocket data
+        abstract string encodeData(auto data);
+
+        #! called when web socket receives data
+        /**
+            Data are passed as is, i.e. decoding is needed. Intercept method when implementing a 3rd party protocol.
+        */
+        abstract public receiveData(hash cx, string msg);
+
+        #! sends data to the given connection
+        /**
+            Encode data and send using @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()" a message 
+            to single connection given its connection ID. Intercept method when implementing a 3rd party protocol.
+        */
+        public sendData(hash cx, auto data) {
+            sendOne(cx.id, encodeData(data));
+        }
+
+        #! sends data to all connections
+        /**
+            Encode data and broadcast data using @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()" a message to all connected clients.
+            Intercept method when implementing a 3rd party protocol.
+        */
+        public broadcastData(auto data) {
+            sendAll(encodeData(data));
+        }
+
         #! called by the HTTP server to handle incoming HTTP requests
-        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False"
-
-            @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
-            - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
-            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
-            - \c user: the current RBAC username (if any)
-            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
-            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-            - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
-            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-            @param b message body, if any
-
-            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
-            - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
-            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response; this class returns the %Qore websocket debug protocol version in the header \c "QoreDebugWsProtocol"
-
-            Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
+        /**
+            It adds custom header \c X-QoreDebugWsProtocol to response
          */
         hash handleRequest(hash cx, hash hdr, *data b) {
             hash rv = WebSocketHandler::handleRequest(cx, hdr, b);
@@ -205,52 +203,102 @@ public namespace DebugHandler {
         }
 
         logInfo(string fmt) {
-            log(DUV_INFO, fmt, argv);
+            log2(DUV_INFO, fmt, argv);
         }
 
         logDebug(string fmt) {
-            log(DUV_DEBUG, fmt, argv);
+            log2(DUV_DEBUG, fmt, argv);
         }
 
         logError(string fmt) {
-            log(DUV_INFO, "ERROR: " + fmt, argv);
+            log2(DUV_INFO, "ERROR: " + fmt, argv);
         }
     }
 
-    #! web socket debug program control class
-    public class WebSocketDebugProgramControl inherits DebugProgramControl {
-        private {
-            WebSocketDebugHandler handler;
-        }
+    #! the main web socket debug handler class implementing internal protocol in YAML format.
+    public class WebSocketDebugHandler inherits AbstractWebSocketDebugHandler {
 
-        #! creates the object and set the web socket handler object by calling setHandler()
-        constructor(string serverName, *HttpServer::AbstractAuthenticator auth) : DebugProgramControl(serverName) {
-            setHandler(auth, argv);
-        }
-
-        #! sets the web socket handler object; override in a subclass to provide a custom handler object
-        private setHandler(*HttpServer::AbstractAuthenticator auth, *list args) {
-            handler = new WebSocketDebugHandler(auth, self, args);
-        }
-
-        #! sends data to the given connection
-        public sendDataImpl(hash cx, auto data) {
-            handler.sendOne(cx.id, make_yaml(data));
-        }
-
-        #! sends data to all connections
-        public broadcastDataImpl(auto data) {
-             handler.sendAll(make_yaml(data));
-        }
-
-        #! returns the web socket handler object
-        public WebSocketHandler getHandler() {
-            return handler;
+        #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
+        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator");
+            if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
+            @param dpc the debug program controller object
+            @param opts passed to @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" constructor
+         */
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts) : AbstractWebSocketDebugHandler(dpc, auth, opts) {
         }
 
         #! returns the MIME type for serialized data
         public *string getContentType() {
             return MimeTypeYamlRpc;
         }
+
+        #! encode data as YAML
+        string encodeData(auto data) {
+            string s = make_yaml(data);
+            log(DUV_DEBUG_1, "%s", s);
+            return s;
+        }
+
+        #! called when web socket receive data
+        public receiveData(hash cx, string msg) {
+            *hash sd;
+            try {
+                any rd = parse_yaml(msg);
+                sd = debugProgram.processCommand(cx, rd);
+                if (exists sd)
+                    sendData(cx, sd);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                log(DUV_DEBUG, "exception: %y", ex);
+                sd.type = 'error';
+                sd.result.err = ex.err;
+                sd.result.desc = ex.desc;
+                sd.result.ex = ex;
+                sendData(cx, sd);
+            }
+        }
+
+    }
+
+    #! debug program control via @ref AbstractWebSocketDebugHandler
+    /**
+        More websocket handlers may be assigned, i.e. it can handle more URLs running one or more
+        protocols.
+    */
+    public class WebSocketDebugProgramControl inherits DebugProgramControl {
+        private {
+            #! list of associated @ref AbstractWebSocketDebugHandler handlers
+            list handlers = ();
+        }
+
+        #! creates the object
+        /**
+            @param serverName is used identifier fr \c welcome message
+        */
+        constructor(string serverName) : DebugProgramControl(serverName) {
+        }
+
+        #! sends data to the given connection
+        public sendDataImpl(hash cx, auto data) {
+            if (cx.handler) {
+                cx.handler.sendData(cx, data);
+            }
+        }
+
+        #! sends data to all connections
+        public broadcastDataImpl(auto data) {
+            foreach AbstractWebSocketDebugHandler h in (handlers) {
+                h.broadcastData(data);
+            }
+        }
+
+        #! add web socket handler object to handler list
+        public addHandler(AbstractWebSocketDebugHandler newHandler) {
+            if (inlist(newHandler, handlers)) {
+                return;
+            }
+            push handlers, newHandler;
+        }
+
     }
 }

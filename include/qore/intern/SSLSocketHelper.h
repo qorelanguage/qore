@@ -87,7 +87,7 @@ public:
    // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
    DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms, bool read, bool do_timeout = true);
 
-   DLLLOCAL int setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
+   DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
    // returns 0 for success
    DLLLOCAL int connect(const char* mname, int timeout_ms, ExceptionSink* xsink);

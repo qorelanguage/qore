@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+%requires ./issue3179.qm
+
+%requires reflection
+
+%exec-class Issue3179Test
+
+class Issue3179Test inherits QUnit::Test {
+    constructor() : QUnit::Test("Issue3179Test", "1.0") {
+        addTestCase("issue 3179", \issue3179());
+
+        set_return_value(main());
+    }
+
+    issue3179() {
+        for (int i = 0; i < 3; ++i) {
+            doTest();
+        }
+    }
+
+    private doTest() {
+        Program p(PO_NO_INHERIT_USER_CLASSES);
+        p.importClass("Disappear");
+        p.parse("string sub get() { return Disappear::get(); }", "");
+        assertEq("str", p.callFunction("get"));
+        assertEq("str", Disappear::get());
+
+        Class cls = Class::forName("Disappear");
+        AbstractMethod m = cls.findMethod("get").method;
+        assertEq("Disappear", m.getClass().getName());
+    }
+}

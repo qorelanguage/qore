@@ -83,8 +83,8 @@ int sock_get_error() {
 
    switch (rc) {
       case 0:
-	 errno = 0;
-	 break;
+         errno = 0;
+         break;
 
       case WSANOTINITIALISED:
       case WSAEINVAL:
@@ -92,62 +92,62 @@ int sock_get_error() {
       case WSAEADDRNOTAVAIL:
       case WSAEAFNOSUPPORT:
       case WSAEOPNOTSUPP:
-	 errno = EINVAL;
-	 break;
+         errno = EINVAL;
+         break;
 
       case WSAEADDRINUSE:
-	 errno = EIO;
-	 break;
+         errno = EIO;
+         break;
 
       case WSAENETDOWN:
-	 errno = ENODEV;
-	 break;
+         errno = ENODEV;
+         break;
 
       case WSAEFAULT:
-	 errno = EFAULT;
-	 break;
+         errno = EFAULT;
+         break;
 
       case WSAENOBUFS:
-	 errno = ENOMEM;
-	 break;
+         errno = ENOMEM;
+         break;
 
       case WSAETIMEDOUT:
-	 errno = ETIMEDOUT;
-	 break;
+         errno = ETIMEDOUT;
+         break;
 
       case WSAECONNREFUSED:
-	 errno = ECONNREFUSED;
-	 break;
+         errno = ECONNREFUSED;
+         break;
 
       case WSAEBADF:
-	 errno = EBADF;
-	 break;
+         errno = EBADF;
+         break;
 
       case WSAECONNRESET:
       case WSAECONNABORTED:
-	 errno = ECONNRESET;
-	 break;
+         errno = ECONNRESET;
+         break;
 
       case WSAEWOULDBLOCK:
-	 errno = EAGAIN;
-	 break;
+         errno = EAGAIN;
+         break;
 
 #ifdef DEBUG
       case WSAEALREADY:
       case WSAEINTR:
       case WSAEINPROGRESS:
-	 // should never get these here
-	 printd(0, "sock_get_error() got unexpected error code %d; about to assert()\n", rc);
-	 assert(false);
-	 errno = EFAULT;
-	 break;
+         // should never get these here
+         printd(0, "sock_get_error() got unexpected error code %d; about to assert()\n", rc);
+         assert(false);
+         errno = EFAULT;
+         break;
 #endif
 
       default:
-	 printd(0, "sock_get_error() unknown code %d; about to assert()\n", rc);
-	 assert(false);
-	 errno = EFAULT;
-	 break;
+         printd(0, "sock_get_error() unknown code %d; about to assert()\n", rc);
+         assert(false);
+         errno = EFAULT;
+         break;
    }
 
    return errno;
@@ -304,16 +304,16 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
    }
    if (cert) {
       if (!SSL_CTX_use_certificate(ctx, cert)) {
-	 sslError(xsink, mname, "SSL_CTX_use_certificate");
-	 assert(*xsink);
-	 return -1;
+         sslError(xsink, mname, "SSL_CTX_use_certificate");
+         assert(*xsink);
+         return -1;
       }
    }
    if (pk) {
       if (!SSL_CTX_use_PrivateKey(ctx, pk)) {
-	 sslError(xsink, mname, "SSL_CTX_use_PrivateKey");
-	 assert(*xsink);
-	 return -1;
+         sslError(xsink, mname, "SSL_CTX_use_PrivateKey");
+         assert(*xsink);
+         return -1;
       }
    }
 
@@ -339,9 +339,19 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
    return 0;
 }
 
-int SSLSocketHelper::setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
-   meth = SSLv23_client_method();
-   return setIntern(mname, sd, cert, pk, xsink);
+int SSLSocketHelper::setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
+    meth = SSLv23_client_method();
+    int rc = setIntern(mname, sd, cert, pk, xsink);
+    if (!rc && sni_target_host) {
+        // issue #3053 set TLS server name for servers that require SNI
+        assert(ssl);
+        if (!SSL_set_tlsext_host_name(ssl, sni_target_host)) {
+            sslError(xsink, mname, "SSL_set_tlsext_host_name");
+            assert(*xsink);
+            return -1;
+        }
+    }
+    return rc;
 }
 
 int SSLSocketHelper::setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
@@ -357,29 +367,29 @@ int SSLSocketHelper::connect(const char* mname, int timeout_ms, ExceptionSink* x
 
    if (timeout_ms >= 0) {
       if (qs.set_non_blocking(true, xsink))
-	 return qs.close_and_exit();
+         return qs.close_and_exit();
 
       while (true) {
-	 rc = SSL_connect(ssl);
+         rc = SSL_connect(ssl);
 
-	 if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_connect", xsink))) {
-	    if (!qs.isOpen())
-	       break;
-	    continue;
-	 }
+         if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_connect", xsink))) {
+            if (!qs.isOpen())
+               break;
+            continue;
+         }
 
-	 break;
+         break;
       }
 
       if (qs.isOpen() && qs.set_non_blocking(false, xsink))
-	 return qs.close_and_exit();
+         return qs.close_and_exit();
    }
    else
       rc = SSL_connect(ssl);
 
    if (rc <= 0) {
       if (!*xsink)
-	 sslError(xsink, mname, "SSL_connect", true);
+         sslError(xsink, mname, "SSL_connect", true);
       return -1;
    }
 
@@ -394,22 +404,22 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
 
    if (timeout_ms >= 0) {
       if (qs.set_non_blocking(true, xsink))
-	 return qs.close_and_exit();
+         return qs.close_and_exit();
 
       while (true) {
-	 rc = SSL_accept(ssl);
+         rc = SSL_accept(ssl);
 
-	 if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", xsink))) {
-	    if (!qs.isOpen())
-	       break;
-	    continue;
-	 }
+         if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", xsink))) {
+            if (!qs.isOpen())
+               break;
+            continue;
+         }
 
-	 break;
+         break;
       }
 
       if (qs.isOpen() && qs.set_non_blocking(false, xsink))
-	 return qs.close_and_exit();
+         return qs.close_and_exit();
    }
    else
       rc = SSL_accept(ssl);
@@ -417,7 +427,7 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
    if (rc <= 0) {
       //printd(5, "SSLSocketHelper::accept() rc: %d\n", rc);
       if (!*xsink)
-	 sslError(xsink, mname, "SSL_accept", true);
+         sslError(xsink, mname, "SSL_accept", true);
       assert(*xsink);
       return -1;
    }
@@ -518,60 +528,71 @@ void SocketSource::setAll(QoreObject *o, ExceptionSink* xsink) {
 }
 
 int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
-   assert(xsink);
+    assert(xsink);
 
-   if (!size)
-      return 0;
-   if (sock == QORE_INVALID_SOCKET) {
-      printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
-      se_not_open("Socket", "send", xsink);
-      return -1;
-   }
+    if (!size)
+        return 0;
+    if (sock == QORE_INVALID_SOCKET) {
+        printd(5, "QoreSocket::send() ERROR: sock: %d size: " QSD "\n", sock, size);
+        se_not_open("Socket", "send", xsink);
+        return -1;
+    }
 
-   char* buf = (char*)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
-   ON_BLOCK_EXIT(free, buf);
+    char* buf = (char*)malloc(sizeof(char) * DEFAULT_SOCKET_BUFSIZE);
+    ON_BLOCK_EXIT(free, buf);
 
-   qore_offset_t rc = 0;
-   qore_size_t bs = 0;
-   while (true) {
-      // calculate bytes needed
-      qore_size_t bn;
-      if (size < 0)
-	 bn = DEFAULT_SOCKET_BUFSIZE;
-      else {
-	 bn = size - bs;
-	 if (bn > DEFAULT_SOCKET_BUFSIZE)
-	    bn = DEFAULT_SOCKET_BUFSIZE;
-      }
-      while (true) {
-         rc = ::read(fd, buf, bn);
-         if (rc >= 0)
+    qore_offset_t rc = 0;
+    qore_size_t bs = 0;
+    while (true) {
+        // calculate bytes needed
+        qore_size_t bn;
+        if (size < 0)
+            bn = DEFAULT_SOCKET_BUFSIZE;
+        else {
+            bn = size - bs;
+            if (bn > DEFAULT_SOCKET_BUFSIZE)
+                bn = DEFAULT_SOCKET_BUFSIZE;
+        }
+        while (true) {
+            rc = ::read(fd, buf, bn);
+            if (rc >= 0)
+                break;
+            if (errno != EINTR) {
+                // FIXME: remove this check
+                if (xsink) {
+                    xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
+                }
+                break;
+            }
+        }
+        // issue #3038: handle EOF
+        if (!rc) {
+            if (size < 0) {
+                break;
+            } else {
+                xsink->raiseErrnoException("FILE-READ-ERROR", errno,
+                    "premature EOF reading file; " QSD " bytes requested; " QSD " bytes read in Socket::send()",
+                    size, bs);
+            }
+        }
+        if (rc < 0) {
+            //printd(5, "QoreSocket::send() read error: %s\n", strerror(errno));
             break;
-         if (errno != EINTR) {
-            // FIXME: remove this check
-            if (xsink)
-               xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
-            break;
-         }
-      }
-      if (rc < 0) {
-         //printd(5, "QoreSocket::send() read error: %s\n", strerror(errno));
-         break;
-      }
+        }
 
-      // send buffer
-      int src = send(xsink, "Socket", "send", buf, rc, timeout_ms);
-      if (src < 0) {
-	 printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
-	 break;
-      }
-      bs += rc;
-      if (size > 0 && bs >= (qore_size_t)size) {
-	 rc = 0;
-	 break;
-      }
-   }
-   return rc;
+        // send buffer
+        int src = send(xsink, "Socket", "send", buf, rc, timeout_ms);
+        if (src < 0) {
+            printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
+            break;
+        }
+        bs += rc;
+        if (size > 0 && bs >= (qore_size_t)size) {
+            rc = 0;
+            break;
+        }
+    }
+    return rc;
 }
 
 int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
@@ -591,16 +612,16 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
       // calculate bytes needed
       int bn;
       if (size == -1)
-	 bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = DEFAULT_SOCKET_BUFSIZE;
       else {
-	 bn = size - br;
-	 if (bn > DEFAULT_SOCKET_BUFSIZE)
-	    bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = size - br;
+         if (bn > DEFAULT_SOCKET_BUFSIZE)
+            bn = DEFAULT_SOCKET_BUFSIZE;
       }
 
       rc = brecv(xsink, "recv", buf, bn, 0, timeout_ms);
       if (rc <= 0)
-	 break;
+         break;
       br += rc;
 
       // write buffer to file descriptor
@@ -618,8 +639,8 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
       }
 
       if (size > 0 && br >= size) {
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
    }
    return (int)rc;
@@ -629,29 +650,29 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
    assert(xsink);
    switch (rc) {
       case 0:
-	 se_closed("Socket", meth, xsink);
-	 break;
+         se_closed("Socket", meth, xsink);
+         break;
       case QSE_RECV_ERR: // recv() error
-	 xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
-	 break;
+         xsink->raiseException("SOCKET-RECV-ERROR", q_strerror(errno));
+         break;
       case QSE_NOT_OPEN:
-	 se_not_open("Socket", meth, xsink);
-	 break;
+         se_not_open("Socket", meth, xsink);
+         break;
       case QSE_TIMEOUT:
-	 se_timeout("Socket", meth, timeout_ms, xsink);
-	 break;
+         se_timeout("Socket", meth, timeout_ms, xsink);
+         break;
       case QSE_SSL_ERR:
-	 xsink->raiseException("SOCKET-SSL-ERROR", "SSL error in Socket::%s() call", meth);
-	 break;
+         xsink->raiseException("SOCKET-SSL-ERROR", "SSL error in Socket::%s() call", meth);
+         break;
       case QSE_IN_OP:
-	 se_in_op("Socket", meth, xsink);
-	 break;
+         se_in_op("Socket", meth, xsink);
+         break;
       case QSE_IN_OP_THREAD:
-	 se_in_op_thread("Socket", meth, xsink);
-	 break;
+         se_in_op_thread("Socket", meth, xsink);
+         break;
       default:
-	 xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
-	 break;
+         xsink->raiseException("SOCKET-ERROR", "unknown internal error code %d in Socket::%s() call", rc, meth);
+         break;
    }
 }
 
@@ -664,7 +685,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
       while (true) {
          int rc = read ? SSL_read(ssl, buf, size) : SSL_write(ssl, buf, size);
          if (rc <= 0) {
-	    // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
+            // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
             // issue 1729: only return 0 when reading, indicating that the remote closed the connection
             if (!sslError(xsink, mname, read ? "SSL_read" : "SSL_write", read ? false : true))
                rc = 0;
@@ -772,40 +793,40 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 
    if (err == SSL_ERROR_WANT_READ) {
       if (qs.isSocketDataAvailable(timeout_ms, mname, xsink))
-	 return 0;
+         return 0;
 
       if (*xsink)
-	 return -1;
+         return -1;
       se_timeout("Socket", mname, timeout_ms, xsink);
       return QSE_TIMEOUT;
    }
 
    if (err == SSL_ERROR_WANT_WRITE) {
       if (qs.isWriteFinished(timeout_ms, mname, xsink))
-	 return 0;
+         return 0;
 
       if (*xsink)
-	 return -1;
+         return -1;
       se_timeout("Socket", mname, timeout_ms, xsink);
       return QSE_TIMEOUT;
    }
 
    if (err == SSL_ERROR_SYSCALL) {
       if (!sslError(xsink, mname, ssl_func)) {
-	 if (!rc)
-	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling %s()", mname, ssl_func);
-	 else if (rc == -1) {
-	    xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling %s()", mname, ssl_func);
+         if (!rc)
+            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling %s()", mname, ssl_func);
+         else if (rc == -1) {
+            xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling %s()", mname, ssl_func);
 
 #ifdef ECONNRESET
-	    // close the socket if connection reset received
-	    // do not access "this" after the connection is closed since the SSLSocketHelper has been deleted
-	    if (qs.isOpen() && sock_get_error() == ECONNRESET)
-	       qs.close();
+            // close the socket if connection reset received
+            // do not access "this" after the connection is closed since the SSLSocketHelper has been deleted
+            if (qs.isOpen() && sock_get_error() == ECONNRESET)
+               qs.close();
 #endif
-	 }
-	 else
-	    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in %s() but the error queue is empty", mname, rc, ssl_func);
+         }
+         else
+            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in %s() but the error queue is empty", mname, rc, ssl_func);
       }
 
       return !*xsink ? 0 : QSE_SSL_ERR;
@@ -1045,12 +1066,12 @@ int QoreSocket::connect(const char* name, int timeout_ms, ExceptionSink* xsink) 
       QoreString service(p + 1);
       // if the address is an ipv6 address like: [<addr>], then connect as ipv6
       if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
-	 host.terminate(host.strlen() - 1);
-	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
-	 rc = priv->connectINET(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
+         host.terminate(host.strlen() - 1);
+         //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
+         rc = priv->connectINET(host.getBuffer() + 1, service.getBuffer(), timeout_ms, xsink, AF_INET6);
       }
       else
-	 rc = priv->connectINET(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
+         rc = priv->connectINET(host.getBuffer(), service.getBuffer(), timeout_ms, xsink);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
@@ -1079,12 +1100,12 @@ int QoreSocket::connectSSL(const char* name, int timeout_ms, X509* cert, EVP_PKE
       QoreString service(p + 1);
       // if the address is an ipv6 address like: [<addr>], then connect as ipv6
       if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
-	 host.terminate(host.strlen() - 1);
-	 //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
-	 rc = connectINET2SSL(host.getBuffer() + 1, service.getBuffer(), AF_INET6, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
+         host.terminate(host.strlen() - 1);
+         //printd(5, "QoreSocket::connect(%s, %s) [ipv6]\n", host.getBuffer() + 1, service.getBuffer());
+         rc = connectINET2SSL(host.getBuffer() + 1, service.getBuffer(), AF_INET6, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
       }
       else
-	 rc = connectINET2SSL(host.getBuffer(), service.getBuffer(), AF_UNSPEC, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
+         rc = connectINET2SSL(host.getBuffer(), service.getBuffer(), AF_UNSPEC, SOCK_STREAM, 0, timeout_ms, cert, pkey, xsink);
    }
    else {
       // else assume it's a file name for a UNIX domain socket
@@ -1105,7 +1126,7 @@ int QoreSocket::connectINETSSL(const char* host, int prt, int timeout_ms, X509* 
    int rc = priv->connectINET(host, service.getBuffer(), timeout_ms, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectINETSSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("connectINETSSL", host, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::connectINETSSL(const char* host, int prt, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
@@ -1116,14 +1137,14 @@ int QoreSocket::connectINET2SSL(const char* name, const char* service, int famil
    int rc = connectINET2(name, service, family, sock_type, protocol, timeout_ms, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectINET2SSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("connectINET2SSL", name, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::connectUNIXSSL(const char* p, int sock_type, int protocol, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    int rc = connectUNIX(p, sock_type, protocol, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectUNIXSSL", cert, pkey, -1, xsink);
+   return priv->upgradeClientToSSLIntern("connectUNIXSSL", nullptr, cert, pkey, -1, xsink);
 }
 
 int QoreSocket::sendi1(char i) {
@@ -1438,30 +1459,30 @@ int QoreSocket::send(int fd, qore_offset_t size) {
       // calculate bytes needed
       qore_size_t bn;
       if (size < 0)
-	 bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = DEFAULT_SOCKET_BUFSIZE;
       else {
-	 bn = size - bs;
-	 if (bn > DEFAULT_SOCKET_BUFSIZE)
-	    bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = size - bs;
+         if (bn > DEFAULT_SOCKET_BUFSIZE)
+            bn = DEFAULT_SOCKET_BUFSIZE;
       }
       rc = read(fd, buf, bn);
       if (!rc)
-	 break;
+         break;
       if (rc < 0) {
-	 printd(5, "QoreSocket::send() read error: %s\n", strerror(errno));
-	 break;
+         printd(5, "QoreSocket::send() read error: %s\n", strerror(errno));
+         break;
       }
 
       // send buffer
       int src = priv->send(&xsink, "send", buf, rc);
       if (src < 0) {
-	 printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
-	 break;
+         printd(5, "QoreSocket::send() send error: %s\n", strerror(errno));
+         break;
       }
       bs += rc;
       if (size > 0 && bs >= (qore_size_t)size) {
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
    }
 
@@ -1571,26 +1592,26 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
       // calculate bytes needed
       int bn;
       if (size == -1)
-	 bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = DEFAULT_SOCKET_BUFSIZE;
       else {
-	 bn = size - br;
-	 if (bn > DEFAULT_SOCKET_BUFSIZE)
-	    bn = DEFAULT_SOCKET_BUFSIZE;
+         bn = size - br;
+         if (bn > DEFAULT_SOCKET_BUFSIZE)
+            bn = DEFAULT_SOCKET_BUFSIZE;
       }
 
       rc = priv->brecv(&xsink, "recv", buf, bn, 0, timeout);
       if (rc <= 0)
-	 break;
+         break;
       br += rc;
 
       // write buffer to file descriptor
       rc = write(fd, buf, rc);
       if (rc <= 0)
-	 break;
+         break;
 
       if (size > 0 && br >= size) {
-	 rc = 0;
-	 break;
+         rc = 0;
+         break;
       }
    }
 
@@ -1733,7 +1754,7 @@ int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xs
    }
    if (priv->ssl)
       return 0;
-   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, -1, xsink);
+   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", nullptr, cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
@@ -1743,7 +1764,7 @@ int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, E
    }
    if (priv->ssl)
       return 0;
-   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", nullptr, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
@@ -1788,8 +1809,8 @@ int QoreSocket::bind(const char* name, bool reuseaddr) {
 
       // if the address is an ipv6 address like: [<addr>], then bind as ipv6
       if (host.strlen() > 2 && host[0] == '[' && host[host.strlen() - 1] == ']') {
-	 host.terminate(host.strlen() - 1);
-	 rc = priv->bindINET(&xsink, host.getBuffer() + 1, service.getBuffer(), reuseaddr, AF_INET6, SOCK_STREAM);
+         host.terminate(host.strlen() - 1);
+         rc = priv->bindINET(&xsink, host.getBuffer() + 1, service.getBuffer(), reuseaddr, AF_INET6, SOCK_STREAM);
       }
 
       // assume an ipv6 address if there is a ':' character in the hostname, otherwise bind ipv4

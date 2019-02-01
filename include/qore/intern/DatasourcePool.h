@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -111,7 +111,7 @@ public:
 
     // the first connection (opened in the DatasourcePool constructor) is passed with an xsink obj
     // because invalid options can cause an exception to be thrown
-    DLLLOCAL Datasource* get(DatasourceStatementHelper* dsh, ExceptionSink* xsink = nullptr) const;
+    DLLLOCAL Datasource* get(DatasourceStatementHelper* dsh, ExceptionSink* xsink) const;
 
     DLLLOCAL void setQueue(Queue* n_q, QoreValue n_arg, ExceptionSink* xsink) {
         if (q)
@@ -174,6 +174,17 @@ public:
     DLLLOCAL DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink);
 
     DLLLOCAL virtual ~DatasourcePool();
+
+    using AbstractPrivateData::deref;
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        // if the object is obliterated (due to a constructor error in a child class or a serialization error), make sure
+        // it's destroyed properly
+        if (ROdereference()) {
+            config.del(xsink);
+            delete this;
+        }
+    }
+
     DLLLOCAL void destructor(ExceptionSink* xsink);
     DLLLOCAL virtual void cleanup(ExceptionSink* xsink);
     DLLLOCAL QoreValue select(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);

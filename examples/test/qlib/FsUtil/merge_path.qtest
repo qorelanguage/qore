@@ -1,0 +1,898 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MergePathTest
+
+public class MergePathTest inherits QUnit::Test {
+
+    constructor() : Test ("MergePathTest", "1.0") {
+        addTestCase("merge_path tree test", \test_merge_path_tree());
+        addTestCase("merge_path tree overwrite test", \test_merge_path_tree_overwrite());
+        addTestCase("merge_path tree depth test", \test_merge_path_tree_depth());
+        addTestCase("merge_path tree exception test", \test_merge_path_tree_exception());
+        addTestCase("merge_path file test", \test_merge_path_file());
+        addTestCase("merge_path file test - exceptions", \test_merge_path_file_exceptions());
+        addTestCase("merge_path file test - don't follow symlinks", \test_merge_path_file_dont_follow_symlinks());
+        addTestCase("merge_path file test - follow symlinks", \test_merge_path_file_follow_symlinks());
+        addTestCase("merge_path file test - symlink in source", \test_merge_path_file_symlink_in_src());
+        set_return_value(main());
+    }
+
+    set_content_to_file(string path, string content) {
+        File f();
+        f.open2(path, O_TRUNC | O_WRONLY);
+        f.write(content);
+        f.close();
+    }
+
+    assert_file_contains(string path, string content) {
+        File f();
+        f.open2(path);
+        string actual = f.read(-1);
+        assertEq(content, actual);
+        f.close();
+    }
+
+    test_merge_path_tree() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string src_content = "Hello world!";
+        set_content_to_file(file_path, src_content);
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assert_file_contains(file_path, src_content);
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+
+        # let's "merge" the source directory tree into a non-existing location
+        string dst_path = join_paths(tmp_root, "dst");
+        assertFalse(path_exists(dst_path));
+        string cp_dest_path = merge_path(source_path, dst_path);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        string dst_dir_path = join_paths(dst_path, "dir");
+        string dst_file_path = join_paths(dst_path, "file");
+        string dst_link_path = join_paths(dst_dir_path, "link");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assert_file_contains(dst_file_path, src_content);
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again but this time use an existing directory as destination
+        mkdir(dst_path);
+        # add some content to the destination tree
+        string dst_extra_dir = join_paths(dst_path, "extra_dir");
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string dst_content = "BYE!";
+        set_content_to_file(dst_file_path, dst_content);
+
+        # and then merge the source tree into it
+        cp_dest_path = merge_path(source_path, dst_path);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be the ogirinal from destination tree
+        assert_file_contains(dst_file_path, dst_content);
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again with follow_symlinks=True
+        mkdir(dst_path);
+        # add some content to the destination tree
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        set_content_to_file(dst_file_path, dst_content);
+        # merge
+        cp_dest_path = merge_path(source_path, dst_path, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be the ogirinal from destination tree
+        assert_file_contains(dst_file_path, dst_content);
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # now let's merge it via a link to the source
+        # let's try again with follow_symlinks=True
+        # without content in destination first
+        string src_link_path = join_paths(tmp_root, "src_link");
+        assertFalse(path_exists(src_link_path));
+        symlink(source_path, src_link_path);
+        assertTrue(path_exists(src_link_path));
+        assertTrue(is_link(src_link_path));
+        cp_dest_path = merge_path(source_path, dst_path, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # and now with some content in destination
+        mkdir(dst_path);
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        set_content_to_file(dst_file_path, dst_content);
+        # merge
+        assertTrue(path_exists(src_link_path));
+        assertTrue(is_link(src_link_path));
+        cp_dest_path = merge_path(source_path, dst_path, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be the ogirinal from destination tree
+        assert_file_contains(dst_file_path, dst_content);
+    }
+
+    test_merge_path_tree_overwrite() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string src_content = "Hello world!";
+        set_content_to_file(file_path, src_content);
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assert_file_contains(file_path, src_content);
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+
+        # let's "merge" the source directory tree into a non-existing location
+        string dst_path = join_paths(tmp_root, "dst");
+        assertFalse(path_exists(dst_path));
+        string cp_dest_path = merge_path(source_path, dst_path, NOTHING, True);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        string dst_dir_path = join_paths(dst_path, "dir");
+        string dst_file_path = join_paths(dst_path, "file");
+        string dst_link_path = join_paths(dst_dir_path, "link");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assert_file_contains(dst_file_path, src_content);
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again but this time use an existing directory as destination
+        mkdir(dst_path);
+        # add some content to the destination tree
+        string dst_extra_dir = join_paths(dst_path, "extra_dir");
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string dst_content = "BYE!";
+        set_content_to_file(dst_file_path, dst_content);
+
+        # and then merge the source tree into it
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be overwritten by the merge from source tree
+        assert_file_contains(dst_file_path, src_content);
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again with follow_symlinks=True
+        mkdir(dst_path);
+        # add some content to the destination tree
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        set_content_to_file(dst_file_path, dst_content);
+        # merge
+        cp_dest_path = merge_path(source_path, dst_path, True, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be overwritten by the merge from source tree
+        assert_file_contains(dst_file_path, src_content);
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # now let's merge it via a link to the source
+        # let's try again with follow_symlinks=True
+        # without content in destination first
+        string src_link_path = join_paths(tmp_root, "src_link");
+        assertFalse(path_exists(src_link_path));
+        symlink(source_path, src_link_path);
+        assertTrue(path_exists(src_link_path));
+        assertTrue(is_link(src_link_path));
+        cp_dest_path = merge_path(source_path, dst_path, True, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # and now with some content in destination
+        mkdir(dst_path);
+        mkdir(dst_extra_dir);
+        tmp_file = new File();
+        tmp_file.open(dst_file_path, O_CREAT, 0600);
+        tmp_file.close();
+        set_content_to_file(dst_file_path, dst_content);
+        # merge
+        assertTrue(path_exists(src_link_path));
+        assertTrue(is_link(src_link_path));
+        cp_dest_path = merge_path(source_path, dst_path, True, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # the extra dir should be there as well
+        assertTrue(path_exists(dst_extra_dir));
+        assertTrue(is_dir(dst_extra_dir));
+        # the file's content should be overwritten by the merge from source tree
+        assert_file_contains(dst_file_path, src_content);
+    }
+
+    test_merge_path_tree_depth() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string src_content = "Hello world!";
+        set_content_to_file(file_path, src_content);
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assert_file_contains(file_path, src_content);
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+
+        # let's "merge" the source directory tree into a non-existing location with just one level of depth
+        string dst_path = join_paths(tmp_root, "dst");
+        assertFalse(path_exists(dst_path));
+        string cp_dest_path = merge_path(source_path, dst_path, NOTHING, NOTHING, NOTHING, 1);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        string dst_dir_path = join_paths(dst_path, "dir");
+        string dst_file_path = join_paths(dst_path, "file");
+        string dst_link_path = join_paths(dst_dir_path, "link");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assert_file_contains(dst_file_path, src_content);
+        assertFalse(path_exists(dst_link_path));            # too deep
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's do the same with zero depth
+        assertFalse(path_exists(dst_path));
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, NOTHING, NOTHING, 0);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        # the rest is too deep
+        assertFalse(path_exists(dst_dir_path));
+        assertFalse(path_exists(dst_file_path));
+        assertFalse(path_exists(dst_link_path));
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's do the same with depth too high -> everything should be copied/merged
+        assertFalse(path_exists(dst_path));
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, NOTHING, NOTHING, 500);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assert_file_contains(dst_file_path, src_content);
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # let's not clean it this time, just remove the link
+        unlink(dst_link_path);
+        assertFalse(path_exists(dst_link_path));
+
+        # let's merge it again (one level of depth) and check that the symlink is not re-created
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, NOTHING, NOTHING, 1);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assert_file_contains(dst_file_path, src_content);
+        assertFalse(path_exists(dst_link_path));
+
+        # change the file's content (in destination)
+        string dst_content = "BYE!";
+        set_content_to_file(dst_file_path, dst_content);
+        # and then merge the source tree again with overwrite and zero depth (-> the file should not be overwritten)
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, True, NOTHING, 0);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertFalse(path_exists(dst_link_path));
+        # the file's content should not be overwritten by the merge from source tree
+        assert_file_contains(dst_file_path, dst_content);
+
+        # increase the depth to 1 and merge with overwrite again -> the file will be overwritten
+        cp_dest_path = merge_path(source_path, dst_path, NOTHING, True, NOTHING, 1);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertFalse(path_exists(dst_link_path));
+        # the file's content should be overwritten by the merge from source tree
+        assert_file_contains(dst_file_path, src_content);
+    }
+
+    test_merge_path_tree_exception() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+        string dest_dir = join_paths(tmp_root, "dest");
+        mkdir(dest_dir);
+
+        # now we should have something like...
+        # tmp_root
+        # ├── dest
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+        assertTrue(path_exists(dest_dir));
+        assertTrue(is_dir(dest_dir));
+
+        # try and merge a non-existing path
+        string non_existing = join_paths(tmp_root, "non-existing");
+        assertFalse(path_exists(non_existing));
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existing, dest_dir));
+
+        # try and merge a directory into itself
+        assertThrows("SAME-DIR-ERROR", \merge_path(), (dest_dir, dest_dir));
+
+        # now let's make tmp_root/src/file unreadable -> merging it should fail
+        # we'll call it with fail_immediately set to False to test the error collecting
+        chmod(file_path, 0000);
+        bool exception_thrown = False;
+        try {
+            merge_path(source_path, dest_dir, NOTHING, True, False);
+        } catch (hash<ExceptionInfo> err) {
+            exception_thrown = True;
+            assertEq("COPY-TREE-ERROR", err.err);
+            assertEq(1, err.desc.size());
+            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
+            assertGt(-1, index(err.desc[0].desc, file_path));
+        }
+        assertTrue(exception_thrown);
+        remove_tree(dest_dir);
+
+        # try that again with follow_symlinks (i.e. the link will also be unreadable)
+        # we'll call it with fail_immediately set to False to test the error collecting
+        exception_thrown = False;
+        try {
+            merge_path(source_path, dest_dir, True, NOTHING, False);
+        } catch (hash<ExceptionInfo> err) {
+            exception_thrown = True;
+            assertEq("COPY-TREE-ERROR", err.err);
+            assertEq(2, err.desc.size());
+            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
+            assertEq("FILE-OPEN2-ERROR", err.desc[1].err);
+            assertGt(-1, index(err.desc[0].desc, file_path));
+            assertGt(-1, index(err.desc[1].desc, file_path));
+        }
+        assertTrue(exception_thrown);
+        remove_tree(dest_dir);
+
+        # let's repeat the last two tests with fail_immediately flag
+        assertThrows("FILE-OPEN2-ERROR", \merge_path(), (source_path, dest_dir));
+        remove_tree(dest_dir);
+
+        assertThrows("FILE-OPEN2-ERROR", \merge_path(), (source_path, dest_dir, True));
+        remove_tree(dest_dir);
+    }
+
+    test_merge_path_file() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        string merge_dst_path = join_paths(tmp_path, "merge");
+        assertFalse(path_exists(merge_dst_path));
+        string dest_path = merge_path(original.path, merge_dst_path);
+        assertEq(merge_dst_path, dest_path);
+        assertTrue(path_exists(merge_dst_path));
+        assertEq(hstat(original.path).mode, hstat(merge_dst_path).mode);
+        assert_file_contains(merge_dst_path, content);
+
+        # now overwrite the file with different content
+        string content2 = "Goodbye...";
+        set_content_to_file(original.path, content2);
+        assert_file_contains(original.path, content2);
+        assert_file_contains(merge_dst_path, content);
+        # first without the overwrite flag
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (original.path, merge_dst_path));
+        # now with overwrite
+        dest_path = merge_path(original.path, merge_dst_path, NOTHING, True);
+        assertEq(merge_dst_path, dest_path);
+        assertEq(hstat(original.path).mode, hstat(merge_dst_path).mode);
+        assert_file_contains(merge_dst_path, content2);
+
+        # now overwrite the file with different permissions
+        assertEq(0100600, hstat(original.path).mode);
+        chmod(original.path, 0640);
+        assertEq(0100640, hstat(original.path).mode);
+        # first without the overwrite flag
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (original.path, merge_dst_path));
+        # now with overwrite
+        dest_path = merge_path(original.path, merge_dst_path, NOTHING, True);
+        assertEq(merge_dst_path, dest_path);
+        assertEq(0100640, hstat(merge_dst_path).mode);
+    }
+
+    test_merge_path_file_exceptions() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        # same file
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        string content = "Hello World!";
+        file1.file.write(content);
+        file1.file.close();
+        assert_file_contains(file1.path, content);
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, file1.path));
+        # it doesn't depend on overwrite flag
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, file1.path, NOTHING, True));
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, file1.path, NOTHING, False));
+
+        # same file via a link
+        string link_file1 = join_paths(tmp_path, "link_file1");
+        symlink(file1.path, link_file1);
+        assertTrue(is_link(link_file1));
+        assertEq(file1.path, readlink(link_file1));
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, link_file1, True));
+        # it doesn't depend on overwrite flag
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, file1.path, True, True));
+        assertThrows("SAME-FILE-ERROR", \merge_path(), (file1.path, file1.path, True, False));
+
+        # non-existent source should always fail
+        string non_existent = join_paths(tmp_path, "non_existent.txt");
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existent, file1.path));
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existent, file1.path, True, False));
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existent, file1.path, False, True));
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existent, file1.path, True, True));
+        assertThrows("FILE-STAT-ERROR", \merge_path(), (non_existent, file1.path, False, False));
+
+        # existing destination
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        file1.file.close();
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (file2.path, file1.path, True, False));
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (file2.path, file1.path, False, False));
+
+        # existing destination via a link
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (file2.path, link_file1, True, False));
+
+        # it's possible to merge to a directory though
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        string merge_dst_path = join_paths(subdir, basename(file1.path));
+        assertFalse(path_exists(merge_dst_path));
+        string dest_path = merge_path(file1.path, subdir);
+        assertEq(merge_dst_path, dest_path);
+        assertTrue(path_exists(merge_dst_path));
+        assertEq(hstat(file1.path).mode, hstat(merge_dst_path).mode);
+        assert_file_contains(merge_dst_path, content);
+    }
+
+    test_merge_path_file_dont_follow_symlinks() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        # get a file
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # merge the original file (via a link) to another file (which doesn't exist now)
+        string merge_dst_path = join_paths(tmp_path, "merge");
+        assertFalse(path_exists(merge_dst_path));
+        string dest_path = merge_path(link_original, merge_dst_path);
+        assertEq(merge_dst_path, dest_path);
+        assertTrue(path_exists(merge_dst_path));
+        assertEq(hstat(link_original).mode, hstat(merge_dst_path).mode);
+        assertTrue(is_link(merge_dst_path));   # follow_symlinks is False -> a new symlink is created
+        assert_file_contains(merge_dst_path, content);
+
+        # now get a link to yet another non_existent file and check that it gets created by merging of the original
+        string merge2_path = join_paths(tmp_path, "merge2");
+        string link_merge2 = join_paths(tmp_path, "link2");
+        symlink(merge2_path, link_merge2);
+        assertTrue(is_link(link_merge2));
+        assertEq(merge2_path, readlink(link_merge2));
+        assertFalse(path_exists(merge2_path));
+        dest_path = merge_path(original.path, link_merge2);
+        assertEq(link_merge2, dest_path);
+        assertTrue(path_exists(merge2_path));
+        assertEq(hstat(original.path).mode, hstat(link_merge2).mode);
+        assertTrue(is_link(link_merge2));
+        assertFalse(is_link(merge2_path));
+        assert_file_contains(merge2_path, content);
+
+        # get a directory and a link to it as well
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        string link_subdir = join_paths(tmp_path, "link3");
+        symlink(subdir, link_subdir);
+        assertTrue(is_link(link_subdir));
+        assertEq(subdir, readlink(link_subdir));
+
+        # now merge the original file into the subdirectory via the link
+        string merge3_path = join_paths(subdir, basename(original.path));
+        assertFalse(path_exists(merge3_path));
+        dest_path = merge_path(original.path, link_subdir);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
+        assertTrue(is_link(link_subdir));
+        assertFalse(is_link(merge3_path));
+        assertTrue(path_exists(merge3_path));
+        assertEq(hstat(original.path).mode, hstat(merge3_path).mode);
+        assert_file_contains(merge3_path, content);
+    }
+
+    test_merge_path_file_follow_symlinks() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        # get a file
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # merge the original file (via a link) to another file (which doesn't exist now)
+        string merge_dst_path = join_paths(tmp_path, "merge");
+        assertFalse(path_exists(merge_dst_path));
+        string dest_path = merge_path(link_original, merge_dst_path, True);
+        assertEq(merge_dst_path, dest_path);
+        assertTrue(path_exists(merge_dst_path));
+        assertEq(hstat(link_original).mode, hstat(merge_dst_path).mode);
+        assertFalse(is_link(merge_dst_path));
+        assert_file_contains(merge_dst_path, content);
+
+        # now get a link to yet another non_existent file and check that it gets created by merging of the original
+        string merge2_path = join_paths(tmp_path, "merge2");
+        string link_merge2 = join_paths(tmp_path, "link2");
+        symlink(merge2_path, link_merge2);
+        assertTrue(is_link(link_merge2));
+        assertEq(merge2_path, readlink(link_merge2));
+        assertFalse(path_exists(merge2_path));
+        dest_path = merge_path(original.path, link_merge2, True);
+        assertEq(link_merge2, dest_path);
+        assertTrue(path_exists(merge2_path));
+        assertEq(hstat(original.path).mode, hstat(link_merge2).mode);
+        assertTrue(is_link(link_merge2));
+        assertFalse(is_link(merge2_path));
+        assert_file_contains(merge2_path, content);
+
+        # get a directory and a link to it as well
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        string link_subdir = join_paths(tmp_path, "link3");
+        symlink(subdir, link_subdir);
+        assertTrue(is_link(link_subdir));
+        assertEq(subdir, readlink(link_subdir));
+
+        # now merge the original file into the subdirectory via the link
+        string merge3_path = join_paths(subdir, basename(original.path));
+        assertFalse(path_exists(merge3_path));
+        dest_path = merge_path(original.path, link_subdir, True);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
+        assertTrue(is_link(link_subdir));
+        assertFalse(is_link(merge3_path));
+        assertTrue(path_exists(merge3_path));
+        assertEq(hstat(original.path).mode, hstat(merge3_path).mode);
+        assert_file_contains(merge3_path, content);
+    }
+
+    test_merge_path_file_symlink_in_src() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Qore is great.";
+
+        # get a file
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # create a target file
+        hash<TmpFileHash> merge = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        merge.file.close();
+        assertTrue(is_file(merge.path));
+
+        # merge original via symlink (with overwrite) with follow_symlinks
+        string dest_path = merge_path(link_original, merge.path, True, True);
+        assertEq(merge.path, dest_path);
+        assertTrue(path_exists(merge.path));
+        assertEq(hstat(link_original).mode, hstat(merge.path).mode);
+        assertFalse(is_link(merge.path));
+        assert_file_contains(merge.path, content);
+
+        # now overwrite the file with different content
+        string content2 = "42";
+        set_content_to_file(original.path, content2);
+        assert_file_contains(original.path, content2);
+
+        # merge original via symlink (with overwrite) without follow_symlinks
+        dest_path = merge_path(link_original, merge.path, False, True);
+        assertEq(merge.path, dest_path);
+        assertTrue(path_exists(merge.path));
+        assertTrue(is_link(merge.path));
+        assertEq(hstat(link_original).mode, hstat(merge.path).mode);
+        assertEq(hlstat(link_original).mode, hlstat(merge.path).mode);
+        assert_file_contains(merge.path, content2);
+
+        # merge original via symlink without overwrite and without follow_symlinks should fail
+        assertThrows("PATH-EXISTS-ERROR", \merge_path(), (link_original, merge.path, False, False));
+
+        # merge original via symlink (dst doesn't exist this time -> no overwrite) without follow_symlinks
+        unlink(merge.path);
+        dest_path = merge_path(link_original, merge.path, False, False);
+        assertEq(merge.path, dest_path);
+        assertTrue(path_exists(merge.path));
+        assertTrue(is_link(merge.path));
+        assertEq(hstat(link_original).mode, hstat(merge.path).mode);
+        assertEq(hlstat(link_original).mode, hlstat(merge.path).mode);
+        assert_file_contains(merge.path, content2);
+    }
+}

@@ -32,12 +32,12 @@
 
 #include "qore/intern/qore_program_private.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <sys/types.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 extern bool threads_initialized;
 

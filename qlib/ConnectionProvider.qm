@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
+#! @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
 /*  ConnectionProvider.qm Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
@@ -33,7 +33,7 @@
 %requires Util
 
 module ConnectionProvider {
-    version = "1.1";
+    version = "1.2";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -100,6 +100,15 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section connectionproviderrelnotes Release Notes
 
+    @subsection connectionprovider_1_2 ConnectionProvider 1.2
+    - the @ref ConnectionProvider::AbstractConnection::consructor() "AbstractConnection::consructor()" refactoring
+    - all connection clases have unified constructor
+    - old contructors and static make() constructors are deprecated
+    - ConnectionProvider::AbstractConnection::parseUrl() is introduced
+    - ConnectionProvider::AbstractConnection::getSafeurl() is not static anymore
+    - it allows their reimplementation in the inherited class. It can be used
+      to parse strange and unexpected URLs like eg. pure json strings, or Datasource connection strings.
+
     @subsection connectionprovider_1_1 ConnectionProvider 1.1
     - the @ref ConnectionProvider::AbstractConnection::getConstructorInfo() "AbstractConnection::getConstructorInfo()"
       method (and supporting declarations) was added to allow connections to be created dynamically,
@@ -150,7 +159,7 @@ public namespace ConnectionProvider {
             - @ref Qore::PO_REQUIRE_TYPES
 
             The following local variables will be available:
-            - <tt>reference<*softlist<auto>> args</tt>: a reference to the constructor arguments
+            - <tt>reference<*softlist&lt;auto;gt;> args</tt>: a reference to the constructor arguments
             - <tt>bool connect</tt>: if the object should be connected
             - <tt>*hash rtopts</tt>: any runtime options provided
         */
@@ -170,7 +179,9 @@ public namespace ConnectionProvider {
         bool up = False;  #!< a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
         *date updated;    #!< the date/time value of the update (or @ref nothing if not updated)
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
-        hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+        hash url_hash;    #!< a hash of URL information as returned by AbstractConnection::parseUrl()
+        bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
+        bool locked;      #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
@@ -239,8 +250,7 @@ string connstr = get_connection(str);
             foreach string mod in (pl) {
                 try {
                     return priv_try_get_connection(mod, conn);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }
             }
@@ -328,7 +338,7 @@ string connstr = get_connection(str);
             #! connection options
             *hash opts;
 
-            #! broken down URL hash (as returned by @ref Qore::parse_url())
+            #! broken down URL hash (as returned by AbstractConnection::parseUrl())
             hash urlh;
 
             #! date/time of last check/ping
@@ -351,9 +361,15 @@ string connstr = get_connection(str);
 
             #! optional code for default post-processing of objects created by getImpl(); must take the object created and the connection name as arguments
             static *code post_processing;
+
+            #! enabled/disabled indicator flag
+            bool enabled = True;
+
+            #! locked/unlocked flag
+            bool locked = False;
         }
 
-        #! creates the AbstractConnection object
+        #! DEPRECATED: creates the AbstractConnection object
         /** @param n_name the name of the connection
             @param n_desc connection description
             @param n_url connection URL (potentially with password info)
@@ -361,32 +377,108 @@ string connstr = get_connection(str);
             @param n_opts connection options
             @param n_urlh broken down URL hash (as returned by @ref Qore::parse_url())
             @param n_safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
+            @param n_enabled enabled/disabled flag
+
+            @deprecated since Qore 0.9
          */
-        constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url) {
-            name = n_name;
-            desc = n_desc;
-            url = n_url;
-            monitor = n_monitor;
-            safe_url = n_safe_url ? n_safe_url : AbstractConnection::getSafeUrl(n_urlh);
-            urlh = n_urlh;
-            orig_opts = n_opts;
-            n_opts = getDefaultOptions() + n_opts;
-            if (n_opts) {
-                *hash oh = getOptions();
-                foreach string opt in (n_opts.keyIterator()) {
+        deprecated
+        constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url,
+                    *bool n_enabled) {
+            # remove "enabled" option from option hash, if any
+            *bool opt_enabled = remove n_opts.enabled;
+            hash<auto> attributes = {
+                "monitor": n_monitor,
+                "enabled": n_enabled ?? opt_enabled ?? True,
+            };
+            constructorInit(n_name, n_desc, n_url, attributes, n_opts ?? {});
+        }
+
+        #! creates the AbstractConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            @par Attributes
+
+            Attributes are special flags for given connection - stored as public
+            attributes of the object instance.
+            For now there are:
+                - \c enabled, default \c True
+                - \c monitor, default \c True
+                - \c locked, default \c False
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
+            constructorInit(name, description, url, attributes, options);
+        }
+
+        private:internal constructorInit(string name, string description, string url, hash attributes, hash options) {
+            # metadata
+            self.name = name;
+            self.desc = description;
+
+            # url handling
+            self.url = url;
+            self.urlh = parseUrl(self.url);
+            self.safe_url = getSafeUrl(self.urlh);
+
+            # attributes to flags
+            self.monitor = attributes.monitor ?? True;
+            self.enabled = attributes.enabled ?? True;
+            self.locked = attributes.locked ?? False;
+
+            self.orig_opts = options;
+            self.opts = validateOptions(options);
+        }
+
+        #! performs options validation in the constructor
+        /** @param options a has with options from the constructor
+            @return hash validated option hash
+
+            This method can be overloaded in connections where are options
+            created dynamically for example.
+         */
+        hash validateOptions(hash options) {
+            options = getDefaultOptions() + options;
+            if (options) {
+                *hash<auto> oh = getOptions();
+                foreach string opt in (keys options) {
                     if (!oh{opt})
                         throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) has unknown option %y (known options: %y)", name, urlh.protocol, url, opt, oh.keys());
                 }
             }
-            opts = n_opts;
+            return options;
+        }
+
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash untyped, depends on the parsing method
+
+            The base implementation calls @ref Qore::parse_url().
+
+            Reimplement \c parseUrl() if your connection uses different URL schema.
+            Like eg. Qore::Datasource connection string.
+         */
+        private hash parseUrl(string url) {
+            return Qore::parse_url(url);
         }
 
         #! creates a "safe" URL string with password information removed
-        /** @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        /** @param urlh a parsed hash (as returned from parseUrl()
+            @return string with safe URL
 
-            @return a "safe" URL string with password information removed
+            This base/default implementation expects the \c urlh
+            as returned by @ref Qore::parse_url())
+
+            Public attribute \c safe_url is created from the \c url calling
+            AbstractConnection::getSafeUrl(). Reimplement this method if your
+            connection does not follow standard URL in form:
+            @code
+schema://user:pass@hostname:port/path
+            @endcode
          */
-        private static string getSafeUrl(hash urlh) {
+        private string getSafeUrl(hash urlh) {
             string url = urlh.protocol + "://";
             if (urlh.username)
                 url += urlh.username + "@";
@@ -440,7 +532,7 @@ string connstr = get_connection(str);
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
@@ -538,13 +630,49 @@ string connstr = get_connection(str);
 
     #! this class is used to mark invalid connections so they can be loaded and reported as invalid
     public class InvalidConnection inherits AbstractConnection {
-        private {
-            string error;
+        public {
+            #! Error message provided by constructor's \c attributes.error
+            string error = "unknown error";
+        }
+
+        #! DEPRECATED: creates the invalid connection object
+        /** @deprecated since Qore 0.9
+         */
+        deprecated
+        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh)
+            : AbstractConnection(n_name, n_desc, n_url, {"monitor": False}, n_opts ?? {}) {
+            error = n_error;
         }
 
         #! creates the invalid connection object
-        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh) : AbstractConnection(n_name, n_desc, n_url, False, n_opts, urlh) {
-            error = n_error;
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+            @par Additional Attributes
+
+                - \c error a custom error string
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
+            if (attributes.error.val()) {
+                self.error = attributes.error;
+            }
+        }
+
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash with url - string as url
+
+            The reason for this is to avoid a unwanted Qore::parse_url() call in connections
+            with custom parseUrl() implementation.
+         */
+        private hash parseUrl(string url) {
+            return {"url": url};
         }
 
         #! throws an exception because the object is invalid
@@ -564,13 +692,36 @@ string connstr = get_connection(str);
     }
 
     #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
+    /** Example of the usage is in the RestConnection. Schema \c rest:// is internally used as \c http://
+     */
     public class HttpBasedConnection inherits AbstractConnection {
         public {
+            #! A string containing real url. With http(s) internal schema.
             string real_url;
         }
 
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-            # sets an HTTP-based URL for the URL argument
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+            constructorInit();
+        }
+
+        #! creates the invalid connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string desc, string url, hash attributes, hash options)
+            : AbstractConnection(name, desc, url, attributes, options) {
+            constructorInit();
+        }
+
+        # sets an HTTP-based URL for the URL argument
+        private:internal constructorInit() {
             string scheme = (url =~ x/^([^:]+)/)[0];
             bool ssl = (scheme =~ /s$/);
             string targ = "http" + (ssl ? "s" : "");
@@ -584,15 +735,32 @@ string connstr = get_connection(str);
         - \c "path_add": appends the given string to the path component of the URL at runtime
     */
     public class FtpConnection inherits AbstractConnection {
-        #! creates the FtpConnection object
+        #! DEPRECATED: creates the FtpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the FtpConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "ftp"
@@ -649,9 +817,16 @@ string connstr = get_connection(str);
             });
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static FtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new FtpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new FtpConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 
@@ -693,15 +868,32 @@ string connstr = get_connection(str);
             const OptionList = Options.keys();
         }
 
-        #! creates the HttpConnection object
+        #! DEPRECATED: creates the HttpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options (@see getOptions() for valid options)
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qorus 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the HttpConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns an @ref Qore::HTTPClient object
@@ -761,9 +953,16 @@ string connstr = get_connection(str);
             return "http";
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static HttpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new HttpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new HttpConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 
@@ -782,15 +981,37 @@ string connstr = get_connection(str);
             const OptionList = Options.keys();
         }
 
-        #! creates the FilesystemConnection object
+        #! DEPRECATED: creates the FilesystemConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param n_urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
          */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash n_urlh) : AbstractConnection(name, desc, url, monitor, opts, n_urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash n_urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+            constructorInit();
+        }
+
+        #! creates the FilesystemConnection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
+            constructorInit();
+        }
+
+        private:internal constructorInit() {
             # the URL hash is parsed with parse_url() which will put a string in the
             # "host" key if it does not look like an absolute path, in which case "host"
             # needs to be prepended back to the path
@@ -860,9 +1081,16 @@ string connstr = get_connection(str);
             return Options;
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static FilesystemConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new FilesystemConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+
+            return new FilesystemConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

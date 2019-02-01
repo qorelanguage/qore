@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 #include "qore/intern/ManagedDatasource.h"
 #include "qore/intern/qore_ds_private.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 DatasourceActionHelper::~DatasourceActionHelper() {
    if (ok) {
@@ -226,17 +226,19 @@ void ManagedDatasource::setAutoCommit(bool ac, ExceptionSink *xsink) {
 }
 
 QoreHashNode* ManagedDatasource::getConfigHash(ExceptionSink* xsink) {
-    DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigHash();
 }
 
 QoreStringNode* ManagedDatasource::getConfigString(ExceptionSink* xsink) {
-    DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigString();
 }
@@ -447,7 +449,7 @@ QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
 }
 
 int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
-   return Datasource::setOption(opt, val, xsink);
+    return Datasource::setOption(opt, val, xsink);
 }
 
 int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {

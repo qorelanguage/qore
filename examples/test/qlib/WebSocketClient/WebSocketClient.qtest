@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/ConnectionProvider.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/WebSocketUtil.qm
@@ -94,6 +95,10 @@ class WebSocketClientTest inherits QUnit::Test {
         string url = "ws://localhost:8099";
         WebSocketConnectionObject conn("test", "test", url, False, NOTHING, parse_url(url));
         WebSocketClient client = conn.get(False);
+        assertEq(url, client.getUrl());
+
+        conn = new WebSocketConnectionObject("test", "test", url, {"monitor": False});
+        client = conn.get(False);
         assertEq(url, client.getUrl());
 
         hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();

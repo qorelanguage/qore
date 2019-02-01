@@ -38,12 +38,12 @@ DLLLOCAL QoreClass *initTermIOSClass(QoreNamespace& ns);
 
 #ifdef HAVE_TERMIOS_H
 
+#include <cerrno>
+#include <cstring>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
 
 class QoreTermIOS : public AbstractPrivateData {
 protected:

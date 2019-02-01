@@ -35,8 +35,8 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef DEBUG
 const char* ClassNs::getName() const {
@@ -319,6 +319,11 @@ cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const Qo
 
 ConstantEntry *ConstantList::findEntry(const char* name) {
     cnemap_t::iterator i = cnemap.find(name);
+    return i == cnemap.end() ? 0 : i->second;
+}
+
+const ConstantEntry *ConstantList::findEntry(const char* name) const {
+    cnemap_t::const_iterator i = cnemap.find(name);
     return i == cnemap.end() ? 0 : i->second;
 }
 

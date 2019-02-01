@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_GetOpt.h"
 
-#include <string.h>
+#include <cstring>
 
 static inline int process_type(const char* key, int& attributes, char* opt, qore_type_t& at, ExceptionSink* xsink) {
    assert(at == -1);

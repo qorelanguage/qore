@@ -28,7 +28,7 @@
   information.
 */
 
-#include <errno.h>
+#include <cerrno>
 
 #include "qore/Qore.h"
 #include "qore/intern/FileLineIterator.h"

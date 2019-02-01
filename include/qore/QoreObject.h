@@ -42,7 +42,6 @@ class BuiltinDeleteBlocker;
 class BuiltinNormalMethodVariantBase;
 class BuiltinCopyVariantBase;
 class QoreExternalMethodVariant;
-class QoreExternalStaticMethodVariant;
 class QoreProgram;
 
 //! the implementation of Qore's object data type, reference counted, dynamically-allocated only
@@ -337,6 +336,19 @@ protected:
     */
     DLLEXPORT QoreValue evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! evaluates the given method with the given class context and arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+    /**
+        @param method the method to evaluate
+        @param class_ctx the class context for the method evaluation for evaluating private:internal methods
+        @param args the arguments for the method (may be 0)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return the value returned by the method; the caller owns any reference returned
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink);
+
     //! runs the destructor on the object (if it hasn't already been deleted)
     /**
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -359,6 +371,15 @@ protected:
         @return a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy
     */
     DLLEXPORT const QoreClass* getClass(qore_classid_t cid, bool& priv) const;
+
+    //! returns the accessibility of the class in the object's hierachy or Inaccessible the object does not inherit the class at all
+    /** @param cls the class to check
+
+        @return the accessibility of the class in the object's hierachy or Inaccessible the object does not inherit the class at all
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT ClassAccess getClassAccess(const QoreClass& cls) const;
 
     //! returns a pointer to the QoreClass of this object
     /**
@@ -430,6 +451,27 @@ protected:
     */
     DLLEXPORT QoreValue getMemberValueNoMethod(const char* key, AutoVLock* vl, ExceptionSink* xsink) const;
 
+    //! returns the value of the given member as accessed from the given class; caller owns any reference returned
+    /** @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param cls the class context for private:internal members; may be nullptr
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue getReferencedMemberNoMethod(const char* key, const QoreClass* cls, ExceptionSink* xsink) const;
+
+    //! sets the value of the given member as accessed from the given class
+    /** @param key the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
+        @param cls the class context for private:internal members; may be nullptr
+        @param val the value to set
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return 0 = no errors, -1 = Qore-language exception raised
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT int setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink);
+
     //! increment the reference count of the object, to be called only from within a delete blocker
     /** it is an error to call this function from anything other than a delete blocker
     */
@@ -444,6 +486,31 @@ protected:
 
     //! executes a normal object method variant
     DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a normal object method variant
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a static method
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a static method with the given class context to access private:internal methods
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a static method variant
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a static method variant with the given class context to access private:internal methods
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
     DLLLOCAL int getStatus() const;
 

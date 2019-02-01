@@ -35,8 +35,8 @@
 #include "qore/intern/qore_date_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 #include <sys/time.h>
 
 static int qd_get_digit(unsigned& rv, const char*& p, unsigned factor) {
@@ -370,7 +370,7 @@ hashdecl IsoWeekInfo {
     |\c I|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week string</a> for the date (ex: \c "2018-W12-5")
     |\c Id|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week day number</a> in the week (\c "1" - \c "7")
     |\c ID|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week day number</a> in the week (\c "1" - \c "7")
-    |\c IF|the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+    |\c IF|the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
     |\c Iw|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week number</a> for the year without zero padding (\c "1" - \c "53")
     |\c IW|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week number</a> for the year with zero padding to 2 digits (\c "01" - \c "53")
     |\c Iy|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week year number</a> without zero padding (ex: \c "2018")
@@ -1608,7 +1608,7 @@ int get_duration_microseconds(date dt) [flags=CONSTANT] {
 
     @param dt a @ref relative_dates "relative" or @ref absolute_dates "absolute" date argument
 
-    @return a floating-point vlaue representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
+    @return a floating-point value representing the the number of seconds of duration in the value of the date passed; if the argument is a @ref relative_dates "relative date", the value is normalized to seconds and the floating-point seconds value is returned with microseconds providing the digits to the right of the decimal place, if the argument is an @ref absolute_dates "absolute date", the duration in seconds is calculated from the present time; so if the present time is sent as an argument, 0 is returned, if a future date is used, the number of seconds from the present time to the future date is returned, if an @ref absolute_dates "absolute date" in the past is passed as an argument, also 0 is returned (the function does not calculate second differences for @ref absolute_dates "absolute dates" in the past (for this use @ref date_time_arithmetic instead); this function can only return a negative value if passed a relative date/time value
 
     @par Example:
     @code{.py}

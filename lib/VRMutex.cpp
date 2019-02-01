@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/VRMutex.h"
 
-#include <assert.h>
+#include <cassert>
 
 VRMutex::VRMutex() : count(0) {
 }

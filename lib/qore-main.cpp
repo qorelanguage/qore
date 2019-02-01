@@ -36,15 +36,14 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/ModuleInfo.h"
 
-#include <vector>
-
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
-#include <time.h>
-#include <stdlib.h>
+#include <vector>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -161,7 +160,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 #endif
 
     // initialize static system namespaces
-    staticSystemNamespace = new StaticSystemNamespace();
+    staticSystemNamespace = new StaticSystemNamespace;
 
     // set up pseudo-methods
     pseudo_classes_init();
@@ -207,6 +206,9 @@ void qore_cleanup() {
     // delete all loadable modules
     QMM.cleanup();
 
+    // issue #3045: clear module options
+    qore_delete_module_options();
+
     // delete thread-local data
     delete_thread_local_data();
 
@@ -219,7 +221,7 @@ void qore_cleanup() {
     // delete static system namespace after modules
     delete staticSystemNamespace;
 #ifdef DEBUG
-    staticSystemNamespace = 0;
+    staticSystemNamespace = nullptr;
 #endif
 
     // delete default type values

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,102 +37,65 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef DEBUG_TESTS
 #  include "tests/Statement_tests.cpp"
 #endif
 
-// parse variable stack
-class VNode {
-protected:
-   // # of times this variable is referenced in code
-   int refs;
+VNode::VNode(LocalVar* lv, const QoreProgramLocation* n_loc, int n_refs, bool n_top_level) :
+    refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv) {
+    next = update_get_vstack(this);
 
-   // to store parse location in case of errors
-   const QoreProgramLocation* loc;
-   bool block_start;
-   bool top_level;
+    //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
-public:
-   LocalVar* lvar;
-   VNode* next;
+    if (top_level) {
+        save_global_vnode(this);
+    }
+}
 
-   DLLLOCAL VNode(LocalVar* lv, const QoreProgramLocation* n_loc = 0, int n_refs = 0, bool n_top_level = false) : refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv), next(getVStack()) {
-      updateVStack(this);
+VNode::~VNode() {
+    //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
 
-      //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
+    if (lvar && !refs) {
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE,
+            "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to " \
+            "disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+    }
 
-      if (top_level)
-         save_global_vnode(this);
-   }
+    if (top_level) {
+        save_global_vnode(nullptr);
+        //printd(5, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+    }
+}
 
-   DLLLOCAL ~VNode() {
-      //printd(5, "VNode::~VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
+void VNode::appendLocation(QoreString& str) {
+    if (loc) {
+        str.concat(" at ");
+        loc->toString(str);
+    }
+}
 
-      if (lvar && !refs)
-         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNREFERENCED_VARIABLE, "UNREFERENCED-VARIABLE", "local variable '%s' was declared in this block but not referenced; to disable this warning, use '%%disable-warning unreferenced-variable' in your code", lvar->getName());
+const char* VNode::getName() const {
+    return lvar->getName();
+}
 
-      if (top_level) {
-         save_global_vnode(0);
-         //printd(5, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
-      }
-   }
+// searches to marker and then jumps to global thread-local variables
+VNode* VNode::nextSearch() const {
+    //printd(5, "VNode::nextSearch() next->lvar: %p top_level: %d\n", next ? next->lvar : 0, top_level);
 
-   DLLLOCAL void appendLocation(QoreString& str) {
-      if (loc) {
-         str.concat(" at ");
-         loc->toString(str);
-      }
-   }
+    if ((next && next->lvar) || top_level)
+        return !next || next->lvar ? next : 0;
 
-   DLLLOCAL void setRef() {
-      ++refs;
-   }
-
-   DLLLOCAL bool setBlockStart(bool bs = true) {
-      bool rc = block_start;
-      block_start = bs;
-      return rc;
-   }
-
-   DLLLOCAL bool isBlockStart() const {
-      return block_start;
-   }
-
-   DLLLOCAL bool isReferenced() const {
-      return refs;
-   }
-
-   DLLLOCAL int refCount() const {
-      return refs;
-   }
-
-   DLLLOCAL bool isTopLevel() const {
-      return top_level;
-   }
-
-   DLLLOCAL const char* getName() const {
-      return lvar->getName();
-   }
-
-   // searches to marker and then jumps to global thread-local variables
-   DLLLOCAL VNode* nextSearch() const {
-      //printd(5, "VNode::nextSearch() next->lvar: %p top_level: %d\n", next ? next->lvar : 0, top_level);
-
-      if ((next && next->lvar) || top_level)
-         return !next || next->lvar ? next : 0;
-
-      // skip to global thread-local variables
-      VNode* rv = get_global_vnode();
-      assert(!rv || rv->lvar);
-      //printd(5, "VNode::nextSearch() returning global VNode %p '%s'\n", rv, rv ? rv->getName() : "n/a");
-      return rv;
-   }
-};
+    // skip to global thread-local variables
+    VNode* rv = get_global_vnode();
+    assert(!rv || rv->lvar);
+    //printd(5, "VNode::nextSearch() returning global VNode %p '%s'\n", rv, rv ? rv->getName() : "n/a");
+    return rv;
+}
 
 class BlockStartHelper {
 protected:
@@ -364,34 +327,34 @@ LocalVar* pop_local_var(bool set_unassigned) {
 }
 
 LocalVar* find_local_var(const char* name, bool& in_closure) {
-   VNode* vnode = getVStack();
-   ClosureParseEnvironment* cenv = thread_get_closure_parse_env();
-   in_closure = false;
+    VNode* vnode = getVStack();
+    ClosureParseEnvironment* cenv = thread_get_closure_parse_env();
+    in_closure = false;
 
-   if (vnode && !vnode->lvar)
-      vnode = vnode->nextSearch();
+    if (vnode && !vnode->lvar)
+        vnode = vnode->nextSearch();
 
-   //printd(5, "find_local_var('%s' %p) vnode: %p\n", name, name, vnode);
+    //printd(5, "find_local_var('%s' %p) vnode: %p\n", name, name, vnode);
 
-   while (vnode) {
-      assert(vnode->lvar);
-      if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
-         in_closure = true;
+    while (vnode) {
+        assert(vnode->lvar);
+        if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
+            in_closure = true;
 
-      //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(), vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
+        //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(), vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
 
-      if (!strcmp(vnode->getName(), name)) {
-         //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);
-         if (in_closure)
-            cenv->add(vnode->lvar);
-         vnode->setRef();
-         return vnode->lvar;
-      }
-      vnode = vnode->nextSearch();
-   }
+        if (!strcmp(vnode->getName(), name)) {
+            //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);
+            if (in_closure)
+                cenv->add(vnode->lvar);
+            vnode->setRef();
+            return vnode->lvar;
+        }
+        vnode = vnode->nextSearch();
+    }
 
-   //printd(5, "find_local_var('%s' %p) returning 0 NOT FOUND\n", name, name);
-   return 0;
+    //printd(5, "find_local_var('%s' %p) returning 0 NOT FOUND\n", name, name);
+    return 0;
 }
 
 int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start) {

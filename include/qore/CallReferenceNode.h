@@ -104,29 +104,53 @@ class QoreFunction;
 //! base class for resolved call references
 class ResolvedCallReferenceNode : public AbstractCallReferenceNode {
 public:
-   //! constructor is not exported outside the library
-   DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
+    //! public exported constructor function
+    DLLEXPORT ResolvedCallReferenceNode();
 
-   //! pure virtual function for executing the function reference
-   /** executes the function reference and returns the value returned
-       @param args the arguments to the function
-       @param xsink any Qore-language exception thrown (and not handled) will be added here
-       @return a pointer to an AbstractQoreNode, the caller owns the reference count returned (can also be 0)
-   */
-   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const = 0;
+    //! public destructor function
+    DLLEXPORT virtual ~ResolvedCallReferenceNode();
 
-   //! returns a pointer to the QoreProgram object associated with this reference (can be 0)
-   /** this function is not exported in the library's public interface
-       @return a pointer to the QoreProgram object associated with this reference (can be 0)
-   */
-   DLLLOCAL virtual QoreProgram* getProgram() const;
+    //! constructor is not exported outside the library
+    DLLLOCAL ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type = NT_FUNCREF);
 
-   DLLLOCAL virtual QoreFunction* getFunction() = 0;
+    //! pure virtual function for executing the function reference
+    /** executes the function reference and returns the value returned
+        @param args the arguments to the function
+        @param xsink any Qore-language exception thrown (and not handled) will be added here
+        @return a pointer to an AbstractQoreNode, the caller owns the reference count returned (can also be nullptr)
+    */
+    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const = 0;
 
-   DLLLOCAL ResolvedCallReferenceNode* refRefSelf() const {
-      ref();
-      return const_cast<ResolvedCallReferenceNode*>(this);
-   }
+    //! returns a pointer to the QoreProgram object associated with this reference (can be nullptr)
+    /** this function is not exported in the library's public interface
+        @return a pointer to the QoreProgram object associated with this reference (can be nullptr)
+    */
+    DLLEXPORT virtual QoreProgram* getProgram() const;
+
+    //! Returns the internal function object, if any; can return nullptr
+    DLLLOCAL virtual QoreFunction* getFunction() = 0;
+
+    //! references itself and returns this
+    DLLLOCAL ResolvedCallReferenceNode* refRefSelf() const {
+        ref();
+        return const_cast<ResolvedCallReferenceNode*>(this);
+    }
+
+    //! returns true if the other node is the same value
+    DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+    //! returns true if the other node is the same value
+    DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+
+    //! returns this with the ref count inmcremented; not a real copy
+    DLLEXPORT virtual AbstractQoreNode* realCopy() const;
+
+    // must be defined but performs no action
+    DLLEXPORT virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids,
+        const QoreTypeInfo *&returnTypeInfo);
+
+    // the following function must be defined, but is never called
+    DLLEXPORT virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

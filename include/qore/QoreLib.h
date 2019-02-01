@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,14 +38,13 @@
 #include <qore/qore_bitopts.h>
 #include <qore/safe_dslist>
 
-#include <time.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <strings.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
 #include <sys/types.h>
-
 #include <vector>
 
 //! signal vector
@@ -128,16 +127,16 @@ typedef std::vector<int> sig_vec_t;
 #define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
 
 // qore code flags
-#define QC_NO_FLAGS                 0   //! no flag
-#define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
-#define QC_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
-#define QC_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QC_CONSTANT instead
-#define QC_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
-#define QC_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
-#define QC_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QC_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
+#define QCF_NO_FLAGS                 0   //! no flag
+#define QCF_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
+#define QCF_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
+#define QCF_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QCF_CONSTANT instead
+#define QCF_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
+#define QCF_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
+#define QCF_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QCF_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
 
 // composite flags
-#define QC_CONSTANT (QC_CONSTANT_INTERN | QC_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
+#define QCF_CONSTANT (QCF_CONSTANT_INTERN | QCF_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
 
 class BinaryNode;
 class QoreStringNode;
@@ -648,5 +647,54 @@ DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValu
 
 //! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
 DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
+
+//! returns a list<string> of parse option strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns a list<string> of domain strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns the "or nothing" type for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
+
+//! returns the caller's Program context, if any
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreProgram* qore_get_call_program_context();
+
+//! sets a module option for the given module
+/** @param mod the module name
+    @param opt the option name
+    @param value the option value; must be already referenced for the assignment
+
+    @since %Qore 0.9
+*/
+DLLEXPORT void qore_set_module_option(std::string mod, std::string opt, QoreValue val);
+
+//! get module option for the given module
+/** @param mod the module name
+    @param opt the option name
+
+    @return the referenced option value; if a value is returned here, it must be dereferenced
+
+    @since %Qore 0.9
+*/
+DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
 
 #endif // _QORE_QORELIB_H

@@ -1,0 +1,1515 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Class.cpp Class class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore_reflection.h>
+#include <QC_Class.h>
+#include <QC_AbstractMethod.h>
+#include <QC_NormalMethod.h>
+#include <QC_StaticMethod.h>
+#include <QC_ConstructorMethod.h>
+#include <QC_DestructorMethod.h>
+#include <QC_CopyMethod.h>
+#include <QC_AbstractReflectionFunction.h>
+#include <QC_AbstractMethodVariant.h>
+#include <QC_NormalMethodVariant.h>
+#include <QC_StaticMethodVariant.h>
+#include <QC_ConstructorMethodVariant.h>
+#include <QC_DestructorMethodVariant.h>
+#include <QC_CopyMethodVariant.h>
+#include <QC_AbstractClassMember.h>
+#include <QC_NormalMember.h>
+#include <QC_StaticMember.h>
+#include <QC_ClassConstant.h>
+#include <QC_Type.h>
+#include <QC_Namespace.h>
+
+int check_constructor(const QoreClass* cls, ExceptionSink* xsink) {
+    if (getProgram()->getParseOptions64() & cls->getDomain()) {
+        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", cls->getName());
+        return -1;
+    }
+
+    return 0;
+}
+
+static QoreHashNode* find_method_intern(const QoreStringNode* name, QoreReflectionClass* c, method_type_e type,
+    ExceptionSink* xsink) {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    QoreReflectionHierarchyMethod* method;
+    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
+        type), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
+    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
+    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
+    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
+
+    return rv.release();
+}
+
+static QoreValue find_all_classes(const QoreString& pattern, int re_opts, QoreProgram* pgm, ExceptionSink* xsink) {
+    class_vec_t class_vec = pgm->findAllClassesRegex(pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+    for (auto& i : class_vec) {
+        l->push(new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, i)), xsink);
+    }
+
+    return l.release();
+}
+
+//! methhod and inheritance access information
+/** The access information in this hash is the access of the class containing the method; to get the access modifier
+    of any method variant, the maximum of the access value provided here and the access value of the variant must be
+    taken.
+
+    @since %Qore 0.9
+*/
+hashdecl MethodAccessInfo {
+    //! the inherited method
+    AbstractMethod method;
+
+    //! access code for the class containing the method; see @ref access_constants for valid values
+    int access;
+
+    //! access string for the class containing the method; one of \c "public", \c "private", or \c "private:internal"
+    string access_string;
+}
+
+//! This class provides information about %Qore classes
+/** @since %Qore 0.9
+ */
+qclass Class [ns=Qore::Reflection; arg=QoreReflectionClass* c; dom=REFLECTION; vparent=AbstractClass];
+
+//! Creates the object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls("Thread::Mutex");
+    @endcode
+
+    @param path the class name or namespace-justified path as a string
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
+ */
+Class::constructor(string path) {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_CLASS, cls.release());
+}
+
+//! returns the class's full namespace-justified path name
+/** @par Example:
+    @code{.py}
+string name = cls.getPathName();
+    @endcode
+
+    @return the class's full namespace-justified path name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getName()
+ */
+string Class::getPathName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+    rv->concat(c->cls->getNamespacePath());
+    return rv.release();
+}
+
+//! Returns the module name providing the class or @ref nothing if the class was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = cls.getModuleName();
+    @endcode
+
+    @return the module name providing the class or @ref nothing if the class was not provided by a module
+*/
+*string Class::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const char* mod = c->cls->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
+}
+
+//! Returns information about the given method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for normal methods (including special methods) and then static methods for the given
+    method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findNormalMethod()
+    - findStaticMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findMethod(string name) [flags=RET_VALUE_ONLY] {
+    return find_method_intern(name, c, MT_None, xsink);
+}
+
+//! Returns information about the given normal (non-static) method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getNormalMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for normal methods for the given method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findMethod()
+    - findStaticMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findNormalMethod(string name) [flags=RET_VALUE_ONLY] {
+    return find_method_intern(name, c, MT_Normal, xsink);
+}
+
+//! Returns information about the given static method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getStaticMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for static methods for the given method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findMethod()
+    - findNormalMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findStaticMethod(string name) [flags=RET_VALUE_ONLY] {
+    return find_method_intern(name, c, MT_Static, xsink);
+}
+
+//! returns @ref True if the class has at least one constructor method variant
+/** @par Example:
+    @code{.py}
+bool b = cls.hasConstructorMethod();
+    @endcode
+
+    @return @ref True if the class has at least one constructor method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasConstructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getConstructor();
+}
+
+//! returns @ref True if the class has a destructor method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasDestructorMethod();
+    @endcode
+
+    @return @ref True if the class has a destructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasDestructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getDestructor();
+}
+
+//! returns @ref True if the class has a copy method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasCopyMethod();
+    @endcode
+
+    @return @ref True if the class has a copy method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasCopyMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getCopyMethod();
+}
+
+
+//! returns the given normal (non-static, non-special) method variant, otherwise throws an exception if no method variant can be matched
+/** @par Example:
+    @code{.py}
+NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
+    @endcode
+
+    Searches normal (non-static, non-special) methods only for the given method name and
+    and then matches the arguments by type to return the variant.
+
+    @param name the name of the normal (non-static, non-special) method
+    @param ... @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given normal (non-static, non-special) method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown normal (non-static, non-special) method
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getNormalVariantArgs()
+    - getExactNormalVariant()
+    - getExactNormalVariantArgs()
+*/
+NormalMethodVariant Class::getNormalVariant(string name, ...) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_NORMAL, args, 1, xsink);
+}
+
+//! Returns the given normal (non-static, non-special) method variant, otherwise throws an exception if no method variant can be matched
+/** @par Example:
+    @code{.py}
+NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
+    @endcode
+
+    Searches normal (non-static, non-special) methods only for the given method name and
+    and then matches the arguments by type
+
+    @param name the name of the normal (non-static, non-special) method
+    @param argv @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given normal (non-static, non-special) method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown normal (non-static, non-special) method
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getNormalVariant()
+    - getExactNormalVariant()
+    - getExactNormalVariantArgs()
+*/
+NormalMethodVariant Class::getNormalVariantArgs(string name, *softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_NORMAL, argv, 0, xsink);
+}
+
+//! Returns the given static method variant, otherwise throws an exception if no static method variant can be matched
+/** @par Example:
+    @code{.py}
+StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
+    @endcode
+
+    Searches static methods only for the given method name and
+    and then matches the arguments by type to return the variant
+
+    @param name the name of the static method
+    @param ... @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given static method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown static method
+    @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getStaticVariantArgs()
+    - getExactStaticVariant()
+    - getExactStaticVariantArgs()
+*/
+StaticMethodVariant Class::getStaticVariant(string name, ...) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_STATIC, args, 1, xsink);
+}
+
+//! Returns the given static method variant, otherwise throws an exception if no static method variant can be matched
+/** @par Example:
+    @code{.py}
+StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
+    @endcode
+
+    Searches static methods only for the given method name and
+    and then matches the arguments by type
+
+    @param name the name of the static method
+    @param argv @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given static method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown static method
+    @throw RUNTIME-OVERLOAD-ERROR no method static variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getStaticVariant()
+    - getExactStaticVariant()
+    - getExactStaticVariantArgs()
+*/
+StaticMethodVariant Class::getStaticVariantArgs(string name, *softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_STATIC, argv, 0, xsink);
+}
+
+//! Returns the given constructor method variant, otherwise throws an exception if no constructor method variant can be matched
+/** @par Example:
+    @code{.py}
+ConstructorMethodVariant m = cls.getConstructorVariant(TypeInt, TypeString);
+    @endcode
+
+    Searches constructor methods only and then matches the arguments by type to return the variant
+
+    @param ... @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given constructor method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR no constructor method defined
+    @throw RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
+
+    @see
+    - getConstructorVariantArgs()
+    - getExactConstructorVariant()
+    - getExactConstructorVariantArgs()
+*/
+ConstructorMethodVariant Class::getConstructorVariant(...) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, "constructor", FV_CONSTRUCTOR, args, 0, xsink);
+}
+
+//! Returns the given constructor method variant, otherwise throws an exception if no constructor method variant can be matched
+/** @par Example:
+    @code{.py}
+ConstructorMethodVariant m = cls.getConstructorVariantArgs((TypeInt, TypeString));
+    @endcode
+
+    Searches static methods only for the given method name and
+    and then matches the arguments by type
+
+    @param argv @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given static method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR no constructor method defined
+    @throw RUNTIME-OVERLOAD-ERROR no method constructor variant van be found matching the given argument types
+
+    @see
+    - getConstructorVariant()
+    - getExactConstructorVariant()
+    - getExactConstructorVariantArgs()
+*/
+ConstructorMethodVariant Class::getConstructorVariantArgs(*softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, "constructor", FV_CONSTRUCTOR, argv, 0, xsink);
+}
+
+//! Returns the destructor method variant, otherwise throws an exception if no destructor method variant has been defined
+/** @par Example:
+    @code{.py}
+DestructorMethodVariant m = cls.getDestructorVariant();
+    @endcode
+
+    Searches destructor methods only
+
+    @return the given destructor method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR no destructor method defined
+
+    @see
+    - getIfDestructorVariant()
+*/
+DestructorMethodVariant Class::getDestructorVariant() [flags=RET_VALUE_ONLY] {
+    return find_variant(c, "destructor", FV_DESTRUCTOR, nullptr, 0, xsink);
+}
+
+//! Returns the copy method variant, otherwise throws an exception if no copy method variant has been defined
+/** @par Example:
+    @code{.py}
+CopyMethodVariant m = cls.getCopyVariant();
+    @endcode
+
+    Searches copy methods only
+
+    @return the given copy method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR no copy method defined
+
+    @see
+    - getIfCopyVariant()
+*/
+CopyMethodVariant Class::getCopyVariant() [flags=RET_VALUE_ONLY] {
+    return find_variant(c, "copy", FV_COPY, nullptr, 0, xsink);
+}
+
+//! returns the given normal (non-special, non-static) method or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+NormalMethod m = cls.getNormalMethod(name);
+    @endcode
+
+    @param name the name of the normal (non-special, non-static) method
+
+    @return the given normal (non-special, non-static) method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-METHOD unknown method or method is not normal
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getMethod()
+    - getStaticMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
+*/
+NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink, MT_Normal), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
+}
+
+//! returns the given static method or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+StaticMethod m = cls.getStaticMethod(name);
+    @endcode
+
+    @param name the name of the static method
+
+    @return the given static method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-METHOD unknown method or method is not static
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
+*/
+StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink, MT_Static), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
+}
+
+//! returns the given constructor method or throws an exception if the class does not implement a constructor method
+/** @par Example:
+    @code{.py}
+ConstructorMethod m = cls.getConstructorMethod();
+    @endcode
+
+    @return the given constructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a constructor method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
+*/
+ConstructorMethod Class::getConstructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "constructor", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Constructor);
+
+    return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+}
+
+//! returns the given destructor method or throws an exception if the class does not implement a destructor method
+/** @par Example:
+    @code{.py}
+DestructorMethod m = cls.getDestructorMethod();
+    @endcode
+
+    @return the given destructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a destructor method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getConstructorMethod()
+    - getCopyMethd()
+*/
+DestructorMethod Class::getDestructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "destructor", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Destructor);
+
+    return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
+}
+
+//! returns the given copy method or throws an exception if the class does not implement a copy method
+/** @par Example:
+    @code{.py}
+CopyMethod m = cls.getCopyMethod();
+    @endcode
+
+    @return the given copy method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a copy method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+*/
+CopyMethod Class::getCopyMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "copy", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Copy);
+
+    return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
+}
+
+//! returns a list of all normal (non-static, non-special) class methods
+/** @par Example:
+    @code{.py}
+list<NormalMethod> l = cls.getNormalMethods();
+    @endcode
+
+    @return a list of all normal (non-static, non-special) class methods
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<NormalMethod> Class::getNormalMethods() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
+
+    QoreMethodIterator i(*c->cls);
+    while (i.next()) {
+        const QoreMethod* m = i.getMethod();
+        if (m->getMethodType() != MT_Normal) {
+            continue;
+        }
+
+        ReferenceHolder<QoreReflectionMethod> meth(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+        l->push(get_method_object(meth, xsink), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
+
+    return l.release();
+}
+
+//! returns a list of all normal (non-static, non-special) method variants
+/** @par Example:
+    @code{.py}
+list<NormalMethodVariant> l = cls.getNormalVariants();
+    @endcode
+
+    @return a list of all normal (non-static, non-special) method variants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<NormalMethodVariant> Class::getNormalVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_NORMALMETHODVARIANT->getTypeInfo()), xsink);
+
+    QoreMethodIterator i(*c->cls);
+    while (i.next()) {
+        const QoreMethod* m = i.getMethod();
+        method_type_e mtype = m->getMethodType();
+        if (mtype != MT_Normal) {
+            continue;
+        }
+        append_variant_objects(**rv, c->pgm, m->getFunction(), mtype, xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns a list of all static method variants
+/** @par Example:
+    @code{.py}
+list<StaticMethodVariant> l = cls.getStaticVariants();
+    @endcode
+
+    @return a list of all static method variants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<StaticMethodVariant> Class::getStaticVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_STATICMETHODVARIANT->getTypeInfo()), xsink);
+
+    QoreMethodIterator i(*c->cls);
+    while (i.next()) {
+        const QoreMethod* m = i.getMethod();
+        method_type_e mtype = m->getMethodType();
+        if (mtype != MT_Static) {
+            continue;
+        }
+        append_variant_objects(**rv, c->pgm, m->getFunction(), mtype, xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns a list of all constructor method variants
+/** @par Example:
+    @code{.py}
+list<ConstructorMethodVariant> l = cls.getConstructorVariants();
+    @endcode
+
+    @return a list of all constructor method variants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_CONSTRUCTORMETHODVARIANT->getTypeInfo()), xsink);
+
+    const QoreMethod* con = c->cls->getConstructor();
+
+    if (con) {
+        append_variant_objects(**rv, c->pgm, con->getFunction(), MT_Constructor, xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns the destructor variant or @ref nothing if no destructor has been defined
+/** @par Example:
+    @code{.py}
+*DestructorMethodVariant dv = cls.getIfDestructorVariant();
+    @endcode
+
+    @return the destructor variant or @ref nothing if no destructor has been defined
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getDestructorVariant()
+*/
+*DestructorMethodVariant Class::getIfDestructorVariant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const QoreMethod* destr = c->cls->getDestructor();
+
+    if (destr) {
+        const QoreExternalFunction* func = destr->getFunction();
+        const QoreExternalVariant* v = func->getFirstVariant();
+        if (v) {
+            return get_variant_object(c->pgm, func, MT_Destructor, v, xsink);
+        }
+    }
+
+    return QoreValue();
+}
+
+//! returns the copy method variant or @ref nothing if no copy method has been defined
+/** @par Example:
+    @code{.py}
+*CopyMethodVariant dv = cls.getIfCopyVariant();
+    @endcode
+
+    @return the copy method variant or @ref nothing if no copy method has been defined
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @note copy methods may not be overloaded, therefore if a copy method is defined, it will only have one variant
+
+    @see getCopyVariant()
+*/
+*CopyMethodVariant Class::getIfCopyVariant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const QoreMethod* copy = c->cls->getCopyMethod();
+
+    if (copy) {
+        const QoreExternalFunction* func = copy->getFunction();
+        const QoreExternalVariant* v = func->getFirstVariant();
+        if (v) {
+            return get_variant_object(c->pgm, func, MT_Copy, v, xsink);
+        }
+    }
+
+    return QoreValue();
+}
+
+//! creates an object if the current class with the given arguments
+/** @par Example:
+    @code{.py}
+object o = cls.newObject();
+    @endcode
+
+    @param ... the arguments for the cosntructor, if any
+
+    @return an object if the current class based on the constructor arguments passed
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+    @throw ABSTRACT-CLASS-ERROR thrown if the class has abstract methods
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see
+    - newObjectArgs()
+    - create_object()
+    - create_object_args()
+*/
+object Class::newObject(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    if (check_constructor(c->cls, xsink)) {
+        return QoreValue();
+    }
+
+    if (c->cls->runtimeCheckInstantiateClass(xsink)) {
+        return QoreValue();
+    }
+
+    return c->cls->execConstructor(args, xsink);
+}
+
+//! creates an object if the current class with the arguments for the constructor given as a list
+/** @par Example:
+    @code{.py}
+object o = cls.newObjectArgs(args);
+    @endcode
+
+    @param argv the arguments for the constructor
+
+    @return an object if the current class based on the constructor arguments passed
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+    @throw ABSTRACT-CLASS-ERROR thrown if the class has abstract methods
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see
+    - newObject()
+    - create_object()
+    - create_object_args()
+*/
+object Class::newObjectArgs(*softlist argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    if (check_constructor(c->cls, xsink)) {
+        return QoreValue();
+    }
+
+    if (c->cls->runtimeCheckInstantiateClass(xsink)) {
+        return QoreValue();
+    }
+
+    return c->cls->execConstructor(argv, xsink);
+}
+
+//! Returns the type object for this class
+/** @par Example:
+    @code{.py}
+Type t = cls.getType();
+    @endcode
+
+    @return the type object for this class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getOrNothingType()
+*/
+Type Class::getType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreObject(QC_TYPE, c->pgm, new QoreType(c->cls->getTypeInfo()));
+}
+
+//! Returns the "or nothing" type object for this class
+/** @par Example:
+    @code{.py}
+Type t = cls.getOrNothingType();
+    @endcode
+
+    @return the "or nothing" type object for this class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getType()
+*/
+Type Class::getOrNothingType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreObject(QC_TYPE, c->pgm, new QoreType(c->cls->getOrNothingTypeInfo()));
+}
+
+//! Returns a list of all unique classes in the class hierarchy (including classes inherited with @ref private_inheritance "private:internal" access protection) in constructor execution order; the current class is always returned in the last position of the list
+/** @par Example:
+    @code{.py}
+list<Class> l = cls.getClassHierarchy();
+    @endcode
+
+    @return a list of all unique classes in the class hierarchy (including classes inherited with @ref private_inheritance "private:internal" access protection) in constructor execution order; the current class is always returned in the last position of the list
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<Class> Class::getClassHierarchy() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+
+    QoreClassHierarchyIterator i(*c->cls);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CLASS, c->pgm, new QoreReflectionClass(c->pgm, &i.get())), xsink);
+    }
+
+    return l.release();
+}
+
+//! returns the requested member or throws an exception if the member is not defined in the class
+/**  @par Example:
+    @code{.py}
+AbstractClassMember m = cls.getMember(name);
+    @endcode
+
+    @return the requested member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-MEMBER if the requested member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - @ref getNormalMember()
+    - @ref getStaticMember()
+*/
+AbstractClassMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    {
+        const QoreExternalMemberVarBase* mi = c->cls->findLocalMember(tname->c_str());
+        if (mi) {
+            return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
+        }
+    }
+
+    {
+        const QoreExternalStaticMember* vi = c->cls->findLocalStaticMember(tname->c_str());
+        if (vi) {
+            return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
+        }
+    }
+
+    xsink->raiseException("UNKNOWN-MEMBER", "member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns the requested normal (non-static) member or throws an exception if the normal member is not defined in the class
+/**  @par Example:
+    @code{.py}
+NormalMember m = cls.getNormalMember(name);
+    @endcode
+
+    @return the requested normal (non-static) member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-NORMAL-MEMBER if the requested normal (non-static) member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - @ref getMember()
+    - @ref getStaticMember()
+*/
+NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const QoreExternalMemberVarBase* mi = c->cls->findLocalMember(tname->c_str());
+    if (mi) {
+        return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
+    }
+
+    xsink->raiseException("UNKNOWN-NORMAL-MEMBER", "normal (non-static) member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns the requested static member or throws an exception if the static member is not defined in the class
+/**  @par Example:
+    @code{.py}
+StaticMember m = cls.getStaticMember(name);
+    @endcode
+
+    @return the requested static member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-STATIC-MEMBER if the requested static member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - @ref getMember()
+    - @ref getNormalMember()
+*/
+StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const QoreExternalStaticMember* vi = c->cls->findLocalStaticMember(tname->c_str());
+    if (vi) {
+        return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
+    }
+
+    xsink->raiseException("UNKNOWN-STATIC-MEMBER", "static member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns a list of all declared class members, non-static (first) and static (second) in declaration order
+/** @par Example:
+    @code{.py}
+list<AbstractClassMember> l = cls.getMembers();
+    @endcode
+
+    @return a list of all declared class members, non-static (first) and static (second) in declaration order
+
+    @note only members declared in the local class are returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTCLASSMEMBER->getTypeInfo()), xsink);
+
+    QoreClassMemberIterator mi(*c->cls);
+    while (mi.next()) {
+        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, mi.getName(), &mi.getMember(), false)), xsink);
+    }
+
+    QoreClassStaticMemberIterator smi(*c->cls);
+    while (smi.next()) {
+        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, smi.getName(), &smi.getMember(), false)), xsink);
+    }
+
+    return l.release();
+}
+
+//! Returns the given class constant or throws an exception if the constant is not defined
+/** @par Example:
+    @code{.py}
+ClassConstant con = cls.getConstant(name);
+    @endcode
+
+    @return the given class constant or throws an exception if the constant is not defined
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-CONSTANT thrown if the constant cannot be found
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+*/
+ClassConstant Class::getConstant(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const QoreExternalConstant* ce = c->cls->findConstant(tname->c_str());
+    if (!ce) {
+        xsink->raiseException("UNKNOWN-CONSTANT", "constant '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, ce, c->cls));
+}
+
+//! Returns a list of all declared class constants
+/** @par Example:
+    @code{.py}
+list<ClassConstant> l = cls.getConstants();
+    @endcode
+
+    @return a list of all declared class constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<ClassConstant> Class::getConstants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASSCONSTANT->getTypeInfo()), xsink);
+    QoreClassConstantIterator i(*c->cls);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, &i.get(), c->cls)), xsink);
+    }
+
+    return l.release();
+}
+
+//! Returns the namespace for the class
+/** @par Example:
+    @code{.py}
+Namespace ns = cls.getNamespace();
+    @endcode
+
+    @return the namespace for the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+ */
+Namespace Class::getNamespace() [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, c->cls->getNamespace()));
+}
+
+//! Returns the accessibility of the current class in the given object as an @ref access_constants "access value" or \c 0 if the object does not inherit the class at all
+/** @par Example:
+    @code{.py}
+if (!cls.instanceOf(obj)) {
+    printf("object of class %y does not inherit %y\n", obj.className(), cls.getPathName());
+}
+    @endcode
+
+    @param obj the object to test
+
+    @return an @ref access_constants "access value" giving the accessibility of the class in the object or \c 0 if the
+    object does not inherit the class at all; see @ref access_constants for possible return values (plus \c 0 meaning
+    no inheritance)
+*/
+int Class::instanceOf(object obj) [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return get_access(obj->getClassAccess(*c->cls));
+}
+
+//! Returns the accessibility of the class passed as an argument in the hierarchy of the current class as an @ref access_constants "access value" or \c 0 if the argument class is not present in the current class's hierarchy at all
+/** @par Example:
+    @code{.py}
+if (!cls.getInheritanceAccess(base_class)) {
+    printf("class %y does not inherit class %y\n", cls.getPathName(), base_class.getPathName());
+}
+    @endcode
+
+    @param base_class the class to try to find in the current class's hieerarchy
+
+    @return an @ref access_constants "access value" giving the accessibility of the base class in the current class's
+    hierarchy or \c 0 if the argument class is not present in the current class's hierarchy at all; see
+    @ref access_constants for possible return values (plus \c 0 meaning no inheritance)
+*/
+int Class::getInheritanceAccess(Class[QoreReflectionClass] base_class) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionClass> base_cls_holder(base_class, xsink);
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch1(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch2(xsink, base_class->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ClassAccess rv;
+    if (!c->cls->inHierarchy(*base_class->cls, rv)) {
+        return 0;
+    }
+    return get_access(rv);
+}
+
+//! Returns a %Class object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls = Class::forName("Thread::Mutex");
+    @endcode
+
+    @param path the class name or namespace-justified path as a string
+
+    @return a class object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+ */
+static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASS, getProgram(), cls.release());
+}
+
+//! Returns a %Class object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls = Class::forName(pgm, "Thread::Mutex");
+    @endcode
+
+    @param pgm the Program object to search
+    @param path the class name or namespace-justified path as a string
+
+    @return a class object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+ */
+static Class Class::forName(Program[QoreProgram] pgm, string path) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str(), pgm), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASS, pgm, cls.release());
+}
+
+//! Returns the class for the object
+/** @par Example:
+    @code{.py}
+Class cls = Class::getClass(obj);
+    @endcode
+
+    @param obj the object to return the class for
+
+    @return the class for the object
+ */
+static Class Class::getClass(object obj) [flags=CONSTANT] {
+    QoreProgram* pgm = obj->getProgram();
+    return new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, obj->getClass()));
+}
+
+//! Returns a list of classes matching the regular expression pattern argument or an empty list if no classes match
+/** @par Example:
+    @code{.py}
+# return all accessible classes that start with the letter "T"
+list<Class> l = Class::findAllRegex("^T");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of classes matching the regular expression pattern argument or an empty list if no classes match
+*/
+static list<Class> Class::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    return find_all_classes(*pattern, re_opts, getProgram(), xsink);
+}
+
+//! Returns a list of classes matching the regular expression pattern argument or an empty list if no classes match
+/** @par Example:
+    @code{.py}
+# return all accessible classes that start with the letter "T"
+list<Class> l = Class::findAllRegex(pgm, "^T");
+    @endcode
+
+    @param pgm the Program object to search
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of classes matching the regular expression pattern argument or an empty list if no classes match
+*/
+static list<Class> Class::findAllRegex(Program[QoreProgram] pgm, string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    return find_all_classes(*pattern, re_opts, pgm, xsink);
+}

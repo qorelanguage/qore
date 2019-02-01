@@ -32,19 +32,22 @@
 #include <qore/QoreSSLPrivateKey.h>
 #include "qore/intern/QoreSSLIntern.h"
 
-#include <errno.h>
+#include <cerrno>
+#include <string>
+
 #include <openssl/err.h>
 
 struct qore_sslpk_private {
-   EVP_PKEY* pk;
+    EVP_PKEY* pk = nullptr;
 
-   DLLLOCAL qore_sslpk_private(EVP_PKEY* p) : pk(p) {
-   }
+    DLLLOCAL qore_sslpk_private(EVP_PKEY* p) : pk(p) {
+    }
 
-   DLLLOCAL ~qore_sslpk_private() {
-      if (pk)
-         EVP_PKEY_free(pk);
-   }
+    DLLLOCAL ~qore_sslpk_private() {
+        if (pk) {
+            EVP_PKEY_free(pk);
+        }
+    }
 };
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(EVP_PKEY* p) : priv(new qore_sslpk_private(p)) {
@@ -55,35 +58,38 @@ QoreSSLPrivateKey::~QoreSSLPrivateKey() {
 }
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(const char* fn, const char* pp, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
-   priv->pk = 0;
-   FILE* fp = fopen(fn, "r");
-   if (!fp) {
-      xsink->raiseErrnoException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
-      return;
-   }
-   PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
-   fclose(fp);
-   if (!priv->pk)
-      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
+    FILE* fp = fopen(fn, "r");
+    if (!fp) {
+        xsink->raiseErrnoException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", errno, "'%s'", fn);
+        return;
+    }
+    PEM_read_PrivateKey(fp, &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
+    fclose(fp);
+    if (!priv->pk) {
+        xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing private key file '%s'", fn);
+        return;
+    }
 }
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(const BinaryNode* bin, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
-   OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char* )bin->getPtr();
-   priv->pk = d2i_AutoPrivateKey(0, &p, (int)bin->size());
-   if (!priv->pk) {
-      long e = ERR_get_error();
-      char buf[121];
-      ERR_error_string(e, buf);
-      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", buf);
-   }
+    OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char* )bin->getPtr();
+    priv->pk = d2i_AutoPrivateKey(0, &p, (int)bin->size());
+    if (!priv->pk) {
+        long e = ERR_get_error();
+        char buf[121];
+        ERR_error_string(e, buf);
+        xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", buf);
+    }
 }
 
 QoreSSLPrivateKey::QoreSSLPrivateKey(const QoreString* str, const char* pp, ExceptionSink* xsink) : priv(new qore_sslpk_private(0)) {
-   QoreMemBIO mbio(str);
+    QoreMemBIO mbio(str);
 
-   PEM_read_bio_PrivateKey(mbio.getBIO(), &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
-   if (!priv->pk)
-      xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing PEM string");
+    PEM_read_bio_PrivateKey(mbio.getBIO(), &priv->pk, 0, pp ? (void* )pp : (void* )"_none_");
+    if (!priv->pk) {
+        xsink->raiseException("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", "error parsing PEM string");
+        return;
+    }
 }
 
 EVP_PKEY* QoreSSLPrivateKey::getData() const {
@@ -91,47 +97,50 @@ EVP_PKEY* QoreSSLPrivateKey::getData() const {
 }
 
 QoreStringNode* QoreSSLPrivateKey::getPEM(ExceptionSink* xsink) const {
-   BIO* bp = BIO_new(BIO_s_mem());
-   if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0)) {
-      BIO_free(bp);
-      xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
-      return 0;
-   }
-   char* buf;
-   long len = BIO_get_mem_data(bp, &buf);
+    QoreMemBIO bio;
+    if (!PEM_write_bio_PrivateKey(*bio, priv->pk, 0, 0, 0, 0, 0)) {
+        xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
+        return nullptr;
+    }
+    return bio.getAsString();
+}
 
-   QoreStringNode* str = new QoreStringNode(buf, (int)len);
-   BIO_free(bp);
-   return str;
+BinaryNode* QoreSSLPrivateKey::getDER(ExceptionSink* xsink) const {
+    QoreMemBIO bio;
+    if (i2d_PrivateKey_bio(*bio, priv->pk) <= 0) {
+        xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create DER binary from private key data");
+        return nullptr;
+    }
+    return bio.getAsBinary();
 }
 
 const char* QoreSSLPrivateKey::getType() const {
-   switch (EVP_PKEY_base_id(priv->pk)) {
+    switch (EVP_PKEY_base_id(priv->pk)) {
 #ifndef OPENSSL_NO_RSA
-      case EVP_PKEY_RSA:
-         return "RSA";
-      case EVP_PKEY_RSA2:
-         return "RSA2";
+        case EVP_PKEY_RSA:
+            return "RSA";
+        case EVP_PKEY_RSA2:
+            return "RSA2";
 #endif
 #ifndef OPENSSL_NO_DSA
-      case EVP_PKEY_DSA:
-         return "DSA";
-      case EVP_PKEY_DSA1:
-         return "DSA1";
-      case EVP_PKEY_DSA2:
-         return "DSA2";
-      case EVP_PKEY_DSA3:
-         return "DSA3";
-      case EVP_PKEY_DSA4:
-         return "DSA4";
+        case EVP_PKEY_DSA:
+            return "DSA";
+        case EVP_PKEY_DSA1:
+            return "DSA1";
+        case EVP_PKEY_DSA2:
+            return "DSA2";
+        case EVP_PKEY_DSA3:
+            return "DSA3";
+        case EVP_PKEY_DSA4:
+            return "DSA4";
 #endif
 #ifndef OPENSSL_NO_DH
-      case EVP_PKEY_DH:
-         return "DH";
+        case EVP_PKEY_DH:
+            return "DH";
 #endif
-      default:
-         return "unknown";
-   }
+        default:
+            return "unknown";
+    }
 }
 
 int64 QoreSSLPrivateKey::getVersion() const {

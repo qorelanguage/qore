@@ -35,8 +35,8 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_qd_private.h"
 
+#include <cerrno>
 #include <sys/types.h>
-#include <errno.h>
 
 QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
     AutoLocker al(m);
@@ -86,8 +86,10 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
             fname.concat(de->d_name);
             struct stat buf;
             if (!full) {
-                if (stat(fname.getBuffer(), buf, xsink))
-                  return 0;
+                if (::stat(fname.getBuffer(), &buf)) {
+                    // ignore the file if we cannot stat it, instead of returning
+                    continue;
+                }
 
                 if (!(buf.st_mode & stat_filter))
                   continue;
@@ -96,8 +98,10 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
                 continue;
             }
 #ifdef HAVE_LSTAT
-            if (lstat(fname.getBuffer(), buf, xsink))
-                return 0;
+            if (::lstat(fname.getBuffer(), &buf)) {
+                // ignore the file if we cannot stat it, instead of returning
+                continue;
+            }
 
             SimpleRefHolder<QoreStringNode> lpath;
 
@@ -114,12 +118,16 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
                     lpath = new QoreStringNode(lbuf);
                 }
 
-                if (stat(fname.getBuffer(), buf, xsink))
-                    return 0;
+                if (::stat(fname.getBuffer(), &buf)) {
+                    // ignore the file if we cannot stat it, instead of returning
+                    continue;
+                }
             }
 #else
-            if (stat(fname.getBuffer(), buf, xsink))
-                return 0;
+            if (::stat(fname.getBuffer(), &buf)) {
+                // ignore the file if we cannot stat it, instead of returning
+                continue;
+            }
 #endif
             if (stat_filter != -1 && !(buf.st_mode & stat_filter))
                 continue;
@@ -537,7 +545,9 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+/** This method uses \c stat() system call internally to get detailed info about directory entries if the \c full parameter is @ref Qore::True "True". If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
+
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
@@ -564,7 +574,9 @@ list Dir::list(bool full = False) {
 }
 
 //! Gets all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
-/** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
+/** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
+
+    @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
     @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
@@ -597,7 +609,8 @@ list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
 }
 
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
-/**
+/** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for a file, the file is skipped and information about this file is not included in the returned list.
+
     @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
@@ -627,7 +640,9 @@ list Dir::listFiles(bool full = False) {
 }
 
 //! Retrieves all files in the directory that match the given regular expression; if any errors occur an exception is thrown
-/** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
+/** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for a file, the file is skipped and information about this file is not included in the returned list.
+
+    @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
     @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
@@ -660,7 +675,9 @@ list Dir::listFiles(string regex, softint regex_options = 0, softbool full = Fal
 }
 
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+/** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
+
+    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
@@ -689,7 +706,9 @@ list Dir::listDirs(bool full = False) {
 }
 
 //! Gets all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if any errors occur an exception is thrown
-/** @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
+/** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
+
+    @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
     @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 

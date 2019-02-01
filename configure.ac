@@ -1308,20 +1308,6 @@ if test "$enable_optimization" = "auto"; then
    fi
 fi
 
-AC_ARG_ENABLE([runtime-thread-stack-trace],
-  [AS_HELP_STRING([--enable-runtime-thread-stack-trace],
-		  [enable runtime thread stack trace (performance penalty, default: off)])],
-  [case "${enable_runtime_thread_stack_trace}" in
-       yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_runtime_thread_stack_trace} for --enable-runtime-thread-stack-trace) ;;
-      esac],
-  [enable_runtime_thread_stack_trace=yes])
-
-if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
-   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing, needed for getAllThreadCallStacks()])
-   enable_runtime_thread_stack_trace=yes
-fi
-
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
@@ -1878,7 +1864,6 @@ AM_CONDITIONAL([COND_PROFILE],                 [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = yes])
 AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
-AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_SPARC32],      [test "$solaris_cc_sparc32" = yes])
@@ -2010,6 +1995,7 @@ AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "$QORE_BUILD_HOST", [Qore build host inf
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
+AC_CONFIG_FILES([modules/reflection/Makefile modules/reflection/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

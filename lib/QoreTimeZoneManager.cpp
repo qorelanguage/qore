@@ -33,25 +33,23 @@
 #include "qore/intern/QoreTimeZoneManager.h"
 #include "qore/intern/qore_date_private.h"
 
-#include <stdio.h>
-#include <time.h>
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <map>
+#include <memory>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
 #include "qore/intern/glob.h"
 #endif
-
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <ctype.h>
-
-#include <memory>
-#include <map>
 
 #define QB(x) ((x) ? "true" : "false")
 

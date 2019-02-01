@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,10 +33,9 @@
 
 #define _QORE_FUNCTION_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -100,6 +99,10 @@ public:
 
     DLLLOCAL const type_vec_t& getTypeList() const {
         return typeList;
+    }
+
+    DLLLOCAL const name_vec_t& getParamNames() const {
+        return names;
     }
 
     DLLLOCAL QoreValue evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
@@ -210,6 +213,10 @@ public:
         selfid = n_selfid;
     }
 
+    DLLLOCAL LocalVar* getSelfId() const {
+        return selfid;
+    }
+
     DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
         return num < parseTypeList.size() ? parseTypeList[num] : nullptr;
     }
@@ -255,27 +262,44 @@ public:
 
 class AbstractQoreFunctionVariant;
 
-class CodeEvaluationHelper {
-protected:
-    qore_call_t ct;
-    const char* name;
-    ExceptionSink* xsink;
-    const qore_class_private* qc;
-    const QoreProgramLocation* loc;
-    QoreListNodeEvalOptionalRefHolder tmp;
-    const QoreTypeInfo* returnTypeInfo; // saved return type info
-    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
-    q_rt_flags_t rtflags; // runtime flags
-
-    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx);
-
+class CodeEvaluationHelper : public QoreStackLocation {
 public:
-    // saves current program location in case there's an exception
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
+    /**
+        @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
 
-    // saves current program location in case there's an exception
-    // performs destructive evaluation of "args"
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        saves current program location in case there's an exception
+    */
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
+        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+        bool is_copy = false, const qore_class_private* cctx = nullptr);
+
+    //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
+    /**
+        @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
+
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        saves current program location in case there's an exception;
+        performs destructive evaluation of "args"
+    */
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
+        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+        bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     DLLLOCAL ~CodeEvaluationHelper();
 
@@ -288,7 +312,20 @@ public:
         ct = n_ct;
     }
 
-    DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
+    //! process default arguments for a function, method, or closure call
+    /** @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
+        @param check_args set to true if argument compatibility with parameters should be validated
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        @return 0 = OK, -1 Qore-language exception raised
+    */
+    DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
+        bool check_args, bool is_copy, QoreObject* self);
 
     DLLLOCAL void setArgs(QoreListNode* n_args) {
         assert(!*tmp);
@@ -308,10 +345,6 @@ public:
         return pgm;
     }
 
-    DLLLOCAL void restorePosition() const {
-        update_runtime_location(loc);
-    }
-
     DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
         return rtflags;
     }
@@ -319,6 +352,52 @@ public:
     DLLLOCAL const qore_class_private* getClass() const {
         return qc;
     }
+
+    //! returns the source location of the element
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
+        // return loc_builtin for Qore builtin calls
+        return *loc;
+    }
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const std::string& getCallName() const {
+        return callName;
+    }
+
+    DLLLOCAL virtual qore_call_t getCallType() const {
+        return ct;
+    }
+
+    //! returns the QoreProgram container
+    DLLLOCAL virtual QoreProgram* getProgram() const {
+        return pgm;
+    }
+
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return stmt;
+    }
+
+protected:
+    qore_call_t ct;
+    const char* name;
+    ExceptionSink* xsink;
+    // method class
+    const qore_class_private* qc;
+    const QoreProgramLocation* loc;
+    QoreListNodeEvalOptionalRefHolder tmp;
+    const QoreTypeInfo* returnTypeInfo; // saved return type info
+    QoreProgram* pgm = nullptr; // program used when evaluated (to find stacks for references)
+    const AbstractStatement* stmt = nullptr; // the current statement for the call stack entry
+    q_rt_flags_t rtflags = 0; // runtime flags
+    std::string callName;
+    const QoreStackLocation* stack_loc = nullptr;
+    const QoreProgramLocation* old_runtime_loc = nullptr;
+    bool restore_stack = false;
+
+    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
+        const qore_class_private* cctx, QoreObject* self);
+
+    DLLLOCAL void setCallName(const QoreFunction* func);
 };
 
 class UserVariantBase;
@@ -400,6 +479,9 @@ public:
         return *(getSignature()) == sig;
     }
 
+    // only returns a non-nullptr value for normal user method variants
+    DLLLOCAL LocalVar* getSelfId() const;
+
     DLLLOCAL AbstractQoreFunctionVariant* ref() {
         ROreference();
         return this;
@@ -463,6 +545,10 @@ public:
         return const_cast<UserSignature*>(&signature);
     }
 
+    DLLLOCAL bool isSynchronized() const {
+        return (bool)gate;
+    }
+
     DLLLOCAL void setInit() {
         init = true;
     }
@@ -484,6 +570,10 @@ public:
 
     DLLLOCAL void parseInitPopLocalVars();
 
+    DLLLOCAL void setSelfId(LocalVar* selfid) {
+        signature.setSelfId(selfid);
+    }
+
     DLLLOCAL void parseCommit();
 };
 
@@ -504,7 +594,10 @@ protected:
     ExceptionSink* xsink;
 
 public:
-    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) :
+        ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
+        ThreadFrameBoundaryHelper(!*n_xsink),
+        uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
         assert(xsink);
         if (*xsink || uvb->setupCall(ceh, argv, xsink))
             uvb = nullptr;
@@ -529,7 +622,7 @@ protected:
     }
 
 public:
-    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
+    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QCF_NO_FLAGS) :
         AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
     }
 
@@ -585,10 +678,13 @@ struct INode {
 typedef std::vector<INode> ilist_t;
 
 struct IList : public ilist_t {
-    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
+    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class,
+        const_iterator aqfi, bool& internal_access, bool& stop) const;
 };
 
 class QoreFunction : protected QoreReferenceCounter {
+friend class QoreFunctionIterator;
+friend class qore_external_function_iterator_private;
 protected:
     std::string name;
 
@@ -600,17 +696,18 @@ protected:
 
     // if true means all variants have the same return value
     int64 unique_functionality = QDOM_DEFAULT;
-    int64 unique_flags = QC_NO_FLAGS;
+    int64 unique_flags = QCF_NO_FLAGS;
 
-    // same as above but for variants without QC_RUNTIME_NOOP
+    // same as above but for variants without QCF_RUNTIME_NOOP
     int64 nn_unique_functionality = QDOM_DEFAULT;
-    int64 nn_unique_flags = QC_NO_FLAGS;
+    int64 nn_unique_flags = QCF_NO_FLAGS;
     int nn_count = 0;
 
     bool same_return_type : 1;
     bool nn_same_return_type : 1;
     bool parse_rt_done : 1;
     bool parse_init_done : 1;
+    bool parse_init_in_progress : 1;
     bool has_user : 1;                   // has at least 1 committed user variant
     bool has_builtin : 1;                // has at least 1 committed builtin variant
     bool has_pub : 1;                    // has at least 1 committed user variant with public visibility
@@ -661,7 +758,7 @@ protected:
         int64 vf = variant->getFunctionality();
         int64 vflags = variant->getFlags();
 
-        bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
+        bool rtn = (bool)(vflags & QCF_RUNTIME_NOOP);
 
         if (vlist.empty()) {
             unique_functionality = vf;
@@ -701,6 +798,7 @@ public:
         nn_same_return_type(true),
         parse_rt_done(true),
         parse_init_done(true),
+        parse_init_in_progress(false),
         has_user(false),
         has_builtin(false),
         has_pub(false),
@@ -724,6 +822,7 @@ public:
             nn_same_return_type(old.nn_same_return_type),
             parse_rt_done(true),
             parse_init_done(true),
+            parse_init_in_progress(false),
             has_user(old.has_user),
             has_builtin(old.has_builtin),
             has_pub(false),
@@ -817,6 +916,10 @@ public:
     DLLLOCAL AbstractQoreFunctionVariant* first() {
         assert(!vlist.empty());
         return *(vlist.begin());
+    }
+
+    DLLLOCAL unsigned numVariants() const {
+        return vlist.size();
     }
 
     DLLLOCAL QoreListNode* runtimeGetCallVariants() const;
@@ -927,7 +1030,7 @@ public:
 
     // find variant at parse time, throw parse exception if no variant can be matched
     // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
-    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
+    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const;
 
     // returns true if there are no uncommitted parse variants in the function
     DLLLOCAL bool pendingEmpty() const {
@@ -987,6 +1090,32 @@ public:
     }
 };
 
+class QoreFunctionIterator {
+public:
+    DLLLOCAL QoreFunctionIterator(const QoreFunction& f) : f(f) {
+        i = f.vlist.end();
+    }
+
+    DLLLOCAL bool next() {
+        if (i == f.vlist.end()) {
+            i = f.vlist.begin();
+        }
+        else {
+            ++i;
+        }
+
+        return i != f.vlist.end();
+    }
+
+    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
+        return *i;
+    }
+
+private:
+    const QoreFunction& f;
+    VList::const_iterator i;
+};
+
 class MethodVariantBase;
 class MethodFunctionBase;
 #define METHFB(f) (reinterpret_cast<MethodFunctionBase*>(f))
@@ -1004,7 +1133,9 @@ protected:
     mutable MethodFunctionBase* new_copy = nullptr;
 
     bool is_static,
-        has_final = false;
+        has_final = false,
+        is_abstract = true,
+        has_private_internal_variants = false;
 
     ClassAccess access;
 
@@ -1013,7 +1144,8 @@ protected:
     DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
+    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme),
+        qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
     }
 
     // copy constructor, only copies committed variants
@@ -1022,6 +1154,8 @@ public:
             qc(n_qc),
             is_static(old.is_static),
             has_final(old.has_final),
+            is_abstract(old.is_abstract),
+            has_private_internal_variants(old.has_private_internal_variants),
             access(old.access) {
         //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
@@ -1032,8 +1166,9 @@ public:
         ilist.reserve(old.ilist.size());
         ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end();
         ++i;
-        for (; i != e; ++i)
+        for (; i != e; ++i) {
             ilist.push_back(*i);
+        }
     }
 
     DLLLOCAL void resolveCopy() {
@@ -1079,6 +1214,10 @@ public:
         return access > Public;
     }
 
+    DLLLOCAL bool isAbstract() const {
+        return is_abstract;
+    }
+
     DLLLOCAL ClassAccess getAccess() const {
         return access;
     }
@@ -1093,6 +1232,10 @@ public:
 
     DLLLOCAL bool isStatic() const {
         return is_static;
+    }
+
+    DLLLOCAL bool hasPrivateInternalVariants() const {
+        return has_private_internal_variants;
     }
 
     DLLLOCAL void checkFinal() const;
@@ -1118,7 +1261,7 @@ public:
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
+    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QCF_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
     }
 
     DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -1137,7 +1280,7 @@ protected:
     const QoreTypeInfo* classTypeInfo;
 
 public:
-    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
+    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QCF_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
         addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
     }
 

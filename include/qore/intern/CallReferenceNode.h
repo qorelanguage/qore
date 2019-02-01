@@ -111,9 +111,7 @@ public:
 
    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreFunction* getFunction() {
-      return method ? method->getFunction() : 0;
-   }
+   DLLLOCAL virtual QoreFunction* getFunction();
 };
 
 class StaticMethodCallReferenceNode : public LocalStaticMethodCallReferenceNode {
@@ -286,9 +284,7 @@ public:
 
    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreFunction* getFunction() {
-      return method ? method->getFunction() : 0;
-   }
+   DLLLOCAL virtual QoreFunction* getFunction();
 };
 
 #endif

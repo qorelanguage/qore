@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,15 +47,15 @@
 
 #include "parser.hpp"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <limits.h>
+#include <cctype>
+#include <climits>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
 
@@ -784,7 +784,11 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%loose-args{WS}*$                      parse_disable_parse_options(yylloc, PO_STRICT_ARGS);
 ^%broken-references{WS}*$               parse_set_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%correct-references{WS}*$              parse_disable_parse_options(yylloc, PO_BROKEN_REFERENCES);
+^%broken-sprintf{WS}*$                  parse_set_parse_options(yylloc, PO_BROKEN_SPRINTF);
+^%correct-sprintf{WS}*$                 parse_disable_parse_options(yylloc, PO_BROKEN_SPRINTF);
 ^%allow-statement-no-effect{WS}*$       parse_set_parse_options(yylloc, PO_ALLOW_STATEMENT_NO_EFFECT);
+^%no-reflection{WS}*$                   parse_set_parse_options(yylloc, PO_NO_REFLECTION);
+^%no-transient{WS}*$                    parse_set_parse_options(yylloc, PO_NO_TRANSIENT);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error(*get_loc(yylloc), "missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
@@ -948,7 +952,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                     //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                     QoreProgram* pgm = getProgram();
                                                     ExceptionSink xsink;
-                                                    QMM.parseLoadModule(xsink, str.getBuffer(), pgm, parse_get_try_reexport());
+                                                    QMM.parseLoadModule(xsink, xsink, str.getBuffer(), pgm, parse_get_try_reexport());
                                                     if (!xsink) {
                                                        BEGIN(p_skip_to_endtry);
                                                     }
@@ -1009,7 +1013,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                  QoreProgram* pgm = getProgram();
                                                  ExceptionSink xsink;
-                                                 QMM.parseLoadModule(xsink, cn, pgm, reexport);
+                                                 QMM.parseLoadModule(xsink, xsink, cn, pgm, reexport);
                                                  pgm->getParseExceptionSink()->assimilate(xsink);
                                               }
                                            }
@@ -1045,7 +1049,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  if (str.empty())
                                                     parse_error(*loc, "%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
                                                  else {
-                                                    QMM.issueParseCmd(loc, module.getBuffer(), 0, str);
+                                                    QMM.issueParseCmd(loc, module.getBuffer(), str);
                                                  }
                                               }
                                            }
@@ -1370,7 +1374,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
       \\\n                              yylval->Trans->concatSource('\n');
       \\\/                              yylval->Trans->concatSource('/');
       \\.                               yylval->Trans->concatSource(yytext[1]);
-      [^\n\\/\-]+                               {
+      [^\n\\/\-]+                       {
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->Trans->concatSource(*(yptr++));
@@ -1390,7 +1394,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX;
                                         }
       \n                                yylval->Regex->concat('\n');
@@ -1416,7 +1420,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX_EXTRACT;
                                         }
       \n                                yylval->Regex->concat('\n');
@@ -1507,6 +1511,12 @@ on_exit                                 return TOK_ON_EXIT;
 on_success                              return TOK_ON_SUCCESS;
 on_error                                return TOK_ON_ERROR;
 hashdecl                                return TOK_HASHDECL;
+transient                               {
+                                            if (getProgram()->getParseOptions64() & PO_NO_TRANSIENT) {
+                                                yylval->string = strdup("transient"); return IDENTIFIER;
+                                            }
+                                            return TOK_TRANSIENT;
+                                        }
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }

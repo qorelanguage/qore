@@ -3,7 +3,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9
+Version: 0.9.0
 Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
@@ -30,8 +30,8 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
-Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.9
+Provides: libqore6 = %{version}
+Obsoletes: libqore6 < 0.9
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -42,8 +42,8 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.5.14.2
-%{_libdir}/libqore.so.5
+%{_libdir}/libqore.so.6.0.0
+%{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n libqore -p /sbin/ldconfig
@@ -107,6 +107,7 @@ Qore library.
 %{_libdir}/cmake/Qore
 %{_includedir}/*
 %{_datarootdir}/qore/Doxyfile.in
+%{_datarootdir}/qore/qore-logo-55x200.png
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
@@ -174,8 +175,17 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Mon Jun 25 2018 David Nichols <david@qore.org> 0.9-1
+* Fri Nov 16 2018 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
+
+* Wed Nov 14 2018 David Nichols <david@qore.org> 0.8.13.9-1
+- updated version to 0.8.13.9-1
+
+* Thu Oct 20 2018 David Nichols <david@qore.org> 0.8.13.8-1
+- updated version to 0.8.13.8-1
+
+* Tue Sep 11 2018 David Nichols <david@qore.org> 0.8.13.7-1
+- updated version to 0.8.13.7-1
 
 * Fri Jun 22 2018 David Nichols <david@qore.org> 0.8.13.6-1
 - updated version to 0.8.13.6-1
