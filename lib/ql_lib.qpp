@@ -181,6 +181,9 @@ hashdecl ExceptionInfo {
     //! this key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
     auto arg;
 
+    //! the language of the source code location; normally \c "Qore"
+    string lang;
+
     //! chained exception info
     hash<ExceptionInfo> next;
 }

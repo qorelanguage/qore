@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,20 @@ static QoreHashNode* find_method_intern(const QoreStringNode* name, QoreReflecti
     return rv.release();
 }
 
+static QoreValue find_all_classes(const QoreString& pattern, int re_opts, QoreProgram* pgm, ExceptionSink* xsink) {
+    class_vec_t class_vec = pgm->findAllClassesRegex(pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+    for (auto& i : class_vec) {
+        l->push(new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, i)), xsink);
+    }
+
+    return l.release();
+}
+
 //! methhod and inheritance access information
 /** The access information in this hash is the access of the class containing the method; to get the access modifier
     of any method variant, the maximum of the access value provided here and the access value of the variant must be
@@ -129,7 +143,7 @@ Class::constructor(string path) {
         return;
     }
 
-    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return;
     }
@@ -1414,12 +1428,41 @@ static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return QoreValue();
     }
 
     return new QoreObject(QC_CLASS, getProgram(), cls.release());
+}
+
+//! Returns a %Class object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls = Class::forName(pgm, "Thread::Mutex");
+    @endcode
+
+    @param pgm the Program object to search
+    @param path the class name or namespace-justified path as a string
+
+    @return a class object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+ */
+static Class Class::forName(Program[QoreProgram] pgm, string path) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str(), pgm), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASS, pgm, cls.release());
 }
 
 //! Returns the class for the object
@@ -1450,16 +1493,23 @@ list<Class> l = Class::findAllRegex("^T");
     @return a list of classes matching the regular expression pattern argument or an empty list if no classes match
 */
 static list<Class> Class::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
-    QoreProgram* pgm = getProgram();
-    class_vec_t class_vec = getProgram()->findAllClassesRegex(*pattern, re_opts, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
+    return find_all_classes(*pattern, re_opts, getProgram(), xsink);
+}
 
-    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
-    for (auto& i : class_vec) {
-        l->push(new QoreObject(QC_CLASS, getProgram(), new QoreReflectionClass(pgm, i)), xsink);
-    }
+//! Returns a list of classes matching the regular expression pattern argument or an empty list if no classes match
+/** @par Example:
+    @code{.py}
+# return all accessible classes that start with the letter "T"
+list<Class> l = Class::findAllRegex(pgm, "^T");
+    @endcode
 
-    return l.release();
+    @param pgm the Program object to search
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of classes matching the regular expression pattern argument or an empty list if no classes match
+*/
+static list<Class> Class::findAllRegex(Program[QoreProgram] pgm, string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    return find_all_classes(*pattern, re_opts, pgm, xsink);
 }

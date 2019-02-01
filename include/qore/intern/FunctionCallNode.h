@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -314,7 +314,7 @@ public:
 
     using AbstractMethodCallNode::exec;
     DLLLOCAL QoreValue exec(QoreObject* o, ExceptionSink* xsink) const {
-        return AbstractMethodCallNode::exec(o, c_str, nullptr, xsink);
+        return AbstractMethodCallNode::exec(o, c_str, runtime_get_class(), xsink);
     }
 
     DLLLOCAL QoreValue execPseudo(const QoreValue n, ExceptionSink* xsink) const;

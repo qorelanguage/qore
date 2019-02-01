@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -784,6 +784,8 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%loose-args{WS}*$                      parse_disable_parse_options(yylloc, PO_STRICT_ARGS);
 ^%broken-references{WS}*$               parse_set_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%correct-references{WS}*$              parse_disable_parse_options(yylloc, PO_BROKEN_REFERENCES);
+^%broken-sprintf{WS}*$                  parse_set_parse_options(yylloc, PO_BROKEN_SPRINTF);
+^%correct-sprintf{WS}*$                 parse_disable_parse_options(yylloc, PO_BROKEN_SPRINTF);
 ^%allow-statement-no-effect{WS}*$       parse_set_parse_options(yylloc, PO_ALLOW_STATEMENT_NO_EFFECT);
 ^%no-reflection{WS}*$                   parse_set_parse_options(yylloc, PO_NO_REFLECTION);
 ^%no-transient{WS}*$                    parse_set_parse_options(yylloc, PO_NO_TRANSIENT);
@@ -950,7 +952,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                     //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                     QoreProgram* pgm = getProgram();
                                                     ExceptionSink xsink;
-                                                    QMM.parseLoadModule(xsink, str.getBuffer(), pgm, parse_get_try_reexport());
+                                                    QMM.parseLoadModule(xsink, xsink, str.getBuffer(), pgm, parse_get_try_reexport());
                                                     if (!xsink) {
                                                        BEGIN(p_skip_to_endtry);
                                                     }
@@ -1011,7 +1013,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                  QoreProgram* pgm = getProgram();
                                                  ExceptionSink xsink;
-                                                 QMM.parseLoadModule(xsink, cn, pgm, reexport);
+                                                 QMM.parseLoadModule(xsink, xsink, cn, pgm, reexport);
                                                  pgm->getParseExceptionSink()->assimilate(xsink);
                                               }
                                            }
@@ -1372,7 +1374,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
       \\\n                              yylval->Trans->concatSource('\n');
       \\\/                              yylval->Trans->concatSource('/');
       \\.                               yylval->Trans->concatSource(yytext[1]);
-      [^\n\\/\-]+                               {
+      [^\n\\/\-]+                       {
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->Trans->concatSource(*(yptr++));
@@ -1392,7 +1394,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX;
                                         }
       \n                                yylval->Regex->concat('\n');
@@ -1418,7 +1420,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX_EXTRACT;
                                         }
       \n                                yylval->Regex->concat('\n');

@@ -17,23 +17,49 @@
 
 %exec-class WebSocketHandlerTest
 
-class MyWsConnection inherits WebSocketConnection {
+class MyBadWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
     }
 
     gotMessage(string msg) {
         send("RESPONSE:"+msg);
+    }
+
+    registered() {
+        throw "ERROR", "error";
+    }
+}
+
+class MyWsConnection inherits WebSocketConnection {
+    constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
+    }
+
+    gotMessage(string msg) {
+        if (msg == "STOP") {
+            stop();
+        } else {
+            send("RESPONSE:"+msg);
+        }
         #printf("GOT MSG: %y\n", msg);
     }
 }
 
 class MyWsHandler inherits WebSocketHandler {
-    constructor(*hash opts) : WebSocketHandler(NOTHING, opts) {
+    public {
+        Queue errs();
     }
 
-    WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
-        return new MyWsConnection(self);
+    constructor(*hash<auto> opts) : WebSocketHandler(NOTHING, opts) {
     }
+
+    WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
+        return hdr.bad ? new MyBadWsConnection(self) : new MyWsConnection(self);
+    }
+
+    logError(string fmt) {
+        errs.push(vsprintf(fmt, argv));
+    }
+
 }
 
 class MyWsClient inherits WebSocketClient {
@@ -41,13 +67,16 @@ class MyWsClient inherits WebSocketClient {
         Counter cnt;
     }
 
-    constructor(code cb, hash opts, Counter c) : WebSocketClient(cb, opts) {
+    constructor(code cb, hash<auto> opts, Counter c) : WebSocketClient(cb, opts) {
         cnt = c;
     }
 
     private handlePing(hash<auto> h) {
         WebSocketClient::handlePing(h);
-        cnt.dec();
+        # in case of a race condition; only decrement once
+        if (cnt.getCount()) {
+            cnt.dec();
+        }
     }
 }
 
@@ -84,11 +113,34 @@ class WebSocketHandlerTest inherits QUnit::Test {
         assertEq(1, wsHandler.getHeartbeat());
         assertEq("test", wsHandler.getHeartbeatMessage());
 
-        Counter c(1);
-        MyWsClient wsc(sub (*data msg) {}, ("url": "ws://localhost:" + port), c);
-        wsc.connect();
-        c.waitForZero();
-        assertTrue(True);
+        {
+            Counter c(1);
+            MyWsClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port}, c);
+            wsc.connect();
+            c.waitForZero();
+            assertTrue(wsc.isOpen());
+            assertTrue(True);
+        }
+
+        # check bad handler
+        {
+            WebSocketClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port});
+            wsc.connect({"hdr": {"Bad": 1}});
+            wsc.disconnect();
+        }
+
+        # check close connection from server side
+        {
+            Counter c(1);
+            wsHandler.setHeartbeat(20);  # to not decrement counter
+            MyWsClient wsc(sub (*data msg) {c.dec(); }, {"url": "ws://localhost:" + port}, c);
+            wsc.connect();
+            assertTrue(wsc.isOpen());
+            wsc.send("STOP");
+            c.waitForZero();
+        }
+        wsHandler.errs.get(10s);
+        assertEq(0, wsHandler.errs.size());
     }
 
     private log(string str) {

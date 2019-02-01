@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -109,6 +109,14 @@ bool AbstractQoreFunctionVariant::hasBody() const {
    return is_user ? getUserVariantBase()->hasBody() : true;
 }
 
+LocalVar* AbstractQoreFunctionVariant::getSelfId() const {
+    const UserVariantBase* uvb = getUserVariantBase();
+    if (!uvb) {
+        return nullptr;
+    }
+    return uvb->getUserSignature()->getSelfId();
+}
+
 static void do_call_name(QoreString &desc, const QoreFunction* func) {
    const char* class_name = func->className();
    if (class_name)
@@ -136,50 +144,74 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
    }
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
-    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
-        loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
-    if (self && !self->isValid()) {
-        assert(n_qc);
-        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
-        return;
-    }
-
-    tmp.assignEval(args);
-    if (*xsink) {
-        return;
-    }
-
-    init(func, variant, is_copy, cctx);
-}
-
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+    const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self,
+    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
-        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
     if (self && !self->isValid()) {
         assert(n_qc);
         xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
         return;
     }
 
+    setCallName(func);
     tmp.assignEval(args);
     if (*xsink) {
         return;
     }
 
-    init(func, variant, is_copy, cctx);
+    init(func, variant, is_copy, cctx, self);
+}
+
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+    const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self,
+    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
+        loc(get_runtime_location()),
+        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
+    if (self && !self->isValid()) {
+        assert(n_qc);
+        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+        return;
+    }
+
+    setCallName(func);
+    tmp.assignEval(args);
+    if (*xsink) {
+        return;
+    }
+
+    init(func, variant, is_copy, cctx, self);
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
-    if (returnTypeInfo != (const QoreTypeInfo*)-1)
+    if (restore_stack) {
+        if (ct == CT_BUILTIN) {
+            update_runtime_stack_location(stack_loc, old_runtime_loc);
+        } else {
+            update_runtime_stack_location(stack_loc);
+        }
+    }
+    if (returnTypeInfo != (const QoreTypeInfo*)-1) {
         saveReturnTypeInfo(returnTypeInfo);
-    if (ct != CT_UNUSED && xsink->isException())
-        qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, *loc);
+    }
+}
+
+void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
+    if (qc) {
+        callName = qc->name.c_str();
+        callName += "::";
+    }
+    callName += func->getName();
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-    const qore_class_private* cctx) {
+    const qore_class_private* cctx, QoreObject* self) {
+    //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d\n", this, func->getName(),
+    //    loc->getFile(), loc->start_line);
+
     // issue #2145: set the call reference class context only after arguments are evaluated
     OptionalClassOnlySubstitutionHelper cosh(cctx);
 
@@ -206,14 +238,24 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         }
     }
 
-    if (processDefaultArgs(func, variant, true, is_copy))
+    if (processDefaultArgs(func, variant, true, is_copy, self)) {
         return;
+    }
 
     setCallType(variant->getCallType());
     setReturnTypeInfo(variant->getReturnTypeInfo());
+
+    // add call to call stack; push builtin location on the stack if executing builtin c++ code
+    if (ct == CT_BUILTIN) {
+        stack_loc = update_get_runtime_stack_builtin_location(this, stmt, pgm, old_runtime_loc);
+    } else {
+        stack_loc = update_get_runtime_stack_location(this, stmt, pgm);
+    }
+    restore_stack = true;
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
+int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
+    bool check_args, bool is_copy, QoreObject* self) {
     // get default argument list of variant
     AbstractFunctionSignature* sig = variant->getSignature();
     const arg_vec_t& defaultArgList = sig->getDefaultArgList();
@@ -223,6 +265,13 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
     for (unsigned i = 0; i < max; ++i) {
         if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || tmp->retrieveEntry(i).isNothing())) {
             QoreValue& p = tmp.getEntryReference(i);
+
+            // issue #3240: set self in case the default arg expression references a member of the current object
+            // must be set only for evaluation, cannot be set when verifying types below in
+            // QoreTypeInfo::acceptInputParam() as it will cause errors handling references related to the current
+            // object - "self" is the object for the call but not necessarily the current "self"
+            OptionalObjectOnlySubstitutionHelper self_helper(self);
+
             p = defaultArgList[i].eval(xsink);
             if (*xsink)
                 return -1;
@@ -234,8 +283,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
                 if (*xsink)
                     return -1;
             }
-        }
-        else if (i < typeList.size()) {
+        } else if (i < typeList.size()) {
             QoreValue n;
             if (tmp)
                 n = tmp->retrieveEntry(i);
@@ -247,6 +295,11 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
             if (!paramTypeInfo)
                 continue;
 
+            // issue #3184: do not create a NOTHING argument if none is needed
+            if (!QoreTypeInfo::hasType(paramTypeInfo)
+                || (tmp.size() < i && QoreTypeInfo::parseAcceptsReturns(paramTypeInfo, NT_NOTHING))) {
+                continue;
+            }
             // test for change or incompatibility
             if (check_args || QoreTypeInfo::mayRequireFilter(paramTypeInfo, n)) {
                 QoreValue& p = tmp.getEntryReference(i);
@@ -484,40 +537,44 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
-   lv.reserve(parseTypeList.size());
+    lv.reserve(parseTypeList.size());
 
-   if (selfid)
-      push_local_var(selfid, loc);
-   else if (classTypeInfo)
-      selfid = push_local_var("self", loc, classTypeInfo, true, 1);
+    if (selfid) {
+        push_local_var(selfid, loc);
+    } else if (classTypeInfo) {
+        selfid = push_local_var("self", loc, classTypeInfo, true, 1);
+    }
 
-   // push $argv var on stack and save id
-   argvid = push_local_var("argv", loc, listOrNothingTypeInfo, true, 1);
-   printd(5, "UserSignature::parseInitPushLocalVars() this: %p argvid: %p\n", this, argvid);
+    // push argv var on stack and save id
+    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, true, 1);
+    printd(5, "UserSignature::parseInitPushLocalVars() this: %p (%s) argvid: %p selfid: %p\n", this, getSignatureText(), argvid, selfid);
 
-   resolve();
+    resolve();
 
-   // init param ids and push local parameter vars on stack
-   for (unsigned i = 0; i < typeList.size(); ++i) {
-      // check for dups but do not check if the variables are referenced in the block
-      // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
-      // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
-      lv.push_back(push_local_var(names[i].c_str(), loc, typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
-      printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
-   }
+    // init param ids and push local parameter vars on stack
+    for (unsigned i = 0; i < typeList.size(); ++i) {
+        // check for dups but do not check if the variables are referenced in the block
+        // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
+        // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
+        lv.push_back(push_local_var(names[i].c_str(), loc,
+            typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
+        printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
+    }
 }
 
 void UserSignature::parseInitPopLocalVars() {
-   // remove local variables from stack and unset the parse_assigned flag
-   for (unsigned i = 0; i < typeList.size(); ++i)
-      pop_local_var(true);
+    // remove local variables from stack and unset the parse_assigned flag
+    for (unsigned i = 0; i < typeList.size(); ++i) {
+        pop_local_var(true);
+    }
 
-   // pop $argv param off stack
-   pop_local_var();
+    // pop argv param off stack
+    pop_local_var();
 
-   // pop $self off stack if present
-   if (selfid)
-      pop_local_var();
+    // pop $self off stack if present
+    if (selfid) {
+        pop_local_var();
+    }
 }
 
 void UserSignature::resolve() {
@@ -528,7 +585,7 @@ void UserSignature::resolve() {
 
     if (!returnTypeInfo) {
         returnTypeInfo = QoreParseTypeInfo::resolveAndDelete(parseReturnTypeInfo, loc);
-        parseReturnTypeInfo = 0;
+        parseReturnTypeInfo = nullptr;
     }
 #ifdef DEBUG
     else assert(!parseReturnTypeInfo);
@@ -543,7 +600,7 @@ void UserSignature::resolve() {
         // initialize default arguments
         if (defaultArgList[i]) {
             int lvids = 0;
-            const QoreTypeInfo* argTypeInfo = 0;
+            const QoreTypeInfo* argTypeInfo = nullptr;
             parse_init_value(defaultArgList[i], selfid, 0, lvids, argTypeInfo);
             if (lvids) {
                 parse_error(*loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
@@ -751,7 +808,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
     const AbstractQoreFunctionVariant* variant = nullptr;
     //const AbstractQoreFunctionVariant* saved_variant = nullptr;
 
-    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) qc: %p\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), ilist.size(), args, args ? args->size() : 0, qc);
+    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) cctx: %p '%s'\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), ilist.size(), args, args ? args->size() : 0, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
     unsigned nargs = args ? args->size() : 0;
 
@@ -933,8 +990,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             }
         }
         xsink->raiseException("RUNTIME-OVERLOAD-ERROR", desc);
-    }
-    else if (variant) {
+    } else if (variant) {
         QoreProgram* pgm = getProgram();
 
         // pgm could be zero if called from a foreign thread with no current Program
@@ -1522,11 +1578,10 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
     for (unsigned i = 0; i < num_params; ++i) {
         QoreValue np;
-        if (args) {
+        if (args && *args) {
             if (args->canEdit()) {
                 signature.lv[i]->instantiate(qore_list_private::get(***args)->takeExists(i));
-            }
-            else {
+            } else {
                 signature.lv[i]->instantiate((*args)->retrieveEntry(i).refSelf());
             }
             continue;
@@ -1547,8 +1602,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
             // here we try to take the reference from args if possible
             if (args->canEdit()) {
                 argv->push(qore_list_private::get(***args)->takeExists(i + num_params), nullptr);
-            }
-            else {
+            } else {
                 QoreValue n;
                 if (args)
                     n = (*args)->retrieveEntry(i + num_params);
@@ -1562,51 +1616,56 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 }
 
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
-   QoreValue val;
-   if (statements) {
-      // self might be 0 if instantiated by a constructor call
-      if (self && signature.selfid)
-         signature.selfid->instantiateSelf(self);
+    QoreValue val;
+    if (statements) {
+        // self might be 0 if instantiated by a constructor call
+        if (self && signature.selfid)
+            signature.selfid->instantiateSelf(self);
 
-      // instantiate argv and push id on stack
-      signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
+        // instantiate argv and push id on stack
+        signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
 
-      {
-         ArgvContextHelper argv_helper(argv.release(), xsink);
+        {
+            ArgvContextHelper argv_helper(argv.release(), xsink);
 
-         // enter gate if necessary
-         if (!gate || (gate->enter(xsink) >= 0)) {
-            // execute function
-            val = statements->exec(xsink);
+            // enter gate if necessary
+            if (!gate || (gate->enter(xsink) >= 0)) {
+                // execute function
+                val = statements->exec(xsink);
 
-            // exit gate if necessary
-            if (gate)
-               gate->exit();
-         }
-      }
+                // exit gate if necessary
+                if (gate) {
+                    gate->exit();
+                }
+            }
+        }
 
-      // uninstantiate argv
-      signature.argvid->uninstantiate(xsink);
+        // uninstantiate argv
+        signature.argvid->uninstantiate(xsink);
 
-      // if self then uninstantiate
-      // self might be 0 if instantiated by a constructor call
-      if (self && signature.selfid)
-         signature.selfid->uninstantiateSelf();
-   }
-   else {
-      argv = 0; // dereference argv now
-   }
+        // if self then uninstantiate
+        // self might be 0 if instantiated by a constructor call
+        if (self && signature.selfid)
+            signature.selfid->uninstantiateSelf();
+    } else {
+        argv = nullptr; // dereference argv now
+    }
 
-   // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
-   // only check if there isn't an active exception
-   if (!*xsink && val.isNothing()) {
-      const QoreTypeInfo* rt = signature.getReturnTypeInfo();
+    // if return value is NOTHING; make sure it's valid; maybe there wasn't a return statement
+    // only check if there isn't an active exception
+    if (!*xsink && val.isNothing()) {
+        const QoreTypeInfo* rt = signature.getReturnTypeInfo();
 
-      // check return type
-      QoreTypeInfo::acceptAssignment(rt, "<block return>", val, xsink);
-   }
+        // check return type
+        QoreTypeInfo::acceptAssignment(rt, "<block return>", val, xsink, nullptr);
+        // issue #3255: make sure any exception reflects the signature location
+        if (*xsink) {
+            xsink->overrideLocation(*signature.getParseLocation());
+            xsink->appendLastDescription(": block missing return statement");
+        }
+    }
 
-   return val;
+    return val;
 }
 
 // primary function for executing user code

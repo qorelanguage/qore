@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -495,6 +495,8 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
    switch (t) {
       case NT_OBJECT:
          return static_cast<const QoreObject*>(n)->getClass()->getTypeInfo();
+      case NT_WEAKREF:
+         return static_cast<const WeakReferenceNode*>(n)->get()->getClass()->getTypeInfo();
       case NT_HASH:
          return static_cast<const QoreHashNode*>(n)->getTypeInfo();
       case NT_LIST:
@@ -543,11 +545,13 @@ const char* getBuiltinTypeName(qore_type_t type) {
    return "<unknown type>";
 }
 
+// only called for complex hashes and lists
 static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTypeInfo* that_type, bool& may_not_match, bool& may_need_filter) {
-    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
+    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(this_type), QoreTypeInfo::getName(that_type));
     qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
-    if (may_not_match)
-        return QTI_NOT_EQUAL;
+    // with strict-types, may not match must be interpreted as no match
+    // however if we interpret "may not match" as "no match" here, then we introduce an incompatibility with
+    // non-complex types
     // even if types are 100% compatible, if they are not equal, then we perform type folding
     if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
         may_need_filter = true;
@@ -593,7 +597,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             return QTI_NOT_EQUAL;
         }
         case QTS_COMPLEXHASH: {
-            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            //printd(5, "QoreTypeSpec::match() %d: t.typespec: %d '%s'\n", typespec, (int)t.typespec, QoreTypeInfo::getName(u.ti));
             switch (t.typespec) {
                 case QTS_COMPLEXHASH:
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
@@ -614,7 +618,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
         }
         case QTS_COMPLEXSOFTLIST:
         case QTS_COMPLEXLIST: {
-            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            //printd(5, "QoreTypeSpec::match() %d: t.typespec: %d '%s'\n", typespec, (int)t.typespec, QoreTypeInfo::getName(u.ti));
             switch (t.typespec) {
                 case QTS_COMPLEXSOFTLIST:
                 case QTS_COMPLEXLIST:
@@ -683,26 +687,36 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
     return QTI_NOT_EQUAL;
 }
 
-bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper) const {
+static bool type_spec_accept_object(const QoreClass& type_class, const QoreClass& object_class, bool& priv_error) {
+    assert(!priv_error);
+
+    bool priv;
+    if (!object_class.getClass(type_class, priv)) {
+        return false;
+    }
+    if (!priv) {
+        return true;
+    }
+    // check access
+    if (qore_class_private::runtimeCheckPrivateClassAccess(type_class)) {
+        return true;
+    }
+    priv_error = true;
+    return false;
+}
+
+bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map,
+    const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
+    LValueHelper* lvhelper) const {
     bool priv_error = false;
     bool ok = false;
 
     switch (typespec) {
         case QTS_CLASS: {
             if (n.getType() == NT_OBJECT) {
-                bool priv;
-                if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
-                    break;
-                if (!priv) {
-                    ok = true;
-                    break;
-                }
-                // check access
-                if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc)) {
-                    ok = true;
-                    break;
-                }
-                priv_error = true;
+                ok = type_spec_accept_object(*u.qc, *n.get<const QoreObject>()->getClass(), priv_error);
+            } else if (n.getType() == NT_WEAKREF) {
+                ok = type_spec_accept_object(*u.qc, *n.get<const WeakReferenceNode>()->get()->getClass(), priv_error);
             }
             break;
         }
@@ -731,15 +745,15 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
-                    }
-                    else {
+                    } else {
                         discard(p, xsink);
-                        if (*xsink)
+                        if (xsink && *xsink) {
                             return true;
+                        }
                     }
-                }
-                else
+                } else {
                     qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
+                }
 
                 // now we have to fold the value types into our type
                 HashIterator i(h);
@@ -748,8 +762,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     QoreValue hn(ha.swap(QoreValue()));
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
                     ha.swap(hn);
-                    if (*xsink)
+                    if (xsink && *xsink) {
                         return true;
+                    }
                 }
 
                 ok = true;
@@ -773,15 +788,14 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(&typeInfo));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
-                    }
-                    else {
+                    } else {
                         discard(p, xsink);
-                        if (*xsink)
+                        if (xsink && *xsink) {
                             return true;
+                        }
                     }
                     lp = qore_list_private::get(*l);
-                }
-                else {
+                } else {
                     lp = qore_list_private::get(*l);
                     lp->complexTypeInfo = &typeInfo;
                 }
@@ -791,13 +805,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     QoreValue ln(lp->takeExists(i));
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, ln, lvhelper);
                     lp->swap(i, ln);
-                    if (*xsink)
+                    if (xsink && *xsink) {
                         return true;
+                    }
                 }
 
                 ok = true;
-            }
-            else if (typespec == QTS_COMPLEXSOFTLIST) {
+            } else if (typespec == QTS_COMPLEXSOFTLIST) {
                 QoreValue val = n;
                 n.swap(val);
                 n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
@@ -827,8 +841,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                         }
                         // we set ok unconditionally here, because any exception thrown above is enough if there is an error
                         ok = true;
-                    }
-                    else if (!*xsink) {
+                    } else if (!xsink || !*xsink) {
                         // issue #2891 the lvalue may not exist, but we can still perform the assignment
                         ok = true;
                     }
@@ -846,8 +859,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
 
     if (ok) {
         assert(!priv_error);
-        if (map)
+        if (map) {
             map(n, xsink);
+            if (xsink && *xsink) {
+                xsink->appendLastDescription(" (while converting types for type '%s')",
+                    QoreTypeInfo::getName(&typeInfo));
+            }
+        }
         return true;
     }
 
@@ -889,9 +907,26 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
     switch (typespec) {
         case QTS_CLASS:
             if (ot == NT_OBJECT) {
-                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc, *n.get<const QoreObject>()->getClass());
-                if (rv == QTI_NOT_EQUAL)
+                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
+                    *n.get<const QoreObject>()->getClass());
+                if (rv == QTI_NOT_EQUAL) {
                     return rv;
+                }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const QoreObject>()->isValid()) {
+                    return QTI_NOT_EQUAL;
+                }
+                return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
+            } else if (ot == NT_WEAKREF) {
+                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
+                    *n.get<const WeakReferenceNode>()->get()->getClass());
+                if (rv == QTI_NOT_EQUAL) {
+                    return rv;
+                }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const WeakReferenceNode>()->get()->isValid()) {
+                    return QTI_NOT_EQUAL;
+                }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             return QTI_NOT_EQUAL;

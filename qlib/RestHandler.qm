@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
+/* RestHandler.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -134,7 +134,7 @@ module RestHandler {
 
     In all cases, the signature for these methods looks like:
     @code{.py}
-    hash method(hash cx, *hash ah) {}
+    hash method(hash<auto> cx, *hash<auto> ah) {}
     @endcode
 
     The arguments passed to the REST action methods are as follows:
@@ -159,25 +159,25 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
         h = n_h;
     }
 
-    hash get(hash cx, *hash ah) {
+    hash<auto> get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, h);
     }
 
-    hash putChown(hash cx, *hash ah) {
+    hash<auto> putChown(hash<auto> cx, *hash<auto> ah) {
         if (!exists cx.body.user && !exists cx.body.group)
             return RestHandler::make400("missing 'user' and/or 'group' parameters for chown(%y)", h.path);
         int rc = chown(h.path, cx.body.user, cx.body.group);
         return rc ? RestHandler::make400("ERROR chown(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putChmod(hash cx, *hash ah) {
+    hash<auto> putChmod(hash<auto> cx, *hash<auto> ah) {
         if (!exists cx.body.mode)
             return RestHandler::make400("missing 'mode' parameter for chmod(%y)", h.path);
         int rc = chmod(h.path, cx.body.mode);
         return rc ? RestHandler::make400("ERROR chmod(%y): %s", h.path, strerror()) : RestHandler::makeResponse(200, "OK");
     }
 
-    hash putRename(hash cx, *hash ah) {
+    hash<auto> putRename(hash<auto> cx, *hash<auto> ah) {
         if (!exists cx.body.newPath)
             return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);
         try {
@@ -205,12 +205,22 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 
     @section resthierarchy Implementing Object Hierarchies
 
-    To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass" subclass reimplements the @ref RestHandler::AbstractRestClass::subClass() "subClass()" method that returns a child @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object.
+    To implement a hisearchy of REST objects in the URL, each @ref RestHandler::AbstractRestClass "AbstractRestClass"
+    subclass adds static subclass references using the
+    @ref RestHandler::AbstractRestClass::addClass() "AbstractRestClass::addClass()" method and can also reimplement
+    the @ref RestHandler::AbstractRestClass::subClassImpl() "subClassImpl()" method to return a child
+    @ref RestHandler::AbstractRestClass "AbstractRestClass" object representing the child object programmatically
+    based on REST API arguments or the current application state.
 
-    If no such sub object exists, then the method should return @ref nothing, which will cause a <tt>404 Bad Request</tt> response to be returned by (to change this behavior, reimplement @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of @ref RestHandler::RestHandler "RestHandler".  Otherwise, if an exception occurs handling the
-    request, a <tt>409 Conflict</tt> response is returned; see @ref restexceptions for more information.
+    If no such sub object exists, then the method should return @ref nothing, which will cause a
+    <tt>404 Bad Request</tt> response to be returned by (to change this behavior, reimplement
+    @ref RestHandler::RestHandler::unknownSubClassError() "unknownSubClassError()" in your specialization of
+    @ref RestHandler::RestHandler "RestHandler".  Otherwise, if an exception occurs handling the request, a
+    <tt>409 Conflict</tt> response is returned; see @ref restexceptions for more information.
 
-    The following is an example of a class implementing a @ref RestHandler::AbstractRestClass::subClass() "subClass()" method:
+    The following is an example of a class implementing a
+    @ref RestHandler::AbstractRestClass::subClassImpl() "subClassImpl()"
+    method:
     @code{.py}
 class WorkflowOrderRestClass inherits AbstractRestClass {
     private {
@@ -228,14 +238,15 @@ class WorkflowOrderRestClass inherits AbstractRestClass {
     }
 
     # supports subclass requests by returning an object if the id is recognized
-    *AbstractRestClass subClass(softint order_id, hash cx, *hash ah) {
-        *hash h = sysinfo.getOrderInfo(wf.id, order_id);
-        if (h)
+    *AbstractRestClass subClassImpl(softint order_id, hash<auto> cx, *hash<auto> ah) {
+        *hash<auto> h = sysinfo.getOrderInfo(wf.id, order_id);
+        if (h) {
             return new WorkflowOrderInstanceRestClass(h);
+        }
     }
 
     # supports \c GET requests on the object
-    hash get(hash cx, *hash ah) {
+    hash get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, wf);
     }
 }
@@ -256,18 +267,21 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
     }
 
     # supports \c PUT requests where action=retry on the object
-    hash putRetry(hash cx, *hash ah) {
+    hash putRetry(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, api.retryOrder(oh.order_instanceid));
     }
 
     # supports \c GET requests on the object
-    hash get(hash cx, *hash ah) {
+    hash get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, oh);
     }
 }
     @endcode
 
-    @note REST classes directly under the base handler object inheriting @ref RestHandler::RestHandler "RestHandler" can add subclasses by calling @ref RestHandler::RestHandler::addClass() "RestHandler::addClass()" as well; the value of the @ref RestHandler::AbstractRestClass::name() "AbstractRestClass::name()" method provides the name of the subclass.
+    @note REST classes directly under the base handler object inheriting @ref RestHandler::RestHandler "RestHandler"
+    can add subclasses by calling @ref RestHandler::RestHandler::addClass() "RestHandler::addClass()" as well; the
+    value of the @ref RestHandler::AbstractRestClass::name() "AbstractRestClass::name()" method provides the name of
+    the subclass.
 
     @section restargs Argument and Message Body Handling
 
@@ -277,7 +291,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
 
     REST action methods have the following signature:
     @code{.py}
-    hash method(hash cx, *hash ah) {}
+    hash method(hash<auto> cx, *hash<auto> ah) {}
     @endcode
 
     In the usual case when only one of the above methods is used, then the argument information is copied to both
@@ -333,9 +347,15 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_3 RestHandler v1.3
+    - added the @ref RestHandler::RestHandler::returnRestException() "RestHandler::returnRestException()" method that
+      allows subclasses to determine how exceptions are handled
+      (<a href="https://github.com/qorelanguage/qore/issues/3235">issue 3235</a>)
     - updated to support alternative URI paths for actions so that an "action=xxx" argument is not needed; instead
       the action can be added to the end of the URI path so that \c "PUT path/xxx" can be used instead of
-      \c "PUT path?action=xxx"
+      \c "PUT path?action=xxx".  Additionally, support for fast static REST subclass lookups was added by moving the
+      @ref RestHandler::AbstractRestClass::addClass() "addClass()" method from the
+      @ref RestHandler::RestHandler "RestHandler" class to the @ref RestHandler::AbstractRestClass "AbstractRestClass"
+      class.
       (<a href="https://github.com/qorelanguage/qore/issues/2994">issue 2994</a>)
 
     @subsection rh_1_2_1 RestHandler v1.2.1
@@ -543,7 +563,7 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, auto body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
             stream = n_stream;
             if (!handler.isPersistent()) {
                 *code c = stream.getPersistentClosedNotification();
@@ -614,13 +634,28 @@ public namespace RestHandler {
 
     #! the base abstract class for REST handler classes
     public class AbstractRestClass {
-        public {}
+        public {
+            #! class hash: name -> AbstractRestClass
+            hash<string, AbstractRestClass> class_hash;
+
+            #! set of REST class method names based on basic HTTP methods
+            const RestBasicMethodSet = map {$1: True}, RestHandler::Methods.iterator();
+        }
 
         constructor() {
         }
 
         #! this provides the name of the REST class
         abstract string name();
+
+        #! adds a REST class to the handler
+        addClass(AbstractRestClass cls) {
+            string name = cls.name();
+            if (class_hash{name}) {
+                throw "RESTHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
+            }
+            class_hash{name} = cls;
+        }
 
         #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return @ref nothing if the object doesn't exist
         /** @param name the name of the subclass
@@ -635,15 +670,52 @@ public namespace RestHandler {
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
             - \c aih: a hash of \c "Accept" values
-            @param args any URI arguments in the request
+            @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
 
             @return an object corresponding to the \c name argument or @ref nothing if none can be matched
+
+            This method first looks for a static subclass in the \a class_hash member (as populated by @ref addClass()
+            for example), and then if no match is found calls @ref subClassImpl() for a potential dynamic lookup.
+
+            @note it's recommended to reimplement subClassImpl() instead of this method to leave the static subclass
+            lookup in place
          */
-        *AbstractRestClass subClass(string name, hash cx, *hash args) {
+        *AbstractRestClass subClass(string name, hash<auto> cx, *hash<auto> args) {
+            return class_hash{name} ?? subClassImpl(name, cx, args);
+        }
+
+        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return @ref nothing if the object doesn't exist
+        /** @param name the name of the subclass
+            @param cx call context hash; this hash will have the following keys:
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c id: the unique HTTP connection ID
+            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+            - \c body: the deserialized message body
+            - \c aih: a hash of \c "Accept" values
+            @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
+
+            @return an object corresponding to the \c name argument or @ref nothing if none can be matched; this base
+            class method returns @ref nothing by default; override in subclasses to provide programmatic support for
+            REST subclasses
+
+            @note Use addClass() for fast static subclass lookups
+         */
+        *AbstractRestClass subClassImpl(string name, hash<auto> cx, *hash<auto> args) {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash<HttpServer::HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {
+        hash<HttpServer::HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list<string> cl, string mn, hash<auto> cx, *hash<auto> args) {
             if (!args && cx.body.typeCode() == NT_HASH) {
                 args = cx.body - "action";
             }
@@ -674,14 +746,13 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash<HttpServer::HttpHandlerResponseInfo> dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash ah, hash cx) {
+        private hash<HttpServer::HttpHandlerResponseInfo> dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash<auto> ah, hash<auto> cx) {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
             AbstractRestStreamRequestHandler rsh;
             try {
                 cx.socketobject = s;
                 rsh = call_object_method_args(self, sn, (cx, ah));
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST" && ex.desc.find(sn) != -1) {
                     if (cx.hdr."transfer-encoding" == "chunked")
                         cx.body = rh.getMessageBody(s, cx.hdr, NOTHING);
@@ -697,8 +768,7 @@ public namespace RestHandler {
             try {
                 RestStreamRequest req(rsh, listener, rh, s, cx, cx.hdr, cx.hdr."content-length" ? cx.body : NOTHING);
                 return req.handleRequest();
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 # make sure the error is registered with the stream handler
                 if (rsh)
                     rsh.streamError(ex);
@@ -713,7 +783,10 @@ public namespace RestHandler {
         #! this method is called to dispatch requests on the given object
         /** @param rh the RestHandler object
             @param mn the method name
-            @param ah the holds URI and / or message body arguments for the REST call
+            @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
@@ -725,11 +798,10 @@ public namespace RestHandler {
 
             @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
          */
-        private hash<HttpServer::HttpHandlerResponseInfo> dispatch(RestHandler rh, string mn, *hash ah, hash cx) {
+        private hash<HttpServer::HttpHandlerResponseInfo> dispatch(RestHandler rh, string mn, *hash<auto> ah, hash<auto> cx) {
             try {
                 return cast<hash<HttpHandlerResponseInfo>>(call_object_method_args(self, mn, (cx, ah)));
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     # try to mask passwords in args
                     string astr = rh.maskData(sprintf("%y", ah));
@@ -738,7 +810,7 @@ public namespace RestHandler {
                     list hl = ();
                     # break flag
                     bool brk;
-                    foreach hash mh in (RestHandler::Methods.pairIterator()) {
+                    foreach hash<auto> mh in (RestHandler::Methods.pairIterator()) {
                         string nmn = mh.value + cx.rest_method;
                         if (self.hasCallableMethod(nmn)) {
                             if (mh.key == cx.hdr.method) {
@@ -786,7 +858,8 @@ public namespace RestHandler {
 
             return new hash<HttpServer::HttpHandlerResponseInfo>({
                 "code": 404,
-                "body": sprintf("404 Not Found: class %y has no subclass %y%s", name(), cls_name, msg),
+                "body": sprintf("404 Not Found: class %y has no subclass %y for HTTP method %y%s", name(), cls_name,
+                    cx.hdr.method, msg),
             });
         }
 
@@ -799,12 +872,14 @@ public namespace RestHandler {
         */
         private *hash<string, bool> getPossibleSubClasses(hash<auto> cx) {
             # set of subclass names
-            *hash<string, bool> name_set;
+            *hash<string, bool> name_set = map {$1 : True}, keys class_hash;
+
             # add any direct action methods for the HTTP method
             string http_method = cx.hdr.method.lwr();
             foreach Reflection::AbstractMethod method in (Reflection::Class::getClass(self).getMethods()) {
                 string method_name = method.getName();
-                if (!method_name.comparePartial(http_method)) {
+                # do not return basic method names as subclasses
+                if (!RestBasicMethodSet{method_name} && !method_name.comparePartial(http_method)) {
                     if (http_method.size() < method_name.size()) {
                         method_name = method_name[http_method.size()].lwr() + method_name[(http_method.size() + 1)..];
                     }
@@ -829,23 +904,23 @@ public namespace RestHandler {
     public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
         public {
             #! a hash for a 501 Unimplemented error message
-            const Err501 = new hash<HttpResponseInfo>((
+            const Err501 = new hash<HttpResponseInfo>({
                 "code": 501,
                 "body": "not implemented",
-                ));
+            });
 
             #! supported HTTP methods
-            const Methods = (
+            const Methods = {
                 "GET": "get",
                 "POST": "post",
                 "PUT": "put",
                 "DELETE": "del",
                 "OPTIONS": "options",
                 "PATCH": "patch",
-                );
+            };
 
             #! supported mime types for de/serializing responses
-            const MimeDataTypes = (
+            const MimeDataTypes = {
 %ifndef NoJson
                 MimeTypeJsonRpc: (
                     "serialize": \make_json(),
@@ -876,15 +951,13 @@ public namespace RestHandler {
                         }
                         return make_xml(("value": v));
                     },
-                    "deserialize": hash sub (string xml) {
+                    "deserialize": hash<auto> sub (string xml) {
                         try {
                             return parse_xmlrpc_value(xml);
-                        }
-                        catch (hash<ExceptionInfo> ex) {
+                        } catch (hash<ExceptionInfo> ex) {
                             try {
                                 return parse_xml(xml);
-                            }
-                            catch () {
+                            } catch () {
                             }
                             rethrow;
                         }
@@ -898,16 +971,10 @@ public namespace RestHandler {
                 MimeTypeHtml: (
                     "serialize": string sub (auto body) { return sprintf("<pre>%N</pre>", body); },
                 ),
-                );
+            };
         }
 
         private {
-            #! class hash: name -> AbstractRestClass
-            hash ch;
-
-            #! mutex lock
-            Mutex mx();
-
             #! REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
@@ -947,7 +1014,7 @@ public namespace RestHandler {
 
             @since %RestHandler 1.2
          */
-        auto handleExternalRequest(string method, string path, *hash body, hash cx = {}) {
+        auto handleExternalRequest(string method, string path, *hash<auto> body, hash<auto> cx = {}) {
             if (!Methods{method})
                 throw "UNKNOWN-REST-METHOD", sprintf("unsupported HTTP method %y given in REST call %y; known methods: %y", method, path, Methods), 400;
 
@@ -961,9 +1028,9 @@ public namespace RestHandler {
             );
 
             # get object and args
-            hash ah = parse_uri_query(path);
+            hash<auto> ah = parse_uri_query(path);
 
-            *hash args;
+            *hash<auto> args;
             if (ah.params) {
                 if (ah.params.typeCode() != NT_HASH)
                     throw "INVALID-URI-PATH", sprintf("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params), 400;
@@ -995,9 +1062,9 @@ public namespace RestHandler {
                     splice mn, 0, 1, mn[0].upr();
                     cx.rest_method = mn;
                     mn = Methods{method} + mn;
-                }
-                else
+                } else {
                     mn = Methods{method};
+                }
             }
 
             cx.rest_action_method = mn;
@@ -1007,7 +1074,7 @@ public namespace RestHandler {
                 splice ah.method, 0, 1;
 
             # get class chain
-            *list cl;
+            *list<string> cl;
             if (ah.method) {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
@@ -1022,27 +1089,22 @@ public namespace RestHandler {
             if (!cls)
                 rcls = self;
             else {
-                if (!ch{cls}) {
-                    *AbstractRestClass c = subClass(cls, cx, args);
-                    if (!c) {
-                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
-                        if (!cl && !args.action) {
-                            string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
-                            if (self.hasCallableMethod(mname)) {
-                                c = self;
-                                mn = mname;
-                            }
-                        }
-
-                        if (!c) {
-                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys getPossibleSubClasses(cx))), 404;
+                *AbstractRestClass c = subClass(cls, cx, args);
+                if (!c) {
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                    if (!cl && !args.action) {
+                        string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
+                        if (self.hasCallableMethod(mname)) {
+                            c = self;
+                            mn = mname;
                         }
                     }
-                    rcls = c;
+
+                    if (!c) {
+                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys getPossibleSubClasses(cx))), 404;
+                    }
                 }
-                else {
-                    rcls = ch{cls};
-                }
+                rcls = c;
             }
 
             # dummy HttpListenerInterface object
@@ -1081,7 +1143,7 @@ public namespace RestHandler {
             - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data b) {
+        hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
 
@@ -1100,8 +1162,7 @@ public namespace RestHandler {
                 }
 
                 req = validator.parseRequest(hdr.method, path, body, \hdr);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 # return a 400 Bad Request response to encoding, serialization, or validation errors
                 if (ex.err == "INVALID-ENCODING"
                     || ex.err == "ENCODING-CONVERSION-ERROR"
@@ -1116,7 +1177,7 @@ public namespace RestHandler {
             }
 
             # get object and args
-            hash ah = path ? (
+            hash<auto> ah = path ? (
                 "method": req.path,
                 "params": req.query,
             ) : {};
@@ -1153,8 +1214,7 @@ public namespace RestHandler {
                 splice mn, 0, 1, mn[0].upr();
                 cx.rest_method = mn;
                 mn = Methods.(hdr.method) + mn;
-            }
-            else if (body.action) {
+            } else if (body.action) {
                 if (body.action.typeCode() != NT_STRING)
                     return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, args.action.type());
                 mn = body.action;
@@ -1163,9 +1223,9 @@ public namespace RestHandler {
                 splice mn, 0, 1, mn[0].upr();
                 cx.rest_method = mn;
                 mn = Methods.(hdr.method) + mn;
-            }
-            else
+            } else {
                 mn = Methods.(hdr.method);
+            }
 
             cx.rest_action_method = mn;
 
@@ -1174,7 +1234,7 @@ public namespace RestHandler {
                 splice ah.method, 0, 1;
 
             # get class chain
-            *list cl;
+            *list<string> cl;
             if (ah.method) {
                 # combine continuous "/" chars into a single one
                 ah.method =~ s/\/\/+/\//g;
@@ -1191,8 +1251,7 @@ public namespace RestHandler {
                 astr =~ s/;.*//;
                 astr =~ s/ +//g;
                 map aih.$1 = True, astr.split(",");
-            }
-            else {
+            } else {
                 # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then it is assumed that the client accepts all media types
                 aih."*/*" = True;
             }
@@ -1200,7 +1259,7 @@ public namespace RestHandler {
             #logDebug("REST DBG: aih: %y", aih);
 
             # set up context hash
-            cx += ("hdr": hdr, "body": body, "aih": aih);
+            cx += {"hdr": hdr, "body": body, "aih": aih};
 
             # handle call with class
             hash<HttpHandlerResponseInfo> rv;
@@ -1210,48 +1269,36 @@ public namespace RestHandler {
 
                 if (!cls) {
                     rcls = self;
-                }
-                else {
-                    if (!ch{cls}) {
-                        *AbstractRestClass c = subClass(cls, cx, args);
-                        if (!c) {
-                            # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
-                            if (!cl && !args.action) {
-                                string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
-                                if (self.hasCallableMethod(mname)) {
-                                    rcls = self;
-                                    mn = mname;
-                                }
+                } else {
+                    *AbstractRestClass c = subClass(cls, cx, args);
+                    if (!c) {
+                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                        if (!cl && !args.action) {
+                            string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
+                            if (self.hasCallableMethod(mname)) {
+                                rcls = self;
+                                mn = mname;
                             }
+                        }
 
-                            if (!rcls) {
-                                rv = unknownSubClassError(cls, cx);
-                            }
+                        if (!rcls) {
+                            rv = unknownSubClassError(cls, cx);
                         }
-                        else {
-                            rcls = c;
-                        }
-                    }
-                    else {
-                        rcls = ch{cls};
+                    } else {
+                        rcls = c;
                     }
                 }
 
                 if (!rv) {
                     rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
                 }
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
 
-                # if there is an exception, return a 409 Conflict error to the client with the exception information
                 logError(desc);
-                rv = new hash<HttpHandlerResponseInfo>((
-                    "code": 409,
-                    "body": ex,
-                ));
+                rv = returnRestException(ex);
             }
 
             #logDebug("DBG: rv: %y", rv);
@@ -1262,8 +1309,7 @@ public namespace RestHandler {
 
                 try {
                     res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr, aih."*/*" ? NOTHING : keys aih);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "ACCEPT-ERROR") {
                         responseSerializationError(cx, aih, rv);
                         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
@@ -1285,16 +1331,33 @@ public namespace RestHandler {
             return cast<hash<HttpResponseInfo>>(rv);
         }
 
+        #! method that determines how exceptions handling REST requests are returned
+        /** by default a <tt>409 Conflict</tt> response is returned with the serialized exception information in the
+            message body
+        */
+        private hash<HttpHandlerResponseInfo> returnRestException(hash<ExceptionInfo> ex) {
+            # if there is an exception, by default return a 409 Conflict error to the client with the exception information
+            return <HttpHandlerResponseInfo>{
+                "code": 409,
+                "body": ex,
+            };
+        }
+
+        #! default get handler for the base handler class
+        hash<auto> get(hash<auto> cx, *hash<auto> ah) {
+            return RestHandler::makeResponse(200, keys class_hash);
+        }
+
         #! default implementation is empty
         removeRootPath(reference<string> path) {
         }
 
         #! default implementation is empty
-        requestDeserializationError(hash hdr, hash cx, string body) {
+        requestDeserializationError(hash<auto> hdr, hash<auto> cx, string body) {
         }
 
         #! default implementation is empty
-        responseSerializationError(hash cx, *hash aih, hash rv) {
+        responseSerializationError(hash<auto> cx, *hash<auto> aih, hash<auto> rv) {
         }
 
         #! default implementation is empty; this method is called with informational log messages; reimplement in subclasses to provide for logging
@@ -1312,35 +1375,8 @@ public namespace RestHandler {
             delete argv;
         }
 
-        #! adds a REST class to the handler
-        addClass(AbstractRestClass cls) {
-            mx.lock();
-            on_exit mx.unlock();
-
-            string name = cls.name();
-            if (ch{name})
-                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
-            ch{name} = cls;
-        }
-
-        #! default get handler
-        hash get(hash cx, *hash ah) {
-            return RestHandler::makeResponse(200, ch.keys());
-        }
-
-        #! returns a set of possible subclasses for a particular request
-        /** @param cx the HTTP call context hash
-
-            @return a set of possible subclasses for the request
-
-            @since RestHandler 1.3
-        */
-        private *hash<string, bool> getPossibleSubClasses(hash<auto> cx) {
-            return (map {$1: True}, keys ch) + AbstractRestClass::getPossibleSubClasses(cx);
-        }
-
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash<auto> makeResponse(int code, auto body, *hash hdr) {
+        static hash<auto> makeResponse(int code, auto body, *hash<auto> hdr) {
             return (
                 "code": code,
                 "body": body,

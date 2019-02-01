@@ -577,31 +577,36 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerAppenderFile() {
-        string fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log";
+        string fn = tmp_location() + DirSep + UNIQUE_NAME + ".log";
         unlink(fn);
+        LoggerAppenderFile la1("TEST1", new LoggerLayoutPattern("%m"), fn);
         LoggerAppenderFile la("TEST", new LoggerLayoutPattern("%m"), fn);
+        LoggerEvent lle1 = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "X");
         LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
         assertFalse(la.getFile().isOpen());
+        la1.open();
         la.open();
         assertTrue(la.getFile().isOpen());
         assertEq(fn, la.getFile().getFileName());
         la.post(lle);
+        la1.post(lle1);
         la.close();
+        la1.close();
         assertFalse(la.getFile().isOpen());
         string s = ReadOnlyFile::readTextFile(fn);
-        assertEq("TEST", s);
+        assertEq("TESTX", s);
         la.open();
         assertTrue(la.getFile().isOpen());
         la.post(lle);
         la.close();
         assertFalse(la.getFile().isOpen());
         s = ReadOnlyFile::readTextFile(fn);
-        assertEq("TESTTEST", s);
+        assertEq("TESTXTEST", s);
         unlink(fn);
     }
 
     testLoggerAppenderStdErr() {
-        string fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log";
+        string fn = tmp_location() + DirSep + UNIQUE_NAME + ".log";
         File f();
         f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
         on_exit unlink(fn);
@@ -938,6 +943,30 @@ class Test inherits QUnit::Test {
         hash<CallStackInfo> loc = get_thread_call_stack()[0];
 
         assertEq(sprintf("%s:%d", loc.file, loc.line-1), sos1.getData());
+
+        # inc, dec middle level
+        l1.setLevel(Logger::LoggerLevel::DEBUG);
+        assertEq(Logger::LoggerLevel::getLevel("DEBUG"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("TRACE"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("DEBUG"), l1.getLevel());
+
+        # dec minimum level
+        l1.setLevel(Logger::LoggerLevel::ALL);
+        assertEq(Logger::LoggerLevel::getLevel("ALL"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("ALL"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("TRACE"), l1.getLevel());
+
+        # inc maximum level
+        l1.setLevel(Logger::LoggerLevel::OFF);
+        assertEq(Logger::LoggerLevel::getLevel("OFF"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("OFF"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("FATAL"), l1.getLevel());
     }
 
 }

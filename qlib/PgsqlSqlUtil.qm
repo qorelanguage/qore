@@ -1828,7 +1828,7 @@ auto v = c.name;
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
-            *string ts = opt.tablespace ? opt.tablespace : tablespace;
+            *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
             if (ts)
                 sql += sprintf(" tablespace %s", ts);
 

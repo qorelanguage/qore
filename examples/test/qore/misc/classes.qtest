@@ -518,9 +518,74 @@ namespace Issue2744_A {
     }
 }
 
+class Test_3240 {
+    public {}
+
+    private {
+        int x;
+    }
+
+    constructor(int x) {
+        self.x = x;
+        check();
+    }
+
+    int get() {
+        return x;
+    }
+
+    ref(reference<int> i) {
+    }
+
+    private check(int val = x) {
+        if (val != 0) {
+            throw "ERR";
+        }
+    }
+}
+
+class Issue_3193_3240 {
+    public {
+        int i = 1;
+
+        int x = get0();
+
+        Test_3240 t;
+
+        static int si = 2;
+    }
+
+    constructor() {
+        t = new Test_3240(0);
+    }
+
+    destructor() {
+        if (get2() != 0) {
+            throw "ERR";
+        }
+    }
+
+    int get0(int x = i) {
+        return x;
+    }
+
+    int get1(int x = si) {
+        return x;
+    }
+
+    testRefCall() {
+        t.ref(\i);
+    }
+
+    private:internal int get2(int x = t.get()) {
+        return x;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issues 3193 and 3240", \issues_3193_and_3240());
         addTestCase("issue 3070", \issue3070());
         addTestCase("issue 3073", \issue3073());
         addTestCase("issue 2970", \issue2970());
@@ -539,6 +604,21 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issues_3193_and_3240() {
+        Issue_3193_3240 i();
+        assertEq(1, i.get0());
+        assertEq(2, i.get1());
+        assertEq(1, i.x);
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(),
+                ("class T { public { int x = 1; } static int test(int i = x) { return i; } }", ""));
+        }
+
+        assertNothing(i.testRefCall());
     }
 
     issue3070() {

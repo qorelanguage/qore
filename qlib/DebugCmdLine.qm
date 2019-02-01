@@ -1210,7 +1210,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public showFileNames(hash fn) {
+        public showFileNames(*hash fn) {
             foreach string k in (keys fn) {
                 printfImpl("%s", k);
                 if (fn{k}) {
@@ -1469,7 +1469,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        private string escapeArg(string s) {
+        private string escapeArg(softstring s) {
             int i = 0;
             while (i < s.size()) {
                 bool addEsc = True;

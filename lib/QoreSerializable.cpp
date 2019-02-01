@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -519,7 +519,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
         while (li.next()) {
             val = li.getValue();
             assert(val.getType() == NT_STRING);
-            QMM.runTimeLoadModule(*xsink, val.get<const QoreStringNode>()->c_str(), pgm);
+            QMM.runTimeLoadModule(*xsink, *xsink, val.get<const QoreStringNode>()->c_str(), pgm);
             if (*xsink) {
                 return QoreValue();
             }

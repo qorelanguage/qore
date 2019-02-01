@@ -470,5 +470,5 @@ on_error ds.rollback();
 
         #! flushes queued data to the database
         abstract private flushImpl();
-    } # AbstractBulkOperation class
-} # BulkSqlUtil namespace
+    }
+}

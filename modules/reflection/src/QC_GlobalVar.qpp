@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,8 +34,9 @@
 #include "QC_Type.h"
 #include "QC_Namespace.h"
 
-QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    var = getProgram()->findGlobalVar(path, ns);
+QoreReflectionGlobalVar::QoreReflectionGlobalVar(ExceptionSink* xsink, const char* path, QoreProgram* pgm)
+    : AbstractReflectionObject(pgm) {
+    var = pgm->findGlobalVar(path, ns);
     if (!var) {
         xsink->raiseException("UNKNOWN-GLOBAL-VAR", "cannot resolve global variable '%s'", path);
         return;
@@ -44,6 +45,20 @@ QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink
 
 QoreObject* QoreReflectionGlobalVar::getVarObject() const {
     return new QoreObject(QC_GLOBALVAR, pgm, const_cast<QoreReflectionGlobalVar*>(this));
+}
+
+static QoreValue find_all_gvars(const QoreString& pattern, int re_opts, QoreProgram* pgm, ExceptionSink* xsink) {
+    gvar_vec_t gvar_vec = pgm->findAllGlobalVarsRegex(pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
+    for (auto& i : gvar_vec) {
+        l->push(new QoreObject(QC_GLOBALVAR, pgm, new QoreReflectionGlobalVar(pgm, i.first, i.second)), xsink);
+    }
+
+    return l.release();
 }
 
 //! The abstract base class for %Qore global variables
@@ -71,7 +86,7 @@ GlobalVar::constructor(string path) {
         return;
     }
 
-    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return;
     }
@@ -302,7 +317,38 @@ static GlobalVar GlobalVar::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(xsink, npath->c_str()), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return var.release()->getVarObject();
+}
+
+//! Returns a global variable object corresponding to the name or namespace-justified path provided as an argument
+/** @par Example:
+    @code{.py}
+GlobalVar var = GlobalVar::forName(pgm, "::ENV");
+    @endcode
+
+    @param pgm the Program object to search
+    @param path the global variable name or namespace-justified path as a string
+
+    @return a global variable object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-GLOBAL-VAR cannot find a global variable with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character
+encoding" and an error occurs during encoding conversion
+ */
+static GlobalVar GlobalVar::forName(Program[QoreProgram] pgm, string path) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(xsink, npath->c_str(), pgm), xsink);
     if (*xsink) {
         return QoreValue();
     }
@@ -324,16 +370,23 @@ list<GlobalVar> l = GlobalVar::findAllRegex("^E");
     @return a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
 */
 static list<GlobalVar> GlobalVar::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
-    QoreProgram* pgm = getProgram();
-    gvar_vec_t gvar_vec = getProgram()->findAllGlobalVarsRegex(*pattern, re_opts, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
+    return find_all_gvars(*pattern, re_opts, getProgram(), xsink);
+}
 
-    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
-    for (auto& i : gvar_vec) {
-        l->push(new QoreObject(QC_GLOBALVAR, getProgram(), new QoreReflectionGlobalVar(pgm, i.first, i.second)), xsink);
-    }
+//! Returns a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+/** @par Example:
+    @code{.py}
+# return all accessible global variables that start with the letter "E"
+list<GlobalVar> l = GlobalVar::findAllRegex(pgm, "^E");
+    @endcode
 
-    return l.release();
+    @param pgm the Program object to search
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+*/
+static list<GlobalVar> GlobalVar::findAllRegex(Program[QoreProgram] pgm, string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    return find_all_gvars(*pattern, re_opts, pgm, xsink);
 }

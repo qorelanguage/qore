@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2018 Qore Technologies, s.r.o.
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -857,7 +857,7 @@ any v = c.name;
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
-            throw "UNIMPLEMENTED", "unimplemented";
+            return new FreetdsSequence(name);
         }
 
         private *AbstractView getViewImpl(string name) {
@@ -970,7 +970,13 @@ any v = c.name;
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
-            return True;
+            # MS SQL Server 2012+ supports sequences
+            if (isSybase(ds)) {
+                return False;
+            }
+            # set vars for MS SQL Server
+            *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
+            return ver >= 2012;
         }
 
         #! returns @ref Qore::True "True" if the database supports named types
@@ -1051,6 +1057,9 @@ any v = c.name;
 
             #! "has merge" flag for SQL server
             bool ss_has_merge = False;
+
+            #! "has sequences" flag for SQL server
+            bool ss_has_sequences = False;
 
             #! maps postgresql type names to type configurations
             const FreetdsTypeMap = (
@@ -1330,8 +1339,12 @@ any v = c.name;
             # set vars for MS SQL Server
             if (!is_sybase) {
                 *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
-                if (ver >= 2008)
+                if (ver >= 2008) {
                     ss_has_merge = True;
+                    if (ver >= 2012) {
+                        ss_has_sequences = True;
+                    }
+                }
             }
             # see if there is a schema in the name
             parse_schema_name(nname, \schema, \name);
@@ -1825,7 +1838,7 @@ order by
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
-            *string ts = opt.tablespace ? opt.tablespace : filegroup;
+            *string ts = opt.data_tablespace ? opt.data_tablespace : filegroup;
             if (ts)
                 sql += sprintf(" on %s", ts);
 

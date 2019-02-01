@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -164,10 +164,14 @@ void DatasourcePool::init(ExceptionSink* xsink) {
     free_list.push_back(0);
 
     while (++cmax < min) {
-        ds.reset(config.get(this));
-        ds->open(xsink);
-        if (*xsink)
+        ds.reset(config.get(this, xsink));
+        if (*xsink) {
             return;
+        }
+        ds->open(xsink);
+        if (*xsink) {
+            return;
+        }
         pool[cmax] = ds.release();
         //printd(5, "DP::init() open %s: %p (%d)\n", ndsl->getName(), pool[cmax], xsink->isEvent());
         // add to free list
@@ -418,7 +422,8 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 
       // see if we can open a new connection
       if (cmax < max) {
-         ds = pool[cmax] = config.get(this);
+         ds = pool[cmax] = config.get(this, xsink);
+         assert(!*xsink);
 
          tmap[tid] = cmax;
          tid_list[cmax++] = tid;

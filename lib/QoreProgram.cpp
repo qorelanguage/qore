@@ -156,6 +156,8 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_REFLECTION, "PO_NO_REFLECTION", "REFLECTION");
     // 53
     doMap(PO_NO_TRANSIENT, "PO_NO_TRANSIENT");
+    // 54
+    doMap(PO_BROKEN_SPRINTF, "PO_BROKEN_SPRINTF");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -652,7 +654,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         del(xsink);
 
         // clear program location
-        update_runtime_location(&loc_builtin);
+        //update_runtime_location(&loc_builtin);
     }
 }
 

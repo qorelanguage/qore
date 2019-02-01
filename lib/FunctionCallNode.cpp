@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -118,8 +118,7 @@ static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int6
         bool is_bg_call = (pflag & PF_BACKGROUND);
         if ((flags & QCF_CONSTANT) == QCF_CONSTANT) {
             warn_retval_ignored(loc, func, is_bg_call);
-        }
-        else if (flags & QCF_RET_VALUE_ONLY) {
+        } else if (flags & QCF_RET_VALUE_ONLY && (pflag & PF_RETURN_VALUE_IGNORED)) {
             warn_only_may_throw_and_retval_ignored(loc, func, is_bg_call);
         }
     }
@@ -140,7 +139,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
 
     // initialize arguments and setup argument type list (argTypeInfo)
     if (num_args) {
-        lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
+        // issue #2993: do not initialize args with the "return value ignored" parse flag set
+        lvids += parse_args->initArgs(oflag, pflag & ~PF_RETURN_VALUE_IGNORED, argTypeInfo, args);
         parse_args = nullptr;
     }
 
@@ -224,6 +224,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
     else
         returnTypeInfo = nullptr;
 
+    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p args: %p (%zd)\n", this, func ? func->getName() : "n/a", variant, args, args ? args->size() : 0);
+
     return lvids;
 }
 
@@ -237,7 +239,9 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     }
 
     if (ns.size() == 1) {
-        return exec(self, ns.ostr, class_ctx, xsink);
+        // must have a class context here
+        assert(class_ctx || runtime_get_class());
+        return exec(self, ns.ostr, class_ctx ? class_ctx : runtime_get_class(), xsink);
     }
 
     assert(method);
@@ -355,7 +359,7 @@ QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xs
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     QoreFunction* func = fe->getFunction();
-    //printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s'\n", this, func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a");
+    //printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s' (%zd)\n", this, func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a", args ? args->size() : 0);
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
         : func->evalFunction(variant, args, pgm, xsink);

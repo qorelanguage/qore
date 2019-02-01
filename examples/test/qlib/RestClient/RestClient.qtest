@@ -62,15 +62,14 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
     hash handleRequest(hash cx, hash hdr, *data body) {
         if (hdr.method == "GET") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "PUT") {
+        } else if (hdr.method == "PUT") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "PATCH") {
+        } else if (hdr.method == "PATCH") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "POST") {
+        } else if (hdr.method == "POST") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "DELETE") {
+            return makeResponse(404, m_data ?? binary(body), {"Content-Type": m_mime});
         }
     }
 }
@@ -87,6 +86,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("DELETE tests", \methodDeleteTest());
         addTestCase("GET tests", \methodGetTest());
         addTestCase("PUT tests", \methodPutTest());
         addTestCase("POST tests", \methodPostTest());
@@ -109,6 +109,18 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    methodDeleteTest() {
+        RestClient rest({"url": "http://localhost:"+port});
+        hash<auto> info;
+        try {
+            # issue #3237: must throw an exception due to the 404 Not Found response
+            rest.del("/api_text", NOTHING, \info);
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+        }
+        assertEq(404, info."response-code");
     }
 
     methodGetTest() {

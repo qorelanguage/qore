@@ -4,7 +4,7 @@
 
     QORE programming language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -92,6 +92,7 @@
 #define PO_ALLOW_STATEMENT_NO_EFFECT        (1LL << 52)  //!< allow for old pre-%Qore 0.9 top-level statements having no effect
 #define PO_NO_REFLECTION                    (1LL << 53)  //!< disallow the use of reflection
 #define PO_NO_TRANSIENT                     (1LL << 54)  //!< disables the transient keyword
+#define PO_BROKEN_SPRINTF                   (1LL << 55)  //!< enables pre-0.9 broken sprintf handling
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -126,7 +127,9 @@
 #define PO_POSITIVE_OPTIONS           (PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_ALLOW_WEAK_REFERENCES|PO_ALLOW_DEBUGGER)
 
 //! mask of options that have no effect on code access or code safety
-#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL|PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_OPERATORS|PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES)
+#define PO_FREE_OPTIONS               (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL|PO_STRICT_BOOLEAN_EVAL \
+    |PO_BROKEN_LIST_PARSING|PO_BROKEN_LOGIC_PRECEDENCE|PO_BROKEN_INT_ASSIGNMENTS|PO_BROKEN_OPERATORS \
+    |PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES|PO_BROKEN_SPRINTF)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
 #define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS|PO_NO_INHERIT_USER_HASHDECLS)

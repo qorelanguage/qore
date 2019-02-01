@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -240,6 +240,11 @@ public:
         qmethod = n_qm;
     }
 
+    DLLLOCAL void setNormalUserMethod(QoreMethod* n_qm, LocalVar* selfid) {
+        setMethod(n_qm);
+        getUserVariantBase()->setSelfId(selfid);
+    }
+
     DLLLOCAL const QoreMethod* method() const {
         assert(qmethod);
         return qmethod;
@@ -323,39 +328,39 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 protected:
-   bool synchronized;
+    bool synchronized;
 
 public:
-   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
-   }
+    DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
+    }
 
-   DLLLOCAL ~UserMethodVariant() {
-   }
+    DLLLOCAL ~UserMethodVariant() {
+    }
 
-   // the following defines the pure virtual functions that are common to all user variants
-   COMMON_USER_VARIANT_FUNCTIONS
+    // the following defines the pure virtual functions that are common to all user variants
+    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual void parseInit(QoreFunction* f) {
-      MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+    DLLLOCAL virtual void parseInit(QoreFunction* f) {
+        MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
 
-      signature.resolve();
-      // parseResolve and push current return type on stack
-      ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
+        signature.resolve();
+        // parseResolve and push current return type on stack
+        ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
 
-      // must be called even if "statements" is NULL
-      if (!mf->isStatic()) {
-         if (!isAbstract())
-            statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
-      }
-      else
-         statements->parseInit(this);
+        // must be called even if "statements" is NULL
+        if (!mf->isStatic()) {
+            if (!isAbstract())
+                statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
+        }
+        else
+            statements->parseInit(this);
 
-      // recheck types against committed types if necessary
-      if (recheck)
-         f->parseCheckDuplicateSignatureCommitted(&signature);
-   }
+        // recheck types against committed types if necessary
+        if (recheck)
+            f->parseCheckDuplicateSignatureCommitted(&signature);
+    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
 };
 
 #define UMV(f) (reinterpret_cast<UserMethodVariant*>(f))
@@ -992,7 +997,7 @@ public:
     }
 
     // initializes the member
-    DLLLOCAL void parseInit(const char* name);
+    DLLLOCAL void parseInit(const char* name, LocalVar& selfid);
 
     // sets the transient flag
     DLLLOCAL void setTransient() {
@@ -1195,7 +1200,7 @@ public:
         member_list.insert(member_list.begin(), std::make_pair(name, std::unique_ptr<QoreMemberInfo>(info)));
     }
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL void parseInit(LocalVar& selfid);
 
 private:
     bool init = false;
@@ -1603,13 +1608,13 @@ public:
 };
 
 struct SelfInstantiatorHelper {
-   LocalVar* selfid;
-   DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self) : selfid(n_selfid) {
-      selfid->instantiateSelf(self);
-   }
-   DLLLOCAL ~SelfInstantiatorHelper() {
-      selfid->uninstantiateSelf();
-   }
+    LocalVar* selfid;
+    DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self) : selfid(n_selfid) {
+        selfid->instantiateSelf(self);
+    }
+    DLLLOCAL ~SelfInstantiatorHelper() {
+        selfid->uninstantiateSelf();
+    }
 };
 
 // signature hash size - we use SHA1 for performance reasons (and because we don't necessarily need the best cryptographic security)
@@ -2571,7 +2576,8 @@ public:
     }
     */
 
-    DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const;
+    DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm,
+        const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
 
@@ -2691,10 +2697,13 @@ public:
     // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
     DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         const QoreMethod* m = findLocalCommittedStaticMethod(nme);
-        if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+        if (m &&
+            (class_ctx == this || doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))) {
             return m;
-        if (!scl)
+        }
+        if (!scl) {
             return nullptr;
+        }
         // access already checked in subclasses, do not need to check again
         return scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
     }
@@ -2704,23 +2713,25 @@ public:
     DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         const QoreMethod* m = findLocalCommittedMethod(nme);
         //printd(5, "qore_class_private::runtimeFindCommittedMethodIntern(%s) '%s' class_ctx: %p '%s' FIRST m: %p\n", nme, name.c_str(), class_ctx, class_ctx ? class_ctx.name.c_str() : "n/a", m);
-        if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+        if (m &&
+            (class_ctx == this || doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))) {
             return m;
-        if (!scl)
+        }
+        if (!scl) {
             return nullptr;
+        }
         // access already checked in subclasses, do not need to check again
         return scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
     }
 
-    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-        access = Public;
-        return runtimeFindCommittedStaticMethodIntern(nme, access, class_ctx);
-    }
+    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
 
-    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-        access = Public;
-        return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
-    }
+    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
+
+    DLLLOCAL const QoreMethod* runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
 
     DLLLOCAL const QoreMethod* runtimeFindAnyCommittedMethod(const char* nme) const {
         ClassAccess access = Public;

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -354,6 +354,46 @@ public namespace Logger {
                 }
                 return default_level;
             }
+        }
+
+        #! Returns closest lower logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no lower level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextLowerLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.prev()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
+        }
+
+        #! Returns closest higher logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no higher level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextHigherLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.next()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
         }
 
         #! Converts the input argument to a level.
@@ -1597,14 +1637,7 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
-                    if (file.open(fileName, O_APPEND | O_WRONLY) == -1) {
-                        if (errno() == Qore::Err::ENOENT) {
-                            # No such file or directory
-                            file.open2(fileName, O_CREAT | O_WRONLY);
-                        } else {
-                            throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
-                        }
-                    }
+                    file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY);
                     break;
                 case EVENT_CLOSE:
                     try {
@@ -1843,7 +1876,7 @@ public namespace Logger {
                         }
                         file.close();
                         rename(fileName, fn[0]);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
@@ -1990,7 +2023,7 @@ public namespace Logger {
                         patternData.index = (patternData.index + 1) % patternData.count;
                         patternData.timestamp = now_us();
                         fileName = format(patternData);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
@@ -2491,6 +2524,34 @@ public namespace Logger {
             setLevel(LoggerLevel::getLevel(level));
         }
 
+        #! Decrement logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel decLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextLowerLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
+        #! Increment logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel incLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextHigherLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
         /**
             @param enable the additivity flag; when additivity is active, events are passed to parent loggers
@@ -2567,7 +2628,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool check_throwable, date time_stamp = now_us() ) {
+            bool check_throwable, date time_stamp = now_us()) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && check_throwable) {
@@ -2595,7 +2656,8 @@ public namespace Logger {
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date time_stamp) {
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+            *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
@@ -2731,7 +2793,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public traceVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Logs the variable name and value using DEBUG level
@@ -2742,7 +2804,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public debugVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Checks whether this Logger is enabled for a given Level passed as parameter.

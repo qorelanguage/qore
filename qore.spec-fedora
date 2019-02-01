@@ -3,7 +3,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9
+Version: 0.9.0
 Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages

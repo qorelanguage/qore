@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
-%no-debugging 
+%no-debugging
 
 %requires QUnit
 
@@ -58,7 +58,7 @@ class ProgramVarsTest inherits QUnit::Test {
                         "endline": 1,
                         "source": "",
                         "offset": 0,
-                        "callstack": new list<hash<CallStackInfo>>(),
+                        "lang": "Qore",
                         "err": 1,
                     )),
                 ),
@@ -67,7 +67,10 @@ class ProgramVarsTest inherits QUnit::Test {
                     "value": NOTHING,
                 ),
             );
-            assertEq(vh, p.callFunction("test3"));
+            auto v = p.callFunction("test3");
+            # remove the call stack
+            v.ex.value -= "callstack";
+            assertEq(vh, v);
         }
     }
 }

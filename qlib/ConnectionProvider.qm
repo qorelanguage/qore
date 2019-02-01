@@ -181,6 +181,7 @@ public namespace ConnectionProvider {
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
         hash url_hash;    #!< a hash of URL information as returned by AbstractConnection::parseUrl()
         bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
+        bool locked;      #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
@@ -249,8 +250,7 @@ string connstr = get_connection(str);
             foreach string mod in (pl) {
                 try {
                     return priv_try_get_connection(mod, conn);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 }
             }
@@ -364,6 +364,9 @@ string connstr = get_connection(str);
 
             #! enabled/disabled indicator flag
             bool enabled = True;
+
+            #! locked/unlocked flag
+            bool locked = False;
         }
 
         #! DEPRECATED: creates the AbstractConnection object
@@ -381,9 +384,11 @@ string connstr = get_connection(str);
         deprecated
         constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url,
                     *bool n_enabled) {
-            hash attributes = {
+            # remove "enabled" option from option hash, if any
+            *bool opt_enabled = remove n_opts.enabled;
+            hash<auto> attributes = {
                 "monitor": n_monitor,
-                "enabled": n_enabled ?? True,
+                "enabled": n_enabled ?? opt_enabled ?? True,
             };
             constructorInit(n_name, n_desc, n_url, attributes, n_opts ?? {});
         }
@@ -402,6 +407,7 @@ string connstr = get_connection(str);
             For now there are:
                 - \c enabled, default \c True
                 - \c monitor, default \c True
+                - \c locked, default \c False
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
             constructorInit(name, description, url, attributes, options);
@@ -420,18 +426,29 @@ string connstr = get_connection(str);
             # attributes to flags
             self.monitor = attributes.monitor ?? True;
             self.enabled = attributes.enabled ?? True;
+            self.locked = attributes.locked ?? False;
 
             self.orig_opts = options;
+            self.opts = validateOptions(options);
+        }
 
+        #! performs options validation in the constructor
+        /** @param options a has with options from the constructor
+            @return hash validated option hash
+
+            This method can be overloaded in connections where are options
+            created dynamically for example.
+         */
+        hash validateOptions(hash options) {
             options = getDefaultOptions() + options;
             if (options) {
-                *hash oh = getOptions();
-                foreach string opt in (options.keyIterator()) {
+                *hash<auto> oh = getOptions();
+                foreach string opt in (keys options) {
                     if (!oh{opt})
                         throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) has unknown option %y (known options: %y)", name, urlh.protocol, url, opt, oh.keys());
                 }
             }
-            self.opts = options;
+            return options;
         }
 
         #! Parse the URL to a hash
@@ -515,7 +532,7 @@ schema://user:pass@hostname:port/path
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
@@ -645,6 +662,17 @@ schema://user:pass@hostname:port/path
             if (attributes.error.val()) {
                 self.error = attributes.error;
             }
+        }
+
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash with url - string as url
+
+            The reason for this is to avoid a unwanted Qore::parse_url() call in connections
+            with custom parseUrl() implementation.
+         */
+        private hash parseUrl(string url) {
+            return {"url": url};
         }
 
         #! throws an exception because the object is invalid

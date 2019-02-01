@@ -85,6 +85,7 @@ namespace TestNs {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("pgm tests", \pgmTests());
         addTestCase("issue 3145", \issue3145Test());
         addTestCase("issue 3141", \issue3141Test());
         addTestCase("issue 3035", \issue3035Test());
@@ -93,6 +94,53 @@ class ReflectionTest inherits QUnit::Test {
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    pgmTests() {
+        Program p(PO_NEW_STYLE);
+        p.parse("class TestClass {} const Test = 1; sub test() {} our int test; namespace Test1 {} hashdecl Test2 { int i; }", "");
+
+        {
+            Class c = Class::forName(p, "TestClass");
+            assertEq("TestClass", c.getName());
+            c = Class::findAllRegex(p, "^Tes[tuv]Class")[0];
+            assertEq("TestClass", c.getName());
+        }
+
+        {
+            Constant c = Constant::forName(p, "Test");
+            assertEq("Test", c.getName());
+            c = Constant::findAllRegex(p, "^Tes[tuv]")[0];
+            assertEq("Test", c.getName());
+        }
+
+        {
+            Function f = Function::forName(p, "test");
+            assertEq("test", f.getName());
+            f = Function::findAllRegex(p, "^tes[tuv]")[0];
+            assertEq("test", f.getName());
+        }
+
+        {
+            GlobalVar g = GlobalVar::forName(p, "test");
+            assertEq("test", g.getName());
+            g = GlobalVar::findAllRegex(p, "^tes[tuv]")[0];
+            assertEq("test", g.getName());
+        }
+
+        {
+            Namespace n = Namespace::forName(p, "Test1");
+            assertEq("Test1", n.getName());
+            n = Namespace::findAllRegex(p, "^Tes[tuv]1")[0];
+            assertEq("Test1", n.getName());
+        }
+
+        {
+            TypedHash n = TypedHash::forName(p, "Test2");
+            assertEq("Test2", n.getName());
+            n = TypedHash::findAllRegex(p, "^Tes[tuv]2")[0];
+            assertEq("Test2", n.getName());
+        }
     }
 
     issue3145Test() {

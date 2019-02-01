@@ -27,6 +27,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         addTestCase("fs deprecated", \fsConnectionTestDeprecated());
         addTestCase("invalid", \invalidConnectionTest());
         addTestCase("custom parseUrl", \customParseUrlTest());
+        addTestCase("custom option validation", \customValidateOptions());
 
         # Return for compatibility with a test harness that checks the return value
         set_return_value(main());
@@ -37,6 +38,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         FtpConnection fc("name", "desc", url);
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(True, fc.monitor, "connection is monitored by default");
+        assertEq(False, fc.locked, "connection is unlocked by default");
 
         hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
         assertEq("FtpClient", info.class_name);
@@ -49,6 +51,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         hash urlh = parse_url(url);
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
         assertEq(True, fc.enabled, "connection is enabled by default");
+        assertEq(False, fc.locked, "connection is unlocked by default");
 
         hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
         assertEq("FtpClient", info.class_name);
@@ -91,6 +94,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         };
         HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
+        assertEq(False, hc.locked, "connection is unlocked by default");
 
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
@@ -124,6 +128,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         string url = "http://127.0.0.1";
         HttpConnection hc("name", "desc", url, True, NOTHING, Qore::parse_url(url));
         assertEq(True, hc.enabled, "connection is enabled by default");
+        assertEq(False, hc.locked, "connection is unlocked by default");
     }
 
     fsConnectionTest() {
@@ -137,6 +142,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
         FilesystemConnection fs("name", "desc", url, attributes, opts);
         assertEq(True, fs.enabled, "connection is enabled by default");
+        assertEq(False, fs.locked, "connection is unlocked by default");
         assertEq(False, fs.opts.readonly, "readonly enabled by opts");
 
         Dir d = fs.get();
@@ -147,6 +153,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         string url = Util::tmp_location();
         FilesystemConnection fs("name", "desc", url, True, NOTHING, Qore::parse_url(url));
         assertEq(True, fs.enabled, "connection is enabled by default");
+        assertEq(False, fs.locked, "connection is unlocked by default");
 
         Dir d = fs.get();
         assertEq(Util::tmp_location(), d.path(), "Path equality");
@@ -176,8 +183,36 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq("host", db.urlh.host);
         assertEq(1234, db.urlh.port);
 
+        assertEq(True, db.locked, "test locked connection");
+
         # safe url
         assertEq("pgsql:user@db%host:1234", db.safe_url);
+    }
+
+    private customValidateOptions() {
+        hash opts = {"foo": "bar"};
+
+        try {
+            HttpConnection h("foo", "bar", "http://localhost", {}, opts);
+            assertEq(False, exists h);
+        }
+        catch (hash ex) {
+            assertEq("CONNECTION-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /unknown option/);
+        }
+
+        IgnoreOptionsConnection h("foo", "bar", "http://localhost", {}, opts);
+        assertEq(opts, h.opts);
+    }
+}
+
+class IgnoreOptionsConnection inherits HttpConnection {
+    constructor(string name, string desc, string url, hash attrs, hash opts)
+        : HttpConnection(name, desc, url, attrs, opts) {
+    }
+
+    hash validateOptions(hash options) {
+        return orig_opts;
     }
 }
 
@@ -187,7 +222,7 @@ class MyConnection inherits AbstractConnection {
         const URL = "sql://pgsql:user/pass@db%host:1234";
     }
 
-    constructor() : AbstractConnection("name", "desc", URL) {
+    constructor() : AbstractConnection("name", "desc", URL, {"locked": True}) {
     }
 
     private hash parseUrl(string url) {
