@@ -66,10 +66,25 @@ DOX_SPLIT_MODULES = \
     qlib/BulkSqlUtil \
 	qlib/CsvUtil
 
+# create directory vars for each split module
+define split_mod_func =
+    # create dir variable
+    $(eval $(1)_modverdir := $(modverdir)/$(1))
+    # create data file lists for each directory for each split module
+    $(eval dist_$(1)_modver_DATA := $$(wildcard $$(addsuffix /*.q[cm], $$(addprefix qlib/, $(1)))))
+endef
+$(foreach mod, $(DOX_SRC_SPLIT_MODULES) $(DOX_SPLIT_MODULES), $(eval $(call split_mod_func, $(basename $(mod)))))
+
+ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
+BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
+CsvUtil_modverdir = $(modverdir)/CsvUtil
+
+dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
+dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
+dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
+
 USER_MODULES = $(DOX_SRC_MODULES) \
-    $(DOX_SRC_SPLIT_MODULES) \
-	$(DOX_MODULES) \
-    $(DOX_SPLIT_MODULES)
+	$(DOX_MODULES)
 
 USER_MODS = $(basename $(notdir $(DOX_SRC_MODULES) $(DOX_MODULES)))
 
