@@ -9,7 +9,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestClient.qm

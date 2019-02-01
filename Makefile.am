@@ -21,7 +21,6 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
 	qlib/Mapper.qm \
-	qlib/ConnectionProvider.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -30,8 +29,10 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebSocketClient.qm
 
-DOX_MODULES = qlib/BulkSqlUtil.qm \
-	qlib/CsvUtil.qm \
+DOX_SRC_SPLIT_MODULES = \
+    qlib/ConnectionProvider
+
+DOX_MODULES =
 	qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
 	qlib/DebugLinenoiseCmdLine.qm \
@@ -61,12 +62,22 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/TextWrap.qm \
 	qlib/WebUtil.qm
 
-USER_MODULES = $(DOX_SRC_MODULES) \
-	$(DOX_MODULES)
+DOX_SPLIT_MODULES = \
+    qlib/BulkSqlUtil \
+	qlib/CsvUtil
 
-USER_MODS = $(basename $(notdir $(USER_MODULES)))
+USER_MODULES = $(DOX_SRC_MODULES) \
+    $(DOX_SRC_SPLIT_MODULES) \
+	$(DOX_MODULES) \
+    $(DOX_SPLIT_MODULES)
+
+USER_MODS = $(basename $(notdir $(DOX_SRC_MODULES) $(DOX_MODULES)))
+
+USER_SPLIT_MODS = $(basename $(notdir $(DOX_SRC_SPLIT_MODULES) $(DOX_SPLIT_MODULES)))
 
 DOX_USER_MODS = $(basename $(notdir $(DOX_MODULES)))
+
+DOX_USER_SPLIT_MODS = $(basename $(notdir $(DOX_SPLIT_MODULES)))
 
 # use native qpp for build when cross compiling
 if COND_MINGWCC
@@ -83,10 +94,10 @@ QDX_SRC=doxygen/qdx
 # by default - and it does not exist in the fresh install)
 if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
-QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
+QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC) -T=$(top_srcdir)
 QDX_DEP = $(QDX_SRC)
 else
-QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
+QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC) -T=$(top_srcdir)
 QDX_DEP = $(QDX_SRC) qore
 endif
 
@@ -901,7 +912,7 @@ dist-hook:
 	$(RM) -rf `find $(distdir)/examples/test -type f -a \! -name \*.qtest -a \! -name \*.qm -a \! -name Europe_Vienna`
 
 if COND_DOXYGEN
-MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS) astparser reflection))
+MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS) $(USER_SPLIT_MODS) astparser reflection))
 DOXYGEN_OUTPUT = docs/library/html docs/lang/html $(MOD_OUTPUT)
 
 LIB_TMP_DOXYFILES_SRC = \
@@ -964,7 +975,7 @@ doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm $< $@
 
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/ConnectionProvider:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.RestSchemaValidator: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
@@ -1009,11 +1020,19 @@ DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm $(QDX_MTAG_ARGS) $< $@
 
+DOXYFILE_SPLIT_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_SPLIT_MODS))
+$(DOXYFILE_SPLIT_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/$*:doxygen/qlib/$*.qm $(QDX_MTAG_ARGS) $< $@
+
 TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm,$(USER_MODS)))
 $(TMP_MOD_TARG): doxygen/qlib/%.qm: qlib/%.qm $(QDX_DEP)
 	$(QDX) $< $@
 
-QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
+TMP_MOD_SPLIT_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm,$(USER_SPLIT_MODS)))
+$(TMP_MOD_SPLIT_TARG): doxygen/qlib/%.qm: qlib/% $(QDX_DEP)
+	$(QDX) $< $@
+
+QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS) $(USER_SPLIT_MODS))
 
 DX_CLEANFILES = $(LIB_TMP_DOXYFILES) $(LANG_TMP_DOXYFILES) $(QLIB_TMP_DOXYFILES)
 
@@ -1027,7 +1046,7 @@ docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(top_srcdir)/doxygen/pdox docs/lang/html docs/lang/html/search
 	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
-TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
+TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS) $(USER_SPLIT_MODS)))
 $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm doxygen/qlib/Doxyfile.% #docs/lang/html
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
@@ -1057,7 +1076,7 @@ html-local: $(DOXYGEN_OUTPUT)
 install-html-local:
 	$(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/lang/html/search
 	$(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/library/html/search
-	for mod in $(USER_MODS); do $(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/modules/$$mod/html/search; done
+	for mod in $(USER_MODS) $(USER_SPLIT_MODS); do $(MKDIR_P) $(DESTDIR)$(datadir)/$(PACKAGE)/docs/modules/$$mod/html/search; done
 	for dir in $(DOXYGEN_OUTPUT); do \
 		for f in $$dir/*; do if [ -f $$f ]; then $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir; fi; done; \
 		for f in $$dir/search/*; do $(INSTALL_DATA) $$f $(DESTDIR)$(datadir)/$(PACKAGE)/$$dir/search; done; \

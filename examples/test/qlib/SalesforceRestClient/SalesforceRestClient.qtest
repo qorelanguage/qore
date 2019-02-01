@@ -4,7 +4,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SalesforceRestClient.qm
 

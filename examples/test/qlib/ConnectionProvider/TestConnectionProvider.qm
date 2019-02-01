@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TestConnectionProvider.qm Test Connection provider
+# @file TestConnectionProvider Test Connection provider
 
-/*  TestConnectionProvider.qm Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  TestConnectionProvider Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 %new-style
 %strict-args
 
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 
 module TestConnectionProvider {
     version = "1.0";

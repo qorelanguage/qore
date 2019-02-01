@@ -11,7 +11,7 @@
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/WebSocketUtil.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/WebSocketHandler.qm
 %requires ../../../../qlib/WebSocketClient.qm
 %requires ../../../../qlib/SewioWebSocketClient.qm

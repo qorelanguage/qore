@@ -790,8 +790,8 @@ qore_user_module("qlib/Util.qm" "")
 qore_user_module("qlib/WebSocketUtil.qm" "")
 
 # base 2 modules
-qore_user_module("qlib/ConnectionProvider.qm" "Util")
-qore_user_module("qlib/CsvUtil.qm" "Util")
+qore_user_module("qlib/ConnectionProvider" "Util")
+qore_user_module("qlib/CsvUtil" "Util")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/FilePoller.qm" "Util")
 qore_user_module("qlib/FixedLengthUtil.qm" "Util")
@@ -802,7 +802,7 @@ qore_user_module("qlib/SqlUtil.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
-qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")

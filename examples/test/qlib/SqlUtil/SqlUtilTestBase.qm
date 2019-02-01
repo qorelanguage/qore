@@ -16,7 +16,7 @@ module SqlUtilTestBase {
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/Schema.qm
 
 public class SqlUtilTestSchema inherits AbstractSchema {
