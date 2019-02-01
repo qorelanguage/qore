@@ -355,22 +355,22 @@ public:
         const char* source = nullptr, int offset = 0, const char* lang = nullptr);
 
     //! returns the source location
-    DLLEXPORT const QoreProgramLocation& get() const {
+    DLLLOCAL const QoreProgramLocation& get() const {
         return *loc;
     }
 
     //! returns the file name
-    DLLEXPORT const std::string& getFile() const {
+    DLLLOCAL const std::string& getFile() const {
         return file_str;
     }
 
     //! returns the source
-    DLLEXPORT const std::string& getSource() const {
+    DLLLOCAL const std::string& getSource() const {
         return source_str;
     }
 
     //! returns the language
-    DLLEXPORT const std::string& getLanguage() const {
+    DLLLOCAL const std::string& getLanguage() const {
         return lang_str;
     }
 
