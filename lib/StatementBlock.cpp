@@ -47,7 +47,7 @@
 #endif
 
 VNode::VNode(LocalVar* lv, const QoreProgramLocation* n_loc, int n_refs, bool n_top_level) :
-    refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level), lvar(lv) {
+    lvar(lv), refs(n_refs), loc(n_loc), block_start(false), top_level(n_top_level) {
     next = update_get_vstack(this);
 
     //printd(5, "VNode::VNode() this: %p '%s' %p top_level: %d\n", this, lvar ? lvar->getName() : "n/a", lvar, top_level);
