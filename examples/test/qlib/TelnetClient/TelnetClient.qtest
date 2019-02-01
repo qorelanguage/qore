@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/TelnetClient.qm
 %requires ../../../../qlib/QUnit.qm
 
