@@ -295,8 +295,7 @@ class TestSslServer {
                     #printf("got %y\n", a.verifyPeerCertificate());
                     q.push(a.verifyPeerCertificate());
                 }
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 #printf("got ex: %s: %s\n", ex.err, ex.desc);
                 q.push(ex);
             }
