@@ -94,10 +94,10 @@ QDX_SRC=doxygen/qdx
 # by default - and it does not exist in the fresh install)
 if COND_MINGWCC
 # when cross-compiling, we just hope that qore is installed also natively, otherwise the documentation can't be built
-QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC)
+QDX=QORE_MODULE_DIR=./qlib $(QDX_SRC) -T=$(top_srcdir)
 QDX_DEP = $(QDX_SRC)
 else
-QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC)
+QDX=QORE_MODULE_DIR=./qlib ./qore $(QDX_SRC) -T=$(top_srcdir)
 QDX_DEP = $(QDX_SRC) qore
 endif
 

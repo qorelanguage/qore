@@ -20,6 +20,7 @@ const opts = {
     "dox": "d,dox",
     "nmp": "N,no-mainpage",
     "keepdollar": "k,keep-dollar",
+    "src_root": "T,top-srcdir=s",
     "help": "h,help"
 };
 
@@ -81,6 +82,7 @@ class qdx {
   -p,--post           post process files
   -k,--keep-dollar    keep $ signs when post-processing
   -t,--tag=ARG        tag argument for doxyfile
+  -T,--top-srcdir=ARG the top source directory
   -h,--help           this help text
 ", get_script_name());
       exit(1);
@@ -105,7 +107,7 @@ class qdx {
             stderr.printf("MODULE-ERROR: --module-dx argument %y is not in format <src>:<trg>\n", o.moddx);
             exit(1);
         }
-        printf("src: %y trg: %y ofn: %y\n", src, trg, ofn);
+        printf("src: %y trg: %y src_root: %y ofn: %y\n", src, trg, o.src_root, ofn);
 
         # get module name and version (the easy way)
         string name = basename(src);
@@ -153,6 +155,9 @@ class qdx {
                 line = replace(line, "{tags}", tags);
             else if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
+            else if (line =~ /{qore_src_dir}/) {
+                line = replace(line, "{qore_src_dir}", o.src_root);
+            }
 
             w.write(line);
         }
