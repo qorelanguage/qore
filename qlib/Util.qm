@@ -903,7 +903,7 @@ string pass = get_random_string();
                 # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
                 # class with a specific member list or a hashdecl where accessing an invalid key would cause a
                 # runtime exception to be thrown
-                if (ex.arg.hasKey("ex")
+                if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
                     && (ex.arg.ex instanceof hash<ExceptionInfo>
                         || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
                             && ex.arg.callstack.typeCode() == NT_LIST))) {
