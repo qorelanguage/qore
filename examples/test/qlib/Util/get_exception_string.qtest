@@ -27,5 +27,8 @@ public class GetExceptionString inherits QUnit::Test {
         }
         assertEq("Qore", ex.callstack[0].lang);
         assertEq("GetExceptionString::constructor", ex.callstack.last().function);
+
+        ex.arg = <StatInfo>{};
+        assertEq(Type::String, get_exception_string(ex).type());
     }
 }
