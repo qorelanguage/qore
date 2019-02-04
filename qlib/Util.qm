@@ -87,6 +87,10 @@ module Util {
 
     @section utilrelnotes Release Notes
 
+    @subsection util_1_4_1 Util 1.4.1
+    - fixed a bug in @ref Util::get_exception_string() "get_exception_string()" with Java exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3304">issue 3304</a>)
+
     @subsection util_1_4 Util 1.4
     - added the @ref Util::parse_ranges() "parse_ranges()" function (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
     - added the @ref Util::check_ip_address() "check_ip_address()" function (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
@@ -896,9 +900,13 @@ string pass = get_random_string();
             str += sprintf("%s exception: %s: %s: %s",
                             ex.type, get_ex_pos(ex), ex.err, ex.desc);
             if (exists ex.arg) {
-                if (ex.arg.ex instanceof hash<ExceptionInfo>
-                    || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
-                        && ex.arg.callstack.typeCode() == NT_LIST)) {
+                # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
+                # class with a specific member list or a hashdecl where accessing an invalid key would cause a
+                # runtime exception to be thrown
+                if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
+                    && (ex.arg.ex instanceof hash<ExceptionInfo>
+                        || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
+                            && ex.arg.callstack.typeCode() == NT_LIST))) {
                     if (ex.arg.size() > 1) {
                         str += sprintf(" (arg: %y)", ex.arg - "ex");
                     }
