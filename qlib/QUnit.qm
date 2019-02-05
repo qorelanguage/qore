@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file QUnit.qm Qore user module for automatic testing
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 %new-style
 
 %try-module xml >= 1.3
@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.4";
+    version = "0.4.1";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_4_1 Version 0.4.1
+    - allow tests to be nested
+      (<a href="https://github.com/qorelanguage/qore/issues/3306">issue 3306</a>)
 
     @subsection qunit_v0_4 Version 0.4
     - updated @ref QUnit::Test::testSkip() "Test::testSkip()" to use the reason argument a format string with
@@ -434,6 +438,9 @@ public class QUnit::TestCase {
 
         #! number of skipped assertions in current test case
         int num_asserts_skip = 0;
+
+        #! any saved test case
+        auto saved_tc;
     }
 
     #! creates the TestCase object from the given arguments
@@ -457,8 +464,7 @@ public class QUnit::TestCase {
             call_function_args(m_code, m_args);
             # Test success
             test.addTestResult(self, TestReporter::TEST_SUCCESS);
-        }
-        catch (hash<ExceptionInfo> e) {
+        } catch (hash<ExceptionInfo> e) {
             checkException(test, e);
         }
     }
@@ -486,7 +492,7 @@ public class QUnit::TestCase {
         return l;
     }
 
-    static string getPos(hash ex) {
+    static string getPos(hash<auto> ex) {
         string pos = get_ex_pos(ex);
         bool qunit = (pos =~ /QUnit\.qm/);
         list<string> l = TestCase::getStackList(ex.callstack, qunit);
@@ -496,7 +502,7 @@ public class QUnit::TestCase {
     }
 
     #! handles exceptions raised while running the TestCase
-    checkException(QUnit::Test test, hash e) {
+    checkException(QUnit::Test test, hash<auto> e) {
         if (e.err =~ /TEST-.*EXCEPTION/) {
             *string assertion_name = e.arg.name;
             *string pos = e.arg.pos;
@@ -547,11 +553,12 @@ public class QUnit::TestCase {
     }
 
     setupThread() {
+        saved_tc = remove_thread_data("tc").tc;
         save_thread_data("tc", self);
     }
 
     restoreThread() {
-        remove_thread_data("tc");
+        save_thread_data("tc", saved_tc);
     }
 
     #! renames the test case
@@ -976,8 +983,7 @@ addTestCase(obj);
                         expected = sprintf("(string %y) %N", exp.encoding(), exp);
                         actual = neg ? "<identical>" : sprintf("(string %y) %N", act.encoding(), act);
                     }
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                 }
             }
             if (!done) {
@@ -1829,7 +1835,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public auto testAssertion(string name, code condition, *softlist<auto> args, hash expectedResultValue) {
+    public auto testAssertion(string name, code condition, *softlist<auto> args, hash<auto> expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1842,7 +1848,7 @@ fail("Unexpected code executed");
 
         @return the result of the \a condition call, if the immediate value has any further use
      */
-    public auto testAssertion(string name, code condition, *softlist<auto> args, list expectedResultValue) {
+    public auto testAssertion(string name, code condition, *softlist<auto> args, list<auto> expectedResultValue) {
         return testAssertion(name, condition, args, new TestResultValue(expectedResultValue));
     }
 
@@ -1874,8 +1880,7 @@ fail("Unexpected code executed");
             } else {
                 result = new QUnit::TestResultValue(ret);
             }
-        }
-        catch (e) {
+        } catch (hash<ExceptionInfo> e) {
             if (e.err == "TEST-FAILED-EXCEPTION") {
                 # Since boolean can contain no detail, we abuse Exceptions this way to annotate a simple failure.
                 result = new QUnit::TestResultFailure(e.desc);
@@ -1995,8 +2000,7 @@ fail("Unexpected code executed");
 
         try {
             globalSetUp();
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             gtc.checkException(self, ex);
         }
 
@@ -2011,8 +2015,7 @@ fail("Unexpected code executed");
         try {
             gtc.rename("globalTearDown");
             globalTearDown();
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             gtc.checkException(self, ex);
         }
 
