@@ -1555,7 +1555,7 @@ public namespace Logger {
             @param n_layout the layout for the appender
             @param n_writer the stream to write to
         */
-        constructor(string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
             writer = n_writer;
             assignThread = writer.getOutputStream().getThreadId() == -1;
         }
@@ -1614,7 +1614,7 @@ public namespace Logger {
             @param n_filename the output filename
             @param n_encoding the file's output encoding
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
             file = new File(n_encoding);
             fileName = n_filename;
         }
@@ -1669,7 +1669,7 @@ public namespace Logger {
             @param n_name the name of the appender
             @param n_layout the layout for the appender
         */
-        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1698,7 +1698,7 @@ public namespace Logger {
             @param n_name the name of the appender
             @param n_layout the layout for the appender
         */
-        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1725,7 +1725,7 @@ public namespace Logger {
             const DEFAULT_ROTATION_COUNT = 10;
         }
 
-        constructor(string n_name, LoggerLayout n_layout, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding) {}
+        constructor(*string n_name, LoggerLayout n_layout, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding) {}
 
         #! Pushes rotate event
         /**
@@ -1792,7 +1792,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count = DEFAULT_ROTATION_COUNT, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, int n_count = DEFAULT_ROTATION_COUNT, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
@@ -1942,7 +1942,7 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count = DEFAULT_ROTATION_COUNT, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_pattern) {
+        constructor(*string n_name, LoggerLayout n_layout, string n_pattern, int n_count = DEFAULT_ROTATION_COUNT, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_pattern) {
             # set a provisional filename, to be updated when file is opened
             patternData.timestamp = now_us();
             patternData.count = n_count;
@@ -2087,7 +2087,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p/archive/%d/%f" archives log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/archive/20180120102030/MyLogger.log".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
             *string n_encoding): LoggerAppenderFile(n_name, n_layout, n_filename, n_encoding), LoggerPattern(n_filename) {
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             setPattern(n_archive);
