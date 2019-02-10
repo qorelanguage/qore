@@ -257,8 +257,8 @@ void qore_cleanup() {
     printd(5, "qore_cleanup() exiting cleanly\n");
 }
 
-DLLEXPORT extern "C" {
-int JNI_OnLoad(void* vm, void* reserved) {
+extern "C" {
+DLLEXPORT int JNI_OnLoad(void* vm, void* reserved) {
     printd(5, "JNI_OnLoad() vm: %p\n", vm);
 
     // initialize the qore library
