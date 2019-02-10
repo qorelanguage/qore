@@ -257,7 +257,8 @@ void qore_cleanup() {
     printd(5, "qore_cleanup() exiting cleanly\n");
 }
 
-DLLEXPORT extern "C" int JNI_OnLoad(void* vm, void* reserved) {
+DLLEXPORT extern "C" {
+int JNI_OnLoad(void* vm, void* reserved) {
     printd(5, "JNI_OnLoad() vm: %p\n", vm);
 
     // initialize the qore library
@@ -274,4 +275,5 @@ DLLEXPORT extern "C" int JNI_OnLoad(void* vm, void* reserved) {
     // return the JNI version
     ValueHolder rc(qore_get_module_option("jni", "jni-version"), &xsink);
     return static_cast<int>(rc->getAsBigInt());
+}
 }
