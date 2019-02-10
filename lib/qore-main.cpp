@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -255,4 +255,25 @@ void qore_cleanup() {
     }
 
     printd(5, "qore_cleanup() exiting cleanly\n");
+}
+
+extern "C" {
+DLLEXPORT int JNI_OnLoad(void* vm, void* reserved) {
+    printd(5, "JNI_OnLoad() vm: %p\n", vm);
+
+    // initialize the qore library
+    qore_init(QL_MIT);
+
+    // here we pass the VM pointer to the jni module
+    qore_set_module_option("jni", "jvm-ptr", reinterpret_cast<int64>(vm));
+    ExceptionSink xsink;
+    QoreProgramHelper qpgm(0, xsink);
+    if (MM.runTimeLoadModule("jni", *qpgm, &xsink)) {
+        return 0;
+    }
+
+    // return the JNI version
+    ValueHolder rc(qore_get_module_option("jni", "jni-version"), &xsink);
+    return static_cast<int>(rc->getAsBigInt());
+}
 }

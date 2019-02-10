@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -89,93 +89,89 @@ enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT,
     All members and methods are static; there will always only be one of these...
 */
 class ModuleManager {
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL ModuleManager(const ModuleManager&);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL ModuleManager& operator=(const ModuleManager&);
-
 public:
-   //! to add a single directory to the QORE_MODULE_DIR list, can only be called before the library initialization function qore_init()
-   /**
-      @param dir the directory path to add to the list
-   */
-   DLLEXPORT static void addModuleDir(const char *dir);
+    ModuleManager(const ModuleManager&) = delete;
+    ModuleManager& operator=(const ModuleManager&) = delete;
 
-   //! no longer supported - removed for security reasons
-   /** this function will abort() in debug builds, does nothing in production builds
-       @since qore 0.8.4 support for auto module directories was removed
-   */
-   DLLEXPORT static void addAutoModuleDir(const char *dir);
+    //! to add a single directory to the QORE_MODULE_DIR list, can only be called before the library initialization function qore_init()
+    /**
+        @param dir the directory path to add to the list
+    */
+    DLLEXPORT static void addModuleDir(const char *dir);
 
-   //! to add a list of directories separated by ':' characters to the QORE_MODULE_DIR list, can only be called before the library initialization function qore_init()
-   /**
-      @param strlist a list of directories separated by ':' characters to add to the QORE_MODULE_DIR list
-   */
-   DLLEXPORT static void addModuleDirList(const char *strlist);
+    //! no longer supported - removed for security reasons
+    /** this function will abort() in debug builds, does nothing in production builds
+        @since qore 0.8.4 support for auto module directories was removed
+    */
+    DLLEXPORT static void addAutoModuleDir(const char *dir);
 
-   //! no longer supported - removed for security reasons
-   /** this function will abort() in debug builds, does nothing in production builds
-       @since qore 0.8.4 support for auto module directories was removed
-   */
-   DLLEXPORT static void addAutoModuleDirList(const char *strlist);
+    //! to add a list of directories separated by ':' characters to the QORE_MODULE_DIR list, can only be called before the library initialization function qore_init()
+    /**
+        @param strlist a list of directories separated by ':' characters to add to the QORE_MODULE_DIR list
+    */
+    DLLEXPORT static void addModuleDirList(const char *strlist);
 
-   //! retuns a list of module information hashes, caller owns the list reference returned
-   DLLEXPORT static QoreListNode *getModuleList();
+    //! no longer supported - removed for security reasons
+    /** this function will abort() in debug builds, does nothing in production builds
+        @since qore 0.8.4 support for auto module directories was removed
+    */
+    DLLEXPORT static void addAutoModuleDirList(const char *strlist);
 
-   //! retuns a hash of module information hashes, caller owns the list reference returned
-   DLLEXPORT static QoreHashNode *getModuleHash();
+    //! retuns a list of module information hashes, caller owns the list reference returned
+    DLLEXPORT static QoreListNode *getModuleList();
 
-   //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
-   /** If the feature is already loaded, then the function returns immediately without raising an error.
-       The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
+    //! retuns a hash of module information hashes, caller owns the list reference returned
+    DLLEXPORT static QoreHashNode *getModuleHash();
 
-       @param name can be either a feature name or the full path to the module file
-       @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
+    //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
+    /** If the feature is already loaded, then the function returns immediately without raising an error.
+        The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
 
-       @return -1 if an exception was raised, 0 for OK
-   */
-   DLLEXPORT static int runTimeLoadModule(const char *name, ExceptionSink *xsink);
+        @param name can be either a feature name or the full path to the module file
+        @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
 
-   //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
-   /** If the feature is already loaded, then the function returns immediately without raising an error.
-       The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
+        @return -1 if an exception was raised, 0 for OK
+    */
+    DLLEXPORT static int runTimeLoadModule(const char *name, ExceptionSink *xsink);
 
-       @param name can be either a feature name or the full path to the module file
-       @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
-       @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
+    //! loads the named module at run time, returns -1 if an exception was raised, 0 for OK
+    /** If the feature is already loaded, then the function returns immediately without raising an error.
+        The feature's namespace changes are added to the QoreProgram object if the feature is loaded.
 
-       @return -1 if an exception was raised, 0 for OK
-   */
-   DLLEXPORT static int runTimeLoadModule(const char *name, QoreProgram* pgm, ExceptionSink *xsink);
+        @param name can be either a feature name or the full path to the module file
+        @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
+        @param xsink if any errors are encountered loading the module, then a Qore-language "LOAD-MODULE-ERROR" exception is raised here
 
-   //! loads the named module at parse time (or before run time, even if parsing is not active), returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
-   /** if the feature is already loaded, then the function returns immediately without raising an error
-       The feature's namespace changes are added to the QoreProgram object if the feature is loaded and the pgm argument is non-zero.
-       @param name can be either a feature name or the full path to the module file
-       @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
-   */
-   DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
+        @return -1 if an exception was raised, 0 for OK
+    */
+    DLLEXPORT static int runTimeLoadModule(const char *name, QoreProgram* pgm, ExceptionSink *xsink);
 
-   //! registers the given user module from the module source given as an argument
-   DLLEXPORT void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink);
+    //! loads the named module at parse time (or before run time, even if parsing is not active), returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
+    /** if the feature is already loaded, then the function returns immediately without raising an error
+        The feature's namespace changes are added to the QoreProgram object if the feature is loaded and the pgm argument is non-zero.
+        @param name can be either a feature name or the full path to the module file
+        @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
+    */
+    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
 
-   //! adds the standard module directories to the module path (only necessary if the module paths are set up manually, otherwise these paths are added automatically when qore_init() is called)
-   DLLEXPORT static void addStandardModulePaths();
+    //! registers the given user module from the module source given as an argument
+    DLLEXPORT void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink);
 
-   // not exported in the public API
-   DLLLOCAL ModuleManager();
+    //! adds the standard module directories to the module path (only necessary if the module paths are set up manually, otherwise these paths are added automatically when qore_init() is called)
+    DLLEXPORT static void addStandardModulePaths();
+
+    // not exported in the public API
+    DLLLOCAL ModuleManager();
 };
 
 //! the global ModuleManager object
 DLLEXPORT extern ModuleManager MM;
 
 static inline bool is_module_api_supported(int major, int minor) {
-   for (unsigned i = 0; i < qore_mod_api_list_len; ++i)
-      if (qore_mod_api_list[i].major == major && qore_mod_api_list[i].minor == minor)
-	 return true;
-   return false;
+    for (unsigned i = 0; i < qore_mod_api_list_len; ++i)
+        if (qore_mod_api_list[i].major == major && qore_mod_api_list[i].minor == minor)
+        return true;
+    return false;
 }
 
 #endif // _QORE_MODULEMANAGER_H
