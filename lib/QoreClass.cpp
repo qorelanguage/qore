@@ -3454,8 +3454,9 @@ void qore_class_private::execBaseClassSystemDestructor(QoreObject* self, Excepti
 }
 
 void qore_class_private::execBaseClassCopy(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {
-   if (copyMethod)
-      copyMethod->priv->evalCopy(self, old, xsink);
+    if (copyMethod) {
+        copyMethod->priv->evalBaseClassCopy(self, old, xsink);
+    }
 }
 
 QoreObject* QoreClass::execCopy(QoreObject* old, ExceptionSink* xsink) const {

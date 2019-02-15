@@ -3292,6 +3292,10 @@ public:
         COPYMF(func)->evalCopy(*parent_class, self, old, parent_class->priv->scl, xsink);
     }
 
+    DLLLOCAL void evalBaseClassCopy(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {
+        COPYMF(func)->evalCopy(*parent_class, self, old, nullptr, xsink);
+    }
+
     DLLLOCAL bool evalDeleteBlocker(QoreObject* self) const {
         // can only be builtin
         return self->evalDeleteBlocker(parent_class->priv->methodID, reinterpret_cast<BuiltinDeleteBlocker*>(func));
