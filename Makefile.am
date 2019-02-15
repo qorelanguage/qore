@@ -32,8 +32,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider
 
-DOX_MODULES =
-	qlib/DatasourceProvider.qm \
+DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
 	qlib/DebugLinenoiseCmdLine.qm \
 	qlib/DebugHandler.qm \
