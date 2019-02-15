@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.0
+Version: 0.9.1
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -93,7 +93,7 @@ Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
 %if %{libname} == "libqore"
 Provides: libqore6 = %{version}
-Obsoletes: libqore6 < 0.9
+Obsoletes: libqore6 < 0.9.1
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -265,6 +265,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Feb 15 2019 David Nichols <david@qore.org> 0.9.1
+- updated version to 0.9.1
+
 * Fri Nov 16 2018 David Nichols <david@qore.org> 0.9
 - updated version to 0.9
 

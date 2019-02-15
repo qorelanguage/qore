@@ -9,6 +9,8 @@
     Bugfix release; see details below
 
     @subsection qore_091_bug_fixes Bug Fixes in Qore
+    - fixed a memory leak in copy onstructor execution in complex class hierarchies
+      (<a href="https://github.com/qorelanguage/qore/issues/3312">issue 3312</a>)
     - implemented support for automatically initializing the \c %Qore library from Java when dynamically loaded from
       the JVM; additionally in this case the <a href="https://github.com/qorelanguage/module-jni">jni</a> module is
       loaded automatically immediately after the \c %Qore library is initialized
