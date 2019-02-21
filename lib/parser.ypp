@@ -1133,24 +1133,18 @@ public:
         if (str[0] == '*') {
             or_nothing = true;
             p = strdup(str + 1);
-        }
-        else {
+        } else {
             or_nothing = false;
             p = strdup(str);
         }
-        std::unique_ptr<QoreParseTypeInfo> pt(ParserTypeStruct::getParseType(get_runtime_location(), p, or_nothing, false));
+        std::unique_ptr<QoreParseTypeInfo> pt(ParserTypeStruct::getParseType(&loc_builtin, p, or_nothing, false));
         return QoreParseTypeInfo::resolveRuntime(pt.get());
     }
 };
 
 const QoreTypeInfo* qore_get_type_from_string(const char* str) {
-    ExceptionSink xsink;
-    ProgramRuntimeParseAccessHelper pah(&xsink, getProgram());
-    if (xsink) {
-        xsink.clear();
-        return nullptr;
-    }
-
+    // issue #3318: does not use ProgramRuntimeParseAccessHelper as it is notmally not needed, if this is
+    // necessary, then the call to this function must be wrapped using this class
     return ParserTypeStruct::getRuntimeType(str);
 }
 

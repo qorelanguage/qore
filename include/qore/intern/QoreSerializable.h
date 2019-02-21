@@ -117,7 +117,7 @@ protected:
 
     DLLLOCAL static QoreHashNode* serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreListNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink);
 
     DLLLOCAL static int readStringFromStream(StreamReader& reader, QoreString& str, const char* type, ExceptionSink* xsink);
     DLLLOCAL static int64 readIntFromStream(ExceptionSink* xsink, StreamReader& reader, const char* type, bool can_be_negative = false);

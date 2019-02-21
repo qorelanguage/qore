@@ -83,16 +83,28 @@ hashdecl IndexedObjectSerializationInfo {
     string _index;
 }
 
-//! @ref hashdecl "typed hash" serialization information
+//! hash serialization information for @ref hashdecl "typed hashes" or untyped hashes
 /**
     @since %Qore 0.9
 */
 hashdecl HashSerializationInfo {
-    //! @ref hashdecl "typed hash" path name, if any; otherwise for an untyped hash: \c "^hash^"
+    //! @ref hashdecl "typed hash" path name, if any; otherwise for an untyped hash: \c "^..." where ... is the complex value type info
     string _hash;
 
     //! member values
     *hash<string, auto> _members;
+}
+
+//! list serialization information
+/**
+    @since %Qore 0.9.1
+*/
+hashdecl ListSerializationInfo {
+    //! the complex list element type info
+    string _list;
+
+    //! the data-serialized list elements
+    *list<auto> _elements;
 }
 
 //! The Serializable class can be used to mark a class as being serializable.
