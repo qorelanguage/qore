@@ -202,6 +202,37 @@ class SerializableTest inherits QUnit::Test {
             {"": ""},
             # note that we cannot test @nan@n and @nan@ as @nan@[n] != @nan@[n]
         );
+
+        const Ser_10_Hash_Data = <SerializationInfo>{
+            "_data": {
+                "_hash": "^hash^",
+                "_members": {
+                    "a": 1,
+                    "b": 2,
+                },
+            },
+        };
+
+        const Ser_10_Hash_Bin = <515300312e3000010717516f72653a3a53657269616c697a6174696f6e496e66> +
+                                <6f07010307055f6461746101071b516f72653a3a4861736853657269616c697a> +
+                                <6174696f6e496e666f07020307055f686173680307065e686173685e0307085f> +
+                                <6d656d62657273000702030701610701030701620702>;
+
+        # old untyped hash after serializing with 1.0
+        const Ser_10_Hash = hash({
+            "a": 1,
+            "b": 2,
+        });
+
+        const Ser_10_List_Data = <SerializationInfo>{
+            "_data": (1, 2),
+        };
+
+        const Ser_10_List_Bin = <515300312e3000010717516f72653a3a53657269616c697a6174696f6e496e66> +
+                                <6f07010307055f6461746104070207010702>;
+
+        # get old untyped list after serializing with 1.0
+        const Ser_10_List = list((1, 2))[0];
     }
 
     constructor() : QUnit::Test("Serializable", "1.0") {
@@ -434,6 +465,41 @@ class SerializableTest inherits QUnit::Test {
 
             t2 = Serializable::deserialize(Serializable::serialize(t));
             assertTrue(t2.m instanceof Mutex);
+        }
+
+        # tests for issue #3318: maintain complex types accross serialization
+        {
+            # test deserializing 1.0 Data
+            assertEq(Ser_10_Hash, Serializable::deserialize(Ser_10_Hash_Data));
+            assertEq(Ser_10_Hash, Serializable::deserialize(Ser_10_Hash_Bin));
+            assertEq("hash<auto>", Serializable::deserialize(Ser_10_Hash_Data).fullType());
+            assertEq("hash<auto>", Serializable::deserialize(Ser_10_Hash_Bin).fullType());
+            assertEq(Ser_10_List, Serializable::deserialize(Ser_10_List_Data));
+            assertEq(Ser_10_List, Serializable::deserialize(Ser_10_List_Bin));
+            assertEq("list<auto>", Serializable::deserialize(Ser_10_List_Data).fullType());
+            assertEq("list<auto>", Serializable::deserialize(Ser_10_List_Bin).fullType());
+
+            assertEq("hash<auto>", {}.fullType());
+            assertEq("hash<auto>", Serializable::deserialize(Serializable::serialize({})).fullType());
+            assertEq("hash<string, int>", Serializable::deserialize(Serializable::serialize({"a": 1})).fullType());
+            assertEq("hash<string, bool>", Serializable::deserialize(Serializable::serialize({"a": True})).fullType());
+            assertEq("hash<string, hash<StatInfo>>", Serializable::deserialize(Serializable::serialize({"a": <StatInfo>{}})).fullType());
+            {
+                # ensure that empty lists have their types maintained
+                list<int> l();
+                assertEq("hash<string, list<int>>", Serializable::deserialize(Serializable::serialize({"a": l})).fullType());
+            }
+
+            assertEq("list<auto>", ().fullType());
+            assertEq("list<auto>", Serializable::deserialize(Serializable::serialize(())).fullType());
+            assertEq("list<int>", Serializable::deserialize(Serializable::serialize((1, 2))).fullType());
+            assertEq("list<bool>", Serializable::deserialize(Serializable::serialize((True,))).fullType());
+            assertEq("list<hash<StatInfo>>", Serializable::deserialize(Serializable::serialize((<StatInfo>{},))).fullType());
+            {
+                # ensure that empty hashes have the types maintained
+                hash<string, int> h();
+                assertEq("list<hash<string, int>>", Serializable::deserialize(Serializable::serialize((h,))).fullType());
+            }
         }
     }
 

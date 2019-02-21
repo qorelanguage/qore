@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,5 +44,6 @@ DLLLOCAL TypedHashDecl* init_hashdecl_SerializationInfo(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_ObjectSerializationInfo(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_IndexedObjectSerializationInfo(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_HashSerializationInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_ListSerializationInfo(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_INTERN_SERIALIZABLE_H

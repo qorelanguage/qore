@@ -8,7 +8,15 @@
 
     Bugfix release; see details below
 
+    @subsection qore_091_new_features New Features in Qore
+    - the serialization protocol has been updated to version 1.1; it still reads both binary- and data-serialized data
+      from v1.0
+    - added the @ref Qore::ListSerializationInfo "ListSerializationInfo" hashdecl to support serializing and
+      deserializing lists with complex type information
+
     @subsection qore_091_bug_fixes Bug Fixes in Qore
+    - implemented support for serializing and deserializing complex type information in lists and hashes
+      (<a href="https://github.com/qorelanguage/qore/issues/3318">issue 3318</a>)
     - fixed a memory leak in copy onstructor execution in complex class hierarchies
       (<a href="https://github.com/qorelanguage/qore/issues/3312">issue 3312</a>)
     - implemented support for automatically initializing the \c %Qore library from Java when dynamically loaded from

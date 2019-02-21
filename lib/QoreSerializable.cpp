@@ -36,17 +36,29 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 #include <string>
 #include <set>
 #include <cstdint>
 #include <cctype>
 #include <cstdlib>
+#include <vector>
+#include <memory>
 
 static QoreString QoreSerializationTypeString("QS");
-static QoreString QoreSerializationVersionString("1.0");
+static QoreString QoreSerializationVersionString("1.1");
+
+static std::vector<std::string> serialization_versions = {
+    "1.0",
+    "1.1",
+};
 
 typedef std::set<std::string> strset_t;
+
+// maximum string length for error message for string matching errors
+#define QORE_SERIALIZATION_STRING_ERROR_MAX_LEN 80
 
 namespace {
 constexpr bool code_is_int(qore_stream_type t) {
@@ -104,26 +116,95 @@ static int stream_read_string(ExceptionSink* xsink, InputStream& stream, QoreStr
     return 0;
 }
 
-static int check_deserialization_string(const QoreString& str, const QoreString& expected, const char* type, ExceptionSink* xsink) {
-    if (str != expected) {
-        bool bin = false;
-
-        // see if string has binary data in it
-        for (const char* p = str.c_str(), * e = p + str.size(); p < e; ++p) {
-            if (*p < 32 || *p > 126) {
-                bin = true;
-                break;
-            }
+static bool has_bin(const QoreString& str) {
+    // see if string has binary data in it
+    for (const char* p = str.c_str(), * e = p + str.size(); p < e; ++p) {
+        if (*p < 32 || *p > 126) {
+            return true;
         }
+    }
+
+    return false;
+}
+
+static int binary_string_deserialization_error(const char* type, const QoreString& expected, ExceptionSink* xsink) {
+    xsink->raiseException("DESERIALIZATION-ERROR", "stream data does not match expected %s string value '%s'; read " \
+        "binary (non-string) data instead", type, expected.c_str());
+    return -1;
+}
+
+static int check_deserialization_string(const QoreString& str, const QoreString& expected, const char* type,
+    ExceptionSink* xsink) {
+    if (str != expected) {
+        bool bin = has_bin(str);
 
         if (bin) {
-            xsink->raiseException("DESERIALIZATION-ERROR", "stream data does not match expected %s string value '%s'; read binary (non-string) data instead", type, expected.c_str());
+            return binary_string_deserialization_error(type, expected, xsink);
         } else {
-            xsink->raiseException("DESERIALIZATION-ERROR", "expecting expecting %s string value '%s' from stream; got '%s' instead", type, expected.c_str(), str.c_str());
+            if (str.size() > QORE_SERIALIZATION_STRING_ERROR_MAX_LEN) {
+                ExceptionSink xsink2;
+                std::unique_ptr<QoreString> tmp(str.substr(0, QORE_SERIALIZATION_STRING_ERROR_MAX_LEN, &xsink2));
+                if (xsink2) {
+                    // in case of an encoding error generating the error message, return a binary error instead
+                    xsink2.clear();
+                    return binary_string_deserialization_error(type, expected, xsink);
+                }
+                xsink->raiseException("DESERIALIZATION-ERROR", "expecting %s string value '%s' from " \
+                    "stream; got '%s...' (string length %ld truncated to %d characters for display) instead", type,
+                    expected.c_str(), tmp->c_str(), str.size(), QORE_SERIALIZATION_STRING_ERROR_MAX_LEN);
+            } else {
+                xsink->raiseException("DESERIALIZATION-ERROR", "expecting %s string value '%s' from " \
+                    "stream; got '%s' instead", type, expected.c_str(), str.c_str());
+            }
         }
         return -1;
     }
     return 0;
+}
+
+static int binary_string_deserialization_error_list(const char* type, const QoreString& expected, ExceptionSink* xsink) {
+    xsink->raiseException("DESERIALIZATION-ERROR", "stream data does not match expected one of %s string values %s; " \
+        "read binary (non-string) data instead", type, expected.c_str());
+    return -1;
+}
+
+static int check_deserialization_string(const QoreString& str, const std::vector<std::string>& versions,
+    const char* type, ExceptionSink* xsink) {
+    for (auto& i : versions) {
+        if (str == i) {
+            return 0;
+        }
+    }
+
+    bool bin = has_bin(str);
+
+    // create descriptive string for exception
+    QoreString desc;
+    for (auto& i : versions) {
+        desc.sprintf("'%s', ", i.c_str());
+    }
+    desc.terminate(desc.size() - 2);
+
+    if (bin) {
+            return binary_string_deserialization_error_list(type, desc, xsink);
+    } else {
+        if (str.size() > QORE_SERIALIZATION_STRING_ERROR_MAX_LEN) {
+            ExceptionSink xsink2;
+            std::unique_ptr<QoreString> tmp(str.substr(0, QORE_SERIALIZATION_STRING_ERROR_MAX_LEN, &xsink2));
+            if (xsink2) {
+                // in case of an encoding error generating the error message, return a binary error instead
+                xsink2.clear();
+                return binary_string_deserialization_error_list(type, desc, xsink);
+            }
+            xsink->raiseException("DESERIALIZATION-ERROR", "expecting one of %s string values %s from " \
+                "stream; got '%s...' (string length %ld truncated to %d characters for display) instead", type,
+                desc.c_str(), tmp->c_str(), str.size(), QORE_SERIALIZATION_STRING_ERROR_MAX_LEN);
+        } else {
+            xsink->raiseException("DESERIALIZATION-ERROR", "expecting one of %s string values %s from stream; got " \
+                "'%s' instead", type, desc.c_str(), str.c_str());
+        }
+    }
+    return -1;
 }
 
 class QoreInternalSerializationContext {
@@ -222,7 +303,7 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
         }
 
         case NT_LIST: {
-            ReferenceHolder<QoreListNode> rv(serializeListToData(*val.get<const QoreListNode>(), index, imap, mset, xsink), xsink);
+            ReferenceHolder<QoreHashNode> rv(serializeListToData(*val.get<const QoreListNode>(), index, imap, mset, xsink), xsink);
             if (*xsink) {
                 return QoreValue();
             }
@@ -458,7 +539,10 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
         }
         rv->setKeyValue("_hash", new QoreStringNode(thd->getNamespacePath()), xsink);
     } else {
-        rv->setKeyValue("_hash", new QoreStringNode("^hash^"), xsink);
+        // issue #3318: write complex type to stream, if any
+        const QoreTypeInfo* vti = h.getValueTypeInfo();
+        //printd(5, "QoreSerializable::serializeHashToData() vti: '%s'\n", QoreTypeInfo::getName(vti));
+        rv->setKeyValue("_hash", new QoreStringNodeMaker("^%s", QoreTypeInfo::getName(vti)), xsink);
     }
 
     // serialize hash members
@@ -486,8 +570,15 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
     return rv.release();
 }
 
-QoreListNode* QoreSerializable::serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
+QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclListSerializationInfo, xsink), xsink);
+
+    // issue #3318: write complex type to stream, if any
+    const QoreTypeInfo* vti = l.getValueTypeInfo();
+    //printd(5, "QoreSerializable::serializeHashToData() vti: '%s'\n", QoreTypeInfo::getName(vti));
+    rv->setKeyValue("_list", new QoreStringNode(QoreTypeInfo::getName(vti)), xsink);
+
+    ReferenceHolder<QoreListNode> serialized_list(xsink);
 
     ConstListIterator li(l);
     while (li.next()) {
@@ -497,7 +588,15 @@ QoreListNode* QoreSerializable::serializeListToData(const QoreListNode& l, Refer
             return nullptr;
         }
 
-        rv->push(new_val.release(), xsink);
+        if (!serialized_list) {
+            serialized_list = new QoreListNode(autoTypeInfo);
+        }
+
+        serialized_list->push(new_val.release(), xsink);
+    }
+
+    if (serialized_list) {
+        rv->setKeyValue("_elements", serialized_list.release(), xsink);
     }
 
     return rv.release();
@@ -756,11 +855,48 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
             const char* key = v.get<const QoreStringNode>()->c_str();
             return deserializeIndexedObject(key, oimap, xsink);
         }
+        v = h->getKeyValue("_list");
+        if (v) {
+            if (v.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "'_list' key has invalid type '%s'; expecting 'string'", v.getTypeName());
+                return QoreValue();
+            }
+
+            // get element type
+            const char* value_type = v.get<QoreStringNode>()->c_str();
+            const QoreTypeInfo* vti = qore_get_type_from_string(value_type);
+            if (!vti) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "'list has value type '%s' which cannot be matched to a " \
+                    "known type", value_type);
+                return QoreValue();
+            }
+
+            // get elements, if any
+            const QoreValue elements = h->getKeyValue("_elements");
+
+            if (elements && elements.getType() != NT_LIST) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "'_elements' key has invalid type '%s'; expecting 'list' " \
+                    "or 'nothing'", elements.getTypeName());
+                return QoreValue();
+            }
+
+            if (elements.isNothing()) {
+                return new QoreListNode(vti);
+            }
+            ValueHolder rv(deserializeListData(*elements.get<const QoreListNode>(), oimap, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+            qore_list_private* pl = qore_list_private::get(*rv->get<QoreListNode>());
+            pl->complexTypeInfo = (vti == anyTypeInfo ? nullptr : qore_get_complex_list_type(vti));
+            return rv.release();
+        }
 
         xsink->raiseException("DESERIALIZATION-ERROR", "hash hash no type information for deserialization; expecting either '_hash' or '_index' keys; neither was found");
         return QoreValue();
     }
 
+    // ffor backwards compatibility with data serialized by serializer 1.0
     if (val.getType() == NT_LIST) {
         return deserializeListData(*val.get<const QoreListNode>(), oimap, xsink);
     }
@@ -791,7 +927,20 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
         }
     }
 
-    if (type == "^hash^") {
+    if (type[0] == '^') {
+        // make sure we can still deserialize v1.0 data where the type value is '^hash^'
+        if (type != "^hash^") {
+            const char* value_type = type.c_str() + 1;
+            const QoreTypeInfo* vti = qore_get_type_from_string(value_type);
+            //printd(5, "QoreSerializable::deserializeHashData() vti: '%s'\n", value_type);
+            if (!vti) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "'hash has value type '%s' which cannot be matched to a " \
+                    "known type", value_type);
+                return QoreValue();
+            }
+            qore_hash_private* ph = qore_hash_private::get(**rv);
+            ph->complexTypeInfo = (vti == anyTypeInfo ? nullptr : qore_get_complex_hash_type(vti));
+        }
         return rv.release();
     }
 
@@ -1252,7 +1401,7 @@ QoreHashNode* QoreSerializable::deserializeToData(InputStream& stream, Exception
         return nullptr;
     }
 
-    if (check_deserialization_string(str, QoreSerializationVersionString, "header version", xsink)) {
+    if (check_deserialization_string(str, serialization_versions, "header version", xsink)) {
         return nullptr;
     }
 
