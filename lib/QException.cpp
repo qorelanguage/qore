@@ -32,8 +32,8 @@
 #include <qore/minitest.hpp>
 #include "qore/intern/QException.h"
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <vector>
 
 //------------------------------------------------------------------------------

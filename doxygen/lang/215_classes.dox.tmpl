@@ -11,9 +11,9 @@
 
     @par In-Line Class Declaration Syntax
     <tt><b>[@ref mod_public "public"] [@ref final_classes "final"] class</b> [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>class_identifier</em><tt>] [<b>inherits</b> [<b>@ref private_inheritance "private[:internal|hierarchy]"</b>|<b>@ref public_inheritance "public"</b>] [</tt><em>@ref namespace_paths "namespace_path"</em><tt>::...]</tt><em>parent_class_identifier</em><tt>[, ...]] {</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private[:internal|hierarchy]"</b>] </tt><em>member_name</em><tt>[, ...];]</tt>\n\n
+    &nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref private_members "private[:internal|hierarchy]"</b>] [<b>@ref transient "transient"</b>] </tt><em>member_name</em><tt>[, ...];]</tt>\n\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>@ref private_members "private[:internal|hierarchy]"</b>|<b>@ref public_members "public"</b> {</tt>\n
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[</tt><em>@ref data_type_declarations "member_type"</em><tt>] </tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[[<b>@ref transient "transient"</b>] [</tt><em>@ref data_type_declarations "member_type"</em><tt>] </tt><em>member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>static</b> [</tt><em>@ref data_type_declarations "static_member_type"</em><tt>] </tt><em>static_member_name</em> <tt>[= </tt><em>@ref expressions "initialization_expression"</em><tt>];]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<tt>[<b>const</b> </tt><em>constant_name</em> <tt>=</tt> <em>@ref expressions "initialization_expression"</em><tt>;]</tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<tt>}]</tt>\n\n
@@ -190,35 +190,35 @@ class Test {
 
     @section class_members Class Members
 
-    @anchor public_members
-    @par Public Member Declarations
+    @subsection public_members Public Member Declarations
     If a class has at least one public member declared (or inherits a class with at least one public member declared), then only those members declared as public can be accessed from outside the class, and from within the class only members explicitly declared can be accessed as well (unless the class also defines a @ref memberGate_methods "memberGate() method"). In this way typographical errors in member names can be caught (at parse time if types are declared).
 
-    @anchor private_members
-    @par Private Members
+    @subsection private_members Private Members
     Members declared <b><tt>private</tt></b> can only be accessed within the class hierarchy; trying to access private members form outside the class hierarchy will result in either a parse or runtime exception, depending on when the illegal access is caught.  This access modifier, when used without any modifiers, is equivalent to <tt><b>private:hierarchy</b></tt> and is functionally identical to C++'s \a protected access modifier.\n\n
     Members declared as <tt><b>private:internal</b></tt> are not available outside the class, even in classes in the same class hierarchy, providing strong encapsulation of the declared member.  This can be used to ensure that the declared member can be changed in later versions of the class without affecting API compatibility.\n\n
     Members declared as <tt><b>private:hierarchy</b></tt> are equivalent to those declared <tt><b>private</b></tt> and are only private from outside the class hierarchy.
 
-    @par Class Member References
+    @subsection transient Transient Members
+    Members declared with the <b><tt>transient</tt></b> keyword will not be processed with @ref Qore::Serializable "object serialization"
+    and will get their default value (if any) when deserialized.
+
+    @subsection referencing_members Class Member References
     When defining a class when using the old style syntax, members of instantiated objects are referred to with a special syntax as follows:\n
     <tt>$.</tt><em>member_name</em>\n\n
     Furthermore, the automatic variable <tt>self</tt> is instantiated in every non-static method, representing the current object (similar to <tt>this</tt> in C++ or Java). Therefore if you need to access hash members which are not valid %Qore identifiers, then enclose the member name in double quotes after the dot operator as follows:\n
     @code{.py} self."&member-name"@endcode
 
-    @anchor memberGate_methods
-    @par memberGate() Method
+    @subsection memberGate_methods memberGate() Method
     If the class implements a \c memberGate() method, then whenever a non-existent member of the class is accessed (read), this method will be called with the name of the member as the sole argument, so that the class can create the member (or react in some other way) on demand. This method is also called when methods of the same class try to access (read) non-existent methods, but is not called from within the \c memberGate() method itself.
 
     @note \c memberGate() methods are not inherited; they must be explicitly implemented in each class
 
-    @anchor memberNotification_methods
-    @par memberNotification() Methods
+    @subsection memberNotification_methods memberNotification() Methods
     To monitor writes to the object, the class can implement a \c memberNotification() method, which is called whenever an object member is modified from outside class member code. In this case, the \c memberNotification() method is called with the name of the member that was updated so that an object can automatically react to changes to its members (writes to members) from outside the class. This method is not called when members are updated from within class member code.
 
     @note \c memberNotification() methods are not inherited; they must be explicitly implemented in each class
 
-    @par Member Initialization
+    @subsection member_initialization Member Initialization
     Members that have intialization expressions in the class definition are initialized before the constructor is executed (but after any base class constructors have run).  An exception raised in a member initialization expression will cause the constructor to fail and for the object to be deleted immediately.
 
     @note The automatic <tt>argv</tt> local variable is instantiated as usual in all class methods where there are more arguments than variables declared in the method declaration.\n\n

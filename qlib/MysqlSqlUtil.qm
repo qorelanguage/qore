@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
+#! @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  MysqlSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.4.1
+%requires SqlUtil >= 1.5
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.2.1";
+    version = "1.3";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,9 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv13 MysqlSqlUtil v1.3
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
     @subsection mysqlsqlutilv121 MysqlSqlUtil v1.2.1
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
@@ -204,6 +207,10 @@ public namespace MysqlSqlUtil {
             int byte_size;
         }
 
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
         }
@@ -293,10 +300,42 @@ my string $str = $col.getRenameSql($t, "new_name");
             bool pk = False;
         }
 
+        private {
+            # AUTO_INCREMENT applies only to integer and floating-point types
+            const AUTO_INCREMENT_VALID_TYPES = {
+                # int types
+                "tinyint": True,
+                "smallint": True,
+                "mediumint": True,
+                "int": True,
+                "bigint": True,
+                # float types
+                "float": True,
+                "real": True,
+                "double precision": True,
+            };
+        }
+
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
+
+            validateConstructor();
+        }
+
+        #! deserializes the hash to a replica of the original object
+        private:internal deserializeMembers(hash<auto> members) {
+            self += members;
+            validateConstructor();
+        }
+
+        private validateConstructor() {
+            if (auto_increment && !AUTO_INCREMENT_VALID_TYPES.hasKey(native_type)) {
+                throw "MYSQL-COLUMN-ERROR",
+                      sprintf("AUTO_INCREMENT can be used only with a subset of types. Used: %s, valid types: %n",
+                              native_type, keys AUTO_INCREMENT_VALID_TYPES);
+            }
         }
 
         string getNativeTypeString() {

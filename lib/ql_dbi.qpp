@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_dbi.qpp
+    ql_dbi.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -51,7 +51,7 @@ namespace Qore::SQL;
     @deprecated use parse_datasource() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
 hash parseDatasource(string ds) [flags=RET_VALUE_ONLY,DEPRECATED] {
-   return parseDatasource(ds->getBuffer(), xsink);
+    return parseDatasource(ds->c_str(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -67,7 +67,7 @@ nothing parseDatasource() [flags=NOOP,DEPRECATED] {
     @deprecated use dbi_get_driver_list() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
 *list getDBIDriverList() [flags=CONSTANT,DEPRECATED] {
-   return DBI.getDriverList();
+    return DBI.getDriverList();
 }
 
 //! Returns a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
@@ -79,8 +79,8 @@ nothing parseDatasource() [flags=NOOP,DEPRECATED] {
     @deprecated use dbi_get_driver_capability_list() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
 *list getDBIDriverCapabilityList(string driver) [flags=CONSTANT,DEPRECATED] {
-   DBIDriver *dd = DBI.find(driver->getBuffer());
-   return !dd ? 0 : qore_dbi_private::get(*dd)->getCapList();
+    DBIDriver *dd = DBI.find(driver->getBuffer());
+    return !dd ? QoreValue() : QoreValue(qore_dbi_private::get(*dd)->getCapList());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -99,7 +99,7 @@ nothing getDBIDriverCapabilityList() [flags=NOOP,DEPRECATED] {
  */
 *int getDBIDriverCapabilities(string driver) [flags=CONSTANT,DEPRECATED] {
    DBIDriver* dd = DBI.find(driver->getBuffer());
-   return !dd ? 0 : new QoreBigIntNode(qore_dbi_private::get(*dd)->getCaps());
+   return !dd ? QoreValue() : QoreValue(qore_dbi_private::get(*dd)->getCaps());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

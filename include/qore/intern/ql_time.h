@@ -33,7 +33,7 @@
 
 #define QORE_LIB_TIME_H
 
-#include <time.h>
+#include <ctime>
 
 DLLLOCAL void init_time_functions(QoreNamespace& ns);
 

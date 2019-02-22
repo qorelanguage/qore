@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -210,13 +210,13 @@ list Breakpoint::getStatementIds() {
  *
  */
 list Breakpoint::getThreadIds() {
-   TidList_t tl;
-   bkpt->getThreadIds(tl, xsink);
-   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
-   for (TidList_t::iterator it = tl.begin(); it != tl.end(); ++it) {
-      (*l)->push(new QoreBigIntNode(*it));
-   }
-   return l.release();
+    TidList_t tl;
+    bkpt->getThreadIds(tl, xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+    for (TidList_t::iterator it = tl.begin(); it != tl.end(); ++it) {
+        (*l)->push(*it, xsink);
+    }
+    return l.release();
 }
 
 //! Set list of the thread IDs
@@ -224,14 +224,14 @@ list Breakpoint::getThreadIds() {
  *
  */
 nothing Breakpoint::setThreadIds(softlist tidList) {
-   TidList_t tl;
-   for (qore_size_t i = 0, e = tidList->size(); i < e; ++i) {
-      const AbstractQoreNode* n = tidList->retrieve_entry(i);
-      if (n) {
-         tl.push_back(n->getAsInt());
-      }
-   }
-   bkpt->setThreadIds(tl, xsink);  // TODO: or just pass tidList ???
+    TidList_t tl;
+    for (qore_size_t i = 0, e = tidList->size(); i < e; ++i) {
+        QoreValue n = tidList->retrieveEntry(i);
+        if (!n.isNothing()) {
+            tl.push_back((int)n.getAsBigInt());
+        }
+    }
+    bkpt->setThreadIds(tl, xsink);  // TODO: or just pass tidList ???
 }
 
 //! Add thread ID to the list

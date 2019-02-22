@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TestConnectionProvider.qm Test Connection provider
+# @file TestConnectionProvider Test Connection provider
 
-/*  TestConnectionProvider.qm Copyright 2016 Qore Technologies, s.r.o.
+/*  TestConnectionProvider Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,15 +22,15 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum qore versiobn
+%requires qore >= 0.9
 
 %require-types
 %enable-all-warnings
 %new-style
 %strict-args
 
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 
 module TestConnectionProvider {
     version = "1.0";
@@ -47,15 +47,22 @@ class TestConnection inherits AbstractConnection {
         const Url = "test://user:pass@x";
     }
 
-    constructor() : AbstractConnection("test", "test", Url, False, NOTHING, parse_url(Url)) {
+    constructor() : AbstractConnection("test", "test", Url) {
     }
 
     string getType() {
         return "TestConnection";
     }
 
-    TestConn getImpl(bool connect = True, *hash rtopts) {
+    private TestConn getImpl(bool connect = True, *hash rtopts) {
         return new TestConn();
+    }
+
+    private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+        return new hash<ConnectionConstructorInfo>({
+            "module": "TestConnection",
+            "class_name": "TestConn",
+        });
     }
 }
 
