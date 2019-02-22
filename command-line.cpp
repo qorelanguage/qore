@@ -7,11 +7,7 @@
 
     it should offer POSIX style command-line handling on any platform...
 
-<<<<<<< HEAD
-  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
-=======
     Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
->>>>>>> develop
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
