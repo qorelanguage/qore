@@ -87,8 +87,9 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
-        #addTestCase("GET tests", \methodGetTest());
-        #addTestCase("PUT tests", \methodPutTest());
+        addTestCase("connection tests", \connectionTests());
+        addTestCase("GET tests", \methodGetTest());
+        addTestCase("PUT tests", \methodPutTest());
         addTestCase("POST tests", \methodPostTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -188,5 +189,15 @@ public class Main inherits QUnit::Test {
         #printf("ret: %y\n", ret);
         assertEq(<abcd>, binary(ret.body));
         assertEq(MimeTypeOctetStream, ret."content-type");
+    }
+
+    connectionTests() {
+        string url = "http://localhost:8099/";
+        RestConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        RestClient client = conn.get(False);
+        assertEq(url, client.getURL());
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
     }
 } # class Main

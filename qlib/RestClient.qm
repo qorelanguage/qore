@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
+/*  RestClient.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -123,6 +123,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_4_2 RestClient v1.4.2
+    - fixed a bug handling default options including timeouts in REST connections in @ref RestClient::RestConnection "RestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
 
     @subsection restclientv1_4_1 RestClient v1.4.1
     - added support for REST requests with binary message bodies; added the \c "bin" serialization method
@@ -931,12 +935,12 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             hash real_opts;
 
             #! RestConnection object connection options
-            const Options = HttpConnection::Options + (
+            const Options = HttpConnection::Options + {
                 "data": True,
                 "send_encoding": True,
                 "content_encoding": True,
                 "swagger": True,
-                );
+            };
 
             const OptionList = Options.keys();
         }
@@ -950,7 +954,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
         */
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : HttpBasedConnection(name, desc, url, monitor, opts, urlh) {
-            real_opts = ("url": real_url) + opts;
+            real_opts = ("url": real_url) + self.opts;
         }
 
         #! returns a @ref RestClient::RestClient object
