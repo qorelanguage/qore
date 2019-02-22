@@ -29,6 +29,8 @@
 
 %exec-class Main
 
+%disable-warning deprecated
+
 const VALUE_TEXT = (
         "input" : "Lorem Ipsum",
         "output" : "Lorem Ipsum",
@@ -86,11 +88,11 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("connection tests", \connectionTests());
         addTestCase("DELETE tests", \methodDeleteTest());
         addTestCase("GET tests", \methodGetTest());
         addTestCase("PUT tests", \methodPutTest());
         addTestCase("POST tests", \methodPostTest());
-        addTestCase("connection tests", \connectionTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -208,6 +210,9 @@ public class Main inherits QUnit::Test {
         RestConnection conn("test", "test", url, False, NOTHING, parse_url(url));
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
 
         conn = new RestConnection("test", "test", url, {"monitor": False}, {});
         client = conn.get(False);

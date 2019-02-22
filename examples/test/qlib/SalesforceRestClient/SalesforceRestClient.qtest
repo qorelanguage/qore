@@ -17,6 +17,9 @@
 
 %exec-class SalesforceTest
 
+# we test deprecated functionality here
+%disable-warning deprecated
+
 class SalesforceTest inherits QUnit::Test {
     public {}
 

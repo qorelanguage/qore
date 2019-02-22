@@ -134,6 +134,10 @@ printf("%N\n", ans.body);
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
+    @subsection restclientv1_4_2 RestClient v1.4.2
+    - fixed a bug handling default options including timeouts in REST connections in @ref RestClient::RestConnection "RestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
+
     @subsection restclientv1_4_1 RestClient v1.4.1
     - added support for REST requests with binary message bodies; added the \c "bin" serialization method
       (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
@@ -947,12 +951,12 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             hash real_opts;
 
             #! RestConnection object connection options
-            const Options = HttpConnection::Options + (
+            const Options = HttpConnection::Options + {
                 "data": True,
                 "send_encoding": True,
                 "content_encoding": True,
                 "swagger": True,
-                );
+            };
 
             const OptionList = Options.keys();
         }
@@ -970,7 +974,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
             : HttpBasedConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
-            real_opts = {"url": real_url} + opts;
+            real_opts = {"url": real_url} + self.opts;
         }
 
         #! creates the RestConnection connection object
@@ -988,7 +992,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {})
             : HttpBasedConnection(name, description, url, attributes, options) {
-            real_opts = {"url": real_url} + options;
+            real_opts = {"url": real_url} + opts;
         }
 
         #! returns a @ref RestClient::RestClient "RestClient" object
