@@ -10,6 +10,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider.qm
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SewioRestClient.qm
 %requires ../../../../qlib/HttpServer.qm
@@ -117,5 +118,10 @@ public class Main inherits QUnit::Test {
         assertEq(True, swsc instanceof SewioRestConnection);
 
         assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url, True, NOTHING, parse_url(url)); });
+
+        SewioRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
     }
 } # class Main

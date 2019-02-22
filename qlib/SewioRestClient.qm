@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.0
 
 module SewioRestClient {
-    version = "1.0";
+    version = "1.0.1";
     desc = "user module for calling Sewio.net RTLS Studio REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -85,9 +85,13 @@ hash ans = rest.get("api/anchors");
 printf("%N\n", ans.body);
     @endcode
 
-    @section Sewiorestclientrelnotes Release Notes
+    @section sewiorestclientrelnotes Release Notes
 
-    @subsection Sewiorestclientv1_0 SewioRestClient v1.0
+    @subsection sewiorestclientv1_0_1 SewioRestClient v1.0.1
+   - fixed a bug handling default options including timeouts in @ref SewioRestClient::SewioRestConnection "SewioRestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
+
+    @subsection sewiorestclientv1_0 SewioRestClient v1.0
     - the initial version of the %SewioRestClient module
 */
 
@@ -201,7 +205,7 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
             if (!opts.apikey.val())
                 throw "SEWIORESTCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
-            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+            real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
         }
 
         #! returns a @ref SewioRestClient::SewioRestClient object

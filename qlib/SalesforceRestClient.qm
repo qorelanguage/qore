@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.0
 
 module SalesforceRestClient {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ rc.bulkJobClose(h.id);
     functionality and a more detailed example of code using this module.
 
     @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_1_1 SalesforceRestClient v1.1.1
+   - fixed a bug handling default options including timeouts in @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
 
     @subsection salesforcerestclientv1_1 SalesforceRestClient v1.1
     - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -1019,7 +1023,7 @@ sfrest.logout();
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
         */
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
-            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+            real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
         }
 
         #! returns a @ref SalesforceRestClient::SalesforceRestClient object
