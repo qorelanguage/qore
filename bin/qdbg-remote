@@ -137,14 +137,22 @@ class DebugWrapper {
             if (!exists opt.url) {
                 throw "GETOPT-ERROR", "Missing URL";
             }
+            *string path_suffix;
             string orig_url = opt.url;
             try {
-                opt.url = get_connection_url(opt.url);
+                # check if it's in "connection_name/path" format
+                *list l = opt.url =~ x/^([A-Za-z_\-0-9]+)\/([A-Za-z_\-0-9\.]+)$/;
+                if (l) {
+                    opt.url = get_connection_url(l[0]);
+                    path_suffix = l[1];
+                } else {
+                    opt.url = get_connection_url(opt.url);
+                }
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "CONNECTION-ERROR") {
                     rethrow;
                 }
-                if (opt.url !~ /:\/\//) {
+                if (opt.url !~ /:\/\// && opt.url !~ /:/ && opt.url !~ /\//) {
                     throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url, ENV.QORE_CONNECTION_PROVIDERS);
                 }
             }
@@ -152,6 +160,12 @@ class DebugWrapper {
                 if (opt.url =~ /^https?:\/+[^\/]+$/) {
                     # use "debug" path if none present
                     opt.url += "/debug";
+                }
+                if (path_suffix.val()) {
+                    if (opt.url !~ /\/$/) {
+                        opt.url += "/";
+                    }
+                    opt.url += path_suffix;
                 }
                 if (opt.url =~ /^https?:/) {
                     opt.url =~ s/^http/ws/;
@@ -206,31 +220,38 @@ class DebugWrapper {
     }
 
     private help(int exCode=1) {
-        printf("usage: %s [options] <url>\n"
-            "  <url> is the URL of debug server in 'ws://socket=<url_encoded_path>/path', where ws:// is optional\n"
-            "  where <url> is debug server target.\n"
-            "  ConnectionProvider name is considered, when matched then http(s) protocol is changed to ws(s)\n"
-            "  and '/debug' path is defined unless a path already exists in the URL\n"
-            "  -v     verbose\n"
-            "  -h     help\n"
+        printf(
+            "usage: %s [options] <url>\n"
+            "       %s [options] <conn-id>[/<path>]\n"
+            "\n"
+            "  <url> is the URL of debug server in 'ws://socket=<url_encoded_path>/path' format, ws:// is optional.\n"
+            "  ConnectionProvider <conn-id> name is considered and when is resolved then http(s) protocol is changed to ws(s).\n"
+            "  The '/debug' path is appended unless a path already exists in the URL and the <path> follows\n"
+            "\n"
+            "  -v                     verbose\n"
+            "  -h                     help\n"
             "  -m,--max-redir=<num>   the maximum number of redirects before throwing an exception (the default is 5)\n"
             "  -P,--proxy=<url>       the proxy URL for connecting through a proxy\n"
             "  -t,--timeout=<ms>      the timeout\n"
             "  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
             "  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n"
-            "  -y, --history=file           load command line history from file, default: %s in home directory\n"
-            "                               When \".\" name is provided then history is not loaded/saved\n"
-            "  -s, --session=file           load session from file\n"
+            "  -y, --history=file     load command line history from file, default: %s in home directory\n"
+            "                         When \".\" name is provided then history is not loaded/saved\n"
+            "  -s, --session=file     load session from file\n"
 
             "\n"
             "Example:\n"
             "  %s -v localhost:8000/debug\n"
             "  %s -v qorus\n"
+            "  %s -v qorus/qjob-test_v1.0-1\n"
             "\n"
             ,
             get_script_name(),
+            get_script_name(),
             DebugCommandLineRemote::WSC_TIMEOUT,
             DebugLinenoiseCommandLine::defaultHistoryFileName,
+            get_script_name(),
+            get_script_name(),
             get_script_name(),
 
         );

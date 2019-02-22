@@ -1,48 +1,51 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_lib.qpp
+    ql_lib.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/ql_lib.h"
 #include "qore/intern/ExecArgList.h"
 #include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 #include <qore/minitest.hpp>
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <fcntl.h>
-#include <signal.h>
-#include <sys/types.h>
 #include <sys/param.h>
+#include <sys/types.h>
 #include <unistd.h>
+
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
@@ -51,12 +54,25 @@
 #include <sys/wait.h>
 #endif
 
-#include <time.h>
-
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
 #include "qore/intern/glob.h"
+#endif
+
+#ifdef HAVE_GETIFADDRS
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#include <ifaddrs.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#ifdef AF_LINK
+#include <net/if_dl.h>
+#endif
+#ifdef AF_PACKET
+#include <linux/if_packet.h>
+#endif
 #endif
 
 #ifndef SIGHUP
@@ -111,6 +127,26 @@ TEST() {
 }
 #endif
 
+//! network interface info hash
+/** @since %Qore 0.9.0
+*/
+hashdecl NetIfInfo {
+    //! interface name
+    string interface;
+
+    //! interface address if available
+    *string address;
+
+    //! interface address description (if the address is available)
+    *string address_desc;
+
+    //! interface family type; see @ref network_address_family_constants for possible values
+    int family;
+
+    //! interface family type string
+    string familystr;
+}
+
 //! exception information hash
 /** @since %Qore 0.8.13
 */
@@ -144,6 +180,9 @@ hashdecl ExceptionInfo {
 
     //! this key is populated with the value of the third expression of the @ref throw "throw statement" (if a list was thrown). For system exceptions, this is populated for some exceptions where additional information is provided.
     auto arg;
+
+    //! the language of the source code location; normally \c "Qore"
+    string lang;
 
     //! chained exception info
     hash<ExceptionInfo> next;
@@ -366,8 +405,9 @@ list getgroups() [dom=EXTERNAL_INFO] {
       return xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
 
    QoreListNode* rv = new QoreListNode;
-   for (int i = 0; i < n; ++i)
-      rv->push(new QoreBigIntNode(l[i]));
+   for (int i = 0; i < n; ++i) {
+      rv->push(l[i], xsink);
+   }
    return rv;
 #else
    missing_function_error("getgroups", "UNIX_USERMGT", xsink);
@@ -389,27 +429,26 @@ setgroups(l);
 */
 nothing setgroups(softlist gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS
-   if (gids->empty())
-      return QoreValue();
+    if (gids->empty())
+        return QoreValue();
 
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS_X
-   gid_t l[gids->size()];
+    gid_t l[gids->size()];
 #else
-   gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
-   if (!l) {
-      xsink->outOfMemory();
-      return QoreValue();
-   }
-   ON_BLOCK_EXIT(free, l);
+    gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
+    if (!l) {
+        xsink->outOfMemory();
+        return QoreValue();
+    }
+    ON_BLOCK_EXIT(free, l);
 #endif
-   for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
-      const AbstractQoreNode* n = gids->retrieve_entry(i);
-      l[i] = n ? n->getAsInt() : 0;
-   }
-   if (setgroups(gids->size(), l))
-      xsink->raiseErrnoException("SETGROUPS-ERROR", errno, "error calling setgroups()");
+    for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
+        l[i] = (int)gids->retrieveEntry(i).getAsBigInt();
+    }
+    if (setgroups(gids->size(), l))
+        xsink->raiseErrnoException("SETGROUPS-ERROR", errno, "error calling setgroups()");
 #else
-   missing_function_error("setgroups", "UNIX_USERMGT", xsink);
+    missing_function_error("setgroups", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -604,10 +643,11 @@ int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
 nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
 
-//! Returns a random 64-bit integer number
-/** This function uses the C library function \c random() to generate the number if available on the current platform, otherwise uses \c %rand().
+//! Returns a random non-negative 64-bit integer number
+/** This function uses the C library function \c random() to generate the number if available on the current platform,
+    otherwise uses \c %rand().
 
-    @return a random 64-bit integer number
+    @return a random non-negative 64-bit integer number
 
     @par Example:
     @code{.py}
@@ -1026,4 +1066,122 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
    missing_function_error("close_all_fd", xsink);
 #endif // HAVE_UNISTD
 }
+
+//! returns a list of network interfaces
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_GET_NETIF_LIST
+
+    @par Example:
+    @code{.py}
+list<hash<NetIfInfo>> l = get_netif_list();
+
+results for example into:
+list: (8 elements)
+  [0]=hash: (5 members)
+    interface : "lo"
+    address : "00:00:00:00:00:00"
+    address_desc : "mac<00:00:00:00:00:00>"
+    family : 17
+    familystr : "mac"
+  [1]=hash: (5 members)
+    interface : "eth0"
+    address : "44:8a:5b:ba:13:50"
+    address_desc : "mac<44:8a:5b:ba:13:50>"
+    family : 17
+    familystr : "mac"
+  [2]=hash: (5 members)
+    interface : "lo"
+    address : "127.0.0.1"
+    address_desc : "ipv4(127.0.0.1)"
+    family : 2
+    familystr : "ipv4"
+  [3]=hash: (5 members)
+    interface : "eth0"
+    address : "192.168.20.4"
+    address_desc : "ipv4(192.168.20.4)"
+    family : 2
+    familystr : "ipv4"
+  [4]=hash: (5 members)
+    interface : "lo"
+    address : "::1"
+    address_desc : "ipv6[::1]"
+    family : 10
+    familystr : "ipv6"
+  [5]=hash: (5 members)
+    interface : "eth0"
+    address : "fe80::213:3bff:fe0f:d5e1"
+    address_desc : "ipv6[fe80::213:3bff:fe0f:d5e1]"
+    family : 10
+    familystr : "ipv6"
+    @endcode
+
+    @return returns a list of network interfaces available on the local machine
+*/
+list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
+#ifdef HAVE_GETIFADDRS
+    struct ifaddrs* ifap;
+    if (getifaddrs(&ifap)) {
+        xsink->raiseErrnoException("GETGETIFLIST-ERROR", errno, "getidaddrs() failed");
+        return QoreValue();
+    }
+    ON_BLOCK_EXIT(freeifaddrs, ifap);
+
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclNetIfInfo->getTypeInfo()), xsink);
+
+    for (struct ifaddrs* ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        // skip interfaces with no address
+        if (!ifa->ifa_addr)
+            continue;
+
+        ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclNetIfInfo, xsink), xsink);
+        qore_hash_private* hh = qore_hash_private::get(**h);
+
+        hh->setKeyValueIntern("interface", new QoreStringNode(ifa->ifa_name));
+
+        switch (ifa->ifa_addr->sa_family) {
+            case AF_INET:
+            case AF_INET6: {
+                // get ipv4 or ipv6 address
+                char ifname[INET6_ADDRSTRLEN];
+                if (inet_ntop(ifa->ifa_addr->sa_family, qore_get_in_addr(ifa->ifa_addr), ifname, sizeof(ifname))) {
+                    QoreStringNode* addrstr = new QoreStringNode(ifname);
+                    hh->setKeyValueIntern("address", addrstr);
+                    hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
+                }
+                break;
+            }
+#ifdef AF_PACKET
+            case AF_PACKET: {
+                struct sockaddr_ll* s = (struct sockaddr_ll*)ifa->ifa_addr;
+                QoreStringNode* addrstr = new QoreStringNode;
+                for (unsigned i = 0; i < s->sll_halen; ++i) {
+                    addrstr->sprintf("%02x%s", s->sll_addr[i], static_cast<int>(i) < (s->sll_halen - 1) ? ":" : "");
+                }
+                hh->setKeyValueIntern("address", addrstr);
+                hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
+                break;
+            }
+#endif
+#ifdef AF_LINK
+            case AF_LINK: {
+                QoreStringNode* addrstr = new QoreStringNode(link_ntoa((struct sockaddr_dl*)ifa->ifa_addr));
+                hh->setKeyValueIntern("address", addrstr);
+                hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
+                break;
+            }
+#endif
+        }
+
+         hh->setKeyValueIntern("family", ifa->ifa_addr->sa_family);
+         hh->setKeyValueIntern("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(ifa->ifa_addr->sa_family)));
+
+         rv->push(h.release(), xsink);
+    }
+
+    return rv.release();
+#else
+    missing_function_error("getifaddrs", xsink);
+#endif
+}
+
 //@}

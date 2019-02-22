@@ -73,4 +73,10 @@ else (SINGLE_COMPILATION_UNIT)
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)
-qore_binary_module_intern(${astparser_module_name} "${VERSION}" "/${VERSION}")
+qore_binary_module_qore(${astparser_module_name} "${VERSION}" "/${VERSION}")
+
+if (DOXYGEN_FOUND)
+    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
+    add_custom_target(QORE_ASTPARSER_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    add_dependencies(docs-astparser QORE_ASTPARSER_MOD_DOX_FILES)
+endif()

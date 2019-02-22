@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+#! @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2017 Qore Technologies, s.r.o.
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum qore version
-%requires qore >= 0.8.13
+# minimum required Qore version
+%requires qore >= 0.9
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.4.1
+%requires SqlUtil >= 1.5
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.2.1";
+    version = "1.3";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -112,6 +112,9 @@ module FreetdsSqlUtil {
 
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+
+    @subsection freetdssqlutilv13 FreetdsSqlUtil v1.3
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
     @subsection freetdssqlutilv121 FreetdsSqlUtil v1.2.1
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
@@ -242,6 +245,10 @@ public namespace FreetdsSqlUtil {
             int byte_size;
         }
 
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
         #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
@@ -351,6 +358,10 @@ string str = col.getRenameSql(t, "new_name");
         private {
             #! any filegroup for the unique key index
             *string filegroup;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
         }
 
         #! creates the constraint with an optional filegroup name
@@ -846,7 +857,7 @@ any v = c.name;
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
-            throw "UNIMPLEMENTED", "unimplemented";
+            return new FreetdsSequence(name);
         }
 
         private *AbstractView getViewImpl(string name) {
@@ -959,7 +970,13 @@ any v = c.name;
 
         #! returns @ref Qore::True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
-            return True;
+            # MS SQL Server 2012+ supports sequences
+            if (isSybase(ds)) {
+                return False;
+            }
+            # set vars for MS SQL Server
+            *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
+            return ver >= 2012;
         }
 
         #! returns @ref Qore::True "True" if the database supports named types
@@ -1040,6 +1057,9 @@ any v = c.name;
 
             #! "has merge" flag for SQL server
             bool ss_has_merge = False;
+
+            #! "has sequences" flag for SQL server
+            bool ss_has_sequences = False;
 
             #! maps postgresql type names to type configurations
             const FreetdsTypeMap = (
@@ -1319,8 +1339,12 @@ any v = c.name;
             # set vars for MS SQL Server
             if (!is_sybase) {
                 *softint ver = (ds.getServerVersion() =~ x/Microsoft SQL Server ([0-9]+)/)[0];
-                if (ver >= 2008)
+                if (ver >= 2008) {
                     ss_has_merge = True;
+                    if (ver >= 2012) {
+                        ss_has_sequences = True;
+                    }
+                }
             }
             # see if there is a schema in the name
             parse_schema_name(nname, \schema, \name);
@@ -1814,7 +1838,7 @@ order by
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
-            *string ts = opt.tablespace ? opt.tablespace : filegroup;
+            *string ts = opt.data_tablespace ? opt.data_tablespace : filegroup;
             if (ts)
                 sql += sprintf(" on %s", ts);
 

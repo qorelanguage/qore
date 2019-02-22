@@ -163,6 +163,7 @@ public namespace DebugUtil {
         #! implement logging
         /**
           @param verbosity use DPC_xxx constants
+          @param fmt @ref Qore::sprintf() format
         */
         public log(int verbosity, string fmt) {
             log2(verbosity, fmt, argv);
@@ -170,6 +171,8 @@ public namespace DebugUtil {
         #! implement logging
         /**
           @param verbosity use DPC_xxx constants
+          @param fmt @ref Qore::sprintf() format
+          @param args arguments to format
         */
         public log2(int verbosity, string fmt, *list args) {
             if (verbose >= verbosity) {

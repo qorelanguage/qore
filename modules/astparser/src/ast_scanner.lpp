@@ -49,11 +49,17 @@
 
 #include "ast_parser.hpp"
 
+// issue #3166: for DLLEXPORT for Qore symbols; Qore headers cannot be included directly here
+#include "qore/common.h"
+
 #define YYLTYPE ASTParseLocation
 
 #define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
 
 #define isoctaldigit(x) (x >= '0' && x <= '7')
+
+// issue #3166: use q_strtod() from Qore and avoid warnings
+DLLEXPORT double q_strtod(const char* str);
 
 static int ascii_to_octal(char c) {
     return c - '0';
@@ -109,14 +115,6 @@ static char* trim_inplace(const char* str) {
 static char* remove_quotes(char* str) {
     str[strlen(str) - 1] = '\0';
     return str + 1;
-}
-
-double q_strtod(const char* str) {
-    std::istringstream istr(str);
-    istr.imbue(std::locale::classic());
-    double rv;
-    istr >> rv;
-    return rv;
 }
 
 static int64_t parse_get_integer(const char* str, bool& err) {
@@ -200,6 +198,7 @@ static bool angle_balanced(const char* p) {
 // Global parse options.
 bool PO_BROKEN_LOGIC_PRECEDENCE = false;
 bool PO_BROKEN_OPERATORS = false;
+bool PO_NO_TRANSIENT = false;
 %}
 
 %option noyywrap nomain noyy_top_state warn
@@ -227,9 +226,9 @@ US              [0-9]{1,6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
-RDATE           P(-?[0-9]+[YMDHSu])+
-RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
-RTIME           PT(-?[0-9]+[HMSu])+
+RDATE           P(-?[0-9]+(\.[0-9]+)?[YMDHSu])+
+RDATETIME       P(-?[0-9]+(\.[0-9]+)?[YMD])+T(-?[0-9]+(\.[0-9]+)?[HMSu])+
+RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 
 %%
 ^%no-global-vars{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_NO_GLOBAL_VARS); return PARSE_OPTION_FULL; }
@@ -290,6 +289,9 @@ RTIME           PT(-?[0-9]+[HMSu])+
 ^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION_FULL; }
 ^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION_FULL; }
 ^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION_FULL; }
+^%allow-statement-no-effect{WS}*$       { yylval->parseopt = new ASTParseOption(APOK_ALLOW_STATEMENT_NO_EFFECT); return PARSE_OPTION_FULL; }
+^%no-reflection{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_REFLECTION); return PARSE_OPTION_FULL; }
+^%no-transient{WS}*$                    { PO_NO_TRANSIENT = true; yylval->parseopt = new ASTParseOption(APOK_NO_TRANSIENT); return PARSE_OPTION_FULL; }
 ^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION_FULL; }
 ^%append-include-path{WS}*$             { yylval->parseopt = new ASTStringParseOption(APOK_APPEND_INCLUDE_PATH); return PARSE_OPTION_FULL; }
 ^%append-include-path{WS}+              { BEGIN(append_path_state); return PARSE_OPTION_BEGIN; }
@@ -771,6 +773,13 @@ foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
 static                                  return TOK_STATIC;
 hashdecl                                return TOK_HASHDECL;
+transient                               {
+                                            if (PO_NO_TRANSIENT) {
+                                                yylval->string = strdup("transient");
+                                                return IDENTIFIER;
+                                            }
+                                            return TOK_TRANSIENT;
+                                        }
 class\(                                 { yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN; }
 private\(                               { yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN; }
 new\(                                   { yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN; }
@@ -918,7 +927,7 @@ cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  { yylval->strin
 {DIGIT}+ms                              { yylval->string = strdup(yytext); return DATETIME; }
 {DIGIT}+us                              { yylval->string = strdup(yytext); return DATETIME; }
 {DIGIT}+m                               { yylval->string = strdup(yytext); return DATETIME; }
-{DIGIT}+s                               { yylval->string = strdup(yytext); return DATETIME; }
+{DIGIT}+(\.{DIGIT}+)?s                  { yylval->string = strdup(yytext); return DATETIME; }
 {HEX_CONST}                             { yylval->integer = strtoll(yytext, 0, 16); return INTEGER; }
 {BINARY}                                { yylval->string = strdup(yytext); return BINARY; }
 \$\.{WORD}                              { yylval->string = strdup(yytext + 2); return SELF_REF; }

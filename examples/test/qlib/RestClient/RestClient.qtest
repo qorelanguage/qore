@@ -9,7 +9,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestClient.qm
@@ -28,6 +28,8 @@
 %endtry
 
 %exec-class Main
+
+%disable-warning deprecated
 
 const VALUE_TEXT = (
         "input" : "Lorem Ipsum",
@@ -62,15 +64,14 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
     hash handleRequest(hash cx, hash hdr, *data body) {
         if (hdr.method == "GET") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "PUT") {
+        } else if (hdr.method == "PUT") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "PATCH") {
+        } else if (hdr.method == "PATCH") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
-        }
-        else if (hdr.method == "POST") {
+        } else if (hdr.method == "POST") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "DELETE") {
+            return makeResponse(404, m_data ?? binary(body), {"Content-Type": m_mime});
         }
     }
 }
@@ -88,6 +89,7 @@ public class Main inherits QUnit::Test {
 
     constructor() : Test("RestClientTest", "1.0") {
         addTestCase("connection tests", \connectionTests());
+        addTestCase("DELETE tests", \methodDeleteTest());
         addTestCase("GET tests", \methodGetTest());
         addTestCase("PUT tests", \methodPutTest());
         addTestCase("POST tests", \methodPostTest());
@@ -109,6 +111,18 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    methodDeleteTest() {
+        RestClient rest({"url": "http://localhost:"+port});
+        hash<auto> info;
+        try {
+            # issue #3237: must throw an exception due to the 404 Not Found response
+            rest.del("/api_text", NOTHING, \info);
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+        }
+        assertEq(404, info."response-code");
     }
 
     methodGetTest() {
@@ -199,5 +213,35 @@ public class Main inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+
+        conn = new RestConnection("test", "test", url, {"monitor": False}, {});
+        client = conn.get(False);
+        assertEq(url, client.getURL());
+        assertEq(False, conn.monitor);
+        assertEq(True, conn.enabled);
+
+        hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
+        assertEq("RestClient", info.module);
+        assertEq("RestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        if (info.module)
+            p.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
     }
 } # class Main

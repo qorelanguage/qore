@@ -38,8 +38,7 @@
 #include <qore/QoreCondition.h>
 #include <qore/QoreCounter.h>
 
-#include <signal.h>
-
+#include <csignal>
 #include <map>
 #include <string>
 

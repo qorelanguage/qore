@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreTypeInfo.h
+    QoreTypeInfo.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORETYPEINFO_H
@@ -45,9 +45,6 @@ class LValueHelper;
 
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo);
-DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
-// returns the default value for any type >= 0 and < NT_OBJECT
-DLLLOCAL AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t);
 
 enum q_typespec_t : unsigned char {
    QTS_TYPE = 0,
@@ -72,163 +69,162 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 // returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
-DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
 class QoreTypeSpec {
 public:
-   DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
-      u.t = t;
-   }
+    DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
+        u.t = t;
+    }
 
-   DLLLOCAL QoreTypeSpec(const QoreClass* qc) : typespec(QTS_CLASS) {
-      u.qc = qc;
-   }
+    DLLLOCAL QoreTypeSpec(const QoreClass* qc) : typespec(QTS_CLASS) {
+        u.qc = qc;
+    }
 
-   DLLLOCAL QoreTypeSpec(const TypedHashDecl* hd) : typespec(QTS_HASHDECL) {
-      u.hd = hd;
-   }
+    DLLLOCAL QoreTypeSpec(const TypedHashDecl* hd) : typespec(QTS_HASHDECL) {
+        u.hd = hd;
+    }
 
-   DLLLOCAL q_typespec_t getTypeSpec() const {
-      return typespec;
-   }
+    DLLLOCAL q_typespec_t getTypeSpec() const {
+        return typespec;
+    }
 
-   DLLLOCAL qore_type_t getType() const {
-      switch (typespec) {
-         case QTS_TYPE:
-         case QTS_EMPTYLIST:
-         case QTS_EMPTYHASH:
-            return u.t;
-         case QTS_CLASS:
-            return NT_OBJECT;
-         case QTS_COMPLEXHASH:
-         case QTS_HASHDECL:
-            return NT_HASH;
-         case QTS_COMPLEXLIST:
-         case QTS_COMPLEXSOFTLIST:
-            return NT_LIST;
-         case QTS_COMPLEXREF:
-            return NT_REFERENCE;
-      }
-      assert(false);
-      return NT_NOTHING;
-   }
+    DLLLOCAL qore_type_t getType() const {
+        switch (typespec) {
+            case QTS_TYPE:
+            case QTS_EMPTYLIST:
+            case QTS_EMPTYHASH:
+                return u.t;
+            case QTS_CLASS:
+                return NT_OBJECT;
+            case QTS_COMPLEXHASH:
+            case QTS_HASHDECL:
+                return NT_HASH;
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return NT_LIST;
+            case QTS_COMPLEXREF:
+                return NT_REFERENCE;
+        }
+        assert(false);
+        return NT_NOTHING;
+    }
 
-   DLLLOCAL const QoreClass* getClass() const {
-      return typespec == QTS_CLASS ? u.qc : nullptr;
-   }
+    DLLLOCAL const QoreClass* getClass() const {
+        return typespec == QTS_CLASS ? u.qc : nullptr;
+    }
 
-   DLLLOCAL const TypedHashDecl* getHashDecl() const {
-      return typespec == QTS_HASHDECL ? u.hd : nullptr;
-   }
+    DLLLOCAL const TypedHashDecl* getHashDecl() const {
+        return typespec == QTS_HASHDECL ? u.hd : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexHash() const {
-      return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexHash() const {
+        return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexList() const {
-      return typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexList() const {
+        return typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexSoftList() const {
-      return typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexSoftList() const {
+        return typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexReference() const {
-      return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexReference() const {
+        return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
+    }
 
-   DLLLOCAL bool isComplex() const {
-      return typespec == QTS_HASHDECL
-             || typespec == QTS_COMPLEXHASH
-             || typespec == QTS_COMPLEXLIST
-             || typespec == QTS_COMPLEXSOFTLIST
-             || typespec == QTS_COMPLEXREF;
-   }
+    DLLLOCAL bool isComplex() const {
+        return typespec == QTS_HASHDECL
+                || typespec == QTS_COMPLEXHASH
+                || typespec == QTS_COMPLEXLIST
+                || typespec == QTS_COMPLEXSOFTLIST
+                || typespec == QTS_COMPLEXREF;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
-      switch (typespec) {
-         case QTS_HASHDECL:
-         case QTS_COMPLEXHASH:
-            return hashTypeInfo;
-         case QTS_COMPLEXLIST:
-         case QTS_COMPLEXSOFTLIST:
-            return listTypeInfo;
-         case QTS_CLASS:
-            return objectTypeInfo;
-         case QTS_COMPLEXREF:
-            return referenceTypeInfo;
-         case QTS_TYPE:
-            return getTypeInfoForType(u.t);
-         case QTS_EMPTYLIST:
-            return emptyListTypeInfo;
-         case QTS_EMPTYHASH:
-            return emptyHashTypeInfo;
-      }
-      assert(false);
-      return nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
+        switch (typespec) {
+            case QTS_HASHDECL:
+            case QTS_COMPLEXHASH:
+                return hashTypeInfo;
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return listTypeInfo;
+            case QTS_CLASS:
+                return objectTypeInfo;
+            case QTS_COMPLEXREF:
+                return referenceTypeInfo;
+            case QTS_TYPE:
+                return getTypeInfoForType(u.t);
+            case QTS_EMPTYLIST:
+                return emptyListTypeInfo;
+            case QTS_EMPTYHASH:
+                return emptyHashTypeInfo;
+        }
+        assert(false);
+        return nullptr;
+    }
 
-   DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
-      if (typespec == QTS_CLASS)
-         return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
-         return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST)
-         return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_COMPLEXREF)
-         return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
-      if (u.t == NT_ALL)
-         return QTI_WILDCARD;
-      return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
+    DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
+        if (typespec == QTS_CLASS)
+            return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
+            return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST)
+            return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_COMPLEXREF)
+            return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
+        if (u.t == NT_ALL)
+            return QTI_WILDCARD;
+        return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
-      bool may_not_match = false;
-      bool may_need_filter = false;
-      return match(t, may_not_match, may_need_filter);
-   }
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
+        bool may_not_match = false;
+        bool may_need_filter = false;
+        return match(t, may_not_match, may_need_filter);
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
-      bool may_need_filter = false;
-      return match(t, may_not_match, may_need_filter);
-   }
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
+        bool may_need_filter = false;
+        return match(t, may_not_match, may_need_filter);
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
+    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
 
-   // returns true if there is a match or if an error has been raised
-   DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const;
+    // returns true if there is a match or if an error has been raised
+    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const;
 
-   DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
-   DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
+    DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
+    DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
 
 protected:
-   DLLLOCAL QoreTypeSpec(const QoreTypeInfo* ti, q_typespec_t t) : typespec(t) {
-      u.ti = ti;
-   }
+    DLLLOCAL QoreTypeSpec(const QoreTypeInfo* ti, q_typespec_t t) : typespec(t) {
+        u.ti = ti;
+    }
 
-   DLLLOCAL QoreTypeSpec(qore_type_t t, q_typespec_t ts) : typespec(ts) {
-      u.t = t;
-   }
+    DLLLOCAL QoreTypeSpec(qore_type_t t, q_typespec_t ts) : typespec(ts) {
+        u.t = t;
+    }
 
 private:
-   union {
-      qore_type_t t;
-      const QoreClass* qc;
-      const TypedHashDecl* hd;
-      const QoreTypeInfo* ti;
-   } u;
-   q_typespec_t typespec;
+    union {
+        qore_type_t t;
+        const QoreClass* qc;
+        const TypedHashDecl* hd;
+        const QoreTypeInfo* ti;
+    } u;
+    q_typespec_t typespec;
 };
 
 class QoreComplexHashTypeSpec : public QoreTypeSpec {
@@ -295,159 +291,159 @@ DLLLOCAL bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& 
 
 class QoreTypeInfo {
 protected:
-   QoreString tname;
+    QoreString tname;
 
-   DLLLOCAL QoreTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : accept_vec(a_vec), return_vec(r_vec) {
-   }
+    DLLLOCAL QoreTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : accept_vec(a_vec), return_vec(r_vec) {
+    }
 
 public:
-   const q_accept_vec_t accept_vec;
-   const q_return_vec_t return_vec;
+    const q_accept_vec_t accept_vec;
+    const q_return_vec_t return_vec;
 
-   DLLLOCAL QoreTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : tname(name), accept_vec(a_vec), return_vec(r_vec) {
-   }
+    DLLLOCAL QoreTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : tname(name), accept_vec(a_vec), return_vec(r_vec) {
+    }
 
-   DLLLOCAL virtual ~QoreTypeInfo() = default;
+    DLLLOCAL virtual ~QoreTypeInfo() = default;
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
-      return ti && hasType(ti) ? ti->getSingleType() : NT_ALL;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
+        return ti && hasType(ti) ? ti->getSingleType() : NT_ALL;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool parseAcceptsReturns(const QoreTypeInfo* ti, qore_type_t t) {
-      return ti && hasType(ti) ? ti->parseAcceptsReturns(t) : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool parseAcceptsReturns(const QoreTypeInfo* ti, qore_type_t t) {
+        return ti && hasType(ti) ? ti->parseAcceptsReturns(t) : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
-      return ti && hasType(ti) ? ti->parseReturns(t) : QTI_WILDCARD;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e parseReturns(const QoreTypeInfo* ti, QoreTypeSpec t) {
+        return ti && hasType(ti) ? ti->parseReturns(t) : QTI_WILDCARD;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool isReference(const QoreTypeInfo* ti) {
-      return ti && ti->return_vec[0].spec.getType() == NT_REFERENCE;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool isReference(const QoreTypeInfo* ti) {
+        return ti && ti->return_vec[0].spec.getType() == NT_REFERENCE;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* getReferenceTarget(const QoreTypeInfo* ti) {
-      if (isReference(ti)) {
-         const QoreTypeInfo* rv = ti->return_vec[0].spec.getComplexReference();
-         return rv ? rv : anyTypeInfo;
-      }
-      return nullptr;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getReferenceTarget(const QoreTypeInfo* ti) {
+        if (isReference(ti)) {
+            const QoreTypeInfo* rv = ti->return_vec[0].spec.getComplexReference();
+            return rv ? rv : anyTypeInfo;
+        }
+        return nullptr;
+    }
 
-   // static version of method, checking for null pointer
-   // returns true if this type only returns the type given
-   DLLLOCAL static bool isType(const QoreTypeInfo* ti, qore_type_t t) {
-      return ti ? ti->isType(t) : false;
-   }
+    // static version of method, checking for null pointer
+    // returns true if this type only returns the type given
+    DLLLOCAL static bool isType(const QoreTypeInfo* ti, qore_type_t t) {
+        return ti ? ti->isType(t) : false;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
-      return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_WILDCARD;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e runtimeAcceptsValue(const QoreTypeInfo* ti, const QoreValue n) {
+        return ti && hasType(ti) ? ti->runtimeAcceptsValue(n) : QTI_WILDCARD;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      bool may_not_match = false;
-      bool may_need_filter = false;
-      return parseAccepts(first, second, may_not_match, may_need_filter);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        bool may_not_match = false;
+        bool may_need_filter = false;
+        return parseAccepts(first, second, may_not_match, may_need_filter);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
-      bool may_need_filter = false;
-      return parseAccepts(first, second, may_not_match, may_need_filter);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
+        bool may_need_filter = false;
+        return parseAccepts(first, second, may_not_match, may_need_filter);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
-      if (first == autoTypeInfo) {
-         return QTI_WILDCARD;
-      }
-      if (!hasType(first)) {
-         if (!may_need_filter && isComplex(second))
-            may_need_filter = true;
-         return QTI_WILDCARD;
-      }
-      if (!hasType(second)) {
-         if (!may_need_filter) {
-            // check if we could need a runtime filter
-            for (auto& i : first->accept_vec) {
-               if (i.map) {
-                  may_need_filter = true;
-                  break;
-               }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
+        if (first == autoTypeInfo) {
+            return QTI_WILDCARD;
+        }
+        if (!hasType(first)) {
+            if (!may_need_filter && isComplex(second))
+                may_need_filter = true;
+            return QTI_WILDCARD;
+        }
+        if (!hasType(second)) {
+            if (!may_need_filter) {
+                // check if we could need a runtime filter
+                for (auto& i : first->accept_vec) {
+                    if (i.map) {
+                        may_need_filter = true;
+                        break;
+                    }
+                }
             }
-         }
-         may_not_match = true;
-         return QTI_AMBIGUOUS;
-      }
-      if (first == second)
-         return QTI_IDENT;
-      return first->parseAccepts(second, may_not_match, may_need_filter);
-   }
+            may_not_match = true;
+            return QTI_AMBIGUOUS;
+        }
+        if (first == second)
+            return QTI_IDENT;
+        return first->parseAccepts(second, may_not_match, may_need_filter);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static qore_type_t getSingleReturnType(const QoreTypeInfo* ti) {
-      if (!hasType(ti) || ti->return_vec.size() > 1)
-         return NT_ALL;
-      return ti->return_vec[0].spec.getType();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_t getSingleReturnType(const QoreTypeInfo* ti) {
+        if (!hasType(ti) || ti->return_vec.size() > 1)
+            return NT_ALL;
+        return ti->return_vec[0].spec.getType();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool returnsSingle(const QoreTypeInfo* ti) {
-      return ti && hasType(ti) ? ti->return_vec.size() == 1 : false;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool returnsSingle(const QoreTypeInfo* ti) {
+        return ti && hasType(ti) ? ti->return_vec.size() == 1 : false;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool acceptsSingle(const QoreTypeInfo* ti) {
-      return ti && hasType(ti) ? ti->accept_vec.size() == 1 : false;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool acceptsSingle(const QoreTypeInfo* ti) {
+        return ti && hasType(ti) ? ti->accept_vec.size() == 1 : false;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreClass* getUniqueReturnClass(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti->return_vec[0].spec.getClass();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreClass* getUniqueReturnClass(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti->return_vec[0].spec.getClass();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const TypedHashDecl* getUniqueReturnHashDecl(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti->return_vec[0].spec.getHashDecl();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const TypedHashDecl* getUniqueReturnHashDecl(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti->return_vec[0].spec.getHashDecl();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexHash(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti == autoHashTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexHash();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexHash(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti == autoHashTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexHash();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti == autoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexList();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti == autoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexList();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexSoftList(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti == softAutoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexSoftList();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexSoftList(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti == softAutoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexSoftList();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexReference(const QoreTypeInfo* ti) {
-      if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
-         return nullptr;
-      return ti->return_vec[0].spec.getComplexReference();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexReference(const QoreTypeInfo* ti) {
+        if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
+            return nullptr;
+        return ti->return_vec[0].spec.getComplexReference();
+    }
 
     // static version of method, checking for null pointer
     DLLLOCAL static const QoreTypeInfo* getReturnComplexHashOrNothing(const QoreTypeInfo* ti) {
@@ -487,179 +483,188 @@ public:
         return ti == autoTypeInfo || isComplex(ti);
     }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
-      return !ti || ti->accept_vec[0].spec.getType() == NT_ALL ? false : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
+        return !ti || ti->accept_vec[0].spec.getType() == NT_ALL ? false : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool needsScan(const QoreTypeInfo* ti) {
-      return ti && hasType(ti) ? ti->needsScanImpl() : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool needsScan(const QoreTypeInfo* ti) {
+        return ti && hasType(ti) ? ti->needsScanImpl() : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const char* getName(const QoreTypeInfo* ti) {
-      return ti ? ti->tname.c_str() : NO_TYPE_INFO;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const char* getName(const QoreTypeInfo* ti) {
+        return ti ? ti->tname.c_str() : NO_TYPE_INFO;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void getThisType(const QoreTypeInfo* ti, QoreString& str) {
-      if (ti)
-         ti->getThisTypeImpl(str);
-      else
-         str.sprintf("no value");
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void getThisType(const QoreTypeInfo* ti, QoreString& str) {
+        if (ti)
+            ti->getThisTypeImpl(str);
+        else
+            str.sprintf("no value");
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
-      if (hasType(ti))
-         ti->acceptInputIntern(xsink, false, param_num, param_name, n);
-      else if (ti != autoTypeInfo)
-         stripTypeInfo(n, xsink);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
+        if (hasType(ti)) {
+            ti->acceptInputIntern(xsink, "parameter", false, param_num, param_name, n);
+        } else if (ti != autoTypeInfo) {
+            stripTypeInfo(n, xsink);
+        }
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
-      if (hasType(ti))
-         ti->acceptInputIntern(xsink, true, -1, member_name, n);
-      else if (ti != autoTypeInfo)
-         stripTypeInfo(n, xsink);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+        if (hasType(ti)) {
+            ti->acceptInputIntern(xsink, "member", true, -1, member_name, n);
+        } else if (ti != autoTypeInfo) {
+            stripTypeInfo(n, xsink);
+        }
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
-      if (hasType(ti))
-         ti->acceptInputIntern(xsink, false, -1, member_name, n);
-      else if (ti != autoTypeInfo)
-         stripTypeInfo(n, xsink);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+        if (hasType(ti)) {
+            ti->acceptInputIntern(xsink, "key", false, -1, member_name, n);
+        } else if (ti != autoTypeInfo) {
+            stripTypeInfo(n, xsink);
+        }
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr) {
-      assert(text && text[0] == '<');
-      if (hasType(ti))
-         ti->acceptInputIntern(xsink, false, -1, text, n);
-      else if (ti != autoTypeInfo)
-         stripTypeInfo(n, xsink, lvhelper);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr) {
+        assert(text && text[0] == '<');
+        if (hasType(ti)) {
+            ti->acceptInputIntern(xsink, "lvalue", false, -1, text, n);
+        } else if (ti != autoTypeInfo) {
+            stripTypeInfo(n, xsink, lvhelper);
+        }
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool hasDefaultValue(const QoreTypeInfo* ti) {
-      return ti ? ti->hasDefaultValueImpl() : false;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool hasDefaultValue(const QoreTypeInfo* ti) {
+        return ti ? ti->hasDefaultValueImpl() : false;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static QoreValue getDefaultQoreValue(const QoreTypeInfo* ti) {
-      return ti ? ti->getDefaultQoreValueImpl() : QoreValue();
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static QoreValue getDefaultQoreValue(const QoreTypeInfo* ti) {
+        return ti ? ti->getDefaultQoreValueImpl() : QoreValue();
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
-      if (!hasType(ti) && ti != autoTypeInfo) {
-         return isComplex(n.getTypeInfo());
-      }
-      assert(ti);
-      return ti->mayRequireFilter(n);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
+        if (!hasType(ti) && ti != autoTypeInfo) {
+            return isComplex(n.getTypeInfo());
+        }
+        assert(ti);
+        return ti->mayRequireFilter(n);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool equal(const QoreTypeInfo* a, const QoreTypeInfo* b) {
-      if (a == b)
-         return true;
-      bool hta = hasType(a);
-      bool htb = hasType(b);
-      if (hta && htb)
-         return accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
-      return hta || htb ? false : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool equal(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+        if (a == b)
+            return true;
+        bool hta = hasType(a);
+        bool htb = hasType(b);
+        if (hta && htb)
+            return accept_vec_compare(a->accept_vec, b->accept_vec) && return_vec_compare(a->return_vec, b->return_vec);
+        return hta || htb ? false : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
-      if (a == b)
-         return true;
-      bool hta = hasType(a);
-      bool htb = hasType(b);
-      if (hta && htb)
-         return accept_vec_compare(a->accept_vec, b->accept_vec);
-      return hta || htb ? false : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool isInputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+        if (a == b)
+            return true;
+        bool hta = hasType(a);
+        bool htb = hasType(b);
+        if (hta && htb)
+            return accept_vec_compare(a->accept_vec, b->accept_vec);
+        return hta || htb ? false : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
-      if (a == b)
-         return true;
-      bool hta = hasType(a);
-      bool htb = hasType(b);
-      if (hta && htb)
-         return return_vec_compare(a->return_vec, b->return_vec);
-      return hta || htb ? false : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool isOutputIdentical(const QoreTypeInfo* a, const QoreTypeInfo* b) {
+        if (a == b)
+            return true;
+        bool hta = hasType(a);
+        bool htb = hasType(b);
+        if (hta && htb)
+            return return_vec_compare(a->return_vec, b->return_vec);
+        return hta || htb ? false : true;
+    }
 
-   // if second's return type is compatible with first's return type
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      if (hasType(first) && hasType(second))
-         return first->isOutputCompatible(second);
-      return true;
-   }
+    // if second's return type is compatible with first's return type
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        if (hasType(first) && hasType(second))
+            return first->isOutputCompatible(second);
+        return true;
+    }
 
-   // if first is a superset of second with a strict interpretation that the order of accept and return declarations must also be the same
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool superSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      if (hasType(first)) {
-         if (hasType(second))
-            return first->superSetOf(second);
-         return false;
-      }
-      return hasType(second);
-   }
+    // if first is a superset of second with a strict interpretation that the order of accept and return declarations must also be the same
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool superSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        if (hasType(first)) {
+            if (hasType(second))
+                return first->superSetOf(second);
+            return false;
+        }
+        return hasType(second);
+    }
 
-   // returns true if first's output is a superset of second's output with a strict interpretation that the order of return declarations must also be the same
-   DLLLOCAL static bool outputSuperSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-      if (!hasType(first))
-         return true;
+    // returns true if first's output is a superset of second's output with a strict interpretation that the order of return declarations must also be the same
+    DLLLOCAL static bool outputSuperSetOf(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        if (!hasType(first))
+            return true;
 
-      if (hasType(second))
-         return first == second ? true : first->outputSuperSetOf(second);
-      return false;
-   }
+        if (hasType(second))
+            return first == second ? true : first->outputSuperSetOf(second);
+        return false;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool canConvertToScalar(const QoreTypeInfo* ti) {
-      return ti ? ti->canConvertToScalarImpl() : true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool canConvertToScalar(const QoreTypeInfo* ti) {
+        return ti ? ti->canConvertToScalarImpl() : true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && !ti->canConvertToScalarImpl())
-         ti->doNonNumericWarning(loc, preface);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void checkDoNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
+        if (ti && !ti->canConvertToScalarImpl())
+            ti->doNonNumericWarning(loc, preface);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && !ti->canConvertToScalarImpl())
-         ti->doNonBooleanWarning(loc, preface);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void checkDoNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
+        if (ti && !ti->canConvertToScalarImpl())
+            ti->doNonBooleanWarning(loc, preface);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
-      if (ti && !ti->canConvertToScalarImpl())
-         ti->doNonStringWarning(loc, preface);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void checkDoNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
+        if (ti && !ti->canConvertToScalarImpl())
+            ti->doNonStringWarning(loc, preface);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
-      if (ti && (hasType(ti) || ti == autoTypeInfo))
-         str.append(ti->tname.c_str());
-      else
-         str.append(NO_TYPE_INFO);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void concatName(const QoreTypeInfo* ti, std::string& str) {
+        if (ti && (hasType(ti) || ti == autoTypeInfo))
+            str.append(ti->tname.c_str());
+        else
+            str.append(NO_TYPE_INFO);
+    }
 
     // check for a common type
     DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
-        assert(ctype && ctype != anyTypeInfo);
-        if (ctype == ntype)
+        // issue #3005: if the first element had no type, then there is no common type
+        if (!ctype || ctype == anyTypeInfo) {
+            ctype = nullptr;
+            return false;
+        }
+        if (ctype == ntype) {
             return true;
+        }
         if (!QoreTypeInfo::hasType(ntype)) {
             // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
             ctype = ntype == anyTypeInfo ? nullptr : ntype;
@@ -705,313 +710,318 @@ public:
         return false;
     }
 
-   // returns true if ti could return a complex type
-   DLLLOCAL static bool isComplex(const QoreTypeInfo* ti) {
-      if (!ti)
-         return false;
-      for (auto& i : ti->return_vec) {
-         if (i.spec.isComplex())
-            return true;
-      }
-      return false;
-   }
+    // returns true if ti could return a complex type
+    DLLLOCAL static bool isComplex(const QoreTypeInfo* ti) {
+        if (!ti)
+            return false;
+        for (auto& i : ti->return_vec) {
+            if (i.spec.isComplex())
+                return true;
+        }
+        return false;
+    }
 
-   DLLLOCAL int doAcceptError(bool priv_error, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
-      if (priv_error) {
-         if (obj)
-            doObjectPrivateClassException(param_name, xsink);
-         else
-            doPrivateClassException(param_num + 1, param_name, xsink);
-      }
-      else {
-         if (obj)
-            doObjectHashDeclTypeException(param_name, n, xsink);
-         else
-            doTypeException(param_num + 1, param_name, n, xsink);
-      }
-      return -1;
-   }
+    DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+        if (priv_error) {
+            if (obj) {
+                doObjectPrivateClassException(param_name, xsink);
+            } else {
+                doPrivateClassException(arg_type, param_num + 1, param_name, xsink);
+            }
+        } else {
+            if (obj) {
+                doObjectHashDeclTypeException(arg_type, param_name, n, xsink);
+            } else {
+                doTypeException(arg_type, param_num + 1, param_name, n, xsink);
+            }
+        }
+        return -1;
+    }
 
-   DLLLOCAL int doTypeException(int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
-      // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-         return -1;
+    DLLLOCAL int doTypeException(const char* arg_type, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+        // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
+        // for example if there was a "requires" error
+        if (!xsink)
+            return -1;
 
-      QoreStringNode* desc = new QoreStringNode;
-      QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->sprintf("expects type '%s', but got ", tname.c_str());
-      QoreTypeInfo::getNodeType(*desc, n);
-      desc->concat(" instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
+        QoreStringNode* desc = new QoreStringNode;
+        QoreTypeInfo::ptext(*desc, arg_type, param_num, param_name);
+        desc->sprintf("expects type '%s', but got ", tname.c_str());
+        QoreTypeInfo::getNodeType(*desc, n);
+        desc->concat(" instead");
+        xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+        return -1;
+    }
 
-   DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const {
-      for (auto& t : accept_vec) {
-         if (t.spec.acceptInput(xsink, *this, t.map, obj, param_num, param_name, n, lvhelper))
-            return;
-      }
-      doAcceptError(false, obj, param_num, param_name, n, xsink);
-   }
+    DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const {
+        for (auto& t : accept_vec) {
+            if (t.spec.acceptInput(xsink, *this, t.map, arg_type, obj, param_num, param_name, n, lvhelper)) {
+                return;
+            }
+        }
+        doAcceptError(false, arg_type, obj, param_num, param_name, n, xsink);
+    }
 
-   DLLLOCAL void doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const;
-   DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const;
-   DLLLOCAL void doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const;
+    DLLLOCAL void doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const;
+    DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation* loc, const char* preface) const;
+    DLLLOCAL void doNonStringWarning(const QoreProgramLocation* loc, const char* preface) const;
 
 protected:
-   DLLLOCAL int doObjectPrivateClassException(const char* param_name, ExceptionSink* xsink) const {
-      assert(xsink);
-      QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '%s' expects type '%s', but got an object where this class is privately inherited instead", param_name, tname.c_str());
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
+    DLLLOCAL int doObjectPrivateClassException(const char* param_name, ExceptionSink* xsink) const {
+        assert(xsink);
+        QoreStringNode* desc = new QoreStringNode;
+        desc->sprintf("member '%s' expects type '%s', but got an object where this class is privately inherited instead", param_name, tname.c_str());
+        xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+        return -1;
+    }
 
-   DLLLOCAL int doPrivateClassException(int param_num, const char* param_name, ExceptionSink* xsink) const {
-      // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
-      // for example if there was a "requires" error
-      if (!xsink)
-         return -1;
+    DLLLOCAL int doPrivateClassException(const char* arg_type, int param_num, const char* param_name, ExceptionSink* xsink) const {
+        // xsink may be null in case that parse exceptions have been disabled in the QoreProgram object
+        // for example if there was a "requires" error
+        if (!xsink)
+            return -1;
 
-      QoreStringNode* desc = new QoreStringNode;
-      QoreTypeInfo::ptext(*desc, param_num, param_name);
-      desc->sprintf("expects type '%s', but got an object where this class is privately inherited instead", tname.c_str());
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
+        QoreStringNode* desc = new QoreStringNode;
+        QoreTypeInfo::ptext(*desc, arg_type, param_num, param_name);
+        desc->sprintf("expects type '%s', but got an object where this class is privately inherited instead", tname.c_str());
+        xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+        return -1;
+    }
 
-   DLLLOCAL int doObjectHashDeclTypeException(const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
-      assert(xsink);
-      QoreStringNode* desc = new QoreStringNode;
-      desc->sprintf("member '%s' expects type '%s', but got ", param_name, tname.c_str());
-      QoreTypeInfo::getNodeType(*desc, n);
-      desc->concat(" instead");
-      xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-      return -1;
-   }
+    DLLLOCAL int doObjectHashDeclTypeException(const char* arg_type, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+        assert(xsink);
+        QoreStringNode* desc = new QoreStringNode;
+        desc->sprintf("%s '%s' expects type '%s', but got ", arg_type, param_name, tname.c_str());
+        QoreTypeInfo::getNodeType(*desc, n);
+        desc->concat(" instead");
+        xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
+        return -1;
+    }
 
-   // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
-   DLLLOCAL bool superSetOf(const QoreTypeInfo* t) const {
-      if (accept_vec.size() < t->accept_vec.size() || return_vec.size() < t->return_vec.size())
-         return false;
-
-      for (unsigned i = 0; i < t->accept_vec.size(); ++i) {
-         if (t->accept_vec[i].spec != accept_vec[i].spec)
+    // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
+    DLLLOCAL bool superSetOf(const QoreTypeInfo* t) const {
+        if (accept_vec.size() < t->accept_vec.size() || return_vec.size() < t->return_vec.size())
             return false;
-      }
 
-      for (unsigned i = 0; i < t->return_vec.size(); ++i) {
-         if (t->return_vec[i].spec != return_vec[i].spec)
+        for (unsigned i = 0; i < t->accept_vec.size(); ++i) {
+            if (t->accept_vec[i].spec != accept_vec[i].spec)
+                return false;
+        }
+
+        for (unsigned i = 0; i < t->return_vec.size(); ++i) {
+            if (t->return_vec[i].spec != return_vec[i].spec)
+                return false;
+        }
+
+        return true;
+    }
+
+    // returns true if "this"'s output is a superset of the argument's output with a strict interpretation that the order of return declarations must also be the same
+    DLLLOCAL bool outputSuperSetOf(const QoreTypeInfo* t) const {
+        if (return_vec.size() < t->return_vec.size())
             return false;
-      }
 
-      return true;
-   }
+        for (unsigned i = 0; i < t->return_vec.size(); ++i) {
+            bool may_not_match = false;
+            bool may_need_filter = false;
+            if (!return_vec[i].spec.match(t->return_vec[i].spec, may_not_match, may_need_filter))
+                return false;
+            if (may_not_match)
+                return false;
+        }
 
-   // returns true if "this"'s output is a superset of the argument's output with a strict interpretation that the order of return declarations must also be the same
-   DLLLOCAL bool outputSuperSetOf(const QoreTypeInfo* t) const {
-      if (return_vec.size() < t->return_vec.size())
-         return false;
+        return true;
+    }
 
-      for (unsigned i = 0; i < t->return_vec.size(); ++i) {
-         bool may_not_match = false;
-         bool may_need_filter = false;
-         if (!return_vec[i].spec.match(t->return_vec[i].spec, may_not_match, may_need_filter))
-            return false;
-         if (may_not_match)
-            return false;
-      }
+    DLLLOCAL qore_type_t getSingleType() const {
+        if (accept_vec.size() == 1 && return_vec.size() == 1) {
+            qore_type_t qt = accept_vec[0].spec.getType();
+            if (qt == return_vec[0].spec.getType())
+                return qt;
+        }
+        return NT_ALL;
+    }
 
-      return true;
-   }
-
-   DLLLOCAL qore_type_t getSingleType() const {
-      if (accept_vec.size() == 1 && return_vec.size() == 1) {
-         qore_type_t qt = accept_vec[0].spec.getType();
-         if (qt == return_vec[0].spec.getType())
-            return qt;
-      }
-      return NT_ALL;
-   }
-
-   DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
-      bool ok = false;
-      for (auto& i : accept_vec) {
-         if (i.spec.matchType(t) != QTI_NOT_EQUAL) {
-            ok = true;
-            break;
-         }
-      }
-      if (!ok)
-         return false;
-      for (auto& i : return_vec) {
-         if (i.spec.matchType(t) != QTI_NOT_EQUAL)
-            return true;
-      }
-      return false;
-   }
-
-   DLLLOCAL qore_type_result_e parseReturns(QoreTypeSpec t) const {
-      if (return_vec.size() == 1)
-         return t.match(return_vec[0].spec);
-      for (auto& i : return_vec) {
-         qore_type_result_e rv = t.match(i.spec);
-         if (rv != QTI_NOT_EQUAL)
-            return i.exact ? QTI_IDENT : QTI_AMBIGUOUS;
-      }
-      return QTI_NOT_EQUAL;
-   }
-
-   // returns true if this type only returns the type given
-   DLLLOCAL bool isType(qore_type_t t) const {
-      if (return_vec.size() > 1)
-         return false;
-      return t == return_vec[0].spec.getType();
-   }
-
-   // returns true if the type matches an accept type with a filter (type only checked)
-   DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
-      for (auto& at : accept_vec) {
-         if (at.map && at.spec.matchType(n.getType()) != QTI_NOT_EQUAL)
-            return true;
-      }
-      return false;
-   }
-
-   // if the argument's return type is compatible with "this"'s return type
-   DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const {
-      for (auto& rt : typeInfo->return_vec) {
-         for (auto& at : accept_vec) {
-            if (at.spec.match(rt.spec))
-               return true;
-         }
-      }
-      return false;
-   }
-
-   DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
-      //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
-      if (typeInfo->return_vec.size() > accept_vec.size()) {
-         may_not_match = true;
-      }
-
-      bool ok = false;
-      for (auto& rt : typeInfo->return_vec) {
-         bool t_no_match = true;
-         for (auto& at : accept_vec) {
-            qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
-            if (res == QTI_IDENT)
-               return res;
-            else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
-               assert(ok);
-               if (may_not_match)
-                  return res;
-               break;
+    DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {
+        bool ok = false;
+        for (auto& i : accept_vec) {
+            if (i.spec.matchType(t) != QTI_NOT_EQUAL) {
+                ok = true;
+                break;
             }
-         }
-         if (t_no_match) {
-            if (!may_not_match) {
-               may_not_match = true;
-               if (ok)
-                  return QTI_AMBIGUOUS;
+        }
+        if (!ok)
+            return false;
+        for (auto& i : return_vec) {
+            if (i.spec.matchType(t) != QTI_NOT_EQUAL)
+                return true;
+        }
+        return false;
+    }
+
+    DLLLOCAL qore_type_result_e parseReturns(QoreTypeSpec t) const {
+        if (return_vec.size() == 1)
+            return t.match(return_vec[0].spec);
+        for (auto& i : return_vec) {
+            qore_type_result_e rv = t.match(i.spec);
+            if (rv != QTI_NOT_EQUAL)
+                return i.exact ? QTI_IDENT : QTI_AMBIGUOUS;
+        }
+        return QTI_NOT_EQUAL;
+    }
+
+    // returns true if this type only returns the type given
+    DLLLOCAL bool isType(qore_type_t t) const {
+        if (return_vec.size() > 1)
+            return false;
+        return t == return_vec[0].spec.getType();
+    }
+
+    // returns true if the type matches an accept type with a filter (type only checked)
+    DLLLOCAL bool mayRequireFilter(const QoreValue& n) const {
+        for (auto& at : accept_vec) {
+            if (at.map && at.spec.matchType(n.getType()) != QTI_NOT_EQUAL)
+                return true;
+        }
+        return false;
+    }
+
+    // if the argument's return type is compatible with "this"'s return type
+    DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const {
+        for (auto& rt : typeInfo->return_vec) {
+            for (auto& at : accept_vec) {
+                if (at.spec.match(rt.spec))
+                    return true;
             }
-         }
-      }
-      if (ok)
-         return QTI_AMBIGUOUS;
-      may_not_match = false;
-      return QTI_NOT_EQUAL;
-   }
+        }
+        return false;
+    }
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n) const;
+    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
+        //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
+        if (typeInfo->return_vec.size() > accept_vec.size()) {
+            may_not_match = true;
+        }
 
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return true;
-   }
-
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.sprintf("type '%s'", tname.c_str());
-   }
-
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return false;
-   }
-
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return QoreValue();
-   }
-
-   // returns true if there is no type or if the type can be converted to a scalar (numeric, bool, int, string, etc) value, false true if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
-
-   DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
-      qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
-      switch (res) {
-         case QTI_IDENT:
-            if (at.exact && rt.exact) {
-               if (at.map && !may_need_filter)
-                  may_need_filter = true;
-               return QTI_IDENT;
+        bool ok = false;
+        for (auto& rt : typeInfo->return_vec) {
+            bool t_no_match = true;
+            for (auto& at : accept_vec) {
+                qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
+                if (res == QTI_IDENT)
+                    return res;
+                else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
+                    assert(ok);
+                    if (may_not_match)
+                        return res;
+                    break;
+                }
             }
-         // fall down to next case
-         case QTI_NEAR:
-         case QTI_AMBIGUOUS:
-         case QTI_WILDCARD:
-            if (at.map && !may_need_filter)
-               may_need_filter = true;
             if (t_no_match) {
-               t_no_match = false;
-               if (!ok) {
-                  ok = true;
-                  if (may_not_match)
-                     return res;
-               }
+                if (!may_not_match) {
+                    may_not_match = true;
+                    if (ok)
+                        return QTI_AMBIGUOUS;
+                }
             }
+        }
+        if (ok)
+            return QTI_AMBIGUOUS;
+        may_not_match = false;
+        return QTI_NOT_EQUAL;
+    }
 
-         // fall down to default
-         default:
-            break;
-      }
-      return QTI_NOT_EQUAL;
-   }
+    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n) const;
 
-   DLLLOCAL static void getNodeType(QoreString& str, const QoreValue& n) {
-      qore_type_t nt = n.getType();
-      if (nt == NT_NOTHING) {
-         str.concat("no value");
-         return;
-      }
-      if (nt != NT_OBJECT) {
-         str.sprintf("type '%s'", n.getTypeName());
-         return;
-      }
-      str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
-   }
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return true;
+    }
 
-   DLLLOCAL static void ptext(QoreString& str, int param_num, const char* param_name) {
-      if (!param_num && param_name && param_name[0] == '<') {
-         str.concat(param_name);
-         str.concat(' ');
-         return;
-      }
-      if (param_name && param_name[0] == '<') {
-         str.concat(param_name);
-         str.concat(' ');
-      }
-      if (param_num) {
-         str.sprintf("parameter %d ", param_num);
-         if (param_name && param_name[0] != '<')
-            str.sprintf("('%s') ", param_name);
-      }
-      else if (param_name)
-         str.sprintf("parameter '%s' ", param_name);
-      else
-         str.concat("lvalue ");
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("type '%s'", tname.c_str());
+    }
 
-   DLLLOCAL static void stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr);
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
+
+    // returns true if there is no type or if the type can be converted to a scalar (numeric, bool, int, string, etc) value, false true if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
+
+    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
+        //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
+        qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
+        switch (res) {
+            case QTI_IDENT:
+                if (at.exact && rt.exact) {
+                    if (at.map && !may_need_filter)
+                        may_need_filter = true;
+                    return QTI_IDENT;
+                }
+            // fall down to next case
+            case QTI_NEAR:
+            case QTI_AMBIGUOUS:
+            case QTI_WILDCARD:
+                if (at.map && !may_need_filter)
+                    may_need_filter = true;
+                if (t_no_match) {
+                    t_no_match = false;
+                    if (!ok) {
+                        ok = true;
+                        if (may_not_match)
+                            return res;
+                    }
+                }
+
+            // fall down to default
+            default:
+                break;
+        }
+        return QTI_NOT_EQUAL;
+    }
+
+    DLLLOCAL static void getNodeType(QoreString& str, const QoreValue& n) {
+        qore_type_t nt = n.getType();
+        if (nt == NT_NOTHING) {
+            str.concat("no value");
+            return;
+        }
+        if (nt != NT_OBJECT) {
+            str.sprintf("type '%s'", n.getTypeName());
+            return;
+        }
+        str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
+    }
+
+    DLLLOCAL static void ptext(QoreString& str, const char* arg_type, int param_num, const char* param_name) {
+        if (!param_num && param_name && param_name[0] == '<') {
+            str.concat(param_name);
+            str.concat(' ');
+            return;
+        }
+        if (param_name && param_name[0] == '<') {
+            str.concat(param_name);
+            str.concat(' ');
+        }
+        if (param_num) {
+            str.sprintf("parameter %d ", param_num);
+            if (param_name && param_name[0] != '<')
+                str.sprintf("('%s') ", param_name);
+        }
+        else if (param_name)
+            str.sprintf("%s '%s' ", arg_type, param_name);
+        else {
+            str.concat(arg_type);
+            str.concat(' ');
+        }
+    }
+
+    DLLLOCAL static void stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr);
 };
 
 class QoreParseTypeInfo;
@@ -1090,17 +1100,17 @@ public:
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolveAndDelete(loc) : nullptr;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolve(loc) : nullptr;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolveAny(loc) : nullptr;
    }
 
@@ -1167,12 +1177,12 @@ private:
    }
 
    // resolves complex types (classes, hashdecls, etc)
-   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc) const;
    // also resolves base types
-   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc) const;
    // resolves the current type to an QoreTypeInfo pointer and deletes itself
-   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
-   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc);
+   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc) const;
 
    DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
    DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
@@ -1186,7 +1196,7 @@ private:
       str.append(tname);
    }
 
-   DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing);
+   DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing);
 };
 
 class QoreAnyTypeInfo : public QoreTypeInfo {
@@ -1264,166 +1274,186 @@ protected:
 
 class QoreHashDeclTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
-       tname.sprintf("hash<%s>", name);
-   }
+    DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
+        tname.sprintf("hash<%s>", name);
+    }
 
 protected:
-   DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const;
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const;
 };
 
 class QoreHashDeclOrNothingTypeInfo : public QoreHashDeclTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(q_accept_vec_t {
-         {hd, nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
-       tname.sprintf("*hash<%s>", name);
-   }
+    DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(q_accept_vec_t {
+            {hd, nullptr},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+        }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
+        tname.sprintf("*hash<%s>", name);
+    }
 
 protected:
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
-       if (vti == autoTypeInfo) {
-           tname = "hash<auto>";
-       }
-       else {
-           tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
-       }
-   }
+    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
+        if (vti == autoTypeInfo) {
+            tname = "hash<auto>";
+        }
+        else {
+            tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
+        }
+    }
 
 protected:
-   DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return new QoreHashNode(accept_vec[0].spec.getComplexHash());
-   }
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new QoreHashNode(accept_vec[0].spec.getComplexHash());
+    }
 };
 
 class QoreComplexHashOrNothingTypeInfo : public QoreComplexHashTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(q_accept_vec_t {
-         {QoreComplexHashTypeSpec(vti), nullptr, true},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-         }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
-       tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexHashOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(q_accept_vec_t {
+            {QoreComplexHashTypeSpec(vti), nullptr, true},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
+        tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexListTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
-       assert(vti);
-       tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+        assert(vti);
+        tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return new QoreListNode(accept_vec[0].spec.getComplexList());
-   }
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new QoreListNode(accept_vec[0].spec.getComplexList());
+    }
 };
 
 class QoreComplexListOrNothingTypeInfo : public QoreComplexListTypeInfo {
 public:
-   DLLLOCAL QoreComplexListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
-         {QoreComplexListTypeSpec(vti), nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-         }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
-       assert(vti);
-       tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
+            {QoreComplexListTypeSpec(vti), nullptr},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+        assert(vti);
+        tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return false;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexSoftListTypeInfo : public QoreComplexListTypeInfo {
 public:
-   DLLLOCAL QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti);
+    DLLLOCAL QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti);
 
 protected:
-   DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 };
 
 class QoreComplexSoftListOrNothingTypeInfo : public QoreComplexListOrNothingTypeInfo {
 public:
-   DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
+    DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
 };
 
 class QoreComplexReferenceTypeInfo : public QoreTypeInfo {
@@ -2763,7 +2793,7 @@ public:
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2801,7 +2831,7 @@ public:
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2826,15 +2856,15 @@ protected:
 class QoreSoftAutoListTypeInfo : public QoreSoftListTypeInfo {
 public:
    DLLLOCAL QoreSoftAutoListTypeInfo() : QoreSoftListTypeInfo("softlist<auto>", q_accept_vec_t {
-         {NT_LIST, nullptr, true},
+         {QoreComplexListTypeSpec(autoTypeInfo), nullptr, true},
          {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
+               QoreListNode* l = new QoreListNode(autoTypeInfo);
                n.assign(l);
             }
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               QoreListNode* l = new QoreListNode(autoTypeInfo);
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2844,13 +2874,13 @@ public:
 
 class QoreSoftAutoListOrNothingTypeInfo : public QoreSoftListOrNothingTypeInfo {
 public:
-   DLLLOCAL QoreSoftAutoListOrNothingTypeInfo() : QoreSoftListOrNothingTypeInfo("*softlist", q_accept_vec_t {
-         {NT_LIST, nullptr},
+   DLLLOCAL QoreSoftAutoListOrNothingTypeInfo() : QoreSoftListOrNothingTypeInfo("*softlist<auto>", q_accept_vec_t {
+         {QoreComplexListTypeSpec(autoTypeInfo), nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               QoreListNode* l = new QoreListNode(autoTypeInfo);
+               l->push(n, nullptr);
                n.assign(l);
             }
          },

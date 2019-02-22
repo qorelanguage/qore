@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreTransliteration.h"
 
-#include <stdlib.h>
+#include <cctype>
+#include <cstdlib>
 #include <strings.h>
-#include <ctype.h>
 
 // constructor used when parsing
-QoreTransliteration::QoreTransliteration(const QoreProgramLocation& loc) : loc(loc) {
+QoreTransliteration::QoreTransliteration(const QoreProgramLocation* loc) : loc(loc) {
    //printd(5, "QoreTransliteration::QoreTransliteration() this: %p\n", this);
 }
 
@@ -56,23 +56,23 @@ void QoreTransliteration::setSourceRange() {
 
 void QoreTransliteration::finishSource() {
    if (sr)
-      parse_error(loc, "no end character for character range at end of source pattern in transliteration");
+      parse_error(*loc, "no end character for character range at end of source pattern in transliteration");
 }
 
 void QoreTransliteration::finishTarget() {
    if (tr)
-      parse_error(loc, "no end character for character range at end of target pattern in transliteration");
+      parse_error(*loc, "no end character for character range at end of target pattern in transliteration");
 }
 
 void QoreTransliteration::doRange(QoreString& str, char end) {
    if (!str.strlen()) {
-      parse_error(loc, "no start character for character range in transliteration");
+      parse_error(*loc, "no start character for character range in transliteration");
       return;
    }
    char start = str.c_str()[str.strlen() - 1];
    str.terminate(str.strlen() - 1);
    if (start > end) {
-      parse_error(loc, "invalid range '%c' - '%c' in transliteration operator", start, end);
+      parse_error(*loc, "invalid range '%c' - '%c' in transliteration operator", start, end);
       return;
    }
    do

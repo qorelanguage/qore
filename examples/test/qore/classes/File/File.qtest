@@ -21,6 +21,7 @@ class FileTest inherits QUnit::Test {
     constructor() : QUnit::Test("File", "1.0") {
         addTestCase("FileTest", \fileTest());
         addTestCase("issue 3061", \issue3061());
+        addTestCase("redirect test", \redirectTest());
         set_return_value(main());
     }
 
@@ -59,5 +60,21 @@ class FileTest inherits QUnit::Test {
         # this test works on all platforms but was made for Windows
         string hex = backquote('qore -ne "printf(\"a\r\n\");" | qore ' + fn);
         assertEq("610d0a", hex);
+    }
+
+    redirectTest() {
+        string file = sprintf(tmp_location() + DirSep + get_random_string());
+        File f();
+        f.open2(file, O_CREAT|O_WRONLY|O_TRUNC);
+        on_exit unlink(file);
+
+        f.write("test1");
+        assertEq("test1", ReadOnlyFile::readTextFile(file));
+
+        stderr.redirect(f);
+        stderr.setPos(0);
+        stderr.write("test2");
+
+        assertEq("test2", ReadOnlyFile::readTextFile(file));
     }
 }

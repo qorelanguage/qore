@@ -1,35 +1,39 @@
 /*
-  command-line.cpp
+    command-line.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  this whole file comes out of a very old getopt-stype implementation
+    this whole file comes out of a very old getopt-stype implementation
 
-  it should offer POSIX style command-line handling on any platform...
+    it should offer POSIX style command-line handling on any platform...
 
+<<<<<<< HEAD
   Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+=======
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+>>>>>>> develop
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -516,10 +520,10 @@ static void do_version(const char* arg) {
    if (i != qoreFeatureList.end()) {
       printf(" (builtin features: ");
       while (i != qoreFeatureList.end()) {
-	 fputs((*i).c_str(), stdout);
-	 i++;
-	 if (i != qoreFeatureList.end())
-	    printf(", ");
+         fputs((*i).c_str(), stdout);
+         i++;
+         if (i != qoreFeatureList.end())
+            printf(", ");
       }
       putchar(')');
    }
@@ -534,15 +538,15 @@ static void do_version(const char* arg) {
    else {
        printf(" (");
        for (unsigned j = 1; j < qore_mod_api_list_len; ++j) {
-	   printf("%d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
-	   if (j != (qore_mod_api_list_len - 1))
-	       printf(", ");
+           printf("%d.%d", qore_mod_api_list[j].major, qore_mod_api_list[j].minor);
+           if (j != (qore_mod_api_list_len - 1))
+               printf(", ");
        }
        printf(")\n");
    }
 
    printf("  build host: %s\n  C++ compiler: %s\n  CFLAGS: %s\n  LDFLAGS: %s\n  MPFR: %s\n",
-	  qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags, mpfrInfo.getBuffer());
+          qore_build_host, qore_cplusplus_compiler, qore_cflags, qore_ldflags, mpfrInfo.getBuffer());
 
    printf("use -B to show build options\n");
 
@@ -713,7 +717,7 @@ static const char* get_arg(char* argv[], unsigned *i, unsigned *j, unsigned argc
       (*j) = 0;
       // if there are no more strings then return 0!
       if ((*i) == argc)
-	 return 0;
+         return 0;
    }
    return &argv[*i][*j];
 }
@@ -726,15 +730,15 @@ static int process_char_opt(char* argv[], unsigned *i, unsigned *j, unsigned arg
 
    if (isblank(argv[*i][*j])) {
       do
-	 (*j)++;
+         (*j)++;
       while (isblank(argv[*i][*j]));
       if (argv[*i][*j] == '-') {
-	 if (argv[*i][*j] == '-') {
-	    process_str_opt(argv, i, *j + 1, argc);
-	    return 1;
-	 }
-	 else
-	    (*j)++;
+         if (argv[*i][*j] == '-') {
+            process_str_opt(argv, i, *j + 1, argc);
+            return 1;
+         }
+         else
+            (*j)++;
       }
    }
 
@@ -742,24 +746,24 @@ static int process_char_opt(char* argv[], unsigned *i, unsigned *j, unsigned arg
 
    for (x = 0; x < NUM_OPTS; x++)
       if (options[x].short_opt == c) {
-	 //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
-	 if (options[x].arg == ARG_MAND ||
-	     (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
-	    const char* arg;
+         //printf("found '%c' %s (%d)\n", c, options[x].long_opt, options[x].arg);
+         if (options[x].arg == ARG_MAND ||
+             (options[x].arg == ARG_OPT && (argv[*i][(*j) + 1] == '='))) {
+            const char* arg;
 
-	    // increment string index
-	    (*j)++;
-	    if (!(arg = get_arg(argv, i, j, argc)))
-	       missing_char_option(x);
-	    else
-	       options[x].opt_func(arg);
-	    /* as the argument pointer always advances to the next argument
-	     * due to the get_arg() function, return 1 to break out of the
-	     * character loop for the current arg */
-	    return 1;
-	 }
-	 options[x].opt_func(0);
-	 return 0;
+            // increment string index
+            (*j)++;
+            if (!(arg = get_arg(argv, i, j, argc)))
+               missing_char_option(x);
+            else
+               options[x].opt_func(arg);
+            /* as the argument pointer always advances to the next argument
+             * due to the get_arg() function, return 1 to break out of the
+             * character loop for the current arg */
+            return 1;
+         }
+         options[x].opt_func(0);
+         return 0;
       }
    // if the option is not present, then raise an error
    invalid_option(c);
@@ -775,11 +779,11 @@ static void process_str_opt(char* argv[], unsigned *i, unsigned j, unsigned argc
    // find option string (left side of string if there is an assignment char)
    for (x = 2; x < strlen(argv[*i]); x++) {
       if (is_assign_char(argv[*i][x])) {
-	 option_present = x + 1;
-	 opt = (char* )malloc(sizeof(char) * (x - 1));
-	 strncpy(opt, &argv[*i][2], x - 2);
-	 opt[x - 2] = '\0';
-	 break;
+         option_present = x + 1;
+         opt = (char* )malloc(sizeof(char) * (x - 1));
+         strncpy(opt, &argv[*i][2], x - 2);
+         opt[x - 2] = '\0';
+         break;
       }
    }
    // if the option is not in the same argument, then increment the argument pointer
@@ -788,31 +792,31 @@ static void process_str_opt(char* argv[], unsigned *i, unsigned j, unsigned argc
 
    for (x = 0; x < NUM_OPTS; x++) {
       if (!strcmp(options[x].long_opt, opt)) {
-	 if (!options[x].arg) {
-	    if (option_present)
-	       excess_option(x);
-	    else
-	       --(*i);
-	    options[x].opt_func(0);
-	 }
-	 else if (options[x].arg == ARG_OPT) {
-	    const char* arg = 0;
+         if (!options[x].arg) {
+            if (option_present)
+               excess_option(x);
+            else
+               --(*i);
+            options[x].opt_func(0);
+         }
+         else if (options[x].arg == ARG_OPT) {
+            const char* arg = 0;
 
-	    if (option_present)
-	       arg = get_arg(argv, i, &option_present, argc);
-	    else
-	       --(*i);
-	    options[x].opt_func(arg);
-	 }
-	 else {
-	    const char* arg;
+            if (option_present)
+               arg = get_arg(argv, i, &option_present, argc);
+            else
+               --(*i);
+            options[x].opt_func(arg);
+         }
+         else {
+            const char* arg;
 
-	    if (!(arg = get_arg(argv, i, &option_present, argc)))
-	       missing_str_option(x);
-	    else
-	       options[x].opt_func(arg);
-	 }
-	 break;
+            if (!(arg = get_arg(argv, i, &option_present, argc)))
+               missing_str_option(x);
+            else
+               options[x].opt_func(arg);
+         }
+         break;
       }
    }
 
@@ -838,32 +842,32 @@ static char* parse_command_line(unsigned argc, char* argv[]) {
    for (; i < argc; i++) {
       printd(5, "parse_command_line() %d/%d=%s\n", i, argc, argv[i]);
       if (argv[i][0] == '-') {
-	 if (!argv[i][1]) {
-	    i++;
-	    break;
-	 }
-	 else {
-	    if (argv[i][1] == '-') {
-	       if (!argv[i][2]) {
-		  i++;
-		  break;
-	       }
-	       process_str_opt(argv, &i, 2, argc);
-	    }
-	    else {
-	       unsigned j;
+         if (!argv[i][1]) {
+            i++;
+            break;
+         }
+         else {
+            if (argv[i][1] == '-') {
+               if (!argv[i][2]) {
+                  i++;
+                  break;
+               }
+               process_str_opt(argv, &i, 2, argc);
+            }
+            else {
+               unsigned j;
 
-	       for (j = 1; j < strlen(argv[i]); j++)
-		  if (process_char_opt(argv, &i, &j, argc))
-		     break;
-	    }
-	 }
+               for (j = 1; j < strlen(argv[i]); j++)
+                  if (process_char_opt(argv, &i, &j, argc))
+                     break;
+            }
+         }
       }
       else {
-	 // only set the file name if the --exec option has not been set
-	 if (!cl_pgm)
-	    fn = strdup(argv[i++]);
-	 break;
+         // only set the file name if the --exec option has not been set
+         if (!cl_pgm)
+            fn = strdup(argv[i++]);
+         break;
       }
    }
 
@@ -908,88 +912,88 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
 
       // load any modules requested on the command-line
       for (cl_mod_list_t::iterator i = cl_mod_list.begin(), e = cl_mod_list.end(); i != e; ++i) {
-	 // display any error messages
-	 SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
-	 if (err) {
-	    printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
-	    mod_errs = true;
-	 }
+         // display any error messages
+         SimpleRefHolder<QoreStringNode> err(MM.parseLoadModule((*i).c_str(), *qpgm));
+         if (err) {
+            printf("cannot load '%s': %s\n", (*i).c_str(), err->getBuffer());
+            mod_errs = true;
+         }
       }
 
       cl_mod_list.clear();
       if (mod_errs) {
-	 printf("please fix the errors listed above and try again.\n");
-	 rc = 2;
-	 goto exit;
+         printf("please fix the errors listed above and try again.\n");
+         rc = 2;
+         goto exit;
       }
 
       // set time zone if requested
       if (cmd_zone)
-	 qpgm->parseSetTimeZone(cmd_zone);
+         qpgm->parseSetTimeZone(cmd_zone);
 
       // lock the parse options if necessary
       if (lock_options)
-	 qpgm->lockOptions();
+         qpgm->lockOptions();
 
       // parse immediate argument if any
       if (eval_arg) {
-	 QoreString str("printf(\"%N\\n\", (");
-	 str.concat(eval_arg);
-	 str.concat("));");
-	 qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
+         QoreString str("printf(\"%N\\n\", (");
+         str.concat(eval_arg);
+         str.concat("));");
+         qpgm->parse(str.getBuffer(), "<command-line>", &xsink, &wsink, warnings);
       }
       else  {
-	 // set for program class execution if "exec_class" is set
-	 if (exec_class) {
-	    if (exec_class_name)
-	       qpgm->setExecClass(exec_class_name);
-	    else if (program_file_name) {
-	       char* cn = make_class_name(program_file_name);
-	       qpgm->setExecClass(cn);
-	       free(cn);
-	    }
-	    else {
-	       fprintf(stderr, "error, missing class name to instantiate as application\n");
-	       rc = 1;
-	       goto exit;
-	    }
-	 }
+         // set for program class execution if "exec_class" is set
+         if (exec_class) {
+            if (exec_class_name)
+               qpgm->setExecClass(exec_class_name);
+            else if (program_file_name) {
+               char* cn = make_class_name(program_file_name);
+               qpgm->setExecClass(cn);
+               free(cn);
+            }
+            else {
+               fprintf(stderr, "error, missing class name to instantiate as application\n");
+               rc = 1;
+               goto exit;
+            }
+         }
 
-	 // parse the program
-	 if (cl_pgm)
-	    qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
-	 else if (program_file_name)
-	    qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
-	 else
-	    qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
+         // parse the program
+         if (cl_pgm)
+            qpgm->parse(cl_pgm, "<command-line>", &xsink, &wsink, warnings);
+         else if (program_file_name)
+            qpgm->parseFile(program_file_name, &xsink, &wsink, warnings, only_first_except);
+         else
+            qpgm->parse(stdin, "<stdin>", &xsink, &wsink, warnings);
       }
 
       // display any warnings now
       if (wsink.isException()) {
-	 wsink.handleWarnings();
-	 if (warnings_are_errors && !xsink.isException()) {
-	    printf("exiting due to the above warnings...\n");
-	    rc = 2; // set return code to 2 if there were parse warnings to be treated as errors
-	    goto exit;
-	 }
+         wsink.handleWarnings();
+         if (warnings_are_errors && !xsink.isException()) {
+            printf("exiting due to the above warnings...\n");
+            rc = 2; // set return code to 2 if there were parse warnings to be treated as errors
+            goto exit;
+         }
       }
 
       // if there were no parse exceptions, execute the program
       if (!xsink.isException()) {
-	 {
-	    // execute the program and get the return value
-	    AbstractQoreNode* rv = qpgm->run(&xsink);
-	    // set the return code for this program from the core returned by the Qore program
-	    rc = rv ? rv->getAsInt() : 0;
-	    discard(rv, &xsink);
-	 }
+         {
+            // execute the program and get the return value
+            QoreValue rv = qpgm->run(&xsink);
+            // set the return code for this program from the core returned by the Qore program
+            rc = rv.getAsBigInt();
+            rv.discard(&xsink);
+         }
 
-	 // if there is any unhandled exception, set the return code to 3
-	 if (xsink.isException())
-	    rc = 3;
+         // if there is any unhandled exception, set the return code to 3
+         if (xsink.isException())
+            rc = 3;
       }
       else // set return code to 2 if there were parse errors
-	 rc = 2;
+         rc = 2;
 
       // run the default exception handler on any unhandled exceptions in the primary thread or during parsing
       xsink.handleExceptions();

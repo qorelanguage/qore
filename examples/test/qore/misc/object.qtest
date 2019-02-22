@@ -88,11 +88,19 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
     }
 
     constructor() : QUnit::Test("Object test", "1.0") {
+        addTestCase("instanceof Test", \instanceofTest());
         addTestCase("Test", \testObj());
         addTestCase("create_object", \testCreateObject());
         addTestCase("inheritance", \inheritance());
         addTestCase("weak refs", \weakRefTest());
         set_return_value(main());
+    }
+
+    instanceofTest() {
+        Mutex m();
+        Mutex n = m;
+        delete n;
+        assertFalse(m instanceof AbstractSmartLock);
     }
 
     testObj() {

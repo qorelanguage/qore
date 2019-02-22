@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_FtpClient.qpp
+    QC_FtpClient.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include "qore/Qore.h"
@@ -650,6 +650,40 @@ nothing FtpClient::setURL(string url) {
    f->setURL(url, xsink);
 }
 
+//! Sets the network address family to use for new connections; use this method to restrict connections to IPv4 or IPv6 connections
+/** @param family the network address family to use for new connections; see @ref network_address_family_constants for valid values; use @ref Qore::AF_UNSPEC to automatically choose the family (the default)
+
+    @par Example:
+    @code{.py}
+ftp.setNetworkFamily(AF_INET);
+    @endcode
+
+    @throw FTPCLIENT-SETNETWORKFAMILY-ERROR invalid or unknown network family
+
+    @since %Qore 0.9.0
+*/
+nothing FtpClient::setNetworkFamily(int family) {
+    if (family != AF_INET && family != AF_INET6 && family != AF_UNSPEC) {
+        xsink->raiseException("FTPCLIENT-SETNETWORKFAMILY-ERROR", "invalid network family " QLLD, family);
+        return QoreValue();
+    }
+    f->setNetworkFamily(family);
+}
+
+//! Returns the network address family to use for new connections
+/** @return the network address family to use for new connections; see @ref network_address_family_constants for valid values; @ref Qore::AF_UNSPEC means to automatically choose the family (the default)
+
+    @par Example:
+    @code{.py}
+int family = ftp.getNetworkFamily();
+    @endcode
+
+    @since %Qore 0.9.0
+*/
+int FtpClient::getNetworkFamily() [flags=CONSTANT] {
+    return f->getNetworkFamily();
+}
+
 //! Returns the current username value or @ref nothing if none is set
 /**
     @return the current username value that will be used for the next connection or @ref nothing if none is set
@@ -662,6 +696,90 @@ nothing FtpClient::setURL(string url) {
 *string FtpClient::getUserName() {
    const char *u = f->getUserName();
    return u ? new QoreStringNode(u) : 0;
+}
+
+//! Returns information about the local control socket as a hash
+/** If the control socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlSocketInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getControlSocketInfo(bool host_lookup = True) {
+   return f->getControlSocketInfo(xsink, host_lookup);
+}
+
+//! Returns information about the local data socket as a hash
+/** If the data socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlSocketInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getDataSocketInfo(bool host_lookup = True) {
+   return f->getDataSocketInfo(xsink, host_lookup);
+}
+
+//! Returns information about the remote end of the control socket as a hash
+/** If the control socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlPeerInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getControlPeerInfo(bool host_lookup = True) {
+   return f->getControlPeerInfo(xsink, host_lookup);
+}
+
+//! Returns information about the remote data socket as a hash
+/** If the data socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getDataPeerInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getDataPeerInfo(bool host_lookup = True) {
+   return f->getDataPeerInfo(xsink, host_lookup);
 }
 
 //! Returns the current password value or @ref nothing if none is set
@@ -758,8 +876,8 @@ ftp.setInsecureData();
     @throw SET-INSECUREDATA-ERROR this method cannot be called while the control connection is established
  */
 nothing FtpClient::setInsecureData() {
-   if (f->setInsecureData())
-      xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
+    if (f->setInsecureData())
+        xsink->raiseException("SET-INSECUREDATA-ERROR", "this method cannot be called while the control connection is established");
 }
 
 //! Returns @ref True if the control connection is a secure TLS/SSL connection, @ref False if not
@@ -771,7 +889,7 @@ bool b = ftp.isSecure();
     @endcode
  */
 bool FtpClient::isSecure() [flags=CONSTANT] {
-   return get_bool_node(f->isSecure());
+    return f->isSecure();
 }
 
 //! Returns @ref True if the data connections are secure TLS/SSL connections, @ref False if not
@@ -785,7 +903,7 @@ bool b = ftp.isDataSecure();
 
  */
 bool FtpClient::isDataSecure() [flags=CONSTANT] {
-   return f->isDataSecure();
+    return f->isDataSecure();
 }
 
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if an encrypted connection is not established
@@ -1031,7 +1149,7 @@ nothing FtpClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] 
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
    // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.getReferencedValue(), min_ms);
+   f->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.refSelf(), min_ms);
 }
 
 //! Returns performance statistics for the socket

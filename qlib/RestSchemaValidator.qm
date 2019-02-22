@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.0.2";
+    version = "1.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +69,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_1 RestSchemaValidator v1.1
+    - updated the default validator to try all serialization methods if multiple methods are available and one fails
+      (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
 
     @subsection restschemavalidator_1_0_2 RestSchemaValidator v1.0.2
     - fixed the null validator to handle binary message bodies; fixed issues with \c "text"
@@ -608,22 +612,31 @@ public namespace RestSchemaValidator {
         */
         private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
             if (exists response_body) {
-                string ct;
-                if (!content_types)
-                    ct = DataSerializationSupport.firstKey();
-                else {
-                    foreach string rct in (content_types) {
-                        if (DataSerializationSupport{rct}) {
-                            ct = rct;
-                            break;
-                        }
+                list<string> ctl = !content_types
+                    ? keys DataSerializationSupport
+                    : map $1, content_types, DataSerializationSupport{$1};
+
+                if (!ctl) {
+                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
+                }
+                bool ok;
+                hash<ExceptionInfo> ex;
+                foreach string ct in (ctl) {
+                    try {
+                        headers."Content-Type" = ct;
+                        response_body = DataSerializationSupport{ct}(response_body);
+                        ok = True;
+                        break;
+                    }
+                    catch (hash<ExceptionInfo> ex1) {
+                        # ignore serialization exceptions
+                        ex = ex1;
                     }
                 }
-
-                if (!ct)
-                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
-                headers."Content-Type" = ct;
-                response_body = DataSerializationSupport{ct}(response_body);
+                # rethrow last exception if the response cannot be serialized
+                if (!ok) {
+                    throw ex.err, ex.desc, ex.arg;
+                }
             }
 
             return cast<hash<HttpResponseInfo>>((
@@ -650,11 +663,16 @@ public namespace RestSchemaValidator {
 
             if (response_body.val()) {
                 *hash dh = DataDeserializationSupport.(hdr."content-type");
-                if (!dh)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", hdr."content-type", keys DataDeserializationSupport, response_body);
+                if (!dh) {
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; "
+                        "types supported: %y; response body: %y", hdr."content-type",
+                        keys DataDeserializationSupport, response_body);
+                }
 
-                if (response_body.typeCode() != NT_STRING)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", hdr."content-type", response_body.type());
+                if (response_body.typeCode() != NT_STRING) {
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y but "
+                        "body type is %y", hdr."content-type", response_body.type());
+                }
 
                 string ds_code = dh.code;
                 rv.body = dh.arg

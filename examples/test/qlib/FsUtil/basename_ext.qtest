@@ -1,0 +1,74 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class BasenameExtTest
+
+public class BasenameExtTest inherits QUnit::Test {
+
+    private {
+        list results_win = (
+            ('C:\path\to\file.txt', "", "file.txt"),
+            ('C:\path\to\file.txt', NOTHING, "file.txt"),
+            ('C:\path\to\file.txt', ".txt", "file"),
+            ("D:/path/to/file.txt", ".txt", "file"),
+            ('E:\path/to\file.txt', ".txt", "file"),
+            ("//path/to/file.txt", "xt", "file.t"),
+            ('\path\to\file.txt', "t", "file.tx"),
+            ("F:../file.doc", ".doc", "file"),
+            ('..\file.txt', NOTHING, "file.txt"),
+            ("../../file.txt", "file.txt", ""),
+            ("d:/path/to/", "", ""),
+            ('..\', NOTHING, ""),
+            ("c:file.txt", "", "file.txt"),
+            ("c:file.txt", ".txt", "file"),
+            ('c:\file.txt', "", "file.txt"),
+            ('c:..\file.txt', "ile.txt", "f"),
+            ("f:/path/to/dir", "", "dir"),
+            ("file.txt", "", "file.txt"),
+            ("file.txt", "file.txt", "")
+        );
+
+        list results_posix = (
+            ("/path/to/file.txt", "", "file.txt"),
+            ("/path/to/file.txt", NOTHING, "file.txt"),
+            ("/path/to/file.txt", ".txt", "file"),
+            ("path/to/file.txt", ".txt", "file"),
+            ('C:\path\to\file.txt', ".txt", 'C:\path\to\file'),
+            ('path\to\file.txt', ".txt", 'path\to\file'),
+            ("/file.txt", ".txt", "file"),
+            ("../file.txt", "ile.txt", "f"),
+            ("/path/to/dir", "", "dir"),
+            ("/path/to/dir", "r", "di"),
+            ("file.txt", "xt", "file.t"),
+            ("file.txt", "file.txt", "")
+        );
+    }
+
+    constructor() : Test ("BasenameExtTest", "1.0") {
+        addTestCase("Basename_ext test", \test_basename_ext());
+        addTestCase("Basename_ext exception test", \test_basename_exception());
+        set_return_value(main());
+    }
+
+    test_basename_ext() {
+        list results;
+        if (Platform.Windows)
+            results = results_win;
+        else
+            results = results_posix;
+
+        foreach list res in (results)
+            assertEq(res[2], basename_ext(res[0], res[1]));
+    }
+
+    test_basename_exception() {
+        assertThrows("EXTENSION-NOT-FOUND", \basename_ext(), ("file.txt", ".doc"));
+        assertThrows("EXTENSION-NOT-FOUND", \basename_ext(), ("file", ".txt"));
+    }
+}
