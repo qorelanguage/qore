@@ -85,7 +85,7 @@ hash ans = rest.get("api/anchors");
 printf("%N\n", ans.body);
     @endcode
 
-    @section Sewiorestclientrelnotes Release Notes
+    @section sewiorestclientrelnotes Release Notes
 
     @subsection Sewiorestclientv1_2 SewioRestClient v1.2
     - all connection clases have unified constructor

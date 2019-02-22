@@ -52,8 +52,7 @@ class SalesforceTest inherits QUnit::Test {
 
         try {
             setupConnection();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
@@ -123,6 +122,11 @@ class SalesforceTest inherits QUnit::Test {
         assertThrows("CONNECTION-ERROR", sub () {
             SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
             });
+
+        SalesforceRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
 
         hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
         assertEq("SalesforceRestClient", info.module);

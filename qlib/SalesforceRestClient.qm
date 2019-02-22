@@ -158,6 +158,10 @@ rc.bulkJobClose(h.id);
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
+    @subsection salesforcerestclientv1_1_1 SalesforceRestClient v1.1.1
+    - fixed a bug handling default options including timeouts in @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
+
     @subsection salesforcerestclientv1_1 SalesforceRestClient v1.1
     - added the @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
@@ -1031,7 +1035,7 @@ sfrest.logout();
         deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
             : RestConnection(name, desc, url, {"monitor": monitor}, opts) {
-            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+            real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
         }
 
         #! creates the SalesforceRestConnection connection object

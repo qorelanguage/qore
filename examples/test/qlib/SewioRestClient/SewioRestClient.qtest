@@ -119,6 +119,11 @@ public class Main inherits QUnit::Test {
 
         assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url);});
 
+        SewioRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
+
         hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
         assertEq("SewioRestClient", info.module);
         assertEq("SewioRestClient", info.class_name);

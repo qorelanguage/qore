@@ -210,6 +210,7 @@ public class Main inherits QUnit::Test {
         RestConnection conn("test", "test", url, False, NOTHING, parse_url(url));
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
+
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
