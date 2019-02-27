@@ -124,6 +124,9 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
+    @subsection restclientv1_5 RestClient v1.7
+    - added the @ref no_charset option to options (<a href="https://github.com/qorelanguage/qore/issues/3328">issue 3328</a>)
+
     @subsection restclientv1_6 RestClient v1.6
     - fixed a bug where the \c "response-code" key of the info output hash could be missing in some clases
       (<a href="https://github.com/qorelanguage/qore/issues/3237">issue 3237</a>)
@@ -330,6 +333,8 @@ public namespace RestClient {
             *hash seh;
             # REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
+            # no_charset option
+            *bool noCharset;
         }
 
         #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -358,6 +363,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
             - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
+            - \c no_charset: if True no charset will be added to the Content-Type header
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
@@ -399,6 +405,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
                 connect();
 
             headers = DefaultHeaders + opts.headers;
+            noCharset = opts.no_charset;
         }
 
         #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
@@ -768,7 +775,7 @@ hash ans = rest.del("/orders/1");
                 body = req.body;
                 if (!hdr{ct})
                     hdr{ct} = req.content;
-                if (body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/)
+                if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/)
                     hdr{ct} += ";charset=" + body.encoding();
                 if (seh.ce && body.size() > CompressionThreshold) {
                     hdr."Content-Encoding" = seh.ce;
