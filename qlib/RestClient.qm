@@ -124,7 +124,7 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
-    @subsection restclientv1_7 RestClient v1.7
+    @subsection restclientv1_6_1 RestClient v1.6.1
     - added the @ref no_charset option to options (<a href="https://github.com/qorelanguage/qore/issues/3328">issue 3328</a>)
 
     @subsection restclientv1_6 RestClient v1.6
