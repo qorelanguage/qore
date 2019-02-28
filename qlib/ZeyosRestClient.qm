@@ -33,7 +33,7 @@
 
 module ZeyosRestClient {
     version = "1.2";
-    desc = "user module for calling zeyos.com RTLS Studio REST services";
+    desc = "user module for calling zeyos.com REST services";
     author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
