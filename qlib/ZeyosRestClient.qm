@@ -206,11 +206,11 @@ ZeyosRestClient zeyos(
 
     #! class for <a href="http://www.zeyos.com">Zeyos.com</a>'s REST connections; returns @ref ZeyosRestClient::ZeyosRestClient objects
     /** supports the following options:
-        - \c name (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s name
-        - \c password (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s password
-        - \c identifier (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s identifier
-        - \c appsecret (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
-        - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then name, password, identifier and appsecret are not needed and will be ignored.
+        - \c "name" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s name
+        - \c "password" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s password
+        - \c "identifier" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s identifier
+        - \c "appsecret" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
+        - \c "token": the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then name, password, identifier and appsecret are not needed and will be ignored.
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
