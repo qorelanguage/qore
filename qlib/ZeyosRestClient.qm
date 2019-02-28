@@ -70,8 +70,7 @@ ZeyosRestClient zeyos(
     {
         "url": "https://cloud.zeyos.com/test",
         "name": "test", "password": "test", "identifier": "id",
-        "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5",
-        "no_charset": True
+        "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5"
     });
 
 hash<auto> action_data = {
@@ -162,13 +161,13 @@ ZeyosRestClient zeyos(
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
             - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
             - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
-            - \c no_charset: if True no charset will be added to the Content-Type header (should be set to True if data are sent in the body)
+            - \c no_charset: if True no charset will be added to the Content-Type header (should be set to True if data are sent in the body). Default is True if not passed.
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-            @throw ZEYOSCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a>'s REST authentication or communication
+            @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a>'s REST authentication or communication
         */
-        constructor(hash options, *softbool do_not_connect) : RestClient(options, do_not_connect) {
+        constructor(hash options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
             if (exists options.token) {
                 headers{"Authorization"} = "Bearer " + options.token;
                 return;
@@ -178,16 +177,24 @@ ZeyosRestClient zeyos(
             foreach string key in (RequiredOptions) {
                 auto value = options{key};
                 if (!exists value || value == "") {
-                    throw "ZEYOSCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
+                    throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
                 }
                 if (value.typeCode() != NT_STRING) {
-                    throw "ZEYOSCLIENT-ERROR",
+                    throw "ZEYOSRESTCLIENT-ERROR",
                           sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
                                   key, value.type(), value);
                 }
                 self{key} = value;
             }
             getToken();
+        }
+
+        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        static hash getOptions(hash options) {
+            if (!exists options.no_charset) {
+                options.no_charset = True;
+            }
+            return options;
         }
 
         private getToken() {

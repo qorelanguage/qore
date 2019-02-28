@@ -1,0 +1,137 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/ZeyosRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%requires qore >= 0.9
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%exec-class ZeyosTest
+
+class FakeZeyosRestHandler inherits AbstractHttpRequestHandler {
+    private {
+        string input;
+        string mime;
+    }
+
+    constructor(string mime, string input) {
+        self.mime = mime;
+        self.input = input;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        if (!hdr."authorization") {
+            return makeResponse(400, "Missing authorization header");
+        }
+        if (hdr."authorization" != "Bearer token") {
+            return makeResponse(401, "Unauthorized, invalid token");
+        }
+        if (hdr.method == "GET") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+        if (hdr.method == "PUT") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+    }
+}
+
+sub log(string str) {
+    delete argv;
+}
+
+const VALUE_JSON = {
+    "input": "{\"foo\":{\"bar\":1}}",
+    "output": {"foo": {"bar": 1}},
+};
+
+class ZeyosTest inherits QUnit::Test {
+    private {
+        HttpServer m_http;
+        int port;
+
+        ZeyosRestClient zeyosRestClient;
+    }
+
+    constructor() : Test("ZeyosTest", "1.0") {
+        addTestCase("zeyos.com REST", \zeyosRestClienteRestTests());
+        addTestCase("negative tests", \negativeTest());
+        addTestCase("connection tests", \connectionTest());
+        set_return_value(main());
+    }
+
+    setUp() {
+        m_http = new HttpServer(\log(), \log());
+        m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
+                          MimeTypeJson, new FakeZeyosRestHandler(MimeTypeJson, VALUE_JSON.input));
+        port = m_http.addListener(0).port;
+
+        zeyosRestClient = new ZeyosRestClient({"token": "token", "url": "http://localhost:" + port});
+    }
+
+    tearDown() {
+        delete m_http;
+    }
+
+    zeyosRestClienteRestTests() {
+        if (!zeyosRestClient) {
+            testSkip("no zeyos.com connection");
+        }
+
+        hash<auto> action_data = {
+            "name": "Action name 1",
+            "description": "description",
+            "effort": 48,
+            "actionnum": 7771,
+            "status": 0,
+        };
+
+        hash<auto> response = zeyosRestClient.put("/api/v1/actionsteps", action_data, NOTHING, NOTHING);
+        testAssertionValue("/api/v1/actionsteps", response.body, VALUE_JSON.output);
+    }
+
+    negativeTest() {
+        assertThrows("ZEYOSRESTCLIENT-ERROR", sub () {new ZeyosRestClient({"url": "http://localhost:" + port});});
+        ZeyosRestClient zeyosRest({"url": "http://localhost:" + port, "token": ""});
+        assertThrows("REST-RESPONSE-ERROR", \zeyosRest.get(), "/api_json");
+    }
+
+    connectionTest() {
+        string url = "http://localhost:" + port;
+        ZeyosRestConnection zeyosrc("test", "test", url, {}, {"token": "token"});
+        assertEq(True, zeyosrc instanceof ZeyosRestConnection);
+
+        ZeyosRestClient client = zeyosrc.get(False);
+        assertEq(True, client instanceof ZeyosRestClient);
+
+        hash<ConnectionConstructorInfo> info = zeyosrc.getConstructorInfo();
+        assertEq("ZeyosRestClient", info.module);
+        assertEq("ZeyosRestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program program(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+        if (info.module)
+            program.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            program.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            program.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
+    }
+
+}
