@@ -147,7 +147,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
     else if (n->argtype == NT_INT)
         v = strtoll(val, 0, 10);
     else if (n->argtype == NT_FLOAT)
-        v = strtod(val, 0);
+        v = QoreValue(q_strtod(val));
     else if (n->argtype == NT_DATE)
         v = parseDate(val);
     else if (n->argtype == NT_BOOLEAN)
