@@ -1,31 +1,31 @@
 /*
-  HashDeclList.cpp
+    HashDeclList.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -35,7 +35,7 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 
-#include <assert.h>
+#include <cassert>
 
 void HashDeclList::remove(hm_qth_t::iterator i) {
     TypedHashDecl* thd = i->second;
@@ -96,11 +96,12 @@ HashDeclList::HashDeclList(const HashDeclList& old, int64 po, qore_ns_private* n
 
         //printd(5, "HashDeclList::HashDeclList() this: %p copying '%s' %p to target\n", this, i.second->getName(), i.second);
         TypedHashDecl* hd = new TypedHashDecl(*i.second);
+        typed_hash_decl_private::get(*hd)->setNamespace(ns);
         addInternal(hd);
     }
 }
 
-void HashDeclList::mergeUserPublic(const HashDeclList& old) {
+void HashDeclList::mergeUserPublic(const HashDeclList& old, qore_ns_private* ns) {
     for (auto& i : old.hm) {
         if (!typed_hash_decl_private::get(*i.second)->isUserPublic())
             continue;
@@ -108,6 +109,7 @@ void HashDeclList::mergeUserPublic(const HashDeclList& old) {
         if (find(i.first))
             continue;
         TypedHashDecl* hd = new TypedHashDecl(*i.second);
+        typed_hash_decl_private::get(*hd)->setNamespace(ns);
         addInternal(hd);
     }
 }
@@ -123,6 +125,7 @@ int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_priv
             }
             //printd(5, "HashDeclList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
             TypedHashDecl* hd = new TypedHashDecl(*i.second);
+            typed_hash_decl_private::get(*hd)->setNamespace(ns);
             addInternal(hd);
             ++cnt;
         }
@@ -161,6 +164,7 @@ void HashDeclList::assimilate(HashDeclList& n, qore_ns_private& ns) {
 
             // "move" data to new list
             hm[i->first] = i->second;
+            typed_hash_decl_private::get(*(i->second))->setNamespace(&ns);
             n.hm.erase(i);
         }
         i = n.hm.begin();

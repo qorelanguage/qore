@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -89,7 +89,6 @@ struct ThreadLocalProgramData;
 class QoreAbstractModule;
 class QoreRWLock;
 
-
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
 class VNode;
@@ -150,39 +149,43 @@ public:
 };
 
 class QoreModuleContext {
-protected:
-   const char* name;
-   qore_root_ns_private* rns;
-   QoreStringNode* err = nullptr;
-   ExceptionSink& xsink;
-
 public:
-   ModuleContextNamespaceList mcnl;
-   ModuleContextFunctionList mcfl;
+    ModuleContextNamespaceList mcnl;
+    ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
-   }
+    DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
+    }
 
-   DLLLOCAL ~QoreModuleContext() {
-      assert(!err);
-   }
+    DLLLOCAL ~QoreModuleContext() {
+        assert(!err);
+    }
 
-   DLLLOCAL void error(const char* fmt, ...);
+    DLLLOCAL void error(const char* fmt, ...);
 
-   DLLLOCAL bool hasError() const {
-      return xsink;
-   }
+    DLLLOCAL bool hasError() const {
+        return xsink;
+    }
 
-   DLLLOCAL void commit();
+    DLLLOCAL void commit();
 
-   DLLLOCAL void rollback() {
-      mcnl.clear();
-      mcfl.clear();
-   }
+    DLLLOCAL void rollback() {
+        mcnl.clear();
+        mcfl.clear();
+    }
 
-   DLLLOCAL qore_root_ns_private* getRootNS() {
-      return rns;
-   }
+    DLLLOCAL qore_root_ns_private* getRootNS() const {
+        return rns;
+    }
+
+    DLLLOCAL const char* getName() const {
+        return name;
+    }
+
+protected:
+    const char* name;
+    qore_root_ns_private* rns;
+    QoreStringNode* err = nullptr;
+    ExceptionSink& xsink;
 };
 
 class QoreModuleDefContext {
@@ -239,15 +242,23 @@ DLLLOCAL void* endParsing();
 DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
+DLLLOCAL const QoreStackLocation* get_runtime_stack_location();
+DLLLOCAL const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc,
+    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm);
+DLLLOCAL const QoreStackLocation* update_get_runtime_stack_builtin_location(QoreStackLocation* stack_loc,
+    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc);
+DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc);
+DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc, const QoreProgramLocation* runtime_loc);
+
 DLLLOCAL const QoreProgramLocation* get_runtime_location();
-DLLLOCAL const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc);
-DLLLOCAL void update_runtime_location(const QoreProgramLocation* loc);
+DLLLOCAL void update_get_runtime_statement_location(const AbstractStatement* stmt,
+    const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc);
+DLLLOCAL void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc);
 
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 
 DLLLOCAL const AbstractStatement* get_runtime_statement();
-DLLLOCAL const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s);
 
 DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
 DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
@@ -295,6 +306,7 @@ DLLLOCAL QoreModuleDefContext* get_module_def_context();
 DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
+DLLLOCAL const char* get_module_context_name();
 
 DLLLOCAL void parse_set_try_reexport(bool tr);
 DLLLOCAL bool parse_get_try_reexport();
@@ -344,19 +356,34 @@ DLLLOCAL const QoreTypeInfo* getReturnTypeInfo();
 
 DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-DLLLOCAL void pushCall(CallNode* cn);
-DLLLOCAL void popCall(ExceptionSink* xsink);
-DLLLOCAL CallStack* getCallStack();
-DLLLOCAL QoreListNode* getCallStackList();
-#else
-#ifdef __GNUC__
-#define pushCall(args...)
-#else
-#define pushCall(args, ...)
-#endif
-#define popCall(x)
-#endif
+DLLLOCAL QoreProgram* get_set_program_call_context(QoreProgram* new_pgm);
+DLLLOCAL void set_program_call_context(QoreProgram* new_pgm);
+
+// issue #3242: make sure we can temporarily set any current lvar stack to nullptr when parsing out of order
+class LVarStackBreakHelper {
+public:
+    DLLLOCAL LVarStackBreakHelper();
+    DLLLOCAL ~LVarStackBreakHelper();
+
+private:
+    VNode* vnode;
+};
+
+class ProgramCallContextHelper {
+public:
+    DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm)
+        : pgm(new_pgm ? get_set_program_call_context(new_pgm) : reinterpret_cast<QoreProgram*>(-1)) {
+    }
+
+    DLLLOCAL ~ProgramCallContextHelper() {
+        if (pgm != reinterpret_cast<QoreProgram*>(-1)) {
+            set_program_call_context(pgm);
+        }
+    }
+
+private:
+    QoreProgram* pgm;
+};
 
 class ModuleReExportHelper {
 protected:
@@ -394,40 +421,98 @@ public:
    DLLLOCAL ~QoreParseClassHelper();
 };
 
-class QoreProgramLocationHelper {
-protected:
-   const QoreProgramLocation* loc;
-   const AbstractStatement* statement;
+class QoreProgramStackLocationHelper {
 public:
-   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : loc(update_get_runtime_location(n_loc)), statement(update_get_runtime_statement(n_stat)) {
-   }
+    DLLLOCAL QoreProgramStackLocationHelper(QoreStackLocation* stack_loc, const AbstractStatement*& current_stmt,
+        QoreProgram*& current_pgm) :
+        stack_loc(update_get_runtime_stack_location(stack_loc, current_stmt, current_pgm)) {
+    }
 
-   DLLLOCAL ~QoreProgramLocationHelper() {
-      update_runtime_location(loc);
-      update_get_runtime_statement(statement);
-   }
+    DLLLOCAL ~QoreProgramStackLocationHelper() {
+        update_runtime_stack_location(stack_loc);
+    }
+
+protected:
+    const QoreStackLocation* stack_loc;
 };
 
-class QoreProgramOptionalLocationHelper {
+class QoreInternalCallStackLocationHelperBase : public QoreStackLocation, public QoreProgramStackLocationHelper {
+public:
+    DLLLOCAL QoreInternalCallStackLocationHelperBase() : QoreProgramStackLocationHelper(this, stmt, pgm) {
+    }
+
+    DLLLOCAL virtual QoreProgram* getProgram() const {
+        return pgm;
+    }
+
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return stmt;
+    }
+
+protected:
+    const AbstractStatement* stmt;
+    QoreProgram* pgm;
+};
+
+class QoreInternalCallStackLocationHelper : public QoreInternalCallStackLocationHelperBase {
+public:
+    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const std::string& call,
+        qore_call_t call_type) : loc(loc), call(call), call_type(call_type) {
+    }
+
+    //! returns the source location of the element
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
+        return loc;
+    }
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const std::string& getCallName() const {
+        return call;
+    }
+
+    DLLLOCAL virtual qore_call_t getCallType() const {
+        return call_type;
+    }
+
+protected:
+    const QoreProgramLocation& loc;
+    const std::string call;
+    qore_call_t call_type;
+};
+
+class QoreProgramLocationHelper {
+public:
+    DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) {
+        update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
+    }
+
+    DLLLOCAL ~QoreProgramLocationHelper() {
+        update_runtime_statement_location(statement, loc);
+    }
+
 protected:
     const QoreProgramLocation* loc;
     const AbstractStatement* statement;
-    bool restore;
+};
 
+class QoreProgramOptionalLocationHelper {
 public:
     DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : restore((bool)n_loc) {
         if (n_loc) {
-            loc = update_get_runtime_location(n_loc);
-            statement = update_get_runtime_statement(n_stat);
+            update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
         }
     }
 
     DLLLOCAL ~QoreProgramOptionalLocationHelper() {
         if (restore) {
-            update_runtime_location(loc);
-            update_get_runtime_statement(statement);
+            update_runtime_statement_location(statement, loc);
         }
     }
+
+protected:
+    const QoreProgramLocation* loc;
+    const AbstractStatement* statement;
+    bool restore;
 };
 
 // allows for the parse lock for the current program to be acquired by binary modules
@@ -508,6 +593,7 @@ DLLLOCAL int thread_set_closure_var_value(int frame, const char* name, const Qor
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
+DLLLOCAL VNode* update_get_vstack(VNode* vn);
 DLLLOCAL void save_global_vnode(VNode* vn);
 DLLLOCAL VNode* get_global_vnode();
 
@@ -579,14 +665,34 @@ public:
 };
 
 class OptionalClassObjSubstitutionHelper {
-private:
-   QoreObject* old_obj;
-   const qore_class_private* old_class;
-   bool subst;
-
 public:
-   DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
-   DLLLOCAL ~OptionalClassObjSubstitutionHelper();
+    DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
+    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
+
+private:
+    QoreObject* old_obj;
+    const qore_class_private* old_class;
+    bool subst;
+};
+
+class OptionalClassOnlySubstitutionHelper {
+public:
+    DLLLOCAL OptionalClassOnlySubstitutionHelper(const qore_class_private* qc);
+    DLLLOCAL ~OptionalClassOnlySubstitutionHelper();
+
+private:
+    const qore_class_private* old_class;
+    bool subst;
+};
+
+class OptionalObjectOnlySubstitutionHelper {
+public:
+    DLLLOCAL OptionalObjectOnlySubstitutionHelper(QoreObject* obj);
+    DLLLOCAL ~OptionalObjectOnlySubstitutionHelper();
+
+private:
+    bool subst;
+    QoreObject* old_obj;
 };
 
 class ThreadSafeLocalVarRuntimeEnvironmentHelper {
@@ -755,74 +861,19 @@ public:
    }
 };
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-class CallNode {
-public:
-    const char* func;
-    const QoreProgramLocation* loc;
-    int type;
-
-    QoreObject* obj;
-    const qore_class_private* cls;
-    const QoreProgram* pgm;
-    const AbstractStatement* statement;
-    CallNode* next, *prev;
-
-    DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c, const QoreProgram* p=nullptr, const AbstractStatement* s=nullptr);
-    DLLLOCAL QoreHashNode* getInfo() const;
-};
-
-class CallStack {
-private:
-    CallNode* tail;
-
-public:
-    DLLLOCAL CallStack();
-    DLLLOCAL ~CallStack();
-    DLLLOCAL QoreListNode* getCallStack() const;
-    DLLLOCAL void push(CallNode* cn);
-    DLLLOCAL void pop(ExceptionSink* xsink);
-};
-
-class CallStackHelper : public CallNode {
-    ExceptionSink* xsink;
-
-    // not implemented
-    DLLLOCAL CallStackHelper(const CallStackHelper&);
-    DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
-    DLLLOCAL void* operator new(size_t);
-
-public:
-    DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c, getProgram(), get_runtime_statement()), xsink(n_xsink) {
-        pushCall(this);
-    }
-    DLLLOCAL ~CallStackHelper() {
-        popCall(xsink);
-    }
-};
-
-class CodeContextHelper : public CodeContextHelperBase, public CallStackHelper {
-public:
-   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
-      CodeContextHelperBase(c, obj, cls, xs, ref_obj),
-      CallStackHelper(c, t, obj, cls, xs) {
-   }
-};
-
-#else
 class CodeContextHelper : public CodeContextHelperBase {
 public:
    DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
       CodeContextHelperBase(c, obj, cls, xs, ref_obj) {
    }
 };
-#endif
 
 DLLLOCAL void init_qore_threads();
 DLLLOCAL QoreNamespace* get_thread_ns(QoreNamespace& qorens);
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
+DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 
 #if defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE)
 #define QORE_HAVE_GET_STACK_SIZE

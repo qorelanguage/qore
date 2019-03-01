@@ -35,8 +35,8 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreObjectIntern.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp, QoreParseListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), parse_args(n_args) {
 }
@@ -572,18 +572,45 @@ bool LocalFunctionCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Ex
 }
 
 bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
-   //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   pgm->depDeref();
-   return true;
+    //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
+    pgm->depDeref();
+    return true;
 }
 
 QoreValue FunctionCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   return uf->evalFunction(0, args, pgm, xsink);
+    return uf->evalFunction(0, args, pgm, xsink);
+}
+
+ResolvedCallReferenceNode::ResolvedCallReferenceNode() : AbstractCallReferenceNode(false, NT_FUNCREF) {
 }
 
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {
 }
 
+ResolvedCallReferenceNode::~ResolvedCallReferenceNode() {
+}
+
 QoreProgram* ResolvedCallReferenceNode::getProgram() const {
-   return 0;
+    return 0;
+}
+
+void ResolvedCallReferenceNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+    const QoreTypeInfo*& returnTypeInfo) {
+}
+
+bool ResolvedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+    return this == v;
+}
+
+bool ResolvedCallReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+    return this == v;
+}
+
+QoreValue ResolvedCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    needs_deref = false;
+    return this;
+}
+
+AbstractQoreNode* ResolvedCallReferenceNode::realCopy() const {
+    return refRefSelf();
 }

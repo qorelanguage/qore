@@ -32,7 +32,7 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
-#include <string.h>
+#include <cstring>
 
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 
@@ -161,11 +161,16 @@ struct qore_list_private {
     DLLLOCAL int checkVal(ValueHolder& holder, ExceptionSink* xsink) {
         if (complexTypeInfo) {
             const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
-            if (!QoreTypeInfo::superSetOf(vti, holder->getTypeInfo()) && QoreTypeInfo::hasType(complexTypeInfo)) {
+            if (QoreTypeInfo::hasType(vti) && !QoreTypeInfo::superSetOf(vti, holder->getTypeInfo())) {
                 QoreValue v(holder.release());
-                QoreTypeInfo::acceptInputParam(vti, -1, nullptr, v, xsink);
+                QoreTypeInfo::acceptAssignment(vti, "<list element assignment>", v, xsink);
                 holder = v;
-                return xsink && *xsink ? -1 : 0;
+                if (xsink && *xsink) {
+                    xsink->appendLastDescription(" (while converting types for list<%s> subtype)",
+                        QoreTypeInfo::getName(vti));
+                    return -1;
+                }
+                return 0;
             }
             return 0;
         }
@@ -251,7 +256,13 @@ struct qore_list_private {
         else // set last entry to 0
             entry[end - 1] = QoreValue();
 
-        resize(length - 1);
+        if (length > 0) {
+            /* it is always greater than one but we need get rid with realloc's warning
+             * "....exceeds maximum object size 9223372036854775807" when optimizer somehow
+             * testing probably length bounds. Casting to size_t i.e. long unsigned int does not help
+             */
+            resize(length - 1);
+        }
 
         return rv;
     }

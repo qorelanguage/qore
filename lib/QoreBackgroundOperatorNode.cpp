@@ -43,9 +43,7 @@ void QoreBackgroundOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
     if (pflag & PF_CONST_EXPRESSION)
         parseException(*loc, "ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
 
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
-
     const QoreTypeInfo* expTypeInfo = nullptr;
-    parse_init_value(exp, oflag, pflag | PF_BACKGROUND, lvids, expTypeInfo);
+    // issue #2993 turn on "return value ignored" flag when parsing background expressions
+    parse_init_value(exp, oflag, pflag | PF_BACKGROUND | PF_RETURN_VALUE_IGNORED, lvids, expTypeInfo);
 }

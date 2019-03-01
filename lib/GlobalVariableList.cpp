@@ -33,7 +33,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/GlobalVariableList.h"
 
-#include <assert.h>
+#include <cassert>
 
 GlobalVariableList::GlobalVariableList(const GlobalVariableList& old, int64 po) {
     // don't inherit any global vars if the appropriate flag is not already set

@@ -21,8 +21,11 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     constructor() : Test("DatasourceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("offline option test", \offlineOptionTest());
+        addTestCase("invalid option test", \invalidOptionTest());
         addTestCase("Datasource string test", \datasourceStringTest());
         addTestCase("oracle test", \oracleTest());
+        addTestCase("serialization test", \serializationTest());
 
         set_return_value(main());
     }
@@ -32,19 +35,24 @@ public class DatasourceTest inherits QUnit::Test {
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
     }
 
+    offlineOptionTest() {
+        # issue #3247 ensure that we can get options for unconnected Datasources
+        Datasource ds("pgsql:u/p@db");
+        assertEq(Type::String, ds.getConfigString().type());
+        assertEq(Type::Hash, ds.getConfigHash().type());
+    }
+
+    invalidOptionTest() {
+        assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+    }
+
     datasourceStringTest() {
         assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)"); });
         assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)%localhost:5432"); });
     }
 
     oracleTest() {
-        Datasource ds;
-        try {
-            ds = getOracleDatasource();
-        }
-        catch (hash ex) {
-            testSkip("skipping oracle tests: " + ex.err + ": " + ex.desc);
-        }
+        Datasource ds = getOracleDatasource();
 
         hash h = ds.getConfigHash();
         assertEq(Type::Hash, h.type());
@@ -53,7 +61,9 @@ public class DatasourceTest inherits QUnit::Test {
         assertEq(Type::String, str.type());
 
         ds.open();
-        assertEq(ds.getConfigHash(), h);
+        # issue #3247: we have to get the config hash again after connecting as the DBI driver will set default option values
+        h = ds.getConfigHash();
+        assertEq(Type::Hash, h.type());
 
         # issue #2153
         DatasourcePool dsp(ds.getConfigString());
@@ -61,13 +71,58 @@ public class DatasourceTest inherits QUnit::Test {
         assertEq(Type::String, dsp.getConfigString().type());
     }
 
-    Datasource getOracleDatasource() {
-        if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
-        Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "oracle")
-            throw "ORACLE-ERROR", sprintf("cannot execute these tests on a connection using driver %y; expecting \"oracle\"", ds.getDriverName());
-        return ds;
+    serializationTest() {
+        Datasource ds = getAnyDatasource();
+
+        hash<SerializationInfo> h = ds.serializeToData();
+        #printf("h: %N\n", h);
+
+        Datasource ds1 = Serializable::deserialize(h);
+        assertEq(ds.getConfigString(), ds1.getConfigString());
+
+        hash<auto> h1 = h;
+        assertEq(Type::String, (remove h1._index."0"._class_data."Qore::SQL::Datasource".conf).type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        assertEq(Type::Hash, (remove h1._index."0"._class_data."Qore::SQL::Datasource").type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::extra" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::Serializable" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
     }
 
+    Datasource getOracleDatasource() {
+        string connstr = m_options.connstr ?? ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+        try {
+            Datasource ds(connstr);
+            if (ds.getDriverName() != "oracle") {
+                testSkip(sprintf("skipping test: cannot execute these tests on a connection using driver %y; expecting "
+                    "\"oracle\"", ds.getDriverName()));
+            }
+            return ds;
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping test: " + ex.err + ": " + ex.desc);
+        }
+    }
+
+    Datasource getAnyDatasource() {
+        string connstr = m_options.connstr
+            ?? ENV.QORE_DB_CONNSTR
+            ?? ENV.QORE_DB_CONNSTR_PGSQL
+            ?? ENV.QORE_DB_CONNSTR_ORACLE
+            ?? ENV.QORE_DB_CONNSTR_MYSQL
+            ?? "oracle:omquser/omquser@xbox";
+
+        try {
+            return new Datasource(connstr);
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping test: " + ex.err + ": " + ex.desc);
+        }
+    }
 }

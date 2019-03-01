@@ -34,17 +34,16 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreListNodeEvalOptionalRefHolder.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
+#include <algorithm>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <qore/minitest.hpp>
 #ifdef DEBUG_TESTS
 #  include "tests/List_tests.cpp"
 #endif
-
-#include <algorithm>
 
 #define LIST_BLOCK 20
 #define LIST_PAD   15
@@ -220,10 +219,9 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
     }
     else if (init.getType() == NT_NOTHING) {
         holder = init = l = new QoreListNode;
-    }
-    else {
+    } else {
         const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
-        QoreTypeInfo::acceptInputParam(vti, 0, nullptr, init, xsink);
+        QoreTypeInfo::acceptAssignment(vti, "<list assignment>", init, xsink);
         holder.release();
         holder = init;
         if (*xsink) {

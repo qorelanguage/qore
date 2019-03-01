@@ -127,9 +127,6 @@
 #include "QoreRWLock.cpp"
 #include "AbstractSmartLock.cpp"
 #include "SmartMutex.cpp"
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#include "CallStack.cpp"
-#endif
 #include "Datasource.cpp"
 #include "DatasourcePool.cpp"
 #include "ManagedDatasource.cpp"
@@ -247,6 +244,7 @@
 #include "CompressionTransforms.cpp"
 #include "EncryptionTransforms.cpp"
 #include "Transform.cpp"
+#include "QoreSerializable.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
@@ -351,6 +349,7 @@
 #include "QC_TransformOutputStream.cpp"
 #include "QC_StdoutOutputStream.cpp"
 #include "QC_StderrOutputStream.cpp"
+#include "QC_Serializable.cpp"
 
 #include "QorePseudoMethods.cpp"
 

@@ -9,7 +9,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 
 %exec-class ConnectionProviderTest
 
@@ -20,7 +20,14 @@ const KeyPassword = "password";
 public class ConnectionProviderTest inherits QUnit::Test {
     constructor() : Test("ConnectionProvider Test", "1.0") {
         addTestCase("ftp", \ftpConnectionTest());
+        addTestCase("ftp deprecated", \ftpConnectionTestDeprecated());
         addTestCase("http", \httpConnectionTest());
+        addTestCase("http deprecated", \httpConnectionTestDeprecated());
+        addTestCase("fs", \fsConnectionTest());
+        addTestCase("fs deprecated", \fsConnectionTestDeprecated());
+        addTestCase("invalid", \invalidConnectionTest());
+        addTestCase("custom parseUrl", \customParseUrlTest());
+        addTestCase("custom option validation", \customValidateOptions());
 
         # Return for compatibility with a test harness that checks the return value
         set_return_value(main());
@@ -28,9 +35,23 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
     ftpConnectionTest() {
         string url = "ftp://user:pass@localhost:1234/some_path";
+        FtpConnection fc("name", "desc", url);
+        assertEq(True, fc.enabled, "connection is enabled by default");
+        assertEq(True, fc.monitor, "connection is monitored by default");
+        assertEq(False, fc.locked, "connection is unlocked by default");
+
+        hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
+        assertEq("FtpClient", info.class_name);
+        assertEq(url, info.args[0]);
+        checkPreAndPostProcessing(info);
+    }
+
+    ftpConnectionTestDeprecated() {
+        string url = "ftp://user:pass@localhost:1234/some_path";
         hash urlh = parse_url(url);
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
         assertEq(True, fc.enabled, "connection is enabled by default");
+        assertEq(False, fc.locked, "connection is unlocked by default");
 
         hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
         assertEq("FtpClient", info.class_name);
@@ -63,14 +84,17 @@ public class ConnectionProviderTest inherits QUnit::Test {
         # use IPv4 localhost to work around potential issues with localhost -> ::1 and IPv6 -> IPv4 mappings
         # (ex: Windows)
         string url = "https://127.0.0.1:" + server.getPort();
-        hash urlh = parse_url(url);
         hash opts = (
             "ssl_cert_path": CertPath,
             "ssl_key_path": KeyPath,
             "ssl_key_password": KeyPassword,
         );
-        HttpConnection hc("name", "desc", url, True, opts, urlh);
+        hash attributes = {
+            "monitor": True,
+        };
+        HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
+        assertEq(False, hc.locked, "connection is unlocked by default");
 
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
@@ -94,10 +118,138 @@ public class ConnectionProviderTest inherits QUnit::Test {
         server.acceptAllCertificates(True);
         # verify server certificate in the client
         opts.ssl_verify_cert = True;
-        hc = new HttpConnection("name", "desc", url, True, opts, urlh);
+        hc = new HttpConnection("name", "desc", url, attributes, opts);
         # verify that exceptions are raised in the server & client when connecting
         assertThrows("SOCKET-SSL-ERROR", \hc.get());
         assertEq("SOCKET-SSL-ERROR", server.waitException().err);
+    }
+
+    httpConnectionTestDeprecated() {
+        string url = "http://127.0.0.1";
+        HttpConnection hc("name", "desc", url, True, NOTHING, Qore::parse_url(url));
+        assertEq(True, hc.enabled, "connection is enabled by default");
+        assertEq(False, hc.locked, "connection is unlocked by default");
+    }
+
+    fsConnectionTest() {
+        string url = Util::tmp_location();
+        hash opts = (
+            "readonly": False,
+        );
+        hash attributes = {
+            "monitor": True,
+        };
+
+        FilesystemConnection fs("name", "desc", url, attributes, opts);
+        assertEq(True, fs.enabled, "connection is enabled by default");
+        assertEq(False, fs.locked, "connection is unlocked by default");
+        assertEq(False, fs.opts.readonly, "readonly enabled by opts");
+
+        Dir d = fs.get();
+        assertEq(Util::tmp_location(), d.path(), "Path equality");
+    }
+
+    fsConnectionTestDeprecated() {
+        string url = Util::tmp_location();
+        FilesystemConnection fs("name", "desc", url, True, NOTHING, Qore::parse_url(url));
+        assertEq(True, fs.enabled, "connection is enabled by default");
+        assertEq(False, fs.locked, "connection is unlocked by default");
+
+        Dir d = fs.get();
+        assertEq(Util::tmp_location(), d.path(), "Path equality");
+    }
+
+    invalidConnectionTest() {
+        InvalidConnection ic1("name", "desc", "url");
+        assertEq("unknown error", ic1.error);
+
+        hash attributes = {
+            "error": "lorem ipsum",
+        };
+        InvalidConnection ic2("name", "desc", "url", attributes);
+        assertEq(attributes.error, ic2.error);
+    }
+
+    customParseUrlTest() {
+        # Qore::parse_url() must fail on this URL
+        assertThrows("PARSE-URL-ERROR", \Qore::parse_url(), MyConnection::URL);
+
+        # and now the custom parsing
+        MyConnection db();
+        assertEq("pgsql", db.urlh.type);
+        assertEq("user", db.urlh.user);
+        assertEq("pass", db.urlh.pass);
+        assertEq("db", db.urlh.db);
+        assertEq("host", db.urlh.host);
+        assertEq(1234, db.urlh.port);
+
+        assertEq(True, db.locked, "test locked connection");
+
+        # safe url
+        assertEq("pgsql:user@db%host:1234", db.safe_url);
+    }
+
+    private customValidateOptions() {
+        hash opts = {"foo": "bar"};
+
+        try {
+            HttpConnection h("foo", "bar", "http://localhost", {}, opts);
+            assertEq(False, exists h);
+        }
+        catch (hash ex) {
+            assertEq("CONNECTION-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /unknown option/);
+        }
+
+        IgnoreOptionsConnection h("foo", "bar", "http://localhost", {}, opts);
+        assertEq(opts, h.opts);
+    }
+}
+
+class IgnoreOptionsConnection inherits HttpConnection {
+    constructor(string name, string desc, string url, hash attrs, hash opts)
+        : HttpConnection(name, desc, url, attrs, opts) {
+    }
+
+    hash validateOptions(hash options) {
+        return orig_opts;
+    }
+}
+
+class MyConnection inherits AbstractConnection {
+    public {
+        # let's simulate a DB connection (without DatasourcePool options for a simplicity)
+        const URL = "sql://pgsql:user/pass@db%host:1234";
+    }
+
+    constructor() : AbstractConnection("name", "desc", URL, {"locked": True}) {
+    }
+
+    private hash parseUrl(string url) {
+        url = replace(url, "sql://", "");
+        return parse_datasource(url);
+    }
+
+    private string getSafeUrl(hash urlh) {
+        string url = sprintf("%s:%s@%s", urlh.type, urlh.user, urlh.db);
+        if (urlh.host.val()) {
+            url += "%" + urlh.host;
+        }
+        if (urlh.port.val()) {
+            url += ":" + urlh.port;
+        }
+        return url;
+    }
+
+    # just to implement abstract methods
+    string getType() {
+        return "sql";
+    }
+    hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+        return hash<ConnectionConstructorInfo>{};
+    }
+    object getImpl(bool _ = True, *hash __) {
+        return new Dir(); # just a silence the missing abtsract method. No use for Dir at all
     }
 }
 
@@ -143,8 +295,7 @@ class TestSslServer {
                     #printf("got %y\n", a.verifyPeerCertificate());
                     q.push(a.verifyPeerCertificate());
                 }
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 #printf("got ex: %s: %s\n", ex.err, ex.desc);
                 q.push(ex);
             }

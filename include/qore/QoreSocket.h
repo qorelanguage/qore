@@ -41,12 +41,11 @@
 #include <qore/InputStream.h>
 #include <qore/OutputStream.h>
 
-#include <sys/types.h>
-#include <unistd.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include <strings.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <openssl/ssl.h>
@@ -1227,6 +1226,7 @@ public:
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
        @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+       @param xsink if an error occurs, the Qore-language exception information will be added here
 
        @return 0 for OK, not 0 for error
 

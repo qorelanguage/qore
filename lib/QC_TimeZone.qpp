@@ -1,41 +1,98 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_TimeZone.qpp
+    QC_TimeZone.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_TimeZone.h"
+#include "qore/intern/QC_Serializable.h"
+
+static void create_timezone_from_region(const QoreString& region, QoreObject& self, ExceptionSink* xsink) {
+    bool is_path = (!region.empty() && region.c_str()[0] == '.') || q_absolute_path(region.c_str());
+    if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM)) {
+        xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
+    }
+    const AbstractQoreZoneInfo* zone = is_path
+        ? QTZM.findLoadRegionFromPath(region.c_str(), xsink)
+        : QTZM.findLoadRegion(region.c_str(), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+}
+
+static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneData& z, QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+
+    if (dynamic_cast<const QoreOffsetZoneInfo*>(*z)) {
+        int utc_offset = AbstractQoreZoneInfo::getUTCOffset(*z);
+        rv->setKeyValue("offset", utc_offset, xsink);
+    }
+    else {
+        rv->setKeyValue("region", new QoreStringNode(AbstractQoreZoneInfo::getRegionName(*z)), xsink);
+    }
+
+    return rv.release();
+}
+
+static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("region");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+            create_timezone_from_region(*val.get<QoreStringNode>(), self, xsink);
+            return;
+        }
+
+        val = sdata->getKeyValue("offset");
+        if (val) {
+            const AbstractQoreZoneInfo* zone = QTZM.findCreateOffsetZone(val.getAsBigInt());
+            self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the TimeZone class");
+}
 
 //! The TimeZone class provides access to time zone functionality
-/** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
+/** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can
+    have daylight savings time information; those based on UTC offsets have none.
+
+    The TimeZone class supports @ref Serializable "data serialization"; deserialization can fail if the object is based on
+    a region that is not present on the target machine.
 */
-qclass TimeZone [arg=TimeZoneData* z];
+qclass TimeZone [arg=TimeZoneData* z; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(TimeZone_serializer); deserializer=TimeZone_deserializer];
 
 //! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
 /** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
@@ -53,16 +110,7 @@ TimeZone tz("Europe/Prague");
     @since %Qore 0.8.12 an absolute path to a zoneinfo file can be provided if the @ref Qore::PO_NO_FILESYSTEM sandboxing restriction is not in place (checked at runtime if an absolute path is passed)
  */
 TimeZone::constructor(string region) {
-   bool is_path = (!region->empty() && region->getBuffer()[0] == '.') || q_absolute_path(region->getBuffer());
-   if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM))
-      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
-   const AbstractQoreZoneInfo *zone = is_path
-      ? QTZM.findLoadRegionFromPath(region->getBuffer(), xsink)
-      : QTZM.findLoadRegion(region->getBuffer(), xsink);
-   if (*xsink)
-      return;
-
-   self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+    create_timezone_from_region(region, *self, xsink);
 }
 
 //! Creates the TimeZone object based on the number of seconds east of UTC (3600 = UTC +01)
@@ -74,8 +122,8 @@ TimeZone tz(3600);
     @endcode
  */
 TimeZone::constructor(softint seconds_east) {
-   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
-   self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+    self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
 }
 
 //! Creates a copy of the TimeZone object
@@ -86,7 +134,7 @@ TimeZone newzone = tz.copy();
     @endcode
  */
 TimeZone::copy() {
-   self->setPrivate(CID_TIMEZONE, new TimeZoneData(*z));
+    self->setPrivate(CID_TIMEZONE, new TimeZoneData(*z));
 }
 
 //! Returns the number of seconds east of UTC for the zone; negative numbers indicate a zone west of UTC
@@ -98,13 +146,13 @@ int offset = tz.UTCOffset();
     @endcode
  */
 int TimeZone::UTCOffset() [flags=CONSTANT] {
-   return AbstractQoreZoneInfo::getUTCOffset(z->get());
+    return AbstractQoreZoneInfo::getUTCOffset(z->get());
 }
 
-//! Returns @ref True if the zone has daylight saving's time rules, @ref False if not
+//! Returns @ref True if the zone has daylight saving time rules, @ref False if not
 /** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have (but do not necessarily have) daylight savings time information; those based on UTC offsets have none
 
-    @return @ref True if the current zone has daylight saving's time rules, @ref False if not
+    @return @ref True if the current zone has daylight saving time rules, @ref False if not
 
     @par Example:
     @code{.py}
@@ -112,7 +160,7 @@ bool hasdst = tz.hasDST();
     @endcode
  */
 bool TimeZone::hasDST() [flags=CONSTANT] {
-   return AbstractQoreZoneInfo::hasDST(z->get());
+    return AbstractQoreZoneInfo::hasDST(z->get());
 }
 
 //! Returns the region name as a string; if the current zone is based on a UTC offset, then the UTC offset is returned as a string like \c "+01:00"
@@ -124,7 +172,7 @@ string region = tz.region();
     @endcode
  */
 string TimeZone::region() [flags=CONSTANT] {
-   return new QoreStringNode(AbstractQoreZoneInfo::getRegionName(z->get()));
+    return new QoreStringNode(AbstractQoreZoneInfo::getRegionName(z->get()));
 }
 
 //! Returns the equivalent date in the time zone of the current object
@@ -137,7 +185,7 @@ date dt = tz.date(secs);
     @endcode
  */
 date TimeZone::date(softint secs, softint us = 0) [flags=CONSTANT] {
-   return DateTimeNode::makeAbsolute(z->get(), secs, (int)us);
+    return DateTimeNode::makeAbsolute(z->get(), secs, (int)us);
 }
 
 //! Returns the equivalent date in the time zone of the current object
@@ -149,7 +197,7 @@ date dt = tz.date(2012-01-01T13:56:23+01:00);
     @endcode
  */
 date TimeZone::date(date d) [flags=CONSTANT] {
-   return DateTimeNode::makeAbsolute(z->get(), d->getEpochSecondsUTC(), d->getMicrosecond());
+    return DateTimeNode::makeAbsolute(z->get(), d->getEpochSecondsUTC(), d->getMicrosecond());
 }
 
 //! Returns the equivalent date in the time zone of the current object
@@ -163,7 +211,7 @@ date dt = tz.date("2012-01-01T13:56:23");
     @since %Qore 0.8.4
  */
 date TimeZone::date(string dtstr) [flags=CONSTANT] {
-   return new DateTimeNode(z->get(), dtstr->getBuffer());
+    return new DateTimeNode(z->get(), dtstr->getBuffer());
 }
 
 //! Returns a @ref date "date/time" value in the current TimeZone corresponding to parsing a string argument according to a @ref date_mask "format mask"
@@ -186,7 +234,7 @@ printf("%y\n", tz.date("05/02/2012", "DD/MM/YYYY")); # outputs: 2012-02-05 00:00
     @since %Qore 0.8.6
 */
 date TimeZone::date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
-   return make_date_with_mask(z->get(), *dtstr, *mask, xsink);
+    return make_date_with_mask(z->get(), *dtstr, *mask, xsink);
 }
 
 //! Returns a date in the object's zone based on an offsets in milliseconds from \c 1970-01-01Z
@@ -200,7 +248,7 @@ date dt = tz.dateMs(offset_ms);
     @endcode
  */
 date TimeZone::dateMs(softint ms) [flags=CONSTANT] {
-   return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (int)((ms % 1000) * 1000));
+    return DateTimeNode::makeAbsolute(z->get(), ms / 1000, (int)((ms % 1000) * 1000));
 }
 
 //! Returns a date in the object's zone based on an offsets in microseconds from \c 1970-01-01Z
@@ -214,7 +262,7 @@ date dt = tz.dateUs(offset_uss);
     @endcode
  */
 date TimeZone::dateUs(softint us) [flags=CONSTANT] {
-   return DateTimeNode::makeAbsolute(z->get(), us / 1000000, (int)(us % 1000000));
+    return DateTimeNode::makeAbsolute(z->get(), us / 1000000, (int)(us % 1000000));
 }
 
 //! Returns a TimeZone object for the current time zone
@@ -227,7 +275,7 @@ TimeZone tz = TimeZone::get();
     @endcode
  */
 static TimeZone TimeZone::get() [flags=CONSTANT] {
-   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(currentTZ()));
+    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(currentTZ()));
 }
 
 //! Sets the time zone for the current Program object from a TimeZone object
@@ -241,8 +289,8 @@ TimeZone::set(tz);
     @endcode
  */
 static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
-   ReferenceHolder<TimeZoneData> holder(zone, xsink);
-   getProgram()->setTZ(zone->get());
+    ReferenceHolder<TimeZoneData> holder(zone, xsink);
+    getProgram()->setTZ(zone->get());
 }
 
 //! Sets the time zone for the current Program object from an integer offset in seconds east of UTC
@@ -255,8 +303,8 @@ TimeZone::setUTCOffset(3600);
     @endcode
  */
 static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=LOCALE_CONTROL] {
-   const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
-   getProgram()->setTZ(zone);
+    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+    getProgram()->setTZ(zone);
 }
 
 //! Sets the time zone for the current Program object from a time zone region name
@@ -271,7 +319,8 @@ TimeZone::setRegion("Europe/Prague");
     @endcode
  */
 static nothing TimeZone::setRegion(string region) [dom=LOCALE_CONTROL] {
-   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
-   if (!*xsink)
-      getProgram()->setTZ(zone);
+    const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
+    if (!*xsink) {
+        getProgram()->setTZ(zone);
+    }
 }

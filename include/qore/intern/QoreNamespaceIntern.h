@@ -120,6 +120,7 @@ public:
     DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
         const qore_ns_private* w = parent;
         while (w && (anchored || w->parent)) {
+            //printd(5, "qore_ns_private::getPath() this: %p name: '%s' parent: %p root: %d\n", w, w->name.c_str(), parent, root);
             str.insert(0, "::");
             str.insert(0, w->name);
             w = w->parent;
@@ -260,16 +261,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
-        if (checkImportClass(new_name ? new_name : c->getName(), xsink))
-            return nullptr;
-
-        QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
-        qore_class_private::setNamespace(nc, this);
-        classList.add(nc);
-
-        return nc;
-    }
+    DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr);
 
     DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, const char* new_name = nullptr) {
         if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink))
@@ -561,7 +553,7 @@ struct NSOInfo : public NSOInfoBase {
 
 // cannot use vector_map here for performance reasons
 template <typename T>
-class RootMap : public std::map<const char*, NSOInfo<T>, ltstr> {
+class RootMap : public std::map<const std::string, NSOInfo<T>> {
 private:
     // not implemented
     DLLLOCAL RootMap(const RootMap& old);
@@ -570,29 +562,30 @@ private:
 
 public:
     typedef NSOInfo<T> info_t;
-    typedef std::map<const char*, NSOInfo<T>, ltstr> map_t;
+    typedef std::map<const std::string, NSOInfo<T>> map_t;
 
     DLLLOCAL RootMap() {
     }
 
-    DLLLOCAL void update(const char* name, qore_ns_private* ns, T* obj) {
+    DLLLOCAL void update(const std::string& name, qore_ns_private* ns, T* obj) {
         // get current lookup map entry for this object
-        typename map_t::iterator i = this->find(name);
-        if (i == this->end())
-            this->insert(typename map_t::value_type(name, info_t(ns, obj)));
-        else // if the old depth is > the new depth, then replace
-            if (i->second.depth() > ns->depth)
+        typename map_t::iterator i = this->lower_bound(name);
+        if (i == this->end() || i->first != name) {
+            this->insert(i, typename map_t::value_type(name, info_t(ns, obj)));
+        } else { // if the old depth is > the new depth, then replace
+            if (i->second.depth() > ns->depth) {
                 i->second.assign(ns, obj);
+            }
+        }
     }
 
     DLLLOCAL void update(typename map_t::const_iterator ni) {
         // get current lookup map entry for this object
-        typename map_t::iterator i = this->find(ni->first);
-        if (i == this->end()) {
+        typename map_t::iterator i = this->lower_bound(ni->first);
+        if (i == this->end() || i->first != ni->first) {
             //printd(5, "RootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
-            this->insert(typename map_t::value_type(ni->first, ni->second));
-        }
-        else {
+            this->insert(i, typename map_t::value_type(ni->first, ni->second));
+        } else {
             // if the old depth is > the new depth, then replace
             if (i->second.depth() > ni->second.depth()) {
                 //printd(5, "RootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
@@ -603,7 +596,7 @@ public:
         }
     }
 
-    T* findObj(const char* name) {
+    T* findObj(const std::string& name) {
         typename map_t::iterator i = this->find(name);
         return i == this->end() ? nullptr : i->second.obj;
     }
@@ -1193,6 +1186,7 @@ protected:
     DLLLOCAL QoreClass* parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
 
     DLLLOCAL QoreClass* parseFindClassIntern(const char* cname) {
+        assert(cname);
         {
             // try to check in current namespace first
             qore_ns_private* nscx = parse_get_ns();

@@ -1,0 +1,217 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class CopyDirStructureTest
+
+public class CopyDirStructureTest inherits QUnit::Test {
+
+    constructor() : Test ("CopyDirStructureTest", "1.0") {
+        addTestCase("copy_dir_structure test", \test_copy_dir_structure());
+        addTestCase("copy_dir_structure exception test", \test_copy_dir_structure_exception());
+        set_return_value(main());
+    }
+
+    test_copy_dir_structure() {
+        # create a temporary directory and a test directory tree in it
+        TmpDir tmp_root = new TmpDir();
+        string source_path = join_paths(tmp_root.path, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        string dir2_path = join_paths(dir_path, "dir2");
+        mkdir(dir2_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── dir2
+
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(dir2_path));
+        assertTrue(is_dir(dir2_path));
+
+        # let's copy the source directory structure and check the result too
+        string dst_path = join_paths(tmp_root.path, "dst");
+        assertFalse(path_exists(dst_path));
+        string cp_dest_path = copy_dir_structure(source_path, dst_path);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        string dst_dir_path = join_paths(dst_path, "dir");
+        string dst_dir2_path = join_paths(dst_dir_path, "dir2");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_dir2_path));
+        assertTrue(is_dir(dst_dir2_path));
+
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # it should also work with a depth specified as "too deep"
+        cp_dest_path = copy_dir_structure(source_path, dst_path, 42);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        dst_dir_path = join_paths(dst_path, "dir");
+        dst_dir2_path = join_paths(dst_dir_path, "dir2");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_dir2_path));
+        assertTrue(is_dir(dst_dir2_path));
+
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again but let's limit the depth to one level of subdirectories
+        cp_dest_path = copy_dir_structure(source_path, dst_path, 1);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        dst_dir_path = join_paths(dst_path, "dir");
+        dst_dir2_path = join_paths(dst_dir_path, "dir2");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertFalse(path_exists(dst_dir2_path));
+        assertFalse(is_dir(dst_dir2_path));
+
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again but let's limit the depth to zero
+        cp_dest_path = copy_dir_structure(source_path, dst_path, 0);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        dst_dir_path = join_paths(dst_path, "dir");
+        dst_dir2_path = join_paths(dst_dir_path, "dir2");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertFalse(path_exists(dst_dir_path));
+        assertFalse(is_dir(dst_dir_path));
+        assertFalse(path_exists(dst_dir2_path));
+        assertFalse(is_dir(dst_dir2_path));
+
+        # let's clean it
+        remove_tree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # now let's add a symlink to a directory to the structure to be copied
+        string link_path = join_paths(source_path, "link");
+        symlink(dir2_path, link_path);
+
+        # thus we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── dir2
+        #     ├── link  ->  tmp_root/dir/dir2
+
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(dir2_path));
+        assertTrue(is_dir(dir2_path));
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(dir2_path, readlink(link_path));
+
+        # the symlink shouldn't be copied with the structure
+        cp_dest_path = copy_dir_structure(source_path, dst_path);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        dst_dir_path = join_paths(dst_path, "dir");
+        dst_dir2_path = join_paths(dst_dir_path, "dir2");
+        string dst_link_path = join_paths(dst_path, "link");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_dir2_path));
+        assertTrue(is_dir(dst_dir2_path));
+        assertFalse(path_exists(dst_link_path));
+    }
+
+    test_copy_dir_structure_exception() {
+        # create a temporary directory and a test directory tree in it
+        TmpDir tmp_root = new TmpDir();
+        string source_path = join_paths(tmp_root.path, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        string dir2_path = join_paths(dir_path, "dir2");
+        mkdir(dir2_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── dir2
+
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(dir2_path));
+        assertTrue(is_dir(dir2_path));
+
+        # let's try and copy the structure to an existing directory,...
+        string dst_dir_path = join_paths(tmp_root.path, "dst");
+        mkdir(dst_dir_path);
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertThrows("PATH-EXISTS-ERROR", \copy_dir_structure(), (source_path, dst_dir_path));
+
+        # ...to itself...
+        assertThrows("PATH-EXISTS-ERROR", \copy_dir_structure(), (source_path, source_path));
+
+        # ...or a file...
+        File tmp_file = new File();
+        string file_path = join_paths(tmp_root.path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assertThrows("PATH-EXISTS-ERROR", \copy_dir_structure(), (source_path, file_path));
+
+        # ...or a symlink
+        string link_path = join_paths(tmp_root.path, "link");
+        symlink(source_path, link_path);
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(source_path, readlink(link_path));
+        assertThrows("PATH-EXISTS-ERROR", \copy_dir_structure(), (source_path, link_path));
+
+        # now let's try and copy a non-existant directory...
+        remove_tree(dst_dir_path);
+        string non_existant = join_paths(tmp_root.path, "non_existant");
+        assertFalse(path_exists(non_existant));
+        assertThrows("NOT-DIRECTORY-ERROR", \copy_dir_structure(), (non_existant, dst_dir_path));
+
+        # ...a file...
+        assertThrows("NOT-DIRECTORY-ERROR", \copy_dir_structure(), (file_path, dst_dir_path));
+
+        # ...or a symlink
+        assertThrows("NOT-DIRECTORY-ERROR", \copy_dir_structure(), (link_path, dst_dir_path));
+    }
+}

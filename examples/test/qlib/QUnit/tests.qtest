@@ -38,6 +38,8 @@ public class EmptyTest inherits QUnit::Test {
 
 public class QUnitTest inherits QUnit::Test {
     constructor() : Test("QUnitTest", "1.0") {
+        addTestCase("nested test", \nestedTest());
+        addTestCase("issue 3172", \issue3172());
         addTestCase("Dependency injection tests", \testInjectedClass());
         addTestCase("Test empty test", \testEmptyTest());
         addTestCase("misc test", \testMisc());
@@ -48,6 +50,24 @@ public class QUnitTest inherits QUnit::Test {
     bool boolWrapper(callref f, softlist args) {
         call_function_args(f, args);
         return True;
+    }
+
+    nestedTest() {
+        {
+            Test test("NestedTest", "1.0");
+
+            code test_code = sub () {
+                test.assertTrue(True);
+            };
+            test.addTestCase("my test", test_code);
+            test.main();
+        }
+
+        assertTrue(True);
+    }
+
+    issue3172() {
+        assertThrows("TEST-SKIPPED-EXCEPTION", "fmt: 1", \testSkip(), ("fmt: %d", 1));
     }
 
     testMisc() {

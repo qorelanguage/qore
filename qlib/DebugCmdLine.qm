@@ -1192,7 +1192,7 @@ public namespace DebugCmdLine {
         # to implement print to terminal
         abstract public printfImpl(string fmt);
 
-        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl)
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl::DebugProgramControl "DebugProgramControl")
         abstract public *hash doCommandImpl(hash data);
 
         public *hash doCommand(hash data, bool print) {
@@ -1210,7 +1210,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public showFileNames(hash fn) {
+        public showFileNames(*hash fn) {
             foreach string k in (keys fn) {
                 printfImpl("%s", k);
                 if (fn{k}) {
@@ -1469,7 +1469,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        private string escapeArg(string s) {
+        private string escapeArg(softstring s) {
             int i = 0;
             while (i < s.size()) {
                 bool addEsc = True;

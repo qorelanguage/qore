@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,13 @@ class QoreExternalFunction;
 class QoreExternalGlobalVar;
 class QoreExternalConstant;
 
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+typedef std::list<QoreBreakpoint*> bkp_list_t;
+
+struct QoreBreakpointList_t : public bkp_list_t {
+    DLLEXPORT QoreBreakpointList_t();
+    // dereferences all breakpoints and clears the list
+    DLLEXPORT ~QoreBreakpointList_t();
+};
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -676,6 +682,7 @@ public:
 
     // finds all variants of a function or class method and returns a list of the results
     /** @param name the function or class method name; may also be namespace-justified
+        @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
         - \c desc: a string description of the call which includes the name and the full text call signature
@@ -740,6 +747,14 @@ public:
     DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
 
     //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
+    /** @note this function is safe to call during module initialization for the current Program (as returned by
+        getProgram())
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreNamespace* findNamespace(const QoreString& path);
+
+    //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreNamespace* findNamespace(const QoreString& path) const;
@@ -764,6 +779,13 @@ public:
     */
     DLLEXPORT void depDeref();
 
+    //! returns the thread-local data for the current thread and the Program object
+    /** will always be non-nullptr if the thread is registered
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreHashNode* getThreadData();
+
     DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
     DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
@@ -771,7 +793,6 @@ public:
     // returns 0 if a "requires" exception has already occurred
     DLLLOCAL ExceptionSink* getParseExceptionSink();
 
-    DLLLOCAL QoreHashNode* getThreadData();
     DLLLOCAL void addFile(char* f);
     DLLLOCAL QoreListNode* getVarList();
     DLLLOCAL void parseSetIncludePath(const char* path);
@@ -835,7 +856,7 @@ public:
 
     //! get the statement from statement id
     /**
-        @param statementId created by @ref Program::getStatementId
+        @param statementId created by @ref QoreProgram::getStatementId
 
         @return the original statement or null if statement cannot be resolved
     */
@@ -860,7 +881,7 @@ public:
 
     //! get the program from program id
     /**
-        @param programId provided by @ref Program::getProgramId
+        @param programId provided by @ref QoreProgram::getProgramId
 
         @return the original program or null if program cannot be resolved
     */
@@ -977,7 +998,6 @@ public:
    virtual void doDeref() = 0;
 };
 
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 typedef std::list<AbstractStatement*> AbstractStatementList_t;
 typedef std::list<int> TidList_t;
 
@@ -993,7 +1013,6 @@ private:
    typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
    TidMap_t tidMap;
    QoreObject* qo; // reference to Qore script object, it's private object but we cannot
-   typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
    static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
    static QoreBreakpointList_t breakpointList;
    static volatile unsigned breakpointIdCounter;   // to generate breakpointId
@@ -1024,6 +1043,7 @@ public:
    /** Assign @ref QoreProgram to breakpoint.
     *
     *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
+    *  @param xsink if an error occurs, the Qore-language exception information will be added here
     */
    DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
    /* Get assigned program to breakpoint
@@ -1083,7 +1103,7 @@ public:
 
    //! get the breakpoint from breakpoint id
    /**
-      @param breakpointId provided by @ref Program::getBreakpointId
+      @param breakpointId provided by @ref getBreakpointId
 
       @return the original breakpoint or null if object cannot be resolved
     */

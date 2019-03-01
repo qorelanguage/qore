@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,9 +38,14 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <string.h>
-#include <time.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
+#include <ctime>
+
+#ifndef WARN_MODULES
+// needed so that the Qore default argument value in sinatures below will match a C++ value
+#define WARN_MODULES QP_WARN_MODULES
+#endif
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
@@ -554,6 +559,13 @@ auto result = call_function("func_name", arg1, arg2);
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(string name, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -576,6 +588,13 @@ auto result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(code f, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -603,6 +622,13 @@ auto result = call_function_args("func_name", (arg1, arg2));
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(string name, *softlist<auto> vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
@@ -619,6 +645,13 @@ auto result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(code f, *softlist<auto> vargs) {
    return f->execValue(vargs, xsink);
@@ -888,7 +921,7 @@ parse(code, filename);
     these changes were made to align the functionality of this function with the @ref Qore::Program::parse() "Program::parse()"
     and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
-*hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
+*hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -2236,6 +2269,7 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
 
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
 
     @par Example:
     @code{.py}
@@ -2248,10 +2282,44 @@ load_module("mysql");
     - get_module_hash()
     - get_feature_list()
 
-    @since %Qore 0.8.7 this function can also be used in user module code
+    @since
+    - %Qore 0.8.7 this function can also be used in user module code
+    - %Qore 0.9 added the \c warning_mask parameter
 */
-nothing load_module(string name) [dom=MODULES] {
-   MM.runTimeLoadModule(name->getBuffer(), xsink);
+nothing load_module(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), getProgram(), nullptr, QMLO_NONE, warning_mask);
+}
+
+//! Loads in a %Qore module at run-time
+/** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
+
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
+
+    @par Example:
+    @code{.py}
+load_module("mysql");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
+
+    @see
+    - get_module_hash()
+    - get_feature_list()
+
+    @since
+    - %Qore 0.8.7 this function can also be used in user module code
+    - %Qore 0.9 added the \c warning_mask parameter
+*/
+*hash<ExceptionInfo> load_module_warn(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    ExceptionSink wsink;
+    QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), getProgram(), nullptr, QMLO_NONE, warning_mask);
+    if (!*xsink && wsink) {
+        return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+    }
+    return QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2276,7 +2344,7 @@ load_user_module_with_program("MyModule", p);
     @since %Qore 0.8.12
  */
 nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), getProgram(), pgm);
 }
 
 //! Reloads an already-loaded %Qore module subject to code injection at run-time into %Qore; the module's code is not imported into the current Program object
@@ -2300,7 +2368,7 @@ reload_module("FixedLengthUtil");
     @since %Qore 0.8.12
 */
 nothing reload_module(string name) [dom=MODULES,INJECTION] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
@@ -2600,8 +2668,7 @@ set_return_value(auto val) [dom=PROCESS] {
     @code{.py}
 try {
     throw "oops", sprintf("arg %y is invalid", arg);
-}
-catch (hash<ExceptionSink> ex) {
+} catch (hash<ExceptionSink> ex) {
     log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
 }
     @endcode
@@ -2614,18 +2681,33 @@ catch (hash<ExceptionSink> ex) {
  */
 string get_ex_pos(hash<auto> ex) [flags=CONSTANT] {
     QoreValue n = ex->getKeyValue("file");
-    QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+    QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING
+        ? n.get<const QoreStringNode>()->c_str()
+        : "<unknown>");
     int ln = (int)ex->getKeyValue("line").getAsBigInt();
     str->sprintf(":%d", ln);
+    bool openparen = false;
+    n = ex->getKeyValue("lang");
+    if (n.getType() == NT_STRING) {
+        str->sprintf(" (%s", n.get<const QoreStringNode>()->c_str());
+        openparen = true;
+    }
     n = ex->getKeyValue("source");
     if (n.getType() == NT_STRING) {
         const QoreStringNode* sstr = n.get<const QoreStringNode>();
         if (!sstr->empty()) {
             int offset = (int)ex->getKeyValue("offset").getAsBigInt();
-            str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+            str->concat(" ");
+            if (!openparen) {
+                str->concat('(');
+                openparen = true;
+            }
+            str->sprintf("source \"%s\":%d", sstr->c_str(), ln + offset);
         }
     }
-
+    if (openparen) {
+        str->concat(')');
+    }
     return str;
 }
 
@@ -2708,4 +2790,60 @@ set_global_var_value("a", 1);
 nothing set_global_var_value(string name, auto value) {
    getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
+
+//! returns the given global module option
+/** @par Example:
+    @code
+auto val = get_module_option(mod, opt);
+    @endcode
+
+    @param module the name of the module
+    @param option the name of the option
+
+    @return the value of the given module option
+
+    @see set_module_option()
+
+    @since %Qore 0.9
+*/
+auto get_module_option(string module, string option) [flags=CONSTANT;dom=PROCESS] {
+    TempEncodingHelper mod_str(module, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper opt_str(option, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return qore_get_module_option(mod_str->c_str(), opt_str->c_str());
+}
+
+//! set the given module option
+/** @par Example:
+    @code
+set_module_option(mod, opt, val);
+    @endcode
+
+    @param module the name of the module
+    @param option the name of the option
+    @param value the value to assign; setting to @ref nothing removes the module option
+
+    @see get_module_option()
+
+    @since %Qore 0.0
+ */
+nothing set_module_option(string module, string option, auto value) [dom=PROCESS] {
+    TempEncodingHelper mod_str(module, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper opt_str(option, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    qore_set_module_option(mod_str->c_str(), opt_str->c_str(), value.refSelf());
+}
+
 //@}

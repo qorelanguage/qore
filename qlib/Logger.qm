@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Logger.qm Logger library
+#! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -241,7 +241,7 @@ public namespace Logger {
             static hash<string, LoggerLevel> levelMap;
 
             #! String to int hash
-            const LEVELSTR_TO_LEVEL = (
+            const LEVELSTR_TO_LEVEL = {
                 'ALL':   ALL,
                 'TRACE': TRACE,
                 'DEBUG': DEBUG,
@@ -250,7 +250,7 @@ public namespace Logger {
                 'ERROR': ERROR,
                 'FATAL': FATAL,
                 'OFF':   OFF,
-            );
+            };
 
             #! Int to string hash
             const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
@@ -354,6 +354,46 @@ public namespace Logger {
                 }
                 return default_level;
             }
+        }
+
+        #! Returns closest lower logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no lower level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextLowerLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.prev()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
+        }
+
+        #! Returns closest higher logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no higher level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextHigherLevel(int level) {
+            HashIterator hi(LEVELSTR_TO_LEVEL);
+            while (hi.next()) {
+                if (level == hi.getValue()) {
+                    if (hi.next()) {
+                        return LoggerLevel::getLevel(hi.getValue());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
         }
 
         #! Converts the input argument to a level.
@@ -925,8 +965,8 @@ public namespace Logger {
         /**
             @param n_name the appender name
         */
-        constructor(string n_name = "") {
-            name = n_name;
+        constructor(*string n_name) {
+            name = n_name ?? "";
         }
 
         destructor() {
@@ -1121,7 +1161,7 @@ public namespace Logger {
         All events posted to the appender are silently ignored
     */
     public class LoggerAppenderNull inherits LoggerAppender {
-        constructor(string n_name = ""): LoggerAppender(n_name) {
+        constructor(*string n_name): LoggerAppender(n_name) {
         }
 
         private auto serializeImpl(LoggerEvent event) {
@@ -1468,7 +1508,7 @@ public namespace Logger {
             @param n_name the name of the appender
             @param n_layout the layout for the appender
         */
-        constructor(string n_name, LoggerLayout n_layout): LoggerAppender(n_name) {
+        constructor(*string n_name, LoggerLayout n_layout): LoggerAppender(n_name) {
             layout = n_layout;
         }
 
@@ -1515,7 +1555,7 @@ public namespace Logger {
             @param n_layout the layout for the appender
             @param n_writer the stream to write to
         */
-        constructor(string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
             writer = n_writer;
             assignThread = writer.getOutputStream().getThreadId() == -1;
         }
@@ -1574,7 +1614,7 @@ public namespace Logger {
             @param n_filename the output filename
             @param n_encoding the file's output encoding
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
             file = new File(n_encoding);
             fileName = n_filename;
         }
@@ -1597,14 +1637,7 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
-                    if (file.open(fileName, O_APPEND | O_WRONLY) == -1) {
-                        if (errno() == Qore::Err::ENOENT) {
-                            # No such file or directory
-                            file.open2(fileName, O_CREAT | O_WRONLY);
-                        } else {
-                            throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
-                        }
-                    }
+                    file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY);
                     break;
                 case EVENT_CLOSE:
                     try {
@@ -1636,7 +1669,7 @@ public namespace Logger {
             @param n_name the name of the appender
             @param n_layout the layout for the appender
         */
-        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1665,7 +1698,7 @@ public namespace Logger {
             @param n_name the name of the appender
             @param n_layout the layout for the appender
         */
-        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
+        constructor(*string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1683,16 +1716,44 @@ public namespace Logger {
     }
 %endif
 
+    #! Abstract class for file appenders with rotation support
+    public class AbstractLoggerAppenderFileRotate inherits public LoggerAppenderFile {
+        public {
+            #! rotate event
+            const EVENT_ROTATE = 10001;
+            #! default value for rotation chain
+            const DEFAULT_ROTATION_COUNT = 10;
+        }
+
+        constructor(*string n_name, LoggerLayout n_layout, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding) {}
+
+        #! Pushes rotate event
+        /**
+            The current log file will be closed and opened. If the file exists, then it is ovewritten
+
+            @throw LOGGER-ERROR if rotation is disabled
+        */
+        public rotate() {
+            if (isOpen()) {
+                if (getCount() <= 0) {
+                    throw "LOGGER-ERROR", "Rotation is disabled";
+                }
+                pushEvent(EVENT_ROTATE, NOTHING);
+            }
+        }
+
+        #! Abstract method to get count of rotation objects
+        public abstract int getCount();
+    }
+
     #! Implements appender writing to a file with file rotation support
     /**
         The events will be logged to a file until rotation occurs.
         At that moment the current file is closed, archive chain is moved,
         new file is created and logging continues there.
     */
-    public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
+    public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFileRotate, private LoggerPattern {
         public {
-            #! rotate event
-            const EVENT_ROTATE = 10;
             #! default archive pattern
             const DEFAULT_ARCHIVE_PATTERN = "%p%f.%i";
         }
@@ -1731,7 +1792,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): LoggerAppenderFile(n_name, n_layout, '', n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, int n_count = DEFAULT_ROTATION_COUNT, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
@@ -1815,26 +1876,11 @@ public namespace Logger {
                         }
                         file.close();
                         rename(fileName, fn[0]);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
                     LoggerAppenderFile::processEventImpl(type, params);
-            }
-        }
-
-        #! Pushes rotate event
-        /**
-            The current log file will be closed and opened. If the file exists, then it is ovewritten
-
-            @throw LOGGER-ERROR if rotation is disabled
-        */
-        public rotate() {
-            if (isOpen()) {
-                if (count <= 0) {
-                    throw "LOGGER-ERROR", "Rotation is disabled";
-                }
-                pushEvent(EVENT_ROTATE, NOTHING);
             }
         }
 
@@ -1864,10 +1910,8 @@ public namespace Logger {
         At that moment the current file is closed, next file is created
         and logging continues to the new file.
     */
-    public class LoggerAppenderFileRing inherits public LoggerAppenderFile, private LoggerPattern {
+    public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderFileRotate, private LoggerPattern {
         public {
-            #! rotate event
-            const EVENT_ROTATE = 10;
             #! default date format
             const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
         }
@@ -1898,7 +1942,7 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_pattern) {
+        constructor(*string n_name, LoggerLayout n_layout, string n_pattern, int n_count = DEFAULT_ROTATION_COUNT, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_pattern) {
             # set a provisional filename, to be updated when file is opened
             patternData.timestamp = now_us();
             patternData.count = n_count;
@@ -1979,26 +2023,11 @@ public namespace Logger {
                         patternData.index = (patternData.index + 1) % patternData.count;
                         patternData.timestamp = now_us();
                         fileName = format(patternData);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
                     LoggerAppenderFile::processEventImpl(type, params);
-            }
-        }
-
-        #! Pushes rotate event
-        /**
-            The current log file will be closed and opened. If the file exists, then it is ovewritten
-
-            @throw LOGGER-ERROR if rotation is disabled
-        */
-        public rotate() {
-            if (isOpen()) {
-                if (patternData.count <= 0) {
-                    throw "LOGGER-ERROR", "Rotation is disabled";
-                }
-                pushEvent(EVENT_ROTATE, NOTHING);
             }
         }
 
@@ -2058,7 +2087,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p/archive/%d/%f" archives log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/archive/20180120102030/MyLogger.log".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
+        constructor(*string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
             *string n_encoding): LoggerAppenderFile(n_name, n_layout, n_filename, n_encoding), LoggerPattern(n_filename) {
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             setPattern(n_archive);
@@ -2412,8 +2441,8 @@ public namespace Logger {
         /**
             @param n_name the name of the object
         */
-        constructor(string n_name) {
-            name = n_name;
+        constructor(*string n_name) {
+            name = n_name ?? "";
         }
 
         destructor() {
@@ -2484,7 +2513,7 @@ public namespace Logger {
             @param level the logging level as a string
         */
         public setLevel(string level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
         }
 
         #! Sets the logging level
@@ -2492,7 +2521,35 @@ public namespace Logger {
             @param level the logging level to set
         */
         public setLevel(int level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
+        }
+
+        #! Decrement logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel decLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextLowerLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
+        #! Increment logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel incLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = LoggerLevel::getNextHigherLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
         }
 
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
@@ -2571,7 +2628,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool check_throwable, date time_stamp = now_us() ) {
+            bool check_throwable, date time_stamp = now_us()) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && check_throwable) {
@@ -2599,7 +2656,8 @@ public namespace Logger {
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date time_stamp) {
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+            *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
@@ -2735,7 +2793,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public traceVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Logs the variable name and value using DEBUG level
@@ -2746,7 +2804,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public debugVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Checks whether this Logger is enabled for a given Level passed as parameter.

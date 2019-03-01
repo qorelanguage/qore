@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,9 +33,9 @@
 
 #define _QORE_QORECLASS_H
 
-#include <stdarg.h>
-#include <string>
+#include <cstdarg>
 #include <memory>
+#include <string>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
@@ -65,11 +65,13 @@ DLLEXPORT extern qore_classid_t CID_INPUTSTREAM;
 DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
 DLLEXPORT extern qore_classid_t CID_INPUTSTREAMBASE;
 DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAMBASE;
+DLLEXPORT extern qore_classid_t CID_PROGRAM;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
 DLLEXPORT extern QoreClass* QC_SSLCERTIFICATE;
 DLLEXPORT extern QoreClass* QC_SSLPRIVATEKEY;
+DLLEXPORT extern QoreClass* QC_PROGRAM;
 
 class BCList;
 class BCSMList;
@@ -98,6 +100,7 @@ class QoreExternalProgramLocation;
 class QoreExternalMethodFunction;
 class QoreExternalMemberVarBase;
 class QoreExternalStaticMember;
+class QoreExternalNormalMember;
 class QoreExternalConstant;
 
 //! method type enum
@@ -447,6 +450,30 @@ public:
     */
     DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
+    //! sets the serializer method for builtin classes
+    /** @param m the serializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setSerializer(q_serializer_t m);
+
+    //! sets the deserializer method for builtin classes
+    /** @param m the deserializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setDeserializer(q_deserializer_t m);
+
+    //! returns the serializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_serializer_t getSerializer() const;
+
+    //! returns the deserializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_deserializer_t getDeserializer() const;
+
     //! sets the final flag of the class
     DLLEXPORT void setFinal();
 
@@ -482,7 +509,7 @@ public:
 
         @return the object created
     */
-    DLLEXPORT QoreObject* execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *arsg, ExceptionSink* xsink) const;
+    DLLEXPORT QoreObject* execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const;
 
     //! creates a new "system" object for use as the value of a constant, executes the system constructor on it and returns the new object
     /** if a Qore-language exception occurs, 0 is returned
@@ -833,7 +860,7 @@ public:
     //! Finds the given local member or returns nullptr
     /** @since %Qore 0.9
     */
-    DLLEXPORT const QoreExternalMemberVarBase* findLocalMember(const char* name) const;
+    DLLEXPORT const QoreExternalNormalMember* findLocalMember(const char* name) const;
 
     //! Finds the given local static member or returns nullptr
     /** @since %Qore 0.9
@@ -871,6 +898,21 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreNamespace* getNamespace() const;
+
+    //! Returns true if the class passed as an argument is present in the current class's hierachy, even if not accessible from the class due to private:internal inheritance
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
+
+    //! Returns true if the class has at least one locally-declared transient member
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool hasTransientMember() const;
+
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const char* getModuleName() const;
 
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
@@ -1054,7 +1096,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the member
-    DLLEXPORT const QoreExternalMemberVarBase& getMember() const;
+    DLLEXPORT const QoreExternalNormalMember& getMember() const;
 
     //! returns the member's name
     DLLEXPORT const char* getName() const;
@@ -1115,7 +1157,9 @@ private:
 };
 
 //! iterates the class hierarchy in the order of constructor execution
-/** @since %Qore 0.9
+/** @see QoreClassDestructorHierarchyIterator
+
+    @since %Qore 0.9
 */
 class QoreClassHierarchyIterator final {
 public:
@@ -1134,8 +1178,44 @@ public:
     //! returns the parent class
     DLLEXPORT const QoreClass& get() const;
 
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
+
 private:
     std::unique_ptr<class qore_class_hierarchy_iterator> priv;
+};
+
+//! iterates the class hierarchy in the order of destructor execution
+/** @see QoreClassHierarchyIterator
+
+    @since %Qore 0.9
+*/
+class QoreClassDestructorHierarchyIterator {
+public:
+    //! creates the iterator; call next() to start iterating
+    DLLEXPORT QoreClassDestructorHierarchyIterator(const QoreClass* cls);
+
+    //! destroys the object
+    DLLEXPORT ~QoreClassDestructorHierarchyIterator();
+
+    //! returns advances to the next element (or to the first element if starting to iterate) and returns true if there is an element to query or returns false if at the end of the list
+    DLLEXPORT bool next();
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLEXPORT bool valid() const;
+
+    //! returns the parent class
+    DLLEXPORT const QoreClass* get() const;
+
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
+
+private:
+    class qore_class_destructor_hierarchy_iterator* priv;
 };
 
 DLLEXPORT const char* get_access_string(ClassAccess access);

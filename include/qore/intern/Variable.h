@@ -47,12 +47,11 @@ enum qore_var_t {
 #include "qore/intern/qore_var_rwlock_priv.h"
 #include "qore/vector_set"
 
-#include <string.h>
-#include <stdlib.h>
-
-#include <string>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 #include <set>
+#include <string>
 
 // forward references
 class Var;
@@ -531,6 +530,8 @@ public:
     DLLLOCAL bool isNothing() const {
         return checkType(NT_NOTHING);
     }
+
+    DLLLOCAL void setObjectContext(qore_object_private* obj);
 
     DLLLOCAL QoreValue getReferencedValue() const;
 

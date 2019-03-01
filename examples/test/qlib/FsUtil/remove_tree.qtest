@@ -32,7 +32,7 @@ public class RemoveTreeTest inherits QUnit::Test {
         tmp_path = make_tmp_dir();
         assertTrue(is_dir(tmp_path));
         assertTrue(is_writable(tmp_path));
-        hash f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> f = make_tmp_file(NOTHING, NOTHING, tmp_path);
         f.file.close();
         assertTrue(is_file(f.path));
         assertTrue(is_writable(f.path));
@@ -65,7 +65,7 @@ public class RemoveTreeTest inherits QUnit::Test {
         assertThrows("DIR-READ-FAILURE", \remove_tree(), (path));
 
         # now let's create a file (not a directory)...
-        hash file_path = make_tmp_file();
+        hash<TmpFileHash> file_path = make_tmp_file();
         file_path.file.close();
         assertTrue(is_file(file_path.path));
         assertTrue(is_writable(file_path.path));

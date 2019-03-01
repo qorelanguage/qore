@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,12 +49,14 @@ QoreValue QoreInstanceOfOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     assert(ti);
 
     ValueEvalRefHolder v(exp, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
 
     // treat a weak reference as the target object
-    if (v->getType() == NT_WEAKREF)
+    if (v->getType() == NT_WEAKREF) {
         return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
+    }
 
     return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
 }

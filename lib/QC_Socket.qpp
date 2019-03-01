@@ -38,8 +38,8 @@
 #include "qore/QoreSSLCertificate.h"
 #include "qore/QoreSSLPrivateKey.h"
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 static void hash_set_int_key(QoreHashNode& h, int k, const char* str) {
    char buf[15];

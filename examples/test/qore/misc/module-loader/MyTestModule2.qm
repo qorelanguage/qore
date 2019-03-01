@@ -10,3 +10,7 @@ module MyTestModule2 {
 }
 
 %requires Util
+
+public Test::TestClass sub test() {
+    return new Test::TestClass();
+}

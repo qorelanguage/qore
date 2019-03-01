@@ -124,7 +124,7 @@ public namespace DebugHandler {
     /** Connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection" which is
         instantiated via @ref WebSocketHandler::WebSocketHandler::getConnectionImpl().
 
-        The handler is registered via @ref HttpServer::setHandler to receive messages.
+        The handler is registered via @ref HtpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive messages.
 
         @par Receiving WebSocket Messages from Clients
         When a message is received via @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" from the client then it is passed to @ref receiveData as is.
@@ -147,8 +147,13 @@ public namespace DebugHandler {
         }
 
         log(int verbosity, string fmt) {
+            log2(verbosity, fmt, argv);
+        }
+
+        log2(int verbosity, string fmt, *list args) {
+
             if (logger) {
-                logger.log2(verbosity, fmt, argv);
+                logger.log2(verbosity, fmt, args);
             }
         }
 
@@ -198,15 +203,15 @@ public namespace DebugHandler {
         }
 
         logInfo(string fmt) {
-            log(DUV_INFO, fmt, argv);
+            log2(DUV_INFO, fmt, argv);
         }
 
         logDebug(string fmt) {
-            log(DUV_DEBUG, fmt, argv);
+            log2(DUV_DEBUG, fmt, argv);
         }
 
         logError(string fmt) {
-            log(DUV_INFO, "ERROR: " + fmt, argv);
+            log2(DUV_INFO, "ERROR: " + fmt, argv);
         }
     }
 
@@ -217,6 +222,7 @@ public namespace DebugHandler {
         /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator");
             if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
             @param dpc the debug program controller object
+            @param opts passed to @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" constructor
          */
         constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts) : AbstractWebSocketDebugHandler(dpc, auth, opts) {
         }

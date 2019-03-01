@@ -271,9 +271,18 @@ ENDMACRO (QORE_BINARY_MODULE_INTERN2)
 #
 # The module will be installed automatically in 'make install' target.
 MACRO (QORE_USER_MODULE _module_file _mod_deps)
+    get_filename_component(f ${_module_file} NAME_WE)
+    if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
+        file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
+        set(qm_install_subdir "${f}") # install files into a subdir
+        message(STATUS "_mod_targets ${_mod_targets}")
+    else()
+        set(_mod_targets ${_module_file})
+        set(qm_install_subdir "") # common qm file
+    endif()
+
     if (DOXYGEN_FOUND)
         # get module name
-        get_filename_component(f ${_module_file} NAME_WE)
         message(STATUS "Preparing generation of documentation for module: ${f}")
 
         # prepare directories for the documentation
@@ -287,7 +296,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         endforeach(i)
 
         # prepare QDX arguments
-        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+        set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # add CMake target for the documentation
@@ -295,7 +304,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             add_custom_target(docs-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
-                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib $${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
@@ -347,7 +356,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
     endif (DOXYGEN_FOUND)
 
     # install qm file
-    install(FILES ${_module_file} DESTINATION ${QORE_USER_MODULES_DIR})
+    install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
 ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.

@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/Pop3Client.qm
 %requires ../../../../qlib/QUnit.qm
 
@@ -37,6 +38,10 @@ public class Pop3ClientTest inherits QUnit::Test {
         string url = "pop3s://user:pass@localhost:8099";
         Pop3Connection conn("test", "test", url, False, NOTHING, parse_url(url));
         Pop3Client client = conn.get(False);
+        assertEq("localhost:8099", client.getTarget());
+
+        conn = new Pop3Connection("test", "test", url, {"monitor": False});
+        client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
 
         hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();

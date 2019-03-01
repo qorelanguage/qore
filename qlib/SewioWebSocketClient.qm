@@ -33,7 +33,7 @@
 
 %requires(reexport) WebSocketClient >= 1.0
 %requires Util >= 1.0
-%requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) ConnectionProvider >= 1.2
 
 %new-style
 
@@ -42,7 +42,7 @@
 %endtry
 
 module SewioWebSocketClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for providing client support for the WebSocket protocol for Sewio.net RTLS Studio servers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -92,6 +92,9 @@ c.waitForZero();
 
     @section sewiowebsocketclient_relnotes SewioWebSocketClient Module Release History
 
+    @subsection swsc_v1_0 v1.1
+    - all connection clases have unified constructor
+
     @subsection swsc_v1_0 v1.0
     - the initial version of the SewioWebSocketClient module
 */
@@ -115,7 +118,7 @@ public namespace SewioWebSocketClient {
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
 
-        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::send() method; this method will serialize the data
+        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::SewioWebSocketClient::send() "SewioWebSocketClient::send()" method; this method will serialize the data
         to JSON and send the JSON string to the server.
 
         When websocket messages are received from the server, they are deserialized and the resulting data is used as the argument to the
@@ -153,7 +156,7 @@ sub event(*data msg) {
 SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
-            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
+            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing_type "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
             @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
             - \c apikey: (required) a string giving the Sewio RTLS Studio API key
             - \c log: (optional) @ref closure "closure" or @ref call_reference "call reference" for informational logging
@@ -227,7 +230,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         - \c "log": a closure accepting a single string for logging
     */
     public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnectionObject {
-        #! creates the SewioWebSocketConnection object
+        #! DEPRECATED: creates the SewioWebSocketConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
@@ -236,8 +239,29 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
 
             @throws SEWIOWEBSOCKETCONNECTION-ERROR missing apikey option
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : WebSocketConnectionObject(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : WebSocketConnectionObject(name, desc, url, {"monitor": monitor}, opts) {
+            if (!opts.apikey.val())
+                throw "SEWIOWEBSOCKETCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
+        }
+
+        #! creates the SewioWebSocketConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+            @throws SEWIOWEBSOCKETCONNECTION-ERROR missing apikey option
+          */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : WebSocketConnectionObject(name, description, url, attributes, options) {
             if (!opts.apikey.val())
                 throw "SEWIOWEBSOCKETCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
         }
@@ -248,7 +272,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         }
 
         #! returns a @ref SewioWebSocketClient object
-        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
+        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" is called
             @param rtopts supports the following runtime options in getImpl() for connection logging:
             - \c "log": a closure accepting a single string for logging
             - \c "errlog": a closure accepting a single string for error logging
@@ -280,9 +304,12 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             return WebSocketConnectionObject::getDefaultOptions();
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+          */
+        deprecated
         static SewioWebSocketConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new SewioWebSocketConnection(name, desc, url, monitor, opts, urlh);
+            return new SewioWebSocketConnection(name, desc, url, {"monitor": monitor}, opts ?? {});
         }
     }
 }

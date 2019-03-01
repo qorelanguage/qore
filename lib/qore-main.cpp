@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,15 +36,14 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/ModuleInfo.h"
 
-#include <vector>
-
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
-#include <time.h>
-#include <stdlib.h>
+#include <vector>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
@@ -207,6 +206,9 @@ void qore_cleanup() {
     // delete all loadable modules
     QMM.cleanup();
 
+    // issue #3045: clear module options
+    qore_delete_module_options();
+
     // delete thread-local data
     delete_thread_local_data();
 
@@ -253,4 +255,25 @@ void qore_cleanup() {
     }
 
     printd(5, "qore_cleanup() exiting cleanly\n");
+}
+
+extern "C" {
+DLLEXPORT int JNI_OnLoad(void* vm, void* reserved) {
+    printd(5, "JNI_OnLoad() vm: %p\n", vm);
+
+    // initialize the qore library
+    qore_init(QL_MIT);
+
+    // here we pass the VM pointer to the jni module
+    qore_set_module_option("jni", "jvm-ptr", reinterpret_cast<int64>(vm));
+    ExceptionSink xsink;
+    QoreProgramHelper qpgm(0, xsink);
+    if (MM.runTimeLoadModule("jni", *qpgm, &xsink)) {
+        return 0;
+    }
+
+    // return the JNI version
+    ValueHolder rc(qore_get_module_option("jni", "jni-version"), &xsink);
+    return static_cast<int>(rc->getAsBigInt());
+}
 }

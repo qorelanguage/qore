@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <errno.h>
+#include <cerrno>
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/types.h>
 #include <sys/wait.h>

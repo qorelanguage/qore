@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Util.qm Qore user module for generally useful routines
+#! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -87,9 +87,18 @@ module Util {
 
     @section utilrelnotes Release Notes
 
+    @subsection util_1_4_1 Util 1.4.1
+    - fixed a bug in @ref Util::get_exception_string() "get_exception_string()" with Java exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3304">issue 3304</a>)
+
     @subsection util_1_4 Util 1.4
     - added the @ref Util::parse_ranges() "parse_ranges()" function (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
     - added the @ref Util::check_ip_address() "check_ip_address()" function (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+    - updated @ref Util::parse_to_qore_value() "parse_to_qore_value()" to support single-element lists and hashes with
+      curly brackets including empty hashes
+      (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
+    - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+      (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
 
     @subsection util_1_3 Util 1.3
     - updated for complex types
@@ -388,24 +397,26 @@ bool abs = absolute_path_windows(path);
     const ET_RawString = 0;
     const ET_QuotedString = 1;
     const ET_BracketString = 2;
-    const ET_Eq = 3;
-    const ET_Comma = 4;
-    const EtMap = (
+    const ET_CurlyBracketString = 3;
+    const ET_Eq = 4;
+    const ET_Comma = 5;
+    const EtMap = {
         ET_RawString: "raw string",
         ET_QuotedString: "quoted string",
         ET_BracketString: "bracket expression",
+        ET_CurlyBracketString: "curly bracket expression",
         ET_Eq: "=",
         ET_Comma: ",",
-        );
+    };
 
     # private scanner for parse_to_qore_value()
-    list sub scan_exp(string arg) {
+    list<hash> sub scan_exp(string arg) {
         #printf("DBG se: %y\n", arg);
 
-        list l = ();
+        list<hash> l = ();
 
-        # bracket counter hash
-        hash bc;
+        # bracket stack
+        string bracket_stack;
 
         # active quote character
         *string quote;
@@ -416,7 +427,7 @@ bool abs = absolute_path_windows(path);
         for (int i = 0; i < len; ++i) {
             string c = arg[i];
             if (c == ",") {
-                if (!quote && !bc) {
+                if (!quote && !bracket_stack) {
                     #printf("DBG: got comma i:%d\n", i);
                     trim str;
                     if (str.val()) {
@@ -426,9 +437,8 @@ bool abs = absolute_path_windows(path);
                     l += ("type": ET_Comma);
                     continue;
                 }
-            }
-            else if (c == "=") {
-                if (!quote && !bc) {
+            } else if (c == "=") {
+                if (!quote && !bracket_stack) {
                     trim str;
                     if (str.val()) {
                         l += ("type": ET_RawString, "val": str);
@@ -437,21 +447,19 @@ bool abs = absolute_path_windows(path);
                     l += ("type": ET_Eq);
                     continue;
                 }
-            }
-            else if (c == '"' || c == "'") {
+            } else if (c == '"' || c == "'") {
                 if (quote) {
                     if (c == quote) {
                         delete quote;
-                        if (!bc) {
+                        if (!bracket_stack) {
                             l += ("type": ET_QuotedString, "val": str);
                             str = "";
                             continue;
                         }
                     }
-                }
-                else {
+                } else {
                     quote = c;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         trim str;
                         if (str.val()) {
                             l += ("type": ET_RawString, "val": str);
@@ -460,29 +468,30 @@ bool abs = absolute_path_windows(path);
                         continue;
                     }
                 }
-            }
-            else if (!quote) {
+            } else if (!quote) {
                 *string p = FwdParenMap{c};
                 if (p) {
                     bool first;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         first = True;
                         trim str;
                         if (str.val()) {
-                            l += ("type": ET_RawString, "val": str);
+                            l += {"type": ET_RawString, "val": str};
                             str = "";
                         }
                     }
-                    ++bc{p};
-                    if (first)
+                    bracket_stack += p;
+                    if (first) {
                         continue;
-                }
-                else if (ParenMap{c}) {
-                    if (bc{c} && !--bc{c}) {
-                        delete bc{c};
+                    }
+                } else if (ParenMap{c} && (c == bracket_stack[-1])) {
+                    splice bracket_stack, -1;
+                    if (!bracket_stack) {
                         #printf("DBG: got bracket string: %y\n", str);
-                        l += ("type": ET_BracketString, "val": str);
-                        delete bc{c};
+                        l += {
+                            "type": c == "}" ? ET_CurlyBracketString : ET_BracketString,
+                            "val": str,
+                        };
                         str = "";
                         continue;
                     }
@@ -615,26 +624,30 @@ hash: (1 member)
         # we should not use "auto" here because this lvalue must be able to convert to an untyped list
         any v;
 
-        list l = scan_exp(arg);
+        list<hash> l = scan_exp(arg);
 
         #map printf("%d: %y: %y, ", $#, EtMap{$1.type}, $1.val), l; printf("\n");
 
         bool do_break;
+        bool in_hash;
 
         # process values after an "=" sign
         code do_eq = sub (reference<int> i, string key) {
             # get the value
             auto val;
             switch (l[i+2].type) {
-                case ET_BracketString: val = parse_to_qore_value(l[i+2].val); break;
+                case ET_BracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : (); break;
+                case ET_CurlyBracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : {}; break;
                 case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
                 case ET_QuotedString: val = l[i+2].val; break;
                 case ET_Comma: --i; break;
                 case ET_Eq: throw "PARSE-ERROR", sprintf("cannot parse %y after %y", EtMap{ET_Eq}, EtMap{ET_Eq});
             }
-            if (!exists v)
+            #printf("do_eq() i: %d key: %y v: %y val: %y\n", i, key, v, val);
+            if (!exists v) {
                 v{key} = val;
-            else switch (v.typeCode()) {
+                in_hash = True;
+            } else switch (v.typeCode()) {
                 case NT_HASH: {
                     if (do_break)
                         v = (v, (key: val));
@@ -677,8 +690,9 @@ hash: (1 member)
         code check_val = sub (int i) {
             if (i) {
                 int lt = l[i-1].type;
-                if (lt != ET_Comma && lt != ET_Eq)
+                if (lt != ET_Comma && lt != ET_Eq) {
                     throw "PARSE-ERROR", sprintf("cannot parse %y (%y) after %y (%y)", EtMap{l[i].type}, l[i].val, EtMap{lt}, l[i-1].val);
+                }
             }
         };
 
@@ -700,9 +714,23 @@ hash: (1 member)
                     do_break = False;
                     break;
                 }
+                case ET_CurlyBracketString: {
+                    check_val(i);
+                    if (!exists h.val) {
+                        do_val({});
+                    } else {
+                        do_val(parse_to_qore_value(h.val));
+                    }
+                    do_break = True;
+                    break;
+                }
                 case ET_BracketString: {
                     check_val(i);
-                    do_val(parse_to_qore_value(h.val));
+                    if (!exists h.val) {
+                        do_val(());
+                    } else {
+                        do_val(parse_to_qore_value(h.val));
+                    }
                     do_break = True;
                     break;
                 }
@@ -719,6 +747,9 @@ hash: (1 member)
                     break;
                 }
                 case ET_Comma: {
+                    if (v.typeCode() != NT_LIST && !in_hash) {
+                        v = (v,);
+                    }
                     break;
                 }
                 case ET_Eq: {
@@ -862,22 +893,46 @@ string pass = get_random_string();
 
         @return a multi-line string from the exception hash argument suitable for logging or output on the console
      */
-    public string sub get_exception_string(hash ex) {
+    public string sub get_exception_string(hash<auto> ex) {
         string str;
 
         while (True) {
-            str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            ex.type, get_ex_pos(ex), ex.err, ex.desc,
-                            ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
+            str += sprintf("%s exception: %s: %s: %s",
+                            ex.type, get_ex_pos(ex), ex.err, ex.desc);
+            if (exists ex.arg) {
+                # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
+                # class with a specific member list or a hashdecl where accessing an invalid key would cause a
+                # runtime exception to be thrown
+                if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
+                    && (ex.arg.ex instanceof hash<ExceptionInfo>
+                        || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
+                            && ex.arg.callstack.typeCode() == NT_LIST))) {
+                    if (ex.arg.size() > 1) {
+                        str += sprintf(" (arg: %y)", ex.arg - "ex");
+                    }
+                    str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
+                } else {
+                    str += sprintf(" (arg: %y)", ex.arg);
+                }
+            }
 
             if (ex.callstack) {
-                foreach hash l in (ex.callstack) {
-                    if (l.type == "new-thread")
+                foreach hash<auto> l in (ex.callstack) {
+                    if (l.type == "new-thread") {
                         str += sprintf("\n  *** thread started by background operator ***");
-                    else if (l.type == "rethrow")
-                        str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
-                    else
-                        str += sprintf("\n  %s() called at %s (%s function)", l.function, get_ex_pos(l), l.type);
+                    } else {
+                        string pos = get_ex_pos(l);
+                        if (l.type == "rethrow") {
+                            str += sprintf("\n  *** RETHROW at %s", pos);
+                        } else {
+                            if (pos =~ /\)$/) {
+                                splice pos, -1, 1, sprintf(" %s code)", l.type);
+                            } else {
+                                pos += sprintf(" (%s code)", l.type);
+                            }
+                            str += sprintf("\n  %s() called at %s", l.function, pos);
+                        }
+                    }
                 }
             }
 

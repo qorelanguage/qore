@@ -70,7 +70,16 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
     }
 }
 
-typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys), parse_init_done(old.parse_init_done) {
+// NOTE: the new namespace will be set manually after this call
+typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) :
+    loc(old.loc),
+    name(old.name),
+    thd(thd),
+    from_module(old.from_module),
+    orig(old.orig),
+    typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())),
+    orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys),
+        parse_init_done(old.parse_init_done) {
     // copy member list
     for (auto& i : old.members.member_list) {
         members.addNoCheck(strdup(i.first), i.second ? new HashDeclMemberInfo(*i.second) : nullptr);
@@ -244,9 +253,20 @@ QoreHashNode* typed_hash_decl_private::newHash(const QoreHashNode* init, bool ru
 }
 
 int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const {
+    int rc = initHashIntern(h, init, xsink);
+    // xsink may be nullptr when being executed in a try block
+    if (xsink && *xsink) {
+        assert(rc);
+        xsink->appendLastDescription(" (while initializing hashdecl '%s')", name.c_str());
+    }
+    return rc;
+}
+
+int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const {
 #ifdef QORE_MANAGE_STACK
-    if (check_stack(xsink))
+    if (xsink && check_stack(xsink)) {
         return -1;
+    }
 #endif
 
     for (auto& i : members.member_list) {
@@ -257,7 +277,7 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
             ValueHolder val(hi->getReferencedKeyValueIntern(i.first, exists), xsink);
             if (exists) {
                 // check types
-                QoreTypeInfo::acceptInputMember(i.second->getTypeInfo(), i.first, *val, xsink);
+                QoreTypeInfo::acceptInputKey(i.second->getTypeInfo(), i.first, *val, xsink);
                 if (*xsink) {
                     return -1;
                 }
@@ -337,9 +357,35 @@ const QoreExternalProgramLocation* TypedHashDecl::getSourceLocation() const {
     return reinterpret_cast<const QoreExternalProgramLocation*>(priv->getParseLocation());
 }
 
+std::string TypedHashDecl::getNamespacePath(bool anchored) const {
+    std::string path;
+    priv->ns->getPath(path);
+    if (!path.empty()) {
+        path += "::";
+    }
+    if (anchored) {
+        path.insert(0, "::");
+    }
+    path += getName();
+    return path;
+}
+
+bool TypedHashDecl::equal(const TypedHashDecl* other) const {
+    if (!other) {
+        return false;
+    }
+
+    return other->priv->orig == priv->orig;
+}
+
+const char* TypedHashDecl::getModuleName() const {
+    return priv->getModuleName();
+}
+
 TypedHashDeclHolder::~TypedHashDeclHolder() {
-    if (thd)
+    if (thd) {
         typed_hash_decl_private::get(*thd)->deref();
+    }
 }
 
 TypedHashDecl* TypedHashDeclHolder::operator=(TypedHashDecl* nhd) {

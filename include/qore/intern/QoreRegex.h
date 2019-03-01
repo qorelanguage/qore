@@ -2,7 +2,7 @@
 /*
     QoreRegex.h
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,23 +41,25 @@
 
 #include "qore/intern/QoreRegexBase.h"
 
+#include <functional>
+
+struct QoreProgramLocation;
+
 class QoreRegex : public QoreRegexBase, public QoreReferenceCounter {
-private:
-    bool global;
-
-    DLLLOCAL void init(int64 opt = PCRE_UTF8);
-
 public:
+    // function pointer to allow the parse location for parse errors to be generated on demand
+    typedef std::function<const QoreProgramLocation* ()> q_get_loc_t;
+
     DLLLOCAL QoreRegex();
-    // this version is used while parsing, takes ownership of str
-    DLLLOCAL QoreRegex(QoreString* str);
     // used at run-time, does not change str
     DLLLOCAL QoreRegex(const QoreString& str, int64 options, ExceptionSink* xsink);
 
     DLLLOCAL ~QoreRegex();
 
     DLLLOCAL void concat(char c);
-    DLLLOCAL void parse();
+    // called at parse time; the get_loc lambda is only called if an error occurs parsing the regular expression
+    // this allows the source location to only be created if it's needed due to the error
+    DLLLOCAL void parse(q_get_loc_t get_loc);
     DLLLOCAL void parseRT(const QoreString* pattern, ExceptionSink* xsink);
     DLLLOCAL bool exec(const QoreString* target, ExceptionSink* xsink) const;
     DLLLOCAL bool exec(const char* str, size_t len) const;
@@ -82,6 +84,11 @@ public:
         ref();
         return const_cast<QoreRegex*>(this);
     }
+
+private:
+    bool global;
+
+    DLLLOCAL void init(int64 opt = PCRE_UTF8);
 };
 
 #endif // _QORE_QOREREGEX_H

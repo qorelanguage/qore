@@ -34,6 +34,16 @@
 
 #include <typeinfo>
 
+QoreBreakpointList_t::QoreBreakpointList_t() {
+}
+
+QoreBreakpointList_t::~QoreBreakpointList_t() {
+    for (auto& i : *this) {
+        i->deref();
+    }
+    clear();
+}
+
 AbstractStatement::AbstractStatement(qore_program_private_base* p) : breakpointFlag(false), breakpoints(0), loc(p->getLocation(-1, -1)) {
     pwo = p->pwo;
 }
@@ -74,11 +84,12 @@ void AbstractStatement::finalizeBlock(int sline, int eline) {
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc->getFile(), loc->start_line);
-    QoreProgramLocationHelper l(loc, this);
+    QoreProgramLocationHelper stack_loc(loc, this);
 
 #ifdef QORE_MANAGE_STACK
-    if (check_stack(xsink))
+    if (check_stack(xsink)) {
         return 0;
+    }
 #endif
     pthread_testcancel();
 
@@ -87,43 +98,44 @@ int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc->getFile(), loc->start_line);
-   // set parse options and warning mask for this statement
-   ParseWarnHelper pwh(pwo);
+    printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(),
+        loc->getFile(), loc->start_line);
+    // set parse options and warning mask for this statement
+    ParseWarnHelper pwh(pwo);
 
-   return parseInitImpl(oflag, pflag);
+    return parseInitImpl(oflag, pflag);
 }
 
 QoreBreakpoint* AbstractStatement::getBreakpoint() const {
-   if (breakpointFlag) {
-      for (std::list<QoreBreakpoint*>::iterator it = breakpoints->begin(); it != breakpoints->end(); ++it) {
-         if ((*it)->checkBreak()) {
-            return *it;
-         }
-      }
-   }
-   return 0;
+    if (breakpointFlag) {
+        for (std::list<QoreBreakpoint*>::iterator it = breakpoints->begin(); it != breakpoints->end(); ++it) {
+            if ((*it)->checkBreak()) {
+                return *it;
+            }
+        }
+    }
+    return 0;
 }
 
 void AbstractStatement::assignBreakpoint(QoreBreakpoint *bkpt) {
-   if (!breakpoints) {
-      breakpoints = new QoreBreakpointList_t();
-      breakpoints->push_front(bkpt);
-   } else {
-      if (std::find(breakpoints->begin(), breakpoints->end(), bkpt) == breakpoints->end()) {
-         breakpoints->push_front(bkpt);
-      }
-   }
-   breakpointFlag = !breakpoints->empty();
+    if (!breakpoints) {
+        breakpoints = new QoreBreakpointList_t();
+        breakpoints->push_front(bkpt);
+    } else {
+        if (std::find(breakpoints->begin(), breakpoints->end(), bkpt) == breakpoints->end()) {
+            breakpoints->push_front(bkpt);
+        }
+    }
+    breakpointFlag = !breakpoints->empty();
 }
 
 void AbstractStatement::unassignBreakpoint(QoreBreakpoint *bkpt) {
-   if (breakpoints) {
-      breakpoints->remove(bkpt);
-      breakpointFlag = !breakpoints->empty();
-   }
+    if (breakpoints) {
+        breakpoints->remove(bkpt);
+        breakpointFlag = !breakpoints->empty();
+    }
 }
 
 void AbstractStatement::parseCommit(QoreProgram* pgm) {
-   qore_program_private::registerStatement(pgm, this, true);
+    qore_program_private::registerStatement(pgm, this, true);
 }

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,14 +33,13 @@
 #include "qore/intern/ql_string.h"
 #include "qore/intern/qore_number_private.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <sys/types.h>
+#include <cctype>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
-#include <float.h>
+#include <sys/types.h>
 
 // for use in floating-point number formatting
 // from: http://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
@@ -434,7 +433,7 @@ nothing length() [flags=RUNTIME_NOOP] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-int length(any[doc] arg) [flags=NOOP] {
+int length(auto[doc] arg) [flags=NOOP] {
    return 0;
 }
 
@@ -469,7 +468,7 @@ nothing strlen() [flags=RUNTIME_NOOP] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-int strlen(any[doc] arg) [flags=NOOP] {
+int strlen(auto[doc] arg) [flags=NOOP] {
    return 0;
 }
 
@@ -850,7 +849,7 @@ string chr(softint val, *string encoding) [flags=CONSTANT] {
 //! This function variant returns a string with a single ASCII NULL ('\\0'); it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a string with a single ASCII NULL ('\\0')
  */
-string chr(any[doc] arg) [flags=NOOP] {
+string chr(auto[doc] arg) [flags=NOOP] {
    return new QoreStringNode('\0');
 }
 
@@ -1699,7 +1698,7 @@ string str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
 
     @since %Qore 0.8.4
  */
-string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+string f_vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 1, 0, xsink);
 }
 
@@ -1721,7 +1720,7 @@ string str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a lo
     - @ref string_formatting for information on the formatting string
     - f_vsprintf() for a similar function that enforces field widths
  */
-string vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+string vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 0, 0, xsink);
 }
 
@@ -1814,7 +1813,7 @@ f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
 
     @since %Qore 0.8.4
  */
-string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
+string f_vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
    return node;
@@ -1838,7 +1837,7 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
     - @ref string_formatting for information on the formatting string
     - f_vprintf() for a similar function that enforces field widths
  */
-string vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
+string vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
    return node;

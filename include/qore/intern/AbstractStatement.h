@@ -54,7 +54,6 @@
 class LVList;
 class StatementBlock;
 class QoreBreakpoint;
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 // forward declaration
 class qore_program_private_base;

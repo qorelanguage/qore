@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ public:
     const QoreExternalGlobalVar* var = nullptr;
     const QoreNamespace* ns = nullptr;
 
-    DLLLOCAL QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionGlobalVar(ExceptionSink* xsink, const char* path, QoreProgram* pgm = getProgram());
 
     DLLLOCAL QoreReflectionGlobalVar(QoreProgram* pgm, const QoreExternalGlobalVar* var, const QoreNamespace* ns) : AbstractReflectionObject(pgm), var(var), ns(ns) {
     }

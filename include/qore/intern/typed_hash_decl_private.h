@@ -56,11 +56,17 @@ typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
 friend class typed_hash_decl_member_iterator;
+friend class TypedHashDecl;
 public:
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
+        assignModule();
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
+        loc(loc), name(n), thd(thd), orig(this),
+        typeInfo(new QoreHashDeclTypeInfo(thd, n)),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+        assignModule();
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -174,7 +180,11 @@ public:
             return -1;
         }
         QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, *val, xsink);
-        return *xsink ? -1 : 0;
+        if (*xsink) {
+            xsink->appendLastDescription(" (while assigning to hashdecl '%s')", name.c_str());
+            return -1;
+        }
+        return 0;
     }
 
     DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
@@ -235,12 +245,31 @@ public:
         return members.find(name);
     }
 
+    DLLLOCAL void setNamespace(qore_ns_private* n) {
+        ns = n;
+    }
+
+    DLLLOCAL const qore_ns_private* getNamespace() const {
+        return ns;
+    }
+
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
     const QoreProgramLocation* loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
+    // parent namespace
+    qore_ns_private* ns = nullptr;
+    // the module that defined this class, if any
+    std::string from_module;
+
+    // original declaration
+    const typed_hash_decl_private* orig;
 
     // type information
     QoreHashDeclTypeInfo* typeInfo = nullptr;
@@ -253,6 +282,15 @@ protected:
     bool sys = false;
 
     bool parse_init_done = false;
+
+    DLLLOCAL void assignModule() {
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
+    }
+
+    DLLLOCAL int initHashIntern(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
 };
 
 #endif

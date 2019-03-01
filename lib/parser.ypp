@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -65,14 +65,13 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/qore_list_private.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <sstream>
 #include <utility>
 #include <vector>
-#include <sstream>
 
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
@@ -519,8 +518,12 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* l
         return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
     }
     if (!strcmp(name, "copy")) {
-        if (mod & OFM_FINAL)
+        if (mod & OFM_FINAL) {
             parse_error(*loc, "%s() methods cannot be declared final; declare the class final instead", name);
+        }
+        if (mod & OFM_ABSTRACT) {
+            parse_error(*loc, "%s() methods cannot be declared abstract", name);
+        }
         return new UserCopyVariant(access, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
     }
 
@@ -853,6 +856,11 @@ public:
         u.exp.clear();
         return rv;
     }
+
+    DLLLOCAL void setTransient() {
+        assert(type == MI_Member);
+        u.memberInfo->setTransient();
+    }
 };
 
 struct ClassVarInfo : public MemberInfo {
@@ -1125,24 +1133,18 @@ public:
         if (str[0] == '*') {
             or_nothing = true;
             p = strdup(str + 1);
-        }
-        else {
+        } else {
             or_nothing = false;
             p = strdup(str);
         }
-        std::unique_ptr<QoreParseTypeInfo> pt(ParserTypeStruct::getParseType(get_runtime_location(), p, or_nothing, false));
+        std::unique_ptr<QoreParseTypeInfo> pt(ParserTypeStruct::getParseType(&loc_builtin, p, or_nothing, false));
         return QoreParseTypeInfo::resolveRuntime(pt.get());
     }
 };
 
 const QoreTypeInfo* qore_get_type_from_string(const char* str) {
-    ExceptionSink xsink;
-    ProgramRuntimeParseAccessHelper pah(&xsink, getProgram());
-    if (xsink) {
-        xsink.clear();
-        return nullptr;
-    }
-
+    // issue #3318: does not use ProgramRuntimeParseAccessHelper as it is notmally not needed, if this is
+    // necessary, then the call to this function must be wrapped using this class
     return ParserTypeStruct::getRuntimeType(str);
 }
 
@@ -1622,6 +1624,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
 %token TOK_HASHDECL "hashdecl"
+%token TOK_TRANSIENT "transient"
 
 // currently unused tokens
 %token TOK_UNREFERENCE "unreference"
@@ -1770,8 +1773,10 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %type <memberlist>     public_member_list
 %type <memberlist>     member_list
 %type <memberinfo>     member
+%type <memberinfo>     transient_member
 %type <memberlist>     member_list2
 %type <memberinfo>     member2
+%type <memberinfo>     transient_member2
 %type <memberinfo>     hashdecl_member
 %type <classvarinfo>   classvardecl
 %type <qoreclass>      class_attributes
@@ -1807,7 +1812,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 transient_member transient_member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { qore_class_private::get(*$$)->deref(true, true); } class_attributes
 %destructor { free($$); } IDENTIFIER ANGLE_IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen HASHDECL_IDENTIFIER_OPENCURLY
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER hashdecl_attrs list list_n
@@ -2863,6 +2868,13 @@ member2:
         }
         ;
 
+transient_member2:
+        TOK_TRANSIENT member2 {
+            $$ = $2;
+            $$->setTransient();
+        }
+        ;
+
 member:
         SELF_REF {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
@@ -2878,11 +2890,25 @@ member:
         }
         ;
 
+transient_member:
+        TOK_TRANSIENT member {
+            $$ = $2;
+            $$->setTransient();
+        }
+        ;
+
 member_list:
         member {
            $$ = new MemberList($1);
         }
+        | transient_member {
+           $$ = new MemberList($1);
+        }
         | member_list ',' member {
+           $1->add($3);
+           $$ = $1;
+        }
+        | member_list ',' transient_member {
            $1->add($3);
            $$ = $1;
         }
@@ -2892,7 +2918,14 @@ member_list2:
         member2 {
            $$ = new MemberList($1);
         }
+        | transient_member2 {
+           $$ = new MemberList($1);
+        }
         | member_list2 member2 {
+           $1->add($2);
+           $$ = $1;
+        }
+        | member_list2 transient_member2 {
            $1->add($2);
            $$ = $1;
         }
@@ -3537,19 +3570,21 @@ exp_c:
                 parse_error(*loc, "invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", $2.getTypeName());
                 $2.discard(nullptr);
                 $$.set(nullptr);
-            }
-            else {
+            } else {
                 // get first expression from list
                 QoreValue exp = l->shift();
                 qore_type_t t = exp.getType();
                 $$.set(nullptr);
+                bool is_curly = false;
                 if (t == NT_PARSE_HASH) {
                     QoreParseHashNode* phn = exp.get<QoreParseHashNode>();
-                    if (phn->isCurly())
+                    if (phn->isCurly()) {
+                        is_curly = true;
                         $$.set(parse_hash_map(loc, phn, l));
+                    }
                 }
 
-                if (!$$) {
+                if (!$$ && !is_curly) {
                     $$.set(parse_map(loc, exp, l));
                 }
             }

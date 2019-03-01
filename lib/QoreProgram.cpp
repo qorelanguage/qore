@@ -117,7 +117,6 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_LOCALE_CONTROL, "PO_NO_LOCALE_CONTROL", "LOCALE_CONTROL");
     doMap(PO_REQUIRE_PROTOTYPES, "PO_REQUIRE_PROTOTYPES");
     doMap(PO_STRICT_ARGS, "PO_STRICT_ARGS");
-    //doMap(PO_REQUIRE_BARE_REFS, "PO_REQUIRE_BARE_REFS");
     doMap(PO_ASSUME_LOCAL, "PO_ASSUME_LOCAL");
     doMap(PO_NO_MODULES, "PO_NO_MODULES", "MODULE");
     doMap(PO_NO_INHERIT_USER_FUNC_VARIANTS, "PO_NO_INHERIT_USER_FUNC_VARIANTS");
@@ -127,7 +126,6 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_EMBEDDED_LOGIC, "PO_NO_EMBEDDED_LOGIC", "EMBEDDED_LOGIC");
     doMap(PO_STRICT_BOOLEAN_EVAL, "PO_STRICT_BOOLEAN_EVAL");
     doMap(PO_DEFAULT, "PO_DEFAULT");
-    //doMap(PO_SYSTEM_OPS, "PO_SYSTEM_OPS");
     doMap(PO_ALLOW_BARE_REFS, "PO_ALLOW_BARE_REFS");
     doMap(PO_NO_THREADS, "PO_NO_THREADS");
     doMap(PO_NO_EXTERNAL_ACCESS, "PO_NO_EXTERNAL_ACCESS");
@@ -142,8 +140,24 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
     doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
     doMap(PO_NO_UNCONTROLLED_APIS, "PO_NO_UNCONTROLLED_APIS", "UNCONTROLLED_API");
+    // 46
     doMap(PO_NO_DEBUGGING, "PO_NO_DEBUGGING");
+    // 47
+    doMap(PO_NO_INHERIT_USER_HASHDECLS, "PO_NO_INHERIT_USER_HASHDECLS");
+    // 48
+    doMap(PO_NO_INHERIT_SYSTEM_HASHDECLS, "PO_NO_INHERIT_SYSTEM_HASHDECLS");
+    // 49
+    doMap(PO_ALLOW_WEAK_REFERENCES, "PO_ALLOW_WEAK_REFERENCES");
+    // 50
     doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER", "DEBUGGER");
+    // 51
+    doMap(PO_ALLOW_STATEMENT_NO_EFFECT, "PO_ALLOW_STATEMENT_NO_EFFECT");
+    // 52
+    doMap(PO_NO_REFLECTION, "PO_NO_REFLECTION", "REFLECTION");
+    // 53
+    doMap(PO_NO_TRANSIENT, "PO_NO_TRANSIENT");
+    // 54
+    doMap(PO_BROKEN_SPRINTF, "PO_BROKEN_SPRINTF");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -640,7 +654,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         del(xsink);
 
         // clear program location
-        update_runtime_location(&loc_builtin);
+        //update_runtime_location(&loc_builtin);
     }
 }
 
@@ -2164,6 +2178,14 @@ const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNames
     return th;
 }
 
+// issue #1796: include a non-const variant for binary modules
+QoreNamespace* QoreProgram::findNamespace(const QoreString& path) {
+    if (path == "::") {
+        return priv->RootNS;
+    }
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindNamespace(path);
+}
+
 const QoreNamespace* QoreProgram::findNamespace(const QoreString& path) const {
     if (path == "::") {
         return priv->RootNS;
@@ -2190,7 +2212,7 @@ const QoreExternalConstant* QoreProgram::findNamespaceConstant(const char* path,
 }
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;
-QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
+QoreBreakpointList_t QoreBreakpoint::breakpointList;
 volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;
 
 void QoreBreakpoint::unassignAllStatements() {

@@ -4,6 +4,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SalesforceRestClient.qm
 
@@ -15,6 +16,9 @@
 %enable-all-warnings
 
 %exec-class SalesforceTest
+
+# we test deprecated functionality here
+%disable-warning deprecated
 
 class SalesforceTest inherits QUnit::Test {
     public {}
@@ -48,8 +52,7 @@ class SalesforceTest inherits QUnit::Test {
 
         try {
             setupConnection();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
@@ -116,7 +119,14 @@ class SalesforceTest inherits QUnit::Test {
         SalesforceRestConnection swsc("test", "test", url, True, sfopts, parse_url(url));
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
-        assertThrows("CONNECTION-ERROR", sub () { SalesforceRestConnection swsc1("test", "test", url, True, ("x": 1), parse_url(url)); });
+        assertThrows("CONNECTION-ERROR", sub () {
+            SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+            });
+
+        SalesforceRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
 
         hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
         assertEq("SalesforceRestClient", info.module);

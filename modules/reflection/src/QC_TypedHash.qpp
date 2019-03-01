@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,13 +40,28 @@
 #include "QC_TypedHash.h"
 #include "QC_FunctionVariant.h"
 
-QoreReflectionTypedHash::QoreReflectionTypedHash(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    th = getProgram()->findHashDecl(path, ns);
+QoreReflectionTypedHash::QoreReflectionTypedHash(ExceptionSink* xsink, const char* path, QoreProgram* pgm)
+    : AbstractReflectionObject(pgm) {
+    th = pgm->findHashDecl(path, ns);
 
     if (!th) {
         xsink->raiseException("UNKNOWN-TYPED-HASH", "cannot resolve typed hash (hashdecl) '%s'", path);
         return;
     }
+}
+
+static QoreValue find_all_typedhashes(const QoreString& pattern, int re_opts, QoreProgram* pgm, ExceptionSink* xsink) {
+    hashdecl_vec_t hashdecl_vec = pgm->findAllHashDeclsRegex(pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASH->getTypeInfo()), xsink);
+    for (auto& i : hashdecl_vec) {
+        l->push(new QoreObject(QC_TYPEDHASH, pgm, new QoreReflectionTypedHash(pgm, i.first, i.second)), xsink);
+    }
+
+    return l.release();
 }
 
 //! The abstract base class for %Qore typed hashes (@ref hashdecl "hashdecls")
@@ -74,7 +89,7 @@ TypedHash::constructor(string path) {
         return;
     }
 
-    ReferenceHolder<QoreReflectionTypedHash> th(new QoreReflectionTypedHash(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionTypedHash> th(new QoreReflectionTypedHash(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return;
     }
@@ -109,6 +124,8 @@ string name = th.getName();
     @return the @ref hashdecl "typed hash (hashdecl)" name
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the @ref hashdecl "typed hash (hashdecl)" has been destroyed
+
+    @see getPathName()
  */
 string TypedHash::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -119,6 +136,51 @@ string TypedHash::getName() [flags=RET_VALUE_ONLY] {
 
     // the typed hash (hashdecl) ptr must be valid
     return new QoreStringNode(thd->th->getName());
+}
+
+//! returns the @ref hashdecl "typed hash's (hashdecl's)" full namespace-justified path name
+/** @par Example:
+    @code{.py}
+string name = th.getPathName();
+    @endcode
+
+    @return the @ref hashdecl "typed hash's (hashdecl's)" full namespace-justified path name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the @ref hashdecl "typed hash (hashdecl)" has been destroyed
+
+    @see getName()
+ */
+string TypedHash::getPathName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the typed hash (hashdecl) ptr must be valid
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+    rv->concat(thd->th->getNamespacePath());
+    return rv.release();
+}
+
+//! Returns the module name providing the typed hash or @ref nothing if the typed hash was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = th.getModuleName();
+    @endcode
+
+    @return the module name providing the typed hash or @ref nothing if the typed hash was not provided by a module
+*/
+*string TypedHash::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const char* mod = thd->th->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
 }
 
 //! returns @ref True if the @ref hashdecl "typed hash (hashdecl)" is a builtin typed hash
@@ -327,7 +389,36 @@ static TypedHash TypedHash::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionTypedHash> th(new QoreReflectionTypedHash(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionTypedHash> th(new QoreReflectionTypedHash(xsink, npath->c_str()), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_TYPEDHASH, th->pgm, th.release());
+}
+
+//! Returns a @ref hashdecl "typed hash (hashdecl)" object corresponding to the name or namespace-justified path provided as an argument
+/** @par Example:
+    @code{.py}
+TypedHash th = TypedHash::forName(pgm, "::ENV");
+    @endcode
+
+    @param pgm the Program object to search
+    @param path the @ref hashdecl "typed hash (hashdecl)" name or namespace-justified path as a string
+
+    @return a @ref hashdecl "typed hash (hashdecl)" object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-TYPED-HASH cannot find a @ref hashdecl "typed hash (hashdecl)" with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+ */
+static TypedHash TypedHash::forName(Program[QoreProgram] pgm, string path) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionTypedHash> th(new QoreReflectionTypedHash(xsink, npath->c_str(), pgm), xsink);
     if (*xsink) {
         return QoreValue();
     }
@@ -348,16 +439,23 @@ list<TypedHash> l = TypedHash::findAllRegex("^S");
     @return a list of typed hashes (hashdecls) matching the regular expression pattern argument or an empty list if no typed hashes match
 */
 static list<TypedHash> TypedHash::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
-    QoreProgram* pgm = getProgram();
-    hashdecl_vec_t hashdecl_vec = getProgram()->findAllHashDeclsRegex(*pattern, re_opts, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
+    return find_all_typedhashes(*pattern, re_opts, getProgram(), xsink);
+}
 
-    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASH->getTypeInfo()), xsink);
-    for (auto& i : hashdecl_vec) {
-        l->push(new QoreObject(QC_TYPEDHASH, getProgram(), new QoreReflectionTypedHash(pgm, i.first, i.second)), xsink);
-    }
+//! Returns a list of typed hashes (hashdecls) matching the regular expression pattern argument or an empty list if no typed hashes match
+/** @par Example:
+    @code{.py}
+# return all accessible typed hashes (hashdecls) that start with the letter "S"
+list<TypedHash> l = TypedHash::findAllRegex(pgm, "^S");
+    @endcode
 
-    return l.release();
+    @param pgm the Program object to search
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of typed hashes (hashdecls) matching the regular expression pattern argument or an empty list if no typed hashes match
+*/
+static list<TypedHash> TypedHash::findAllRegex(Program[QoreProgram] pgm, string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreProgram> pgm_holder(pgm, xsink);
+    return find_all_typedhashes(*pattern, re_opts, pgm, xsink);
 }

@@ -7,7 +7,7 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/CsvUtil.qm
+%requires ../../../../qlib/CsvUtil
 
 # Need for tmp_location()
 %requires Util

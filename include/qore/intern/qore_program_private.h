@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -48,9 +48,8 @@ extern QoreHashNode* ENV;
 #include "qore/vector_map"
 #include "qore/vector_set"
 
-#include <stdarg.h>
-#include <errno.h>
-
+#include <cerrno>
+#include <cstdarg>
 #include <map>
 #include <vector>
 
@@ -439,9 +438,8 @@ public:
             thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
-#ifdef DEBUG
+        // must set priv before calling setParent()
         pgm->priv = (qore_program_private*)this;
-#endif
 
         if (p_pgm)
             setParent(p_pgm, n_parse_options);
@@ -528,7 +526,6 @@ public:
 };
 
 class QoreBreakpoint;
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,24 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
+
+    //! returns the full namespace path of the class
+    /** @param anchored if true then the path will always be prefixed by "::" for the unnamed root namespace
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT std::string getNamespacePath(bool anchored = false) const;
+
+    //! returns true if the hashdecl passed as an arugment is equal to this hashdecl
+    /**
+        @since %Qore 0.9
+    */
+    DLLEXPORT bool equal(const TypedHashDecl* other) const;
+
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const char* getModuleName() const;
 
 protected:
     //! deletes the object and frees all memory
@@ -162,5 +180,30 @@ DLLEXPORT extern const TypedHashDecl* hashdeclNetIfInfo;
 
 //! SourceLocationInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclSourceLocationInfo;
+
+//! SerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclSerializationInfo;
+
+//! ObjectSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclObjectSerializationInfo;
+
+//! IndexedObjectSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclIndexedObjectSerializationInfo;
+
+//! HashSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclHashSerializationInfo;
+
+//! ListSerializationInfo hashdecl
+/** @since %Qore 0.9.1
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclListSerializationInfo;
 
 #endif

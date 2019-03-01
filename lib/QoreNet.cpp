@@ -33,9 +33,9 @@
 #include "qore/Qore.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <strings.h>
-#include <string.h>
-#include <stdlib.h>
 
 #define QORE_NET_ADDR_BUF_LEN 80
 
