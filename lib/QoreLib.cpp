@@ -2149,10 +2149,12 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
 #ifdef HAVE_MEMMEM
     return memmem(big, big_len, little, little_len);
 #else
-    if (!big_len)
+    if (!big_len || little_len > big_len) {
         return nullptr;
-    if (!little_len)
+    }
+    if (!little_len) {
         return (void*)big;
+    }
     const char* lt = (const char*)little;
     const char* bg = (const char*)big;
     //printd(5, "q_memmem() big: '%s' (%d) little: '%s' (%d)\n", big, (int)big_len, little, (int)little_len);
@@ -2180,6 +2182,52 @@ void* q_memmem(const void* big, size_t big_len, const void* little, size_t littl
     }
     return nullptr;
 #endif
+}
+
+void* q_memrmem(const void* big, size_t big_len, const void* little, size_t little_len) {
+    assert(big && little);
+    if (!big_len || little_len > big_len) {
+        return nullptr;
+    }
+    if (!little_len) {
+        return (void*)big;
+    }
+    //printd(5, "q_memrmem() big: '%s' (%d) little: '%s' (%d)\n", big, (int)big_len, little, (int)little_len);
+    const char* lt = (const char*)little;
+    const char* lt_end = (const char*)little + little_len - 1;
+    const char* bg = (const char*)big;
+    // first character to search in "big"
+    const char* p = bg + big_len - 1;
+    // last position in "big" where "little" can end
+    const char* bg_begin = bg + little_len - 1;
+    while (p >= bg_begin) {
+        // compare from the end of the sequence
+        if (*p == *lt_end) {
+            if (little_len == 1) {
+                return const_cast<void*>(reinterpret_cast<const void*>(p));
+            }
+            bool found = true;
+            const char* p0_end = p - little_len + 1;
+            const char* p0 = p - 1;
+            const char* lt0 = lt_end - 1;
+            while (true) {
+                if (*p0 != *lt0) {
+                    found = false;
+                    break;
+                }
+                if (p0 == p0_end) {
+                    break;
+                }
+                --p0;
+                --lt0;
+            }
+            if (found) {
+                return const_cast<void*>(reinterpret_cast<const void*>(p0));
+            }
+        }
+        --p;
+    }
+    return nullptr;
 }
 
 double q_strtod(const char* str) {
