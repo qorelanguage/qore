@@ -40,6 +40,7 @@ public class WebUtilTest inherits QUnit::Test {
     constructor() : Test("WebUtilTest", "1.0") {
         addTestCase("StaticTemplateManager test", \staticTemplateManagerTest());
         addTestCase("FileHandler test", \fileHandlerTest());
+        addTestCase("StaticTemplateManager parse options test", \staticTemplateManagerParseOptionsTest());
         set_return_value(main());
     }
 
@@ -47,6 +48,27 @@ public class WebUtilTest inherits QUnit::Test {
         StaticTemplateManager stm();
         stm.add("t1", "<p>text</p>");
         stm.add("t2", "<p>text</p>");
+    }
+
+    private staticTemplateManagerParseOptionsTest() {
+        # negative test
+        try {
+            StaticTemplateManager stm();
+            stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
+            fail("test cannot go here");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-EXCEPTION", ex.err, "oldstyle PO with newstyle template");
+            assertEq("local variable 's' declared without '$' prefix, but parse option 'allow-bare-refs' is not set",
+                     ex.desc, "oldstyle PO with newstyle template");
+        }
+        # positive test
+        {
+            StaticTemplateManager stm(PO_NEW_STYLE);
+            stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
+            assertTrue(True);
+        }
+
     }
 
     fileHandlerTest() {

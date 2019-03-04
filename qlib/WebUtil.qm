@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.5";
+    version = "1.6";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -66,6 +66,10 @@ module WebUtil {
     - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_6 WebUtil v1.6
+    - fixed a bug when StaticTemplateManager does not respect constructor's parse options in templates
+      (<a href="https://github.com/qorelanguage/qore/issues/3334">issue 3334</a>)
 
     @subsection webutil_v1_5 WebUtil v1.5
     - added support for custom file serving
@@ -577,7 +581,7 @@ tm.add("/html/index.qhtml", qhtml);
             # generate function name
             string fn = sprintf("t%d", seq.next());
 
-            TextTemplateBase ttb();
+            TextTemplateBase ttb(self.po);
             toh{name} = ttb;
 
             # allow for the contained Program container to be customized
