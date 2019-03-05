@@ -182,7 +182,7 @@ public:
     }
 
     DLLLOCAL const Var* parseGetVar() const {
-        return (type == QV_Ref) ? val.v.getPtr()->parseGetVar() : this;
+        return (val.type == QV_Ref) ? val.v.getPtr()->parseGetVar() : this;
     }
 
     DLLLOCAL bool isImported() const;
