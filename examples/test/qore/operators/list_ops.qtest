@@ -73,10 +73,39 @@ class Test inherits QUnit::Test {
         *list l2;
         softlist l3;
         *softlist l4;
+        list<int> l5;
+        *list<int> l6;
+        softlist<int> l7;
+        *softlist<int> l8;
+        list<softint> l9;
+        *list<softint> l10;
+        softlist<softint> l11;
+        *softlist<softint> l12;
+
         assertEq((3,), push l1, 3);
-        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
+        assertEq((3,), push l2, 3);
         assertEq((3,), push l3, 3);
-        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
+        assertEq((3,), push l4, 3);
+        assertEq((3,), push l5, 3);
+        assertEq((3,), push l6, 3);
+        assertEq((3,), push l7, 3);
+        assertEq((3,), push l8, 3);
+        assertEq((3,), push l9, "3");
+        assertEq((3,), push l10, "3");
+        assertEq((3,), push l11, "3");
+        assertEq((3,), push l12, "3");
+        assertEq("list", l1.fullType());
+        assertEq("list", l2.fullType());
+        assertEq("list", l3.fullType());
+        assertEq("list", l4.fullType());
+        assertEq("list<int>", l5.fullType());
+        assertEq("list<int>", l6.fullType());
+        assertEq("list<int>", l7.fullType());
+        assertEq("list<int>", l8.fullType());
+        assertEq("list<softint>", l9.fullType());
+        assertEq("list<softint>", l10.fullType());
+        assertEq("list<softint>", l11.fullType());
+        assertEq("list<softint>", l12.fullType());
     }
 
     pushElementAfterDelete() {
@@ -84,18 +113,53 @@ class Test inherits QUnit::Test {
         *list l2 = (1, 2);
         softlist l3 = (1, 2);
         *softlist l4 = (1, 2);
+        list<int> l5 = (1, 2);
+        *list<int> l6 = (1, 2);
+        softlist<int> l7 = (1, 2);
+        *softlist<int> l8 = (1, 2);
+        list<softint> l9 = ("1", 2);
+        *list<softint> l10 = ("1", 2);
+        softlist<softint> l11 = ("1", 2);
+        *softlist<softint> l12 = ("1", 2);
 
         delete l1;
         delete l2;
         delete l3;
         delete l4;
+        delete l5;
+        delete l6;
+        delete l7;
+        delete l8;
+        delete l9;
+        delete l10;
+        delete l11;
+        delete l12;
 
         assertEq((3,), push l1, 3);
-        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
+        assertEq((3,), push l2, 3);
         assertEq((3,), push l3, 3);
-        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
+        assertEq((3,), push l4, 3);
+        assertEq((3,), push l5, 3);
+        assertEq((3,), push l6, 3);
+        assertEq((3,), push l7, 3);
+        assertEq((3,), push l8, 3);
+        assertEq((3,), push l9, "3");
+        assertEq((3,), push l10, "3");
+        assertEq((3,), push l11, "3");
+        assertEq((3,), push l12, "3");
+        assertEq("list", l1.fullType());
+        assertEq("list", l2.fullType());
+        assertEq("list", l3.fullType());
+        assertEq("list", l4.fullType());
+        assertEq("list<int>", l5.fullType());
+        assertEq("list<int>", l6.fullType());
+        assertEq("list<int>", l7.fullType());
+        assertEq("list<int>", l8.fullType());
+        assertEq("list<softint>", l9.fullType());
+        assertEq("list<softint>", l10.fullType());
+        assertEq("list<softint>", l11.fullType());
+        assertEq("list<softint>", l12.fullType());
     }
-
 
     unshiftElement() {
         list l = (1, 2);
@@ -132,10 +196,38 @@ class Test inherits QUnit::Test {
         *list l2;
         softlist l3;
         *softlist l4;
+        list<int> l5;
+        *list<int> l6;
+        softlist<int> l7;
+        *softlist<int> l8;
+        list<softint> l9;
+        *list<softint> l10;
+        softlist<softint> l11;
+        *softlist<softint> l12;
         assertEq((3,), unshift l1, 3);
-        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
+        assertEq((3,), unshift l2, 3);
         assertEq((3,), unshift l3, 3);
-        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
+        assertEq((3,), unshift l4, 3);
+        assertEq((3,), unshift l5, 3);
+        assertEq((3,), unshift l6, 3);
+        assertEq((3,), unshift l7, 3);
+        assertEq((3,), unshift l8, 3);
+        assertEq((3,), unshift l9, "3");
+        assertEq((3,), unshift l10, "3");
+        assertEq((3,), unshift l11, "3");
+        assertEq((3,), unshift l12, "3");
+        assertEq("list", l1.fullType());
+        assertEq("list", l2.fullType());
+        assertEq("list", l3.fullType());
+        assertEq("list", l4.fullType());
+        assertEq("list<int>", l5.fullType());
+        assertEq("list<int>", l6.fullType());
+        assertEq("list<int>", l7.fullType());
+        assertEq("list<int>", l8.fullType());
+        assertEq("list<softint>", l9.fullType());
+        assertEq("list<softint>", l10.fullType());
+        assertEq("list<softint>", l11.fullType());
+        assertEq("list<softint>", l12.fullType());
     }
 
     unshiftElementAfterDelete() {
@@ -143,16 +235,52 @@ class Test inherits QUnit::Test {
         *list l2 = (1, 2);
         softlist l3 = (1, 2);
         *softlist l4 = (1, 2);
+        list<int> l5 = (1, 2);
+        *list<int> l6 = (1, 2);
+        softlist<int> l7 = (1, 2);
+        *softlist<int> l8 = (1, 2);
+        list<softint> l9 = ("1", 2);
+        *list<softint> l10 = ("1", 2);
+        softlist<softint> l11 = ("1", 2);
+        *softlist<softint> l12 = ("1", 2);
 
         delete l1;
         delete l2;
         delete l3;
         delete l4;
+        delete l5;
+        delete l6;
+        delete l7;
+        delete l8;
+        delete l9;
+        delete l10;
+        delete l11;
+        delete l12;
 
         assertEq((3,), unshift l1, 3);
-        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
+        assertEq((3,), unshift l2, 3);
         assertEq((3,), unshift l3, 3);
-        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
+        assertEq((3,), unshift l4, 3);
+        assertEq((3,), unshift l5, 3);
+        assertEq((3,), unshift l6, 3);
+        assertEq((3,), unshift l7, 3);
+        assertEq((3,), unshift l8, 3);
+        assertEq((3,), unshift l9, "3");
+        assertEq((3,), unshift l10, "3");
+        assertEq((3,), unshift l11, "3");
+        assertEq((3,), unshift l12, "3");
+        assertEq("list", l1.fullType());
+        assertEq("list", l2.fullType());
+        assertEq("list", l3.fullType());
+        assertEq("list", l4.fullType());
+        assertEq("list<int>", l5.fullType());
+        assertEq("list<int>", l6.fullType());
+        assertEq("list<int>", l7.fullType());
+        assertEq("list<int>", l8.fullType());
+        assertEq("list<softint>", l9.fullType());
+        assertEq("list<softint>", l10.fullType());
+        assertEq("list<softint>", l11.fullType());
+        assertEq("list<softint>", l12.fullType());
     }
 
     popBasics() {
