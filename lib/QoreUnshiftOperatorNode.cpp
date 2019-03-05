@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -72,10 +72,15 @@ QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 
     // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
     if (val.getType() == NT_NOTHING) {
-        if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(listTypeInfo)))
-            return QoreValue();
-        if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(softListTypeInfo)))
-            return QoreValue();
+        const QoreTypeInfo* vti = val.getTypeInfo();
+        if (QoreTypeInfo::parseAcceptsReturns(vti, NT_LIST)) {
+            // issue #3317: if the lvar can be a list, assign the current runtime type based on the declared complex list type
+            const QoreTypeInfo* lti = vti == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(vti);
+            if (val.assign(new QoreListNode(lti))) {
+                assert(*xsink);
+                return QoreValue();
+            }
+        }
     }
 
     // value is not a list, so throw exception
