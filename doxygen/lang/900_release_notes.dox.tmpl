@@ -17,15 +17,20 @@
     @subsection qore_091_bug_fixes Bug Fixes in Qore
     - fixed a bug where an invalid parse exception would be raised with an assignment of a global variable to another
       global variable with the same name in a different namespace
-      (<a href="https://github.com/qorelanguage/qore/issues/3318">issue 3318</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3337">issue 3337</a>)
     - implemented support for serializing and deserializing complex type information in lists and hashes
       (<a href="https://github.com/qorelanguage/qore/issues/3318">issue 3318</a>)
-    - fixed a memory leak in copy onstructor execution in complex class hierarchies
+    - fixed a memory leak in copy constructor execution in complex class hierarchies
       (<a href="https://github.com/qorelanguage/qore/issues/3312">issue 3312</a>)
     - implemented support for automatically initializing the \c %Qore library from Java when dynamically loaded from
       the JVM; additionally in this case the <a href="https://github.com/qorelanguage/module-jni">jni</a> module is
       loaded automatically immediately after the \c %Qore library is initialized
       (<a href="https://github.com/qorelanguage/qore/issues/3310">issue 3310</a>)
+    - implemented support for performing binary searches in binary data by adding the following new pseudo-methods:
+      - <binary>::find()
+      - <binary>::rfind()
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3300">issue 3300</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
       - fixed a bug in \c get_exception_string() with Java exceptions
         (<a href="https://github.com/qorelanguage/qore/issues/3304">issue 3304</a>)
