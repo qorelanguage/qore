@@ -37,6 +37,27 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_list_private.h"
 
+bool VarRefNode::parseEqualTo(const VarRefNode& other) const {
+    if (type != other.type) {
+        return false;
+    }
+    switch (type) {
+        case VT_LOCAL:
+        case VT_CLOSURE:
+        case VT_LOCAL_TS:
+            return ref.id == other.ref.id;
+        case VT_GLOBAL:
+            return ref.var->parseGetVar() == other.ref.var->parseGetVar();
+        case VT_IMMEDIATE:
+            return ref.cvv == other.ref.cvv;
+        default:
+            assert(false);
+            break;
+    }
+
+    return false;
+}
+
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly

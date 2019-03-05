@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -179,6 +179,10 @@ public:
         // try to set an optimized value type for the value holder if possible
         val.set(typeInfo);
         discard(val.assignInitial(v), nullptr);
+    }
+
+    DLLLOCAL const Var* parseGetVar() const {
+        return (val.type == QV_Ref) ? val.v.getPtr()->parseGetVar() : this;
     }
 
     DLLLOCAL bool isImported() const;
