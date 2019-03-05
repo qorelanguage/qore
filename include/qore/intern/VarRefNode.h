@@ -131,6 +131,11 @@ public:
         }
     }
 
+    //! returns true if the two variable references refer to the same variable
+    /** can be called only at parse time with the parse lock held
+    */
+    DLLLOCAL bool parseEqualTo(const VarRefNode& other) const;
+
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 

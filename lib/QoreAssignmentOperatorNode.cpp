@@ -60,9 +60,13 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
 
     //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: %s ti: %p '%s', right: %s ti: %s\n", this, get_type_name(left), ti, QoreTypeInfo::getName(ti), get_type_name(right), QoreTypeInfo::getName(r));
 
+    // issue #3337: make sure that the two varrefs are pointing to the same variable
     if (left.getType() == NT_VARREF && right.getType() == NT_VARREF
-        && !strcmp(left.get<VarRefNode>()->getName(), right.get<VarRefNode>()->getName()))
-        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", left.get<VarRefNode>()->getName()));
+        && left.get<VarRefNode>()->parseEqualTo(*right.get<VarRefNode>())) {
+        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-EXCEPTION",
+            new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself",
+                left.get<VarRefNode>()->getName()));
+    }
 
     qore_type_result_e res;
     if (ti == autoTypeInfo) {

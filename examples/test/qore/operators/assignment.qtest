@@ -1,0 +1,51 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class AssignmentTest
+
+our int i;
+
+class AssignmentTest inherits QUnit::Test {
+    constructor() : QUnit::Test("assignment test", "1.0", \ARGV) {
+        addTestCase("basic case", \basicCase());
+        set_return_value(main());
+    }
+
+    basicCase() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("namespace T { our int i; } T::i = 1; our int i = T::i; int sub t() { return ::i; }", "test");
+            p.run();
+            assertEq(1, p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "to itself", \p.parse(), ("int i = i;", "test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "to itself", \p.parse(), ("our int i = i;", "test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.importGlobalVariable("i");
+            assertThrows("PARSE-EXCEPTION", "to itself", \p.parse(), ("i = ::i;", "test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", "to itself", \p.parse(), ("int i; reference r = \\i; i = i;", "test"));
+        }
+    }
+}
