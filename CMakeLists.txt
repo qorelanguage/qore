@@ -838,6 +838,7 @@ qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidat
 # base 7 modules
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/ZeyosRestClient.qm" "RestClient")
 
 # print info
 message(STATUS "")
