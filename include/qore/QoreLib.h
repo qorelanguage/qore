@@ -602,6 +602,13 @@ DLLEXPORT int q_realpath(const QoreString& path, QoreString& rv, ExceptionSink* 
 //! finds a memory sequence in a larger memory sequence
 DLLEXPORT void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len);
 
+//! finds a memory sequence in a larger memory sequence searching from the end of the sequence
+/** @note returns <tt>void*</tt> for compatibility with memmem() and q_memmem() signatures
+
+    @since Qore 0.9.1
+*/
+DLLEXPORT void* q_memrmem(const void* big, size_t big_len, const void* little, size_t little_len);
+
 //! performs environment variable substitution on the string argument
 /** return 0 for OK, -1 if an error occurred (mismatched parens, etc)
 
