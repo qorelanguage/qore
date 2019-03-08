@@ -1101,7 +1101,7 @@ sfrest.logout();
 
         #! returns \c "rest"
         string getType() {
-            return "rest";
+            return "sfrests";
         }
 
         #! DEPRECATED: static constructor

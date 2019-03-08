@@ -133,6 +133,9 @@ class SalesforceTest inherits QUnit::Test {
         assertEq("SalesforceRestClient", info.class_name);
         assertEq(url, info.args[0].url);
         checkPreAndPostProcessing(info);
+
+        # issue #3346: the Salesforce rest connection returns 'rest' type instead of 'sfrests'
+        assertEq("sfrests", swsc.getType());
     }
 
     private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
