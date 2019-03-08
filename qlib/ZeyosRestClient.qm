@@ -43,7 +43,7 @@ module ZeyosRestClient {
 
     @tableofcontents
 
-    @section Zeyosrestclientintro ZeyosRestClient Introduction
+    @section zeyosrestclientintro ZeyosRestClient Introduction
 
     The %ZeyosRestClient module provides an API for calling REST services with <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP system.
 
