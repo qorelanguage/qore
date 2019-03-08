@@ -15,8 +15,6 @@
       deserializing lists with complex type information
     - new user modules:
       - <a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a>
-    - module updates:
-      - <a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a> module:
         - added this new module providing APIs for communicating with <a href="http://www.zeyos.com">Zeyos.com</a>'s REST API
 
     @subsection qore_091_bug_fixes Bug Fixes in Qore
@@ -35,8 +33,8 @@
       loaded automatically immediately after the \c %Qore library is initialized
       (<a href="https://github.com/qorelanguage/qore/issues/3310">issue 3310</a>)
     - implemented support for performing binary searches in binary data by adding the following new pseudo-methods:
-      - <binary>::find()
-      - <binary>::rfind()
+      - <binary>::find(data, softint)
+      - <binary>::rfind(data, softint)
       .
       (<a href="https://github.com/qorelanguage/qore/issues/3300">issue 3300</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
@@ -218,7 +216,7 @@
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
       - <a href="../../modules/Mime/html/index.html">Mime</a> module changes:
         - allow the default type for unknown extensions to be overridden in
-          @ref Mime::get_mime_type_from_ext() "get_mime_type_from_ext()"
+          \c get_mime_type_from_ext()
           (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
       - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -230,7 +228,7 @@
         - Added support for serializing and deserializing \c AbstractTable objects
           (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/QUnit/html/index.html">QUnit</a> module changes:
-        - updated @ref QUnit::Test::testSkip() "Test::testSkip()" to use the reason argument a format string with
+        - updated \c Test::testSkip() to use the reason argument a format string with
           @ref Qore::vsprintf() "vsprintf()"
           (<a href="https://github.com/qorelanguage/qore/issues/3172">issue 3172</a>)
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module changes:
@@ -263,11 +261,11 @@
         - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
           empty hashes
           (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
-        - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+        - updated \c get_exception_string() to show the \c lang value
           (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
       - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
-        - added stopping connection from server side via @ref WebSocketHandler::WebSocketConnection::stop(), @ref WebSocketHandler::WebSocketHandler::stopOne()
-          and WebSocketClient handling of WSCC_GoingAway event
+        - added stopping connection from server side via \c WebSocketConnection::stop(), \c WebSocketHandler::stopOne()
+          and \c WebSocketClient handling of the \c WSCC_GoingAway event
       - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module changes:
         - updated to allow more control over file serving
           (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
@@ -284,7 +282,7 @@
       - Command line utils display source line code when interrupted
     - Runtime thread stack traces are available in all builds and the
       @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE "HAVE_RUNTIME_THREAD_STACK_TRACE" constant is always
-      @ref True "True".  Furthermore, the %Qore library has been extended to support stack tracing when embedding
+      \c True.  Furthermore, the %Qore library has been extended to support stack tracing when embedding
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
