@@ -229,13 +229,15 @@ ZeyosRestClient zeyos(
     public class ZeyosRestConnection inherits RestClient::RestConnection {
         public {
             #! ZeyosRestConnection object connection options
-            const Options = RestConnection::Options + {
+            const ZeyosOptions = {
                 "name": True,
                 "password": True,
                 "identifier": True,
                 "appsecret": True,
                 "token": True
             };
+
+            const Options = RestConnection::Options + ZeyosOptions;
 
             const OptionList = Options.keys();
         }
@@ -258,7 +260,7 @@ ZeyosRestClient zeyos(
                 return;
             }
 
-            foreach string key in (keys Options) {
+            foreach string key in (keys ZeyosOptions) {
                 auto value = opts{key};
                 if (!exists value || value == "") {
                     throw "ZEYOSRESTCONNECTION-ERROR",
