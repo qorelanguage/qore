@@ -28,7 +28,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         *hash headers;
     }
 
-    constructor (hash opts): DebugLinenoiseCommandLine() {
+    constructor(hash opts) : DebugLinenoiseCommandLine() {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
         opts.log = \wscLog();
         opts.errlog = \wscErr();
@@ -36,7 +36,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         url = opts.url;
         if (opts.header) {
             foreach string h in (opts.header) {
-                *list<string> rv = regex_extract(h, "^([a-zA-Z0-9\\-]+)=(.*)$");
+                *list<string> rv = (h =~ x/^([a-zA-Z0-9\-]+)=(.*)$/);
                 if (!rv)
                     throw "GETOPT-ERROR", sprintf("Wrong header specification %y", h);
                 headers{rv[0]} = rv[1];
