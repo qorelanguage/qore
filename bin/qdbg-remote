@@ -25,6 +25,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         bool connecting;
         string serverName;
         string url;
+        *hash headers;
     }
 
     constructor (hash opts): DebugLinenoiseCommandLine() {
@@ -33,6 +34,14 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         opts.errlog = \wscErr();
         opts.debuglog = \wscDebug();
         url = opts.url;
+        if (opts.header) {
+            foreach string h in (opts.header) {
+                *list<string> rv = regex_extract(h, "^([a-zA-Z0-9\\-]+)=(.*)$");
+                if (!rv)
+                    throw "GETOPT-ERROR", sprintf("Wrong header specification %y", h);
+                headers{rv[0]} = rv[1];
+            }
+        }
         wsc = new WebSocketClient(\wscEvent(), opts);
     }
 
@@ -58,7 +67,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
     public nothing connect() {
         connecting = True;
         counter.inc();
-        hash hh = wsc.connect();
+        hash hh = wsc.connect({"hdr": headers});
         *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
         if (!prot_ver.val())
             throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
@@ -113,6 +122,7 @@ class DebugWrapper {
             'verbose': 'v,verbose:+',
             'url': 'u,url=s',
             'max_redirects': 'm,max-redir=i',
+            'header': 'H,header=s@',
             'proxy': 'P,proxy=s',
             'timeout': 't,timeout=i',
             'connect_timeout': 'c,conn-timeout=i',
@@ -228,16 +238,17 @@ class DebugWrapper {
             "  ConnectionProvider <conn-id> name is considered and when is resolved then http(s) protocol is changed to ws(s).\n"
             "  The '/debug' path is appended unless a path already exists in the URL and the <path> follows\n"
             "\n"
-            "  -v                     verbose\n"
-            "  -h                     help\n"
-            "  -m,--max-redir=<num>   the maximum number of redirects before throwing an exception (the default is 5)\n"
-            "  -P,--proxy=<url>       the proxy URL for connecting through a proxy\n"
-            "  -t,--timeout=<ms>      the timeout\n"
-            "  -c,--conn-timeout=<ms> the timeout for establishing a new socket connection\n"
-            "  -w,--resp-timeout=<ms> the timeout to wait for websocket response, default: %d\n"
-            "  -y, --history=file     load command line history from file, default: %s in home directory\n"
-            "                         When \".\" name is provided then history is not loaded/saved\n"
-            "  -s, --session=file     load session from file\n"
+            "  -v                      verbose\n"
+            "  -h                      help\n"
+            "  -H,--header=<hdr>=<val> headers for connection request\n"
+            "  -m,--max-redir=<num>    the maximum number of redirects before throwing an exception (the default is 5)\n"
+            "  -P,--proxy=<url>        the proxy URL for connecting through a proxy\n"
+            "  -t,--timeout=<ms>       the timeout\n"
+            "  -c,--conn-timeout=<ms>  the timeout for establishing a new socket connection\n"
+            "  -w,--resp-timeout=<ms>  the timeout to wait for websocket response, default: %d\n"
+            "  -y, --history=file      load command line history from file, default: %s in home directory\n"
+            "                          When \".\" name is provided then history is not loaded/saved\n"
+            "  -s, --session=file      load session from file\n"
 
             "\n"
             "Example:\n"
