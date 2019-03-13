@@ -12,6 +12,11 @@
     - \c qdbg-remote supports an option to provide HTTP headers for WebSocket connections
       (<a href="https://github.com/qorelanguage/qore/issues/3350">issue 3350</a>)
 
+    @subsection qore_092_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module that could lead to a
+      deadlock when DML methods are used with a datasource pool with connection contention
+      (<a href="https://github.com/qorelanguage/qore/issues/3352">issue 3352</a>)
+
     @section qore_091 Qore 0.9.1
 
     @par Release Summary
