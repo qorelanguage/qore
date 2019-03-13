@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.5";
+    version = "1.5.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_5_1 SqlUtil v1.5.1
+    - fixed a bug that could lead to a deadlock when DML methods on the
+      @ref SqlUtil::AbstractTable "AbstractTable" class are used with a datasource pool with connection contention
+      (<a href="https://github.com/qorelanguage/qore/issues/3352">issue 3352</a>)
 
     @subsection sqlutilv1_5 SqlUtil v1.5
     - implemented the @ref SqlUtil::AbstractTable::getStatementNoExec() "AbstractTable::getStatementNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
@@ -9197,10 +9202,15 @@ table.rename("new_name");
             @see getRenameSql()
         */
         rename(string new_name, *reference<string> sql, *Tables table_cache) {
-            l.lock();
-            on_exit l.unlock();
+            # issue #3352: do not execute runtime SQL while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
 
-            execSql(sql = getRenameSqlImpl(new_name));
+                sql = getRenameSqlImpl(new_name);
+            }
+
+            execSql(sql);
             doRenameIntern(new_name, table_cache);
         }
 
@@ -11344,10 +11354,13 @@ table.insert(row);
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
-            l.lock();
-            on_exit l.unlock();
+            # issue #3352: do not execute runtime DML while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
 
-            getColumnsUnlocked();
+                getColumnsUnlocked();
+            }
             sql = sprintf("insert into %s (", getSqlName());
             foreach string k in (row.keyIterator()) {
                 if (!columns.hasKey(k))
@@ -11355,7 +11368,7 @@ table.insert(row);
             }
             hash vh = getPlaceholdersAndValues(row);
 
-            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
+            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), keys row));
             sql += ") values (";
             sql += (foldl $1 + "," + $2, vh.placeholders);
             sql += ")";
@@ -11372,24 +11385,23 @@ table.insert(row);
                     }
                 }
                 if (size) {
-                     hash rv;
-                     for (int i = 0; i < size; ++i) {
-                         # get arg list for row
-                         list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
-                         if (opt.returning) {
-                             if (!rv) {
-                                 hash h = doReturningImpl(opt, \sql, targs);
-                                 map rv{$1.key} += ($1.value,), h.pairIterator();
-                             }
-                             else {
-                                 hash h = execData(opt, sql, targs);
-                                 map rv{$1.key} += $1.value, h.pairIterator();
-                             }
-                         }
-                         else
-                             execData(opt, sql, targs);
-                     }
-                     return rv;
+                    hash rv;
+                    for (int i = 0; i < size; ++i) {
+                        # get arg list for row
+                        list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                        if (opt.returning) {
+                            if (!rv) {
+                                hash<auto> h = doReturningImpl(opt, \sql, targs);
+                                map rv{$1.key} += ($1.value,), h.pairIterator();
+                            } else {
+                                hash<auto> h = execData(opt, sql, targs);
+                                map rv{$1.key} += $1.value, h.pairIterator();
+                            }
+                        } else {
+                            execData(opt, sql, targs);
+                        }
+                    }
+                    return rv;
                 }
             }
 
@@ -11576,9 +11588,13 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
-            l.lock();
-            on_exit l.unlock();
-            getColumnsUnlocked();
+            # issue #3352: do not execute runtime DML while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
+
+                getColumnsUnlocked();
+            }
 
             sql = sprintf("insert into %s (", getSqlName());
 
@@ -12620,7 +12636,7 @@ string sql = table.getSelectSql(sh, \args);
 
         string getSelectSqlIntern(*hash qh, reference<list> args, *hash opt) {
             l.lock();
-            l.unlock();
+            on_exit l.unlock();
 
             return getSelectSqlUnlocked(qh, \args, opt);
         }
@@ -13396,7 +13412,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return updateIntern(set, cond, NOTHING, opt);
         }
 
-        private int updateIntern(hash set, *hash cond, *reference<string> sql, *hash opt) {
+        private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -13454,8 +13470,7 @@ int ucnt = table.update(("id": id), ("name": name));
                         throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
                     uh.arg = getColumnNameIntern(uh.arg, NOTHING, False);
                 }
-            }
-            else if (cmd.columnargs) {
+            } else if (cmd.columnargs) {
                 if (uh.arg.typeCode() != NT_LIST)
                     throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
                 foreach auto narg in (\uh.arg) {
@@ -13899,13 +13914,17 @@ string sql = table.getRenameSql("new_name");
             @endcode
 
             @param new_name the new name for the table
-            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for
+            common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to rename the table in the database
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
+            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True",
+            this method also renames the object internally (see @ref sql_callback_executed for more information),
+            additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables"
+            argument, then the table cache is also updated with the name change in this case.
 
             @see
             - rename()
@@ -13916,11 +13935,11 @@ string sql = table.getRenameSql("new_name");
 
             l.lock();
             on_exit l.unlock();
-
             on_success if (opt.sql_callback_executed)
                 doRenameIntern(new_name, opt.db_table_cache);
 
-            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), AbstractDatabase::AC_Rename, "table", name, NOTHING, new_name);
+            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), AbstractDatabase::AC_Rename, "table",
+                name, NOTHING, new_name);
         }
 
         #! returns an SQL string that could be used to create the table and all known properties of the table
@@ -14455,8 +14474,7 @@ list l = table.getAlignSql(table2);
             if (constraintsLinkedToIndexesImpl()) {
                 if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                     primaryKey.rename(new_name);
-                }
-                else {
+                } else {
                     foreach AbstractConstraint uk in (constraints.iterator()) {
                         if (uk instanceof AbstractUniqueConstraint && uk.getName() == old_name) {
                             uk.rename(new_name);
@@ -15185,7 +15203,7 @@ any res = t.selectRows(sh, \sql);
             inDb = True;
         }
 
-        private getForeignConstraintsUnlocked(*hash opt) {
+        private getForeignConstraintsUnlocked(*hash<auto> opt) {
             if (foreignConstraints)
                 return;
             if (manual) {
