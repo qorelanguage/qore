@@ -305,6 +305,7 @@ public:
 
     DLLLOCAL void parseInit();
     DLLLOCAL void parseResolveHierarchy();
+    DLLLOCAL void parseResolveClassMembers();
     DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseInitConstants();
     DLLLOCAL void parseRollback(ExceptionSink* xsink);
