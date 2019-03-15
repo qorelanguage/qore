@@ -501,6 +501,17 @@ class SerializableTest inherits QUnit::Test {
                 assertEq("list<hash<string, int>>", Serializable::deserialize(Serializable::serialize((h,))).fullType());
             }
         }
+
+        # issue #3357: deserialize from a binary string
+        {
+            T t();
+            T t0 = Serializable::deserialize(Serializable::serialize(t).toString());
+            assertEq(1, t0.skip);
+            assertEq(2, t0.get());
+            assertEq(2, t0.geti());
+            assertEq(3, t0.getfi());
+            assertEq(-1, t0.gety());
+        }
     }
 
     privateKeyTest() {
