@@ -33,6 +33,7 @@
 #include "qore/intern/QC_Serializable.h"
 #include "qore/intern/BinaryOutputStream.h"
 #include "qore/intern/BinaryInputStream.h"
+#include "qore/intern/StringInputStream.h"
 #include "qore/intern/QC_TimeZone.h"
 
 static QoreHashNode* Serializable_serializer(const QoreObject& self, const TimeZoneData& z, QoreSerializationContext& context, ExceptionSink* xsink) {
