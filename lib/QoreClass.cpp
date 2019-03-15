@@ -2678,7 +2678,11 @@ const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QorePro
     return nullptr;
 }
 
-int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const qore_class_private& b_qc, const QoreMemberInfo& l_mi) {
+int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const QoreMemberInfo& l_mi) const {
+    // if both classes are system classes, then ignore
+    if (sys && l_mi.getClass()->sys) {
+        return 0;
+    }
     if (l_mi.access != b_mi.access || l_mi.parseHasTypeInfo() || b_mi.parseHasTypeInfo()) {
         // raise an exception only if parse exceptions are enabled
         if (getProgram()->getParseExceptionSink()) {
@@ -2710,7 +2714,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             //printd(5, "qore_class_private::parseImportMembers() this: %p importing '%s' <- '%s::%s' ('%s') parent access: '%s' this access: '%s'\n", this, name.c_str(), qc.name.c_str(), i.first, i.second->exp.getTypeName(), privpub(access), privpub(mi->access));
 
             if (!mi->getClass()->equal(*i.second->getClass())) {
-                parseCheckClassHierarchyMembers(i.first, *(i.second), qc, *mi);
+                mi->getClass()->parseCheckClassHierarchyMembers(i.first, *(i.second), *mi);
             }
             continue;
         }

@@ -2188,7 +2188,7 @@ public:
         return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
     }
 
-    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);
+    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const QoreMemberInfo& b_mi) const;
 
     DLLLOCAL int checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var = false) const;
 
