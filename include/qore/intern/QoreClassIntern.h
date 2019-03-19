@@ -870,7 +870,7 @@ public:
     }
 
     DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
-        // we cannot tell of the member has been initialized, so we return anyTypeInfo here for potential references
+        // we cannot tell if the member has been initialized, so we return anyTypeInfo here for potential references
         return QoreTypeInfo::isReference(typeInfo) ? anyTypeInfo : typeInfo;
         //return typeInfo;
     }
@@ -2074,6 +2074,10 @@ public:
         ClassAccess access;
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
         if (omi) {
+            // issue #3355: to handle out of order initialization properly, we need to ensure that the member is
+            // initialized before accessing its type.  We cannot rely on calling members.parseInit() here because we
+            // we may have already been called by this call
+            const_cast<QoreMemberInfo*>(omi)->parseInit(mem, selfid);
             memberTypeInfo = omi->parseGetTypeInfo();
         }
 
