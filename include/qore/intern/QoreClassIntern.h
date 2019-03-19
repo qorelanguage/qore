@@ -2075,7 +2075,7 @@ public:
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
         if (omi) {
             // issue #3355: to handle out of order initialization properly, we need to ensure that the member is
-            // initialized before accessing its type.  We cannot rely on calling members.parseInit() here because we
+            // initialized before accessing its type.  We cannot rely on calling members.parseInit() here because
             // we may have already been called by this call
             const_cast<QoreMemberInfo*>(omi)->parseInit(mem, selfid);
             memberTypeInfo = omi->parseGetTypeInfo();
