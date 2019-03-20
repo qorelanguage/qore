@@ -1184,10 +1184,11 @@ string str = replace("hello there", "there", "you"); # returns "hello you"
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @note no regular expressions are used in this function, only direct replacements
+    @note if \c start parameter is greater than or equal to the length of the string, @ref Qore::NOTHING will be returned
 
     @see regex_subst()
  */
-string replace(string str, string source, string target, int start = 0, int end = -1) [flags=RET_VALUE_ONLY] {
+*string replace(string str, string source, string target, int start = 0, int end = -1) [flags=RET_VALUE_ONLY] {
     const QoreEncoding* ccs = str->getEncoding();
 
     TempEncodingHelper t1(source, ccs, xsink);

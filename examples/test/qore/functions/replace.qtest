@@ -20,6 +20,29 @@ public class ReplaceTest inherits QUnit::Test {
     }
 
     replaceTest() {
+        assertEq("", replace("", "", ""));
+        assertEq("", replace("", "", "a"));
+        assertEq("", replace("", "a", "a"));
+        assertEq("", replace("", "a", ""));
+        assertEq("", replace("", "bc", "xy"));
+        assertEq("", replace("", "a", "xy"));
+        assertEq("", replace("", "ab", "x"));
+        assertEq("", replace("", "ab", "x", 1));
+        assertEq("", replace("", "ab", "x", 1, 2));
+        assertEq("", replace("", "ab", "x", -1, 2));
+        assertEq("", replace("", "ab", "x", -5));
+        assertEq("", replace("", "ab", "x", 1, -1));
+        assertEq("", replace("", "ab", "x", 1, -5));
+        assertEq("", replace("", "ab", "x", -1, -1));
+        assertEq("", replace("", "ab", "x", -1, -5));
+        assertEq("", replace("", "ab", "x", 0, -5));
+        assertEq("", replace("", "ab", "x", 1, 0));
+
+        assertEq("ab", replace("abc", "c", ""));
+        assertEq("bc", replace("abc", "a", ""));
+        assertEq("abxyz", replace("abc", "c", "xyz"));
+        assertEq("xyzbc", replace("abc", "a", "xyz"));
+
         assertEq("axyd", replace("abcd", "bc", "xy"));
         assertEq("axyd 123 uxyp", replace("abcd 123 ubcp", "bc", "xy"));
         assertEq("qaz", replace("qaz", "\0", "A"));
@@ -36,9 +59,11 @@ public class ReplaceTest inherits QUnit::Test {
         assertEq("abcx", replace("abcd", "d", "x", -1, 5));
         assertEq("abcd", replace("abcd", "1", "2"));
         assertEq("abcd", replace("abcd", "1", "2", 0, -1));
+
         assertNothing(replace("abcd", "1", "2", 9));
         assertNothing(replace("abcd", "1", "2", 9, 12));
         assertNothing(replace("abcd", "1", "2", -20, 12));
+
         assertEq("arší", replace("prší", "p", "a"));
         assertEq("prší", replace("prší", "p", "a", -2));
         assertEq("arší", replace("prší", "p", "a", -4));
