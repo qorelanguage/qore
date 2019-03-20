@@ -1,0 +1,105 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class DatasourcePoolTest
+
+public class DatasourcePoolTest inherits QUnit::Test {
+    public {
+        const MyOpts = Opts + {
+            "connstr": "c,conn=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("DatasourcePoolTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("option test", \optionTest());
+        addTestCase("DatasourcePool string test", \DatasourcePoolStringTest());
+        addTestCase("serialization test", \serializationTest());
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    optionTest() {
+        DatasourcePool dsp;
+        try {
+            *string oracle_connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+            if (oracle_connstr =~ /}$/) {
+                oracle_connstr =~ s/{.*}/{timezone=Europe\/Prague}/;
+            } else {
+                oracle_connstr += "{timezone=Europe/Prague}";
+            }
+            dsp = new DatasourcePool(oracle_connstr);
+            assertEq("oracle", dsp.getDriverName());
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping tests: " + ex.err + ": " + ex.desc);
+        }
+
+        Counter c(1);
+        dsp.beginTransaction();
+        background sub () { dsp.beginTransaction(); dsp.rollback(); c.dec(); }();
+        c.waitForZero();
+        dsp.rollback();
+        assertTrue(True);
+    }
+
+    DatasourcePoolStringTest() {
+        assertThrows("DATASOURCEPOOL-CONSTRUCTOR-ERROR", "expecting.*driver", sub() { DatasourcePool ds("a/b@c(utf8)"); });
+        assertThrows("DATASOURCEPOOL-CONSTRUCTOR-ERROR", "expecting.*driver", sub() { DatasourcePool ds("a/b@c(utf8)%localhost:5432"); });
+    }
+
+    serializationTest() {
+        DatasourcePool ds;
+        try {
+            ds = getAnyDatasourcePool();
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping tests: " + ex.err + ": " + ex.desc);
+        }
+
+        hash<SerializationInfo> h = ds.serializeToData();
+        #printf("h: %N\n", h);
+
+        DatasourcePool ds1 = Serializable::deserialize(h);
+        assertEq(ds.getConfigString(), ds1.getConfigString());
+
+        hash<auto> h1 = h;
+        assertEq(Type::String, (remove h1._index."0"._class_data."Qore::SQL::DatasourcePool".conf).type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        assertEq(Type::Hash, (remove h1._index."0"._class_data."Qore::SQL::DatasourcePool").type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::extra" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::Serializable" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+    }
+
+    DatasourcePool getAnyDatasourcePool() {
+        string connstr = m_options.connstr
+            ?? ENV.QORE_DB_CONNSTR
+            ?? ENV.QORE_DB_CONNSTR_PGSQL
+            ?? ENV.QORE_DB_CONNSTR_MYSQL
+            ?? ENV.QORE_DB_CONNSTR_ORACLE
+            ?? "oracle:omquser/omquser@xbox";
+
+        return new DatasourcePool(connstr);
+    }
+}

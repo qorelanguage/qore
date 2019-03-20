@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Qdx.qm Qore user module for documentation generation with doxygen
+#! @file Qdx.qm Qore user module for documentation generation with doxygen
 
-/*  Qdx.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
+/*  Qdx.qm Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 %require-types
 %enable-all-warnings
@@ -252,6 +252,22 @@ public namespace Qdx {
             line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::&lt;$1&gt;::$2($3)'/g;
             line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
             line =~ s/([^a-zA-Z0-9_])[Ss]truct /$1hashdecl /g;
+
+            # rename "Member Functions" to "Member Methods"
+            line =~ s/Member Functions/Member Methods/g;
+
+            # convert private -> private:internal
+            line =~ s/<span class="mlabel">private<\/span>/<span class="mlabel">private:internal<\/span>/g;
+            line =~ s/Private (Member|Attribute)/Private:Internal $1/g;
+
+            # convert protected -> private
+            line =~ s/<span class="mlabel">protected<\/span>/<span class="mlabel">private<\/span>/g;
+            line =~ s/Protected (Member|Attribute)/Private $1/g;
+
+            # remove <%-- ... --%> comments to allow for invisible spacing, to allow for "*/" to be output in
+            # particular places, for example
+            line =~ s/&lt;%--.*--%&gt;//g;
+            line =~ s/&lt;!--%.*%--&gt;//g;
 
             return line;
         }

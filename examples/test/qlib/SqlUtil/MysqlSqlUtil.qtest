@@ -8,7 +8,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/MysqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
@@ -76,6 +76,48 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
 
     private *hash getColumnOptionsImpl() {
         return ColumnOptions;
+    }
+}
+
+class MysqlTestAutoIncrementNegativeSchema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its)
+        : AbstractSchema(ds, dts, its)
+    {
+    }
+    string getNameImpl() { return "MysqlTestAutoIncrementNegativeSchema"; }
+    string getVersionImpl() { return "1.0"; }
+
+    private *hash getTablesImpl() {
+        return {
+            "mysql_test_auto_increment" : {
+                "columns": {
+                    "id": c_number(14, C_NOT_NULL) + { "auto_increment" : True, },
+                },
+                "primary_key" : { "name" : "pk_mysql_test_auto_increment", "columns" : "id" },
+            },
+        };
+    }
+}
+
+class MysqlTestAutoIncrementPositiveSchema inherits AbstractSchema {
+
+    constructor(AbstractDatasource ds, *string dts, *string its)
+        : AbstractSchema(ds, dts, its)
+    {
+    }
+
+    string getNameImpl() { return "MysqlTestAutoIncrementPositiveSchema"; }
+    string getVersionImpl() { return "1.0"; }
+
+    private *hash getTablesImpl() {
+        return {
+            "mysql_test_auto_increment" : {
+                "columns": {
+                    "id": c_int(C_NOT_NULL) + { "auto_increment" : True, },
+                },
+                "primary_key" : { "name" : "pk_mysql_test_auto_increment", "columns" : "id" },
+            },
+        };
     }
 }
 
@@ -168,6 +210,9 @@ class MysqlTest inherits SqlTestBase {
 
             # this feature can be enabled for MariaDB >= 10.2. Let's hope it will be recived in MySQL too
             # addTestCase("analytic/window functions", \testAnalyticFunctions());
+
+            addTestCase("test create table with auto increment - negative", \testCreateTableWithAutoIncrementNegative());
+            addTestCase("test create table with auto increment - positive", \testCreateTableWithAutoIncrementPositive());
         }
 
         set_return_value(main());
@@ -176,6 +221,19 @@ class MysqlTest inherits SqlTestBase {
     private string getResultSetSql() {
         testSkip("does not support result set output binds");
         return "";
+    }
+
+    private testCreateTableWithAutoIncrementNegative() {
+        MysqlTestAutoIncrementNegativeSchema schema(table.getDatasource());
+        assertThrows("MYSQL-COLUMN-ERROR", 
+                     "AUTO_INCREMENT can be used only with a subset of types",
+                     sub() { schema.align(False, m_options.verbose); });
+    }
+
+    private testCreateTableWithAutoIncrementPositive() {
+        MysqlTestAutoIncrementPositiveSchema schema(table.getDatasource());
+        schema.align(False, m_options.verbose);
+        assertEq(True, True, "schema alignment works");
     }
 
     private usageIntern() {

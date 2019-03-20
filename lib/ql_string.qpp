@@ -33,14 +33,13 @@
 #include "qore/intern/ql_string.h"
 #include "qore/intern/qore_number_private.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <string.h>
-#include <sys/types.h>
+#include <cctype>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
-#include <float.h>
+#include <sys/types.h>
 
 // for use in floating-point number formatting
 // from: http://stackoverflow.com/questions/16839658/printf-width-specifier-to-maintain-precision-of-floating-point-value
@@ -85,26 +84,6 @@ static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink)
    return 0;
 }
 
-// finds the last occurrence of needle in haystack at or before position pos
-// pos must be a non-negative valid byte offset in haystack
-/*
-static int rindex_simple_intern(const char* haystack, int hlen, const char* needle, int nlen, int pos) {
-   // if the offset does not allow for the needle string to be present, then adjust
-   if ((pos + nlen) > hlen) {
-      pos = hlen - nlen;
-      if (pos < 0)
-         return -1;
-   }
-
-   while (pos != -1) {
-      if (!strncmp(haystack + pos, needle, nlen))
-         return pos;
-      pos--;
-   }
-   return -1;
-}
-*/
-
 static const char* memstr(const char* str, const char* pattern, qore_size_t pl, qore_size_t len) {
    while (true) {
       const char* p = (const char* )memchr(str, pattern[0], len);
@@ -138,11 +117,11 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
 
 static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
    if (enc)
-      l->push(new QoreStringNode(str, len, enc));
+      l->push(new QoreStringNode(str, len, enc), nullptr);
    else {
       BinaryNode* b = new BinaryNode;
       b->append(str, len);
-      l->push(b);
+      l->push(b, nullptr);
    }
 }
 
@@ -210,7 +189,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             tstr = p + 1;
          }
          // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()));
+         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()), nullptr);
 
          ststr = p + tquote->strlen();
          // see if we are at the end of the string
@@ -234,14 +213,14 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
          if (trim_unquoted && se->trim(xsink))
             return nullptr;
-         l->push(se);
+         l->push(se, nullptr);
          break;
       }
 
       QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
       if (trim_unquoted && se->trim(xsink))
          return nullptr;
-      l->push(se);
+      l->push(se, nullptr);
       len -= (p - ststr);
       ststr = p + pl;
    }
@@ -249,44 +228,26 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
-QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
-
-   for (unsigned i = offset; i < l->size(); i++) {
-      QoreValue p = l->retrieveEntry(i);
-      if (!p.isNothing()) {
-         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-         if (*xsink)
-            return nullptr;
-
-         str->concat(*t);
-      }
-      if (i < (l->size() - 1))
-         str->concat(p0);
-   }
-
-   return str.release();
-}
-
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
+    assert(xsink);
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
-   for (unsigned i = offset; i < l->size(); i++) {
-      const AbstractQoreNode* p = l->retrieve_entry(i);
-      if (p) {
-         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-         if (*xsink)
-            return 0;
+    for (unsigned i = offset; i < l->size(); i++) {
+        QoreValue p = l->retrieveEntry(i);
+        if (!p.isNothing()) {
+            QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+            if (*xsink) {
+                return nullptr;
+            }
 
-         str->concat(*t);
-      }
-      if (i < (l->size() - 1))
-         str->concat(p0);
-   }
+            str->concat(*t);
+        }
+        if (i < (l->size() - 1)) {
+            str->concat(p0);
+        }
+    }
 
-   return str.release();
+    return str.release();
 }
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {
@@ -452,7 +413,7 @@ nothing length() [flags=RUNTIME_NOOP] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-int length(any[doc] arg) [flags=NOOP] {
+int length(auto[doc] arg) [flags=NOOP] {
    return 0;
 }
 
@@ -487,7 +448,7 @@ nothing strlen() [flags=RUNTIME_NOOP] {
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-int strlen(any[doc] arg) [flags=NOOP] {
+int strlen(auto[doc] arg) [flags=NOOP] {
    return 0;
 }
 
@@ -868,7 +829,7 @@ string chr(softint val, *string encoding) [flags=CONSTANT] {
 //! This function variant returns a string with a single ASCII NULL ('\\0'); it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** @return a string with a single ASCII NULL ('\\0')
  */
-string chr(any[doc] arg) [flags=NOOP] {
+string chr(auto[doc] arg) [flags=NOOP] {
    return new QoreStringNode('\0');
 }
 
@@ -1752,7 +1713,7 @@ string str = f_vsprintf("%5s %3d\n", ("a lon", 500)); # will return "a lon 500"
 
     @since %Qore 0.8.4
  */
-string f_vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+string f_vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 1, 0, xsink);
 }
 
@@ -1774,7 +1735,7 @@ string str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a lo
     - @ref string_formatting for information on the formatting string
     - f_vsprintf() for a similar function that enforces field widths
  */
-string vsprintf(string[doc] fmt, any[doc] varg) [flags=CONSTANT] {
+string vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 0, 0, xsink);
 }
 
@@ -1867,7 +1828,7 @@ f_vprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
 
     @since %Qore 0.8.4
  */
-string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
+string f_vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 1, 0, xsink));
    return node;
@@ -1891,7 +1852,7 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
     - @ref string_formatting for information on the formatting string
     - f_vprintf() for a similar function that enforces field widths
  */
-string vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
+string vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
    return node;

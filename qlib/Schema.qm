@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Schema.qm Qore user module for working with SQL data
+#! @file Schema.qm Qore user module for working with SQL data
 
-/*  Schema.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
+/*  Schema.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.2
+%requires SqlUtil >= 1.5
 
 # requires the Util module
 %requires Util >= 1.1
@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,12 @@ module Schema {
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_3 Schema Module v1.3
+    - improved logging output when performing schema alignments
+      (<a href="https://github.com/qorelanguage/qore/issues/3114">issue 3114</a>)
+    - fixed AbstractSchema::checkExistence()
+      (<a href="https://github.com/qorelanguage/qore/issues/3266">issue 3266</a>)
 
     @subsection schema_v1_2 Schema Module v1.2
     - added the following public functions: (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
@@ -529,7 +535,7 @@ public namespace Schema {
 
             all_options = AbstractSchema::combineOptions(creation_options, column_options);
 
-            schema = (
+            schema = {
                 "tables": getTables(),
                 "sequences": getSequences(),
                 "types": getTypes(),
@@ -537,7 +543,7 @@ public namespace Schema {
                 "procedures": getProcedures(),
                 "packages": getPackages(),
                 "materialized_views": getMaterializedViews(),
-                );
+            };
         }
 
         #! returns the name of the schema
@@ -648,14 +654,17 @@ public namespace Schema {
             }
 %endif
 
-            if (sch.dot_count)
+            if (sch.dot_count) {
                 logProgress("\n");
-            if (sch.change_count)
+                sch.dot_count = 0;
+            }
+            if (sch.change_count) {
                 log("%d change%s made; schema is now at version %s", sch.change_count, sch.change_count == 1 ? "" : "s", version);
-            else
+            } else {
                 log("no changes made to schema version %s", version);
+            }
 
-            doPostAlignment(table_cache, first_time_install, initial_schema_info);
+            doPostAlignment(table_cache, first_time_install, initial_schema_info, verbose);
 
             *hash strict_data = getStrictReferenceDataHash();
             *hash ref_data = getReferenceDataHash();
@@ -666,35 +675,45 @@ public namespace Schema {
             hash sh;
 
             if (strict_data || ref_data || co_data || insert_only_data) {
-                log("verifying reference data");
+                if (verbose != 1) {
+                    log("verifying reference data");
+                } else {
+                    logProgress("verifying reference data: ");
+                }
 
                 int upsert_strategy = getUpsertStrategy(first_time_install);
 
                 # install "strict reference data", where there can be no other rows in the table
-                if (strict_data)
+                if (strict_data) {
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, upsert_strategy, True, verbose, \sh), strict_data.pairIterator();
+                }
 
                 # ensure that "normal" reference data is in place
-                if (ref_data)
+                if (ref_data) {
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, upsert_strategy, False, verbose, \sh), ref_data.pairIterator();
+                }
 
                 # do "insert-only" data
-                if (insert_only_data)
+                if (insert_only_data) {
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, AbstractTable::UpsertInsertOnly, False, verbose, \sh), insert_only_data.pairIterator();
+                }
 
                 # do "create only" data
-                if (co_data && first_time_install)
+                if (co_data && first_time_install) {
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, upsert_strategy, False, verbose, \sh), co_data.pairIterator();
+                }
 
                 postDataActions(first_time_install);
 
-                if (!verbose)
+                if (!verbose) {
                     logProgress("\n");
+                }
 
-                if (!sh)
+                if (!sh) {
                     log("reference data: OK (no changes)");
-                else
+                } else {
                     log("reference data: %s", (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
+                }
             }
 
             return sch.change_count + sh.size();
@@ -960,18 +979,43 @@ public namespace Schema {
         }
 
         #! returns @ref Qore::True "True" if the method can detect that DB objects defined in the schema exist in the database
-        /** Currently this method checks if at least one of the first tables, sequences, functions, or procedures defined in the schema template exists.
+        /** Currently this method checks if any of tables, sequences, functions, or procedures defined in the schema template exists.
             If so, this method returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
         */
         private bool checkExistence() {
-            if (schema.tables)
-                return db.getTable(schema.tables.firstKey()) ? True : False;
-            if (schema.sequences)
-                return db.getSequence(schema.sequences.firstKey()) ? True : False;
-            if (schema.functions)
-                return db.getFunction(schema.functions.firstKey()) ? True : False;
-            if (schema.procedures)
-                return db.getProcedure(schema.procedures.firstKey()) ? True : False;
+            # NOTE: we cannot check firstKey() only as before. It fails
+            # if the tables hash is changed to contain non-existing table
+            # at the 1st place.
+
+            # object types are sorted by their cost of construction DESC
+            if (db.supportsSequences() && schema.sequences) {
+                foreach string name in (keys schema.sequences) {
+                    if (db.getSequence(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.functions) {
+                foreach string name in (keys schema.functions) {
+                    if (db.getFunction(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.procedures) {
+                foreach string name in (keys schema.procedures) {
+                    if (db.getProcedure(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.tables) {
+                foreach string name in (keys schema.tables) {
+                    if (db.getTable(name)) {
+                        return True;
+                    }
+                }
+            }
             return False;
         }
 
@@ -990,6 +1034,11 @@ public namespace Schema {
         private bool checkUpdateSchema(bool force, reference<hash> initial_schema_info) {
             logpf("verifying/aligning schema version %s", version);
             return True;
+        }
+
+        #! this method is called after schema structural alignment has been executed but before schema reference data management
+        private doPostAlignment(Tables table_cache, bool first_time_install, *hash initial_schema_info, int verbose) {
+            doPostAlignment(table_cache, first_time_install, initial_schema_info);
         }
 
         #! this method is called after schema structural alignment has been executed but before schema reference data management

@@ -30,7 +30,7 @@ class FtpServer {
             throw "FTPSERVER-ERROR", strerror();
         }
         if (verbose > 1) {
-            printf("FTP server bound and listening on %s:%d\n", address, port);
+            printf("FTP server bound and listening on %s:%d\n", address, s.getSocketInfo().port);
         }
         cnt.inc();
         background listener();
@@ -271,7 +271,7 @@ class FtpServer {
         while (True) {
             dport = 10000 + (rand() % 40000);
             try {
-                data.bindINET("localhost", dport, True);
+                data.bindINET("localhost", dport, True, AF_INET);
                 break;
             }
             catch (hash ex) {
@@ -438,7 +438,7 @@ class FtpTest inherits QUnit::Test {
     testIssue3031() {
         int port = getPort();
 
-        # PORT only supports IPv4, so we cant use "localhost", which may resolve
+        # PORT only supports IPv4, so we can't use "localhost", which may resolve
         # to an IPv6 address
         FtpServer serv(port, m_options.verbose, "127.0.0.1");
         on_exit serv.shutdown();
@@ -606,14 +606,23 @@ class FtpTest inherits QUnit::Test {
     testFtpClientSim() {
         int port = getPort();
 
-        FtpServer serv(port, m_options.verbose);
+        FtpServer serv(port, m_options.verbose, "127.0.0.1");
         on_exit serv.shutdown();
 
         port = serv.getPort();
-        FtpClient fc("ftp://user:pass@localhost:" + port);
+        FtpClient fc("ftp://user:pass@127.0.0.1:" + port);
         Queue q();
         fc.setWarningQueue(20000, 20000, q, "test");
-        assertNothing(fc.connect());
+        assertEq(AF_UNSPEC, fc.getNetworkFamily());
+        assertThrows("FTPCLIENT-SETNETWORKFAMILY-ERROR", \fc.setNetworkFamily(), -1);
+
+        fc.setNetworkFamily(AF_INET);
+        assertEq(NOTHING, fc.connect());
+
+        hash info = fc.getControlSocketInfo();
+        assertEq(AF_INET, info.family);
+        info = fc.getControlPeerInfo();
+        assertEq(AF_INET, info.family);
 
         assertNothing(fc.put(local_path));
 

@@ -8,7 +8,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil.qm
+%requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/MysqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 

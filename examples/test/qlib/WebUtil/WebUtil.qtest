@@ -25,10 +25,9 @@ class TestFileHandler inherits FileHandler {
     }
 
     constructor(string fileRoot, string urlRoot = "/", *hash opt) : FileHandler(fileRoot, urlRoot, opt) {
-        #
     }
 
-    private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
+    private *hash<auto> getResponseHeadersForFile(string path, hash<auto> cx, hash<auto> hdr) {
         if (addHeaders)
             return {"Cache-Control": "private, max-age=86400"};
     }
@@ -39,8 +38,37 @@ public class WebUtilTest inherits QUnit::Test {
     }
 
     constructor() : Test("WebUtilTest", "1.0") {
+        addTestCase("StaticTemplateManager test", \staticTemplateManagerTest());
         addTestCase("FileHandler test", \fileHandlerTest());
+        addTestCase("StaticTemplateManager parse options test", \staticTemplateManagerParseOptionsTest());
         set_return_value(main());
+    }
+
+    staticTemplateManagerTest() {
+        StaticTemplateManager stm();
+        stm.add("t1", "<p>text</p>");
+        stm.add("t2", "<p>text</p>");
+    }
+
+    private staticTemplateManagerParseOptionsTest() {
+        # negative test
+        try {
+            StaticTemplateManager stm();
+            stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
+            fail("test cannot go here");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-EXCEPTION", ex.err, "oldstyle PO with newstyle template");
+            assertEq("local variable 's' declared without '$' prefix, but parse option 'allow-bare-refs' is not set",
+                     ex.desc, "oldstyle PO with newstyle template");
+        }
+        # positive test
+        {
+            StaticTemplateManager stm(PO_NEW_STYLE);
+            stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
+            assertTrue(True);
+        }
+
     }
 
     fileHandlerTest() {
@@ -66,6 +94,9 @@ public class WebUtilTest inherits QUnit::Test {
         result = client.get("/test_file.txt", NOTHING, \info);
         respHdr = info."response-headers";
         assertEq("abc", trim(result));
+        # remove the "charset" from the content-type
+        respHdr."content-type" =~ s/;.*//;
+        assertEq(MimeTypeHtml, respHdr."content-type");
         assertTrue(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
     }
 }

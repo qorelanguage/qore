@@ -8,7 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/CsvUtil.qm
+%requires ../../../../qlib/CsvUtil
 
 %exec-class CsvUtilTest
 
@@ -72,6 +72,7 @@ f2:3,00:5:25,34";
         addTestCase("Multi-type resolve CSV tests", \csvMultiResolveTest());
         addTestCase("Config stress", \csvConfig());
         addTestCase("CSV file iterator", \csvFileIterator());
+        addTestCase("issue 2739 test", \issue2739());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -732,6 +733,38 @@ UK,1234567893,28052012";
         assertEq(True, i.hasCallableMethod("getEncoding"));
 
         assertEq((("0": "a", "1": "b", "2": "c"), ("0": "1", "1": "2", "2": "3")), (map $1, i));
+    }
+
+    issue2739() {
+        string file = tmp_location() + "/test-issue2739.csv";
+        on_exit unlink(file);
+
+        File f();
+        f.open2(file, O_WRONLY | O_CREAT);
+        f.write(
+            "abcd,1234,2072-02-29\n"
+            "\"efgh\",\"5678\",\"2096-02-29\"\n"
+        );
+
+        CsvFileIterator i(file, {
+            'fields': {'S': 'string',
+                       'N': 'number',
+                       'D': {'type': 'date', 'format': 'YYYY-MM-DD'}}
+        });
+
+        i.next();
+        assertEq("abcd,1234,2072-02-29", i.getRawLine());
+        assertEq(("abcd", "1234", "2072-02-29"), i.getRawLineValues());
+        assertNeq(("abcd", 1234, "2072-02-29"), i.getRawLineValues());
+        assertNeq(("abcd", "1234", date("2072-02-29")), i.getRawLineValues());
+        assertEqSoft({"S" : "abcd", "N": 1234, "D": date("2072-02-29")}, i.getValue());
+
+        i.next();
+        assertEq("\"efgh\",\"5678\",\"2096-02-29\"", i.getRawLine());
+        assertEq(("efgh", "5678", "2096-02-29"), i.getRawLineValues());
+        assertNeq(("efgh", 5678, "2096-02-29"), i.getRawLineValues());
+        assertNeq(("efgh", "5678", date("2096-02-29")), i.getRawLineValues());
+        assertEqSoft({"S" : "efgh", "N": 5678, "D": date("2096-02-29")}, i.getValue());
     }
 }
 

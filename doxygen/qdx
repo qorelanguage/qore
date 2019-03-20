@@ -6,13 +6,13 @@
 %require-types
 %strict-args
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 %requires Qdx
 
 %exec-class qdx
 
-const opts = (
+const opts = {
     "moddx": "M,module-dx=s",
     "post": "p,post",
     "tag": "t,tag=s@",
@@ -20,8 +20,9 @@ const opts = (
     "dox": "d,dox",
     "nmp": "N,no-mainpage",
     "keepdollar": "k,keep-dollar",
+    "src_root": "T,top-srcdir=s",
     "help": "h,help"
-    );
+};
 
 class qdx {
     private {
@@ -68,7 +69,6 @@ class qdx {
             map postProcess($1, True), ARGV;
             return;
         }
-
         if (ARGV.size() < 2)
             usage();
         processQore(ARGV[0], ARGV[1]);
@@ -82,6 +82,7 @@ class qdx {
   -p,--post           post process files
   -k,--keep-dollar    keep $ signs when post-processing
   -t,--tag=ARG        tag argument for doxyfile
+  -T,--top-srcdir=ARG the top source directory
   -h,--help           this help text
 ", get_script_name());
       exit(1);
@@ -106,16 +107,33 @@ class qdx {
             stderr.printf("MODULE-ERROR: --module-dx argument %y is not in format <src>:<trg>\n", o.moddx);
             exit(1);
         }
+        printf("src: %y trg: %y src_root: %y ofn: %y\n", src, trg, o.src_root, ofn);
 
         # get module name and version (the easy way)
-        string name = substr(basename(src), 0, -3);
+        string name = basename(src);
+        # remove ".qm" suffix for files
+        name =~ s/\.qm$//;
+
         Program p();
         p.define("QORE_QDX_RUN", 1);
         string msrc = sprintf("%%requires %s\nhash sub get() { return get_module_hash().'%s'; }\n", src, name);
         p.parse(msrc, "mod");
-        hash h = p.callFunction("get");
+        hash<auto> h = p.callFunction("get");
 
-        printf("processing %y -> %y (module %s %s src: %y trg: %y)\n", fn, ofn, name, h.version, src, trg);
+        # issue #2966: if module is a directory, then get all relevant files for trg / {input}
+        if (is_dir(src)) {
+            string trg_dir = dirname(trg) + DirSep;
+            list<string> trg_list;
+            foreach string file in (glob(src + DirSep + "*")) {
+                if (file =~ /\.qm$/ || file =~ /\.qc$/ || file =~ /\.ql$/) {
+                    file = sprintf("%s%s.dox.h", trg_dir, basename(file));
+                    trg_list += file;
+                }
+            }
+
+            # replace target list for {input}
+            trg = trg_list.join(" ");
+        }
 
         InputStreamLineIterator i(new FileInputStream(fn), NOTHING, NOTHING, False);
 
@@ -137,6 +155,9 @@ class qdx {
                 line = replace(line, "{tags}", tags);
             else if (line =~ /{qore_version}/)
                 line = replace(line, "{qore_version}", QoreVer);
+            else if (line =~ /{qore_src_dir}/) {
+                line = replace(line, "{qore_src_dir}", o.src_root);
+            }
 
             w.write(line);
         }
@@ -176,12 +197,12 @@ class qdx {
 
         FileInputStream inf(ifn);
         InputStreamLineIterator ins = tex
-            ? new QorePostProcessingInputStreamLineIterator(inf)
-            : new QorePostProcessingTexInputStreamLineIterator(inf);
+            ? new QorePostProcessingTexInputStreamLineIterator(inf)
+            : new QorePostProcessingInputStreamLineIterator(inf);
 
         string ofn = ifn + ".new";
 
-        printf("processing API file %s\n", ifn);
+        #printf("processing API file %s\n", ifn);
 
         StreamWriter w(new FileOutputStream(ofn));
 
@@ -222,17 +243,85 @@ class qdx {
                 break;
             }
 
-            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in particular places, for example
-            line =~ s/<!--%.*%-->//g;
+            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in
+            # particular places, for example
+            #line =~ s/<!--%.*%-->//g;
 
             comment += line;
         }
         return comment;
     }
 
+    #! doxygen dislikes qouted strings but accept apostrophed ones
+    string adjustQuotedStrings(string line) {
+        int flag = 0;
+        int i = 0;
+        while (i < line.size()) {
+            switch (flag) {
+                case 0:
+                    switch (line[i]) {
+                        case '"':
+                            splice line, i, 1, "'";
+                            flag = 1;
+                            break;
+                        case "'":
+                            flag = 2;
+                            break;
+                    }
+                    break;
+                case 1:  # in quoted string
+                    switch (line[i]) {
+                        case '\':
+                            i++;  # skip next char
+                            break;
+                        case '"':
+                            splice line, i, 1, "'";
+                            flag = 0;
+                            break;
+                        case "'":
+                            splice line, i, 0, '\';   # prefix apostroph
+                            i++;
+                            break;
+                    }
+                    break;
+                case 2:  # in apostropted string
+                    switch (line[i]) {
+                        case '\':
+                            i++;  # skip next char
+                            break;
+                        case "'":
+                            flag = 0;
+                            break;
+                    }
+                    break;
+            }
+            i++;
+        }
+        return line;
+    }
+
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
+        # issue #2966: process module directories
+        if (is_dir(fn)) {
+            string targ_dir = dirname(nn);
+            foreach string file in (glob(fn + DirSep + "*")) {
+                if (file =~ /\.qm$/ || file =~ /\.qc$/ || file =~ /\.ql$/) {
+                    string file_nn = sprintf("%s/%s.dox.h", targ_dir, basename(file));
+                    processQoreFile(file, file_nn);
+                }
+            }
+        } else {
+            processQoreFile(fn, nn);
+        }
+    }
+
+    /* note: ideally the function should process input files to output ones keep line numbering. It would
+       allow to use doxygen filters as the line would be referenced to source file. But there are some
+       expansions which makes it difficult, i.e. table expansion to html tags
+     */
+    private processQoreFile(string fn, string nn) {
         FileInputStream inf(fn);
         # need to use an unbuffered StreamReader here
         InputStreamLineIterator ins(new StreamReader(inf), NOTHING, False);
@@ -246,6 +335,9 @@ class qdx {
 
         # class member public/private bracket count
         int ppc = 0;
+
+        # public/private block type
+        string pp_type;
 
         # method private flag
         bool mpp;
@@ -278,26 +370,28 @@ class qdx {
                 line =~ s/@mainpage ([\w]+)/@page $1 $1/;
 
             if (in_doc) {
-                if (line =~ /\*\//)
+                if (line =~ /\*\//) {
                     in_doc = False;
+                }
                 w.write(line);
                 continue;
             }
 
             # skip parse commands
-            if (line =~ /^%/)
+            if (line =~ /^%/) {
                 continue;
-
+            }
             # see if the line is the start of a doxygen block comment
-            if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
+            if (line =~ /^[[:blank:]]*\/\*\*/) {
                 line = getComment(line, ins);
                 w.write(line);
                 continue;
             }
 
-            if (line =~ /^[[:blank:]]*\/\*/){ #/){
-                if (line !~ /\*\//)
+            if (line =~ /^[[:blank:]]*\/\*/){
+                if (line !~ /\*\//) {
                     in_doc = True;
+                }
                 w.write(line);
                 continue;
             }
@@ -319,7 +413,7 @@ class qdx {
 
             # change hashdecl to struct
             if (line =~ /[^a-zA-Z0-9_]hashdecl /) {
-                line =~ s/([^a-zA-Z0-9_])hashdecl /$1struct /g;
+                line =~ s/([^a-zA-Z0-9_])?hashdecl /$1struct /g;
                 hashdecl_flag = True;
             }
 
@@ -331,16 +425,45 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && line !~ /}/ && ins.next()) {
+                while (line.val() && !regex(line, "}") && ins.next()) {
                     line = ins.getValue();
                 }
                 continue;
             }
 
+            # see if we have a function or method declaration that spans multiple lines
+            if (line =~ /\w+\s?(\(|\))/) {
+                # copy of line to check it without parens in quotes
+                string line_copy = line;
+                line_copy =~ s/"(?:[^"\\]|\\.)*"/""/g;
+                # count how many open curly brackets
+                int ob = (line_copy =~ x/(\()/g).size();
+                # count how many close curly brackets
+                int cb = (line_copy =~ x/(\))/g).size();
+                int tot = (ob - cb);
+                if (tot > 0) {
+                    trim line;
+                    # read until we have an open bracket
+                    while (ins.next()) {
+                        string new_line = ins.getValue();
+                        trim new_line;
+                        line += " " + new_line;
+                        #printf("FOUND COMPLEX LINE: %s\n", line);
+                        if (new_line =~ /{\s?(#.*)?$/) {
+                            break;
+                        }
+                    }
+                    line += "\n";
+                }
+            }
+
             # see if the line is the start of a method or function declaration
-            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
-                && line !~ /^[[:blank:]]*\"/) {
-                #printf("method or func: %s", line);
+            if (regex(line, '\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$')
+                && line !~ /const .*=/
+                && line !~ /extern .*=.*\(.*\)/
+                && !regex(line, '^[[:blank:]]*\"') ) {
+                if (line =~ /code.*cve/) { printf("GOT IT: %s\n", line);}
+                # printf("method or func: %s", line);
 
                 # remove "$" signs
                 line =~ s/\$//g;
@@ -349,17 +472,24 @@ class qdx {
                 line =~ s/#.*$//;
 
                 # make into a declaration (also remove any parent class constructor calls)
-                line =~ s/[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
+                line =~ s/[[:blank:]]*(?:([^:A-za-z]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
+                #line = regex_subst(line, '[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$', "$1;");
+
+                # modify string default value quoted by quotes to apostroph
+                line = adjustQuotedStrings(line);
 
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }
 
             if (line =~ /[[:blank:]]*abstract .*;[[:blank:]]*$/) {
-                #printf("method or func: %s", line);
+                #printf("abstract method: %s", line);
 
                 # remove "$" signs
                 line =~ s/\$//g;
+
+                # modify string default value quoted by quotes to apostroph
+                line = adjustQuotedStrings(line);
             }
 
             # convert Qore line comments to C++ line comments
@@ -377,11 +507,20 @@ class qdx {
             # convert class inheritance lists to c++-style declarations
             if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
                 trim line;
-                xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
+                xl = regex_extract(line, '(.*) inherits ([^{]+)(.*)');
                 xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
-                    if (e !~ /(private|public)[^A-Za-z0-9_]/)
+                    if (e !~ /(private:internal|private:hierarchy|private|public)[^A-Za-z0-9_]/)
                         e = "public " + e;
+                    else {
+                        if (e =~ /private:hierarchy/) {
+                            e = replace(e, "private:hierarchy", "protected");
+                        } else if (e =~ /private:internal/) {
+                            e = replace(e, "private:internal", "private");
+                        } else if (e =~ /private/) {
+                            e = replace(e, "private", "protected");
+                        }
+                    }
                 }
                 trim(xl[0]);
                 line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
@@ -412,8 +551,7 @@ class qdx {
 
                 w.write(line);
                 continue;
-            }
-            else {
+            } else {
                 xs = (line =~ x/^[[:space:]]*class[[:space:]]+(\w+(::\w+)?)/)[0];
 
                 if (xs.val()) {
@@ -425,8 +563,8 @@ class qdx {
                     if (cbc)
                         throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
 
-                    if (line =~ /{/) {
-                        if (line !~ /}/) {
+                    if (regex(line, "{") ) {
+                        if (!regex(line, "}")) {
                             line += "\npublic:\n";
                             ++cbc;
                         }
@@ -436,8 +574,7 @@ class qdx {
 
                     w.write(line);
                     continue;
-                }
-                else if (class_name) {
+                } else if (class_name) {
                     if (line =~ /({|})/) {
                         # count how many open curly brackets
                         int ob = (line =~ x/({)/g).size();
@@ -445,48 +582,79 @@ class qdx {
                         int cb = (line =~ x/(})/g).size();
                         cbc += (ob - cb);
                         if (!cbc) {
-                            line =~ s/}/};/;
+                            line = regex_subst(line, "}", "};");
                             delete class_name;
                         }
                     }
 
-                    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
-                        w.printf("private:\n%s\npublic:\n", xs);
+                    if (*list<string> strlist = (line =~ x/^(\s*)(public|private(?::internal|:hierarchy)?)\s+{(.*)}/)) {
+                        switch (strlist[1]) {
+                            case "private":
+                            case "private:hierarchy":
+                                strlist[1] = "protected";
+                                break;
+                            case "private:internal":
+                                strlist[1] = "private";
+                                break;
+                        }
+                        if (strlist[1] != "public") {
+                            w.printf("%s:\n", strlist[1]);
+                        }
+                        w.printf("%s%s\n", strlist[0], strlist[2]);
+                        if (strlist[1] != "public") {
+                            w.printf("public:\n");
+                        }
                         continue;
                     }
-                    else if (!ppc) {
-                        if (line =~ /(public|private)[[:space:]]*{/) {
+                    if (exists (xs = (line =~ x/(?:public|private(?::internal|:hierarchy)?)\s*{(.*)}/)[0])) {
+                        string mod = getDoxMod(xs);
+                        if (mod != "public") {
+                            w.printf("%s:\n%s\npublic:\n", mod, xs);
+                        } else {
+                            w.printf("%s\n", xs);
+                        }
+                        continue;
+                    } else if (!ppc) {
+                        if (exists (xs = (line =~ x/\s*(public|private(?::internal|:hierarchy)?)\s*{\s*(#.*)?$/)[0])) {
+                            pp_type = xs;
+                            xs = getDoxMod(xs);
                             ++ppc;
-                            line =~ s/{/:/;
+                            if (xs != "public") {
+                                w.printf("%s:\n", xs);
+                            }
                             #printf("PP line: %s\n", line);
+                            continue;
+                        }
+                    } else {
+                        # count how many open curly brackets
+                        int ob = (line =~ x/({)/g).size();
+                        # count how many close curly brackets
+                        int cb = (line =~ x/(})/g).size();
+                        int tot = (ob - cb);
+                        if (tot) {
+                            ppc += tot;
+                            if (!ppc) {
+                                if (pp_type != "public") {
+                                    w.write("\npublic:\n");
+                                }
+                                remove pp_type;
+                                continue;
+                            }
                         }
                     }
-                    else {
-                        if (line =~ /{/) {
-                            if (line !~ /}/)
-                                ++ppc;
-                        }
-                        else if (line =~ /}/) {
-                            if (!--ppc)
-                                line = "\npublic:\n";
-                        }
-                    }
-                }
-                else if (hashdecl_flag) {
-                    if (line =~ /}/) {
-                        line =~ s/}/};/;
+                } else if (hashdecl_flag) {
+                    if (regex(line, "}") ) {
+                        line = regex_subst(line, "}", "};");
                         remove hashdecl_flag;
                     }
-                }
-                else if (ns_name) {
-                    if (line =~ /{/) {
-                        if (line !~ /}/)
+                } else if (ns_name) {
+                    if (regex(line, "{")) {
+                        if (!regex(line, "}"))
                             ++nbc;
-                    }
-                    else if (line =~ /}/) {
+                    } else if (regex(line, "}")) {
                         --nbc;
                         if (!nbc) {
-                            line =~ s/}/};/;
+                            line = regex_subst(line, "}", "};");
                         }
                         ns_name = pop nss;
                     }
@@ -494,15 +662,16 @@ class qdx {
             }
 
             if (!ppc && line !~ /^[ \t]*\/\//) {
-                list mods = ();
+                list<string> mods();
+
                 if (line =~ /\(.*\)/) {
                 #if (line !~ /"/) {
-                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private:internal|private:hierarchy)([^A-Za-z0-9_].*)/))) {
-                        l[1] =~ s/:.*//;
+                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private(?::internal|:hierarchy)?)(?:\s?)([^A-Za-z0-9_].*)/))) {
+                        #l[1] =~ s/:.*//;
                         mods += l[1];
                         line = l[0] + l[2];
                     }
-                    while (exists (*list l = (line =~ x/(.*)(private|public)([^-:A-Za-z0-9_].*)/))) {
+                    while (exists (*list l = (line =~ x/(.*)(public|private(?::internal|:hierarchy)?)(?:\s?)([^-:A-Za-z0-9_].*)/))) {
                         mods += l[1];
                         line = l[0] + l[2];
                     }
@@ -510,17 +679,21 @@ class qdx {
 
                 if (!mods.empty()) {
                     trim mods;
-                    #printf("mods=%n line=%n\n",mods, line);
+                    #printf("mods: %y line: %y\n", mods, line);
                     foreach string mod in (mods) {
-                        if (mod == "private") {
+                        if (mod == "private" || mod == "private:hierarchy") {
                             if (!mpp) {
                                 mpp = True;
-                                w.write("\nprivate:\n");
+                                w.write("\protected:\n");
+                            }
+                        } else if (mod == "private:internal") {
+                            if (!mpp) {
+                                mpp = True;
+                                w.write("\private:\n");
                             }
                         }
-                        #line = regex_subst(line, mod, "");
                     }
-                    mods = select mods, $1 != "private" && $1 != "public";
+                    mods = select mods, $1 !~ /^private/ && $1 != "public";
                     if (!mods.empty()) {
                         line = regex_subst(line, "^([[:blank:]]+)(.*)", "$1 " + join(" ", mods) + " $2");
                     }
@@ -530,11 +703,11 @@ class qdx {
             w.write(line);
 
             if (mpp) {
-                if (line =~ /{/)
+                if (regex(line, "{")) {
                     ++mpc;
-                else if (line =~ /}/)
+                } else if (regex(line, "}")) {
                     --mpc;
-
+                }
                 if (!mpc) {
                     w.write("\npublic:\n");
                     mpp = False;
@@ -543,16 +716,33 @@ class qdx {
         }
     }
 
-    private readUntilCloseBracket(FileInputStream inf) {
+    private string getDoxMod(string mod) {
+        switch (mod) {
+            case "private":
+            case "private:hierarchy":
+                return "protected";
+            case "private:internal":
+                return "private";
+            case "public":
+                return mod;
+            default:
+                throw "MOD-ERROR", sprintf("unrecognized protection attribute %y", mod);
+        }
+    }
+
+    # return number of lines processed
+    private int readUntilCloseBracket(FileInputStream inf) {
         int cnt = 1;
+        int line_cnt = 0;
         string quote;
         bool need = True;
         int regex = 0;
 
         StreamReader sr(inf);
         *string fc = sr.readString(1);
-        if (!exists fc)
-            return;
+        if (!exists fc) {
+            return line_cnt;
+        }
 
         string c = fc;
         need = False;
@@ -561,24 +751,32 @@ class qdx {
             if (need) {
                 c = sr.readString(1);
             }
-            else
+            else {
                 need = True;
+            }
+
+            if (c == "\n") {
+                line_cnt++;
+            }
 
             if (regex) {
                 if (c == "\\")
                     sr.readString(1);
-                if (c == "/")
+                if (c == "/") {
                     --regex;
+                }
                 continue;
             }
 
             if (c == "'" || c == '"') {
                 if (quote.val()) {
-                    if (c == quote)
+                    if (c == quote) {
                         delete quote;
+                    }
                 }
-                else
+                else {
                     quote = c;
+                }
                 continue;
             }
             if (quote.val()) {
@@ -592,26 +790,29 @@ class qdx {
                     regex = 1;
                     while (True) {
                         c = sr.readString(1);
-                        if (c == "s")
+                        if (c == "s") {
                             ++regex;
-                        else if (c == "/")
+                        } else if (c == "/") {
                             break;
+                        }
                     }
                 }
                 continue;
             }
 
-            if (c == "{")
+            if (c == "{") {
                 ++cnt;
+            }
             else if (c == "}") {
                 if (!--cnt) {
-                    return;
+                    return line_cnt;
                 }
             }
             else if (c == "$") {#"){
                 c = sr.readString(1);
-                if (c != "#")
+                if (c != "#") {
                     need = False;
+                }
             }
             else if (c == "#") {
                 # read until EOL
@@ -625,18 +826,22 @@ class qdx {
                     while (True) {
                         c = sr.readString(1);
                         if (star) {
-                            if (c == "/")
+                            if (c == "/") {
                                 break;
+                            }
                             star = (c == "*");
                             continue;
                         }
-                        if (c == "*")
+                        if (c == "*") {
                             star = True;
+                        }
                     }
                 }
-                else
+                else {
                     need = False;
+                }
             }
         }
+        return line_cnt;
     }
 }

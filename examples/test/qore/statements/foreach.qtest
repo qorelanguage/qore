@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 %no-child-restrictions
+%allow-weak-references
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -16,8 +17,18 @@
 
 class ForEachTest inherits QUnit::Test {
     constructor() : QUnit::Test("ForEachTest", "1.0", \ARGV) {
+        addTestCase("weak reference tests", \weakReferenceTests());
         addTestCase("basic operator tests", \basicTests());
         set_return_value(main());
+    }
+
+    weakReferenceTests() {
+        # issue 3202: the foreach statement doesn't work with weak references
+        Mutex m();
+        hash<auto> h.a := m;
+        foreach Mutex m0 in (h.iterator()) {
+            assertTrue(True);
+        }
     }
 
     basicTests() {

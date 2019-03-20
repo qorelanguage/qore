@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Qorize.qm Qorize module definition
+#! @file Qorize.qm Qorize module definition
 
 /*  Qorize.qm Copyright 2013 - 2017 Qore Technologies s r.o.
 

@@ -1,0 +1,47 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetExceptionString
+
+class TestClass {
+    public {}
+}
+
+public class GetExceptionString inherits QUnit::Test {
+    constructor() : Test("GetExceptionString", "1.0") {
+        addTestCase("get_exception_string()", \testGetExceptionString());
+
+        set_return_value(main());
+    }
+
+    testGetExceptionString() {
+        hash<ExceptionInfo> ex;
+        try {
+            throw "ERR", "err";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex = ex1;
+        }
+        assertEq("Qore", ex.callstack[0].lang);
+        assertEq("GetExceptionString::constructor", ex.callstack.last().function);
+
+        ex.arg = <StatInfo>{};
+        assertEq(Type::String, get_exception_string(ex).type());
+
+        ex.arg = 1;
+        assertEq(Type::String, get_exception_string(ex).type());
+
+        ex.arg = True;
+        assertEq(Type::String, get_exception_string(ex).type());
+
+        ex.arg = new TestClass();
+        assertEq(Type::String, get_exception_string(ex).type());
+    }
+}

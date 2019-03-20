@@ -32,7 +32,8 @@
 #define INCLUDE_QORE_INTERN_ICONVHELPER_H_
 
 #include <qore/Qore.h>
-#include <errno.h>
+
+#include <cerrno>
 #include <iconv.h>
 
 class IconvHelper {

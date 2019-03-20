@@ -1,0 +1,189 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+
+%exec-class Test
+
+namespace Ns {
+    our Counter m_counter;
+}
+
+class Test inherits QUnit::Test {
+    public {
+    }
+
+    private {
+        # Counter m_counter();  # use global variable
+        Counter m_processing();
+        LoggerAppenderQueue m_laq;
+    }
+    constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
+        m_counter = new Counter();
+        addTestCase("LoggerContainer-Logger", \testLoggerProgram());
+        addTestCase("LoggerContainer-Logger-ThreadPool", \testLoggerProgramThreadPool());
+        set_return_value(main());
+    }
+
+    private LoggerAppenderStream startProgram(LoggerRoot lr, LoggerLayoutPattern llp, LoggerAppenderQueue laq, bool unassignThread, int n, int iterCnt) {
+        Logger l = new Logger(sprintf("P-%d", n));
+        OutputStream osb = new StringOutputStream();
+        if (unassignThread) {
+            osb.unassignThread();
+        }
+        LoggerAppenderStream la = new LoggerAppenderStream("", llp, new StreamWriter(osb));
+        la.setQueue(laq);
+        la.open();
+        l.setParent(lr);
+        l.addAppender(la);
+        l.setLevel("DEBUG");
+        Program p = new Program(PO_NEW_STYLE);
+        p.loadModule("Logger");
+        p.setScriptPath(sprintf("testprog-%d.q", n));
+        p.importGlobalVariable("m_counter");
+        p.parse('
+            our Logger logger;  # logging API for Program sandbox
+            int sub main(int count) {
+                logger.log("INFO", "main(): start");
+                for (int i=0; i<count; i++) {
+                    #stderr.printf("%d\n", i);
+                    logger.debugVar("i", i);
+                }
+                logger.log("INFO", "main(): end");
+                m_counter.dec();
+                return 0;
+            }
+        ', sprintf("label-%d", n), WARN_DEFAULT);
+        p.setGlobalVarValue("logger", l);
+        m_counter.inc();
+        background p.callFunction("main", iterCnt);
+        return la;
+    }
+
+    hash prepareAppenders(bool unassignThread, int programCount, int iterCnt) {
+        LoggerRoot lr = new LoggerRoot("INFO");
+        LoggerLayoutPattern llp = new LoggerLayoutPattern("%r [%t] %p %c %l - %m%n");
+        OutputStream osb = new StringOutputStream();
+        if (unassignThread) {
+            osb.unassignThread();
+        }
+        LoggerAppenderStream lar = new LoggerAppenderStream("", llp, new StreamWriter(osb));
+        lar.setQueue(m_laq);
+        lar.open();
+        lr.addAppender(lar);
+
+        hash appenders.root.la = lar;
+        for (int i=0; i < programCount; i++) {
+            appenders{sprintf("A-%d", i)}.la = startProgram(lr, llp, m_laq, unassignThread, i, iterCnt);
+        }
+        return appenders;
+    }
+
+    runProcessing() {
+        # logger processing thread
+        #printf("runProcessing(), tid:%d\n", gettid());
+        on_exit {
+            #printf("m_processing.dec(), tid:%d\n", gettid());
+            m_processing.dec();
+        }
+        while (m_counter.getCount() > 0) {
+            try {
+                m_laq.process();
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "QUEUE-TIMEOUT") {
+                    stderr.printf("Ex1: %y\n");
+                    #m_counter.waitForZero();
+                    rethrow;
+                }
+            }
+        }
+        #printf("m_counter.waitForZero(), tid: %d, count: %d\n", gettid(), m_counter.getCount());
+        m_counter.waitForZero();
+        #printf("m_counter.waitForZero() DONE, tid: %d, count: %d\n", gettid(), m_counter.getCount());
+        while (m_laq.size() > 0) {
+            try {
+                m_laq.process();
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "QUEUE-TIMEOUT") {
+                    stderr.printf("Ex2: %y\n");
+                    rethrow;
+                }
+            }
+        }
+    }
+
+    assertAppenderLogs(hash appenders, int programCount, int iterCnt) {
+        foreach string k in (keys appenders) {
+            bool assignThread = appenders{k}.la.hasAssignThread();
+            if (assignThread) {
+                appenders{k}.la.getStreamWriter().getOutputStream().reassignThread();
+            }
+            on_exit {
+                if (assignThread) {
+                    appenders{k}.la.getStreamWriter().getOutputStream().unassignThread();
+                }
+            }
+            string s = appenders{k}.la.getStreamWriter().getOutputStream().getData();
+            list l = s.split(LoggerLayoutPattern::getLineDelimiter());
+            try {
+                if (k == "root") {
+                    assertEq(2*programCount, l.size());
+                } else {
+                    assertEq(2 + iterCnt, l.size());
+                    list l2 = ();
+                    foreach string s2 in (l) {
+                        push l2, regex_extract(s2, ": ([a-z0-9]+)$")[0];
+                    }
+                    list expected;
+                    push expected, "start";
+                    for (int i = 0; i<l2.size()-2; i++) {
+                        push expected, i.toString();
+                    }
+                    push expected, "end";
+                    assertEq(expected, l2);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("APPENDER:%s\n-------------\n", k);
+                stderr.print(s);
+                stderr.printf("\n");
+                printf("Exception: %y\n", ex);
+            }
+        }
+    }
+
+    testLoggerProgram() {
+        int programCount = 10;
+        int iterCnt = 10;
+        m_laq = new LoggerAppenderQueue();
+        hash appenders = prepareAppenders(False, programCount, iterCnt);
+        m_processing.inc();
+        runProcessing();
+        assertAppenderLogs(appenders, programCount, iterCnt);
+    }
+
+    testLoggerProgramThreadPool() {
+        printf("testLoggerProgramThreadPool()\n");
+        ThreadPool tp();
+        m_laq = new LoggerAppenderQueueThreadPool(tp, 5);
+        m_processing.inc();
+        m_counter.inc();
+        background runProcessing();
+
+        int programCount = 10;
+        int iterCnt = 10;
+        hash appenders = prepareAppenders(True, programCount, iterCnt);
+        m_counter.dec();
+        #printf("m_processing.waitForZero(), tid:%d, count: %d\n", gettid(), m_processing.getCount());
+        m_processing.waitForZero();
+        #printf("m_processing.waitForZero() DONE, tid:%d, count: %d\n", gettid(), m_processing.getCount());
+        assertAppenderLogs(appenders, programCount, iterCnt);
+        printf("assertAppenderLogs() DONE\n");
+    }
+
+}

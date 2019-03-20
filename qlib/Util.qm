@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Util.qm Qore user module for generally useful routines
+#! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.3";
+    version = "1.4";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -73,6 +73,7 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
+    - @ref Util::parse_ranges()
     - @ref Util::parse_to_qore_value()
     - @ref Util::parse_uri_query()
     - @ref Util::plural()
@@ -85,6 +86,19 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_4_1 Util 1.4.1
+    - fixed a bug in @ref Util::get_exception_string() "get_exception_string()" with Java exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3304">issue 3304</a>)
+
+    @subsection util_1_4 Util 1.4
+    - added the @ref Util::parse_ranges() "parse_ranges()" function (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
+    - added the @ref Util::check_ip_address() "check_ip_address()" function (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+    - updated @ref Util::parse_to_qore_value() "parse_to_qore_value()" to support single-element lists and hashes with
+      curly brackets including empty hashes
+      (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
+    - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+      (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
 
     @subsection util_1_3 Util 1.3
     - updated for complex types
@@ -383,24 +397,26 @@ bool abs = absolute_path_windows(path);
     const ET_RawString = 0;
     const ET_QuotedString = 1;
     const ET_BracketString = 2;
-    const ET_Eq = 3;
-    const ET_Comma = 4;
-    const EtMap = (
+    const ET_CurlyBracketString = 3;
+    const ET_Eq = 4;
+    const ET_Comma = 5;
+    const EtMap = {
         ET_RawString: "raw string",
         ET_QuotedString: "quoted string",
         ET_BracketString: "bracket expression",
+        ET_CurlyBracketString: "curly bracket expression",
         ET_Eq: "=",
         ET_Comma: ",",
-        );
+    };
 
     # private scanner for parse_to_qore_value()
-    list sub scan_exp(string arg) {
+    list<hash> sub scan_exp(string arg) {
         #printf("DBG se: %y\n", arg);
 
-        list l = ();
+        list<hash> l = ();
 
-        # bracket counter hash
-        hash bc;
+        # bracket stack
+        string bracket_stack;
 
         # active quote character
         *string quote;
@@ -411,7 +427,7 @@ bool abs = absolute_path_windows(path);
         for (int i = 0; i < len; ++i) {
             string c = arg[i];
             if (c == ",") {
-                if (!quote && !bc) {
+                if (!quote && !bracket_stack) {
                     #printf("DBG: got comma i:%d\n", i);
                     trim str;
                     if (str.val()) {
@@ -421,9 +437,8 @@ bool abs = absolute_path_windows(path);
                     l += ("type": ET_Comma);
                     continue;
                 }
-            }
-            else if (c == "=") {
-                if (!quote && !bc) {
+            } else if (c == "=") {
+                if (!quote && !bracket_stack) {
                     trim str;
                     if (str.val()) {
                         l += ("type": ET_RawString, "val": str);
@@ -432,21 +447,19 @@ bool abs = absolute_path_windows(path);
                     l += ("type": ET_Eq);
                     continue;
                 }
-            }
-            else if (c == '"' || c == "'") {
+            } else if (c == '"' || c == "'") {
                 if (quote) {
                     if (c == quote) {
                         delete quote;
-                        if (!bc) {
+                        if (!bracket_stack) {
                             l += ("type": ET_QuotedString, "val": str);
                             str = "";
                             continue;
                         }
                     }
-                }
-                else {
+                } else {
                     quote = c;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         trim str;
                         if (str.val()) {
                             l += ("type": ET_RawString, "val": str);
@@ -455,29 +468,30 @@ bool abs = absolute_path_windows(path);
                         continue;
                     }
                 }
-            }
-            else if (!quote) {
+            } else if (!quote) {
                 *string p = FwdParenMap{c};
                 if (p) {
                     bool first;
-                    if (!bc) {
+                    if (!bracket_stack) {
                         first = True;
                         trim str;
                         if (str.val()) {
-                            l += ("type": ET_RawString, "val": str);
+                            l += {"type": ET_RawString, "val": str};
                             str = "";
                         }
                     }
-                    ++bc{p};
-                    if (first)
+                    bracket_stack += p;
+                    if (first) {
                         continue;
-                }
-                else if (ParenMap{c}) {
-                    if (bc{c} && !--bc{c}) {
-                        delete bc{c};
+                    }
+                } else if (ParenMap{c} && (c == bracket_stack[-1])) {
+                    splice bracket_stack, -1;
+                    if (!bracket_stack) {
                         #printf("DBG: got bracket string: %y\n", str);
-                        l += ("type": ET_BracketString, "val": str);
-                        delete bc{c};
+                        l += {
+                            "type": c == "}" ? ET_CurlyBracketString : ET_BracketString,
+                            "val": str,
+                        };
                         str = "";
                         continue;
                     }
@@ -610,26 +624,30 @@ hash: (1 member)
         # we should not use "auto" here because this lvalue must be able to convert to an untyped list
         any v;
 
-        list l = scan_exp(arg);
+        list<hash> l = scan_exp(arg);
 
         #map printf("%d: %y: %y, ", $#, EtMap{$1.type}, $1.val), l; printf("\n");
 
         bool do_break;
+        bool in_hash;
 
         # process values after an "=" sign
         code do_eq = sub (reference<int> i, string key) {
             # get the value
             auto val;
             switch (l[i+2].type) {
-                case ET_BracketString: val = parse_to_qore_value(l[i+2].val); break;
+                case ET_BracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : (); break;
+                case ET_CurlyBracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : {}; break;
                 case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
                 case ET_QuotedString: val = l[i+2].val; break;
                 case ET_Comma: --i; break;
                 case ET_Eq: throw "PARSE-ERROR", sprintf("cannot parse %y after %y", EtMap{ET_Eq}, EtMap{ET_Eq});
             }
-            if (!exists v)
+            #printf("do_eq() i: %d key: %y v: %y val: %y\n", i, key, v, val);
+            if (!exists v) {
                 v{key} = val;
-            else switch (v.typeCode()) {
+                in_hash = True;
+            } else switch (v.typeCode()) {
                 case NT_HASH: {
                     if (do_break)
                         v = (v, (key: val));
@@ -672,8 +690,9 @@ hash: (1 member)
         code check_val = sub (int i) {
             if (i) {
                 int lt = l[i-1].type;
-                if (lt != ET_Comma && lt != ET_Eq)
+                if (lt != ET_Comma && lt != ET_Eq) {
                     throw "PARSE-ERROR", sprintf("cannot parse %y (%y) after %y (%y)", EtMap{l[i].type}, l[i].val, EtMap{lt}, l[i-1].val);
+                }
             }
         };
 
@@ -695,9 +714,23 @@ hash: (1 member)
                     do_break = False;
                     break;
                 }
+                case ET_CurlyBracketString: {
+                    check_val(i);
+                    if (!exists h.val) {
+                        do_val({});
+                    } else {
+                        do_val(parse_to_qore_value(h.val));
+                    }
+                    do_break = True;
+                    break;
+                }
                 case ET_BracketString: {
                     check_val(i);
-                    do_val(parse_to_qore_value(h.val));
+                    if (!exists h.val) {
+                        do_val(());
+                    } else {
+                        do_val(parse_to_qore_value(h.val));
+                    }
                     do_break = True;
                     break;
                 }
@@ -714,6 +747,9 @@ hash: (1 member)
                     break;
                 }
                 case ET_Comma: {
+                    if (v.typeCode() != NT_LIST && !in_hash) {
+                        v = (v,);
+                    }
                     break;
                 }
                 case ET_Eq: {
@@ -857,22 +893,46 @@ string pass = get_random_string();
 
         @return a multi-line string from the exception hash argument suitable for logging or output on the console
      */
-    public string sub get_exception_string(hash ex) {
+    public string sub get_exception_string(hash<auto> ex) {
         string str;
 
         while (True) {
-            str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            ex.type, get_ex_pos(ex), ex.err, ex.desc,
-                            ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
+            str += sprintf("%s exception: %s: %s: %s",
+                            ex.type, get_ex_pos(ex), ex.err, ex.desc);
+            if (exists ex.arg) {
+                # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
+                # class with a specific member list or a hashdecl where accessing an invalid key would cause a
+                # runtime exception to be thrown
+                if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
+                    && (ex.arg.ex instanceof hash<ExceptionInfo>
+                        || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
+                            && ex.arg.callstack.typeCode() == NT_LIST))) {
+                    if (ex.arg.size() > 1) {
+                        str += sprintf(" (arg: %y)", ex.arg - "ex");
+                    }
+                    str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
+                } else {
+                    str += sprintf(" (arg: %y)", ex.arg);
+                }
+            }
 
             if (ex.callstack) {
-                foreach hash l in (ex.callstack) {
-                    if (l.type == "new-thread")
+                foreach hash<auto> l in (ex.callstack) {
+                    if (l.type == "new-thread") {
                         str += sprintf("\n  *** thread started by background operator ***");
-                    else if (l.type == "rethrow")
-                        str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
-                    else
-                        str += sprintf("\n  %s() called at %s (%s function)", l.function, get_ex_pos(l), l.type);
+                    } else {
+                        string pos = get_ex_pos(l);
+                        if (l.type == "rethrow") {
+                            str += sprintf("\n  *** RETHROW at %s", pos);
+                        } else {
+                            if (pos =~ /\)$/) {
+                                splice pos, -1, 1, sprintf(" %s code)", l.type);
+                            } else {
+                                pos += sprintf(" (%s code)", l.type);
+                            }
+                            str += sprintf("\n  %s() called at %s", l.function, pos);
+                        }
+                    }
                 }
             }
 
@@ -1308,6 +1368,31 @@ list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
         return r ?? ();
     }
 
+    #! Parses a string and returns a list of integers.
+    /**
+        @param text the string to parse
+        @return a list of integer numbers
+
+        @par Example:
+        @code{.py}
+list ints = parse_ranges ("3,5, 7-9"); # returns (3, 5, 7, 8, 9)
+        @endcode
+
+        @since Util 1.4
+    */
+    public list sub parse_ranges (string text) {
+        list numbers = ();
+        list parts = select (map trim($1), text.split(',')), $1;
+        foreach string str in (parts) {
+            list bounds = str.split("-");
+            if (bounds.size() == 2)
+                numbers += range (int(bounds[0]), int(bounds[1]));
+            else
+                numbers += int(str);
+        }
+        return numbers;
+    }
+
     #! Returns a duplicate-free version of the list.
     /**
         @param  arg a list of values to filter out
@@ -1360,4 +1445,63 @@ list z = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
         }
         return r ?? ();
     }
+
+    #! verifies if a string is an IPv4 or IPv6 address
+    /** @par Example:
+        @code{.py}
+check_ip_address(str, True);
+        @endcode
+
+        @param ip the string in dot-notation (for IPv4 addresses) or colon notation (for IPv6 addresses) to check; the string should not contain any network component which would cause the comparison to fail; note that IPv4 address components must be in the range of 0 - 255 and must not have leading zeros
+        @param exception if @ref True an exception will be thrown if the string is not a valid IPv4 or IPv6 address, if @ref False the return value of the function indicates the string's validation status
+
+        @return @ref True if the string is a valid IPv4 or IPv6 address, @ref False if not (note that if \c exception is @ref True then an \c INVALID-IP-ADDRESS exception is thrown if the string is invalid)
+
+        @throw INVALID-IP-ADDRESS this exception is thrown if \c ip is not a valid IPv4 or IPv6 address and \c exception is @ref True
+
+        @since Util 1.4
+    */
+    public bool sub check_ip_address(string ip, bool exception = False) {
+        # check for IPv4 addresses (checks for 0 - 255 in each IPv4 component)
+        if (ip =~ /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))$/)
+            return True;
+        # check for IPv6 addresses
+        if (ip =~ /^(([0-9a-f]{1,4}:){7,7}[0-9a-f]{1,4}|([0-9a-f]{1,4}:){1,7}:|([0-9a-f]{1,4}:){1,6}:[0-9a-f]{1,4}|([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}|([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}|([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}|([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}|[0-9a-f]{1,4}:((:[0-9a-f]{1,4}){1,6})|:((:[0-9a-f]{1,4}){1,7}|:)|fe80:(:[0-9a-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/i)
+            return True;
+        if (exception)
+            throw "INVALID-IP-ADDRESS", sprintf("%y: is not a valid IPv4 or IPv6 address", ip);
+        return False;
+    }
+
+    #! Verifies whether a string begins with specific substring
+    /** @param str string to be checked
+        @param substr substring to look for at str's start
+
+        @return True if str starts with substr, False otherwise
+    */
+    public bool sub string_starts_with(string str, string substr) {
+        if (substr == "") {
+            return True;
+        }
+
+        return str.find(substr) == 0;
+    }
+
+    #! Verifies whether a string ends with specific substring
+    /** @param str string to be checked
+        @param substr substring to look for at str's end
+
+        @return True if str ends with substr, False otherwise
+    */
+    public bool sub string_ends_with(string str, string substr) {
+        int str_len = str.length();
+        int substr_len = substr.length();
+
+        if (substr_len == 0) {
+            return True;
+        }
+
+        return str_len >= substr_len && str.rfind(substr) == str_len - substr_len;
+    }
+
 }

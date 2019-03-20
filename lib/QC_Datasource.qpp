@@ -1,38 +1,41 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* @file QC_Datasource.qpp Datasource class definition
+/** @file QC_Datasource.qpp Datasource class definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QC_Serializable.h"
 
-extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
+DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;
 
 static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
@@ -43,7 +46,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
       if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
          continue;
 
-      if (ds->setOptionInit(hi.getKey(), hi.getValue(), xsink))
+      if (ds->setOptionInit(hi.getKey(), hi.get(), xsink))
          return -1;
    }
    return 0;
@@ -89,7 +92,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
-   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
+   int port = (int)opts->getKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -99,7 +102,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    }
 
    {
-      QoreValue p = opts->getValueKeyValue("options", xsink);
+      QoreValue p = opts->getKeyValue("options", xsink);
       if (!p.isNothing()) {
          if (p.getType() != NT_HASH) {
             xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
@@ -112,9 +115,56 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    }
 
    if (queue)
-      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
+}
+
+static void create_datasource_from_conf(const QoreString& conf, QoreObject& self, Queue* queue, QoreValue arg, ExceptionSink* xsink) {
+    ReferenceHolder<Queue> holder(queue, xsink);
+
+    qore_offset_t colon = conf.find(':');
+    qore_offset_t atsign = conf.find('@');
+    if (colon < 0 || (atsign < colon)) {
+        // do not report the string here to avoid leaking password info in case present
+        xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+        return;
+    }
+
+    ReferenceHolder<QoreHashNode> h(parseDatasource(conf.c_str(), xsink), xsink);
+    if (!h) {
+        assert(*xsink);
+        return;
+    }
+
+    ds_constructor_hash(*h, &self, holder.release(), arg, xsink);
+}
+
+static QoreHashNode* Datasource_serializer(const QoreObject& self, const ManagedDatasource& ds, QoreSerializationContext& context, ExceptionSink* xsink) {
+    SimpleRefHolder<QoreStringNode> str(const_cast<ManagedDatasource&>(ds).getConfigString(xsink));
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    rv->setKeyValue("conf", str.release(), xsink);
+    return rv.release();
+}
+
+static void Datasource_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("conf");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Datasource serialization key 'conf' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+            create_datasource_from_conf(*val.get<QoreStringNode>(), self, nullptr, QoreValue(), xsink);
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the Datasource class");
 }
 
 /** @defgroup database_driver_constants Database Driver Constants
@@ -283,11 +333,18 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
     cannot be overridden or suppressed.
 
+    @par Data Serialization
+    The Datasource class supports @ref Serializable "data serialization"; deserialization can fail if the database is not
+    supported on or reachable from the target machine.
+
+    When deserializing, any datasource event queue is lost; only the connection information is propagated in the
+    deserialized copy.
+
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
     @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
  */
-qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource];
+qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource, Serializable; serializer=reinterpret_cast<q_serializer_t>(Datasource_serializer); deserializer=Datasource_deserializer];
 
 //! Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in %Qore
 /** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
@@ -366,7 +423,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
       ds_set_options(*ds, options, xsink);
 
    if (queue)
-      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -388,25 +445,14 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @since %Qore 0.8.6
  */
 Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
-   ReferenceHolder<Queue> q(queue, xsink);
+    ReferenceHolder<Queue> q(queue, xsink);
 
-   TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
-   if (*xsink)
-      return;
-   qore_offset_t colon = tstr->find(':');
-   qore_offset_t atsign = tstr->find('@');
-   if (colon < 0 || (atsign < colon)) {
-      xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
-      return;
-   }
+    TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
+    if (*xsink) {
+        return;
+    }
 
-   ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
-   if (!h) {
-      assert(*xsink);
-      return;
-   }
-   ds_constructor_hash(*h, self, q.release(), arg, xsink);
-   return;
+    create_datasource_from_conf(**tstr, *self, q.release(), arg, xsink);
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
@@ -562,7 +608,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 auto Datasource::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
 
@@ -647,7 +693,7 @@ if (query.firstValue())
     - @ref context
  */
 auto Datasource::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
 
@@ -674,7 +720,7 @@ auto Datasource::select(string sql, ...) {
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 *hash Datasource::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
 
@@ -706,7 +752,7 @@ auto Datasource::select(string sql, ...) {
     @see Datasource::select()
  */
 auto Datasource::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
 
@@ -832,7 +878,7 @@ auto Datasource::vselectRows(string sql, *softlist vargs) {
     @since %Qore 0.8.9
  */
 *hash Datasource::describe(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->describe(sql, *argl, xsink);
 }
 
@@ -1111,8 +1157,8 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
     @endcode
  */
 *int Datasource::getPort() [flags=CONSTANT] {
-   int port = ds->getPort();
-   return port ? new QoreBigIntNode(port) : 0;
+    int port = ds->getPort();
+    return port ? QoreValue(port) : QoreValue();
 }
 
 //! Sets the transaction lock timeout value in milliseconds; set to 0 for no timeout
@@ -1281,6 +1327,9 @@ hash h = ds.getConfigHash();
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
 
+    This method does not require a connection to the server.  The return value may differ for connected and unconnected
+    objects, as the DB driver may set default option values when the datasource is connected.
+
     @since %Qore 0.8.8
  */
 hash Datasource::getConfigHash() [flags=CONSTANT] {
@@ -1294,6 +1343,9 @@ string str = ds.getConfigString();
     @endcode
 
     @return a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
+
+    This method does not require a connection to the server.  The return value may differ for connected and unconnected
+    objects, as the DB driver may set default option values when the datasource is connected.
 
     @since %Qore 0.8.8
  */
@@ -1316,7 +1368,7 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+   ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 }
 
 //! Clears the queue object for DBI events on the datasource
@@ -1325,4 +1377,23 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
  */
 nothing Datasource::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
+}
+
+//! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
+/** @par Example:
+    @code{.py}
+AbstractSQLStatement stmt = ds.getSQLStatement();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
+
+    @since Qore 0.9.0
+*/
+AbstractSQLStatement Datasource::getSQLStatement() {
+    if (!ds->getDriver()->hasStatementAPI()) {
+        xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API", ds->getDriver()->getName());
+        return QoreValue();
+     }
+
+    return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(ds));
 }

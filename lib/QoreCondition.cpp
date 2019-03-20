@@ -31,8 +31,8 @@
 #include <qore/Qore.h>
 #include <qore/QoreCondition.h>
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 QoreCondition::QoreCondition() {
    pthread_cond_init(&c, 0);

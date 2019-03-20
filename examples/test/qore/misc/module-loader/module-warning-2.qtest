@@ -1,0 +1,23 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class ModuleWarningTest
+
+class ModuleWarningTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Module Warning Test", "1.0") {
+        addTestCase("warning test", \warningTest());
+        set_return_value(main());
+    }
+
+    warningTest() {
+        hash<ExceptionInfo> h = load_module_warn("./Issue3212.qm", WARN_MODULES | WARN_DEPRECATED);
+        assertEq("DEPRECATED", h.err);
+    }
+}

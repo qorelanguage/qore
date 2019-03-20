@@ -13,6 +13,10 @@
 
 %exec-class PrivateModuleTest
 
+namespace Test {
+    class TestClass;
+}
+
 class PrivateModuleTest inherits QUnit::Test {
     constructor() : QUnit::Test("Private module test", "1.0") {
         addTestCase("Test", \testPrivateModule());
@@ -23,6 +27,7 @@ class PrivateModuleTest inherits QUnit::Test {
         # set up the Program container
         Program p(PO_NO_CHILD_PO_RESTRICTIONS|PO_ALLOW_INJECTION|PO_NEW_STYLE);
         p.setScriptPath(get_script_path());
+        p.importClass("TestClass");
         p.loadApplyToPrivateUserModule("./MyTestModule2.qm");
         assertEq(NOTHING, get_module_hash().MyTestModule2, "private-load-1");
     }

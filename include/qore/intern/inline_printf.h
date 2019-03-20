@@ -33,9 +33,10 @@
 #define INC_UTILS_STRING_INLINE_PRINTF_H_PV20061219_
 
 #include <qore/common.h>
+
+#include <cassert>
+#include <cstdarg>
 #include <string>
-#include <stdarg.h>
-#include <assert.h>
 
 // helper
 extern DLLEXPORT std::string inline_printf_helper_format_string(const char* fmt, va_list arg);

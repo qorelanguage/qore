@@ -38,7 +38,23 @@ if you have the open headers and libraries in a location the configure script ca
 	http://gmplib.org/
 This is for the arbitrary-precision numeric type introduced with Qore 0.8.6
 
-(note that libxml2 is no longer a build requirement as all xml functionality has been moved to the xml module)
+CMAKE Build
+-----------
+
+The cmake build is the recommended build method; support for autotools builds will likely be removed in a future
+release.
+
+example from the root source directory:
+
+    mkdir build; cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+    make && make docs && sudo make install
+
+Autotools Build
+---------------
+
+Note that the cmake build is the recommended build method; support for autotools builds will likely be removed in a
+future release.
 
 "configure" Option Overview
 ---------------------------

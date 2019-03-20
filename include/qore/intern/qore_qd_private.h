@@ -33,17 +33,16 @@
 
 #define _QORE_QORE_QD_PRIVATE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <dirent.h>
+#include <string>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <dirent.h>
-
-#include <string>
 
 #ifdef _Q_WINDOWS
 static int mkdir(const char *path, mode_t mode) {

@@ -19,6 +19,16 @@
 %requires ../../directory/Module.qm
     @endcode \n
 
+    Module implementation could be separated to multiple files and stored as a directory named with the same name as the module. To require them use @ref requires "%requires ModuleName" without ".qm" extension. All files with the extenstion *qc, *ql (e.g. functions and classes) inside the directory will be automatically included at program parse time.
+
+    Examlpe of such separated module:
+    @code{.py}
+ModuleName/
+    |-ModuleName.qm         # typical "qore" module file with the exception that implementation of classes and functions that it is used is stored separately
+    |-SomeModuleClass.qc
+    |-SomeModuleFunction.ql
+    @endcode \n
+
     Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" or @ref try-module "%try-module" parse directive.
 
     From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").
@@ -31,6 +41,7 @@
 
     <b>Modules Provided With %Qore</b>
     |!Type|!Module|!Description
+    |binary|<a href="../../modules/astparser/html/index.html">astparser</a>|Provides a language parser API to %Qore
     |user|<a href="../../modules/BulkSqlUtil/html/index.html">BulkSqlUtil</a>|Provides APIs based on <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for executing bulk DML operations
     |user|<a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>|Provides an API for pluggable connection and URL providers
     |user|<a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>|Provides code to help parse CSV or other structured text files and also to easily generate such files
@@ -43,8 +54,10 @@
     |user|<a href="../../modules/FilePoller/html/index.html">FilePoller</a>|Provides an API for polling files on the filesystem
     |user|<a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>|Provides code to help parse data in format of fixed length lines records
     |user|<a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>|Provides a high-level DB-independent API for working with MS SQL Server and Sybase database objects; loaded automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a> for automated schema management, programmatic DB access, schema and data synchronization, and more
+    |user|<a href="../../modules/FsUtil/html/index.html">FsUtil</a>|Provides a high level API for working with the filesystem
     |user|<a href="../../modules/HttpServer/html/index.html">HttpServer</a>|Provides a multi-threaded HTTP server and request handler APIs; provides the infrastructure for server-side HTTP services
     |user|<a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>|Provides base definitions for handler classes integrating with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/Logger/html/index.html">Logger</a>|Provides a flexible logging API (aka "log4q")
     |user|<a href="../../modules/MailMessage/html/index.html">MailMessage</a>|Provides supporting classes for the <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> modules; mail message serialization and deserialization, attachment handling
     |user|<a href="../../modules/Mapper/html/index.html">Mapper</a>|Provides data mapping classes and interators
     |user|<a href="../../modules/Mime/html/index.html">Mime</a>|Provides MIME definitions and functions; MIME type lookups, MIME encoding and decoding functions, MIME multipart handling, etc
@@ -55,6 +68,7 @@
     |user|<a href="../../modules/Qdx/html/index.html">Qdx</a>|Provides support for documentation generation with doxygen from %Qore sources
     |user|<a href="../../modules/Qorize/html/index.html">Qorize</a>|Provides basic support for automatically-generating %Qore code from data
     |user|<a href="../../modules/QUnit/html/index.html">QUnit</a>|Provides an API for defining and executing tests and reporting results in various formats
+    |binary|<a href="../../modules/reflection/html/index.html">reflection</a>|Provides a reflection API to %Qore
     |user|<a href="../../modules/RestClient/html/index.html">RestClient</a>|Provides a simple API for communicating with HTTP servers implementing <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> services
     |user|<a href="../../modules/RestHandler/html/index.html">RestHandler</a>|Provides an easy to use interface to the %Qore <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module for implementing server-side <a href="http://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> services
     |user|<a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>|Provides a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST</a> schema validation API
@@ -73,6 +87,7 @@
     |user|<a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>|Provides an interface to the %Qore <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module for implementing server-side WebSocket services
     |user|<a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a>|Provides common client and server code for implementing WebSocket protocol services in %Qore
     |user|<a href="../../modules/WebUtil/html/index.html">WebUtil</a>|Provides higher-level classes for implementing more complex web services in %Qore; works with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a>|providing APIs for communicating with <a href="http://www.zeyos.com">Zeyos.com</a>'s REST API
 
     <b>Modules Provided Separately</b>
     |!Type|!Module|!Description
@@ -81,6 +96,7 @@
     |binary|<a href="https://github.com/qorelanguage/module-jni">jni</a>|Provides access to Java APIs in %Qore
     |binary|<a href="https://github.com/qorelanguage/module-json">json</a>|Provides JSON and JSON-RPC client functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     |binary|<a href="https://github.com/qorelanguage/module-linenoise">linenoise</a>|Provides a readline-like API to %Qore under a permissive license
+    |binary|<a href="https://github.com/qorelanguage/module-msgpack">msgpack</a>|Provides APIs for efficient data serialization in %Qore using the <a href="https://msgpack.org/index.html">MessagePack</a> format
     |binary|<a href="https://github.com/qorelanguage/module-mysql">mysql</a>|Provides a MySQL / MariaDB / Percona DBI driver
     |binary|<a href="https://github.com/qorelanguage/module-odbc">odbc</a>|Provides an ODBC DBI driver to %Qore
     |binary|<a href="https://github.com/qorelanguage/module-oracle">oracle</a>|Provides an Oracle DBI driver, providing many advanced features such as support for named types and collections, advanced queuing, etc, also provides the following user modules:\n- <a href="http://docs.qore.org/modules/oracle/current/OracleExtensions/html/index.html">OracleExtensions</a>: provides infrastructure for SQL tracing
@@ -108,7 +124,7 @@
 
     @section user_modules User Modules
 
-    User modules are written in %Qore and delivered in source form.  They must have the extension \c "*.qm".
+    User modules are written in %Qore and delivered in source form. They must have the extension \c "*.qm".
 
     User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program" object is created automatically when the module is loaded and initialized.  The module's @ref Qore::Program "Program" object is created with locked parse options as follows:
     - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
@@ -244,6 +260,8 @@ public namespace Bar {
 }@endcode
 
     @since %Qore 0.8.4 user modules are supported
+
+    @since %Qore 0.9.0 user modules implementation could be separated to multiple files
 
     @subsection user_module_program_scope Program Scope in Object-Oriented Programs Using User Modules Providing Their Own Threads
 

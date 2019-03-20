@@ -131,6 +131,32 @@ ENDMACRO (QORE_BINARY_MODULE)
 #  'make docs' - if there is Doxygen found
 #  'make uninstall' - if exists CMAKE_CURRENT_SOURCE_DIR/cmake/cmake_uninstall.cmake.in
 MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" "" ${ARGN})
+ENDMACRO (QORE_BINARY_MODULE_INTERN)
+
+MACRO (QORE_BINARY_MODULE_QORE _module_name _version _install_suffix)
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" 1 ${ARGN})
+ENDMACRO (QORE_BINARY_MODULE_QORE)
+
+MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suffix)
+    if ("${_mod_suffix}" STREQUAL "")
+        set(_docs_targ docs)
+        set(_uninstall_targ uninstall)
+        set(_working_dir ${CMAKE_BINARY_DIR})
+        set(_dox_src ${CMAKE_SOURCE_DIR})
+        set(_dox_output ${CMAKE_BINARY_DIR})
+    else()
+        set(_docs_targ docs-${_module_name})
+        set(_uninstall_targ uninstall-${_module_name})
+        set(_working_dir ${CMAKE_BINARY_DIR}/modules/${_module_name})
+        set(_dox_src ${CMAKE_SOURCE_DIR}/modules/${_module_name}/src)
+        set(_dox_output ${CMAKE_BINARY_DIR}/docs/modules/${_module_name})
+        set(QORE_MOD_NAME ${_module_name})
+
+        if ("${QORE_USERMODULE_DOXYGEN_TEMPLATE}" STREQUAL "")
+            set(QORE_USERMODULE_DOXYGEN_TEMPLATE ${CMAKE_SOURCE_DIR}/doxygen/modules/Doxyfile.in)
+        endif ()
+    endif()
 
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
@@ -190,8 +216,12 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
             "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
             IMMEDIATE @ONLY
         )
-        ADD_CUSTOM_TARGET(uninstall
+        ADD_CUSTOM_TARGET(${_uninstall_targ}
             "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+        if (NOT "${_uninstall_suffix}" STREQUAL "")
+            add_dependencies(uninstall ${_uninstall_targ})
+        endif ()
 
         message(STATUS "")
         message(STATUS "Module ${_module_name} uninstall target: make uninstall")
@@ -204,15 +234,20 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
-            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${_working_dir}/Doxyfile @ONLY)
 
-            add_custom_target(docs
-                ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html ${CMAKE_BINARY_DIR}/html/search
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            add_custom_target(${_docs_targ}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${_dox_output}
+                COMMAND ${DOXYGEN_EXECUTABLE} ${_working_dir}/Doxyfile
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${_dox_output}/html ${_dox_output}/html/search
+                WORKING_DIRECTORY ${_working_dir}
                 COMMENT "Generating API documentation with Doxygen" VERBATIM
             )
-            add_dependencies(docs ${_module_name})
+            add_dependencies(${_docs_targ} ${_module_name})
+
+            if (NOT "${_mod_suffix}" STREQUAL "")
+                add_dependencies(docs ${_docs_targ})
+            endif ()
 
             message(STATUS "")
             message(STATUS "Module ${_module_name} documentation target: make docs")
@@ -224,7 +259,7 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
-ENDMACRO (QORE_BINARY_MODULE_INTERN)
+ENDMACRO (QORE_BINARY_MODULE_INTERN2)
 
 # Install qore native/user module (.qm file) into proper location.
 #
@@ -236,9 +271,18 @@ ENDMACRO (QORE_BINARY_MODULE_INTERN)
 #
 # The module will be installed automatically in 'make install' target.
 MACRO (QORE_USER_MODULE _module_file _mod_deps)
+    get_filename_component(f ${_module_file} NAME_WE)
+    if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
+        file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
+        set(qm_install_subdir "${f}") # install files into a subdir
+        message(STATUS "_mod_targets ${_mod_targets}")
+    else()
+        set(_mod_targets ${_module_file})
+        set(qm_install_subdir "") # common qm file
+    endif()
+
     if (DOXYGEN_FOUND)
         # get module name
-        get_filename_component(f ${_module_file} NAME_WE)
         message(STATUS "Preparing generation of documentation for module: ${f}")
 
         # prepare directories for the documentation
@@ -252,7 +296,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         endforeach(i)
 
         # prepare QDX arguments
-        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+        set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # add CMake target for the documentation
@@ -260,7 +304,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             add_custom_target(docs-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
-                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib $${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
@@ -312,7 +356,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
     endif (DOXYGEN_FOUND)
 
     # install qm file
-    install(FILES ${_module_file} DESTINATION ${QORE_USER_MODULES_DIR})
+    install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
 ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.
@@ -407,3 +451,62 @@ else(CMAKE_USE_PTHREADS_INIT)
     message(FATAL_ERROR "POSIX threads do not seem to be supported on this platform, aborting")
 endif()
 endmacro(QORE_FIND_PTHREADS)
+
+# find pthread_setname
+macro(QORE_FIND_PTHREAD_SETNAME_NP)
+  message(STATUS "Looking for pthread_setname_np()")
+
+  check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(\"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_1)
+
+  if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_1)
+    check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(pthread_self(), \"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_2)
+
+    if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_2)
+      check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(pthread_self(), \"foo\", (void*)0);
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_3)
+
+      if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_3)
+        check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_set_name_np(pthread_self(), \"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SET_NAME_NP)
+
+      endif()
+
+    endif()
+
+  endif()
+
+endmacro(QORE_FIND_PTHREAD_SETNAME_NP)
+
+# find pthread_getattr_np
+macro(QORE_FIND_PTHREAD_GETATTR_NP)
+  check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_attr_t attr;
+    pthread_getattr_np(pthread_self(), &attr);
+    return 0;
+}
+" QORE_HAVE_PTHREAD_GETATTR_NP)
+endmacro()
