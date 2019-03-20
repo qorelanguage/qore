@@ -1,7 +1,8 @@
 #!/usr/bin/env qore
 
-%requires ../../../../qlib/TextWrap.qm
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/TextWrap.qm
 
 %new-style
 %require-types

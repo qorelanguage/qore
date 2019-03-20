@@ -1195,7 +1195,7 @@ string replace(string str, string source, string target, int start = 0, int end 
         return QoreValue();
     }
 
-    if (t1->empty() || !end || (end > 0 && end < start)) {
+    if (t1->empty() || str->empty()) {
         return str->refSelf();
     }
 
@@ -1230,14 +1230,14 @@ string replace(string str, string source, string target, int start = 0, int end 
 
         size_t size = str->size();
 
-        if (end > 0) {
+        if (end) {
             if (end < 0) {
                 end = str->size() + end;
             }
             const char* cn = str->c_str() + str->size();
             // get the byte length to the character after the requested one
             qore_size_t i = ccs->getByteLen(str->c_str(), cn, end + 1, xsink);
-            if (*xsink) {
+            if (*xsink || (start > 0 && end < start)) {
                 return QoreValue();
             }
             //printd(5, "end: %d\n", (int)i);

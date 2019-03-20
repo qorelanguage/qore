@@ -11,35 +11,35 @@
 #! Test TextWrap::TextWrapper
 public class WrapTest inherits BaseTest {
     constructor () : BaseTest ("WrapTest", "1.0") {
-        addTestCase ("TextWrap - WrapTest - test_simple", \test_simple());
-        addTestCase ("TextWrap - WrapTest - test_empty_string", \test_empty_string());
-        addTestCase ("TextWrap - WrapTest - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
-        addTestCase ("TextWrap - WrapTest - test_whitespace", \test_whitespace());
-        addTestCase ("TextWrap - WrapTest - test_fix_sentence_endings", \test_fix_sentence_endings());
-        addTestCase ("TextWrap - WrapTest - test_wrap_short", \test_wrap_short());
-        addTestCase ("TextWrap - WrapTest - test_wrap_short_1line", \test_wrap_short_1line());
-        addTestCase ("TextWrap - WrapTest - test_hyphenated", \test_hyphenated());
-        addTestCase ("TextWrap - WrapTest - test_hyphenated_numbers", \test_hyphenated_numbers());
-        addTestCase ("TextWrap - WrapTest - test_em_dash", \test_em_dash());
-        addTestCase ("TextWrap - WrapTest - test_unix_options", \test_unix_options());
-        addTestCase ("TextWrap - WrapTest - test_funky_hyphens", \test_funky_hyphens());
-        addTestCase ("TextWrap - WrapTest - test_punct_hyphens", \test_punct_hyphens());
-        addTestCase ("TextWrap - WrapTest - test_funky_parens", \test_funky_parens());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false", \test_drop_whitespace_false());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only", \test_drop_whitespace_false_whitespace_only());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only_with_indent", \test_drop_whitespace_false_whitespace_only_with_indent());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only", \test_drop_whitespace_whitespace_only());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_leading_whitespace", \test_drop_whitespace_leading_whitespace());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
-        addTestCase ("TextWrap - WrapTest - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
-        addTestCase ("TextWrap - WrapTest - test_split", \test_split());
-        addTestCase ("TextWrap - WrapTest - test_break_on_hyphens", \test_break_on_hyphens());
-        addTestCase ("TextWrap - WrapTest - test_bad_width", \test_bad_width());
-        # addTestCase ("TextWrap - WrapTest - test_no_split_at_umlaut", \test_no_split_at_umlaut());
-        # addTestCase ("TextWrap - WrapTest - test_umlaut_followed_by_dash", \test_umlaut_followed_by_dash());
-        # addTestCase ("TextWrap - WrapTest - test_non_breaking_space", \test_non_breaking_space());
-        # addTestCase ("TextWrap - WrapTest - test_narrow_non_breaking_space", \test_narrow_non_breaking_space());
+        addTestCase("TextWrap - WrapTest - test_simple", \test_simple());
+        addTestCase("TextWrap - WrapTest - test_empty_string", \test_empty_string());
+        addTestCase("TextWrap - WrapTest - test_empty_string_with_initial_indent", \test_empty_string_with_initial_indent());
+        addTestCase("TextWrap - WrapTest - test_whitespace", \test_whitespace());
+        addTestCase("TextWrap - WrapTest - test_fix_sentence_endings", \test_fix_sentence_endings());
+        addTestCase("TextWrap - WrapTest - test_wrap_short", \test_wrap_short());
+        addTestCase("TextWrap - WrapTest - test_wrap_short_1line", \test_wrap_short_1line());
+        addTestCase("TextWrap - WrapTest - test_hyphenated", \test_hyphenated());
+        addTestCase("TextWrap - WrapTest - test_hyphenated_numbers", \test_hyphenated_numbers());
+        addTestCase("TextWrap - WrapTest - test_em_dash", \test_em_dash());
+        addTestCase("TextWrap - WrapTest - test_unix_options", \test_unix_options());
+        addTestCase("TextWrap - WrapTest - test_funky_hyphens", \test_funky_hyphens());
+        addTestCase("TextWrap - WrapTest - test_punct_hyphens", \test_punct_hyphens());
+        addTestCase("TextWrap - WrapTest - test_funky_parens", \test_funky_parens());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_false", \test_drop_whitespace_false());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only", \test_drop_whitespace_false_whitespace_only());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_false_whitespace_only_with_indent", \test_drop_whitespace_false_whitespace_only_with_indent());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_whitespace_only", \test_drop_whitespace_whitespace_only());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_leading_whitespace", \test_drop_whitespace_leading_whitespace());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_whitespace_line", \test_drop_whitespace_whitespace_line());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_whitespace_only_with_indent", \test_drop_whitespace_whitespace_only_with_indent());
+        addTestCase("TextWrap - WrapTest - test_drop_whitespace_whitespace_indent", \test_drop_whitespace_whitespace_indent());
+        addTestCase("TextWrap - WrapTest - test_split", \test_split());
+        addTestCase("TextWrap - WrapTest - test_break_on_hyphens", \test_break_on_hyphens());
+        addTestCase("TextWrap - WrapTest - test_bad_width", \test_bad_width());
+        # addTestCase("TextWrap - WrapTest - test_no_split_at_umlaut", \test_no_split_at_umlaut());
+        # addTestCase("TextWrap - WrapTest - test_umlaut_followed_by_dash", \test_umlaut_followed_by_dash());
+        # addTestCase("TextWrap - WrapTest - test_non_breaking_space", \test_non_breaking_space());
+        # addTestCase("TextWrap - WrapTest - test_narrow_non_breaking_space", \test_narrow_non_breaking_space());
         set_return_value(main());
     }
 

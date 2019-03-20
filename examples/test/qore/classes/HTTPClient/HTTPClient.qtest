@@ -229,7 +229,8 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
-        addTestCase("issue 3053", \issue3053());
+        # disabled test as the external dependency is currently not working (2019-03-20)
+        #addTestCase("issue 3053", \issue3053());
         addTestCase("HttpClient Test", \testClient());
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
