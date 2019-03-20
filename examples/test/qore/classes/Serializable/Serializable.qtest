@@ -1,0 +1,600 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/Mime.qm
+%requires ../../../../../qlib/SqlUtil.qm
+
+%exec-class SerializableTest
+
+const PrivateKeyPath = get_script_dir() + "../../../qlib/ConnectionProvider/mykey.pem";
+const CertificatePath = get_script_dir() + "../../../qlib/ConnectionProvider/mycert.pem";
+
+const RCount = 3;
+
+hashdecl MyTest {
+    int i;
+    hash<auto> h;
+}
+
+class Err inherits Serializable {
+    public {
+        Mutex m();
+    }
+}
+
+class Test inherits Serializable {
+    public {
+        Test t;
+    }
+
+    constructor() {
+        t = self;
+    }
+}
+
+class RTest inherits Serializable {
+    public {
+        list<RTest> l;
+    }
+}
+
+class Other inherits Serializable;
+
+class Foundation inherits Serializable {
+    public {
+        int i = 3;
+    }
+
+    int getfi() {
+        return i;
+    }
+}
+
+class Base inherits Serializable, private:internal Foundation {
+    public {
+        int x = 2;
+    }
+
+    private {
+        int y = 3;
+    }
+
+    private:internal {
+        int i = 2;
+    }
+
+    int get() {
+        return x;
+    }
+
+    int geti() {
+        return i;
+    }
+
+    int getfi() {
+        return Foundation::getfi();
+    }
+
+    private:internal hash<auto> serializeMembers(hash<auto> members) {
+        # override y member value
+        return members + {
+            "y": 0,
+        };
+    }
+
+    private:internal deserializeMembers(hash<auto> members) {
+        self += members - "y";
+        self.y = members.y - 1;
+    }
+}
+
+class MyContainer inherits AbstractHashContainer {
+    string getElementName() {
+        return "x";
+    }
+
+    auto take(string k) {
+    }
+}
+
+class T inherits Serializable, private:internal Base {
+    public {
+        int i = 1;
+        float f = 1.0;
+        number n = M_PIn;
+        date now = now_us();
+        date rel = 1s;
+        hash<auto> h = {
+            "a": 1,
+        };
+        hash<StatInfo> si();
+        hash<MessagePartInfo> mpi();
+        MyContainer ahc();
+        transient int skip = 1;
+
+        Other o0();
+        Other o1;
+    }
+
+    private {
+        string str = "test";
+    }
+
+    private:internal {
+        bool flag = False;
+    }
+
+    constructor() {
+        o1 = o0;
+        skip = 2;
+    }
+
+    int get() {
+        return Base::get();
+    }
+
+    int geti() {
+        return Base::geti();
+    }
+
+    int getfi() {
+        return Base::getfi();
+    }
+
+    int gety() {
+        return y;
+    }
+}
+
+class OnlyTransient inherits Serializable {
+    public {
+        transient Mutex m();
+    }
+}
+
+class SerializableTest inherits QUnit::Test {
+    public {
+        const Data = (
+            1,
+            "two",
+            NOTHING,
+            0,
+            0.0,
+            22,
+            9223372036854775807,
+            -9223372036854775807,
+            500n,
+            M_PIn,
+            2.141578291e50n,
+            2010-05-05T15:35:02.100,
+            False,
+            M_PI,
+            250.192393,
+            1970-01-01Z,
+            (hash(), (), "three \"things\""),
+            P2M3DT10H14u,
+            now_us(),
+            <beadface>,
+            {
+                "a": 2.0,
+                "b": "hello",
+                "key": True,
+            },
+            new hash<StatInfo>({"size": 1001}),
+            @inf@n,
+            -@inf@n,
+            @inf@,
+            -@inf@,
+            "'single quoted string'",
+            "'1234'",
+            NULL,
+            -1Y - 2M - 3D - 4h - 5m - 6s - 7us,
+            now_us() - years(3000),
+            (0, {"a": {"b": 1}}),
+            "",
+            {"": ""},
+            # note that we cannot test @nan@n and @nan@ as @nan@[n] != @nan@[n]
+        );
+
+        const Ser_10_Hash_Data = <SerializationInfo>{
+            "_data": {
+                "_hash": "^hash^",
+                "_members": {
+                    "a": 1,
+                    "b": 2,
+                },
+            },
+        };
+
+        const Ser_10_Hash_Bin = <515300312e3000010717516f72653a3a53657269616c697a6174696f6e496e66> +
+                                <6f07010307055f6461746101071b516f72653a3a4861736853657269616c697a> +
+                                <6174696f6e496e666f07020307055f686173680307065e686173685e0307085f> +
+                                <6d656d62657273000702030701610701030701620702>;
+
+        # old untyped hash after serializing with 1.0
+        const Ser_10_Hash = hash({
+            "a": 1,
+            "b": 2,
+        });
+
+        const Ser_10_List_Data = <SerializationInfo>{
+            "_data": (1, 2),
+        };
+
+        const Ser_10_List_Bin = <515300312e3000010717516f72653a3a53657269616c697a6174696f6e496e66> +
+                                <6f07010307055f6461746104070207010702>;
+
+        # get old untyped list after serializing with 1.0
+        const Ser_10_List = list((1, 2))[0];
+    }
+
+    constructor() : QUnit::Test("Serializable", "1.0") {
+        addTestCase("Serializable test", \serializableTest());
+        addTestCase("private key test", \privateKeyTest());
+        addTestCase("certificate test", \certificateTest());
+        addTestCase("hashdecl test", \hashdeclTest());
+        addTestCase("call stack test", \callStackTest());
+
+        set_return_value(main());
+    }
+
+    serializableTest() {
+        {
+            Err err();
+            assertThrows("SERIALIZATION-ERROR", \err.serializeToData());
+        }
+
+        {
+            T t();
+            assertEq(2, t.skip);
+            hash<SerializationInfo> h = t.serializeToData();
+            assertEq(3, h._index.size());
+            assertEq(1, h._data.size());
+            assertEq(Type::String, h._data._index.type());
+            assertEq(1, h._index."0"._class_data.T.i);
+            assertEq("Mime", h._modules[0]);
+            assertEq("SqlUtil", h._modules[1]);
+            assertEq("hash<MessagePartInfo>", t.mpi.fullType());
+            assertEq("object<MyContainer>", t.ahc.fullType());
+
+            assertEq(2, t.get());
+            assertEq(2, t.geti());
+            assertEq(3, t.getfi());
+            assertEq(3, t.gety());
+
+            # ensure that transient members are not serialized
+            assertNothing(h._index."0"._class_data.T.skip);
+            #printf("%N\n", h);
+
+            T t1 = Serializable::deserialize(h);
+            assertEq(1, t1.skip);
+            assertEq(2, t1.get());
+            assertEq(2, t1.geti());
+            assertEq(3, t1.getfi());
+            assertEq(-1, t1.gety());
+            assertEq("hash<MessagePartInfo>", t1.mpi.fullType());
+
+            {
+                hash<SerializationInfo> h0 = h;
+                h0._modules[0] = "^invalid^";
+                assertThrows("LOAD-MODULE-ERROR", \Serializable::deserialize(), h0);
+            }
+
+            {
+                hash<SerializationInfo> h0 = h;
+                h0._index."0"._class = "T0";
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+            }
+
+            {
+                # invalid type
+                StringInputStream sis("QS_" + chr(0) + "1.0" + chr(0));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # invalid version
+                sis = new StringInputStream("QS" + chr(0) + "0.9" + chr(0));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # premature end of stream
+                sis = new StringInputStream("QS" + chr(0) + "1.0");
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # invalid header
+                sis = new StringInputStream("QS" + chr(0) + "1.0" + strmul("x", 100));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                BinaryOutputStream bin();
+                t.serialize(bin);
+
+                BinaryInputStream bis(bin.getData());
+                T t2 = Serializable::deserialize(bis);
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
+
+                t2 = Serializable::deserialize(t.serialize());
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
+
+                t2 = Serializable::deserialize(Serializable::serialize(t));
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
+            }
+
+            #printf("t: %N\n", t1);
+        }
+
+        {
+            Test t();
+            hash<SerializationInfo> h = t.serializeToData();
+            Test t1 = Serializable::deserialize(h);
+            assertEq(t1, t1.t);
+            #printf("%N\n", h);
+
+            BinaryOutputStream bin();
+            t.serialize(bin);
+
+            binary bin_data = bin.getData();
+            BinaryInputStream bis(bin_data);
+
+            Test t2 = Serializable::deserialize(bis);
+            assertEq(t2.t, t2);
+
+            t2 = Serializable::deserialize(t.serialize());
+            assertEq(t2.t, t2);
+
+            t2 = Serializable::deserialize(Serializable::serialize(t));
+            assertEq(t2.t, t2);
+        }
+
+        {
+            list<RTest> l = map new RTest(), xrange(RCount - 1);
+            for (int i = 0; i < RCount; ++i) {
+                for (int j = 0; j < RCount; ++j) {
+                    int k = i + j + 1;
+                    if (k >= RCount) {
+                        k -= RCount;
+                    }
+                    #printf("%y %y %y\n", i, j, k);
+                    l[i].l[j] = l[k];
+                }
+            }
+            hash<SerializationInfo> h = Serializable::serializeToData(l);
+            #printf("%N\n", h);
+            list<RTest> l1 = Serializable::deserialize(h);
+            assertTrue(l1[0].l[0] == l1[1]);
+            assertTrue(l1[0].l[1] == l1[2]);
+            assertTrue(l1[0].l[2] == l1[0]);
+
+            BinaryOutputStream bin();
+            Serializable::serialize(l, bin);
+            BinaryInputStream bis(bin.getData());
+            list<RTest> l2 = Serializable::deserialize(bis);
+            assertTrue(l2[0].l[0] == l2[1]);
+            assertTrue(l2[0].l[1] == l2[2]);
+            assertTrue(l2[0].l[2] == l2[0]);
+            #printf("l2: %N\n", l2);
+
+            l2 = Serializable::deserialize(Serializable::serialize(l));
+            assertTrue(l2[0].l[0] == l2[1]);
+            assertTrue(l2[0].l[1] == l2[2]);
+            assertTrue(l2[0].l[2] == l2[0]);
+        }
+
+        {
+            hash<SerializationInfo> h = Serializable::serializeToData(Data);
+            auto d = Serializable::deserialize(h);
+            assertEq(Data, d);
+
+            BinaryOutputStream bin();
+            Serializable::serialize(Data, bin);
+            BinaryInputStream bis(bin.getData());
+            d = Serializable::deserialize(bis);
+            assertEq(Data, d);
+
+            d = Serializable::deserialize(Serializable::serialize(Data));
+            assertEq(Data, d);
+        }
+
+        {
+            TimeZone tz("Europe/Prague");
+            hash<SerializationInfo> h = tz.serializeToData();
+            #printf("%N\n", h);
+
+            TimeZone tz1 = Serializable::deserialize(h);
+            assertEq("Europe/Prague", tz1.region());
+            #printf("%N\n", tz1);
+
+            hash<auto> h1 = h;
+            assertEq("Europe/Prague", remove h1._index."0"._class_data."Qore::TimeZone".region);
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            assertEq({"region": "Europe/Prague"}, remove h1._index."0"._class_data."Qore::TimeZone");
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            h1._index."0"._class_data."Qore::extra" = {};
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            h1._index."0"._class_data."Qore::Serializable" = {};
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            tz1 = Serializable::deserialize(tz.serialize());
+            assertEq("Europe/Prague", tz1.region());
+
+            tz1 = Serializable::deserialize(Serializable::serialize(tz));
+            assertEq("Europe/Prague", tz1.region());
+        }
+
+        {
+            OnlyTransient t();
+            hash<SerializationInfo> h = t.serializeToData();
+            OnlyTransient t1 = Serializable::deserialize(h);
+            assertTrue(t1.m instanceof Mutex);
+            #printf("%N\n", h);
+            #h = x;
+
+            BinaryOutputStream bin();
+            t.serialize(bin);
+
+            binary bin_data = bin.getData();
+            BinaryInputStream bis(bin_data);
+
+            OnlyTransient t2 = Serializable::deserialize(bis);
+            assertTrue(t2.m instanceof Mutex);
+
+            t2 = Serializable::deserialize(t.serialize());
+            assertTrue(t2.m instanceof Mutex);
+
+            t2 = Serializable::deserialize(Serializable::serialize(t));
+            assertTrue(t2.m instanceof Mutex);
+        }
+
+        # tests for issue #3318: maintain complex types accross serialization
+        {
+            # test deserializing 1.0 Data
+            assertEq(Ser_10_Hash, Serializable::deserialize(Ser_10_Hash_Data));
+            assertEq(Ser_10_Hash, Serializable::deserialize(Ser_10_Hash_Bin));
+            assertEq("hash<auto>", Serializable::deserialize(Ser_10_Hash_Data).fullType());
+            assertEq("hash<auto>", Serializable::deserialize(Ser_10_Hash_Bin).fullType());
+            assertEq(Ser_10_List, Serializable::deserialize(Ser_10_List_Data));
+            assertEq(Ser_10_List, Serializable::deserialize(Ser_10_List_Bin));
+            assertEq("list<auto>", Serializable::deserialize(Ser_10_List_Data).fullType());
+            assertEq("list<auto>", Serializable::deserialize(Ser_10_List_Bin).fullType());
+
+            assertEq("hash<auto>", {}.fullType());
+            assertEq("hash<auto>", Serializable::deserialize(Serializable::serialize({})).fullType());
+            assertEq("hash<string, int>", Serializable::deserialize(Serializable::serialize({"a": 1})).fullType());
+            assertEq("hash<string, bool>", Serializable::deserialize(Serializable::serialize({"a": True})).fullType());
+            assertEq("hash<string, hash<StatInfo>>", Serializable::deserialize(Serializable::serialize({"a": <StatInfo>{}})).fullType());
+            {
+                # ensure that empty lists have their types maintained
+                list<int> l();
+                assertEq("hash<string, list<int>>", Serializable::deserialize(Serializable::serialize({"a": l})).fullType());
+            }
+
+            assertEq("list<auto>", ().fullType());
+            assertEq("list<auto>", Serializable::deserialize(Serializable::serialize(())).fullType());
+            assertEq("list<int>", Serializable::deserialize(Serializable::serialize((1, 2))).fullType());
+            assertEq("list<bool>", Serializable::deserialize(Serializable::serialize((True,))).fullType());
+            assertEq("list<hash<StatInfo>>", Serializable::deserialize(Serializable::serialize((<StatInfo>{},))).fullType());
+            {
+                # ensure that empty hashes have the types maintained
+                hash<string, int> h();
+                assertEq("list<hash<string, int>>", Serializable::deserialize(Serializable::serialize((h,))).fullType());
+            }
+        }
+
+        # issue #3357: deserialize from a binary string
+        {
+            T t();
+            T t0 = Serializable::deserialize(Serializable::serialize(t).toString());
+            assertEq(1, t0.skip);
+            assertEq(2, t0.get());
+            assertEq(2, t0.geti());
+            assertEq(3, t0.getfi());
+            assertEq(-1, t0.gety());
+        }
+    }
+
+    privateKeyTest() {
+        SSLPrivateKey pkey(ReadOnlyFile::readTextFile(PrivateKeyPath), "password");
+        string pem = pkey.getPEM();
+        hash<SerializationInfo> h = pkey.serializeToData();
+        #printf("%N\n", h);
+
+        SSLPrivateKey pkey0 = Serializable::deserialize(h);
+        assertEq(pem, pkey0.getPEM());
+
+        pkey0 = pkey.copy();
+        assertEq(pem, pkey0.getPEM());
+
+        hash<SerializationInfo> h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLPrivateKey".der;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLPrivateKey";
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLPrivateKey".der = 1;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLPrivateKey".der = <abcd>;
+        assertThrows("SSLPRIVATEKEY-CONSTRUCTOR-ERROR", \Serializable::deserialize(), h0);
+    }
+
+    certificateTest() {
+        SSLCertificate cert(ReadOnlyFile::readTextFile(CertificatePath));
+        string pem = cert.getPEM();
+        hash<SerializationInfo> h = cert.serializeToData();
+        #printf("%N\n", h);
+
+        SSLCertificate cert0 = Serializable::deserialize(h);
+        assertEq(pem, cert0.getPEM());
+
+        cert0 = cert.copy();
+        assertEq(pem, cert0.getPEM());
+
+        hash<SerializationInfo> h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLCertificate".der;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLCertificate";
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLCertificate".der = 1;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLCertificate".der = <abcd>;
+        assertThrows("SSLCERTIFICATE-CONSTRUCTOR-ERROR", \Serializable::deserialize(), h0);
+    }
+
+    hashdeclTest() {
+        hash<MyTest> h({
+            "i": 1,
+            "h": {
+                "a": 2,
+                "b": 3,
+            },
+        });
+
+        hash<auto> rv = {
+            "rv": h,
+        };
+
+        hash<SerializationInfo> sih = Serializable::serializeToData(rv);
+        hash<MyTest> h0 = Serializable::deserialize(sih).rv;
+        assertEq(h, h0);
+        assertEq(rv, Serializable::deserialize(Serializable::serialize(rv)));
+    }
+
+    callStackTest() {
+        hash<CallStackInfo> cs = get_thread_call_stack()[0];
+        hash<SerializationInfo> sih = Serializable::serializeToData(cs);
+        hash<CallStackInfo> cs0 = Serializable::deserialize(sih);
+        assertEq(cs, cs0);
+    }
+}

@@ -314,6 +314,36 @@ class Base1 {
 
 class Child1 inherits Base1;
 
+class Issue3223Base {
+    private:internal int myFunc() {
+        return 1;
+    }
+
+    private int testImpl() {
+        return myFunc();
+    }
+
+    private int testImpl2() {
+        Queue q();
+        background myFunc2(q);
+        return q.get();
+    }
+
+    private:internal myFunc2(Queue q) {
+        q.push(1);
+    }
+}
+
+class Issue3223Child inherits private:internal Issue3223Base {
+    int test() {
+        return testImpl();
+    }
+
+    int test2() {
+        return testImpl2();
+    }
+}
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -393,6 +423,7 @@ class TestInheritB {
     }
 
     constructor() : Test("AccessTest", "1.0") {
+        addTestCase("issue 3223", \issue3223());
         addTestCase("Test class access", \accessTestMethod());
         addTestCase("Test inheritance", \inheritanceTest());
 
@@ -400,56 +431,69 @@ class TestInheritB {
         set_return_value(main());
     }
 
+    issue3223() {
+        Issue3223Child c();
+        assertEq(1, c.test());
+        assertEq(1, c.test2());
+    }
+
     accessTestMethod() {
-        Program p(PO_NEW_STYLE);
-        p.parse(Code, "access");
-        p.run();
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse(Code, "access");
+            p.run();
 
-        # this must fail: B::t(int) is private
-        assertThrows("RUNTIME-OVERLOAD-ERROR",  \p.callFunction(), "t1");
+            # this must fail: B::t(int) is private
+            assertThrows("RUNTIME-OVERLOAD-ERROR",  \p.callFunction(), "t1");
 
-        testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
+            testAssertion("private-method-access-1", \p.callFunction(), ("t2",), new TestResultValue("string"));
 
-        # this must fail: B::t(int) is private and also B is privately-inherited
-        testAssertion("negative-private-method-access-2", \p.callFunction(), ("t3",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
+            # this must fail: B::t(int) is private and also B is privately-inherited
+            testAssertion("negative-private-method-access-2", \p.callFunction(), ("t3",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
 
-        # this must fail: B::t(string) is a method of a privately-inherited class
-        testAssertion("negative-private-method-access-3", \p.callFunction(), ("t4",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
+            # this must fail: B::t(string) is a method of a privately-inherited class
+            testAssertion("negative-private-method-access-3", \p.callFunction(), ("t4",), new TestResultExceptionRegexp('BASE-CLASS-IS-PRIVATE', "method of a privately-inherited class"));
 
-        testAssertion("private-method-access-2", \p.callFunction(), ("t5",), new TestResultValue("int"));
-        testAssertion("private-method-access-3", \p.callFunction(), ("t6",), new TestResultValue("string"));
+            testAssertion("private-method-access-2", \p.callFunction(), ("t5",), new TestResultValue("int"));
+            testAssertion("private-method-access-3", \p.callFunction(), ("t6",), new TestResultValue("string"));
 
-        testAssertion("private-method-access-4", \p.callFunction(), ("t7",), new TestResultValue("int"));
-        testAssertion("private-method-access-5", \p.callFunction(), ("t8",), new TestResultValue("string"));
+            testAssertion("private-method-access-4", \p.callFunction(), ("t7",), new TestResultValue("int"));
+            testAssertion("private-method-access-5", \p.callFunction(), ("t8",), new TestResultValue("string"));
 
-        testAssertion("private-method-access-6", \p.callFunction(), ("t9",), new TestResultValue("int"));
-        testAssertion("private-method-access-7", \p.callFunction(), ("t10",), new TestResultValue("string"));
+            testAssertion("private-method-access-6", \p.callFunction(), ("t9",), new TestResultValue("int"));
+            testAssertion("private-method-access-7", \p.callFunction(), ("t10",), new TestResultValue("string"));
 
-        testAssertion("private-method-access-8", \p.callFunction(), ("t11",), new TestResultValue("none"));
-        testAssertion("private-method-access-9", \p.callFunction(), ("t12",), new TestResultValue("none"));
+            testAssertion("private-method-access-8", \p.callFunction(), ("t11",), new TestResultValue("none"));
+            testAssertion("private-method-access-9", \p.callFunction(), ("t12",), new TestResultValue("none"));
 
-        testAssertion("private-method-access-10", \p.callFunction(), ("t13",), new TestResultValue("none"));
+            testAssertion("private-method-access-10", \p.callFunction(), ("t13",), new TestResultValue("none"));
 
-        # this must fail: C::x() is private
-        testAssertion("negative-private-method-access-8", \p.callFunction(), ("t14",), new TestResultExceptionRegexp('METHOD-IS-PRIVATE', "is private and cannot be accessed externally"));
+            # this must fail: C::x() is private
+            testAssertion("negative-private-method-access-8", \p.callFunction(), ("t14",), new TestResultExceptionRegexp('METHOD-IS-PRIVATE', "is private and cannot be accessed externally"));
 
-        testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
+            testAssertion("private-method-access-11", string sub () { return p.callFunction("t15")(); }, NOTHING, new TestResultValue("none"));
 
-        # this must fail when calling the call reference with an integer and succeed when calling with a string arg
-        assertThrows("RUNTIME-OVERLOAD-ERROR", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, "negative-private-method-access-9");
+            # this must fail when calling the call reference with an integer and succeed when calling with a string arg
+            assertThrows("RUNTIME-OVERLOAD-ERROR", string sub () { return p.callFunction("t16_17")(1); }, NOTHING, "negative-private-method-access-9");
 
-        assertEq("string", p.callFunction("t16_17")("str"), "private-method-access-12");
+            assertEq("string", p.callFunction("t16_17")("str"), "private-method-access-12");
 
-        # this must fail because B is privately inherited in D
-        testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
+            # this must fail because B is privately inherited in D
+            testAssertion("negative-private-method-access-10", \p.callFunction(), ("t18",), new TestResultExceptionRegexp('ILLEGAL-CALL-REFERENCE', "cannot create a call reference"));
 
-        # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
-        assertThrows("PARSE-ERROR", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"));
+            # this must fail at parse time because B::t() is privately inherited in D, therefore it should not be possible to take a reference to the method of the privately-inherited class
+            assertThrows("PARSE-ERROR", \p.parse(), ("code sub test() { D t(); return \\t.t(); }", "test"));
+        }
 
         # check inheritance
-        p.parse(Class1, "class-1");
-        testAssertion("negative-inheritance-1", \p.parse(), (Class2, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
-        testAssertion("negative-inheritance-2", \p.parse(), (Class3, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+        {
+            Program p(PO_NEW_STYLE);
+            testAssertion("negative-inheritance-1", \p.parse(), (Class1 + Class2, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            testAssertion("negative-inheritance-2", \p.parse(), (Class1 + Class3, "test"), new TestResultExceptionRegexp('PARSE-ERROR', "cannot be combined with class"));
+        }
     }
 
     inheritanceTest() {

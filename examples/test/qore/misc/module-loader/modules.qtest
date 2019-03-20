@@ -12,9 +12,20 @@
 
 class ModulesTest inherits QUnit::Test {
     constructor() : QUnit::Test("Modules test", "1.0") {
+        addTestCase("warning test", \warningTest());
         addTestCase("Test modules", \testModules());
         addTestCase("Side effect test", \sideEffectTest());
         set_return_value(main());
+    }
+
+    warningTest() {
+        Program p();
+        p.setScriptPath(get_script_path());
+        assertThrows("DEPRECATED", \p.loadModule(), ("./Issue3212.qm", WARN_MODULES | WARN_DEPRECATED));
+        p.loadModule("./Issue3212.qm");
+        p.parse("int sub test0() { return test(); } int sub test1() { return deprecated_test(); }", "");
+        assertEq(1, p.callFunction("test0"));
+        assertEq(1, p.callFunction("test1"));
     }
 
     testModules() {

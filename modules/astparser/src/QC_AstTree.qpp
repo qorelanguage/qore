@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AstTree.qpp AstTree class definition */
+/** @file QC_AstTree.cpp AstTree class definition */
 /*
   Qore AST Parser
 

@@ -10,7 +10,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SewioRestClient.qm
 %requires ../../../../qlib/HttpServer.qm
@@ -113,15 +113,39 @@ public class Main inherits QUnit::Test {
 
     connectionTest() {
         checkModule();
-        string url = "sewiorest://localhost:8080";
-        SewioRestConnection swsc("test", "test", url, True, ("apikey": "x"), parse_url(url));
+        string url = "http://localhost:8080";
+        SewioRestConnection swsc("test", "test", url, {}, ("apikey": "x"));
         assertEq(True, swsc instanceof SewioRestConnection);
 
-        assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url, True, NOTHING, parse_url(url)); });
+        assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url);});
 
         SewioRestClient client = swsc.get(False);
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+
+        hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
+        assertEq("SewioRestClient", info.module);
+        assertEq("SewioRestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        if (info.module)
+            p.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
     }
 } # class Main

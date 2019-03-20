@@ -1,0 +1,101 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HasEffectTest
+
+public class HasEffectTest inherits QUnit::Test {
+
+    constructor() : Test("HasEffectTest", "1.0") {
+        addTestCase("has no effect", \hasNoEffect(), NOTHING);
+        addTestCase("return value ignored", \retValIgnored(), NOTHING);
+        addTestCase("has effect", \hasEffect(), NOTHING);
+        set_return_value(main());
+    }
+
+    private hasNoEffectImpl(string statements, bool testBackground = True, bool testAllowOption = False) {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), (statements, ""));
+        if (testBackground) {
+            assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), ("background " + statements, ""));
+        }
+
+        if (testAllowOption) {
+            Program p2(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
+            *hash parse_result = p2.parse(statements, "");
+            assertEq(NOTHING, parse_result);
+            if (testBackground) {
+                Program p3(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
+                parse_result = p3.parse("background " + statements, "");
+                assertEq(NOTHING, parse_result);
+            }
+        }
+    }
+
+    private retValIgnoredImpl(string statements, bool can_throw, bool testBackground = True) {
+        string warning = "does not have any side effects";
+        if (can_throw) {
+            warning += " except that it may throw an exception";
+        }
+        warning += " and the return value is ignored";
+
+        Program p(PO_NEW_STYLE);
+        *hash parse_result = p.parse(statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+        assertEq("RETURN-VALUE-IGNORED", parse_result.err);
+        assertRegex(warning, parse_result.desc);
+
+        if (testBackground) {
+            Program p2(PO_NEW_STYLE);
+            parse_result = p2.parse("background " + statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+            if (!parse_result) printf("%s\n", statements);
+            assertEq("RETURN-VALUE-IGNORED", parse_result.err);
+            assertRegex(warning, parse_result.desc);
+            assertRegex("background call to", parse_result.desc);
+        }
+    }
+
+    private hasEffectImpl(string statements) {
+        Program p(PO_NEW_STYLE);
+        *hash parse_result = p.parse(statements, "");
+        assertEq(NOTHING, parse_result);
+    }
+
+    hasNoEffect() {
+        hasNoEffectImpl("1+2;");
+        hasNoEffectImpl("1+int(2);", True, True);
+        hasNoEffectImpl("1+int('2');", True, True);
+        hasNoEffectImpl("'asdf' + trim('zxcv ');", True, True);
+        hasNoEffectImpl("1 << 6;");
+        hasNoEffectImpl("round(12.3) + 45;", True, True);
+        hasNoEffectImpl("sub() {};", True, True);
+        hasNoEffectImpl("int sub() {return 12;};", True, True);
+        hasNoEffectImpl("string a = 'abcd'; a == substr(0, a.size()-1);", False, True);
+        hasNoEffectImpl("string a = 'abcd'; background a == substr(0, a.size()-1);", False, True);
+        hasNoEffectImpl("int n = 18; n += 3; n++; ++n; n *= 2; n + 3;", False);
+    }
+
+    retValIgnored() {
+        retValIgnoredImpl("int(1);", False);
+        retValIgnoredImpl("int('1');", True);
+        retValIgnoredImpl("trim('asdf ');", False);
+        retValIgnoredImpl("string s = 'asdf '; trim(s);", False, False);
+        retValIgnoredImpl("string s = 'asdf '; background trim(s);", False, False);
+        retValIgnoredImpl("substr('asdf ', 2);", True);
+    }
+
+    hasEffect() {
+        hasEffectImpl("string s = 'asdf '; trim(\s);");
+        hasEffectImpl("string s = 'asdf '; background trim(\s);");
+        hasEffectImpl("string s1 = 'asdf '; string s2 = ' zxcv'; 5 == 3 ? trim(\s1) : trim(\s2);");
+        hasEffectImpl("string s = 'asdf '; s += 'zxcv';");
+        hasEffectImpl("int n = 18; n += 3; n++; ++n; n *= 2; --n;");
+        hasEffectImpl("string s1 = 'asdf '; string s2 = ' zxcv'; map trim(\$1), (s1, s2);");
+    }
+}

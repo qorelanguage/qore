@@ -1,0 +1,44 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class WinSpecificTest
+
+public class WinSpecificTest inherits QUnit::Test {
+
+    private {
+        WinPathHandler ph;
+    }
+
+    constructor() : Test ('WinSpecificTest', '1.0') {
+        addTestCase ('SplitDriveTest', \test_splitDrive());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        ph = new WinPathHandler();
+    }
+
+    test_splitDrive() {
+        assertEq(('', ''), ph.splitDrive(''));
+        assertEq(('C:', '\'), ph.splitDrive('C:\'));
+        assertEq(('D:', '\dir\'), ph.splitDrive('D:\dir\'));
+        assertEq(('E:', '\dir\file.txt'), ph.splitDrive('E:\dir\file.txt'));
+        assertEq(('F:', '..\file.txt'), ph.splitDrive('F:..\file.txt'));
+        assertEq(('G:', 'file.txt'), ph.splitDrive('G:file.txt'));
+        assertEq(('c:', '/'), ph.splitDrive('c:/'));
+        assertEq(('d:', '/dir/'), ph.splitDrive('d:/dir/'));
+        assertEq(('e:', '/dir/file.txt'), ph.splitDrive('e:/dir/file.txt'));
+        assertEq(('f:', '../file.txt'), ph.splitDrive('f:../file.txt'));
+        assertEq(('', '/'), ph.splitDrive('/'));
+        assertEq(('', '/dir/'), ph.splitDrive('/dir/'));
+        assertEq(('', '/dir/file.txt'), ph.splitDrive('/dir/file.txt'));
+        assertEq(('', '../file.txt'), ph.splitDrive('../file.txt'));
+        assertEq(('', 'file.txt'), ph.splitDrive('file.txt'));
+    }
+}

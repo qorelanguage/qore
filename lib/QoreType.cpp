@@ -32,9 +32,8 @@
 
 #include "qore/intern/QoreClassIntern.h"
 
-#include <string.h>
-#include <assert.h>
-
+#include <cassert>
+#include <cstring>
 #include <typeinfo>
 
 QoreString NothingTypeString("<NOTHING>");
@@ -57,8 +56,6 @@ static QoreTypeManager QTM;
 // default value nodes for builtin types
 QoreNothingNode Nothing;
 QoreNullNode Null;
-QoreBoolTrueNode True;
-QoreBoolFalseNode False;
 
 qore_type_t get_next_type_id() {
    return lastid++;

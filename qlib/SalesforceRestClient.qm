@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
+#! @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
 
-/*  SalesforceRestClient.qm Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+/*  SalesforceRestClient.qm Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum qore version
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -39,10 +39,10 @@
 
 %requires(reexport) Mime >= 1.3
 %requires(reexport) RestClient >= 1.3.1
-%requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) ConnectionProvider >= 1.2
 
 module SalesforceRestClient {
-    version = "1.1.1";
+    version = "1.3";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -150,8 +150,16 @@ rc.bulkJobClose(h.id);
 
     @section salesforcerestclientrelnotes Release Notes
 
+    @subsection salesforcerestclientv1_3 SalesforceRestClient v1.3
+    - all connection clases have unified constructor
+
+    @subsection salesforcerestclientv1_2 SalesforceRestClient v1.2
+    - added the @ref SalesforceRestClient::SalesforceRestConnection::getConstructorInfo() "SalesforceRestConnection::getConstructorInfo()"
+      method to allow connections to be created dynamically, potentially in another process from a network
+      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+
     @subsection salesforcerestclientv1_1_1 SalesforceRestClient v1.1.1
-   - fixed a bug handling default options including timeouts in @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection"
+    - fixed a bug handling default options including timeouts in @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection"
       (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
 
     @subsection salesforcerestclientv1_1 SalesforceRestClient v1.1
@@ -1014,16 +1022,34 @@ sfrest.logout();
             const OptionList = Options.keys();
         }
 
-        #! creates the SalesforceRestConnection object
+        #! DEPRECATED: creates the SalesforceRestConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : RestConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : RestConnection(name, desc, url, {"monitor": monitor}, opts) {
             real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
+        }
+
+        #! creates the SalesforceRestConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : RestConnection(name, description, url, attributes, options) {
+            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
         }
 
         #! returns a @ref SalesforceRestClient::SalesforceRestClient object
@@ -1034,6 +1060,18 @@ sfrest.logout();
         */
         private SalesforceRestClient getImpl(bool connect = True, *hash rtopts) {
             return new SalesforceRestClient(real_opts, !connect);
+        }
+
+        #! returns a hash that can be used to contruct the object dynamically
+        /** @since %SalesforceRestClient 1.2
+        */
+        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+            return new hash<ConnectionConstructorInfo>({
+                "module": "SalesforceRestClient",
+                "class_name": "SalesforceRestClient",
+                "args": real_opts,
+                "pre_processing": "args[1] = !connect;",
+            });
         }
 
         #! gets options
@@ -1063,12 +1101,18 @@ sfrest.logout();
 
         #! returns \c "rest"
         string getType() {
-            return "rest";
+            return "sfrests";
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and QQore::Reflection
+         */
+        deprecated
         static SalesforceRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new SalesforceRestConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new SalesforceRestConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

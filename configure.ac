@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.13.9],
+AC_INIT([qore], [0.9.2],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
@@ -1308,20 +1308,6 @@ if test "$enable_optimization" = "auto"; then
    fi
 fi
 
-AC_ARG_ENABLE([runtime-thread-stack-trace],
-  [AS_HELP_STRING([--enable-runtime-thread-stack-trace],
-		  [enable runtime thread stack trace (performance penalty, default: off)])],
-  [case "${enable_runtime_thread_stack_trace}" in
-       yes|no) ;;
-       *)      AC_MSG_ERROR(bad value ${enable_runtime_thread_stack_trace} for --enable-runtime-thread-stack-trace) ;;
-      esac],
-  [enable_runtime_thread_stack_trace=yes])
-
-if test "${enable_runtime_thread_stack_trace}" = "yes" -o "${enable_debug}" = yes; then
-   AC_DEFINE(QORE_RUNTIME_THREAD_STACK_TRACE, 1, [to enable runtime thread stack tracing, needed for getAllThreadCallStacks()])
-   enable_runtime_thread_stack_trace=yes
-fi
-
 # check for gcc visibility support
 AC_MSG_CHECKING([for gcc visibility support])
 if test "$GXX" = "yes"; then
@@ -1475,6 +1461,70 @@ if test "$need_user_dl" = yes; then
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
+# pthread_setname_np is not portable; there are at least 4 different implementations
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 1 argument])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np("foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_1, [1],
+                    [pthread_setname_np() takes 1 argument])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 2 arguments])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np(pthread_self (), "foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_2, [1],
+                    [pthread_setname_np() takes 2 arguments])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 3 arguments])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np(pthread_self(), "foo", (void*)0); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_3, [1],
+                    [pthread_setname_np() takes 3 arguments])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_set_name_np() exists])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_set_name_np(pthread_self(), "foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SET_NAME_NP, [1],
+                    [pthread_set_name_np() exists])
+        ],[
+                AC_MSG_RESULT([no])
+])
+
+# pthread_getattr_np() is non-portable
+AC_MSG_CHECKING([if pthread_getattr_np() exists])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_attr_t attr; pthread_getattr_np(pthread_self(), &attr); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_GETATTR_NP, [1],
+                    [have pthread_getattr_np()])
+        ],[
+                AC_MSG_RESULT([no])
+])
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_CONST
@@ -1507,7 +1557,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
+AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem getifaddrs])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
@@ -1814,7 +1864,6 @@ AM_CONDITIONAL([COND_PROFILE],                 [test "$enable_profile" = yes])
 AM_CONDITIONAL([COND_SINGLE_COMPILATION_UNIT], [test "$enable_single_compilation_unit" = yes])
 AM_CONDITIONAL([COND_MACOSX],                  [test "$darwin" = yes])
 AM_CONDITIONAL([COND_DOXYGEN],                 [test -n "$with_doxygen"])
-AM_CONDITIONAL([COND_STACK_TRACE],             [test "$enable_runtime_thread_stack_trace" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_X86_64],       [test "$solaris_cc_x86_64" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_I386],         [test "$solaris_cc_i386" = yes])
 AM_CONDITIONAL([COND_SOLARIS_CC_SPARC32],      [test "$solaris_cc_sparc32" = yes])
@@ -1946,6 +1995,7 @@ AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "$QORE_BUILD_HOST", [Qore build host inf
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
+AC_CONFIG_FILES([modules/reflection/Makefile modules/reflection/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

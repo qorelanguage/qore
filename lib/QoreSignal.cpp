@@ -32,10 +32,10 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/qore_program_private.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 QoreSignalManager QSM;
 
@@ -48,7 +48,7 @@ void QoreSignalHandler::init() {
 void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
     // create signal number argument
     ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-    args->push(new QoreBigIntNode(sig));
+    args->push(sig, nullptr);
     funcref->execValue(*args, xsink).discard(xsink);
 }
 

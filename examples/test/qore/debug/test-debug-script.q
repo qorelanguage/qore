@@ -10,6 +10,12 @@ class TestClass {
     private {
         int private_int;
     }
+    constructor() {
+        log("CONSTRUCTOR\n");
+    }
+    destructor() {
+        log("DESTRUCTOR\n");
+    }
     nothing log(string fmt) {
         vprintf(fmt, argv);
     }
@@ -23,6 +29,10 @@ our string globalString = 'global string';
 our any globalAny;
 
 my hash localHash;
+
+our int globalInt = 1;    # to test stepping blocks of declarations
+
+my int localInt = 99;
 
 any sub func(string s, int i) {
     string localString = sprintf("%s-%d", s, i);

@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
- ObjectMethodReference.h
+    ObjectMethodReference.h
 
- Qore Programming Language
+    Qore Programming Language
 
- Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_OBJECTMETHODREFERENCE_H
@@ -41,10 +41,10 @@ protected:
    /** return value requires a deref(xsink) if needs_deref is true
        @see AbstractQoreNode::eval()
    */
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
 public:
-   DLLLOCAL AbstractParseObjectMethodReferenceNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_OBJMETHREF) {
+   DLLLOCAL AbstractParseObjectMethodReferenceNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_OBJMETHREF) {
    }
 
    DLLLOCAL virtual ~AbstractParseObjectMethodReferenceNode() {
@@ -71,75 +71,75 @@ public:
 
 class ParseObjectMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
 private:
-   AbstractQoreNode* exp;
-   std::string method;
-   const QoreClass *qc;
-   mutable const QoreMethod* m;
-   mutable QoreThreadLock lck;
+    QoreValue exp;
+    std::string method;
+    const QoreClass *qc;
+    mutable const QoreMethod* m;
+    mutable QoreThreadLock lck;
 
-   DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
+    DLLLOCAL virtual ~ParseObjectMethodReferenceNode();
 
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return callReferenceTypeInfo;
-   }
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return callReferenceTypeInfo;
+    }
 
 protected:
-   //! optionally evaluates the argument
-   /** return value requires a deref(xsink) if needs_deref is true
-       @see AbstractQoreNode::eval()
-   */
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    //! optionally evaluates the argument
+    /** return value requires a deref(xsink) if needs_deref is true
+        @see AbstractQoreNode::eval()
+    */
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL ParseObjectMethodReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, char* n_method);
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp, char* n_method);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
 class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
 private:
-   std::string method;
-   const QoreMethod* meth;
+    std::string method;
+    const QoreMethod* meth;
 
-   DLLLOCAL ~ParseSelfMethodReferenceNode() {
-   }
+    DLLLOCAL ~ParseSelfMethodReferenceNode() {
+    }
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return callReferenceTypeInfo;
-   }
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return callReferenceTypeInfo;
+    }
 
 protected:
-   // returns a RunTimeObjectMethodReference or NULL if there's an exception
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    // returns a RunTimeObjectMethodReference or NULL if there's an exception
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation& loc, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
-      free(n_method);
-   }
+    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
+        free(n_method);
+    }
 
-   DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation& loc, const QoreMethod* m) : AbstractParseObjectMethodReferenceNode(loc), meth(m) {
-   }
+    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, const QoreMethod* m) : AbstractParseObjectMethodReferenceNode(loc), meth(m) {
+    }
 };
 
 class ParseScopedSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
 private:
-   NamedScope *nscope;
-   const QoreMethod* method;
+    NamedScope *nscope;
+    const QoreMethod* method;
 
-   DLLLOCAL virtual ~ParseScopedSelfMethodReferenceNode();
+    DLLLOCAL virtual ~ParseScopedSelfMethodReferenceNode();
 
 protected:
-   // returns a RunTimeObjectMethodReference or NULL if there's an exception
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    // returns a RunTimeObjectMethodReference or NULL if there's an exception
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return callReferenceTypeInfo;
-   }
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return callReferenceTypeInfo;
+    }
 
 public:
-   DLLLOCAL ParseScopedSelfMethodReferenceNode(const QoreProgramLocation& loc, NamedScope *n_nscope);
+    DLLLOCAL ParseScopedSelfMethodReferenceNode(const QoreProgramLocation* loc, NamedScope *n_nscope);
 };
 
 #endif

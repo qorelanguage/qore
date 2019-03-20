@@ -121,7 +121,7 @@
      
     Macro results:
     
-     - \c PACKAGE_VERSION define is set to \module_version value
+     - \c PACKAGE_VERSION define is set to \c module_version value
      - \c QORE_INCLUDE_DIR and \c CMAKE_BINARY_DIR are appended to \c include_directories
      - module \c target_name is set to use proper API and filename mask
      - module is ready to be installed to \c QORE_MODULES_DIR

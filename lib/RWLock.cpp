@@ -35,7 +35,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/RWLock.h"
 
-#include <assert.h>
+#include <cassert>
 
 RWLock::RWLock(bool p) : readRequests(0), prefer_writers(p), num_readers(0) {
 }

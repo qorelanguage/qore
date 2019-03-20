@@ -38,11 +38,9 @@
 #include <qore/AbstractPrivateData.h>
 
 #include <fcntl.h>
-
+#include <string>
 #include <sys/file.h>
 #include <unistd.h>
-
-#include <string>
 
 /*
   getchar from stdio.h(included via string on some platforms)
@@ -565,6 +563,11 @@ public:
        @return a QoreHashNode with filesystem status information
    **/
    DLLEXPORT QoreHashNode *statvfs(ExceptionSink *xsink) const;
+
+    //! redirects the current file (this) to the argument
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT int redirect(QoreFile& file, ExceptionSink* xsink);
 
 #if 0
    //! preallocates storage

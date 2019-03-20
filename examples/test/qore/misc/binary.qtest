@@ -1,0 +1,84 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class BinaryTest
+
+public class BinaryTest inherits QUnit::Test {
+    public {
+        const Bin = <c17157f36b4148c70a27b8e2eb463e0e4d347c08988edeb0d1bcd473b72f41d906e7> +
+                    <18a66eeeda09ea0656a60e712f8c95a44d274f3cff9a6a36b7cb94db91a0f05314a6> + <d44dc69238af72a9bf992105e199a180a955ea40f02bf2bb7520e70cf4171507>;
+
+        const Small = <b8e2eb463e0e4d347c08988edeb0d1bc>;
+    }
+
+    constructor() : Test("BinaryTest", "1.0") {
+        addTestCase("basic test", \basicTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    basicTest() {
+        assertEq(10, Bin.find(Small));
+        assertEq(10, Bin.find(Small, 0));
+        assertEq(10, Bin.find(Small, 10));
+        assertEq(-1, Bin.find(Small, 11));
+        assertEq(-1, Bin.find(Small, -1));
+        assertEq(-1, Bin.find(Small, -10));
+        assertEq(-1, Bin.find(Small, -76));
+        assertEq(-1, Bin.find(Small, -89));
+        assertEq(10, Bin.find(Small, -90));
+        assertEq(10, Bin.find(Small, -91));
+        assertEq(-1, Bin.find(Small, 101));
+        assertEq(99, Bin.find(<07>));
+
+        assertEq(10, Bin.rfind(Small));
+        assertEq(-1, Bin.rfind(Small, 1));
+        assertEq(10, Bin.rfind(Small, -1));
+        assertEq(10, Bin.rfind(Small, -74));
+        assertEq(10, Bin.rfind(Small, -75));
+        assertEq(-1, Bin.rfind(Small, -76));
+        assertEq(-1, Bin.rfind(Small, -101));
+        assertEq(10, Bin.rfind(Small, 101));
+        assertEq(99, Bin.rfind(<07>));
+
+        assertEq(-1, Small.rfind(Bin));
+
+        # test for binary searches in strings; we have to use a single-byte encoding
+        string str = binary_to_string(Bin, "USASCII");
+        string small = binary_to_string(Small, "USASCII");
+
+        assertEq(10, str.find(small));
+        assertEq(10, str.find(small, 0));
+        assertEq(10, str.find(small, 10));
+        assertEq(-1, str.find(small, 11));
+        assertEq(-1, str.find(small, -1));
+        assertEq(-1, str.find(small, -10));
+        assertEq(-1, str.find(small, -76));
+        assertEq(-1, str.find(small, -89));
+        assertEq(10, str.find(small, -90));
+        assertEq(10, str.find(small, -91));
+        assertEq(-1, str.find(small, 101));
+        assertEq(99, str.find(binary_to_string(<07>, "USASCII")));
+
+        assertEq(10, str.rfind(small));
+        assertEq(-1, str.rfind(small, 1));
+        assertEq(10, str.rfind(small, -1));
+        assertEq(10, str.rfind(small, -74));
+        assertEq(10, str.rfind(small, -75));
+        assertEq(-1, str.rfind(small, -76));
+        assertEq(-1, str.rfind(small, -101));
+        assertEq(10, str.rfind(small, 101));
+        assertEq(99, str.rfind(binary_to_string(<07>, "USASCII")));
+
+        assertEq(-1, small.rfind(str));
+    }
+}

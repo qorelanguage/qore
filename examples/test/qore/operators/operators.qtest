@@ -39,6 +39,7 @@ class DataTest {
 
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
+        addTestCase("push unshift tests", \pushUnshiftTests());
         addTestCase("basic operator tests", \basicTests());
         addTestCase("date tests", \dateTests());
         addTestCase("lvalue tests", \lvalueTests());
@@ -66,6 +67,42 @@ class Test inherits QUnit::Test {
         set_return_value(main());
     }
 
+    pushUnshiftTests() {
+        # issue #3317: ensure typed and untyped lists are handled equally with push and unshift
+        {
+            list l;
+            push l, 1;
+            assertEq((1,), l);
+            remove l;
+            unshift l, 1;
+            assertEq((1,), l);
+        }
+        {
+            list<int> l;
+            push l, 1;
+            assertEq((1,), l);
+            remove l;
+            unshift l, 1;
+            assertEq((1,), l);
+        }
+        {
+            *list l;
+            push l, 1;
+            assertEq((1,), l);
+            remove l;
+            unshift l, 1;
+            assertEq((1,), l);
+        }
+        {
+            *list<int> l;
+            push l, 1;
+            assertEq((1,), l);
+            remove l;
+            unshift l, 1;
+            assertEq((1,), l);
+        }
+    }
+
     pushPlusEqualsTests() {
         {
             list l0;
@@ -87,21 +124,51 @@ class Test inherits QUnit::Test {
             *list l0;
             *list l1;
             assertThrows("RUNTIME-TYPE-ERROR", sub () { l0 += 1; });
-            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+            # issue #3317: push always operates on lists, so if the lvalue is not assigned and can accept a list, then
+            # a list is created
+            push l1, 1;
+            assertEq((1,), l1);
+        }
+        {
+            *list l1;
+            # issue #3317: unshift always operates on lists, so if the lvalue is not assigned and can accept a list,
+            # then a list is created
+            unshift l1, 1;
+            assertEq((1,), l1);
         }
         {
             *softlist l0;
             *softlist l1;
             l0 += 1;
             assertEq((1,), l0);
-            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+            # issue #3317: push always operates on lists, so if the lvalue is not assigned and can accept a list, then
+            # a list is created
+            push l1, 1;
+            assertEq((1,), l1);
+        }
+        {
+            *softlist l1;
+            # issue #3317: unshift always operates on lists, so if the lvalue is not assigned and can accept a list,
+            # then a list is created
+            unshift l1, 1;
+            assertEq((1,), l1);
         }
         {
             auto l0;
             auto l1;
             l0 += 1;
             assertEq(1, l0);
-            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+            # issue #3317: push always operates on lists, so if the lvalue is not assigned and can accept a list, then
+            # a list is created
+            push l1, 1;
+            assertEq((1,), l1);
+        }
+        {
+            auto l1;
+            # issue #3317: unshift always operates on lists, so if the lvalue is not assigned and can accept a list,
+            # then a list is created
+            unshift l1, 1;
+            assertEq((1,), l1);
         }
         {
             int l0;
@@ -1198,6 +1265,7 @@ class Test inherits QUnit::Test {
             list<auto> l1 = l0;
             assertEq((1, 2), remove l1[0..1]);
             l1 = l0;
+            assertEq("list<int>", l1.fullType());
             assertEq("list<int>", (remove l1[0..1]).fullType());
             assertEq((3, 4), l1);
             l1 = l0;

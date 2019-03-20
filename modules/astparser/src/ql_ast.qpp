@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file ql_ast.qpp astparser constants definition */
+/** @file ql_ast.cpp astparser constants definition */
 /*
   Qore AST Parser
 
@@ -192,7 +192,7 @@ const AEK_Ternary = AEK_Ternary;
 const AEK_Unary = AEK_Unary;
 //@}
 
-/** @defgroup astparser_declaration_kind_constants AST Statement Kind Constants
+/** @defgroup astparser_statement_kind_constants AST Statement Kind Constants
  */
 //@{
 namespace astparser;
