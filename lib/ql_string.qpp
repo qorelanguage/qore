@@ -1225,8 +1225,11 @@ string str = replace("hello there", "there", "you"); # returns "hello you"
             }
             const char* cn = cstr + str->size();
             qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
-            if (*xsink || (i == str->size())) {
+            if (*xsink) {
                 return QoreValue();
+            }
+            if (i == str->size()) {
+                return str->refSelf();
             }
             // add skipped beginning bytes to target string
             nstr->concat(cstr, i);
@@ -1246,8 +1249,11 @@ string str = replace("hello there", "there", "you"); # returns "hello you"
             const char* cn = str->c_str() + str->size();
             // get the byte length to the character after the requested one
             qore_size_t i = ccs->getByteLen(str->c_str(), cn, end + 1, xsink);
-            if (*xsink || (start > 0 && end < start)) {
+            if (*xsink) {
                 return QoreValue();
+            }
+            if (start > 0 && end < start) {
+                return str->refSelf();
             }
             //printd(5, "end: %d\n", (int)i);
 
