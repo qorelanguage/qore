@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -2271,16 +2271,29 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
                     if (body) {
                         if (body.typeCode() == NT_STRING) {
-                            string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
-                            # attempt to mask sensitive data in the message body
-                            bstr = serv.maskData(bstr);
-                            bstr = replace(bstr, "\n", "\\n");
-                            bstr = replace(bstr, "\r", "\\r");
-                            bstr = replace(bstr, "\t", "\\t");
-                            lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
-                        }
-                        else
+                            try {
+                                string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                                # attempt to mask sensitive data in the message body
+                                bstr = serv.maskData(bstr);
+                                bstr = replace(bstr, "\n", "\\n");
+                                bstr = replace(bstr, "\r", "\\r");
+                                bstr = replace(bstr, "\t", "\\t");
+                                lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
+                            } catch (hash<ExceptionInfo> ex) {
+                                if (ex.err == "INVALID-ENCODING") {
+                                    string etxt = serv.getDebug()
+                                        ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                                        : get_exception_string(ex);
+                                    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+                                    logError(str);
+                                    logError(sprintf("hdr=%y", hdr));
+                                    serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, cx."response-encoding", False);
+                                    continue;
+                                }
+                            }
+                        } else {
                             lstr += sprintf(" body: <bin> %db", body.size());
+                        }
                     }
                     else if (hdr."transfer-encoding" == "chunked")
                         lstr += " body: chunked";
@@ -2301,8 +2314,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 if (cx.close)
                     break;
             }
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             string etxt = serv.getDebug()
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);

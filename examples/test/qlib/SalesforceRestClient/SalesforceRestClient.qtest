@@ -121,7 +121,7 @@ class SalesforceTest inherits QUnit::Test {
 
         assertThrows("CONNECTION-ERROR", sub () {
             SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
-            });
+        });
 
         SalesforceRestClient client = swsc.get(False);
         # issue #3321: check default timeouts
