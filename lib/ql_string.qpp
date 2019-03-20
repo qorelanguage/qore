@@ -1213,9 +1213,14 @@ string replace(string str, string source, string target, int start = 0, int end 
     if (plen) {
         const char* pattern = t1->c_str();
 
+        bool has_length = false;
+        qore_size_t length = 0;
+
         if (start) {
             if (start < 0) {
-                start = str->size() + start;
+                length = str->length();
+                has_length = true;
+                start = length + start;
             }
             const char* cn = cstr + str->size();
             qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
@@ -1232,7 +1237,10 @@ string replace(string str, string source, string target, int start = 0, int end 
 
         if (end) {
             if (end < 0) {
-                end = str->size() + end;
+                if (!has_length) {
+                    length = str->length();
+                }
+                end = length + end;
             }
             const char* cn = str->c_str() + str->size();
             // get the byte length to the character after the requested one

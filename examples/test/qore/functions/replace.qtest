@@ -41,6 +41,7 @@ public class ReplaceTest inherits QUnit::Test {
         assertNothing(replace("abcd", "1", "2", -20, 12));
         assertEq("arší", replace("prší", "p", "a"));
         assertEq("prší", replace("prší", "p", "a", -2));
+        assertEq("arší", replace("prší", "p", "a", -4));
         assertEq("V Praze arší.", replace("V Praze prší.", "p", "a", -5));
     }
 }
