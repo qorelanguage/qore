@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1163,10 +1163,16 @@ nothing regex_extract() [flags=RUNTIME_NOOP] {
 //! Replaces all occurrences of a substring in a string with another string
 /**
     @param str the string to process
-    @param source the substring to replace; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
-    @param target the replacement value for \a source; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
-    @param start the starting character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings")
-    @param end the ending character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings"; negative numbers mean to use the entire string)
+    @param source the substring to replace; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
+    @param target the replacement value for \a source; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
+    @param start the starting character position in the source for the replacement where the first character is at
+    position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings");
+    negative numbers give character offsets from the end of the string
+    @param end the ending character position in the source for the replacement where the first character is at position 0 (may not be the same as the byte position for multibyte @ref character_encoding "character encodings"; negative numbers give offsets from the end of the string)
 
     @return a string with all occurrences of \a source replaced with \a target
 
@@ -1185,17 +1191,20 @@ string replace(string str, string source, string target, int start = 0, int end 
     const QoreEncoding* ccs = str->getEncoding();
 
     TempEncodingHelper t1(source, ccs, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
 
-    if (t1->empty() || !end || (end > 0 && end < start))
+    if (t1->empty() || !end || (end > 0 && end < start)) {
         return str->refSelf();
+    }
 
     TempEncodingHelper t2(target, ccs, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
 
-    QoreStringNode* nstr = new QoreStringNode(ccs);
+    SimpleRefHolder<QoreStringNode> nstr(new QoreStringNode(ccs));
 
     const char* cstr = str->c_str();
     size_t plen = t1->size();
@@ -1205,43 +1214,55 @@ string replace(string str, string source, string target, int start = 0, int end 
         const char* pattern = t1->c_str();
 
         if (start) {
+            if (start < 0) {
+                start = str->size() + start;
+            }
             const char* cn = cstr + str->size();
             qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
-            cstr = cn;
-            if (*xsink || (i == str->size()))
+            if (*xsink || (i == str->size())) {
                 return QoreValue();
-
+            }
+            // add skipped beginning bytes to target string
+            nstr->concat(cstr, i);
+            // reposition source ptr
             cstr += i;
         }
+
+        size_t size = str->size();
 
         if (end > 0) {
-            const char* cn = cstr + str->size();
-            qore_size_t i = ccs->getByteLen(cstr, cn, end, xsink);
-            cstr = cn;
-            if (*xsink || i == str->size())
+            if (end < 0) {
+                end = str->size() + end;
+            }
+            const char* cn = str->c_str() + str->size();
+            // get the byte length to the character after the requested one
+            qore_size_t i = ccs->getByteLen(str->c_str(), cn, end + 1, xsink);
+            if (*xsink) {
                 return QoreValue();
+            }
+            //printd(5, "end: %d\n", (int)i);
 
-            cstr += i;
+            size = i;
         }
 
-        while (const char* p = (const char*)q_memmem(cstr, str->size() - (cstr - str->c_str()), pattern, plen)) {
-            //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t1->c_str());
-            if ((end > 0) && (p - str->c_str() + plen) > (size_t)end)
-                break;
-
-            if (p != cstr)
+        //printd(5, "cstr: %p str: %p size: %d cstr - str: %d\n", cstr, str->c_str(), (int)size, (int)(cstr - str->c_str()));
+        assert((cstr - str->c_str()) < size);
+        while (const char* p = (const char*)q_memmem(cstr, size - (cstr - str->c_str()), pattern, plen)) {
+            //printd(5, "str: %p p: %p '%s' '%s'->'%s'\n", cstr, p, cstr, pattern, t2->c_str());
+            if (p != cstr) {
                 nstr->concat(cstr, p - cstr);
+            }
             nstr->concat(*t2);
-
             cstr = p + plen;
         }
     }
 
     // add last field
-    if (*cstr)
+    if (*cstr) {
         nstr->concat(cstr);
+    }
 
-    return nstr;
+    return nstr.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

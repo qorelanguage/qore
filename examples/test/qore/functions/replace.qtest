@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ReplaceTest
@@ -24,5 +25,14 @@ public class ReplaceTest inherits QUnit::Test {
         assertEq("qaz", replace("qaz", "\0", "A"));
         assertEq("qaz", replace("qaz", "\0xyz", "A"));
         assertEq("qaz", replace("qaz", "", "A"));
+        assertEq("abx", replace("abc", "c", "x", 2));
+        assertEq("abxd", replace("abcd", "c", "x", 2, 2));
+        assertEq("abcx", replace("abcd", "d", "x", 3, 3));
+        assertEq("abxd", replace("abcd", "c", "x", -2, -2));
+        assertEq("abcx", replace("abcd", "d", "x", -1, -1));
+        assertEq("abxd", replace("abcd", "c", "x", -2, 3));
+        assertEq("abcx", replace("abcd", "d", "x", -1, 3));
+        assertEq("abxd", replace("abcd", "c", "x", -2, 5));
+        assertEq("abcx", replace("abcd", "d", "x", -1, 5));
     }
 }
