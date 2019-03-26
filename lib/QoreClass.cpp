@@ -540,6 +540,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
 
     // issue #3368: create new type info objects as the class ptr is derived from the typeInfo object in some cases
     typeInfo = new QoreClassTypeInfo(cls, name.c_str());
+    owns_typeinfo = true;
     orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str());
     owns_ornothingtypeinfo = true;
 
