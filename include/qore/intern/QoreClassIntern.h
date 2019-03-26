@@ -2791,6 +2791,7 @@ public:
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
     DLLLOCAL void parseRollback();
     DLLLOCAL int addUserMethod(const char* mname, MethodVariantBase* f, bool n_static);
+    DLLLOCAL void addLocalMembersForInit();
 
     DLLLOCAL QoreValue evalPseudoMethod(const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) const;
 
