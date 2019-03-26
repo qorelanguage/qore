@@ -582,9 +582,16 @@ class Issue_3193_3240 {
     }
 }
 
+class Issue3368 {
+    public {
+        int i = 1;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 3368", \issue3368());
         addTestCase("issues 3193 and 3240", \issues_3193_and_3240());
         addTestCase("issue 3070", \issue3070());
         addTestCase("issue 3073", \issue3073());
@@ -604,6 +611,21 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3368() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue3368");
+            p.parse("int sub test() { Issue3368 i = new Issue3368(); return i.i; }", "");
+            assertEq(1, p.callFunction("test"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue3368");
+            p.parse("int sub test() { Issue3368 i(); return i.i; }", "");
+            assertEq(1, p.callFunction("test"));
+        }
     }
 
     issues_3193_and_3240() {

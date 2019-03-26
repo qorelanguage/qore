@@ -477,7 +477,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
         from_module = mod_name;
     }
 
-    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
+    //printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
@@ -517,8 +517,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
      num_user_methods(old.num_user_methods),
      num_static_methods(old.num_static_methods),
      num_static_user_methods(old.num_static_user_methods),
-     typeInfo(old.typeInfo),
-     orNothingTypeInfo(old.orNothingTypeInfo),
+     typeInfo(nullptr),
+     orNothingTypeInfo(nullptr),
      injectedClass(injectedClass),
      selfid(old.selfid),
      hash(old.hash),
@@ -536,7 +536,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
     // create new class object
     cls = new QoreClass(this);
 
-    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys);
+    //printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys);
+
+    // issue #3368: create new type info objects as the class ptr is derived from the typeInfo object in some cases
+    typeInfo = new QoreClassTypeInfo(cls, name.c_str());
+    orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str());
+    owns_ornothingtypeinfo = true;
 
     system_constructor = old.system_constructor ? old.system_constructor->copy(cls) : nullptr;
     deleteBlocker = old.deleteBlocker ? old.deleteBlocker->copy(cls) : nullptr;
@@ -589,6 +594,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
     if (scl) {
         scl->sml.processMemberInitializationList(members, member_init_list);
     }
+    // issue #3368: must add local members to initialization list after parent class members
+    addLocalMembersForInit();
 }
 
 qore_class_private::~qore_class_private() {
@@ -1214,21 +1221,10 @@ void qore_class_private::parseCommit() {
                 scl->sml.processMemberInitializationList(members, member_init_list);
             }
             // now add local members last
-            for (auto& i : members.member_list) {
-                // skip imported members
-                if (!i.second->local()) {
-                    continue;
-                }
-
-                const qore_class_private* member_class_ctx = i.second->getClassContext(this);
-                // local members can only be stored in the standard object hash or in the private:internal hash for this class
-                assert(!member_class_ctx || member_class_ctx == this);
-                member_init_list.push_back(member_init_entry_t(i.first, i.second.get(), member_class_ctx));
-            }
+            addLocalMembersForInit();
 
             has_new_user_changes = false;
-        }
-        else {
+        } else {
 #ifdef DEBUG
             for (auto& i : hm)
                 assert(i.second->priv->func->pendingEmpty());
@@ -1237,8 +1233,7 @@ void qore_class_private::parseCommit() {
 #endif
             assert(!pending_has_public_memdecl);
         }
-    }
-    else {
+    } else {
         assert(committed);
         assert(!pending_has_public_memdecl);
     }
@@ -1253,6 +1248,20 @@ void qore_class_private::parseCommit() {
     // running parseCommit())
     if (!has_public_memdecl && (scl ? scl->parseHasPublicMembersInHierarchy() : false)) {
         has_public_memdecl = true;
+    }
+}
+
+void qore_class_private::addLocalMembersForInit() {
+    for (auto& i : members.member_list) {
+        // skip imported members
+        if (!i.second->local()) {
+            continue;
+        }
+
+        const qore_class_private* member_class_ctx = i.second->getClassContext(this);
+        // local members can only be stored in the standard object hash or in the private:internal hash for this class
+        assert(!member_class_ctx || member_class_ctx == this);
+        member_init_list.push_back(member_init_entry_t(i.first, i.second.get(), member_class_ctx));
     }
 }
 
@@ -2016,18 +2025,6 @@ bool BCList::execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const {
    }
    return false;
 }
-
-/*
-int BCList::initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const {
-   for (auto& i : *this) {
-      printd(5, "BCList::initMembers() %s::constructor() o: %p (for subclass %s) virtual: %d\n", (*i).sclass->getName(), &o, o.getClass()->getName(), (*i).is_virtual);
-
-      if ((*i).sclass->priv->initMembers(o, bceal, xsink))
-         return -1;
-   }
-   return 0;
-}
-*/
 
 void BCList::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const {
    for (auto& i : *this) {
