@@ -54,7 +54,7 @@ if COND_SINGLE_COMPILATION_UNIT
 REFLECTION_SOURCES = reflection_scu.cpp
 reflection_scu.cpp: $(GENERATED_SOURCES)
 else
-REFLECTION_SOURCES = reflection-module.cpp
+REFLECTION_SOURCES = AbstractReflectionObject.cpp reflection-module.cpp
 nodist_reflection_la_SOURCES = $(GENERATED_SOURCES)
 endif
 
