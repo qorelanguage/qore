@@ -48,6 +48,13 @@ class ReqHandler inherits AbstractHttpRequestHandler {
         } else if (rpath =~ /^test304\//) {
             return makeResponse(304, "test");
         }
+        else if (rpath =~ /^fileupload/) {
+printf("BODY: %N: %N: %N:\n%s\n", body.type(), body.size(), binary(body).size(), binary(body).toBase64());
+            string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?(.+)"?/i)[0];
+            printf("BOUND: %N\n", boundary);
+            hash h = MultiPartMessage::parseBody(boundary, body, True);
+            printf("multipart: %N", h);
+        }
 
         if (hdr.method == "POST") {
             return makeResponse(200, "POST, " + body + ", " + rpath + ", " + cx.raw_path);
@@ -63,6 +70,7 @@ public class HttpServerTest inherits QUnit::Test {
         HTTPClient mClient;
         ReqHandler mHandler;
         int port;
+        string url;
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
@@ -73,6 +81,7 @@ public class HttpServerTest inherits QUnit::Test {
         addTestCase("Test status codes", \testStatusCodes());
         addTestCase("misc", \misc());
         addTestCase("2nd wildcard listener", \secondWildcardListener());
+        addTestCase("bug 2936 multipart form-data binary file upload", \multipartFormDataBinaryFileTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -89,6 +98,7 @@ public class HttpServerTest inherits QUnit::Test {
         mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
         mServer.setDefaultHandler("my-handler", mHandler);
         port = mServer.addListener(0).port;
+        url = "http://localhost:" + port;
     }
 
     globalTearDown() {
@@ -97,7 +107,7 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     setUp() {
-        mClient = new HTTPClient(("url": "http://localhost:" + port, "additional_methods": {"TEST": True}));
+        mClient = new HTTPClient(("url": url, "additional_methods": {"TEST": True}));
         mClient.connect();
     }
 
@@ -163,5 +173,14 @@ public class HttpServerTest inherits QUnit::Test {
     misc() {
         assertEq(("method": "path", "params": ("a": "1", "b": "2")), parse_uri_query("path?a=1;b=2"));
         assertEq(("method": "path", "params": ("a": "1", "b": True)), parse_uri_query("path?a=1;b"));
+    }
+
+    private multipartFormDataBinaryFileTest() {
+        string cmd = "curl -F secret=@image.png " + url+"/fileupload";
+        #printf("%s\n", cmd);
+        int rc;
+        string out = backquote(cmd, \rc);
+        printf("\n\n%N\n\n", out);
+        assertEq(0, rc);
     }
 }
