@@ -1174,21 +1174,27 @@ QoreString::~QoreString() {
 
 // NULL values sorted at end
 int QoreString::compare(const QoreString* str) const {
-   // empty strings are always equal even if the character encoding is different
-   if (!priv->len) {
-      if (!str->priv->len)
-         return 0;
-      return 1;
-   }
+    // empty strings are always equal even if the character encoding is different
+    if (!priv->len) {
+        if (!str->priv->len)
+            return 0;
+        return 1;
+    }
 
-   if (str->priv->getEncoding() != priv->getEncoding())
-      return 1;
+    if (str->priv->getEncoding() != priv->getEncoding())
+        return 1;
 
-
-   int rc = memcmp(priv->buf, str->priv->buf, QORE_MIN(priv->len, str->size()));
-   if (rc < 0)
-      return -1;
-   return !rc ? 0 : 1;
+    int rc = memcmp(priv->buf, str->priv->buf, QORE_MIN(priv->len, str->size()));
+    if (rc == 0) {
+        if (priv->len < str->size()) {
+            return -1;
+        }
+        if (priv->len > str->size()) {
+            return 1;
+        }
+        return 0;
+    }
+    return (rc < 0) ? -1 : 1;
 }
 
 int QoreString::compare(const char* str) const {
