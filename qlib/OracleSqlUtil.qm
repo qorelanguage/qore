@@ -1681,6 +1681,11 @@ auto v = c.name;
             }
         }
 
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            return ds.selectRow("select sum(bytes) as val from user_segments").val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
+        }
+
         private oracleErrorCallback(int ac, string type, string name, *string table, *string new_name, *string info, string sql, hash<ExceptionInfo> ex) {
             # issue #2643: if there is an ORA-01031 "insufficient privileges" error creating a materialized view,
             # try to drop any table possibly created due to an Oracle bug
