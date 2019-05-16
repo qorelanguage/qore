@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.5.1";
+    version = "1.5.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_5_2 SqlUtil v1.5.2
+    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
 
     @subsection sqlutilv1_5_1 SqlUtil v1.5.1
     - fixed a bug that could lead to a deadlock when DML methods on the
@@ -7234,6 +7237,9 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private {
             #! native case option
             bool native_case = False;
+
+            # AbstractDatabase::getPhysicalSize() return in a case of no data
+            const GET_PHYSICAL_DB_SIZE_NOVAL = -1;
         }
 
         #! creates the object; private constructor
@@ -8243,6 +8249,20 @@ string sql = t.getSqlFromList(list);
             reclaimSpaceImpl(options);
         }
 
+        #! Get the current database physical size in bytes.
+        /** @return int with size or -1 in case there is no implementation
+                    available.
+
+            @note value returned from this method is subject of particular
+                  DBMS implementation. Value can be calculated eg. by a block
+                  size, extents usage etc. Please refer your DBMS documentation.
+
+            @since %SqlUtil 1.5.2
+         */
+        int getPhysicalSize() {
+            return getPhysicalSizeImpl();
+        }
+
         private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
         }
@@ -8393,6 +8413,7 @@ string sql = t.getSqlFromList(list);
         private abstract bool rebuildIndexImpl(string name, *hash options);
         private abstract computeStatisticsImpl(*hash options);
         private abstract reclaimSpaceImpl(*hash options);
+        private abstract int getPhysicalSizeImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection

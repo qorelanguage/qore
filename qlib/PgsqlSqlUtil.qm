@@ -1252,6 +1252,15 @@ auto v = c.name;
             }
         }
 
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            *string dbname = ds.getDBName();
+            if (!exists dbname) {
+                return GET_PHYSICAL_DB_SIZE_NOVAL;
+            }
+            return ds.selectRow("select pg_database_size(%v) as val", dbname).val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
+        }
+
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
         private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);

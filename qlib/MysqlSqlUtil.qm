@@ -1178,6 +1178,17 @@ end";
 
             ds.select(sql);
         }
+
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            *string dbname = ds.getDBName();
+            if (!exists dbname) {
+                return GET_PHYSICAL_DB_SIZE_NOVAL;
+            }
+            return ds.selectRow("select sum(data_length + index_length) as val
+                                    from information_schema.tables
+                                    where table_schema = %v", dbname).val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
+        }
     }
 
     #! provides the MySQL-specific implementation of the AbstractTable interface
