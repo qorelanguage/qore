@@ -175,8 +175,9 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
                 const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
                 if (mv->isAbstract()) {
                     //printd(5, "FunctionCallBase::parseArgsVariant() found abstract %s::%s\n", qc->getName(), func->getName());
+                    // issue #3387: set return type before clearing variant
+                    returnTypeInfo = mv->parseGetReturnTypeInfo();
                     variant = nullptr;
-                    returnTypeInfo = nullptr;
                     func = nullptr;
                     return lvids;
                 }
