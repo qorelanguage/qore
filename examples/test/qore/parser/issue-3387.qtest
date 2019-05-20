@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Issue3387Test
+
+class Issue3387Test inherits QUnit::Test {
+    constructor() : QUnit::Test("Issue3387 test", "1.0") {
+        addTestCase("Test", \issue3387());
+        set_return_value(main());
+    }
+
+    issue3387() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+
+        p.parse("
+class B {
+    abstract softint t();
+    x() {
+        hash<StatInfo> h({\"size\": t()});
+    }
+}
+", "");
+    }
+}
