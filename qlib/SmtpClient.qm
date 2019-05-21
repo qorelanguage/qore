@@ -622,7 +622,7 @@ smtp.clearStats();
             try {
                 sock.connect(connect, connectTimeout);
                 if (ssl)
-                    sock.upgradeClientToSSL();
+                    sock.upgradeClientToSSL(connectTimeout);
 
                 string rep = readLine(readTimeout);
                 logDbg("connect reply: %y", trim(rep));
@@ -648,7 +648,7 @@ smtp.clearStats();
                     if (rh.code >= 500)
                         throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", rh);
 
-                    sock.upgradeClientToSSL();
+                    sock.upgradeClientToSSL(connectTimeout);
                     logDbg("upgrade to TLS/SSL connection %s %s", sock.getSSLCipherName(), sock.getSSLCipherVersion());
                 }
 
