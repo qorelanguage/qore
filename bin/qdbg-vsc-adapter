@@ -1,0 +1,385 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%enable-all-warnings
+%new-style
+
+%requires qore >= 0.8.13
+%requires VscDebugAdapter
+%requires DebugProgramControl >= 0.1.2
+
+%requires WebSocketClient
+%requires yaml >= 0.5
+%requires ConnectionProvider
+
+%allow-debugger
+%no-debugging
+
+%exec-class DebugWrapper
+
+sub get_file_name(string ext) {
+    if (PlatformOS == "Windows") {
+        return getenv("APPDATA") + DirSep + "QoreDebugAdapter" + DirSep + "qda" + ext;
+    } else {
+        return getenv("HOME") + DirSep + ".qoredebugadapter" + ext;
+    }
+}
+
+sub printErr(string fmt) {
+    string s = vsprintf(fmt, argv)+"\r\n";
+    stderr.print(s);
+%ifdef VDA_EARLY_LOG
+    # in case of an exception when starting adapter the VSC does not print stderr output
+    # so get what is wrong is pain, intended to be uncommented only when required
+    # Infamous "Debug adapter process has terminated unexpectedly" is such a case
+    File f();
+    f.open(get_file_name(".stderr"), O_WRONLY|O_APPEND|O_CREAT);  # no O_TRUNC
+    f.printf("[pid %d] %s", getpid(), s);
+    f.close();
+%endif
+}
+
+class VscDebugAdapterLocal inherits VscDebugAdapter {
+    public {
+        DebugProgramControlLocal dpc;
+        Counter counter();
+        any threadData;
+        *hash programOpts;
+    }
+    constructor(DebugProgramControlLocal n_dpc, hash opts): VscDebugAdapter() {
+        dpc = n_dpc;
+        dpc.vda = self;
+        programOpts = opts;
+    }
+    public *hash doCommandImpl(hash data) {
+        if (exists data.tid) {
+            while (counter.getCount() > 0) {
+                counter.dec();
+            }
+            counter.inc();
+            threadData = NOTHING;
+        }
+        *hash ret = dpc.processCommand(DebugProgramControlLocal::CX, data);
+        if (ret.type == 'thread') {
+            if (counter.waitForZero(200)) {
+                return NOTHING;
+            } else {
+                return threadData;
+            }
+        } else {
+            return ret;
+        }
+    }
+
+}
+
+class DebugProgramControlLocal inherits DebugProgramControl {
+    public {
+        VscDebugAdapterLocal vda;
+    }
+    const CX = ('id': 1);
+    constructor () : DebugProgramControl(QORE_ARGV[0]) {
+        registerConnection(CX);
+    }
+    destructor() {
+        unregisterConnection(CX);
+    }
+    public sendDataImpl(hash cx, auto data) {
+        logger.log(DUV_DEBUG, "sendDataImpl: %y: %y", cx, data);
+        if (vda.counter.getCount() > 0) {
+            vda.threadData = data;
+            vda.counter.dec();
+        } else {
+            vda.pushEvent(data);
+        }
+    }
+    public broadcastDataImpl(auto data) {
+        logger.log(DUV_DEBUG, "broadcastDataImpl: %y: %y", data);
+        vda.pushEvent(data);
+    }
+}
+
+class VscDebugAdapterRemote inherits VscDebugAdapter {
+    const WSC_TIMEOUT = 1500ms;
+    public {
+        Counter counter();
+        int pendingUid;
+        any recData;
+        WebSocketClient wsc;
+        timeout wscTimeout;
+        bool connecting;
+        string serverName;
+        string url;
+        *hash headers;
+    }
+
+    constructor (hash opts): VscDebugAdapter() {
+        wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
+        opts.log = \wscLog();
+        opts.errlog = \wscErr();
+        opts.debuglog = \wscDebug();
+        url = opts.url;
+        if (opts.header) {
+            foreach string h in (opts.header) {
+                *list<string> rv = regex_extract(h, "^([a-zA-Z0-9\\-]+)=(.*)$");
+                if (!rv)
+                    throw "GETOPT-ERROR", sprintf("Wrong header specification %y", h);
+                headers{rv[0]} = rv[1];
+            }
+        }
+        wsc = new WebSocketClient(\wscEvent(), opts);
+    }
+
+    public *hash doCommandImpl(hash data) {
+        #if (!wsc.isOpen()) throw
+        pendingUid = clock_getmicros();
+        data.uid = pendingUid;
+        string d = make_yaml(data);
+        while (counter.getCount() > 0) {
+            counter.dec();
+        }
+        counter.inc();
+        recData = NOTHING;
+        logger.log(DUV_DEBUG, "send: %y", d);
+        wsc.send(d);
+        if (counter.waitForZero(wscTimeout)) {
+            return NOTHING;
+        } else {
+            return recData;
+        }
+    }
+
+    public nothing connect() {
+        connecting = True;
+        counter.inc();
+        hash hh = wsc.connect({"hdr": headers});
+        *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
+        if (!prot_ver.val())
+            throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
+        if (prot_ver != QoreDebugProtocolVersion)
+            throw "QORE-DEBUG", sprintf("Qore debug server at %y claims unsupported protocol version %y; expecting %y", url, prot_ver, QoreDebugProtocolVersion);
+        if (counter.waitForZero(wscTimeout)) {
+            throw "QORE-DEBUG", "No response from debug server";
+        } else {
+            serverName = recData.result;
+        }
+    }
+
+    public wscEvent(*data msg) {
+        logger.log(DUV_DEBUG, "received: %y", msg);
+        if (!exists msg)
+            return;
+        try {
+            auto d = parse_yaml(msg);
+            if (counter.getCount() > 0) {
+                if ((d.type == "response" && pendingUid == d.uid && !connecting) ||
+                    (d.type == "event" && d.cmd == "welcome" && connecting) ) {
+                    recData = d;
+                    counter.dec();
+                    connecting = False;
+                    return;
+                }
+            }
+            pushEvent(d);
+            printData(d);
+        } catch (hash<ExceptionInfo> ex) {
+            wscErr(sprintf("wscEvent: %y", ex));
+        }
+    }
+
+    public wscLog(s) {
+        logger.log(DUV_INFO, s);
+    }
+
+    public wscDebug(s) {
+        logger.log(DUV_DEBUG, s);
+    }
+
+    public wscErr(s) {
+        logger.log(DUV_INFO, s);
+        #stderr.print(s+"\n");
+    }
+
+}
+
+class DebugWrapper {
+    private {
+        hash opts = (
+            'help': 'h,help',
+            'verbose': 'v,verbose:+',
+            'full_exception': 'f,full-exception',
+            #'run': 'r,run',
+            "parse_option": "p,set-parse-option=s@",
+            #"charset": "c,charset=s",
+            "define": "D,define=s@",
+            "time_zone": "z,time-zone=s",
+            #"exec_class": "x,exec-class:s",
+            "logfile": "l,logger-filename=s",
+            "append_to_log": "A,append-to-log",
+            # for attach
+            'url': 'a,attach=s',
+            'header': 'H,header=s@',
+            'max_redirects': 'm,max-redir=i',
+            'proxy': 'P,proxy=s',
+            'timeout': 't,timeout=i',
+            'connect_timeout': 'c,conn-timeout=i',
+            'response_timeout': 'w,resp-timeout=i',
+            # exec command
+            'execute': 'X,execute=s',
+
+        );
+        VscDebugAdapter vda;
+        VscDebugLogger logger;
+    }
+
+    constructor() {
+        GetOpt g(opts);
+        hash opt;
+        try {
+            opt = g.parse2(\ARGV);
+        } catch (hash ex) {
+            printErr("QORE_ARGV: %y", QORE_ARGV);
+            printErr("ARGV: %y", ARGV);
+            printErr("%s: %s", ex.err, ex.desc);
+            help(-1);
+        }
+
+        if (opt.help) {
+            help();
+        }
+        if (!opt.verbose) {
+            remove opt.logfile;
+        } else if (!exists opt.logfile) {
+            opt.logfile = get_file_name(".log");
+        }
+        logger = new VscDebugLogger(opt.logfile, opt.append_to_log === True);
+        if (opt.verbose) {
+            logger.verbose = opt.verbose;
+        }
+        logger.log(DUV_INFO, "Adapter arguments: %y", QORE_ARGV);
+        try {
+            if (opt.url) {
+                trim opt.url;
+                string orig_url = opt.url;
+                try {
+                    opt.url = get_connection_url(opt.url);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err != "CONNECTION-ERROR") {
+                        rethrow;
+                    }
+                    if (opt.url !~ /:\/\//) {
+                        throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url, ENV.QORE_CONNECTION_PROVIDERS);
+                    }
+                }
+                if (orig_url != opt.url) {
+                    if (opt.url =~ /^https?:\/+[^\/]+$/) {
+                        # use "debug" path if none present
+                        opt.url += "/debug";
+                    }
+                    if (opt.url =~ /^https?:/) {
+                        opt.url =~ s/^http/ws/;
+                    }
+                    logger.log(DUV_INFO, "Using connection %y url: %y\n", orig_url, opt.url);
+                }
+                switch (opt.url) {
+                case /^wss?:\/\//:
+                    break;
+                case /^[a-zA-Z0-9_]+:\/\//:
+                    throw "GETOPT-ERROR", "Url protocol is not ws://";
+                default:
+                    opt.url = "ws://"+opt.url;
+                }
+                logger.log(DUV_DEBUG, "Connection url: %s", opt.url);
+                logger.log(DUV_DEBUG, "Create VscDebugAdapterRemote(%y) instance", opt.url);
+                vda = new VscDebugAdapterRemote(opt);
+            } else {
+                logger.log(DUV_DEBUG, "Create DebugProgramControlLocal instance");
+                DebugProgramControlLocal dpcl();
+                logger.log(DUV_DEBUG, "Create VscDebugAdapterLocal instance");
+                vda = new VscDebugAdapterLocal(dpcl, opt);
+                dpcl.logger = logger;
+            }
+            vda.showFullException = exists opt.full_exception;
+            vda.logger = logger;
+            logger.debugAdapter = vda;
+
+            if (vda instanceof VscDebugAdapterRemote) {
+                logger.log(DUV_DEBUG, "Connect remote adapter");
+                cast<VscDebugAdapterRemote>(vda).connect();
+            }
+            #vda.init(opt);
+            if (opt.execute) {
+                logger.log(DUV_DEBUG, "Execute command: %y");
+                vda.execute(opt.execute);
+            } else {
+                logger.log(DUV_DEBUG, "Run vda adapter");
+                vda.run();
+            }
+
+            # resume any blocked debug threads
+            if (vda instanceof VscDebugAdapterLocal) {
+                logger.log(DUV_DEBUG, "Shutdown local adapter");
+                cast<VscDebugAdapterLocal>(vda).dpc.shutdown();
+            } else {
+                logger.log(DUV_DEBUG, "Disconnect remote adapter");
+                cast<VscDebugAdapterRemote>(vda).wsc.disconnect();
+            }
+        } catch (hash e) {
+            logger.log(DUV_INFO, "%y", e);
+            printErr("%s: %s", e.err, e.desc);
+            exit(-1);
+        }
+
+    }
+
+    private help(int exCode=1) {
+        printf("usage: %s [options]\n"
+            "  -h     help\n"
+            "Launch program:\n"
+            "  -D,--define=arg              sets the value of a parse define\n"
+            "  -p,--set-parse-option=arg    set parse option (ex: -pno-database)\n"
+            #"  -x,--exec-class[=arg]        instantiate class with same name as file name\n"
+            #"                               (override with arg, also sets --no-top-level)\n"
+            "  -z,--time-zone=arg           sets the time zone from the argument; can be\n"
+            "                               either a region name (ex: 'Europe/Prague') or a\n"
+            "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -  TODO\n"
+            #"  -c,--charset=arg             sets default character set encoding\n"
+            "\n"
+            "Attach to debug server:\n"
+            "  -a,--attach=url              connect to remote debug server, e.g. wss://localhost:8001/debug\n"
+            "  -H,--header=<hdr>=<val>      headers for connection request\n"
+            "  -m,--max-redir=<num>         the maximum number of redirects before throwing an exception (the default is 5)\n"
+            "  -P,--proxy=<url>             the proxy URL for connecting through a proxy\n"
+            "  -t,--timeout=<ms>            the timeout\n"
+            "  -c,--conn-timeout=<ms>       the timeout for establishing a new socket connection\n"
+            "  -w,--resp-timeout=<ms>       the timeout to wait for websocket response, default: %d\n"
+            "\n"
+            "  -v,--verbose                 increase verbosity\n"
+            "  -f,--full-exception          show full exception info\n"
+            "\n"
+            "  -l,--logger-filename name    logger filename, default: %s\n"
+            "  -A,--append-to-log           append to logfile\n"
+            "\n"
+            "  -X,-execute=<command>        execute command, print result as JSON and exit\n"
+            "Commands:\n"
+            "  pgmlist                      list all programs\n"
+            "\n"
+            "Examples:\n"
+            "  %s -v -l vscda.log\n"
+            "  %s -v -l vscda.log -a ws://localhost:8001/debug\n"
+            "\n"
+            ,
+            get_script_name(),
+            VscDebugAdapterRemote::WSC_TIMEOUT,
+            get_file_name(".log"),
+            get_script_name(),
+            get_script_name(),
+
+        );
+        exit(exCode);
+    }
+
+
+    public dummy() {
+    }
+}
