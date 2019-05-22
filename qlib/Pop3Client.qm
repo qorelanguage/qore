@@ -933,7 +933,7 @@ pop3.clearStats();
         }
 
         private doSSLIntern() {
-            sock.upgradeClientToSSL();
+            sock.upgradeClientToSSL(connectTimeout);
             log("secure connection established (%s %s)", sock.getSSLCipherName(), sock.getSSLCipherVersion());
         }
 
