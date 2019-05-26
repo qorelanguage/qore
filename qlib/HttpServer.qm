@@ -583,7 +583,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         #! maximum X.509 and private key file length
         /** there is no real maximum size for these files, however an upper limit is used here to ensure that
-            huge files are not used for the SSL cert and key files which could cause a crash or memory programs;
+            huge files are not used for the SSL cert and key files which could cause a crash or memory problems;
             currently set to 1M which is orders of magnitude higher than any real files currently in existence
         */
         const MaxSslFileLen = 1024 * 1024;
