@@ -112,6 +112,10 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
+    @subsection http03131 HttpServer 0.3.13.1
+    - fixed certificate and key errors for HTTPS listeners to generate user-friendly exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
+
     @subsection http0313 HttpServer 0.3.13
     - added the \c "header-info" hash to the context argument when calling handlers
       (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
@@ -576,6 +580,13 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         #! listener log option: log sent message body
         const LLO_SEND_BODY = (1 << 3);
+
+        #! maximum X.509 and private key file length
+        /** there is no real maximum size for these files, however an upper limit is used here to ensure that
+            huge files are not used for the SSL cert and key files which could cause a crash or memory programs;
+            currently set to 1M which is orders of magnitude higher than any real files currently in existence
+        */
+        const MaxSslFileLen = 1024 * 1024;
         #@}
     }
 
@@ -1389,23 +1400,65 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     # don't reimplement this method; fix/enhance it in the module
     final static private hash getSSLObjects(string cert_path, *string key_path, *string pwd) {
         File f();
-        # read in X.509 certificate file
-        f.open2(cert_path);
 
-        data cert_data = cert_path =~ /\.der$/ ? f.readBinary(-1) : f.read(-1);
-        SSLCertificate cert(cert_data);
+        # issue #3397: user friendly error messages are necessary for SSL cert or key errors
+        *hash<StatInfo> statinfo = hstat(cert_path);
+        if (!statinfo) {
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from inaccessible path "
+                "%y", cert_path);
+        }
+        if (!statinfo.size) {
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from empty file %y",
+                cert_path);
+        }
+
+        SSLCertificate cert;
+        data cert_data;
+        try {
+            # read in X.509 certificate file
+            f.open2(cert_path);
+            # read in X.509 certificate file
+            cert_data = cert_path =~ /\.der$/
+                ? f.readBinary(MaxSslFileLen)
+                : f.read(MaxSslFileLen);
+            # create certificate object
+            cert = new SSLCertificate(cert_data);
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow user-friendly exception
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from path %y: %s: %s",
+                cert_path, ex.err, ex.desc);
+        }
 
         SSLPrivateKey key;
-
-        # read in private key file
-        if (strlen(key_path)) {
-            f.open2(key_path);
-            key = key_path =~ /\.der$/ ? new SSLPrivateKey(f.readBinary(-1)) : new SSLPrivateKey(f.read(-1), pwd);
+        if (key_path.val()) {
+            *hash<StatInfo> statinfo = hstat(key_path);
+            if (!statinfo) {
+                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
+                    "%y", key_path);
+            }
+            if (!statinfo.size) {
+                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from empty file %y",
+                    key_path);
+            }
         }
-        else
-            key = new SSLPrivateKey(cert_data, pwd);
 
-        return ("cert": cert, "key": key);
+        try {
+            # read in private key file
+            if (key_path.val()) {
+                f.open2(key_path);
+                key = key_path =~ /\.der$/
+                    ? new SSLPrivateKey(f.readBinary(-1))
+                    : new SSLPrivateKey(f.read(-1), pwd);
+            } else {
+                key = new SSLPrivateKey(cert_data, pwd);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow user-friendly exception
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from path %y: %s: %s",
+                key_path.val() ? key_path : cert_path, ex.err, ex.desc);
+        }
+
+        return {"cert": cert, "key": key};
     }
 
     # don't reimplement this method; fix/enhance it in the module
