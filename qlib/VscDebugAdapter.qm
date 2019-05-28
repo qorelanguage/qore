@@ -42,30 +42,6 @@ module VscDebugAdapter {
     license = "MIT";
 }
 
-/*
-    Known issues:
-        - we cannot catch in onExit() return value of Program::run()
-        - function must be specified with parameteres even no user variants
-        - Qore does not provide value for top-level local variables separately as thread vars
-
-    TODO:
-        - breakpoint server side hitcount (atomic counters C11)
-        - breakpoint logpoints (no support in GUI just protocol)
-        - process breakpoint changed event to update GUI
-        - conditional breakpoints (thread, ...)
-        - append support (needed for Qorus)
-        - qdbg-vsc-remote
-        - structured variables (at least classes/objects)
-        - run in terminal mode and pipe stdout and stdin ???
-
-    VSCode issues:
-        - evaluate "watch" request is not executed every step so watch value might be out of date
-        - there in no module support in GUI (just protocol suuport)
-        - how display own data type and custom data editor
-        - exceptionInfo is asked but the value is not displayed
-        - some capabilities are not implemented, just name is defined
-*/
-
 /** @mainpage VscDebugAdapter Module
 
     @tableofcontents
@@ -74,6 +50,25 @@ module VscDebugAdapter {
 
     The %VscDebugAdapter module provides common functionality for implementing
     Visual Studio Adapter https://microsoft.github.io/debug-adapter-protocol/.
+
+    Only subset of features is supported in Visual Studio Code IDE and in this module.
+
+    Module limitations:
+    - breakpoint server side hitcount not supported
+    - breakpoint logpoints
+    - VSC event is not raised when breakpoint is changed, e.g. via another debugger client
+    - conditional breakpoints, e.g. for particular thread
+    - structured variables, e.g. classes/objects
+    - for functional breakpoint the function must be provided with arguments types even a user variant does not exist
+    - values for top-level local variables are not provided as thread vars for each thread
+    - cannot provide program exit value
+
+    Visual Studio Code known issues:
+    - evaluate "watch" request is not executed every step so watch value might be out of date
+    - no module support in IDE
+    - display own data type and custom data editor
+    - exception info is asked but the value is not displayed
+    - some capabilities are not implemented
 
     @subsection vda_v0_1
 
@@ -347,12 +342,7 @@ public namespace VscDebugAdapter {
             log(DUV_DEBUG_1, "processDebugEvent: %y", event);
             switch (event.cmd) {
             case "interrupt":
-                /*if (event.pgmid != m_currentPgmId) {
-                    # do not attach etc.
-                    break;
-                }*/
                 if (event.func == "detach") {
-                    #sendVscEvent("thread", ("threadId": event.tid, "reason": "exited"));
                     detach(event);
                 } else {
                     if (!m_programState{event.pgmid}.vcsNotified) {
@@ -427,8 +417,8 @@ public namespace VscDebugAdapter {
                         }
                     }
                     e.threadId = event.tid;
-                    e.text = sprintf("%N", event);  # TODO
-                    #e.allThreadsStopped =
+                    e.text = sprintf("%N", event);
+                    # e.allThreadsStopped =    is not used in vscode
                     m_programState{event.pgmid}.thread{event.tid}.frameId = event.frame;
                     m_programState{event.pgmid}.thread{event.tid}.debugVar = event.debugvar;
                     m_programState{event.pgmid}.thread{event.tid}.exception = event.exception;
@@ -450,7 +440,6 @@ public namespace VscDebugAdapter {
                     remove m_programState{m_currentPgmId}.detachedThreads{event.tid};
                 }
                 if (event.runstate == "detach") {
-                    # sendVscEvent("thread", ("threadId": event.tid, "reason": "exited"));
                     remove m_programState{event.pgmid}.vcsThreadNotified{event.tid};
                     m_programState{m_currentPgmId}.detachedThreads{event.tid} = True;
                     if (!getThreads()) {
@@ -634,7 +623,9 @@ public namespace VscDebugAdapter {
                 try {
                     hash bs = doCommand((
                         "cmd": "program/"+m_currentPgmId+"/breakpoint//create",
-                        "value": bkpt,  # TODO: implement condition, hitCondition, logMessage
+                        "value": bkpt,
+                        # protocol and vscode supports also condition, hitCondition, logMessage
+                        # we could implement when Qore supports runtime evaluator
                     )).result;
                     b.id = bs.bkptid;
                     b.verified = True;
@@ -668,18 +659,13 @@ public namespace VscDebugAdapter {
             hash src;
             src.name = exists ls.label ? sprintf("Label: %s", ls.label) : sprintf("File: %s", ls.file);
             src.sourceReference = ls.id;
-            src.path = /*ls.source ??*/ ls.file;
+            src.path = ls.file;
             if (src.path =~ /^<(.*)>$/) {
                 src.path =~ s/^<run-time-loaded: (.*)>$/$1/;
                 # tricky as all breakpoint commands are hidden in VSC if path does not satisfy its format
                 # trial/error I found it need an extension
                 src.path += '.q';
             }
-            #src.presentationHint = "normal";
-            #src.origin =
-            #src.sources =
-            #src.adapterData =
-            #src.checksums = ( ('algorithm': 'SHA1', 'checksum': ))
             return src;
         }
 
@@ -703,7 +689,6 @@ public namespace VscDebugAdapter {
         }
 
         public nothing vsc_launch(hash args) {
-            # TODO: args.stopOnEntry ??
             hash p = doCommand((
                 "cmd": "program//create",
                 "filename": args.program,
@@ -736,31 +721,28 @@ public namespace VscDebugAdapter {
                     throw "VDA-ERROR", sprintf("Cannot resolve program %y", args.program);
                 }
             }
-            *hash p = doCommand((
+            doCommand((
                 "cmd": "program/"+pgmId+"/add",
             ));
             m_currentPgmId = int(pgmId);
             m_programState{pgmId} += (
                 "startMethod": START_ATTACH,
             );
-            if (p) {
-                # TODO get threads ???
-            }
             if (m_programState{pgmId}.info.debugged) {
                 if (m_programState{pgmId}.info.interrupted) {
                     # we are ready receive breakpoints
                     sendVscEvent("initialized");
 
-                    # TODO: when a thread is running ?
                     hash e;
                     e.name = m_programState{pgmId}.info.scriptName;
                     e.isLocalProcess = False;
                     e.startMethod = "attach";
                     sendVscEvent("process", e);
                     m_programState{pgmId}.vcsNotified = True;
-                    # m_programState{pgmId}.mainThreadId = m_programState{pgmId}.threads[0];   # TODO: what is main threads ?
+                    # we cannot get what is main thread when attaching
+                    # m_programState{pgmId}.mainThreadId = m_programState{pgmId}.threads[0];
                     foreach int tid in (m_programState{pgmId}.info.interrupted) {
-                        sendVscEvent("thread", ("threadId": tid, "reason": "started")); # TODO: started ?
+                        sendVscEvent("thread", ("threadId": tid, "reason": "started"));
                         m_programState{pgmId}.vcsThreadNotified{tid} = True;
                     }
                 }
@@ -780,7 +762,7 @@ public namespace VscDebugAdapter {
                     push res.threads, ("id": threadId, "name": sprintf("Thread ID: %d", threadId));
                 }
 
-                #push res.threads, ("id": 99, "name": "Thread ID: 99 -- GUI TEST"); # when only one thread then is not displayed in Call Stack
+                #push res.threads, ("id": 99, "name": "Thread ID: 99 -- IDE TEST"); # when only one thread then is not displayed in Call Stack
             }
             return res;
         }
@@ -1142,7 +1124,7 @@ public namespace VscDebugAdapter {
 
         public hash vsc_source(hash args) {
             hash res.content = '';
-            if (m_currentPgmId) { # TOOD: or do we need it global ?
+            if (m_currentPgmId) { # or do we need it global ?
                 *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.sourceReference};
                 if (exists ls.source) {
                     res.content = doCommand((
@@ -1176,11 +1158,11 @@ public namespace VscDebugAdapter {
                 "supportsFunctionBreakpoints": True,
 
                 /* The debug adapter supports conditional breakpoints. */
-                #"supportsConditionalBreakpoints": False,   # cannot disable in GUI
+                #"supportsConditionalBreakpoints": False,   # cannot disable in IDE
 
                 /* The debug adapter supports breakpoints that break execution
                     after a specified number of hits. */
-                #"supportsHitConditionalBreakpoints": True,  # cannot disable in GUI ?
+                #"supportsHitConditionalBreakpoints": True,  # cannot disable in IDE ?
 
                 /* The debug adapter supports a (side effect free) evaluate
                     request for data hovers. */
@@ -1218,7 +1200,7 @@ public namespace VscDebugAdapter {
                 "supportsCompletionsRequest": True,
 
                 /* The debug adapter supports the modules request. */
-                "supportsModulesRequest": True,  # not supported in GUI ?
+                "supportsModulesRequest": True,  # not supported in IDE ?
 
                 /* The set of additional module information exposed by the debug adapter. */
                 #"additionalModuleColumns": ColumnDescriptor[],
@@ -1237,7 +1219,7 @@ public namespace VscDebugAdapter {
 
                 /* The debug adapter supports a 'format' attribute on the
                     stackTraceRequest, variablesRequest, and evaluateRequest. */
-                "supportsValueFormattingOptions": False,  # not supported in GUI ?
+                "supportsValueFormattingOptions": False,  # not supported in IDE ?
 
                 /* The debug adapter supports the exceptionInfo request. */
                 "supportsExceptionInfoRequest": True,
@@ -1255,7 +1237,7 @@ public namespace VscDebugAdapter {
                 "supportsLoadedSourcesRequest": True,
 
                 /* The debug adapter supports logpoints by interpreting the 'logMessage' attribute of the SourceBreakpoint. */
-                "supportsLogPoints": False,   # not supported in GUI ?
+                "supportsLogPoints": False,   # not supported in IDE ?
 
             );
             return cap;

@@ -17,7 +17,7 @@
 
 %exec-class DebugWrapper
 
-sub get_file_name(string ext) {
+sub get_full_log_file_path(string ext) {
     if (PlatformOS == "Windows") {
         return getenv("APPDATA") + DirSep + "QoreDebugAdapter" + DirSep + "qda" + ext;
     } else {
@@ -33,7 +33,7 @@ sub printErr(string fmt) {
     # so get what is wrong is pain, intended to be uncommented only when required
     # Infamous "Debug adapter process has terminated unexpectedly" is such a case
     File f();
-    f.open(get_file_name(".stderr"), O_WRONLY|O_APPEND|O_CREAT);  # no O_TRUNC
+    f.open(get_full_log_file_path(".stderr"), O_WRONLY|O_APPEND|O_CREAT);  # no O_TRUNC
     f.printf("[pid %d] %s", getpid(), s);
     f.close();
 %endif
@@ -42,7 +42,8 @@ sub printErr(string fmt) {
 class VscDebugAdapterLocal inherits VscDebugAdapter {
     public {
         DebugProgramControlLocal dpc;
-        Counter counter();
+        # increment when command is sent and decrement when response is received
+        Counter requestFlag();
         any threadData;
         *hash programOpts;
     }
@@ -53,15 +54,15 @@ class VscDebugAdapterLocal inherits VscDebugAdapter {
     }
     public *hash doCommandImpl(hash data) {
         if (exists data.tid) {
-            while (counter.getCount() > 0) {
-                counter.dec();
+            while (requestFlag.getCount() > 0) {
+                requestFlag.dec();
             }
-            counter.inc();
+            requestFlag.inc();
             threadData = NOTHING;
         }
         *hash ret = dpc.processCommand(DebugProgramControlLocal::CX, data);
         if (ret.type == 'thread') {
-            if (counter.waitForZero(200)) {
+            if (requestFlag.waitForZero(200)) {
                 return NOTHING;
             } else {
                 return threadData;
@@ -86,9 +87,9 @@ class DebugProgramControlLocal inherits DebugProgramControl {
     }
     public sendDataImpl(hash cx, auto data) {
         logger.log(DUV_DEBUG, "sendDataImpl: %y: %y", cx, data);
-        if (vda.counter.getCount() > 0) {
+        if (vda.requestFlag.getCount() > 0) {
             vda.threadData = data;
-            vda.counter.dec();
+            vda.requestFlag.dec();
         } else {
             vda.pushEvent(data);
         }
@@ -102,7 +103,8 @@ class DebugProgramControlLocal inherits DebugProgramControl {
 class VscDebugAdapterRemote inherits VscDebugAdapter {
     const WSC_TIMEOUT = 1500ms;
     public {
-        Counter counter();
+        # increment when command is sent and decrement when response is received
+        Counter requestFlag();
         int pendingUid;
         any recData;
         WebSocketClient wsc;
@@ -131,18 +133,17 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
     }
 
     public *hash doCommandImpl(hash data) {
-        #if (!wsc.isOpen()) throw
         pendingUid = clock_getmicros();
         data.uid = pendingUid;
         string d = make_yaml(data);
-        while (counter.getCount() > 0) {
-            counter.dec();
+        while (requestFlag.getCount() > 0) {
+            requestFlag.dec();
         }
-        counter.inc();
+        requestFlag.inc();
         recData = NOTHING;
         logger.log(DUV_DEBUG, "send: %y", d);
         wsc.send(d);
-        if (counter.waitForZero(wscTimeout)) {
+        if (requestFlag.waitForZero(wscTimeout)) {
             return NOTHING;
         } else {
             return recData;
@@ -151,14 +152,14 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
 
     public nothing connect() {
         connecting = True;
-        counter.inc();
+        requestFlag.inc();
         hash hh = wsc.connect({"hdr": headers});
         *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
         if (!prot_ver.val())
             throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
         if (prot_ver != QoreDebugProtocolVersion)
             throw "QORE-DEBUG", sprintf("Qore debug server at %y claims unsupported protocol version %y; expecting %y", url, prot_ver, QoreDebugProtocolVersion);
-        if (counter.waitForZero(wscTimeout)) {
+        if (requestFlag.waitForZero(wscTimeout)) {
             throw "QORE-DEBUG", "No response from debug server";
         } else {
             serverName = recData.result;
@@ -171,11 +172,11 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
             return;
         try {
             auto d = parse_yaml(msg);
-            if (counter.getCount() > 0) {
+            if (requestFlag.getCount() > 0) {
                 if ((d.type == "response" && pendingUid == d.uid && !connecting) ||
                     (d.type == "event" && d.cmd == "welcome" && connecting) ) {
                     recData = d;
-                    counter.dec();
+                    requestFlag.dec();
                     connecting = False;
                     return;
                 }
@@ -250,7 +251,7 @@ class DebugWrapper {
         if (!opt.verbose) {
             remove opt.logfile;
         } else if (!exists opt.logfile) {
-            opt.logfile = get_file_name(".log");
+            opt.logfile = get_full_log_file_path(".log");
         }
         logger = new VscDebugLogger(opt.logfile, opt.append_to_log === True);
         if (opt.verbose) {
@@ -307,7 +308,6 @@ class DebugWrapper {
                 logger.log(DUV_DEBUG, "Connect remote adapter");
                 cast<VscDebugAdapterRemote>(vda).connect();
             }
-            #vda.init(opt);
             if (opt.execute) {
                 logger.log(DUV_DEBUG, "Execute command: %y");
                 vda.execute(opt.execute);
@@ -342,7 +342,7 @@ class DebugWrapper {
             #"                               (override with arg, also sets --no-top-level)\n"
             "  -z,--time-zone=arg           sets the time zone from the argument; can be\n"
             "                               either a region name (ex: 'Europe/Prague') or a\n"
-            "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or -  TODO\n"
+            "                               UTC offset with format S[DD[:DD[:DD]]], S=+ or - is not supported\n"
             #"  -c,--charset=arg             sets default character set encoding\n"
             "\n"
             "Attach to debug server:\n"
@@ -371,7 +371,7 @@ class DebugWrapper {
             ,
             get_script_name(),
             VscDebugAdapterRemote::WSC_TIMEOUT,
-            get_file_name(".log"),
+            get_full_log_file_path(".log"),
             get_script_name(),
             get_script_name(),
 
