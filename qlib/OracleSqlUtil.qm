@@ -344,7 +344,7 @@ public namespace OracleSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-my list $l = $col.getAddColumnSql($t);
+list l = col.getAddColumnSql(t);
             @endcode
 
             @param t the AbstractTable object to modify
@@ -352,14 +352,14 @@ my list $l = $col.getAddColumnSql($t);
         list getAddColumnSql(AbstractTable t) {
             list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
             if (comment)
-                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name, t.getSqlValue(comment));
             return l;
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code{.py}
-my list $l = $col.getModifySql($t, $newcol);
+list l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal
@@ -373,7 +373,7 @@ my list $l = $col.getModifySql($t, $newcol);
             OracleColumn c = col;
 
             bool modified;
-            string sql = sprintf("alter table %s modify %s", t.getSqlName(), name);
+            string sql = sprintf("alter table %s modify %s", t.getSqlName(), ddl_name);
 
             # get new native type declaration string
             string nts = c.getNativeTypeString();
@@ -397,14 +397,14 @@ my list $l = $col.getModifySql($t, $newcol);
             # to remove a comment we set it to the empty string ('')
             # http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_4009.htm
             if (c.comment != comment)
-                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, c.comment ? t.getSqlValue(c.comment) : "''");
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name, c.comment ? t.getSqlValue(c.comment) : "''");
             return l;
         }
 
         #! returns a string that can be used to rename the column
         /** @par Example:
             @code{.py}
-my string $str = $col.getRenameSql($t, "new_name");
+string str = col.getRenameSql(t, "new_name");
             @endcode
 
             @param t the AbstractTable object to modify
@@ -413,12 +413,19 @@ my string $str = $col.getRenameSql($t, "new_name");
             @return a string that can be used to rename the column
         */
         string getRenameSql(AbstractTable t, string new_name) {
-            return sprintf("alter table %s rename column %s to %s", t.getSqlName(), name, new_name);
+            return sprintf("alter table %s rename column %s to %s", t.getSqlName(), ddl_name, getDdlName(new_name));
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
         bool equalImpl(AbstractColumn c) {
             return char_used == cast<OracleColumn>(c).char_used;
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        string getDdlName(string name) {
+            return OracleDatabase::OracleReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
         }
     }
 
@@ -2555,14 +2562,11 @@ auto v = c.name;
                 else
                     char_used = False;
 
-                # issue #3400: quote column names that are reserved words
-                string col_name = getColumnSqlName(row.column_name);
-
                 OracleColumn c;
                 if (row.data_precision || row.data_type == "number")
-                    c = new OracleNumberColumn(col_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(col_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }
@@ -2788,10 +2792,6 @@ auto v = c.name;
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
-            # issue #3400: quote column names that are reserved words
-            if (cname[0] != "\"") {
-                cname = getColumnSqlName(cname);
-            }
             if (opt.precision)
                 return new OracleNumberColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
             return new OracleColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, opt.local_def.is_char, opt.character_semantics, 0);
