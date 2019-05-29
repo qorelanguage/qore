@@ -101,7 +101,8 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_5_2 SqlUtil v1.5.2
-    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
+    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality
+      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
 
     @subsection sqlutilv1_5_1 SqlUtil v1.5.1
     - fixed a bug that could lead to a deadlock when DML methods on the

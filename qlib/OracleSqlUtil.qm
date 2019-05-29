@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -254,6 +254,10 @@ hash schema = (
     @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection v131 OracleSqlUtil v1.3.1
+    - fixed quoting of reserved words in column names in table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
     @subsection v13 OracleSqlUtil v1.3
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -2551,11 +2555,14 @@ auto v = c.name;
                 else
                     char_used = False;
 
+                # issue #3400: quote column names that are reserved words
+                string col_name = getColumnSqlName(row.column_name);
+
                 OracleColumn c;
                 if (row.data_precision || row.data_type == "number")
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(col_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(col_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }
@@ -2781,6 +2788,10 @@ auto v = c.name;
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+            # issue #3400: quote column names that are reserved words
+            if (cname[0] != "\"") {
+                cname = getColumnSqlName(cname);
+            }
             if (opt.precision)
                 return new OracleNumberColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
             return new OracleColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, opt.local_def.is_char, opt.character_semantics, 0);
