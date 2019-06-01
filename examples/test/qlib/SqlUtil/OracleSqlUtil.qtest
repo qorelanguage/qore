@@ -67,13 +67,11 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "level": c_number(1),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
-            "unique_constraints": {
+            "indexes": {
+                "oracle_test_func_ix": {"columns": "def_test2 desc"},
                 "uk_oracle_test": {"columns": ("id", "level")},
             },
-            "indexes" : (
-                    "oracle_test_func_ix" : ( "columns" : "def_test2 desc", ),
-                ),
-            );
+        );
 
         # bug #1688: sqlutil: oracle: character_semantics can be
         # different for each column, not only for the whole schema
