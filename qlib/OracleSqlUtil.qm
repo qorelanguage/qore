@@ -457,7 +457,7 @@ string str = col.getRenameSql(t, "new_name");
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -591,7 +591,7 @@ auto v = c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
@@ -682,7 +682,7 @@ auto v = c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, keyIterator()));
+            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);

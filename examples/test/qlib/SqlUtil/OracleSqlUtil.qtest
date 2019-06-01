@@ -67,6 +67,9 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "level": c_number(1),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
+            "unique_constraints": {
+                "uk_oracle_test": {"columns": ("id", "level")},
+            },
             "indexes" : (
                     "oracle_test_func_ix" : ( "columns" : "def_test2 desc", ),
                 ),

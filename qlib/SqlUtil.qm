@@ -5693,6 +5693,11 @@ AbstractColumn c = cols.id;
             }
             return True;
         }
+
+        #! returns an iterator for column SQL names
+        AbstractIterator getSqlColumnNameIterator() {
+            return new ListIterator((map $1.value.ddl_name ?? $1.key, h.pairIterator()));
+        }
     }
 
     #! the base class for named objects
