@@ -64,7 +64,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 # issue #1684: sqlutil: schema alignment skips column with name "driver"
                 "driver" : c_number(),
                 # issue #3400: column names with reserved words are not quoted
-                "level": c_number(1),
+                "level": c_number(1, "test comment"),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
             "indexes": {
