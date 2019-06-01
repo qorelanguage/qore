@@ -157,7 +157,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
@@ -167,7 +167,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a string that can be used to rename the index in the database; hwoever mysql does not support renaming indexes, so the index is dropped and recreated :(
         string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s drop index %s, add %sindex %s (%s)", table_name, name, unique ? "unique " : "", new_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            return sprintf("alter table %s drop index %s, add %sindex %s (%s)", table_name, name, unique ? "unique " : "", new_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
         #! returns a string that can be used to drop the index from the table
@@ -381,11 +381,9 @@ my string $str = $col.getRenameSql($t, "new_name");
             delete index;
         }
 
-        abstract AbstractIterator keyIterator();
-
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
-            sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+            sql += sprintf("(%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
         }
     }
 
