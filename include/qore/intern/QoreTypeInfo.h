@@ -133,6 +133,9 @@ public:
         return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
     }
 
+    // returns true if the type has auto in it somewhere (even for complex types)
+    DLLLOCAL bool isAutoType() const;
+
     DLLLOCAL bool isComplex() const {
         return typespec == QTS_HASHDECL
                 || typespec == QTS_COMPLEXHASH
@@ -553,6 +556,17 @@ public:
         return ti ? ti->getDefaultQoreValueImpl() : QoreValue();
     }
 
+    // returns true if the type has auto in it somewhere (even for complex types)
+    DLLLOCAL static bool isAutoType(const QoreTypeInfo* ti) {
+        if (!ti) {
+            return false;
+        }
+        if (ti == autoTypeInfo) {
+            return true;
+        }
+        return ti->isAutoType();
+    }
+
     // static version of method, checking for null pointer
     DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
         if (!hasType(ti) && ti != autoTypeInfo) {
@@ -796,6 +810,16 @@ protected:
         desc->concat(" instead");
         xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
         return -1;
+    }
+
+    // returns true if the type has auto in it somewhere (even for complex types)
+    DLLLOCAL bool isAutoType() const {
+        for (auto& i : accept_vec) {
+            if (i.spec.isAutoType()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
@@ -1389,6 +1413,18 @@ protected:
     }
 };
 
+class QoreAutoHashTypeInfo : public QoreComplexHashTypeInfo {
+public:
+   DLLLOCAL QoreAutoHashTypeInfo() : QoreComplexHashTypeInfo(autoTypeInfo) {
+   }
+};
+
+class QoreAutoHashOrNothingTypeInfo : public QoreComplexHashOrNothingTypeInfo {
+public:
+   DLLLOCAL QoreAutoHashOrNothingTypeInfo() : QoreComplexHashOrNothingTypeInfo(autoTypeInfo) {
+   }
+};
+
 class QoreComplexListTypeInfo : public QoreTypeInfo {
 public:
     DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
@@ -1440,6 +1476,18 @@ protected:
     DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
         return QoreValue();
     }
+};
+
+class QoreAutoListTypeInfo : public QoreComplexListTypeInfo {
+public:
+   DLLLOCAL QoreAutoListTypeInfo() : QoreComplexListTypeInfo(autoTypeInfo) {
+   }
+};
+
+class QoreAutoListOrNothingTypeInfo : public QoreComplexListOrNothingTypeInfo {
+public:
+   DLLLOCAL QoreAutoListOrNothingTypeInfo() : QoreComplexListOrNothingTypeInfo(autoTypeInfo) {
+   }
 };
 
 class QoreComplexSoftListTypeInfo : public QoreComplexListTypeInfo {
@@ -1806,25 +1854,6 @@ protected:
    }
 };
 
-class QoreAutoHashTypeInfo : public QoreHashTypeInfo {
-public:
-   DLLLOCAL QoreAutoHashTypeInfo() : QoreHashTypeInfo("hash<auto>", q_accept_vec_t {
-         {NT_HASH, nullptr, true}},
-      q_return_vec_t {{NT_HASH, true}}) {
-   }
-};
-
-class QoreAutoHashOrNothingTypeInfo : public QoreHashOrNothingTypeInfo {
-public:
-   DLLLOCAL QoreAutoHashOrNothingTypeInfo() : QoreHashOrNothingTypeInfo("*hash<auto>", q_accept_vec_t {
-         {NT_HASH, nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      },
-      q_return_vec_t {{NT_HASH}, {NT_NOTHING}}) {
-   }
-};
-
 DLLLOCAL void map_get_plain_list(QoreValue&, ExceptionSink*);
 DLLLOCAL void map_get_plain_list_lvalue(QoreValue&, ExceptionSink*, LValueHelper*);
 
@@ -1884,38 +1913,6 @@ protected:
    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
    DLLLOCAL virtual bool canConvertToScalarImpl() const {
       return false;
-   }
-};
-
-class QoreAutoListTypeInfo : public QoreListTypeInfo {
-public:
-   DLLLOCAL QoreAutoListTypeInfo() : QoreListTypeInfo("list<auto>",
-      q_accept_vec_t {
-         {NT_LIST, nullptr, true},
-      },
-      q_return_vec_t {{NT_LIST, true}}) {
-   }
-
-protected:
-   DLLLOCAL QoreAutoListTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) :
-      QoreListTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
-   }
-};
-
-class QoreAutoListOrNothingTypeInfo : public QoreListOrNothingTypeInfo {
-public:
-   DLLLOCAL QoreAutoListOrNothingTypeInfo() : QoreListOrNothingTypeInfo("*list<auto>",
-      q_accept_vec_t {
-         {NT_LIST, nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      },
-      q_return_vec_t {{NT_LIST}, {NT_NOTHING}}) {
-   }
-
-protected:
-   DLLLOCAL QoreAutoListOrNothingTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) :
-      QoreListOrNothingTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
    }
 };
 

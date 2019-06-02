@@ -413,7 +413,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     */
-    abstract addUserThreadContext(hash uctx);
+    abstract addUserThreadContext(hash<auto> uctx);
 
     #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
     /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
