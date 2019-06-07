@@ -1505,17 +1505,17 @@ int64 QoreSerializable::readIntFromStream(ExceptionSink* xsink, StreamReader& re
         return 0;
     }
 
-    int64 size = deserializeIntFromStream(reader, code, xsink);
+    int64 value = deserializeIntFromStream(reader, code, xsink);
     if (*xsink) {
         return 0;
     }
 
-    if (!can_be_negative && size < 0) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid %s value (" QLLD ")", size);
+    if (!can_be_negative && value < 0) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid %s value (" QLLD ")", type, value);
         return 0;
     }
 
-    return size;
+    return value;
 }
 
 QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, qore_stream_type code, ExceptionSink* xsink) {

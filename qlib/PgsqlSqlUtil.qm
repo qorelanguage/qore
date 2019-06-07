@@ -314,7 +314,7 @@ public namespace PgsqlSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -568,16 +568,13 @@ string str = col.getRenameSql(t, "new_name");
             delete index;
         }
 
-        #! returns an iterator for keys iterating a list of string key names
-        abstract AbstractIterator keyIterator();
-
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
             else {
-                sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
+                sql += sprintf(" (%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
 
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
                 if (ts)
@@ -1964,7 +1961,7 @@ auto v = c.name;
                 getTriggersUnlocked();
             }
 
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.ddl_name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
                 map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();
