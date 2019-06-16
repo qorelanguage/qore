@@ -63,9 +63,39 @@ public class HttpServerTest inherits QUnit::Test {
         HTTPClient mClient;
         ReqHandler mHandler;
         int port;
+
+        const CertPem = "-----BEGIN CERTIFICATE-----
+MIIE2jCCA8KgAwIBAgIJANryEdM1ip5eMA0GCSqGSIb3DQEBCwUAMIGrMQswCQYD
+VQQGEwJDWjEPMA0GA1UECAwGUHJhZ3VlMQ8wDQYDVQQHDAZQcmFndWUxIjAgBgNV
+BAoMGVFvcmUgVGVjaG5vbG9naWVzLCBzLnIuby4xIjAgBgNVBAsMGVFvcmUgVGVj
+aG5vbG9naWVzLCBzLnIuby4xEjAQBgNVBAMMCWxvY2FsaG9zdDEeMBwGCSqGSIb3
+DQEJARYPZW1haWxAZW1haWwuY29tMB4XDTE5MDQwNDA2MTA0OFoXDTI5MDQwMTA2
+MTA0OFowgasxCzAJBgNVBAYTAkNaMQ8wDQYDVQQIDAZQcmFndWUxDzANBgNVBAcM
+BlByYWd1ZTEiMCAGA1UECgwZUW9yZSBUZWNobm9sb2dpZXMsIHMuci5vLjEiMCAG
+A1UECwwZUW9yZSBUZWNobm9sb2dpZXMsIHMuci5vLjESMBAGA1UEAwwJbG9jYWxo
+b3N0MR4wHAYJKoZIhvcNAQkBFg9lbWFpbEBlbWFpbC5jb20wggEiMA0GCSqGSIb3
+DQEBAQUAA4IBDwAwggEKAoIBAQCuLji+iZqOKoaCs5SOTnA7LTrAQ4n3EOsJwsgO
+IDCyRh+YCqQxKjS02DPQVf10O6ChX4c063ekEoARUkJy/2sWGekh2uCeVs5RJsDu
+DEVYVwjzqHP3AyZi4d1IXPToqHLA+nT/3G+FByncwWLnK3h9HXgsgr6eK9rM8N3B
+2eD+kv1uOQM3W1q9KHqRuyA8Ahh3eelf+jlFzybuaCTpkpqV2cW/IveMMVELn83S
+J0V0aC8TaDDVctC9kgQuh88DxnZpVoZncl7A10BoFSCevNMe5/+jm1KBgBvHy35o
+c0QMfoTJA9LA4BFwLglMhJkL3q11mEqypY0hOGXcNPmqEe6/AgMBAAGjgf4wgfsw
+gcoGA1UdIwSBwjCBv6GBsaSBrjCBqzELMAkGA1UEBhMCQ1oxDzANBgNVBAgMBlBy
+YWd1ZTEPMA0GA1UEBwwGUHJhZ3VlMSIwIAYDVQQKDBlRb3JlIFRlY2hub2xvZ2ll
+cywgcy5yLm8uMSIwIAYDVQQLDBlRb3JlIFRlY2hub2xvZ2llcywgcy5yLm8uMRIw
+EAYDVQQDDAlsb2NhbGhvc3QxHjAcBgkqhkiG9w0BCQEWD2VtYWlsQGVtYWlsLmNv
+bYIJAKXWmzP5c0ClMAkGA1UdEwQCMAAwCwYDVR0PBAQDAgTwMBQGA1UdEQQNMAuC
+CWxvY2FsaG9zdDANBgkqhkiG9w0BAQsFAAOCAQEASjKU4RfG5Jrw1zLCVxkZtkqt
+AeMFqtd/z3xdzPHk41Zn06nIN7jiEZfIMBqQQjv4ksvyIQvMYQoza8PGYPaudrWJ
+nktRCT+RASCA3YfvmxZZPykMBP+o8SM3BZZMN7cFXgIzKeo+6MXno60yZH2SryrU
+dduAJ1yfHoGXNOZiDR4qhq3OPFFCUL7mV2B8VUlhAyaHALwFZw/pQrfIt6XQmNoO
+F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
+/gfhTh/VV4d5GnhnHv62qR5DyT1iTrR2ZTcUt+uWp/bEopM2vO7y/gadqQpBnA==
+-----END CERTIFICATE-----";
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
+        addTestCase("issue 3397", \issue3397());
         addTestCase("issue 3116", \issue3116());
         addTestCase("issue 2805", \issue2805());
         addTestCase("Test basics", \basicTest());
@@ -104,6 +134,33 @@ public class HttpServerTest inherits QUnit::Test {
     tearDown() {
         mClient.disconnect();
         delete mClient;
+    }
+
+    issue3397() {
+        # create zero-length file
+        string empty_fn = tmp_location() + DirSep + get_random_string() + ".pem";
+        File f();
+        f.open2(empty_fn, O_CREAT | O_TRUNC | O_WRONLY);
+        on_exit unlink(empty_fn);
+        string invalid_fn = tmp_location() + DirSep + get_random_string() + ".pem";
+        f.open2(invalid_fn, O_CREAT | O_TRUNC | O_WRONLY);
+        f.write(get_random_string(256));
+        on_exit unlink(invalid_fn);
+        string real_fn = tmp_location() + DirSep + get_random_string() + ".pem";
+        f.open2(real_fn, O_CREAT | O_TRUNC | O_WRONLY);
+        f.write(CertPem);
+        f.close();
+        on_exit unlink(real_fn);
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, empty_fn, empty_fn));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \mServer.addListener(), (10132, invalid_fn, empty_fn));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \mServer.addListener(), (10132, get_random_string(), empty_fn));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, real_fn, empty_fn));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \mServer.addListener(), (10132, real_fn, invalid_fn));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \mServer.addListener(), (10132, real_fn, get_random_string()));
+%ifdef Unix
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, real_fn, "/dev/null"));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, "/dev/null", "/dev/null"));
+%endif
     }
 
     issue3116() {

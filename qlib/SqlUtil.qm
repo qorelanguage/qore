@@ -101,7 +101,8 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_5_2 SqlUtil v1.5.2
-    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
+    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality
+      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
 
     @subsection sqlutilv1_5_1 SqlUtil v1.5.1
     - fixed a bug that could lead to a deadlock when DML methods on the
@@ -5692,14 +5693,42 @@ AbstractColumn c = cols.id;
             }
             return True;
         }
+
+        #! returns an iterator for column SQL names
+        AbstractIterator getSqlColumnNameIterator() {
+            return new ListIterator((map $1.value.ddl_name ?? $1.key, h.pairIterator()));
+        }
+    }
+
+    #! the base class for named objects
+    public class AbstractDdlObject inherits Serializable {
+        public {
+            #! the name of the object
+            string name;
+
+            #! the name of the object for DDL (in case it's a reserved word)
+            string ddl_name;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! creates the object from the name
+        constructor(string name) {
+            self.name = name;
+            ddl_name = getDdlName(name);
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        abstract string getDdlName(string name);
     }
 
     #! the base class for column information
-    public class AbstractColumn inherits Serializable {
+    public class AbstractColumn inherits AbstractDdlObject {
         public {
-            #! the name of the column
-            string name;
-
             #! the native type name of the column
             string native_type;
 
@@ -5723,8 +5752,8 @@ AbstractColumn c = cols.id;
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
-            name = n;
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c)
+            : AbstractDdlObject(n) {
             native_type = nt;
             qore_type = qt;
             size = sz;
@@ -5743,7 +5772,7 @@ AbstractColumn c = cols.id;
 
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql(AbstractTable t) {
-            string sql = sprintf("%s %s", name, getNativeTypeString());
+            string sql = sprintf("%s %s", ddl_name, getNativeTypeString());
             if (exists def_val)
                 sql += " default " + def_val + "";
             if (!nullable)
@@ -5765,7 +5794,7 @@ list l = col.getAddColumnSql(t);
 
         #! returns a string that can be used to drop the column from the table
         string getDropSql(string table_name) {
-            return sprintf("alter table %s drop column %s", table_name, name);
+            return sprintf("alter table %s drop column %s", table_name, ddl_name);
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -5794,7 +5823,7 @@ list l = col.getModifySql(t, newcol);
                 && (exists c.def_val && c.def_val != NULL)
                 && (!exists def_val || def_val == NULL)
                 && !c.nullable && nullable && !t.emptyData()) {
-                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, c.def_val, name);
+                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), ddl_name, c.def_val, ddl_name);
                 # insert in the front of the list
                 unshift l, sql;
             }

@@ -292,7 +292,9 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
         unset(MOD_DEPS)
         foreach(i ${_mod_deps})
-            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=${CMAKE_BINARY_DIR}/docs/modules/${i}/html)
+            # we must use relative directories for tags; using absolute paths for tags will break the documentation
+            # when used on any system except the one where it's generated
+            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
         endforeach(i)
 
         # prepare QDX arguments

@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,6 +113,10 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
+    @subsection freetdssqlutilv131 FreetdsSqlUtil v1.3.1
+    - fixed quoting of reserved words in column names in table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
+
     @subsection freetdssqlutilv13 FreetdsSqlUtil v1.3
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
@@ -169,7 +173,7 @@ public namespace FreetdsSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_filegroup ? opt.index_filegroup : filegroup;
             if (ts)
@@ -294,26 +298,27 @@ list l = col.getModifySql(t, newcol);
 
             # get new native type declaration string
             string nts = c.getNativeTypeString();
+            string dv_name = getDdlName("dv_" + name);
             if (getNativeTypeString() != nts) {
                 #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
                 if (exists def_val && def_val !== c.def_val)
-                    l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+                    l += sprintf("alter table %s drop constraint %s", t.getSqlName(), dv_name);
 
-                l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+                l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), ddl_name, nts, c.nullable ? "" : "not ");
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+                    l += sprintf("alter table %s add constraint %s default %s for %s", t.getSqlName(), dv_name, c.def_val, ddl_name);
             }
             else {
                 if (def_val !== c.def_val) {
                     #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                     if (exists c.def_val && c.def_val !== NULL)
-                        l += sprintf("alter table %s add constraint dv_%s default %s for %s", t.getSqlName(), name, c.def_val, name);
+                        l += sprintf("alter table %s add constraint %s default %s for %s", t.getSqlName(), dv_name, c.def_val, ddl_name);
                     else
-                        l += sprintf("alter table %s drop constraint dv_%s", t.getSqlName(), name);
+                        l += sprintf("alter table %s drop constraint %s", t.getSqlName(), dv_name);
                 }
                 if (nullable != c.nullable) {
-                    l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), name, nts, c.nullable ? "" : "not ");
+                    l += sprintf("alter table %s alter column %s %s %snull", t.getSqlName(), ddl_name, nts, c.nullable ? "" : "not ");
                 }
             }
 
@@ -332,7 +337,14 @@ string str = col.getRenameSql(t, "new_name");
             @return a string that can be used to rename the column
         */
         string getRenameSql(AbstractTable t, string new_name) {
-            return sprintf("sp_rename '%s.%s', '%s', 'COLUMNS'", t.getSqlName(), name, new_name);
+            return sprintf("sp_rename '%s.%s', '%s', 'COLUMNS'", t.getSqlName(), ddl_name, getDdlName(new_name));
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        string getDdlName(string name) {
+            return FreetdsDatabase::FreetdsReservedWords{name.lwr()} ? ("[" + name + "]") : name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -395,11 +407,8 @@ string str = col.getRenameSql(t, "new_name");
 
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
-            sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
+            sql += sprintf(" (%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
         }
-
-        #! returns an iterator for keys iterating a list of string key names
-        abstract AbstractIterator keyIterator();
     }
 
     #! class modeling a unique constraint
@@ -1570,6 +1579,7 @@ where
 
                 FreetdsColumn c;
                 *string defval = row.column_default;
+
                 if (row.numeric_precision)
                     c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
@@ -1607,6 +1617,7 @@ where
                 # normalize default value expressions
                 if (defval =~ /^\(\(.*\)\)$/)
                     defval =~ s/^\(\((.*)\)\)$/$1/;
+
                 if (row.numeric_precision)
                     c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
