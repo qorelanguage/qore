@@ -53,7 +53,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -345,6 +345,10 @@ Content-Length: 16
     %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_3_1 RestHandler v1.3.1
+    - added debug loggging for REST schema validation errors
+      (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
 
     @subsection rh_1_3 RestHandler v1.3
     - added the @ref RestHandler::RestHandler::returnRestException() "RestHandler::returnRestException()" method that
@@ -1163,6 +1167,7 @@ public namespace RestHandler {
 
                 req = validator.parseRequest(hdr.method, path, body, \hdr);
             } catch (hash<ExceptionInfo> ex) {
+                logDebug("REST DBG: %s", get_exception_string(ex));
                 # return a 400 Bad Request response to encoding, serialization, or validation errors
                 if (ex.err == "INVALID-ENCODING"
                     || ex.err == "ENCODING-CONVERSION-ERROR"
@@ -1310,6 +1315,7 @@ public namespace RestHandler {
                 try {
                     res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr, aih."*/*" ? NOTHING : keys aih);
                 } catch (hash<ExceptionInfo> ex) {
+                    logDebug("REST DBG: %s", get_exception_string(ex));
                     if (ex.err == "ACCEPT-ERROR") {
                         responseSerializationError(cx, aih, rv);
                         # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.

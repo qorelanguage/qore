@@ -233,9 +233,13 @@ class SerializableTest inherits QUnit::Test {
 
         # get old untyped list after serializing with 1.0
         const Ser_10_List = list((1, 2))[0];
+
+        # case triggering issue #3395
+        const BadIntSerialization = <515300312e3100010717516f72653a3a53657269616c697a6174696f6e496e666f07ff0307055f6461746101071b516f72653a3a4861736853657269616c697a6174696f6e496e666f07010307055f686173680307055e6175746f>;
     }
 
     constructor() : QUnit::Test("Serializable", "1.0") {
+        addTestCase("issue 3395", \issue3395());
         addTestCase("Serializable test", \serializableTest());
         addTestCase("private key test", \privateKeyTest());
         addTestCase("certificate test", \certificateTest());
@@ -243,6 +247,10 @@ class SerializableTest inherits QUnit::Test {
         addTestCase("call stack test", \callStackTest());
 
         set_return_value(main());
+    }
+
+    issue3395() {
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), BadIntSerialization);
     }
 
     serializableTest() {

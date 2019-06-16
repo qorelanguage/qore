@@ -2,7 +2,7 @@
 
     @tableofcontents
 
-    @section qore_092 Qore 0.9.3
+    @section qore_093 Qore 0.9.3
 
     @par Release Summary
 
@@ -11,27 +11,44 @@
     @subsection qore_093_compatibility Fixes That Can Affect Backwards-Compatibility
     Complex type fixes in this release have the effect that complex type declarations are not exactly equal to
     the base types without a complex type restrictions, which can cause concrete implementations of abstract methods
-    to no longer match if their parameters are not exactly the same; ex: <tt>hash != hash<auto></tt>
+    to no longer match if their parameters are not exactly the same; ex: <tt>hash != hash<auto></tt>.  Use the
+    @ref broken-abstract "%broken-abstract" parse directive (introduced in this releaes) to maintain compatibility
+    with the old behavior regarding abstract method hierarchies.
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a>: added debug loggging for REST schema
+      validation errors
+      (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
+    - fixed documentation links between dependent modules
+      (<a href="https://github.com/qorelanguage/qore/issues/3406">issue 3406</a>)
     - fixed a bug where an lvalue with a complex type accepted incompatible assignments from values without complex
       types if the base type was the same; this fix also ensures that complex type declarations with \c auto are not
-      treated as identical to the base type without any complex type restrictions
+      treated as identical to the base type without any complex type restrictions; also the
+      @ref broken-abstract "%broken-abstract" and @ref correct-abstract "%correct-abstract" parse directives were
+      implemented to avoid breaking code that depends on this bug
       (<a href="https://github.com/qorelanguage/qore/issues/3404">issue 3404</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: implemented the
       \c AbstractDatabase::getPhysicalSize() method
       (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: fixed quoting of reserved words in column names in
       table alignment
-      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3300</a>)
-    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>: fixed the timeout value for upgrading to SSL
-      connection in \c SmtpClient
-      (<a href="https://github.com/qorelanguage/qore/issues/3381">issue 3381</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module: fixed certificate and key errors for
+      HTTPS listeners to generate user-friendly exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
+    - fixed a bug where a crash could result when deserializing invalid integer data
+      (<a href="https://github.com/qorelanguage/qore/issues/3395">issue 3395</a>)
     - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>: fixed the timeout value for upgrading the SSL
       connection in \c Pop3Client
       (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
     - fixed a parse type error in initialization using return value of abstract method
       (<a href="https://github.com/qorelanguage/qore/issues/3387">issue 3387</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: implemented the
+      \c AbstractDatabase::getPhysicalSize() method
+      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>: fixed the timeout value for upgrading to SSL
+      connection in \c SmtpClient
+      (<a href="https://github.com/qorelanguage/qore/issues/3381">issue 3381</a>)
     - fixed a bug where sort functions were incorrectly sorting strings with different lengths
       (<a href="https://github.com/qorelanguage/qore/issues/3378">issue 3378</a>)
     - fixed a member initialization bug with imported classes

@@ -73,26 +73,47 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
 }
 
 bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig) const {
-   if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
-      //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
-      return false;
-   }
+    if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
+        //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
+        return false;
+    }
 
-   if (!QoreTypeInfo::isOutputCompatible(sig.returnTypeInfo, returnTypeInfo)) {
-      //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo, sig.returnTypeInfo);
-      return false;
-   }
+    if (!QoreTypeInfo::isOutputCompatible(sig.returnTypeInfo, returnTypeInfo)) {
+        //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo, sig.returnTypeInfo);
+        return false;
+    }
 
-   for (unsigned i = 0; i < typeList.size(); ++i) {
-      const QoreTypeInfo* ti = sig.typeList.size() <= i ? 0 : sig.typeList[i];
-      if (!QoreTypeInfo::isInputIdentical(typeList[i], ti)) {
-         //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
-         return false;
-      }
-   }
+    // issue #3404: supports %broken-abstract
+    bool broken_abstract;
+    {
+        // there is no progrm context when initializing Qore
+        QoreProgram* pgm = getProgram();
+        if (pgm) {
+            broken_abstract = pgm->getParseOptions64() & PO_BROKEN_ABSTRACT;
+        } else {
+            broken_abstract = false;
+        }
+    }
 
-   //printd(5, "AbstractFunctionSignature::operator==() '%s' == '%s' TRUE\n", str.c_str(), sig.str.c_str());
-   return true;
+    for (unsigned i = 0; i < typeList.size(); ++i) {
+        const QoreTypeInfo* ti = sig.typeList.size() <= i
+            ? nullptr
+            : sig.typeList[i];
+        bool match;
+        if (broken_abstract) {
+            match = (QoreTypeInfo::parseAccepts(typeList[i], ti) >= QTI_AMBIGUOUS)
+                || (QoreTypeInfo::parseAccepts(ti, typeList[i]) >= QTI_AMBIGUOUS);
+        } else {
+            match = QoreTypeInfo::isInputIdentical(typeList[i], ti);
+        }
+        if (!match) {
+            //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
+            return false;
+        }
+    }
+
+    //printd(5, "AbstractFunctionSignature::operator==() '%s' == '%s' TRUE\n", str.c_str(), sig.str.c_str());
+    return true;
 }
 
 int64 AbstractQoreFunctionVariant::getParseOptions(int64 po) const {
