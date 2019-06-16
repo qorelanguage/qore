@@ -135,6 +135,7 @@ bool QoreRegex::exec(const char* str, size_t len) const {
    return rc >= 0;
 }
 
+// return type: *list<*string>
 QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSink* xsink) const {
     TempEncodingHelper t(target, QCS_UTF8, xsink);
     if (!t)
