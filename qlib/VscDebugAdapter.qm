@@ -657,7 +657,8 @@ public namespace VscDebugAdapter {
 
         private:internal hash getSource(hash ls) {
             hash src;
-            src.name = exists ls.label ? sprintf("Label: %s", ls.label) : sprintf("File: %s", ls.file);
+
+            src.name = exists ls.source ? sprintf("Label: %s", ls.source) : sprintf("File: %s", ls.file);
             src.sourceReference = ls.id;
             src.path = ls.file;
             if (src.path =~ /^<(.*)>$/) {
@@ -1117,13 +1118,13 @@ public namespace VscDebugAdapter {
             if (m_currentPgmId) {
                 foreach string id in (keys m_programState{m_currentPgmId}.loadedSourceById) {
                     push res.sources, getSource(m_programState{m_currentPgmId}.loadedSourceById{id});
-                } 
+                }
             }
             return res;
         }
 
         public hash vsc_source(hash args) {
-            hash res.content = '';
+            hash res;
             if (m_currentPgmId) { # or do we need it global ?
                 *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.sourceReference};
                 if (exists ls.source) {
@@ -1137,6 +1138,9 @@ public namespace VscDebugAdapter {
                         "file": ls.file,
                     )).result.code;
                 }
+            }
+            if (!exists res.content) {
+                res.content = '';
             }
             return res;
         }
