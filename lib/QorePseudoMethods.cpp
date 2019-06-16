@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -150,8 +150,24 @@ const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t) {
 }
 
 QoreValue pseudo_classes_eval(const QoreValue n, const char *name, const QoreListNode *args, ExceptionSink *xsink) {
-    if (n.getType() == NT_WEAKREF)
-        return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT], QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+    switch (n.getType()) {
+        case NT_WEAKREF:
+            return qore_class_private::evalPseudoMethod(po_list[NT_OBJECT], QoreValue(n.get<WeakReferenceNode>()->get()), name, args, xsink);
+
+        case NT_REFERENCE: {
+            const ReferenceNode* r = n.get<const ReferenceNode>();
+            QoreTypeSafeReferenceHelper ref(r, xsink);
+            // a deadlock exception occurred accessing the reference's value pointer
+            if (!ref) {
+                return QoreValue();
+            }
+
+            return pseudo_classes_eval(ref.getValue(), name, args, xsink);
+        }
+
+        default:
+            break;
+    }
 
     return qore_class_private::evalPseudoMethod(pseudo_get_class(n.getType()), n, name, args, xsink);
 }
