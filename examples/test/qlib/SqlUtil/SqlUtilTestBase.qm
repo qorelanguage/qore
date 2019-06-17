@@ -116,7 +116,7 @@ public class SqlTestBase inherits QUnit::Test {
     serializationTest() {
         if (!table) testSkip("no DB connection");
 
-        hash<auto> h = table.serializeToData();
+        hash<SerializationInfo> h = table.serializeToData();
         AbstractTable t = AbstractTable::deserialize(h);
         assertTrue(t instanceof AbstractTable);
         # test that the table object works

@@ -8,6 +8,13 @@
 
     Bugfix release; see details below
 
+    @subsection qore_093_compatibility Fixes That Can Affect Backwards-Compatibility
+    Complex type fixes in this release have the effect that complex type declarations are not exactly equal to
+    the base types without a complex type restrictions, which can cause concrete implementations of abstract methods
+    to no longer match if their parameters are not exactly the same; ex: <tt>hash != hash<auto></tt>.  Use the
+    @ref broken-abstract "%broken-abstract" parse directive (introduced in this releaes) to maintain compatibility
+    with the old behavior regarding abstract method hierarchies.
+
     @subsection qore_093_bug_fixes Bug Fixes in Qore
     - fixed inconsistent behavior of references with pseudo-methods
       (<a href="https://github.com/qorelanguage/qore/issues/3417">issue 3417</a>)
@@ -18,6 +25,12 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
     - fixed documentation links between dependent modules
       (<a href="https://github.com/qorelanguage/qore/issues/3406">issue 3406</a>)
+    - fixed a bug where an lvalue with a complex type accepted incompatible assignments from values without complex
+      types if the base type was the same; this fix also ensures that complex type declarations with \c auto are not
+      treated as identical to the base type without any complex type restrictions; also the
+      @ref broken-abstract "%broken-abstract" and @ref correct-abstract "%correct-abstract" parse directives were
+      implemented to avoid breaking code that depends on this bug
+      (<a href="https://github.com/qorelanguage/qore/issues/3404">issue 3404</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: fixed quoting of reserved words in column names in
       table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)

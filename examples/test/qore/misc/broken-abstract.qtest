@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class BrokenAbstractTest
+
+class BrokenAbstractTest inherits QUnit::Test {
+    public {
+        # sources for tests for issue #3404
+        const CompatReturnTypes = "class B { abstract hash get(); } class C inherits B { hash<auto> get() { "
+            "return {}; } } hash<auto> sub test() { C c(); return c.get(); }";
+        const CompatArgTypes = "class B { abstract get(hash a); } class C inherits B { get(hash<auto> a) {} } "
+            "sub test() { C c(); c.get({}); }";
+    }
+
+    constructor() : QUnit::Test("Broken abstract test", "1.0") {
+        addTestCase("Test", \testBrokenAbstract());
+        set_return_value(main());
+    }
+
+    testBrokenAbstract() {
+        # compatible return types are accepted in abstract method hierarchies
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatReturnTypes, "test");
+            assertEq({}, p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_ABSTRACT | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatReturnTypes, "test");
+            assertEq({}, p.callFunction("test"));
+        }
+
+        # argument types must be idenitical in abstract method hierarchies
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_ABSTRACT | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatArgTypes, "test");
+            assertNothing(p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), (CompatArgTypes, "test"));
+        }
+    }
+}

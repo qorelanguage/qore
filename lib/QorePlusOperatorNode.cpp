@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -205,8 +205,17 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
     }
 
     // if either side is a list, then the return type is list (highest priority)
-    if (QoreTypeInfo::isType(leftTypeInfo, NT_LIST) || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))
-        returnTypeInfo = listTypeInfo;
+    bool is_list_left = QoreTypeInfo::isType(leftTypeInfo, NT_LIST);
+    bool is_list_right = QoreTypeInfo::isType(rightTypeInfo, NT_LIST);
+    if (is_list_left || is_list_right) {
+        if (is_list_left && is_list_right) {
+            returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo)
+                ? leftTypeInfo
+                : listTypeInfo;
+        } else {
+            returnTypeInfo = listTypeInfo;
+        }
+    }
     // otherwise only set return type if return types on both sides are known at parse time
     else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
         // issue #3157: try to handle timeout + date specially
@@ -218,25 +227,33 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
             check_date_timeout_variant = true;
         }
 
-        if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING) || QoreTypeInfo::isType(rightTypeInfo, NT_STRING))
+        if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING) || QoreTypeInfo::isType(rightTypeInfo, NT_STRING)) {
             returnTypeInfo = stringTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE) || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE) || QoreTypeInfo::isType(rightTypeInfo, NT_DATE)) {
             returnTypeInfo = dateTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER) || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER) || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
             returnTypeInfo = numberTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
             returnTypeInfo = floatTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) || QoreTypeInfo::isType(rightTypeInfo, NT_INT)) {
             returnTypeInfo = bigIntTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH)) {
+            if (QoreTypeInfo::isType(rightTypeInfo, NT_HASH)
+                && QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo)) {
+                returnTypeInfo = leftTypeInfo;
+            } else {
+                returnTypeInfo = hashTypeInfo;
+            }
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT)) {
             returnTypeInfo = hashTypeInfo;
-        else if (QoreTypeInfo::isType(rightTypeInfo, NT_OBJECT))
+        } else if (QoreTypeInfo::isType(rightTypeInfo, NT_OBJECT)) {
             returnTypeInfo = objectTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_BINARY) || QoreTypeInfo::isType(rightTypeInfo, NT_BINARY))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_BINARY) || QoreTypeInfo::isType(rightTypeInfo, NT_BINARY)) {
             returnTypeInfo = binaryTypeInfo;
-        else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
+        } else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo)) {
             // only return type nothing if both types are available and return a single type
             returnTypeInfo = nothingTypeInfo;
+        }
     }
 
     if (returnTypeInfo) {

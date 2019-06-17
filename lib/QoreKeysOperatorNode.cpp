@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,21 +54,21 @@ void QoreKeysOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
     parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
 
     if (QoreTypeInfo::hasType(expTypeInfo)) {
-        if (QoreTypeInfo::isType(expTypeInfo, NT_HASH) || QoreTypeInfo::isType(expTypeInfo, NT_OBJECT))
-            returnTypeInfo = listTypeInfo;
-        else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, expTypeInfo)
+        if (QoreTypeInfo::isType(expTypeInfo, NT_HASH) || QoreTypeInfo::isType(expTypeInfo, NT_OBJECT)) {
+            returnTypeInfo = qore_get_complex_list_type(stringTypeInfo);
+        } else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, expTypeInfo)
             && !QoreTypeInfo::parseAccepts(objectTypeInfo, expTypeInfo)) {
             QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
             QoreTypeInfo::getThisType(expTypeInfo, *edesc);
             edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
             qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
             returnTypeInfo = nothingTypeInfo;
+        } else {
+            returnTypeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
         }
-        else
-            returnTypeInfo = listOrNothingTypeInfo;
+    } else {
+        returnTypeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
     }
-    else
-        returnTypeInfo = listOrNothingTypeInfo;
 
     if (exp.isValue()) {
         ReferenceHolder<> holder(this, 0);

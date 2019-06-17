@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 # we will test invalid operations
 %disable-warning invalid-operation
@@ -37,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3404", \issue3404());
         addTestCase("issue 3278", \issue3278());
         addTestCase("issue 3210", \issue3210());
         addTestCase("issue 3157", \issue3157());
@@ -53,6 +55,60 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue3404() {
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES | PO_STRICT_ARGS);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("*hash<string, bool> h0; hash h1; h0 = h1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("*hash<string, bool> h0; hash h1; h0 = h1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("*hash<string, bool> h0; hash h1; h0 = h1;", ""));
+        }
+
+        # make sure complex type assignments work when expected
+        {
+            hash<string, bool> h1();
+            hash<string, bool> h2();
+            hash<string, bool> h3 = h1 + h2;
+            assertEq("hash<string, bool>", h3.fullType());
+        }
+
+        {
+            hash<auto> h1 = {"a": True};
+            hash<auto> h2 = {"b": True};
+            hash<string, bool> h3 = h1 + h2;
+            assertEq("hash<string, bool>", h3.fullType());
+        }
+
+        {
+            list<int> l1();
+            list<int> l2();
+            list<int> l3 = l1 + l2;
+            assertEq("list<int>", l3.fullType());
+        }
+
+        {
+            list<auto> l1(1);
+            list<auto> l2(2);
+            list<int> l3 = l1 + l2;
+            assertEq("list<int>", l3.fullType());
+        }
+
+        {
+            hash h;
+            *list<string> l = keys h;
+            assertEq("nothing", l.fullType());
+            l = keys {};
+            assertEq("list<string>", l.fullType());
+        }
     }
 
     issue3278() {
@@ -272,6 +328,11 @@ class TypeTest inherits QUnit::Test {
         {
             list<auto> l;
             l += hash<MyHash>{};
+            assertEq("hash<MyHash>", l[0].fullType());
+        }
+        {
+            list l;
+            l += hash<MyHash>{};
             # ensure types are stripped on assignment with internal values of untyped lists
             assertEq(Type::Hash, l[0].fullType());
         }
@@ -417,11 +478,11 @@ class TypeTest inherits QUnit::Test {
         list<auto> l0 = ("str0", "str1");
         assertEq("list<string>", l0.fullType());
         softlist<auto> l1 = ("str0", "str1");
-        assertEq("softlist<auto>", l1.fullType());
+        assertEq("list<string>", l1.fullType());
         *list<auto> l2 = ("str0", "str1");
         assertEq("list<string>", l2.fullType());
         *softlist<auto> l3 = ("str0", "str1");
-        assertEq("*softlist<auto>", l3.fullType());
+        assertEq("list<string>", l3.fullType());
 
         hash<auto> h0 = ("a": 1, "b": 2);
         assertEq("hash<string, int>", h0.fullType());

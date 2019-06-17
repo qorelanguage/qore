@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
         return 0;
     }
 
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(bigIntTypeInfo);
     if (start < stop) {
         for (int64 i = start; i <= stop; i += step) {
             l->push(i, xsink);
@@ -92,7 +92,7 @@ auto sort(auto arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-list nl = sort(l);
+list<auto> nl = sort(l);
     @endcode
 
     @param l the list to sort
@@ -104,7 +104,7 @@ list nl = sort(l);
     - sortDescendingStable(list)
     - sortDescending(list)
 */
-list sort(list l) [flags=CONSTANT] {
+list<auto> sort(list<auto> l) [flags=CONSTANT] {
    return l->sort(xsink);
 }
 
@@ -112,7 +112,7 @@ list sort(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-list nl = sort(l, "my_sort_function");
+list<auto> nl = sort(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -125,7 +125,7 @@ list nl = sort(l, "my_sort_function");
     - sortDescendingStable(list, string)
     - sortDescending(list, string)
 */
-list sort(list l, string func) [flags=RET_VALUE_ONLY] {
+list<auto> sort(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sort(*fr, xsink);
 }
@@ -135,7 +135,7 @@ list sort(list l, string func) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sort(l, sort_func);
+list<auto> nl = sort(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -148,7 +148,7 @@ list nl = sort(l, sort_func);
     - sortDescendingStable(list, code)
     - sortDescending(list, code)
 */
-list sort(list l, code f) [flags=RET_VALUE_ONLY] {
+list<auto> sort(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sort(f, xsink);
 }
 
@@ -173,7 +173,7 @@ auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
 
     @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescending(list l) [flags=CONSTANT,DEPRECATED] {
+list<auto> sortDescending(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortDescending(xsink);
 }
 
@@ -191,7 +191,7 @@ list sortDescending(list l) [flags=CONSTANT,DEPRECATED] {
 
     @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescending(list l, string func) [flags=CONSTANT,DEPRECATED] {
+list<auto> sortDescending(list<auto> l, string func) [flags=CONSTANT,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
@@ -210,7 +210,7 @@ list sortDescending(list l, string func) [flags=CONSTANT,DEPRECATED] {
 
     @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescending(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
+list<auto> sortDescending(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return l->sortDescending(f, xsink);
 }
 
@@ -226,7 +226,7 @@ auto sort_descending(auto arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-list nl = sort_descending(l);
+list<auto> nl = sort_descending(l);
     @endcode
 
     @param l the list to sort
@@ -240,7 +240,7 @@ list nl = sort_descending(l);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sort_descending(list l) [flags=CONSTANT] {
+list<auto> sort_descending(list<auto> l) [flags=CONSTANT] {
    return l->sortDescending(xsink);
 }
 
@@ -248,7 +248,7 @@ list sort_descending(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-list nl = sort_descending(l, "my_sort_function");
+list<auto> nl = sort_descending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -263,7 +263,7 @@ list nl = sort_descending(l, "my_sort_function");
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sort_descending(list l, string func) [flags=CONSTANT] {
+list<auto> sort_descending(list<auto> l, string func) [flags=CONSTANT] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
@@ -273,7 +273,7 @@ list sort_descending(list l, string func) [flags=CONSTANT] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sort_descending(l, sort_func);
+list<auto> nl = sort_descending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -288,7 +288,7 @@ list nl = sort_descending(l, sort_func);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
-list sort_descending(list l, code f) [flags=RET_VALUE_ONLY] {
+list<auto> sort_descending(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortDescending(f, xsink);
 }
 
@@ -313,7 +313,7 @@ auto sortStable(auto arg) [flags=NOOP,DEPRECATED] {
 
     @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l) [flags=CONSTANT,DEPRECATED] {
+list<auto> sortStable(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortStable(xsink);
 }
 
@@ -331,7 +331,7 @@ list sortStable(list l) [flags=CONSTANT,DEPRECATED] {
 
     @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
+list<auto> sortStable(list<auto> l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
@@ -341,7 +341,7 @@ list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sortStable(l, sort_func);
+list<auto> nl = sortStable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -356,7 +356,7 @@ list nl = sortStable(l, sort_func);
 
     @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
+list<auto> sortStable(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return l->sortStable(f, xsink);
 }
 
@@ -372,7 +372,7 @@ auto sort_stable(auto arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-list nl = sort_stable(l);
+list<auto> nl = sort_stable(l);
     @endcode
 
     @param l the list to sort
@@ -386,7 +386,7 @@ list nl = sort_stable(l);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
 */
-list sort_stable(list l) [flags=CONSTANT] {
+list<auto> sort_stable(list<auto> l) [flags=CONSTANT] {
    return l->sortStable(xsink);
 }
 
@@ -394,7 +394,7 @@ list sort_stable(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-list nl = sort_stable(l, "my_sort_function");
+list<auto> nl = sort_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -409,7 +409,7 @@ list nl = sort_stable(l, "my_sort_function");
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
 */
-list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
+list<auto> sort_stable(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
@@ -418,8 +418,8 @@ list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
 /**
     @par Example:
     @code{.py}
-code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sort_stable(l, sort_func);
+code sort_func = int sub (hash<auto> l, hash<auto> r) { return l.id <=> r.id; };
+list<auto> nl = sort_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -434,7 +434,7 @@ list nl = sort_stable(l, sort_func);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
 */
-list sort_stable(list l, code f) [flags=RET_VALUE_ONLY] {
+list<auto> sort_stable(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortStable(f, xsink);
 }
 
@@ -450,7 +450,7 @@ auto sortDescendingStable(auto arg) [flags=NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-list nl = sortDescendingStable(l);
+list<auto> nl = sortDescendingStable(l);
     @endcode
 
     @param l the list to sort
@@ -464,7 +464,7 @@ list nl = sortDescendingStable(l);
 
     @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
+list<auto> sortDescendingStable(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortDescendingStable(xsink);
 }
 
@@ -472,7 +472,7 @@ list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
 /**
     @par Example:
     @code{.py}
-list nl = sortDescending(l, "my_sort_function");
+list<auto> nl = sortDescending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -487,7 +487,7 @@ list nl = sortDescending(l, "my_sort_function");
 
     @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
+list<auto> sortDescendingStable(list<auto> l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
@@ -497,7 +497,7 @@ list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED]
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sortDescending(l, sort_func);
+list<auto> nl = sortDescending(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -512,7 +512,7 @@ list nl = sortDescending(l, sort_func);
 
     @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
+list<auto> sortDescendingStable(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return l->sortDescendingStable(f, xsink);
 }
 
@@ -528,7 +528,7 @@ auto sort_descending_stable(auto arg) [flags=NOOP] {
 
     @par Example:
     @code{.py}
-list nl = sort_descending_stable(l);
+list<auto> nl = sort_descending_stable(l);
     @endcode
 
     @param l the list to sort
@@ -542,7 +542,7 @@ list nl = sort_descending_stable(l);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
 */
-list sort_descending_stable(list l) [flags=CONSTANT] {
+list<auto> sort_descending_stable(list<auto> l) [flags=CONSTANT] {
    return l->sortDescendingStable(xsink);
 }
 
@@ -550,7 +550,7 @@ list sort_descending_stable(list l) [flags=CONSTANT] {
 /**
     @par Example:
     @code{.py}
-list nl = sort_descending_stable(l, "my_sort_function");
+list<auto> nl = sort_descending_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
@@ -565,7 +565,7 @@ list nl = sort_descending_stable(l, "my_sort_function");
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
 */
-list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
+list<auto> sort_descending_stable(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
@@ -575,7 +575,7 @@ list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
-list nl = sort_descending_stable(l, sort_func);
+list<auto> nl = sort_descending_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
@@ -590,7 +590,7 @@ list nl = sort_descending_stable(l, sort_func);
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
 */
-list sort_descending_stable(list l, code f) [flags=RET_VALUE_ONLY] {
+list<auto> sort_descending_stable(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortDescendingStable(f, xsink);
 }
 
@@ -608,7 +608,7 @@ auto v = min(l);
 
     @see max(list)
 */
-auto min(list l) [flags=CONSTANT] {
+auto min(list<auto> l) [flags=CONSTANT] {
    return l->min(xsink);
 }
 
@@ -626,7 +626,7 @@ auto v = min(l, "my_sort_function");
 
     @see max(list, string)
 */
-auto min(list l, string func) [flags=RET_VALUE_ONLY] {
+auto min(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->min(*fr, xsink);
 }
@@ -646,7 +646,7 @@ auto v = min(l, sort_func);
 
     @see max(list, code)
 */
-auto min(list l, code f) [flags=RET_VALUE_ONLY] {
+auto min(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->min(f, xsink);
 }
 
@@ -682,7 +682,7 @@ auto v = max(l);
 
     @see min(list)
 */
-auto max(list l) [flags=CONSTANT] {
+auto max(list<auto> l) [flags=CONSTANT] {
    return l->max(xsink);
 }
 
@@ -700,7 +700,7 @@ auto v = max(l, "my_sort_function");
 
     @see min(list, string)
 */
-auto max(list l, string func) [flags=RET_VALUE_ONLY] {
+auto max(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
    return !fr ? QoreValue() : l->max(*fr, xsink);
 }
@@ -720,7 +720,7 @@ auto v = max(l, sort_func);
 
     @see min(list, code)
 */
-auto max(list l, code f) [flags=RET_VALUE_ONLY] {
+auto max(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->max(f, xsink);
 }
 
@@ -752,7 +752,7 @@ nothing reverse() [flags=NOOP] {
 /**
     @par Example:
     @code{.py}
-list nl = reverse(l);
+list<auto> nl = reverse(l);
     @endcode
 
     @param l the list to reverse
@@ -761,7 +761,7 @@ list nl = reverse(l);
 
     @see reverse(string)
 */
-list reverse(list l) [flags=CONSTANT] {
+list<auto> reverse(list<auto> l) [flags=CONSTANT] {
    return l->reverse();
 }
 
@@ -794,7 +794,7 @@ if (inlist(str, strlist))
 
     @see inlist_hard(any, softlist)
 */
-bool inlist(auto arg, softlist l) [flags=RET_VALUE_ONLY] {
+bool inlist(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
 }
 
@@ -827,7 +827,7 @@ if (inlist_hard(str, strlist))
 
     @see inlist(any, softlist)
 */
-bool inlist_hard(auto arg, softlist l) [flags=RET_VALUE_ONLY] {
+bool inlist_hard(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
     bool arg_is_nothing = arg.isNothing();
 
     ConstListIterator li(l);
@@ -883,7 +883,7 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
 
     @since %Qore 0.8.6
 */
-list range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
+list<int> range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     return range_intern(start, stop, step, xsink);
 }
 
@@ -907,7 +907,7 @@ range(-3); # (0, -1, -2, -3)
 
     @since %Qore 0.8.6
  */
-list range(int stop) [flags=CONSTANT] {
+list<int> range(int stop) [flags=CONSTANT] {
     return range_intern(0, stop, 1, xsink);
 }
 //@}
