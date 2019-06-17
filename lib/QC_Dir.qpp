@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
     }
 
     // avoid memory leaks...
-    ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> lst(new QoreListNode(autoTypeInfo), xsink);
 
     DIR *dptr = opendir(dirname.c_str());
     if (!dptr) {
@@ -308,8 +308,7 @@ try {
         printf("%y: does not exist; creating...\n", d.path());
         cnt = d.create(0755);
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -331,8 +330,7 @@ int Dir::create(softint mode = 0777) {
     @code{.py}
 try {
     dir.chmod(0750);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -357,8 +355,7 @@ nothing Dir::chmod(softint mode) {
     @code{.py}
 try {
     dir.chown(uid);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -388,8 +385,7 @@ nothing Dir::chown(int uid) {
     @code{.py}
 try {
     dir.chown(username);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -427,8 +423,7 @@ nothing Dir::chown(string username) {
     @code{.py}
 try {
     dir.chgrp(gid);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -458,8 +453,7 @@ nothing Dir::chgrp(int gid) {
     @code{.py}
 try {
     dir.chgrp(groupname);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -495,8 +489,7 @@ nothing Dir::chgrp(string groupname) {
     @code{.py}
 try {
     dir.mkdir("subdir", 0750);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -522,8 +515,7 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
     @code{.py}
 try {
     dir.rmdir("subdir");
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -555,8 +547,7 @@ nothing Dir::rmdir(string subdir) {
     @code{.py}
 try {
     map printf("entry: %s\n", $1), d.list();
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
     if (ex.arg)
         stderr.printf(": %s", strerror(ex.arg));
@@ -569,7 +560,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::list(bool full = False) {
+list<auto> Dir::list(bool full = False) {
    return d->list(xsink, -1, 0, 0, full);
 }
 
@@ -588,8 +579,7 @@ try {
     foreach string e in (d.list("\\.txt$")) {
         printf("entry: %s\n");
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
     if (ex.arg)
         stderr.printf(": %s", strerror(ex.arg));
@@ -604,7 +594,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::list(string regex, softint regex_options = 0, softbool full = False) {
+list<auto> Dir::list(string regex, softint regex_options = 0, softbool full = False) {
    return d->list(xsink, -1, regex, (int)regex_options, full);
 }
 
@@ -621,8 +611,7 @@ try {
     foreach string e in (d.listFiles()) {
         printf("entry: %s\n");
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
     if (ex.arg)
         stderr.printf(": %s", strerror(ex.arg));
@@ -635,7 +624,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listFiles(bool full = False) {
+list<auto> Dir::listFiles(bool full = False) {
    return d->list(xsink, S_IFMT^S_IFDIR, 0, 0, full);
 }
 
@@ -654,8 +643,7 @@ try {
     foreach string e in (d.listFiles("\\.txt$")) {
         printf("entry: %s\n");
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -670,7 +658,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listFiles(string regex, softint regex_options = 0, softbool full = False) {
+list<auto> Dir::listFiles(string regex, softint regex_options = 0, softbool full = False) {
    return d->list(xsink, S_IFMT^S_IFDIR, regex, (int)regex_options, full);
 }
 
@@ -687,8 +675,7 @@ try {
     foreach string e in (d.listDirs()) {
         printf("entry: %s\n");
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -701,7 +688,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listDirs(bool full = False) {
+list<auto> Dir::listDirs(bool full = False) {
    return d->list(xsink, S_IFDIR, 0, 0, full);
 }
 
@@ -720,8 +707,7 @@ try {
     foreach string e in (d.listDirs("^pgsql-")) {
         printf("entry: %s\n");
     }
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -736,7 +722,7 @@ catch (hash ex) {
 
     @since %Qore 0.8.8 added the \a full parameter
  */
-list Dir::listDirs(string regex, softint regex_options = 0, softbool full = False) {
+list<auto> Dir::listDirs(string regex, softint regex_options = 0, softbool full = False) {
    return d->list(xsink, S_IFDIR, regex, (int)regex_options, full);
 }
 
@@ -812,8 +798,7 @@ Dir Dir::openDir(string subdir, *string encoding) {
     @code{.py}
 try {
     bool b = dir.removeFile(filename);
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -848,8 +833,7 @@ bool Dir::removeFile(string file) {
     @code{.py}
 try {
     list l = dir.stat();
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -860,7 +844,7 @@ catch (hash ex) {
     @throw DIR-STAT-ERROR no directory is set
     @throw DIR-STAT-FAILURE error stat'ing directory (\c arg will be assigned to the errno value)
  */
-list Dir::stat() {
+list<auto> Dir::stat() {
    return d->stat(xsink);
 }
 
@@ -873,8 +857,7 @@ list Dir::stat() {
     @code{.py}
 try {
     hash<StatInfo> h = dir.hstat();
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else
@@ -898,9 +881,8 @@ hash<StatInfo> Dir::hstat() {
     @par Example:
     @code{.py}
 try {
-    hash h = dir.statvfs();
-}
-catch (hash ex) {
+    hash<FilesystemInfo> h = dir.statvfs();
+} catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
     else

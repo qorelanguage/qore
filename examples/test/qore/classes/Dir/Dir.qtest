@@ -81,7 +81,8 @@ class DirTest inherits QUnit::Test {
         on_exit system("rm -f " + linkPath);
 
         assertEq(sort((fileA, linkName)), sort(d.list()));
-        assertEq((fileA,), d.listFiles());
+        list<string> files = d.listFiles();
+        assertEq((fileA,), files);
         assertEq(list(), d.listDirs());
     }
 }
