@@ -498,7 +498,7 @@ bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 string str = "ns:element";
-*list<string> rv = str.regexExtract("(\\w+):(\\w+)");
+*list<*string> rv = str.regexExtract("(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression

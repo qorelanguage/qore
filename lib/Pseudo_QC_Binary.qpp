@@ -205,15 +205,19 @@ bool <binary>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list l = bin.split(sep);
+list<binary> l = bin.split(sep);
     @endcode
 
-    @note equivalent to split(binary, binary)
+    @note equivalent to split(data, binary)
 
     @since %Qore 0.8.5
  */
-list <binary>::split(binary sep) [flags=CONSTANT] {
-   return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)b->getPtr(), b->size(), 0);
+list<binary> <binary>::split(data sep) [flags=CONSTANT] {
+    const char* bin_ptr;
+    size_t bin_len;
+    q_get_data(sep, bin_ptr, bin_len);
+
+    return split_intern(bin_ptr, bin_len, (const char*)b->getPtr(), b->size(), nullptr);
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the binary data as a hex string
