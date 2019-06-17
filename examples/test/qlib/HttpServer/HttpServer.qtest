@@ -47,6 +47,11 @@ class ReqHandler inherits AbstractHttpRequestHandler {
             return makeResponse(204, "test");
         } else if (rpath =~ /^test304\//) {
             return makeResponse(304, "test");
+        } else if (rpath =~ /^fileupload/) {
+            string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?(.+)"?/i)[0];
+            hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, body, True);
+            #printf("h: %N\n", h);
+            return makeResponse(200, binary(h.part[1].body), {"Content-Type": h.part[1].hdr."content-type"});
         }
 
         if (hdr.method == "POST") {
@@ -63,6 +68,7 @@ public class HttpServerTest inherits QUnit::Test {
         HTTPClient mClient;
         ReqHandler mHandler;
         int port;
+        string url;
 
         const CertPem = "-----BEGIN CERTIFICATE-----
 MIIE2jCCA8KgAwIBAgIJANryEdM1ip5eMA0GCSqGSIb3DQEBCwUAMIGrMQswCQYD
@@ -92,6 +98,8 @@ dduAJ1yfHoGXNOZiDR4qhq3OPFFCUL7mV2B8VUlhAyaHALwFZw/pQrfIt6XQmNoO
 F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
 /gfhTh/VV4d5GnhnHv62qR5DyT1iTrR2ZTcUt+uWp/bEopM2vO7y/gadqQpBnA==
 -----END CERTIFICATE-----";
+
+        const BinImage = <89504e470d0a1a0a0000000d4948445200000010000000100403000000eddde25200000018504c5445ffffff6b6b6b8c8c8cc0c0c0ef5a5a846331efd63900000089492ed30000000474524e53ffffff00402aa9f400000001624b474407166188eb0000004b4944415408d7633086020610615a0c65a8ba4319a1e55046581184619e1a0c61288119060c0ce6e94c5046312394c100661828194318020c0c688c40410506a8628888912010881a1b0300fcbe1520c136ff8b0000000049454e44ae426082>;
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
@@ -103,6 +111,7 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         addTestCase("Test status codes", \testStatusCodes());
         addTestCase("misc", \misc());
         addTestCase("2nd wildcard listener", \secondWildcardListener());
+        addTestCase("bug 2936 multipart form-data binary file upload", \multipartFormDataBinaryFileTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -119,6 +128,7 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
         mServer.setDefaultHandler("my-handler", mHandler);
         port = mServer.addListener(0).port;
+        url = "http://localhost:" + port;
     }
 
     globalTearDown() {
@@ -127,7 +137,7 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
     }
 
     setUp() {
-        mClient = new HTTPClient(("url": "http://localhost:" + port, "additional_methods": {"TEST": True}));
+        mClient = new HTTPClient(("url": url, "additional_methods": {"TEST": True}));
         mClient.connect();
     }
 
@@ -220,5 +230,17 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
     misc() {
         assertEq(("method": "path", "params": ("a": "1", "b": "2")), parse_uri_query("path?a=1;b=2"));
         assertEq(("method": "path", "params": ("a": "1", "b": True)), parse_uri_query("path?a=1;b"));
+    }
+
+    private multipartFormDataBinaryFileTest() {
+        MultiPartFormDataMessage msg();
+        msg.addPart(BinImage, "image0.png", {"Content-Type": MimeTypePng});
+        msg.addPart(BinImage, "image1.png", {"Content-Type": MimeTypePng});
+        hash<MessageInfo> h = msg.getMsgAndHeaders();
+        hash<auto> info;
+        binary img = binary(mClient.post("/fileupload", h.body, h.hdr, \info));
+        assertEq(200, info."response-headers".status_code);
+        assertEq(MimeTypePng, info."response-headers"."content-type");
+        assertEq(BinImage, img);
     }
 }

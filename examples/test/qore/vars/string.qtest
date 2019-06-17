@@ -57,9 +57,9 @@ class StringTest inherits QUnit::Test {
         assertEq(a[2], "is", "first string split()");
         assertEq(a[5], "string", "second string split()");
 
-        a = split(binary(" "), binary(str));
-        assertEq(a[2], binary("is"), "first binary split()");
-        assertEq(a[5], binary("string"), "second binary split()");
+        list<binary> bl = split(binary(" "), binary(str));
+        assertEq(bl[2], binary("is"), "first binary split()");
+        assertEq(bl[5], binary("string"), "second binary split()");
     }
 
     testComparison() {
