@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,10 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv131 MysqlSqlUtil v1.3.1
+    - fixed quoting of reserved words in column names in table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
     @subsection mysqlsqlutilv13 MysqlSqlUtil v1.3
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -153,7 +157,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
@@ -163,7 +167,7 @@ public namespace MysqlSqlUtil {
 
         #! returns a string that can be used to rename the index in the database; hwoever mysql does not support renaming indexes, so the index is dropped and recreated :(
         string getRenameSql(string table_name, string new_name) {
-            return sprintf("alter table %s drop index %s, add %sindex %s (%s)", table_name, name, unique ? "unique " : "", new_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            return sprintf("alter table %s drop index %s, add %sindex %s (%s)", table_name, name, unique ? "unique " : "", new_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
         #! returns a string that can be used to drop the index from the table
@@ -282,7 +286,14 @@ my string $str = $col.getRenameSql($t, "new_name");
             string sql = getCreateSql(t);
             int i = sql.find(" ");
             splice sql, 0, i + 1;
-            return sprintf("alter table %s change %s %s %s", t.getSqlName(), name, new_name, sql);
+            return sprintf("alter table %s change %s %s %s", t.getSqlName(), ddl_name, getDdlName(new_name), sql);
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        string getDdlName(string name) {
+            return MysqlDatabase::MysqlReservedWords{name.lwr()} ? ("`" + name + "`") : name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -370,11 +381,9 @@ my string $str = $col.getRenameSql($t, "new_name");
             delete index;
         }
 
-        abstract AbstractIterator keyIterator();
-
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
-            sql += sprintf("(%s)", (foldl $1 + ", " + $2, keyIterator()));
+            sql += sprintf("(%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
         }
     }
 
@@ -1178,6 +1187,17 @@ end";
 
             ds.select(sql);
         }
+
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            *string dbname = ds.getDBName();
+            if (!exists dbname) {
+                return GET_PHYSICAL_DB_SIZE_NOVAL;
+            }
+            return ds.selectRow("select sum(data_length + index_length) as val
+                                    from information_schema.tables
+                                    where table_schema = %v", dbname).val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
+        }
     }
 
     #! provides the MySQL-specific implementation of the AbstractTable interface
@@ -1467,6 +1487,7 @@ end";
                     defval = getSqlValue(defval);
                 }
                 bool ai = row.extra == "auto_increment";
+
                 if (row.numeric_precision || unsigned || ai) {
                     c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai, row.column_key == "PRI");
                 }
@@ -1770,6 +1791,13 @@ end";
 
                 case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
             }
+        }
+
+        #! returns the column name for use in SQL strings in DDL
+        /** MySQL/MariaDB etc require column names to be enclosed in backticks instead of double quotes
+        */
+        string getColumnDdlSqlName(string col) {
+            return MysqlDatabase::MysqlReservedWords{col.lwr()} ? ("`" + col + "`") : col;
         }
 
         #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word

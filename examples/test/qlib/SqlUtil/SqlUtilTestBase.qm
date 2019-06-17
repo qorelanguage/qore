@@ -103,6 +103,8 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Serialization", \serializationTest());
 
         addTestCase("wrong schema", \test2358SqlutilSchema());
+
+        addTestCase("get DB size #3385", \testGetPhysicalSize());
     }
 
     globalTearDown() {
@@ -1114,6 +1116,18 @@ public class SqlTestBase inherits QUnit::Test {
         }
     } # test2358SqlutilSchema
 
+    testGetPhysicalSize() {
+        if (!table) {
+            testSkip("no DB connection");
+        }
+
+        Database db(table.getDatasource());
+        auto ret = db.getPhysicalSize();
+        if (m_options.verbose) {
+            printf("    DB size: %n\n", ret);
+        }
+        assertEq(NT_INT, ret.typeCode(), "result must be int");
+    }
 }
 
 # a wrongly created schema (object descriptions) for test2358SqlutilSchema()

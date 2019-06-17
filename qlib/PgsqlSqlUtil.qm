@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv131 PgsqlSqlUtil v1.3.1
+    - fixed quoting of reserved words in column names in table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
     @subsection pgsqlsqlutilv13 PgsqlSqlUtil v1.3
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -310,7 +314,7 @@ public namespace PgsqlSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.keyIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -413,7 +417,7 @@ public namespace PgsqlSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-my list $l = $col.getAddColumnSql($t);
+list l = col.getAddColumnSql(t);
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
@@ -421,14 +425,14 @@ my list $l = $col.getAddColumnSql($t);
         list getAddColumnSql(AbstractTable t) {
             list l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
             if (comment)
-                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(comment));
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name, t.getSqlValue(comment));
             return l;
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code{.py}
-my list $l = $col.getModifySql($t, $newcol);
+list l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
@@ -449,12 +453,12 @@ my list $l = $col.getModifySql($t, $newcol);
                 #printf("ME: %s\nDB: %s\n", nts, getNativeTypeString());
                 # first drop any default value if it's changing
                 if (def_val !== c.def_val)
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), ddl_name);
 
-                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), name, nts);
+                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), ddl_name, nts);
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), ddl_name, c.def_val);
             }
             else if (def_val !== c.def_val) {
                 # issue #2527: ensure that mismatches are not due to server type info
@@ -468,24 +472,24 @@ my list $l = $col.getModifySql($t, $newcol);
                 if (!ok) {
                     #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                     if (exists c.def_val && c.def_val !== NULL)
-                        l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                        l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), ddl_name, c.def_val);
                     else
-                        l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                        l += sprintf("alter table %s alter %s drop default", t.getSqlName(), ddl_name);
                 }
             }
             if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
+                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), ddl_name, c.nullable ? "drop" : "set");
             }
 
             if (c.comment != comment)
-                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), name, t.getSqlValue(c.comment));
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name, t.getSqlValue(c.comment));
             return l;
         }
 
         #! returns a string that can be used to rename the column
         /** @par Example:
             @code{.py}
-my string $str = $col.getRenameSql($t, "new_name");
+string str = col.getRenameSql(t, "new_name");
             @endcode
 
             @param t the SqlUtil::AbstractTable object to modify
@@ -494,7 +498,14 @@ my string $str = $col.getRenameSql($t, "new_name");
             @return a string that can be used to rename the column
         */
         string getRenameSql(AbstractTable t, string new_name) {
-            return sprintf("alter table %s rename %s to %s", t.getSqlName(), name, new_name);
+            return sprintf("alter table %s rename %s to %s", t.getSqlName(), ddl_name, getDdlName(new_name));
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        string getDdlName(string name) {
+            return PgsqlDatabase::PgsqlReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -557,16 +568,13 @@ my string $str = $col.getRenameSql($t, "new_name");
             delete index;
         }
 
-        #! returns an iterator for keys iterating a list of string key names
-        abstract AbstractIterator keyIterator();
-
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
             else {
-                sql += sprintf(" (%s)", (foldl $1 + ", " + $2, keyIterator()));
+                sql += sprintf(" (%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
 
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
                 if (ts)
@@ -847,6 +855,99 @@ auto v = c.name;
                 "full"              : Type::Boolean,
                 "analyze"           : Type::Boolean,
                 );
+
+            #! hash (set) of reserved words
+            const PgsqlReservedWords = {
+                "all": True,
+                "analyse": True,
+                "analyze": True,
+                "and": True,
+                "any": True,
+                "as": True,
+                "asc": True,
+                "authorization": True,
+                "between": True,
+                "binary": True,
+                "both": True,
+                "case": True,
+                "cast": True,
+                "check": True,
+                "collate": True,
+                "column": True,
+                "constraint": True,
+                "create": True,
+                "cross": True,
+                "currentdate": True,
+                "currenttime": True,
+                "currenttimestamp": True,
+                "currentuser": True,
+                "default": True,
+                "deferrable": True,
+                "desc": True,
+                "distinct": True,
+                "do": True,
+                "else": True,
+                "end": True,
+                "except": True,
+                "false": True,
+                "for": True,
+                "foreign": True,
+                "freeze": True,
+                "from": True,
+                "full": True,
+                "grant": True,
+                "group": True,
+                "having": True,
+                "ilike": True,
+                "in": True,
+                "initially": True,
+                "inner": True,
+                "intersect": True,
+                "into": True,
+                "is": True,
+                "isnull": True,
+                "join": True,
+                "leading": True,
+                "left": True,
+                "like": True,
+                "limit": True,
+                "localtime": True,
+                "localtimestamp": True,
+                "natural": True,
+                "new": True,
+                "not": True,
+                "notnull": True,
+                "null": True,
+                "off": True,
+                "offset": True,
+                "old": True,
+                "on": True,
+                "only": True,
+                "or": True,
+                "order": True,
+                "outer": True,
+                "overlaps": True,
+                "placing": True,
+                "primary": True,
+                "references": True,
+                "right": True,
+                "select": True,
+                "sessionuser": True,
+                "similar": True,
+                "some": True,
+                "table": True,
+                "then": True,
+                "to": True,
+                "trailing": True,
+                "true": True,
+                "union": True,
+                "unique": True,
+                "user": True,
+                "using": True,
+                "verbose": True,
+                "when": True,
+                "where": True,
+            };
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
@@ -1252,6 +1353,15 @@ auto v = c.name;
             }
         }
 
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            *string dbname = ds.getDBName();
+            if (!exists dbname) {
+                return GET_PHYSICAL_DB_SIZE_NOVAL;
+            }
+            return ds.selectRow("select pg_database_size(%v) as val", dbname).val ?? GET_PHYSICAL_DB_SIZE_NOVAL;
+        }
+
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
         private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
@@ -1550,6 +1660,16 @@ auto v = c.name;
             return False;
         }
 
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
+        string getColumnSqlName(string col) {
+            return PgsqlDatabase::PgsqlReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list getColumnSqlNames(softlist cols) {
+            return map (PgsqlDatabase::PgsqlReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
+        }
+
         private PgsqlFunction addTriggerFunctionUnlocked(string tfname, string src, string trigger) {
             if (!triggerFunctions)
                 triggerFunctions = new Functions();
@@ -1841,7 +1961,7 @@ auto v = c.name;
                 getTriggersUnlocked();
             }
 
-            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
+            list l = map AbstractDatabase::doCallback(opt, sprintf("comment on column %s.%s is %s", name, $1.ddl_name, getSqlValueImpl($1.comment)), AbstractDatabase::AC_Add, "column comment", $1.name, name), columns.iterator(), $1.comment;
 
             if (!opt.omit_trigger_functions && !triggerFunctions.empty()) {
                 map l += AbstractDatabase::doCallback(opt, $1.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", $1.name, name), triggerFunctions.iterator();

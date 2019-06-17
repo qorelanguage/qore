@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.5";
+    version = "1.5.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,15 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_5_2 SqlUtil v1.5.2
+    - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality
+      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
+
+    @subsection sqlutilv1_5_1 SqlUtil v1.5.1
+    - fixed a bug that could lead to a deadlock when DML methods on the
+      @ref SqlUtil::AbstractTable "AbstractTable" class are used with a datasource pool with connection contention
+      (<a href="https://github.com/qorelanguage/qore/issues/3352">issue 3352</a>)
 
     @subsection sqlutilv1_5 SqlUtil v1.5
     - implemented the @ref SqlUtil::AbstractTable::getStatementNoExec() "AbstractTable::getStatementNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
@@ -5684,14 +5693,42 @@ AbstractColumn c = cols.id;
             }
             return True;
         }
+
+        #! returns an iterator for column SQL names
+        AbstractIterator getSqlColumnNameIterator() {
+            return new ListIterator((map $1.value.ddl_name ?? $1.key, h.pairIterator()));
+        }
+    }
+
+    #! the base class for named objects
+    public class AbstractDdlObject inherits Serializable {
+        public {
+            #! the name of the object
+            string name;
+
+            #! the name of the object for DDL (in case it's a reserved word)
+            string ddl_name;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! creates the object from the name
+        constructor(string name) {
+            self.name = name;
+            ddl_name = getDdlName(name);
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        abstract string getDdlName(string name);
     }
 
     #! the base class for column information
-    public class AbstractColumn inherits Serializable {
+    public class AbstractColumn inherits AbstractDdlObject {
         public {
-            #! the name of the column
-            string name;
-
             #! the native type name of the column
             string native_type;
 
@@ -5715,8 +5752,8 @@ AbstractColumn c = cols.id;
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
-            name = n;
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c)
+            : AbstractDdlObject(n) {
             native_type = nt;
             qore_type = qt;
             size = sz;
@@ -5735,7 +5772,7 @@ AbstractColumn c = cols.id;
 
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql(AbstractTable t) {
-            string sql = sprintf("%s %s", name, getNativeTypeString());
+            string sql = sprintf("%s %s", ddl_name, getNativeTypeString());
             if (exists def_val)
                 sql += " default " + def_val + "";
             if (!nullable)
@@ -5757,7 +5794,7 @@ list l = col.getAddColumnSql(t);
 
         #! returns a string that can be used to drop the column from the table
         string getDropSql(string table_name) {
-            return sprintf("alter table %s drop column %s", table_name, name);
+            return sprintf("alter table %s drop column %s", table_name, ddl_name);
         }
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -5786,7 +5823,7 @@ list l = col.getModifySql(t, newcol);
                 && (exists c.def_val && c.def_val != NULL)
                 && (!exists def_val || def_val == NULL)
                 && !c.nullable && nullable && !t.emptyData()) {
-                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), name, c.def_val, name);
+                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), ddl_name, c.def_val, ddl_name);
                 # insert in the front of the list
                 unshift l, sql;
             }
@@ -7229,6 +7266,9 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         private {
             #! native case option
             bool native_case = False;
+
+            # AbstractDatabase::getPhysicalSize() return in a case of no data
+            const GET_PHYSICAL_DB_SIZE_NOVAL = -1;
         }
 
         #! creates the object; private constructor
@@ -8238,6 +8278,20 @@ string sql = t.getSqlFromList(list);
             reclaimSpaceImpl(options);
         }
 
+        #! Get the current database physical size in bytes.
+        /** @return int with size or -1 in case there is no implementation
+                    available.
+
+            @note value returned from this method is subject of particular
+                  DBMS implementation. Value can be calculated eg. by a block
+                  size, extents usage etc. Please refer your DBMS documentation.
+
+            @since %SqlUtil 1.5.2
+         */
+        int getPhysicalSize() {
+            return getPhysicalSizeImpl();
+        }
+
         private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
         }
@@ -8388,6 +8442,7 @@ string sql = t.getSqlFromList(list);
         private abstract bool rebuildIndexImpl(string name, *hash options);
         private abstract computeStatisticsImpl(*hash options);
         private abstract reclaimSpaceImpl(*hash options);
+        private abstract int getPhysicalSizeImpl();
     }
 
     #! represents a database table; this class embeds an AbstractTable object that is created automatically in the constructor based on the database driver for the AbstractDatasource object providing the database connection
@@ -9197,10 +9252,15 @@ table.rename("new_name");
             @see getRenameSql()
         */
         rename(string new_name, *reference<string> sql, *Tables table_cache) {
-            l.lock();
-            on_exit l.unlock();
+            # issue #3352: do not execute runtime SQL while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
 
-            execSql(sql = getRenameSqlImpl(new_name));
+                sql = getRenameSqlImpl(new_name);
+            }
+
+            execSql(sql);
             doRenameIntern(new_name, table_cache);
         }
 
@@ -11344,10 +11404,13 @@ table.insert(row);
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
-            l.lock();
-            on_exit l.unlock();
+            # issue #3352: do not execute runtime DML while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
 
-            getColumnsUnlocked();
+                getColumnsUnlocked();
+            }
             sql = sprintf("insert into %s (", getSqlName());
             foreach string k in (row.keyIterator()) {
                 if (!columns.hasKey(k))
@@ -11355,7 +11418,7 @@ table.insert(row);
             }
             hash vh = getPlaceholdersAndValues(row);
 
-            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
+            sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), keys row));
             sql += ") values (";
             sql += (foldl $1 + "," + $2, vh.placeholders);
             sql += ")";
@@ -11372,24 +11435,23 @@ table.insert(row);
                     }
                 }
                 if (size) {
-                     hash rv;
-                     for (int i = 0; i < size; ++i) {
-                         # get arg list for row
-                         list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
-                         if (opt.returning) {
-                             if (!rv) {
-                                 hash h = doReturningImpl(opt, \sql, targs);
-                                 map rv{$1.key} += ($1.value,), h.pairIterator();
-                             }
-                             else {
-                                 hash h = execData(opt, sql, targs);
-                                 map rv{$1.key} += $1.value, h.pairIterator();
-                             }
-                         }
-                         else
-                             execData(opt, sql, targs);
-                     }
-                     return rv;
+                    hash rv;
+                    for (int i = 0; i < size; ++i) {
+                        # get arg list for row
+                        list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                        if (opt.returning) {
+                            if (!rv) {
+                                hash<auto> h = doReturningImpl(opt, \sql, targs);
+                                map rv{$1.key} += ($1.value,), h.pairIterator();
+                            } else {
+                                hash<auto> h = execData(opt, sql, targs);
+                                map rv{$1.key} += $1.value, h.pairIterator();
+                            }
+                        } else {
+                            execData(opt, sql, targs);
+                        }
+                    }
+                    return rv;
                 }
             }
 
@@ -11576,9 +11638,13 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
             list args;
             string ssql = source.getSelectSql(sh, \args);
 
-            l.lock();
-            on_exit l.unlock();
-            getColumnsUnlocked();
+            # issue #3352: do not execute runtime DML while holding the lock
+            {
+                l.lock();
+                on_exit l.unlock();
+
+                getColumnsUnlocked();
+            }
 
             sql = sprintf("insert into %s (", getSqlName());
 
@@ -12620,7 +12686,7 @@ string sql = table.getSelectSql(sh, \args);
 
         string getSelectSqlIntern(*hash qh, reference<list> args, *hash opt) {
             l.lock();
-            l.unlock();
+            on_exit l.unlock();
 
             return getSelectSqlUnlocked(qh, \args, opt);
         }
@@ -13396,7 +13462,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return updateIntern(set, cond, NOTHING, opt);
         }
 
-        private int updateIntern(hash set, *hash cond, *reference<string> sql, *hash opt) {
+        private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -13454,8 +13520,7 @@ int ucnt = table.update(("id": id), ("name": name));
                         throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
                     uh.arg = getColumnNameIntern(uh.arg, NOTHING, False);
                 }
-            }
-            else if (cmd.columnargs) {
+            } else if (cmd.columnargs) {
                 if (uh.arg.typeCode() != NT_LIST)
                     throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
                 foreach auto narg in (\uh.arg) {
@@ -13899,13 +13964,17 @@ string sql = table.getRenameSql("new_name");
             @endcode
 
             @param new_name the new name for the table
-            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for
+            common options; each driver can support additional driver-specific options
 
             @return an SQL string that could be used to rename the table in the database
 
             @throw OPTION-ERROR invalid or unsupported option passed
 
-            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this method also renames the object internally (see @ref sql_callback_executed for more information), additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables" argument, then the table cache is also updated with the name change in this case
+            @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True",
+            this method also renames the object internally (see @ref sql_callback_executed for more information),
+            additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables"
+            argument, then the table cache is also updated with the name change in this case.
 
             @see
             - rename()
@@ -13916,11 +13985,11 @@ string sql = table.getRenameSql("new_name");
 
             l.lock();
             on_exit l.unlock();
-
             on_success if (opt.sql_callback_executed)
                 doRenameIntern(new_name, opt.db_table_cache);
 
-            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), AbstractDatabase::AC_Rename, "table", name, NOTHING, new_name);
+            return AbstractDatabase::doCallback(opt, getRenameSqlImpl(new_name), AbstractDatabase::AC_Rename, "table",
+                name, NOTHING, new_name);
         }
 
         #! returns an SQL string that could be used to create the table and all known properties of the table
@@ -14455,8 +14524,7 @@ list l = table.getAlignSql(table2);
             if (constraintsLinkedToIndexesImpl()) {
                 if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                     primaryKey.rename(new_name);
-                }
-                else {
+                } else {
                     foreach AbstractConstraint uk in (constraints.iterator()) {
                         if (uk instanceof AbstractUniqueConstraint && uk.getName() == old_name) {
                             uk.rename(new_name);
@@ -15185,7 +15253,7 @@ any res = t.selectRows(sh, \sql);
             inDb = True;
         }
 
-        private getForeignConstraintsUnlocked(*hash opt) {
+        private getForeignConstraintsUnlocked(*hash<auto> opt) {
             if (foreignConstraints)
                 return;
             if (manual) {

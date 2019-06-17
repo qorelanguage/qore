@@ -870,7 +870,7 @@ public:
     }
 
     DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
-        // we cannot tell of the member has been initialized, so we return anyTypeInfo here for potential references
+        // we cannot tell if the member has been initialized, so we return anyTypeInfo here for potential references
         return QoreTypeInfo::isReference(typeInfo) ? anyTypeInfo : typeInfo;
         //return typeInfo;
     }
@@ -1398,6 +1398,8 @@ public:
     // returns -1 if a recursive reference is found, 0 if not
     DLLLOCAL int initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set);
 
+    DLLLOCAL void initializeMembers(QoreClass* cls);
+
     // returns -1 if a recursive reference is found, 0 if not
     DLLLOCAL int initialize(QoreClass* cls, bool& has_delete_blocker);
 
@@ -1476,6 +1478,8 @@ public:
     }
 
     DLLLOCAL int initializeHierarchy(QoreClass* thisclass, qcp_set_t& qcp_set);
+
+    DLLLOCAL void initializeMembers(QoreClass* thisclass);
 
     DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker);
 
@@ -1767,6 +1771,7 @@ public:
         gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
         committed : 1,                    // can only parse to a class once
         parse_resolve_hierarchy : 1,      // class hierarchy resolved
+        parse_resolve_class_members : 1,  // class members resolved
         parse_resolve_abstract : 1,       // abstract methods resolved
         has_transient_member : 1          // has at least one transient member
         ;
@@ -2007,6 +2012,7 @@ public:
     // returns -1 if a recursive inheritance list was found, 0 if not
     DLLLOCAL int initializeIntern();
     DLLLOCAL int initializeHierarchy(qcp_set_t& qcp_set);
+    DLLLOCAL void initializeMembers();
     DLLLOCAL void initialize();
 
     DLLLOCAL void parseInitPartial();
@@ -2068,6 +2074,10 @@ public:
         ClassAccess access;
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
         if (omi) {
+            // issue #3355: to handle out of order initialization properly, we need to ensure that the member is
+            // initialized before accessing its type.  We cannot rely on calling members.parseInit() here because
+            // we may have already been called by this call
+            const_cast<QoreMemberInfo*>(omi)->parseInit(mem, selfid);
             memberTypeInfo = omi->parseGetTypeInfo();
         }
 
@@ -2182,7 +2192,7 @@ public:
         return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
     }
 
-    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);
+    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const QoreMemberInfo& b_mi) const;
 
     DLLLOCAL int checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var = false) const;
 
@@ -2775,11 +2785,13 @@ public:
 
     DLLLOCAL void parseInit();
     DLLLOCAL void parseResolveHierarchy();
+    DLLLOCAL void parseResolveClassMembers();
     DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
     DLLLOCAL void parseRollback();
     DLLLOCAL int addUserMethod(const char* mname, MethodVariantBase* f, bool n_static);
+    DLLLOCAL void addLocalMembersForInit();
 
     DLLLOCAL QoreValue evalPseudoMethod(const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) const;
 

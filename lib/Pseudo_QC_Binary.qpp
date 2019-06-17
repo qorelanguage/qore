@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,103 @@ int <binary>::size() [flags=CONSTANT] {
    return b->size();
 }
 
+//! Retrieves the byte position of a sequence of bytes within a binary object
+/** @par Example:
+    @code{.py}
+int i = bin.find(bin2);
+if (i == -1) {
+    printf("could not find %y in %y\n", bin2, bin);
+}
+    @endcode
+
+    @param bin the byte sequence to find in the binary object
+    @param byte_pos the starting byte position for the search; if negative, then specifies an offset from the end of
+    the current binary object
+
+    @return the byte position of a sequence of bytes within a binary object, -1 is returned if the byte sequence is
+    not found or if \a byte_pos specifies a position beyond the end of the string
+
+    @note an empty \a bin argument always matches
+
+    @see
+    - <binary>::rfind(data, softint)
+
+    @since %Qore 0.9.1
+*/
+int <binary>::find(data bin, softint byte_pos = 0) [flags=RET_VALUE_ONLY] {
+    const char* bin_ptr;
+    size_t bin_len;
+    q_get_data(bin, bin_ptr, bin_len);
+
+    if (byte_pos < 0) {
+        byte_pos = b->size() + byte_pos;
+        if (byte_pos < 0) {
+            return -1;
+        }
+    } else if (byte_pos >= b->size()) {
+        return -1;
+    }
+
+    size_t len = b->size() - byte_pos;
+    if (!len) {
+        return bin_len ? -1 : 0;
+    } else if (len < 0) {
+        return -1;
+    }
+
+    void* ptr = q_memmem(static_cast<const char*>(b->getPtr()) + byte_pos, len, bin_ptr, bin_len);
+    if (!ptr) {
+        return -1;
+    }
+    return static_cast<int64>(reinterpret_cast<const char*>(ptr) - reinterpret_cast<const char*>(b->getPtr()));
+}
+
+//! Retrieves the byte position of a sequence of bytes within a binary object searching from the end of the binary object
+/** @par Example:
+    @code{.py}
+int i = bin.rfind(bin2);
+if (i == -1) {
+    printf("could not find %y in %y\n", bin2, bin);
+}
+    @endcode
+
+    @param bin the byte sequence to find in the binary object
+    @param byte_pos the starting byte position for the search; if negative, then specifies an offset from the end of
+    the current binary object; if \a byte_pos specifies a position beyond the end of the string, then the search
+    starts from the end of the string
+
+    @return the byte position of a sequence of bytes within a binary object, -1 is returned if the byte sequence is
+    not found
+
+    @note an empty \a bin argument always matches
+
+    @see
+    - <binary>::find(data, softint)
+
+    @since %Qore 0.9.1
+*/
+int <binary>::rfind(data bin, softint byte_pos = -1) [flags=RET_VALUE_ONLY] {
+    const char* bin_ptr;
+    size_t bin_len;
+    q_get_data(bin, bin_ptr, bin_len);
+
+    if (byte_pos < 0) {
+        byte_pos = b->size() + byte_pos;
+        if (byte_pos < 0) {
+            return -1;
+        }
+    } else if (byte_pos >= b->size()) {
+        byte_pos = b->size() - 1;
+    }
+
+    assert(byte_pos < b->size());
+    void* ptr = q_memrmem(b->getPtr(), byte_pos + 1, bin_ptr, bin_len);
+    if (!ptr) {
+        return -1;
+    }
+    return static_cast<int64>(reinterpret_cast<const char*>(ptr) - reinterpret_cast<const char*>(b->getPtr()));
+}
+
 //! Returns @ref True if the binary object is empty (size = 0), @ref False if not
 /** The opposite of <binary>::val()
 
@@ -108,15 +205,19 @@ bool <binary>::val() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list l = bin.split(sep);
+list<binary> l = bin.split(sep);
     @endcode
 
-    @note equivalent to split(binary, binary)
+    @note equivalent to split(data, binary)
 
     @since %Qore 0.8.5
  */
-list <binary>::split(binary sep) [flags=CONSTANT] {
-   return split_intern((const char*)sep->getPtr(), sep->size(), (const char*)b->getPtr(), b->size(), 0);
+list<binary> <binary>::split(data sep) [flags=CONSTANT] {
+    const char* bin_ptr;
+    size_t bin_len;
+    q_get_data(sep, bin_ptr, bin_len);
+
+    return split_intern(bin_ptr, bin_len, (const char*)b->getPtr(), b->size(), nullptr);
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the binary data as a hex string

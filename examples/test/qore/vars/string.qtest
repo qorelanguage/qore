@@ -16,6 +16,7 @@
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
         addTestCase("Basic functions test", \testBasics());
+        addTestCase("Comparison test", \testComparison());
         addTestCase("Encoding test", \testEncoding());
         addTestCase("UTF-16 test", \testUtf16());
         addTestCase("ASCII x UTF-8 string equality tests", \testASCIIUTF8Equality());
@@ -59,6 +60,15 @@ class StringTest inherits QUnit::Test {
         a = split(binary(" "), binary(str));
         assertEq(a[2], binary("is"), "first binary split()");
         assertEq(a[5], binary("string"), "second binary split()");
+    }
+
+    testComparison() {
+        assertTrue("a" < "b");
+        assertTrue("a" <= "b");
+        assertTrue("b" > "a");
+        assertTrue("b" >= "a");
+        assertTrue("ab" > "a");
+        assertTrue("a" < "ab");
     }
 
     testEncoding() {

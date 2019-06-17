@@ -59,7 +59,8 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
 	qlib/TextWrap.qm \
-	qlib/WebUtil.qm
+	qlib/WebUtil.qm \
+	qlib/ZeyosRestClient.qm
 
 DOX_SPLIT_MODULES = \
     qlib/BulkSqlUtil \

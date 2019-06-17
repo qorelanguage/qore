@@ -703,6 +703,12 @@ void QoreNamespaceList::parseResolveHierarchy() {
     }
 }
 
+void QoreNamespaceList::parseResolveClassMembers() {
+    for (auto& i : nsmap) {
+        i.second->priv->parseResolveClassMembers ();
+    }
+}
+
 void QoreNamespaceList::parseResolveAbstract() {
     for (auto& i : nsmap) {
         i.second->priv->parseResolveAbstract();
@@ -2099,6 +2105,8 @@ void qore_root_ns_private::parseInit() {
         }
         deferred_new_check_vec.clear();
     }
+
+    parseResolveClassMembers();
 }
 
 bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
@@ -2253,6 +2261,11 @@ void qore_ns_private::parseInit() {
 void qore_ns_private::parseResolveHierarchy() {
     classList.parseResolveHierarchy();
     nsl.parseResolveHierarchy();
+}
+
+void qore_ns_private::parseResolveClassMembers() {
+    classList.parseResolveClassMembers();
+    nsl.parseResolveClassMembers();
 }
 
 void qore_ns_private::parseResolveAbstract() {

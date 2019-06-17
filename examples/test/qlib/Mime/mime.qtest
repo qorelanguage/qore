@@ -54,6 +54,7 @@ aωb\r
     }
 
     constructor() : Test("MimeTest", "1.0") {
+        addTestCase("issue 2936", \issue2936());
         addTestCase("mime type from ext", \mimeTypeTest());
         addTestCase("Printable test", \printableTest());
         addTestCase("Base64 test", \base64Test());
@@ -65,6 +66,20 @@ aωb\r
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2936() {
+        # get random binary data
+        list<binary> bl = map get_random_bytes(128), 0..2;
+
+        MultiPartFormDataMessage msg();
+        map msg.addPart($1, "bin-" + $#, "binary-file-" + $# + ".bin", MimeTypeOctetStream), bl;
+
+        string boundary = msg.getBoundary();
+        hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, msg.serializeBody(), True);
+
+        map assertEq(MimeTypeOctetStream, $1.hdr."content-type"), h.part;
+        map assertEq(bl[$#], $1.body), h.part;
     }
 
     mimeTypeTest() {

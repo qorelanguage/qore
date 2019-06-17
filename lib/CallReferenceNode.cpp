@@ -195,7 +195,8 @@ QoreValue ParseObjectMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionS
 
     QoreObject* o = lv->getType() == NT_OBJECT ? lv->get<QoreObject>() : nullptr;
     if (!o) {
-        xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", QoreValue(), "expression does not evaluate to an object");
+        xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", QoreValue(),
+                              "expression does not evaluate to an object; got type '%s' instead", lv->getTypeName());
         return QoreValue();
     }
 

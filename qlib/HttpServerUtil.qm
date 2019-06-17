@@ -467,12 +467,15 @@ public class HttpServer::AbstractAuthenticator {
     authenticateByIP(string ip, reference<string> user) {
     }
 
-    private hash getAuthHeader() {
+    #! returns a hash with one item - \c WWW-Authenticate header set to correct realm
+    hash getAuthHeader() {
         return ("WWW-Authenticate": sprintf("Basic realm=%y", getRealm()));
     }
 
     #! returns a 401 repsonse with the given string argument as the message body
-    private hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server") {
+    /** @param msg message body to return
+    */
+    hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server") {
         return new hash<HttpResponseInfo>((
             "code": 401,
             "body": msg,

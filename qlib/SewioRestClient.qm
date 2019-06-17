@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SewioRestClient.qm Qore user module for calling Sewio.net REST services
 
-/*  SewioRestClient.qm Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
+/*  SewioRestClient.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -95,7 +95,11 @@ printf("%N\n", ans.body);
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
-    @subsection Sewiorestclientv1_0 SewioRestClient v1.0
+    @subsection sewiorestclientv1_0_1 SewioRestClient v1.0.1
+   - fixed a bug handling default options including timeouts in @ref SewioRestClient::SewioRestConnection "SewioRestConnection"
+      (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
+
+    @subsection sewiorestclientv1_0 SewioRestClient v1.0
     - the initial version of the %SewioRestClient module
 */
 
@@ -233,7 +237,7 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
         private:internal constructorInit() {
             if (!opts.apikey.val())
                 throw "SEWIORESTCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
-            real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+            real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
         }
 
         #! returns a @ref SewioRestClient::SewioRestClient object

@@ -8,7 +8,7 @@ option(ICONV_TRANSLIT
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
-set(VERSION_SUB 1)
+set(VERSION_SUB 3)
 
 STRING(LENGTH ${VERSION_SUB} SUB_LEN)
 if (${SUB_LEN} EQUAL 1)
@@ -838,6 +838,7 @@ qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidat
 # base 7 modules
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/ZeyosRestClient.qm" "RestClient")
 
 # print info
 message(STATUS "")

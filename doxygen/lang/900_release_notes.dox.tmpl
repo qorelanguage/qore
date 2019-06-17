@@ -2,6 +2,68 @@
 
     @tableofcontents
 
+    @section qore_093 Qore 0.9.3
+
+    @par Release Summary
+
+    Bugfix release; see details below
+
+    @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - fixed inconsistent behavior of references with pseudo-methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3417">issue 3417</a>)
+    - fixed bugs in the return types of @ref Qore::regex_extract() and <string>::regexExtract()
+      (<a href="https://github.com/qorelanguage/qore/issues/3416">issue 3416</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a>: added debug logging for REST schema
+      validation errors
+      (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
+    - fixed documentation links between dependent modules
+      (<a href="https://github.com/qorelanguage/qore/issues/3406">issue 3406</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: fixed quoting of reserved words in column names in
+      table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module: fixed certificate and key errors for
+      HTTPS listeners to generate user-friendly exceptions
+      (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
+    - fixed a bug where a crash could result when deserializing invalid integer data
+      (<a href="https://github.com/qorelanguage/qore/issues/3395">issue 3395</a>)
+    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>: fixed the timeout value for upgrading the SSL
+      connection in \c Pop3Client
+      (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
+    - fixed a parse type error in initialization using return value of abstract method
+      (<a href="https://github.com/qorelanguage/qore/issues/3387">issue 3387</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: implemented the
+      \c AbstractDatabase::getPhysicalSize() method
+      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>: fixed the timeout value for upgrading to SSL
+      connection in \c SmtpClient
+      (<a href="https://github.com/qorelanguage/qore/issues/3381">issue 3381</a>)
+    - fixed a bug where sort functions were incorrectly sorting strings with different lengths
+      (<a href="https://github.com/qorelanguage/qore/issues/3378">issue 3378</a>)
+    - fixed a member initialization bug with imported classes
+      (<a href="https://github.com/qorelanguage/qore/issues/3368">issue 3368</a>)
+    - <a href="../../modules/Mime/html/index.html">Mime</a>: fixed bugs parsing binary data in multipart messages
+      (<a href="https://github.com/qorelanguage/qore/issues/2936">issue 2936</a>)
+
+    @section qore_092 Qore 0.9.2
+
+    @par Release Summary
+
+    Bugfix release; see details below
+
+    @subsection qore_092_new_features New Features in Qore
+    - \c qdbg-remote supports an option to provide HTTP headers for WebSocket connections
+      (<a href="https://github.com/qorelanguage/qore/issues/3350">issue 3350</a>)
+
+    @subsection qore_092_bug_fixes Bug Fixes in Qore
+    - implemented support for deserializing data from a binary string
+      (<a href="https://github.com/qorelanguage/qore/issues/3357">issue 3357</a>)
+    - fixed a bug with class initialization that could sometimes result in members of parent classes not being
+      initialized when objects were constructed
+      (<a href="https://github.com/qorelanguage/qore/issues/3355">issue 3355</a>)
+    - fixed a bug in the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module that could lead to a
+      deadlock when DML methods are used with a datasource pool with connection contention
+      (<a href="https://github.com/qorelanguage/qore/issues/3352">issue 3352</a>)
+
     @section qore_091 Qore 0.9.1
 
     @par Release Summary
@@ -13,19 +75,32 @@
       from v1.0
     - added the @ref Qore::ListSerializationInfo "ListSerializationInfo" hashdecl to support serializing and
       deserializing lists with complex type information
+    - new user modules:
+      - <a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a>
+        - added this new module providing APIs for communicating with <a href="http://www.zeyos.com">Zeyos.com</a>'s REST API
 
     @subsection qore_091_bug_fixes Bug Fixes in Qore
+    - fixed a bug where the Salesforce rest connection returns 'rest' type instead of 'sfrests'
+      (<a href="https://github.com/qorelanguage/qore/issues/3346">issue 3346</a>)
     - fixed a bug where an invalid parse exception would be raised with an assignment of a global variable to another
       global variable with the same name in a different namespace
-      (<a href="https://github.com/qorelanguage/qore/issues/3318">issue 3318</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3337">issue 3337</a>)
     - implemented support for serializing and deserializing complex type information in lists and hashes
       (<a href="https://github.com/qorelanguage/qore/issues/3318">issue 3318</a>)
-    - fixed a memory leak in copy onstructor execution in complex class hierarchies
+    - fixed bugs handling unassigned lvalues with complex type declarations with the @ref push "push" and
+      @ref unshift "unshift" operators
+      (<a href="https://github.com/qorelanguage/qore/issues/3317">issue 3317</a>)
+    - fixed a memory leak in copy constructor execution in complex class hierarchies
       (<a href="https://github.com/qorelanguage/qore/issues/3312">issue 3312</a>)
     - implemented support for automatically initializing the \c %Qore library from Java when dynamically loaded from
       the JVM; additionally in this case the <a href="https://github.com/qorelanguage/module-jni">jni</a> module is
       loaded automatically immediately after the \c %Qore library is initialized
       (<a href="https://github.com/qorelanguage/qore/issues/3310">issue 3310</a>)
+    - implemented support for performing binary searches in binary data by adding the following new pseudo-methods:
+      - <binary>::find(data, softint)
+      - <binary>::rfind(data, softint)
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3300">issue 3300</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module fixes:
       - fixed a bug in \c get_exception_string() with Java exceptions
         (<a href="https://github.com/qorelanguage/qore/issues/3304">issue 3304</a>)
@@ -205,7 +280,7 @@
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
       - <a href="../../modules/Mime/html/index.html">Mime</a> module changes:
         - allow the default type for unknown extensions to be overridden in
-          @ref Mime::get_mime_type_from_ext() "get_mime_type_from_ext()"
+          \c get_mime_type_from_ext()
           (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
       - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -217,7 +292,7 @@
         - Added support for serializing and deserializing \c AbstractTable objects
           (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/QUnit/html/index.html">QUnit</a> module changes:
-        - updated @ref QUnit::Test::testSkip() "Test::testSkip()" to use the reason argument a format string with
+        - updated \c Test::testSkip() to use the reason argument a format string with
           @ref Qore::vsprintf() "vsprintf()"
           (<a href="https://github.com/qorelanguage/qore/issues/3172">issue 3172</a>)
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module changes:
@@ -250,11 +325,11 @@
         - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
           empty hashes
           (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
-        - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+        - updated \c get_exception_string() to show the \c lang value
           (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
       - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
-        - added stopping connection from server side via @ref WebSocketHandler::WebSocketConnection::stop(), @ref WebSocketHandler::WebSocketHandler::stopOne()
-          and WebSocketClient handling of WSCC_GoingAway event
+        - added stopping connection from server side via \c WebSocketConnection::stop(), \c WebSocketHandler::stopOne()
+          and \c WebSocketClient handling of the \c WSCC_GoingAway event
       - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module changes:
         - updated to allow more control over file serving
           (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
@@ -271,7 +346,7 @@
       - Command line utils display source line code when interrupted
     - Runtime thread stack traces are available in all builds and the
       @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE "HAVE_RUNTIME_THREAD_STACK_TRACE" constant is always
-      @ref True "True".  Furthermore, the %Qore library has been extended to support stack tracing when embedding
+      \c True.  Furthermore, the %Qore library has been extended to support stack tracing when embedding
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
@@ -337,6 +412,8 @@
     Bugfix release; see details below
 
     @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling start and end arguments in @ref Qore::replace() "replace()" that would cause a crash
+      (<a href="https://github.com/qorelanguage/qore/issues/3345">issue 3345</a>)
     - fixed a bug handling invalid DB driver options in datasource creation that could lead to a crash with some
       drivers
       (<a href="https://github.com/qorelanguage/qore/issues/3243">issue 3243</a>)

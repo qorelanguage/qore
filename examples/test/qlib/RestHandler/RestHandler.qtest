@@ -454,8 +454,8 @@ public class RestHandlerTest inherits QUnit::Test {
         hash<ExceptionInfo> ex;
         try {
             hc.send(<01ff008001020304>, "PUT", "test?action=echo", ("Content-Type": MimeTypeFormUrlEncoded + ";charset=UTF-8"), False, \info);
-        }
-        catch (hash<ExceptionInfo> ex1) {
+        } catch (hash<ExceptionInfo> ex1) {
+            #printf("%s", get_exception_string(ex1));
             ex = ex1;
         }
         assertRegex("invalid.*encoding", ex.arg.body);
