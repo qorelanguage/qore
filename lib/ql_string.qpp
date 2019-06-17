@@ -1097,7 +1097,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-*list<8string> rv = regex_extract("ns:element", "(\\w+):(\\w+)");
+*list<*string> rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
