@@ -183,6 +183,10 @@ public namespace VscDebugAdapter {
             int m_currentPgmId;
 
         }
+        public {
+            #! use program name unless not specified in launch/attach command
+            *string defaultProgram;
+        }
 
         constructor() {
             showFullException = True;
@@ -513,6 +517,9 @@ public namespace VscDebugAdapter {
 
         private:internal updateProgramCache(*hash response) {
             foreach string pgmId in (keys response.result) {
+                if (!response.result{pgmId}.scriptName.val()) {
+                    continue;
+                }
                 hash e;
                 if (exists m_programState{pgmId}.info) {
                     e.reason = "changed";
@@ -690,6 +697,9 @@ public namespace VscDebugAdapter {
         }
 
         public nothing vsc_launch(hash args) {
+            if (!exists args.program) {
+                args.program = defaultProgram;
+            }
             hash p = doCommand((
                 "cmd": "program//create",
                 "filename": args.program,
@@ -709,6 +719,9 @@ public namespace VscDebugAdapter {
 
         public nothing vsc_attach(hash args) {
             string pgmId;
+            if (!exists args.program) {
+                args.program = defaultProgram;
+            }
             if (args.program =~ /^[0-9]+$/) {
                 pgmId = args.program;
             } else {

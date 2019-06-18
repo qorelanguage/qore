@@ -217,6 +217,7 @@ class DebugWrapper {
             #"exec_class": "x,exec-class:s",
             "logfile": "l,logger-filename=s",
             "append_to_log": "A,append-to-log",
+            "program": "g,program=s",
             # for attach
             'url': 'a,attach=s',
             'header': 'H,header=s@',
@@ -302,6 +303,7 @@ class DebugWrapper {
             }
             vda.showFullException = exists opt.full_exception;
             vda.logger = logger;
+            vda.defaultProgram = opt.program;
             logger.debugAdapter = vda;
 
             if (vda instanceof VscDebugAdapterRemote) {
@@ -357,8 +359,9 @@ class DebugWrapper {
             "  -v,--verbose                 increase verbosity\n"
             "  -f,--full-exception          show full exception info\n"
             "\n"
-            "  -l,--logger-filename name    logger filename, default: %s\n"
+            "  -l,--logger-filename=<name>  logger filename, default: %s\n"
             "  -A,--append-to-log           append to logfile\n"
+            "  -g,--program=<pgm>           use program name unless specified in protocol\n"
             "\n"
             "  -X,-execute=<command>        execute command, print result as JSON and exit\n"
             "Commands:\n"
