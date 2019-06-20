@@ -1396,7 +1396,7 @@ public namespace RestHandler {
 namespace Priv {
     # dummy HttpListenerInterface class
     class DummyListenerInterface inherits HttpListenerInterface {
-        addUserThreadContext(hash uctx) {
+        addUserThreadContext(hash<auto> uctx) {
         }
 
         auto removeUserThreadContext(*string k) {

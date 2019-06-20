@@ -2031,7 +2031,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         return rv;
     }
 
-    addUserThreadContext(hash uctx) {
+    addUserThreadContext(hash<auto> uctx) {
         save_thread_data("uctx", get_thread_data("uctx") + uctx);
     }
 

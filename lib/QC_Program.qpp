@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -703,6 +703,12 @@ const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
     @since %Qore 0.9
 */
 const PO_BROKEN_SPRINTF = PO_BROKEN_SPRINTF;
+
+//! Enables broken \c \b abstract method matching where types do not need to match exactly in an abstract method hierarchy
+/**
+    @since %Qore 0.9.3
+*/
+const PO_BROKEN_ABSTRACT = PO_BROKEN_ABSTRACT;
 //@}
 
 /** @defgroup warning_constants Warning Constants

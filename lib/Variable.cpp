@@ -4,7 +4,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -574,7 +574,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
         n.v.n = nullptr;
     }
 
-    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
+    //printd(0, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
     if (check_types) {
         // check type for assignment
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);

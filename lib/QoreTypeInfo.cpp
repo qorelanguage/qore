@@ -581,6 +581,10 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
         }
         case QTS_HASHDECL: {
             switch (t.typespec) {
+                /** NOTE: QTS_COMPLEXHASH with auto (hash<auto>) is not allowed on the RHS, even with
+                    may_not_match = true, because ATM it would also match with any immediate hash without
+                    a specific value type
+                */
                 case QTS_HASHDECL:
                     return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
                 case QTS_TYPE:
@@ -600,12 +604,22 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             //printd(5, "QoreTypeSpec::match() %d: t.typespec: %d '%s'\n", typespec, (int)t.typespec, QoreTypeInfo::getName(u.ti));
             switch (t.typespec) {
                 case QTS_COMPLEXHASH:
-                    return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
+                    //printd(5, "QoreTypeSpec::match() t.typespec: complexlist <- %d '%s' <- '%s' rc: %d)\n", (int)t.typespec, QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti), match_type(u.ti, t.u.ti, may_not_match, may_need_filter));
+                    return u.ti == autoTypeInfo
+                        ? QTI_NEAR
+                        : match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYHASH:
                     return QTI_NEAR;
+                case QTS_HASHDECL:
+                    return u.ti == autoTypeInfo
+                        ? QTI_NEAR
+                        : QTI_NOT_EQUAL;
                 case QTS_TYPE:
+                    if (u.ti == autoTypeInfo) {
+                        return QTI_NEAR;
+                    }
                     // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
-                    if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                    if (t.getType() == NT_ALL) {
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -623,12 +637,17 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                 case QTS_COMPLEXSOFTLIST:
                 case QTS_COMPLEXLIST:
                     //printd(5, "QoreTypeSpec::match() t.typespec: complexlist <- %d '%s' <- '%s' rc: %d)\n", (int)t.typespec, QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti), match_type(u.ti, t.u.ti, may_not_match, may_need_filter));
-                    return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
+                    return u.ti == autoTypeInfo
+                        ? QTI_NEAR
+                        : match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYLIST:
                     return QTI_NEAR;
                 case QTS_TYPE:
+                    if (u.ti == autoTypeInfo) {
+                        return QTI_NEAR;
+                    }
                     // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
-                    if (t.getType() == NT_ALL || t.getType() == NT_LIST) {
+                    if (t.getType() == NT_ALL) {
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -705,6 +724,13 @@ static bool type_spec_accept_object(const QoreClass& type_class, const QoreClass
     return false;
 }
 
+bool QoreTypeSpec::isAutoType() const {
+    if (typespec == QTS_COMPLEXHASH || typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST) {
+        return QoreTypeInfo::isAutoType(u.ti);
+    }
+    return false;
+}
+
 bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map,
     const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
     LValueHelper* lvhelper) const {
@@ -732,6 +758,10 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
         }
         case QTS_COMPLEXHASH: {
             if (n.getType() == NT_HASH) {
+                if (QoreTypeInfo::isAutoType(&typeInfo)) {
+                    ok = true;
+                    break;
+                }
                 QoreHashNode* h = n.get<QoreHashNode>();
                 const QoreTypeInfo* ti = h->getValueTypeInfo();
                 if (QoreTypeInfo::equal(u.ti, ti)) {
@@ -774,6 +804,10 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
         case QTS_COMPLEXSOFTLIST:
         case QTS_COMPLEXLIST: {
             if (n.getType() == NT_LIST) {
+                if (QoreTypeInfo::isAutoType(&typeInfo)) {
+                    ok = true;
+                    break;
+                }
                 QoreListNode* l = n.get<QoreListNode>();
                 const QoreTypeInfo* ti = l->getValueTypeInfo();
                 if (QoreTypeInfo::equal(u.ti, ti)) {
@@ -941,6 +975,9 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
 
         case QTS_COMPLEXHASH:
             if (ot == NT_HASH) {
+                if (u.ti == autoTypeInfo) {
+                    return QTI_NEAR;
+                }
                 const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
                 if (ti && QoreTypeInfo::equal(u.ti, ti))
                     return exact ? QTI_IDENT : QTI_AMBIGUOUS;
@@ -950,6 +987,9 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
         case QTS_COMPLEXLIST:
         case QTS_COMPLEXSOFTLIST:
             if (ot == NT_LIST) {
+                if (u.ti == autoTypeInfo) {
+                    return QTI_NEAR;
+                }
                 const QoreTypeInfo* ti = n.get<const QoreListNode>()->getValueTypeInfo();
                 if (ti && QoreTypeInfo::equal(u.ti, ti))
                     return exact ? QTI_IDENT : QTI_AMBIGUOUS;

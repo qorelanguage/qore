@@ -11,8 +11,23 @@
 
 %exec-class ReferenceTest
 
+class A {
+    private {
+        reference<hash> x;
+    }
+
+    constructor(reference<hash> xx) {
+        x = \xx;
+    }
+
+    bool test(string str) {
+        return x.hasKey(str);
+    }
+}
+
 class ReferenceTest inherits QUnit::Test {
     constructor() : Test("Reference Test", "1.0") {
+        addTestCase("issue 3417", \issue3417());
         addTestCase("issue 2891", \issue2891());
         addTestCase("Complex reference test", \testComplexReferences());
         addTestCase("Reference test", \testReference());
@@ -20,6 +35,12 @@ class ReferenceTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3417() {
+        hash<auto> h = {};
+        A a(\h);
+        assertEq(False, a.test("str"));
     }
 
     issue2891() {

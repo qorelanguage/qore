@@ -106,7 +106,7 @@ class SwaggerRestHandler inherits RestHandler {
 }
 
 class DummyListenerInterface inherits HttpListenerInterface {
-    addUserThreadContext(hash uctx) {}
+    addUserThreadContext(hash<auto> uctx) {}
     auto removeUserThreadContext(*string k) {}
     log(string fmt) {}
     logError(string fmt) {}
