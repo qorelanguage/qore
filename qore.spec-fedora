@@ -172,6 +172,7 @@ make check
 %{_bindir}/qdbg
 %{_bindir}/qdbg-server
 %{_bindir}/qdbg-remote
+%{_bindir}/qdbg-vsc-adapter
 %{_mandir}/man1/qore.1.*
 
 %changelog
