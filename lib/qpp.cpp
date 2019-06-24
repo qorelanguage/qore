@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1170,7 +1170,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
 
             v = "QoreHashNode* hash_";
             v += cname;
-            v += " = new QoreHashNode;\n";
+            v += " = new QoreHashNode(autoTypeInfo);\n";
 
             std::string hv(qv, 1, qv.size() - 2);
 
