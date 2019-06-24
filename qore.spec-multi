@@ -252,6 +252,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/qdbg
 /usr/bin/qdbg-server
 /usr/bin/qdbg-remote
+/usr/bin/qdbg-vsc-adapter
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*

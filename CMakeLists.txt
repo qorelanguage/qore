@@ -210,6 +210,7 @@ set(QORE_BIN_FILES
 	bin/qdbg
 	bin/qdbg-server
 	bin/qdbg-remote
+	bin/qdbg-vsc-adapter
 )
 
 set(QORE_DOX_TMPL_SRC
@@ -831,6 +832,7 @@ qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServe
 qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
 qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;HttpServer;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
+qore_user_module("qlib/VscDebugAdapter.qm" "DebugCmdLine;DebugUtil;Util")
 
 # base 6 modules
 qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
