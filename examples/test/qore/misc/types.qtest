@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3429", \issue3429());
         addTestCase("issue 3404", \issue3404());
         addTestCase("issue 3278", \issue3278());
         addTestCase("issue 3210", \issue3210());
@@ -55,6 +56,16 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue3429() {
+        hash<auto> h = {
+            "a": <StatInfo>{"size": 1},
+            "b": {"a": "string"},
+            "c": {"a": 1},
+        };
+
+        assertEq("hash<StatInfo>", h.a.fullType());
     }
 
     issue3404() {
@@ -266,9 +277,8 @@ class TypeTest inherits QUnit::Test {
                 "b": {"a": "1"},
             };
             # ensure consistent type folding
-            assertEq("hash<string, hash>", h.fullType());
-            assertEq(Type::Hash, h.a.fullType());
-            h.a.b = "1";
+            assertEq("hash<string, hash<auto>>", h.fullType());
+            assertEq("hash<string, int>", h.a.fullType());
         }
         {
             auto h = {

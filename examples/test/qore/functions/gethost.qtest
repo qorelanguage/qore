@@ -37,9 +37,9 @@ public class GetHostTest inherits QUnit::Test {
     }
 
     gethostbyaddrTest() {
-        assertTrue(gethostbyaddr("8.8.8.8") =~ /google.com/);
+        assertTrue(gethostbyaddr("8.8.8.8") =~ /google/);
         *hash result = gethostbyaddr_long("8.8.8.8");
-        assertTrue(result.name =~ /google.com/);
+        assertTrue(result.name =~ /google/);
         assertTrue(result.hasKey("aliases"));
         assertEq("ipv4", result.typename);
         assertEq(2, result.type);
