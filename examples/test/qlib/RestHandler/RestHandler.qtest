@@ -84,9 +84,31 @@ class B2893RestClass inherits AbstractRestClass {
     }
 }
 
+class B3426RestClass inherits AbstractRestClass {
+    string name() {
+        return "b3426";
+    }
+
+    hash get(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, "plain", {"Content-Type": "text/plain"});
+    }
+}
+
+class B3427RestClass inherits AbstractRestClass {
+    string name() {
+        return "b3427";
+    }
+
+    hash get(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, "openmetrics", {"Content-Type": "application/openmetrics-text"});
+    }
+}
+
 class MyRestHandler inherits RestHandler {
     constructor() {
         addClass(new TestRestClass());
+        addClass(new B3426RestClass());
+        addClass(new B3427RestClass());
     }
 
     hash putEcho(hash cx, *hash ah) {
@@ -274,6 +296,8 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("issue 2398", \issue2398());
         addTestCase("issue 2543", \issue2543());
         addTestCase("issue 2893", \issue2893());
+        addTestCase("issue 3426", \issue3426());
+        addTestCase("issue 3427", \issue3427());
         addTestCase("Missing subclass test", \missingSubclassTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -520,6 +544,41 @@ public class RestHandlerTest inherits QUnit::Test {
             assertEq("application/json", info."body-content-type");
             assertEq({"a": "abc123"}, h.body);
         }
+    }
+
+    issue3426() {
+        hash info;
+        on_error printf("info: %N\n", info);
+
+        HTTPClient hc(("url": "http://localhost:" + port));
+
+        string resp = hc.get("/b3426", {"accept": "application/openmetrics-text; version=0.0.1,text/plain;version=0.0.4;q=0.5"}, \info);
+        assertEq(200, info."response-headers".status_code);
+        assertEq("text/plain", info."body-content-type");
+        assertEq("plain", resp);
+    }
+
+    issue3427() {
+        hash info;
+        on_error printf("info: %N\n", info);
+
+        HTTPClient hc(("url": "http://localhost:" + port));
+
+        string resp;
+        resp = hc.get("/b3427", {"accept": "application/openmetrics-text; version=0.0.1,text/plain;version=0.0.4;q=0.5"}, \info);
+        assertEq(200, info."response-headers".status_code);
+        assertEq("application/openmetrics-text", info."body-content-type");
+        assertEq("openmetrics", resp);
+
+        resp = hc.get("/b3427", {"accept": "application/*; version=0.0.1,text/plain;version=0.0.4;q=0.5"}, \info);
+        assertEq(200, info."response-headers".status_code);
+        assertEq("application/openmetrics-text", info."body-content-type");
+        assertEq("openmetrics", resp);
+
+        resp = hc.get("/b3427", {"accept": "*/*; version=0.0.1,text/plain;version=0.0.4;q=0.5"}, \info);
+        assertEq(200, info."response-headers".status_code);
+        assertEq("application/openmetrics-text", info."body-content-type");
+        assertEq("openmetrics", resp);
     }
 
     missingSubclassTest() {
