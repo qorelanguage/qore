@@ -716,7 +716,18 @@ public:
         // see if we have a complex type
         const QoreTypeInfo* bti = ctype->return_vec[0].spec.getBaseTypeInfo();
         if (bti == ntype->return_vec[0].spec.getBaseTypeInfo()) {
-            ctype = bti;
+            // issue #3429: when performing type folding with complex types, do not use subtype "any" but rather use "auto"
+            if (bti == hashTypeInfo) {
+                ctype = autoHashTypeInfo;
+            } else if (bti == listTypeInfo) {
+                ctype = autoListTypeInfo;
+            } else if (bti == hashOrNothingTypeInfo) {
+                ctype = autoHashOrNothingTypeInfo;
+            } else if (bti == listOrNothingTypeInfo) {
+                ctype = autoListOrNothingTypeInfo;
+            } else {
+                ctype = bti;
+            }
             return true;
         }
         // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
