@@ -347,6 +347,8 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_3_1 RestHandler v1.3.1
+    - fixed RestHandler incorrectly handling Accept header of incoming requests
+      (<a href="https://github.com/qorelanguage/qore/issues/3426">issue 3426</a>)
     - added debug loggging for REST schema validation errors
       (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
 
