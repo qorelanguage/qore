@@ -1253,7 +1253,9 @@ public namespace RestHandler {
             *string astr = hdr.accept;
             hash aih;
             if (astr) {
-                astr =~ s/;.*//;
+                do {
+                    astr =~ s/;[^,]*//;
+                } while (astr.rfind(";") != -1);
                 astr =~ s/ +//g;
                 map aih.$1 = True, astr.split(",");
             } else {

@@ -611,7 +611,16 @@ public namespace RestSchemaValidator {
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
         private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
+            hash<HttpResponseInfo> rv((
+                "code": code,
+                "hdr": headers,
+            ));
+
             if (exists response_body) {
+                if (checkResponseContentTypeHeader(\rv, response_body, headers, content_types)) {
+                    return rv;
+                }
+
                 list<string> ctl = !content_types
                     ? keys DataSerializationSupport
                     : map $1, content_types, DataSerializationSupport{$1};
@@ -623,8 +632,8 @@ public namespace RestSchemaValidator {
                 hash<ExceptionInfo> ex;
                 foreach string ct in (ctl) {
                     try {
-                        headers."Content-Type" = ct;
                         response_body = DataSerializationSupport{ct}(response_body);
+                        headers."Content-Type" = ct;
                         ok = True;
                         break;
                     }
@@ -639,11 +648,9 @@ public namespace RestSchemaValidator {
                 }
             }
 
-            return cast<hash<HttpResponseInfo>>((
-                "code": code,
-                "body": response_body,
-                "hdr": headers,
-            ));
+            rv.body = response_body;
+            rv.hdr = headers;
+            return rv;
         }
 
         #! parses and validates the response from the server and returns a hash of the processed info
@@ -683,6 +690,44 @@ public namespace RestSchemaValidator {
             }
 
             return rv;
+        }
+
+        #! Check if the headers contain a content-type header which is accepted and if so, modify the response hash.
+        /** @param resp response hash
+            @param body response body data (if any)
+            @param headers HTTP headers to include in the response
+            @param content_types the accepted MIME types in order of preference
+
+            @return whether the headers contained a \c Content-Type header and the rv was modified
+
+            @note if there are more \c Content-Type headers, then @ref False is returned and response is not modified
+        */
+        private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash headers, *softlist<string> content_types) {
+            # quickly return if body is not in data format
+            if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
+                return False;
+
+            # try to find \c Content-Type header
+            *list ct = map $1, keys headers, $1 =~ /content-type/i;
+
+            # if found and it is accepted, use it and don't serialize the body
+            if (ct && ct.size() == 1) {
+                if (!content_types) { # no content types means */* is accepted
+                    resp.body = body;
+                    resp.hdr = resp.hdr + ("Content-Type": remove resp.hdr{ct[0]});
+                    return True;
+                }
+                string contentType = headers{ct[0]};
+                foreach string accepted in (content_types) {
+                    accepted =~ s/\*/.*/;
+                    if (contentType.regex(accepted)) {
+                        resp.body = body;
+                        resp.hdr = resp.hdr + ("Content-Type": remove resp.hdr{ct[0]});
+                        return True;
+                    }
+                }
+            }
+            return False;
         }
 
         #! returns a hash of URI paths as keys with values as lists of supported HTTP methods

@@ -24,9 +24,6 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3417">issue 3417</a>)
     - fixed bugs in the return types of @ref Qore::regex_extract() and <string>::regexExtract()
       (<a href="https://github.com/qorelanguage/qore/issues/3416">issue 3416</a>)
-    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a>: added debug logging for REST schema
-      validation errors
-      (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
     - fixed documentation links between dependent modules
       (<a href="https://github.com/qorelanguage/qore/issues/3406">issue 3406</a>)
     - fixed a bug where an lvalue with a complex type accepted incompatible assignments from values without complex
@@ -35,31 +32,39 @@
       @ref broken-abstract "%broken-abstract" and @ref correct-abstract "%correct-abstract" parse directives were
       implemented to avoid breaking code that depends on this bug
       (<a href="https://github.com/qorelanguage/qore/issues/3404">issue 3404</a>)
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: fixed quoting of reserved words in column names in
-      table alignment
-      (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
-    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module: fixed certificate and key errors for
-      HTTPS listeners to generate user-friendly exceptions
-      (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
     - fixed a bug where a crash could result when deserializing invalid integer data
       (<a href="https://github.com/qorelanguage/qore/issues/3395">issue 3395</a>)
-    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>: fixed the timeout value for upgrading the SSL
-      connection in \c Pop3Client
-      (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
     - fixed a parse type error in initialization using return value of abstract method
       (<a href="https://github.com/qorelanguage/qore/issues/3387">issue 3387</a>)
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: implemented the
-      \c AbstractDatabase::getPhysicalSize() method
-      (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
-    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a>: fixed the timeout value for upgrading to SSL
-      connection in \c SmtpClient
-      (<a href="https://github.com/qorelanguage/qore/issues/3381">issue 3381</a>)
     - fixed a bug where sort functions were incorrectly sorting strings with different lengths
       (<a href="https://github.com/qorelanguage/qore/issues/3378">issue 3378</a>)
     - fixed a member initialization bug with imported classes
       (<a href="https://github.com/qorelanguage/qore/issues/3368">issue 3368</a>)
-    - <a href="../../modules/Mime/html/index.html">Mime</a>: fixed bugs parsing binary data in multipart messages
-      (<a href="https://github.com/qorelanguage/qore/issues/2936">issue 2936</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module:
+      - fixed certificate and key errors for HTTPS listeners to generate user-friendly exceptions
+        (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
+    - <a href="../../modules/Mime/html/index.html">Mime</a> module:
+      - fixed bugs parsing binary data in multipart messages
+        (<a href="https://github.com/qorelanguage/qore/issues/2936">issue 2936</a>)
+    - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module:
+      - fixed the timeout value for upgrading the SSL connection in \c Pop3Client
+        (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module:
+      - fixed RestHandler incorrectly handling Accept header of incoming requests
+        (<a href="https://github.com/qorelanguage/qore/issues/3426">issue 3426</a>)
+      - added debug logging for REST schema validation errors
+        (<a href="https://github.com/qorelanguage/qore/issues/3410">issue 3410</a>)
+    - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module:
+      - fixed \c NullRestSchemaValidator not respecting set Content-Type header from RestClass
+        (<a href="https://github.com/qorelanguage/qore/issues/3427">issue 3427</a>)
+    - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module:
+      - fixed the timeout value for upgrading to SSL connection in \c SmtpClient
+        (<a href="https://github.com/qorelanguage/qore/issues/3381">issue 3381</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module:
+      - fixed quoting of reserved words in column names in table alignment
+        (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
+      - implemented the \c AbstractDatabase::getPhysicalSize() method
+        (<a href="https://github.com/qorelanguage/qore/issues/3385">issue 3385</a>)
 
     @section qore_092 Qore 0.9.2
 
