@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.1";
+    version = "1.1.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +69,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_1_1 RestSchemaValidator v1.1.1
+    - fixed \c NullRestSchemaValidator not respecting set Content-Type header from RestClass
+      (<a href="https://github.com/qorelanguage/qore/issues/3427">issue 3427</a>)
 
     @subsection restschemavalidator_1_1 RestSchemaValidator v1.1
     - updated the default validator to try all serialization methods if multiple methods are available and one fails
