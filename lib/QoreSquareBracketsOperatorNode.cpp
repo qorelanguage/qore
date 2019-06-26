@@ -197,7 +197,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
             const QoreTypeInfo* vtype = nullptr;
             // try to find a common value type, if any
             bool vcommon = false;
-            ReferenceHolder<QoreListNode> ret(new QoreListNode, xsink);
+            ReferenceHolder<QoreListNode> ret(new QoreListNode(autoTypeInfo), xsink);
             const QoreParseListNode::nvec_t& vl = pln->getValues();
             for (unsigned i = 0; i < vl.size(); ++i) {
                 ValueEvalRefHolder rh(vl[i], xsink);

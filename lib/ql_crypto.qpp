@@ -3004,7 +3004,7 @@ hash h = get_crypto_info();
     @since %Qore 0.8.13
  */
 hash get_crypto_info() [flags=CONSTANT] {
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
 
     for (auto& i : crypto_map) {
         rv->setKeyValue(i.first.c_str(), i.second.getInfo(), nullptr);

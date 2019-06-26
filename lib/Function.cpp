@@ -762,7 +762,7 @@ static int check_extra_args(AbstractFunctionSignature* sig, const type_vec_t& ar
 }
 
 QoreListNode* QoreFunction::runtimeGetCallVariants() const {
-   ReferenceHolder<QoreListNode> rv(new QoreListNode, nullptr);
+   ReferenceHolder<QoreListNode> rv(new QoreListNode(autoHashTypeInfo), nullptr);
 
    const char* class_name = className();
    int64 ppo = runtime_get_parse_options();
@@ -792,7 +792,7 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
          continue;
       }
 
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, nullptr);
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), nullptr);
 
       SimpleRefHolder<QoreStringNode> desc(new QoreStringNode);
 
@@ -807,7 +807,7 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
       h->setKeyValue("desc", sm, nullptr);
 
       // add "params" key
-      ReferenceHolder<QoreListNode> params(new QoreListNode, nullptr);
+      ReferenceHolder<QoreListNode> params(new QoreListNode(autoTypeInfo), nullptr);
       for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
          QoreStringNode* s = new QoreStringNode(QoreTypeInfo::getName(sig->getParamTypeInfo(pi)));
          printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, param %d: %s\n", this, pi, s->c_str());
@@ -1617,7 +1617,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
     printd(5, "UserVariantBase::setupCall() params: %d args: %d\n", num_params, num_args);
 
     if (num_params < num_args) {
-        argv = new QoreListNode;
+        argv = new QoreListNode(autoTypeInfo);
 
         for (unsigned i = 0; i < (num_args - num_params); i++) {
             // here we try to take the reference from args if possible

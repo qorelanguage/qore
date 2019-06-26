@@ -94,12 +94,11 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_get_complex_hash_type(vtype);
-    }
-    else {
-        this->typeInfo = hashTypeInfo;
+    } else {
+        this->typeInfo = autoHashTypeInfo;
         // issue #2647: allow an empty hash to be assigned to any complex hash (but not hashdecls)
         // it will get folded at runtime into the desired type in any case
-        typeInfo = vtypes.empty() ? emptyHashTypeInfo : hashTypeInfo;
+        typeInfo = vtypes.empty() ? emptyHashTypeInfo : autoHashTypeInfo;
     }
 
     if (needs_eval)
@@ -116,7 +115,7 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
 QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
     // complex type will be added before returning if applicable
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
     const QoreTypeInfo* vtype = nullptr;
@@ -137,8 +136,7 @@ QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
         if (!i) {
             vtype = vt;
             vcommon = true;
-        }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt)) {
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt)) {
             vcommon = false;
         }
 

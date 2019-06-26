@@ -307,9 +307,14 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
         if (!getValue() && typeInfo) {
             // issue #2652: assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
-            if (sti) {
-                assignNodeIntern((l = new QoreListNode(sti)));
+            if (typeInfo == anyTypeInfo || typeInfo == listTypeInfo || typeInfo == listOrNothingTypeInfo) {
+                // issue #3429 assign an untyped list if required
+                assignNodeIntern((l = new QoreListNode));
+            } else {
+                const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
+                if (sti) {
+                    assignNodeIntern((l = new QoreListNode(sti)));
+                }
             }
         }
 
@@ -317,7 +322,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
         if (!l) {
             // save the old value for dereferencing outside any locks that may have been acquired
             saveTemp(getValue().getInternalNode());
-            assignNodeIntern((l = new QoreListNode));
+            assignNodeIntern((l = new QoreListNode(autoTypeInfo)));
         }
     }
 
@@ -345,23 +350,27 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         }
 
         h = nullptr;
-        //printd(5, "LValueHelper::doHashLValue() cv: %p ti: %p '%s' c: %p\n", getValue(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo));
+        //printd(5, "LValueHelper::doHashLValue() cv: '%s' ti: %p '%s' c: %p\n", getValue().getFullTypeName(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo));
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
         if (!getValue() && typeInfo) {
-            // issue #2652: assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
-            if (sti) {
-                assignNodeIntern((h = new QoreHashNode(sti)));
-            }
-            else {
-                const TypedHashDecl* thd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
-                if (thd) {
-                    // we cannot initialize a hashdecl value here while holding lvalue locks
-                    // so we have to throw an exception
-                    QoreStringNode* desc = new QoreStringNodeMaker("cannot implicitly create typed hash '%s' with an assignment; to address this error, declare the typed hash before the assignment", thd->getName());
-                    vl.xsink->raiseException("HASHDECL-IMPLICIT-CONSTRUCTION-ERROR", desc);
-                    clearPtr();
-                    return -1;
+            if (typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
+                // issue #3429 assign an untyped hash if required
+                assignNodeIntern((h = new QoreHashNode));
+            } else {
+                // issue #2652: assign the current runtime type based on the declared complex list type
+                const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
+                if (sti) {
+                    assignNodeIntern((h = new QoreHashNode(sti)));
+                } else {
+                    const TypedHashDecl* thd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+                    if (thd) {
+                        // we cannot initialize a hashdecl value here while holding lvalue locks
+                        // so we have to throw an exception
+                        QoreStringNode* desc = new QoreStringNodeMaker("cannot implicitly create typed hash '%s' with an assignment; to address this error, declare the typed hash before the assignment", thd->getName());
+                        vl.xsink->raiseException("HASHDECL-IMPLICIT-CONSTRUCTION-ERROR", desc);
+                        clearPtr();
+                        return -1;
+                    }
                 }
             }
         }
@@ -369,7 +378,7 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         if (!h) {
             //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
             saveTemp(getValue().getInternalNode());
-            assignNodeIntern((h = new QoreHashNode));
+            assignNodeIntern((h = new QoreHashNode(autoTypeInfo)));
         }
     }
 
@@ -574,7 +583,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
         n.v.n = nullptr;
     }
 
-    //printd(0, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
+    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
     if (check_types) {
         // check type for assignment
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
@@ -1200,7 +1209,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
         else {
             unsigned old_count = qore_hash_private::getScanCount(*h);
 
-            QoreHashNode* rvh = new QoreHashNode;
+            QoreHashNode* rvh = new QoreHashNode(autoTypeInfo);
 #ifdef DEBUG
             // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
             assert(!rv.assignInitial(rvh));
@@ -1338,7 +1347,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 // keep a set of offsets removed to remove them from the list in reverse order
                 ind_set_t iset;
                 ConstListIterator li(rl);
-                v = new QoreListNode;
+                v = new QoreListNode(autoTypeInfo);
                 while (li.next()) {
                     do_list_value(*v->get<QoreListNode>(), *l, li.getValue().getAsBigInt(), vtype, vcommon, iset, li.index());
                 }
@@ -1474,7 +1483,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             const QoreTypeInfo* vtype = nullptr;
             // try to find a common value type, if any
             bool vcommon = false;
-            ReferenceHolder<QoreListNode> v(new QoreListNode, xsink);
+            ReferenceHolder<QoreListNode> v(new QoreListNode(autoTypeInfo), xsink);
 
             const QoreParseListNode::nvec_t& vl = pln->getValues();
 
@@ -1651,7 +1660,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
                 AbstractQoreNode* v;
                 switch (lvh.getType()) {
                     case NT_LIST: {
-                        v = new QoreListNode;
+                        v = new QoreListNode(autoTypeInfo);
                         int d = stop - start;
                         if (d < 0)
                             d = -d;

@@ -1072,8 +1072,8 @@ void print_node(FILE* fp, const QoreValue qv) {
 }
 
 void qore_setup_argv(int pos, int argc, char* argv[]) {
-    ARGV = new QoreListNode;
-    QORE_ARGV = new QoreListNode;
+    ARGV = new QoreListNode(stringTypeInfo);
+    QORE_ARGV = new QoreListNode(stringTypeInfo);
     int end = argc - pos;
     for (int i = 0; i < argc; i++) {
         if (i < end)
@@ -1085,7 +1085,7 @@ void qore_setup_argv(int pos, int argc, char* argv[]) {
 void init_lib_intern(char* env[]) {
    // set up environment hash
    int i = 0;
-   ENV = new QoreHashNode;
+   ENV = new QoreHashNode(autoTypeInfo);
    while (env[i]) {
       char* p;
 
@@ -1228,7 +1228,7 @@ static inline void assign_hv(QoreHashNode* h, const char* key, int val) {
 
 #ifdef HAVE_PWD_H
 static QoreHashNode* pwd2hash(const struct passwd& pw) {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
    // assign values
    assign_hv(h, "pw_name", pw.pw_name);
    assign_hv(h, "pw_passwd", pw.pw_passwd);
@@ -1293,13 +1293,13 @@ int q_uname2uid(const char* name, uid_t& uid) {
 }
 
 static QoreHashNode* gr2hash(struct group& gr) {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     // assign values
     assign_hv(h, "gr_name", gr.gr_name);
     assign_hv(h, "gr_passwd", gr.gr_passwd);
     assign_hv(h, "gr_gid", gr.gr_gid);
 
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(stringTypeInfo);
     for (char* *p = gr.gr_mem; *p; ++p)
         l->push(new QoreStringNode(*p), nullptr);
 
@@ -1596,7 +1596,7 @@ static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& bloc
 }
 
 QoreListNode* stat_to_list(const struct stat& sbuf) {
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(autoTypeInfo);
 
     // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
     l->push(((int64)sbuf.st_dev), nullptr);
@@ -1663,7 +1663,7 @@ QoreHashNode* stat_to_hash(const struct stat& sbuf, const TypedHashDecl* hd) {
 
 #ifdef Q_HAVE_STATVFS
 QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
 #ifdef DARWIN
 #else

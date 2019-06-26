@@ -126,7 +126,7 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
     unsigned i = 0;
 
     if (l_tlist)
-        ln = new QoreListNode;
+        ln = new QoreListNode(autoTypeInfo);
 
     while (true) {
         {

@@ -75,14 +75,14 @@ QoreHashNode* qore_ds_private::getCurrentOptionHash(bool ensure_hash) const {
         }
 
         if (!options) {
-            options = new QoreHashNode;
+            options = new QoreHashNode(autoTypeInfo);
         }
 
         qore_hash_private::get(*options)->setKeyValueIntern(hi.getKey(), v.refSelf());
     }
 
     if (ensure_hash && !options) {
-        options = new QoreHashNode;
+        options = new QoreHashNode(autoTypeInfo);
     }
 
     return options;

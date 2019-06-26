@@ -86,7 +86,7 @@ struct qore_ds_private {
     // interface for the parent class
     DatasourceStatementHelper* dsh;
 
-    DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl, DatasourceStatementHelper* dsh) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(nullptr), p_port(0), port(0), opt(new QoreHashNode), event_queue(nullptr), dsh(dsh) {
+    DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl, DatasourceStatementHelper* dsh) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(nullptr), p_port(0), port(0), opt(new QoreHashNode(autoTypeInfo)), event_queue(nullptr), dsh(dsh) {
     }
 
     DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds, DatasourceStatementHelper* dsh) :
@@ -164,7 +164,7 @@ struct qore_ds_private {
         q = event_queue;
         if (!q)
             return nullptr;
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         if (!username.empty())
             h->setKeyValue("user", new QoreStringNode(username), 0);
         if (!dbname.empty())

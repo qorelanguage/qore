@@ -213,7 +213,7 @@ struct qore_ftp_private {
     DLLLOCAL void do_event_send_msg(const char* cmd, const char* arg) {
         Queue *q = control.getQueue();
         if (q) {
-            QoreHashNode* h = new QoreHashNode;
+            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
             h->setKeyValue("event", QORE_EVENT_FTP_SEND_MESSAGE, 0);
             h->setKeyValue("source", QORE_SOURCE_FTPCLIENT, 0);
             h->setKeyValue("id", control.getObjectIDForEvents(), 0);
@@ -227,7 +227,7 @@ struct qore_ftp_private {
     DLLLOCAL void do_event_msg_received(int code, const char* msg) {
         Queue *q = control.getQueue();
         if (q) {
-            QoreHashNode* h = new QoreHashNode;
+            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
             h->setKeyValue("event", QORE_EVENT_FTP_MESSAGE_RECEIVED, 0);
             h->setKeyValue("source", QORE_SOURCE_FTPCLIENT, 0);
             h->setKeyValue("id", control.getObjectIDForEvents(), 0);
@@ -804,7 +804,7 @@ struct qore_ftp_private {
 
    DLLLOCAL QoreHashNode* getUsageInfo() const {
       AutoLocker al(m);
-      QoreHashNode* h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
       qore_socket_private::getUsageInfo(control, *h, data);
       return h;
    }

@@ -431,7 +431,7 @@ void ConstantList::parseInit() {
 }
 
 QoreHashNode* ConstantList::getInfo() {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
     qore_hash_private* hp = qore_hash_private::get(*h);
     for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i)

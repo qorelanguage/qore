@@ -49,7 +49,7 @@ public:
 
     DLLLOCAL virtual int64 read(void* ptr, int64 limit, ExceptionSink* xsink) override {
         assert(limit > 0);
-        ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+        ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         args->push(limit, xsink);
         ValueHolder bufHolder(self->evalMethod("read", *args, xsink), xsink);
         if (!bufHolder) {

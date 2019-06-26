@@ -58,7 +58,7 @@ public:
         buf->preallocate(count);
         memcpy(const_cast<void *>(buf->getPtr()), ptr, count);
 
-        ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+        ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         args->push(buf.release(), xsink);
         self->evalMethod("write", *args, xsink);
     }

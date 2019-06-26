@@ -72,7 +72,7 @@ static QoreHashNode* remove_thread_data_intern(const QoreListNode* args, Excepti
     QoreHashNode* data = getProgram()->getThreadData();
     qore_hash_private* dh = qore_hash_private::get(*data);
 
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
 
     // iterate through arguments and remove each key
     for (unsigned i = 0; i < args->size(); i++) {

@@ -92,7 +92,7 @@ static void addError(QoreHashNode* h, QoreStringNode* err) {
     hash_assignment_priv ha(*h, "_ERRORS_");
     QoreListNode* l = (*ha).get<QoreListNode>();
     if (!l) {
-        l = new QoreListNode;
+        l = new QoreListNode(autoTypeInfo);
         ha.assign(l, 0);
     }
 
@@ -163,7 +163,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
     if (n->option & QGO_OPT_LIST) {
         QoreListNode* l = (*ha).get<QoreListNode>();
         if (!l) {
-            l = new QoreListNode;
+            l = new QoreListNode(autoTypeInfo);
             ha.assign(l, nullptr);
         }
         //else printf("cv->getType()=%s\n", cv->getTypeName());
@@ -283,7 +283,7 @@ int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHash
 }
 
 QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsink) {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
     for (unsigned i = 0; i < l->size(); ++i) {
         //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());

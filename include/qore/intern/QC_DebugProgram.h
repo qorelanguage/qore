@@ -46,7 +46,7 @@ private:
    QoreObject* qo;
 
    DLLLOCAL void callMethod(const char* name, QoreProgram *pgm, int paramCount, QoreValue* params, DebugRunStateEnum &rs, const AbstractStatement* &rts, ExceptionSink* xsink, ExceptionSink &xsink2) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink2);
+      ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink2);
       args->push(QoreProgram::getQoreObject(pgm), nullptr);
       for (int i=0; i<paramCount; i++) {
          //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, param: %d/%d, type: %s\n", name, this, i, paramCount, params[i]?params[i]->getTypeName():"n/a");

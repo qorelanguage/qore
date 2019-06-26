@@ -228,7 +228,7 @@ BinaryNode* QoreSSLCertificate::getPublicKey() const {
 }
 
 QoreHashNode* QoreSSLCertificate::getPurposeHash() const {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
    QoreString tstr;
    for (int i = 0; i < X509_PURPOSE_get_count(); i++) {
       X509_PURPOSE* pt = X509_PURPOSE_get0(i);
@@ -286,7 +286,7 @@ QoreHashNode* QoreSSLCertificate::getPurposeHash() const {
 }
 
 QoreHashNode* QoreSSLCertificate::getInfo() const {
-   QoreHashNode* h = new QoreHashNode();
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
    // get version
    h->setKeyValue("version", getVersion(), 0);
    // get serial number

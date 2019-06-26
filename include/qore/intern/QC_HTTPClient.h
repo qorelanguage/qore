@@ -44,7 +44,7 @@ protected:
     ReferenceHolder<QoreHashNode> info;
 
 public:
-    DLLLOCAL HTTPInfoRefHelper(const ReferenceNode *n_ref, QoreStringNode *msg, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(new QoreHashNode, xsink) {
+    DLLLOCAL HTTPInfoRefHelper(const ReferenceNode *n_ref, QoreStringNode *msg, ExceptionSink *n_xsink) : ref(n_ref), xsink(n_xsink), info(new QoreHashNode(autoTypeInfo), xsink) {
         info->setKeyValue("request", msg, xsink);
     }
 

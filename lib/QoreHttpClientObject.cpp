@@ -851,7 +851,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
 void do_content_length_event(Queue *cb_queue, int64 id, int len) {
     if (cb_queue) {
         ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         qore_hash_private* hh = qore_hash_private::get(*h);
         hh->setKeyValueIntern("event", QORE_EVENT_HTTP_CONTENT_LENGTH);
         hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
@@ -864,7 +864,7 @@ void do_content_length_event(Queue *cb_queue, int64 id, int len) {
 void do_redirect_event(Queue *cb_queue, int64 id, const QoreStringNode* loc, const QoreStringNode* msg) {
     if (cb_queue) {
         ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         qore_hash_private* hh = qore_hash_private::get(*h);
         hh->setKeyValueIntern("event", QORE_EVENT_HTTP_REDIRECT);
         hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
@@ -879,7 +879,7 @@ void do_redirect_event(Queue *cb_queue, int64 id, const QoreStringNode* loc, con
 void do_event(Queue *cb_queue, int64 id, int event) {
     if (cb_queue) {
         ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         qore_hash_private* hh = qore_hash_private::get(*h);
         hh->setKeyValueIntern("event", event);
         hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
@@ -965,7 +965,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     SafeLocker sl(msock->m);
     Queue* cb_queue = msock->socket->getQueue();
 
-    ReferenceHolder<QoreHashNode> nh(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> nh(new QoreHashNode(autoTypeInfo), xsink);
     bool keep_alive = true;
 
     bool transfer_encoding = false;
@@ -1067,7 +1067,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (connection.port)
                 hostport.sprintf(":%d", connection.port);
             proxy_path = hostport.getBuffer();
-            proxy_headers = new QoreHashNode;
+            proxy_headers = new QoreHashNode(autoTypeInfo);
             proxy_headers->setKeyValue("Host", new QoreStringNode(hostport), xsink);
 
             addProxyAuthorization(headers, **proxy_headers, xsink);
@@ -1248,7 +1248,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         p = strchr(str, ';');
         if (p) {
             bool multipart = false;
-            QoreListNode* l = new QoreListNode;
+            QoreListNode* l = new QoreListNode(stringTypeInfo);
             do {
                 // skip whitespace
                 while (*str == ' ') str++;

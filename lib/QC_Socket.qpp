@@ -48,7 +48,7 @@ static void hash_set_int_key(QoreHashNode& h, int k, const char* str) {
 }
 
 static QoreHashNode* get_network_address_family_map() {
-   QoreHashNode* rv = new QoreHashNode;
+   QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
 
    hash_set_int_key(*rv, AF_INET, "AF_INET");
    hash_set_int_key(*rv, AF_INET6, "AF_INET6");

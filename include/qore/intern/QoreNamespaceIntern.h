@@ -1574,7 +1574,7 @@ public:
     }
 
     DLLLOCAL QoreHashNode* getGlobalVars() const {
-        QoreHashNode* rv = new QoreHashNode;
+        QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
         qore_ns_private::getGlobalVars(*rv);
         return rv;
     }

@@ -104,7 +104,7 @@ void QoreParseListNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
 
 QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
-    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
     qore_list_private* ll = qore_list_private::get(**l);
     ll->reserve(values.size());
 

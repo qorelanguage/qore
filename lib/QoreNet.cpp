@@ -192,13 +192,13 @@ void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
 }
 
 static QoreHashNode* he_to_hash(struct hostent& he) {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     qore_hash_private* hh = qore_hash_private::get(*h);
 
     if (he.h_name && he.h_name[0])
         hh->setKeyValueIntern("name", new QoreStringNode(he.h_name)); // official host name
     if (he.h_aliases) {
-        QoreListNode* l = new QoreListNode;
+        QoreListNode* l = new QoreListNode(stringTypeInfo);
         char** a = he.h_aliases;
         while (*a)
             l->push(new QoreStringNode(*(a++)), nullptr);
@@ -222,7 +222,7 @@ static QoreHashNode* he_to_hash(struct hostent& he) {
     if (he.h_addr_list) {
         char buf[QORE_NET_ADDR_BUF_LEN];
 
-        QoreListNode* l = new QoreListNode;
+        QoreListNode* l = new QoreListNode(stringTypeInfo);
         char** a = he.h_addr_list;
         while (*a) {
             if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
@@ -239,9 +239,9 @@ QoreHashNode* q_gethostbyname_to_hash(const char* host) {
     ExceptionSink xsink;
     QoreAddrInfo qai;
     qai.getInfo(&xsink, host, NULL, Q_AF_UNSPEC, AI_CANONNAME);
-    ReferenceHolder<QoreHashNode> result(new QoreHashNode, &xsink);
+    ReferenceHolder<QoreHashNode> result(new QoreHashNode(autoTypeInfo), &xsink);
     qore_hash_private* rh = qore_hash_private::get(**result);
-    ReferenceHolder<QoreListNode> addresses(new QoreListNode, &xsink);
+    ReferenceHolder<QoreListNode> addresses(new QoreListNode(stringTypeInfo), &xsink);
     if (xsink || !result || !addresses) {
         xsink.clear();
         return nullptr;
@@ -250,7 +250,7 @@ QoreHashNode* q_gethostbyname_to_hash(const char* host) {
     struct addrinfo* addrInfo = qai.getAddrInfo();
     // NOTE: Darwin returns an empty name when the host argument is an address
     rh->setKeyValueIntern("name", new QoreStringNode(addrInfo->ai_canonname ? addrInfo->ai_canonname : host));
-    rh->setKeyValueIntern("aliases", new QoreListNode);
+    rh->setKeyValueIntern("aliases", new QoreListNode(stringTypeInfo));
     int ai_family = addrInfo->ai_family;
     switch (ai_family) {
         case AF_INET:
@@ -486,10 +486,10 @@ QoreListNode* QoreAddrInfo::getList() const {
     if (!ai)
         return 0;
 
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(autoHashTypeInfo);
 
     for (struct addrinfo* p = ai; p; p = p->ai_next) {
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         qore_hash_private* hh = qore_hash_private::get(*h);
 
         const char* family = q_af_to_str(p->ai_family);

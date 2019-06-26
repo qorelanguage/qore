@@ -872,7 +872,7 @@ public:
     DLLLOCAL QoreListNode* getVarList() {
         //AutoLocker al(&plock);
         // FIXME: implement
-        return new QoreListNode;
+        return new QoreListNode(stringTypeInfo);
         //return global_var_list.getVarList();
     }
 
@@ -1193,7 +1193,7 @@ public:
     DLLLOCAL QoreHashNode* getThreadData() {
         QoreHashNode* h = thread_local_storage->get();
         if (!h) {
-            h = new QoreHashNode;
+            h = new QoreHashNode(autoTypeInfo);
             thread_local_storage->set(h);
         }
 
@@ -2433,7 +2433,7 @@ public:
    DLLLOCAL QoreListNode* getAllProgramObjects() {
       QoreAutoRWReadLocker al(&tlock);
       printd(5, "qore_debug_program_private::getAllProgramObjects(), this: %p\n", this);
-      ReferenceHolder<QoreListNode> l(new QoreListNode, nullptr);
+      ReferenceHolder<QoreListNode> l(new QoreListNode(QC_PROGRAM->getTypeInfo()), nullptr);
       qore_program_map_t::iterator i = qore_program_map.begin();
       while (i != qore_program_map.end()) {
          QoreObject* o = QoreProgram::getQoreObject(i->first);

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -304,9 +304,6 @@ public:
 
     DLLLOCAL QoreListNode* getKeys() const;
 
-    // issue #2791: perform type stripping at the source
-    DLLLOCAL void mergeStrip(const qore_hash_private& h, ExceptionSink* xsink);
-
     DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
 
     DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
@@ -339,6 +336,28 @@ public:
         if (complexTypeInfo)
             h->priv->complexTypeInfo = complexTypeInfo;
         return h;
+    }
+
+    DLLLOCAL QoreHashNode* copyCheckNewType(const qore_hash_private& other) const {
+        QoreHashNode* rv = copy();
+        if (hashdecl || other.hashdecl) {
+            if (hashdecl != other.hashdecl) {
+                rv->priv->hashdecl = nullptr;
+                rv->priv->complexTypeInfo = autoHashTypeInfo;
+            }
+        } else {
+            const QoreTypeInfo* orig_ctype, * ctype;
+            orig_ctype = ctype = QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo);
+            const QoreTypeInfo* newElementType = QoreTypeInfo::getUniqueReturnComplexHash(other.complexTypeInfo);
+            if ((!ctype || ctype == anyTypeInfo) && (!newElementType || newElementType == anyTypeInfo)) {
+                rv->priv->complexTypeInfo = nullptr;
+            } else if (QoreTypeInfo::matchCommonType(ctype, newElementType)) {
+                rv->priv->complexTypeInfo = ctype == orig_ctype ? complexTypeInfo : qore_get_complex_hash_type(ctype);
+            } else {
+                rv->priv->complexTypeInfo = autoHashTypeInfo;
+            }
+        }
+        return rv;
     }
 
     DLLLOCAL QoreHashNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
@@ -385,17 +404,9 @@ public:
 
     DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {
         // issue #2791: perform type stripping at the source
-        bool strip = (complexTypeInfo != autoHashTypeInfo) && (
-            ((hashdecl || h->priv->hashdecl) && hashdecl != h->priv->hashdecl)
-            || !QoreTypeInfo::equal(complexTypeInfo, h->priv->complexTypeInfo));
-        //printd(5, "qore_hash_private::plusEquals() this: %p '%s' h: %p '%s' strip: %d\n", this, QoreTypeInfo::getName(complexTypeInfo), h, QoreTypeInfo::getName(h->priv->complexTypeInfo), strip);
-        ReferenceHolder<QoreHashNode> rv(copy(strip), xsink);
-        if (strip) {
-            rv->priv->mergeStrip(*h->priv, xsink);
-        }
-        else {
-            rv->priv->merge(*h->priv, xsink);
-        }
+        // issue #3429: maintain types unless we have a plain hash; convert to hash<auto> if the types are not compatible
+        ReferenceHolder<QoreHashNode> rv(copyCheckNewType(*h->priv), xsink);
+        rv->priv->merge(*h->priv, xsink);
         return *xsink ? nullptr : rv.release();
     }
 
