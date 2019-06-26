@@ -305,9 +305,9 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
         //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
-        if (!getValue() && typeInfo) {
+        if (!getValue()) {
             // issue #2652: assign the current runtime type based on the declared complex list type
-            if (typeInfo == anyTypeInfo || typeInfo == listTypeInfo || typeInfo == listOrNothingTypeInfo) {
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == listTypeInfo || typeInfo == listOrNothingTypeInfo) {
                 // issue #3429 assign an untyped list if required
                 assignNodeIntern((l = new QoreListNode));
             } else {
@@ -322,7 +322,13 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
         if (!l) {
             // save the old value for dereferencing outside any locks that may have been acquired
             saveTemp(getValue().getInternalNode());
-            assignNodeIntern((l = new QoreListNode(autoTypeInfo)));
+            const QoreTypeInfo* valueTypeInfo;
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == listTypeInfo || typeInfo == listOrNothingTypeInfo) {
+                valueTypeInfo = nullptr;
+            } else {
+                valueTypeInfo = autoTypeInfo;
+            }
+            assignNodeIntern((l = new QoreListNode(valueTypeInfo)));
         }
     }
 
@@ -352,8 +358,8 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         h = nullptr;
         //printd(5, "LValueHelper::doHashLValue() cv: '%s' ti: %p '%s' c: %p\n", getValue().getFullTypeName(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo));
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
-        if (!getValue() && typeInfo) {
-            if (typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
+        if (!getValue()) {
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
                 // issue #3429 assign an untyped hash if required
                 assignNodeIntern((h = new QoreHashNode));
             } else {
@@ -378,7 +384,13 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         if (!h) {
             //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
             saveTemp(getValue().getInternalNode());
-            assignNodeIntern((h = new QoreHashNode(autoTypeInfo)));
+            const QoreTypeInfo* valueTypeInfo;
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
+                valueTypeInfo = nullptr;
+            } else {
+                valueTypeInfo = autoTypeInfo;
+            }
+            assignNodeIntern((h = new QoreHashNode(valueTypeInfo)));
         }
     }
 
