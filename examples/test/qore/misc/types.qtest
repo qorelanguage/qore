@@ -92,9 +92,14 @@ class TypeTest inherits QUnit::Test {
         assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, <StatInfo>{}, True).fullType());
         assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, (<StatInfo>{},), True).fullType());
 
-
         assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator()).a.fullType());
         assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator(), True).a.fullType());
+
+        {
+            hash h0;
+            h0.a.b = <StatInfo>{};
+            assertEq("hash", h0.a.b.fullType());
+        }
     }
 
     issue3404() {
