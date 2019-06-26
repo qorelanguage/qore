@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3438", \issue3438());
         addTestCase("issue 3429", \issue3429());
         addTestCase("issue 3404", \issue3404());
         addTestCase("issue 3278", \issue3278());
@@ -58,6 +59,12 @@ class TypeTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    issue3438() {
+        hash<string, string> h = {"a": (*softint x = 1).toString()};
+        delete x;
+        assertEq("hash<string, string>", h.fullType());
+    }
+
     issue3429() {
         hash<auto> h = {
             "a": <StatInfo>{"size": 1},
@@ -76,6 +83,18 @@ class TypeTest inherits QUnit::Test {
 
         assertEq("hash<auto>", (<StatInfo>{} + {"a": 1}).fullType());
         assertEq("hash<auto>", ({"a": 1} + <StatInfo>{}).fullType());
+
+        # test the hash map operator
+        assertEq("hash<string, hash<StatInfo>>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator()).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator(), True).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, <StatInfo>{}).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, (<StatInfo>{},)).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, <StatInfo>{}, True).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, (<StatInfo>{},), True).fullType());
+
+
+        assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator()).a.fullType());
+        assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator(), True).a.fullType());
     }
 
     issue3404() {

@@ -94,12 +94,11 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_get_complex_hash_type(vtype);
-    }
-    else {
-        this->typeInfo = hashTypeInfo;
+    } else {
+        this->typeInfo = autoHashTypeInfo;
         // issue #2647: allow an empty hash to be assigned to any complex hash (but not hashdecls)
         // it will get folded at runtime into the desired type in any case
-        typeInfo = vtypes.empty() ? emptyHashTypeInfo : hashTypeInfo;
+        typeInfo = vtypes.empty() ? emptyHashTypeInfo : autoHashTypeInfo;
     }
 
     if (needs_eval)
