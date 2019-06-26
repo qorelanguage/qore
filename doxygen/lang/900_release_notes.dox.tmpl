@@ -54,6 +54,8 @@
       - fixed the timeout value for upgrading the SSL connection in \c Pop3Client
         (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module:
+      - fixed RestHandler losing internal exception info when response was considered invalid by schema validator
+        (<a href="https://github.com/qorelanguage/qore/issues/3435">issue 3435</a>)
       - fixed RestHandler incorrectly handling Accept header of incoming requests
         (<a href="https://github.com/qorelanguage/qore/issues/3426">issue 3426</a>)
       - added debug logging for REST schema validation errors
