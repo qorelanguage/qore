@@ -228,7 +228,7 @@ DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* 
     while (li.next()) {
         if (li.getValue().getType() == NT_NUMBER) {
             if (!nl) {
-                nl = new QoreListNode;
+                nl = new QoreListNode(autoTypeInfo);
                 for (unsigned i = 0; i < li.index(); ++i) {
                     nl->push(orig->getReferencedEntry(i), xs);
                 }
@@ -507,7 +507,7 @@ struct qore_dbi_dlist_private {
             return nullptr;
         }
 
-        QoreListNode* lst = new QoreListNode;
+        QoreListNode* lst = new QoreListNode(stringTypeInfo);
 
         for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
             lst->push(new QoreStringNode((*i)->getName()), nullptr);
@@ -620,7 +620,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     tmp.trim();
     char* str = const_cast<char*>(tmp.getBuffer());
 
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
     char* p = strchr(str, ':');
     // make sure this is the driver name and not the port at the end
     if (p) {
@@ -745,7 +745,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
             str = end + 1;
 
             // parse option hash
-            ReferenceHolder<QoreHashNode> opt(new QoreHashNode, xsink);
+            ReferenceHolder<QoreHashNode> opt(new QoreHashNode(autoTypeInfo), xsink);
 
             while (true) {
                 if (!*p)

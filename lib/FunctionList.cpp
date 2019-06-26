@@ -140,7 +140,7 @@ QoreFunction* FunctionList::find(const char* name, bool runtime) const {
 }
 
 QoreListNode* FunctionList::getList() {
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(stringTypeInfo);
 
     for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
         l->push(new QoreStringNode(i->first), nullptr);

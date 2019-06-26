@@ -51,8 +51,7 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         // issue #2791: perform type folding at the source
         if (rt == NT_LIST) {
             return qore_list_private::get(*l)->concatenate(rh->get<const QoreListNode>(), xsink);
-        }
-        else {
+        } else {
             return qore_list_private::get(*l)->concatenateElement(rh.takeReferencedValue(), xsink);
         }
     }

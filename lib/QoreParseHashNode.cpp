@@ -116,7 +116,7 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
 QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
     // complex type will be added before returning if applicable
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
     const QoreTypeInfo* vtype = nullptr;
@@ -137,8 +137,7 @@ QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
         if (!i) {
             vtype = vt;
             vcommon = true;
-        }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt)) {
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt)) {
             vcommon = false;
         }
 

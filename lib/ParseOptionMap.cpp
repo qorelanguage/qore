@@ -129,7 +129,7 @@ void ParseOptionMap::list_options() {
 }
 
 QoreHashNode* ParseOptionMap::getCodeToStringMap() {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
    QoreString key;
    for (auto& i : rmap) {
       key.clear();
@@ -140,7 +140,7 @@ QoreHashNode* ParseOptionMap::getCodeToStringMap() {
 }
 
 QoreHashNode* ParseOptionMap::getStringToCodeMap() {
-   QoreHashNode* h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
    for (auto& i : map) {
       h->setKeyValue(i.first, i.second, 0);
    }

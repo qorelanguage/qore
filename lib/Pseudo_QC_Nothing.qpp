@@ -130,7 +130,7 @@ list l = h.keys();
     @since %Qore 0.8.7
  */
 list <nothing>::keys() [flags=CONSTANT] {
-   return new QoreListNode;
+   return new QoreListNode(autoTypeInfo);
 }
 
 //! Returns an empty list
@@ -148,7 +148,7 @@ list l = h.values();
     @since %Qore 0.8.7
  */
 list <nothing>::values() [flags=CONSTANT] {
-   return new QoreListNode;
+   return new QoreListNode(autoTypeInfo);
 }
 
 //! Returns @ref nothing

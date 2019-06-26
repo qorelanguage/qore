@@ -590,7 +590,7 @@ static QoreValue parse_hash_map(const QoreProgramLocation* loc, QoreParseHashNod
     if (len == 0) {
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
                 "empty hash as an argument to the hash map operator, this expression will always evaluate to an empty hash");
-        return new QoreHashNode;
+        return new QoreHashNode(autoTypeInfo);
     }
 
     if (len != 1) {

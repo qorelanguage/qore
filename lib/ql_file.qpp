@@ -639,7 +639,7 @@ if (!exists gl)
         return QoreValue();
     }
 
-    QoreListNode *l = new QoreListNode;
+    QoreListNode *l = new QoreListNode(stringTypeInfo);
     for (unsigned i = 0; i < globbuf.gl_pathc; ++i)
         l->push(new QoreStringNode(globbuf.gl_pathv[i]), xsink);
 

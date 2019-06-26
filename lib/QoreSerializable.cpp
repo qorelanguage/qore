@@ -1545,7 +1545,7 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
         return nullptr;
     }
 
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     // read in hash keys
     for (int64 i = 0; i < size; ++i) {

@@ -565,7 +565,7 @@ struct qore_socket_private {
          // the socket would be closed anyway in the destructor
          close_internal();
 
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_DELETED, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -593,7 +593,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_start_ssl_event() {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_START_SSL, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -603,7 +603,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_ssl_established_event() {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_SSL_ESTABLISHED, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -615,7 +615,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_connect_event(int af, const struct sockaddr* addr, const char* target, const char* service = 0, int prt = -1) {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_CONNECTING, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -636,7 +636,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_connected_event() {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_CONNECTED, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -646,7 +646,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_chunked_read(int event, qore_size_t bytes, qore_size_t total_read, int source) {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", event, 0);
          h->setKeyValue("source", source, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -661,7 +661,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_read_http_header(int event, const QoreHashNode* headers, int source) {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", event, 0);
          h->setKeyValue("source", source, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -672,7 +672,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_send_http_message(const QoreString& str, const QoreHashNode* headers, int source) {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_HTTP_SEND_MESSAGE, 0);
          h->setKeyValue("source", source, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -685,7 +685,7 @@ struct qore_socket_private {
 
    DLLLOCAL void do_close_event() {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_CHANNEL_CLOSED, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -696,7 +696,7 @@ struct qore_socket_private {
    DLLLOCAL void do_read_event(qore_size_t bytes_read, qore_size_t total_read, qore_size_t bufsize = 0) {
       // post bytes read on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_PACKET_READ, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -712,7 +712,7 @@ struct qore_socket_private {
    DLLLOCAL void do_send_event(int bytes_sent, int total_sent, int bufsize) {
       // post bytes sent on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_PACKET_SENT, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -726,7 +726,7 @@ struct qore_socket_private {
    DLLLOCAL void do_resolve_event(const char* host, const char* service = 0) {
       // post bytes sent on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_HOSTNAME_LOOKUP, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -741,7 +741,7 @@ struct qore_socket_private {
    DLLLOCAL void do_resolved_event(const struct sockaddr* addr) {
       // post bytes sent on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_HOSTNAME_RESOLVED, 0);
          h->setKeyValue("source", QORE_SOURCE_SOCKET, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -1415,7 +1415,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL QoreHashNode* getAddrInfo(const struct sockaddr_storage& addr, socklen_t len, bool host_lookup = true) const {
-      QoreHashNode* h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
       if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
          if (host_lookup) {
@@ -2015,7 +2015,7 @@ struct qore_socket_private {
          return 0;
       }
 
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
 #if 0
       h->setKeyValue("dbg_hdr", new QoreStringNode(buf), 0);
@@ -2079,8 +2079,8 @@ struct qore_socket_private {
    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, bool send_aborted = false, QoreObject* obj = nullptr) {
       assert(xsink);
       assert(obj);
-      ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-      QoreHashNode* arg = new QoreHashNode;
+      ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
+      QoreHashNode* arg = new QoreHashNode(autoTypeInfo);
       arg->setKeyValue("hdr", hdr ? hdr->refSelf() : nullptr, xsink);
       if (obj)
          arg->setKeyValue("obj", obj->refSelf(), xsink);
@@ -2112,8 +2112,8 @@ struct qore_socket_private {
 
    DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const AbstractQoreNode* data, bool chunked) {
       assert(xsink);
-      ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-      QoreHashNode* arg = new QoreHashNode;
+      ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
+      QoreHashNode* arg = new QoreHashNode(autoTypeInfo);
       arg->setKeyValue("data", data->realCopy(), xsink);
       arg->setKeyValue("chunked", chunked, xsink);
       args->push(arg, nullptr);
@@ -2799,7 +2799,7 @@ struct qore_socket_private {
       if (*xsink)
          return 0;
 
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
       if (!recv_callback && !os)
          h->setKeyValue("body", b.release(), xsink);
 
@@ -2956,7 +2956,7 @@ struct qore_socket_private {
          return 0;
 
       //printd(5, "chunked body encoding: %s\n", buf->getEncoding()->getCode());
-      ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+      ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
       if (!recv_callback)
          h->setKeyValue("body", buf.release(), xsink);
 
@@ -2977,7 +2977,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL static void do_accept_encoding(char* t, QoreHashNode& info) {
-      ReferenceHolder<QoreListNode> l(new QoreListNode, 0);
+      ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), 0);
 
       char* a = t;
       bool ok = true;
@@ -3181,7 +3181,7 @@ struct qore_socket_private {
             if ((*ha).getType() == NT_LIST)
                l = (*ha).get<QoreListNode>();
             else {
-               l = new QoreListNode;
+               l = new QoreListNode(autoTypeInfo);
                l->push(ha.swap(l), nullptr);
             }
             l->push(val, nullptr);
@@ -3307,7 +3307,7 @@ struct qore_socket_private {
    }
 
    DLLLOCAL QoreHashNode* getUsageInfo() const {
-      QoreHashNode* h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
       getUsageInfo(*h);
       return h;
    }
@@ -3323,7 +3323,7 @@ struct qore_socket_private {
       assert(warn_queue);
       assert(dt > tl_warning_us);
 
-      QoreHashNode* h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
       h->setKeyValue("type", new QoreStringNode("SOCKET-OPERATION-WARNING"), 0);
       h->setKeyValue("operation", new QoreStringNode(op), 0);
@@ -3339,7 +3339,7 @@ struct qore_socket_private {
       assert(warn_queue);
       assert(bs < tp_warning_bs);
 
-      QoreHashNode* h = new QoreHashNode;
+      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
       h->setKeyValue("type", new QoreStringNode("SOCKET-THROUGHPUT-WARNING"), 0);
       h->setKeyValue("dir", new QoreStringNode(send ? "send" : "recv"), 0);

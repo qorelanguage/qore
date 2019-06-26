@@ -376,7 +376,7 @@ struct qore_dbi_private {
     }
 
     DLLLOCAL QoreHashNode* getOptionHash(const Datasource* ds) const {
-        QoreHashNode* rv = new QoreHashNode;
+        QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
 
         for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
             QoreHashNode* h = new QoreHashNode(autoTypeInfo);

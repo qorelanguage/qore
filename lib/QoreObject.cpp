@@ -118,9 +118,9 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
         return nullptr;
     }
 
-    ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> nl(new QoreListNode(autoTypeInfo), xsink);
     SliceKeyMap int_km;
-    ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode : nullptr, xsink);
+    ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode(autoTypeInfo) : nullptr, xsink);
 
     ConstListIterator li(l);
     while (li.next()) {
@@ -416,7 +416,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
             // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
             if (n.hasNode() && n.getInternalNode()->isReferenceCounted()) {
                 if (!holder)
-                    holder = new QoreListNode;
+                    holder = new QoreListNode(autoTypeInfo);
                 holder->push(n, nullptr);
             }
         }
@@ -443,7 +443,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
             // if we are overwriting a value, then save it in the list for dereferencing after the lock is released
             if (n.hasNode() && n.getInternalNode()->isReferenceCounted()) {
                 if (!holder) {
-                    holder = new QoreListNode;
+                    holder = new QoreListNode(autoTypeInfo);
                 }
                 holder->push(n, nullptr);
             }

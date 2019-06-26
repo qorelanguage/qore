@@ -235,7 +235,7 @@ private:
 
     // destructive
     DLLLOCAL QoreHashNode* getHash() {
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         if (protocol) {
             h->setKeyValue("protocol", protocol, 0);
             protocol = 0;

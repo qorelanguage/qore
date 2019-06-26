@@ -3296,7 +3296,7 @@ QoreValue qore_class_private::evalMethodGate(QoreObject* self, const char* nme, 
         }
     }
     else {
-        args_holder = new QoreListNode;
+        args_holder = new QoreListNode(autoTypeInfo);
     }
 
     args_holder->insert(new QoreStringNode(nme), nullptr);
@@ -3320,7 +3320,7 @@ QoreValue QoreClass::evalMemberGate(QoreObject* self, const QoreString *nme, Exc
    if (!priv->memberGate || priv->memberGate->inMethod(self))
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
    args->push(new QoreStringNode(*nme), nullptr);
    if (priv->gate_access)
       args->push(priv->runtimeCheckPrivateClassAccess() ? true : false, nullptr);
@@ -3334,7 +3334,7 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
 
    //printd(5, "QoreClass::execMemberNotification() member: %s\n", mem);
 
-   ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+   ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
    args->push(new QoreStringNode(mem), nullptr);
    self->evalMethod(*priv->memberNotification, *args, xsink).discard(xsink);
 }
@@ -4601,7 +4601,7 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
     // there can only be max 1 param
     assert(signature.numParams() <= 1);
 
-    QoreListNode* args = new QoreListNode;
+    QoreListNode* args = new QoreListNode(autoTypeInfo);
     args->push(self->refSelf(), nullptr);
     ceh.setArgs(args);
 

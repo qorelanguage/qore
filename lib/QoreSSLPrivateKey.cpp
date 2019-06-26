@@ -153,7 +153,7 @@ int64 QoreSSLPrivateKey::getBitLength() const {
 }
 
 QoreHashNode* QoreSSLPrivateKey::getInfo() const {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     h->setKeyValue("type", new QoreStringNode(getType()), 0);
     h->setKeyValue("version", getVersion(), 0);
     h->setKeyValue("bitLength", getBitLength(), 0);

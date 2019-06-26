@@ -35,7 +35,7 @@
 
 // static method
 QoreHashNode* QoreSSLBase::X509_NAME_to_hash(X509_NAME* n) {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     for (int i = 0; i < X509_NAME_entry_count(n); i++) {
         X509_NAME_ENTRY *e = X509_NAME_get_entry(n, i);
 

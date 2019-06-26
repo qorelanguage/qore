@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,26 @@ struct qore_list_private {
         return l;
     }
 
+    DLLLOCAL QoreListNode* copyCheckNewElementType(const QoreTypeInfo* newElementType) const {
+        QoreListNode* rv = copy();
+        rv->priv->setListTypeFromNewElementType(newElementType);
+        return rv;
+    }
+
+    DLLLOCAL void setListTypeFromNewElementType(const QoreTypeInfo* newElementType) {
+        const QoreTypeInfo* orig_ctype, * ctype;
+        orig_ctype = ctype = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
+        if ((!ctype || ctype == anyTypeInfo) && (!newElementType || newElementType == anyTypeInfo)) {
+            complexTypeInfo = nullptr;
+        } else if (QoreTypeInfo::matchCommonType(ctype, newElementType)) {
+            if (ctype != orig_ctype) {
+                complexTypeInfo = qore_get_complex_list_type(ctype);
+            }
+        } else {
+            complexTypeInfo = autoListTypeInfo;
+        }
+    }
+
     DLLLOCAL QoreListNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
         QoreListNode* l = new QoreListNode;
         l->priv->complexTypeInfo = newComplexTypeInfo;
@@ -120,45 +140,33 @@ struct qore_list_private {
     }
 
     DLLLOCAL QoreListNode* concatenate(const QoreListNode* l, ExceptionSink* xsink) const {
-        bool strip = !QoreTypeInfo::equal(complexTypeInfo, l->priv->complexTypeInfo);
-        ReferenceHolder<QoreListNode> rv(copy(strip), xsink);
-        rv->merge(l, xsink);
-        return *xsink ? nullptr : rv.release();
+        // issue #3429: maintain types unless we have a plain list; convert to list<auto> if the types are not compatible
+        ReferenceHolder<QoreListNode> rv(copyCheckNewElementType(QoreTypeInfo::getUniqueReturnComplexList(l->priv->complexTypeInfo)), xsink);
+        return mergeWithoutTypeConversion(rv, *l->priv);
     }
 
     DLLLOCAL QoreListNode* concatenateElement(QoreValue e, ExceptionSink* xsink) const {
-        const QoreTypeInfo* et = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
-        bool strip = !QoreTypeInfo::equal(et, e.getTypeInfo());
-        ReferenceHolder<QoreListNode> rv(copy(strip), xsink);
-        return rv->priv->push(e, xsink) ? nullptr : rv.release();
-    }
-
-    DLLLOCAL QoreListNode* prependElement(QoreValue e, ExceptionSink* xsink) const {
-        const QoreTypeInfo* et = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
-        bool strip = !QoreTypeInfo::equal(et, e.getTypeInfo());
-        ReferenceHolder<QoreListNode> rv(new QoreListNode, xsink);
-
-        if (complexTypeInfo && !strip) {
-            rv->priv->complexTypeInfo = complexTypeInfo;
+        // issue #3429: maintain types unless we have a plain list; convert to list<auto> if the types are not compatible
+        ReferenceHolder<QoreListNode> rv(copyCheckNewElementType(e.getTypeInfo()), xsink);
+        if (rv->priv->pushWithoutTypeConversion(e, xsink)) {
+            return nullptr;
         }
-
-        rv->priv->pushIntern(e);
-
-        for (size_t i = 0; i < length; ++i) {
-            QoreValue v = entry[i];
-            if (strip) {
-                v = copy_strip_complex_types(v);
-            }
-            else {
-                v.refSelf();
-            }
-            rv->priv->pushIntern(v);
-        }
-
         return rv.release();
     }
 
-    DLLLOCAL int checkVal(ValueHolder& holder, ExceptionSink* xsink) {
+    DLLLOCAL QoreListNode* prependElement(QoreValue e, ExceptionSink* xsink) const {
+        // issue #3429: maintain types unless we have a plain list; convert to list<auto> if the types are not compatible
+        ReferenceHolder<QoreListNode> rv(new QoreListNode(complexTypeInfo), xsink);
+        // set type of new list with the new element
+        rv->priv->setListTypeFromNewElementType(e.getTypeInfo());
+        if (rv->priv->pushWithoutTypeConversion(e, xsink)) {
+            return nullptr;
+        }
+        // add the rest of the list elements
+        return mergeWithoutTypeConversion(rv, *this);
+    }
+
+    DLLLOCAL int checkVal(ValueHolder& holder, ExceptionSink* xsink) const {
         if (complexTypeInfo) {
             const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
             if (QoreTypeInfo::hasType(vti) && !QoreTypeInfo::superSetOf(vti, holder->getTypeInfo())) {
@@ -173,21 +181,43 @@ struct qore_list_private {
                 return 0;
             }
             return 0;
+        } else {
+            return stripVal(holder, xsink);
         }
-        else {
-            switch (holder->getType()) {
-                case NT_LIST:
-                case NT_HASH: {
-                    {
-                        ValueHolder v(holder.release(), xsink);
-                        holder = copy_strip_complex_types(*v);
-                    }
-                    return xsink && *xsink ? -1 : 0;
+        return 0;
+    }
+
+    DLLLOCAL int stripVal(ValueHolder& holder, ExceptionSink* xsink) const {
+        switch (holder->getType()) {
+            case NT_LIST:
+            case NT_HASH: {
+                {
+                    ValueHolder v(holder.release(), xsink);
+                    holder = copy_strip_complex_types(*v);
                 }
-                default:
-                    break;
+                return xsink && *xsink ? -1 : 0;
             }
+            default:
+                break;
         }
+        return 0;
+    }
+
+    // assumes types are compatible; performs type stripping if necessary
+    DLLLOCAL int pushWithoutTypeConversion(QoreValue val, ExceptionSink* xsink) {
+        if (!complexTypeInfo) {
+            return pushStrip(val, xsink);
+        }
+        pushIntern(val);
+        return 0;
+    }
+
+    DLLLOCAL int pushStrip(QoreValue val, ExceptionSink* xsink) {
+        ValueHolder holder(val, xsink);
+        if (stripVal(holder, xsink)) {
+            return -1;
+        }
+        pushIntern(holder.release());
         return 0;
     }
 
@@ -208,6 +238,21 @@ struct qore_list_private {
                 return -1;
         }
         return 0;
+    }
+
+    // fast merge without type conversion; performs type stripping if necessary
+    DLLLOCAL static QoreListNode* mergeWithoutTypeConversion(ReferenceHolder<QoreListNode>& rv, const qore_list_private& list) {
+        for (size_t i = 0; i < list.length; ++i) {
+            QoreValue v = list.entry[i];
+            if (!rv->priv->complexTypeInfo) {
+                v = copy_strip_complex_types(v);
+            } else {
+                v.refSelf();
+            }
+            rv->priv->pushIntern(v);
+        }
+
+        return rv.release();
     }
 
     DLLLOCAL void pushIntern(QoreValue val) {

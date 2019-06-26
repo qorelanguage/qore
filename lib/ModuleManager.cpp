@@ -105,7 +105,7 @@ ModuleReExportHelper::~ModuleReExportHelper() {
 }
 
 QoreHashNode* QoreAbstractModule::getHashIntern(bool with_filename) const {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
     qore_hash_private* ph = qore_hash_private::get(*h);
 
@@ -120,7 +120,7 @@ QoreHashNode* QoreAbstractModule::getHashIntern(bool with_filename) const {
     if (!license.empty())
         ph->setKeyValueIntern("license", new QoreStringNode(license));
     if (!rmod.empty()) {
-        QoreListNode* l = new QoreListNode;
+        QoreListNode* l = new QoreListNode(stringTypeInfo);
         for (name_vec_t::const_iterator i = rmod.begin(), e = rmod.end(); i != e; ++i)
             l->push(new QoreStringNode(*i), nullptr);
         ph->setKeyValueIntern("reexported-modules", l);
