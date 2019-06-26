@@ -67,46 +67,7 @@ bool ThreadResourceList::check(AbstractThreadResource* atr) const {
 
 void ThreadResourceList::purge(ExceptionSink* xsink) {
     purge(0, xsink);
-   /*
-   while (true) {
-      trset_t::iterator i = trset.begin();
-      if (i == trset.end())
-          break;
-
-      AbstractThreadResource* atr = *i;
-      //printd(5, "TRL::purge() this: %p cleaning up atr: %p\n", this, atr);
-      // we have to remove the thread resource from the list before running cleanup in case of user thread resources
-      // where the cleanup routine will cause the object to be deleted and therefore for remove_thread_resource() to
-      // be called which can result in a crash
-      trset.erase(i);
-
-      atr->cleanup(xsink);
-      atr->deref();
-   }
-
-   while (true) {
-      crmap_t::iterator i = crmap.begin();
-      if (i == crmap.end())
-          break;
-
-      ResolvedCallReferenceNode* rcr = i->first;
-      AbstractQoreNode* arg = i->second;
-      //printd(5, "TRL::purge() this: %p cleaning up rcr: %p\n", this, rcr);
-      // we have to remove the thread resource from the list before running cleanup
-      crmap.erase(i);
-
-      ReferenceHolder<QoreListNode> args(xsink);
-      if (arg) {
-         args = new QoreListNode;
-         args->push(arg);
-      }
-
-      rcr->execValue(*args, xsink).discard(xsink);
-      rcr->deref(xsink);
-   }
-   */
-
-   //printd(5, "TRL::purge() this: %p done\n", this);
+    //printd(5, "TRL::purge() this: %p done\n", this);
 }
 
 void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
@@ -143,7 +104,7 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
 
             ReferenceHolder<QoreListNode> args(xsink);
             if (arg) {
-                args = new QoreListNode;
+                args = new QoreListNode(autoTypeInfo);
                 args->push(arg, xsink);
             }
 

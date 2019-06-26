@@ -858,13 +858,13 @@ QoreHashNode* QoreNamespace::getClassInfo() const {
 
 // returns a hash of namespace information
 QoreHashNode* QoreNamespace::getInfo() const {
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
     h->setKeyValue("constants", getConstantInfo(), 0);
     h->setKeyValue("classes", getClassInfo(), 0);
 
     if (!priv->nsl.nsmap.empty()) {
-        QoreHashNode* nsh = new QoreHashNode;
+        QoreHashNode* nsh = new QoreHashNode(autoTypeInfo);
 
         for (nsmap_t::iterator i = priv->nsl.nsmap.begin(), e = priv->nsl.nsmap.end(); i != e; ++i)
             nsh->setKeyValue(i->second->priv->name.c_str(), i->second->getInfo(), 0);

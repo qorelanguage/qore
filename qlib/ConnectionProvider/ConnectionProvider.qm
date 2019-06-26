@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
-/*  ConnectionProvider.qm Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  ConnectionProvider.qm Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -311,7 +311,9 @@ string connstr = get_connection(str);
         - @ref connectionprovider_modules
      */
     public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
-        return cast<hash<string, hash<ConnectionInfo>>>(map {$1.key: $1.value.getInfo(True)}, get_connections(verbose).pairIterator());
+        return map {
+            $1.key: $1.value.getInfo(True),
+        }, get_connections(verbose).pairIterator();
     }
 } # ConnectionProvider namespace
 

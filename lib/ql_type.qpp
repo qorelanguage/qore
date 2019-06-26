@@ -305,7 +305,7 @@ list list(...) [flags=CONSTANT] {
         l = args->listRefSelf();
     }
     else {
-        l = new QoreListNode;
+        l = new QoreListNode(autoTypeInfo);
         QoreValue p0 = get_param_value(args, 0);
         if (!p0.isNothing()) {
             l->push(p0.refSelf(), xsink);
@@ -342,7 +342,7 @@ hash h = hash(("a", 1, "b", "two"));
     @endcode
 */
 hash hash(list l) [flags=RET_VALUE_ONLY] {
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     bool valid = true;
     ConstListIterator li(l);
@@ -369,7 +369,7 @@ hash h = hash(keysv, values);
     @endcode
 */
 hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     ConstListIterator ki(keys);
     ConstListIterator vi(values);
@@ -412,7 +412,7 @@ hash hash(hash h) [flags=CONSTANT] {
 /** The hash() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
 */
 hash hash() [flags=CONSTANT] {
-    return new QoreHashNode;
+    return new QoreHashNode(autoTypeInfo);
 }
 
 //! Returns a string giving the data type of the argument passed; see @ref string_type_constants for the values returned by this function

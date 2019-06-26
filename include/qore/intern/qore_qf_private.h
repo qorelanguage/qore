@@ -762,7 +762,7 @@ struct qore_qf_private {
          // the file would be closed anyway in the destructor
          close_intern();
 
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_DELETED, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -776,7 +776,7 @@ struct qore_qf_private {
 
    DLLLOCAL void do_open_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_OPEN_FILE, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -790,7 +790,7 @@ struct qore_qf_private {
 
    DLLLOCAL void do_opened_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_FILE_OPENED, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -804,7 +804,7 @@ struct qore_qf_private {
 
    DLLLOCAL void do_close_event_unlocked() const {
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_CHANNEL_CLOSED, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -815,7 +815,7 @@ struct qore_qf_private {
    DLLLOCAL void do_read_event_unlocked(int bytes_read, int total_read, int bufsize) const {
       // post bytes read on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_DATA_READ, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);
@@ -829,7 +829,7 @@ struct qore_qf_private {
    DLLLOCAL void do_write_event_unlocked(int bytes_written, int total_written, int bufsize) const {
       // post bytes sent on event queue, if any
       if (cb_queue) {
-         QoreHashNode* h = new QoreHashNode;
+         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
          h->setKeyValue("event", QORE_EVENT_DATA_WRITTEN, 0);
          h->setKeyValue("source", QORE_SOURCE_FILE, 0);
          h->setKeyValue("id", (int64)this, 0);

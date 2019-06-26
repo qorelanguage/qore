@@ -309,7 +309,7 @@ hash GetOpt::parse(reference<list<string>> pgm_args) {
       return QoreValue();
 
    if (ref.getType() != NT_LIST)
-      return new QoreHashNode;
+      return new QoreHashNode(autoTypeInfo);
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
@@ -369,7 +369,7 @@ hash GetOpt::parse2(reference<list<string>> pgm_args) {
       return QoreValue();
 
    if (ref.getType() != NT_LIST)
-      return new QoreHashNode;
+      return new QoreHashNode(autoTypeInfo);
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)
@@ -426,7 +426,7 @@ hash GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
       return QoreValue();
 
    if (ref.getType() != NT_LIST)
-      return new QoreHashNode;
+      return new QoreHashNode(autoTypeInfo);
 
    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
    if (*xsink)

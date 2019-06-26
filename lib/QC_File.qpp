@@ -923,7 +923,7 @@ hash File::getLockInfo() [flags=RET_VALUE_ONLY] {
     if (f->getLockInfo(fl, xsink))
         return QoreValue();
 
-    QoreHashNode *h = new QoreHashNode;
+    QoreHashNode *h = new QoreHashNode(autoTypeInfo);
     h->setKeyValue("start", fl.l_start, xsink);
     h->setKeyValue("len", fl.l_len, xsink);
     h->setKeyValue("pid", fl.l_pid, xsink);

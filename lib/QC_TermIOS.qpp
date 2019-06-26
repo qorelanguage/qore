@@ -872,7 +872,7 @@ static hash TermIOS::getWindowSize() [flags=RET_VALUE_ONLY; dom=TERMINAL_IO] {
    if (QoreTermIOS::getWindowSize(rows, columns, xsink))
       return QoreValue();
 
-   QoreHashNode *rv = new QoreHashNode;
+   QoreHashNode *rv = new QoreHashNode(autoTypeInfo);
    rv->setKeyValue("rows", rows, xsink);
    rv->setKeyValue("columns", columns, xsink);
    return rv;

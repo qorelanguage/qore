@@ -78,7 +78,7 @@ void ThreadLocalVariableData::getLocalVars(QoreHashNode& h, int frame, Exception
                 return;
 
             if (!var.skip) {
-                ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
+                ReferenceHolder<QoreHashNode> v(new QoreHashNode(autoTypeInfo), xsink);
                 v->setKeyValue("type", new QoreStringNode("local"), xsink);
                 v->setKeyValue("value", var.eval(xsink), xsink);
                 h.setKeyValue(var.id, v.release(), xsink);

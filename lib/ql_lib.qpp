@@ -396,7 +396,7 @@ list l = getgroups();
 
     @since %Qore 0.8.11.1
 */
-list getgroups() [dom=EXTERNAL_INFO] {
+list<int> getgroups() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETGROUPS
    gid_t l[MAX_GIDS];
 
@@ -404,7 +404,7 @@ list getgroups() [dom=EXTERNAL_INFO] {
    if (n == -1)
       return xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
 
-   QoreListNode* rv = new QoreListNode;
+   QoreListNode* rv = new QoreListNode(bigIntTypeInfo);
    for (int i = 0; i < n; ++i) {
       rv->push(l[i], xsink);
    }

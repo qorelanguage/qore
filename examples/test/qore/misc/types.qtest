@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3438", \issue3438());
         addTestCase("issue 3429", \issue3429());
         addTestCase("issue 3404", \issue3404());
         addTestCase("issue 3278", \issue3278());
@@ -58,6 +59,12 @@ class TypeTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    issue3438() {
+        hash<string, string> h = {"a": (*softint x = 1).toString()};
+        delete x;
+        assertEq("hash<string, string>", h.fullType());
+    }
+
     issue3429() {
         hash<auto> h = {
             "a": <StatInfo>{"size": 1},
@@ -66,6 +73,28 @@ class TypeTest inherits QUnit::Test {
         };
 
         assertEq("hash<StatInfo>", h.a.fullType());
+        assertEq("hash<auto>", ({"a": 1} + {"b": "2"}).fullType());
+        assertEq("list<auto>", ((1,) + ("2",)).fullType());
+        assertEq("list<auto>", ((1,) + "2").fullType());
+        assertEq("list<auto>", (1 + ("2",)).fullType());
+
+        assertEq("hash<string, *int>", ({"a": 1} + {"b": NOTHING}).fullType());
+        assertEq("list<*int>", ((1,) + (NOTHING,)).fullType());
+
+        assertEq("hash<auto>", (<StatInfo>{} + {"a": 1}).fullType());
+        assertEq("hash<auto>", ({"a": 1} + <StatInfo>{}).fullType());
+
+        # test the hash map operator
+        assertEq("hash<string, hash<StatInfo>>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator()).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator(), True).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, <StatInfo>{}).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, (<StatInfo>{},)).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, <StatInfo>{}, True).fullType());
+        assertEq("hash<string, hash<StatInfo>>", (map {$#.toString(): $1}, (<StatInfo>{},), True).fullType());
+
+
+        assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator()).a.fullType());
+        assertEq("hash<StatInfo>", (map {$1.key: $1.value}, {"a": <StatInfo>{}}.pairIterator(), True).a.fullType());
     }
 
     issue3404() {
@@ -287,9 +316,9 @@ class TypeTest inherits QUnit::Test {
                 "b": {"a": "1"},
             };
             # ensure consistent type folding
-            #assertEq("hash<string, hash>", h.fullType());
-            assertEq(Type::Hash, h.a.fullType());
-            h.a.b = "1";
+            assertEq("hash<string, hash<auto>>", h.fullType());
+            assertEq("hash<string, int>", h.a.fullType());
+            h.a.b = 2;
         }
         {
             any h;
@@ -304,9 +333,9 @@ class TypeTest inherits QUnit::Test {
         }
         {
             auto h = {"a": {"a": 2}} + {"b": {"a": "1"}};
-            assertEq(Type::Hash, h.a.fullType());
-            assertEq(Type::Hash, h.b.fullType());
-            #assertEq(Type::Hash, h.fullType());
+            assertEq("hash<string, int>", h.a.fullType());
+            assertEq("hash<string, string>", h.b.fullType());
+            assertEq("hash<string, hash<auto>>", h.fullType());
         }
         {
             list<auto> l = ({"a": "a"}, );
@@ -348,19 +377,19 @@ class TypeTest inherits QUnit::Test {
         }
         {
             auto l = (1, 2,) + ("3",);
-            assertEq(Type::List, l.fullType());
+            assertEq("list<auto>", l.fullType());
         }
         {
             auto l = (1, 2,) + "3";
-            assertEq(Type::List, l.fullType());
+            assertEq("list<auto>", l.fullType());
         }
         {
             auto l = ("3",) + (1, 2,);
-            assertEq(Type::List, l.fullType());
+            assertEq("list<auto>", l.fullType());
         }
         {
             auto l = "3" + (1, 2,);
-            assertEq(Type::List, l.fullType());
+            assertEq("list<auto>", l.fullType());
         }
     }
 

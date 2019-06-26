@@ -235,7 +235,7 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 }
 
 QoreHashNode* QoreClassList::getInfo() {
-    QoreHashNode *h = new QoreHashNode;
+    QoreHashNode *h = new QoreHashNode(autoTypeInfo);
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
         h->setKeyValue(i->first, i->second.cls->getMethodList(), nullptr);
     return h;

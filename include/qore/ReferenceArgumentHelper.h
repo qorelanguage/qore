@@ -42,7 +42,7 @@
     and then the value of the variable read back out and processed.
     @code
     // create an argument list
-    ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink);
+    ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), &xsink);
     // instantiate "val" as a reference as the only argument in the argument list
     ReferenceArgumentHelper lvh(val, &xsink);
     args->push(lvh.getArg());
@@ -73,10 +73,10 @@ public:
 
         @code
         // incorrect - MEMORY LEAK!
-        ReferenceArgumentHelper rah(new QoreHashNode, &xsink2);
+        ReferenceArgumentHelper rah(new QoreHashNode(autoTypeInfo), &xsink2);
 
         // correct
-        ValueHolder holder(new QoreHashNode, &xsink2);
+        ValueHolder holder(new QoreHashNode(autoTypeInfo), &xsink2);
         ReferenceArgumentHelper rah(*holder, &xsink2);
         @endcode
     */
@@ -90,10 +90,10 @@ public:
 
         @code
         // incorrect - MEMORY LEAK!
-        ReferenceArgumentHelper rah(new QoreHashNode, autoHashTypeInfo, &xsink2);
+        ReferenceArgumentHelper rah(new QoreHashNode(autoTypeInfo), autoHashTypeInfo, &xsink2);
 
         // correct
-        ValueHolder holder(new QoreHashNode, &xsink2);
+        ValueHolder holder(new QoreHashNode(autoTypeInfo), &xsink2);
         ReferenceArgumentHelper rah(*holder, autoHashTypeInfo, &xsink2);
         @endcode
     */

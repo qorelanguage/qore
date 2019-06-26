@@ -82,7 +82,7 @@ qclass Breakpoint [dom=DEBUGGER; arg=QoreBreakpoint* bkpt;];
  *
  */
 Breakpoint::constructor() {
-   QoreBreakpoint *qb = new QoreBreakpoint();
+   QoreBreakpoint *qb = new QoreBreakpoint;
    qb->setQoreObject(self);
    self->setPrivate(CID_BREAKPOINT, qb);
 }
@@ -212,7 +212,7 @@ list Breakpoint::getStatementIds() {
 list Breakpoint::getThreadIds() {
     TidList_t tl;
     bkpt->getThreadIds(tl, xsink);
-    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
     for (TidList_t::iterator it = tl.begin(); it != tl.end(); ++it) {
         (*l)->push(*it, xsink);
     }

@@ -981,7 +981,7 @@ void thread_pop_frame_boundary() {
 }
 
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
    ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
    if (tlpd) {
       tlpd->lvstack.getLocalVars(**rv, frame, xsink);

@@ -49,7 +49,7 @@
 #define LIST_PAD   15
 
 static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(autoTypeInfo);
     qore_list_private* ll = qore_list_private::get(*l);
     ll->pushIntern(e1.refSelf());
     ll->pushIntern(e2.refSelf());
@@ -71,7 +71,7 @@ void QoreListNodeEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
         return;
     }
     needs_deref = true;
-    val = new QoreListNode;
+    val = new QoreListNode(autoTypeInfo);
     qore_list_private* vl = qore_list_private::get(*val);
     vl->reserve(exp->size());
 
@@ -218,7 +218,7 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
         }
     }
     else if (init.getType() == NT_NOTHING) {
-        holder = init = l = new QoreListNode;
+        holder = init = l = new QoreListNode(autoTypeInfo);
     } else {
         const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
         QoreTypeInfo::acceptAssignment(vti, "<list assignment>", init, xsink);
@@ -228,7 +228,7 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
            return nullptr;
         }
 
-        l = new QoreListNode;
+        l = new QoreListNode(autoTypeInfo);
         l->priv->pushIntern(holder.getReferencedValue());
         holder = init = l;
     }
@@ -553,8 +553,8 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
     }
 
     // separate list into two equal-sized lists
-    ReferenceHolder<QoreListNode> left(new QoreListNode, xsink);
-    ReferenceHolder<QoreListNode> right(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> left(new QoreListNode(autoTypeInfo), xsink);
+    ReferenceHolder<QoreListNode> right(new QoreListNode(autoTypeInfo), xsink);
     qore_list_private* l = left->priv;
     qore_list_private* r = right->priv;
     size_t mid = length / 2;

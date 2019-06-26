@@ -61,7 +61,7 @@ private:
 
     DLLLOCAL void editIntern() {
         if (!val) {
-            val = new QoreListNode;
+            val = new QoreListNode(autoTypeInfo);
             needs_deref = true;
         }
         else if (!needs_deref || !val->is_unique()) {

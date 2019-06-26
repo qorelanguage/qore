@@ -72,12 +72,6 @@ QoreListNode* qore_hash_private::getValues() const {
     return list.release();
 }
 
-void qore_hash_private::mergeStrip(const qore_hash_private& h, ExceptionSink* xsink) {
-    for (auto& i : h.member_list) {
-        setKeyValue(i->key, copy_strip_complex_types(i->val), xsink);
-    }
-}
-
 void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) {
     for (auto& i : h.member_list) {
         setKeyValue(i->key, i->val.refSelf(), xsink);
@@ -302,10 +296,10 @@ QoreHashNode::QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink) : Qore
 }
 
 QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
-    if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
-        priv->complexTypeInfo = valueTypeInfo == autoTypeInfo
-            ? autoHashTypeInfo
-            : qore_get_complex_hash_type(valueTypeInfo);
+    if (valueTypeInfo == autoTypeInfo) {
+        priv->complexTypeInfo = autoHashTypeInfo;
+    } else if (QoreTypeInfo::hasType(valueTypeInfo)) {
+        priv->complexTypeInfo = qore_get_complex_hash_type(valueTypeInfo);
     }
 }
 
@@ -443,16 +437,8 @@ QoreListNode* QoreHashNode::getValues() const {
 // adds all elements (and references them) from the hash passed, leaves the
 // hash passed alone
 // order is maintained
-void QoreHashNode::merge(const class QoreHashNode* h, ExceptionSink* xsink) {
-    // strip complex types at the source if necessary
-    if ((priv->complexTypeInfo != autoHashTypeInfo) &&
-        (((priv->hashdecl || h->priv->hashdecl) && priv->hashdecl != h->priv->hashdecl)
-        || !QoreTypeInfo::equal(priv->complexTypeInfo, h->priv->complexTypeInfo))) {
-        priv->mergeStrip(*h->priv, xsink);
-    }
-    else {
-        priv->merge(*h->priv, xsink);
-    }
+void QoreHashNode::merge(const QoreHashNode* h, ExceptionSink* xsink) {
+    priv->merge(*h->priv, xsink);
 }
 
 // returns the same order
@@ -992,6 +978,10 @@ void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
         if (xsink && *xsink) {
             return;
         }
+    } else {
+        // perform type stripping
+        ValueHolder v(val.release(), xsink);
+        val = copy_strip_complex_types(*v);
     }
 
     swapImpl(val.release()).discard(xsink);

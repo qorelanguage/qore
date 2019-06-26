@@ -360,12 +360,12 @@ void qore_program_private_base::setDefines() {
 
 void qore_program_private_base::startThread(ExceptionSink& xsink) {
    if (!thread_local_storage->get())
-      thread_local_storage->set(new QoreHashNode);
+      thread_local_storage->set(new QoreHashNode(autoTypeInfo));
 }
 
 QoreHashNode* qore_program_private::runTimeGetAllDefines() {
     AutoLocker al(plock);
-    QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     qore_hash_private* ph = qore_hash_private::get(*h);
 
     for (auto& i : dmap) {
@@ -417,7 +417,7 @@ void qore_program_private_base::newProgram() {
 
     // save thread local storage hash
     assert(!thread_local_storage->get());
-    thread_local_storage->set(new QoreHashNode);
+    thread_local_storage->set(new QoreHashNode(autoTypeInfo));
 
     //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
 
@@ -1128,9 +1128,9 @@ void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement
 }
 
 QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const {
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
     for (auto& it : *statementIndex) {
-        QoreHashNode* h2 = new QoreHashNode;
+        QoreHashNode* h2 = new QoreHashNode(autoTypeInfo);
         qore_hash_private* ph2 = qore_hash_private::get(*h2);
         for (auto& it2 : it.second->sectionMap) {
             ph2->setKeyValueIntern(it2.first, it2.second);
@@ -2335,7 +2335,7 @@ void QoreBreakpoint::getStatements(AbstractStatementList_t &statList, ExceptionS
 
 QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
     QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : nullptr);
-    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(bigIntTypeInfo), xsink);
     for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
         (*l)->push(pgm->getStatementId(*it), nullptr);
     }

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -96,13 +96,18 @@ void QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
 }
 
 QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {
-    return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
+    const QoreTypeInfo* typeInfo = QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo);
+    return new QoreHashNode(typeInfo ? typeInfo : autoTypeInfo);
 }
 
 QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder arg_lst(e[2], xsink);
     if (*xsink || arg_lst->isNothing())
         return QoreValue();
+
+    // try to find a common value type, if any
+    bool vcommon = false;
+    const QoreTypeInfo* valueType = nullptr;
 
     qore_type_t arglst_type = arg_lst->getType();
     assert(arglst_type != NT_NOTHING);
@@ -134,10 +139,18 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
         if (*xsink)
             return QoreValue();
 
-        // Insert key-Value pair to the hash
-        ret_val->setKeyValue(str_util->c_str(), arg_val.takeReferencedValue(), xsink);
-    }
-    else {// List of values
+        if (ref_rv) {
+            const QoreTypeInfo* vtype = arg_val->getTypeInfo();
+            //printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+            if (vtype && vtype != anyTypeInfo) {
+                valueType = vtype;
+                vcommon = true;
+            }
+
+            // Insert key-Value pair to the hash
+            ret_val->setKeyValue(str_util->c_str(), arg_val.takeReferencedValue(), xsink);
+        }
+    } else { // List of values
         ConstListIterator li(arg_lst->get<const QoreListNode>());
         while (li.next()) {
             // set offset in thread-local data for "$#"
@@ -158,8 +171,20 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
                 if (*xsink)
                     return QoreValue();
 
-                if (ref_rv)
+                if (ref_rv) {
+                    const QoreTypeInfo* vtype = val->getTypeInfo();
+                    //printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                    if (!li.index()) {
+                        if (vtype && vtype != anyTypeInfo) {
+                            valueType = vtype;
+                            vcommon = true;
+                        }
+                    } else if (vcommon && !QoreTypeInfo::matchCommonType(valueType, vtype)) {
+                        vcommon = false;
+                    }
+
                     ret_val->setKeyValue(key->c_str(), val.takeReferencedValue(), xsink);
+                }
             }
             // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
             if (*xsink)
@@ -169,11 +194,21 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     if (*xsink || !ref_rv)
         return QoreValue();
 
+
+    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    if (ref_rv && vcommon) {
+        qore_hash_private::get(**ret_val)->complexTypeInfo = qore_get_complex_hash_type(valueType);
+    }
+
     return ret_val.release();
 }
 
 QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
     ReferenceHolder<QoreHashNode> rv(ref_rv ? getNewHash() : nullptr, xsink);
+
+    // try to find a common value type, if any
+    bool vcommon = false;
+    const QoreTypeInfo* valueType = nullptr;
 
     qore_size_t i = 0;
     // set offset in thread-local data for "$#"
@@ -207,12 +242,29 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
             if (*xsink)
                 return QoreValue();
 
-            if (ref_rv)
+            if (ref_rv) {
+                const QoreTypeInfo* vtype = val->getTypeInfo();
+                //printd(5, "QoreHashMapOperatorNode::mapIterator() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", i, vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                if (i == 1) {
+                    if (vtype && vtype != anyTypeInfo) {
+                        valueType = vtype;
+                        vcommon = true;
+                    }
+                } else if (vcommon && !QoreTypeInfo::matchCommonType(valueType, vtype)) {
+                    vcommon = false;
+                }
+
                 rv->setKeyValue(key->c_str(), val.takeReferencedValue(), xsink);
+            }
         }
         // if there is an exception dereferencing one of the evaluted nodes above, then exit the loop
         if (*xsink)
             return QoreValue();
+    }
+
+    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    if (ref_rv && vcommon) {
+        qore_hash_private::get(**rv)->complexTypeInfo = qore_get_complex_hash_type(valueType);
     }
 
     return rv.release();

@@ -140,7 +140,7 @@ void GlobalVariableList::reset() {
 }
 
 QoreListNode* GlobalVariableList::getVarList() const {
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(stringTypeInfo);
 
     for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++)
         l->push(new QoreStringNode(i->first), nullptr);
