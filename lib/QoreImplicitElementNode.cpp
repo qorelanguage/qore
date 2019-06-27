@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,21 +31,21 @@
 #include <qore/Qore.h>
 
 QoreValue QoreImplicitElementNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   return (int64)get_implicit_element();
+    return (int64)get_implicit_element();
 }
 
 int QoreImplicitElementNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat("get implicit element offset");
-   return 0;
+    str.concat("get implicit element offset");
+    return 0;
 }
 
 QoreString *QoreImplicitElementNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString *rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 const char *QoreImplicitElementNode::getTypeName() const {
-   return getStaticTypeName();
+    return getStaticTypeName();
 }

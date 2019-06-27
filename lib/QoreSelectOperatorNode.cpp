@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,8 +82,7 @@ void QoreSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int 
         }
         else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
             typeInfo = listTypeInfo;
-        }
-        else {
+        } else {
             const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
             if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
                 typeInfo = listTypeInfo;
@@ -128,8 +127,7 @@ QoreValue QoreSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
             if (rv->empty()) {
                 vtype = val.getTypeInfo();
                 vcommon = true;
-            }
-            else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
+            } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
                 vcommon = false;
             }
 
@@ -137,10 +135,7 @@ QoreValue QoreSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
         }
     }
 
-    if (rv && vcommon) {
-        if (vtype == anyTypeInfo) {
-            vtype = nullptr;
-        }
+    if (rv && vcommon && QoreTypeInfo::hasType(vtype)) {
         qore_list_private::get(**rv)->complexTypeInfo = qore_get_complex_list_type(vtype);
     }
 
