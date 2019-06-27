@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,6 @@ void QoreMapSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, i
     const QoreTypeInfo* iteratorTypeInfo = nullptr;
     parse_init_value(e[1], oflag, pflag, lvids, iteratorTypeInfo);
 
-    const QoreTypeInfo* expTypeInfo = nullptr;
     const QoreTypeInfo* selectTypeInfo = nullptr;
     {
         // set implicit argument type
@@ -108,8 +107,9 @@ void QoreMapSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, i
 QoreValue QoreMapSelectOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
-    if (*xsink || value_type == nothing)
+    if (*xsink || value_type == nothing) {
         return QoreValue();
+    }
 
     ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(expTypeInfo) : nullptr, xsink);
 
@@ -136,8 +136,7 @@ QoreValue QoreMapSelectOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *
             if (rv->empty()) {
                 vtype = val.getTypeInfo();
                 vcommon = true;
-            }
-            else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
+            } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
                 vcommon = false;
             }
 
@@ -145,10 +144,7 @@ QoreValue QoreMapSelectOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *
         }
     }
 
-    if (rv && vcommon) {
-        if (vtype == anyTypeInfo) {
-            vtype = nullptr;
-        }
+    if (rv && vcommon && QoreTypeInfo::hasType(vtype)) {
         qore_list_private::get(**rv)->complexTypeInfo = qore_get_complex_list_type(vtype);
     }
 

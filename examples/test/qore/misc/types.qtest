@@ -100,6 +100,18 @@ class TypeTest inherits QUnit::Test {
             h0.a.b = <StatInfo>{};
             assertEq("hash", h0.a.b.fullType());
         }
+
+        {
+            list<hash<StatInfo>> l = map $1, (<StatInfo>{},);
+            assertEq("hash<StatInfo>", l[0].fullType());
+            assertEq("list<hash<StatInfo>>", l.fullType());
+        }
+
+        {
+            list<hash<StatInfo>> l = map $1, (<StatInfo>{},), True;
+            assertEq("hash<StatInfo>", l[0].fullType());
+            assertEq("list<hash<StatInfo>>", l.fullType());
+        }
     }
 
     issue3404() {

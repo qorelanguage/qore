@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -60,17 +60,16 @@ const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& 
 
         if (or_nothing) {
             typeInfo = qore_get_complex_list_or_nothing_type(expTypeInfo);
-        }
-        else
+        } else {
             typeInfo = returnTypeInfo;
-    }
-    else {
+        }
+    } else {
         returnTypeInfo = autoListTypeInfo;
         // this operator returns no value if the iterator expression has no value
         typeInfo = or_nothing ? autoListOrNothingTypeInfo : autoListTypeInfo;
     }
 
-    //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+    //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
 
     return typeInfo;
 }
@@ -157,8 +156,7 @@ QoreValue QoreMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink)
             if (rv->empty()) {
                 vtype = val.getTypeInfo();
                 vcommon = true;
-            }
-            else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
+            } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
                 vcommon = false;
             }
 
@@ -166,10 +164,7 @@ QoreValue QoreMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink)
         }
     }
 
-    if (rv && vcommon) {
-        if (vtype == anyTypeInfo) {
-            vtype = nullptr;
-        }
+    if (rv && vcommon && QoreTypeInfo::hasType(vtype)) {
         qore_list_private::get(**rv)->complexTypeInfo = qore_get_complex_list_type(vtype);
     }
 

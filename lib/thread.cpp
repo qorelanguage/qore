@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1669,8 +1669,7 @@ SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n
     if (!val.isNothing()) {
         argv = new QoreListNode(autoTypeInfo);
         argv->push(val, n_xsink);
-    }
-    else {
+    } else {
         argv = nullptr;
     }
     td->current_implicit_arg = argv;
