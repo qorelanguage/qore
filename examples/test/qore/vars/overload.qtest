@@ -126,6 +126,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("issue 3441", \issue3441());
         addTestCase("Values test", \testValues());
         addTestCase("Variables test", \testVariables());
         addTestCase("issue 1928", \issue1928());
@@ -141,6 +142,12 @@ public class OverloadTest inherits QUnit::Test {
         p.parse("sub t() {} int sub t1(){string vstr = ''; string p1 = vstr + ''; any x = ''; int rv = p(x, p1); return rv;} hash sub t2(){any a1 = ''; any a2; hash rv = p(a1, a2); return rv;}", "");
         assertEq(1, p.callFunction("t1"));
         assertEq({}, p.callFunction("t2"));
+    }
+
+    issue3441() {
+        Program p(PO_NEW_STYLE);
+        p.parse("sub t(hash<string, bool> h) {} sub t(int x) {} hash<auto> h = <StatInfo>{}; t(h);", "");
+        assertThrows("RUNTIME-OVERLOAD-ERROR", "t\\(hash<StatInfo>\\)", \p.run());
     }
 
     testValues() {
