@@ -146,23 +146,15 @@ static void do_call_name(QoreString &desc, const QoreFunction* func) {
 }
 
 static void add_args(QoreStringNode &desc, const QoreListNode* args) {
-   if (!args || !args->size())
-      return;
+    if (!args || !args->size())
+        return;
 
-   for (unsigned i = 0; i < args->size(); ++i) {
-      const QoreValue n = args->retrieveEntry(i);
-      if (n.isNothing())
-         desc.concat("NOTHING");
-      else {
-         qore_type_t t = n.getType();
-         if (t == NT_OBJECT)
-            desc.concat(n.get<const QoreObject>()->getClassName());
-         else
-            desc.concat(n.getTypeName());
-      }
-      if (i != (args->size() - 1))
-         desc.concat(", ");
-   }
+    for (unsigned i = 0; i < args->size(); ++i) {
+        const QoreValue n = args->retrieveEntry(i);
+        desc.concat(n.getFullTypeName());
+        if (i != (args->size() - 1))
+            desc.concat(", ");
+    }
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
