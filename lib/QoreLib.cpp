@@ -321,7 +321,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_MDC2,
      "HAVE_MDC2",
      QO_ALGORITHM,
-#ifndef OPENSSL_NO_MDC2
+#ifdef OPENSSL_HAVE_MDC2
      true
 #else
      false

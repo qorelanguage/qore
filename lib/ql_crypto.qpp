@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1915,7 +1915,7 @@ string str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
     @see MDC2_bin()
  */
 string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
-#ifndef OPENSSL_NO_MDC2
+#ifdef OPENSSL_HAVE_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return QoreValue();
@@ -2274,7 +2274,7 @@ binary bin = MDC2_bin("hello");
     @see MDC2_bin()
  */
 binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
-#ifndef OPENSSL_NO_MDC2
+#ifdef OPENSSL_HAVE_MDC2
    DigestHelper dh(args);
    if (dh.doDigest(MDC2_ERR, EVP_mdc2(), xsink))
       return QoreValue();
@@ -2670,7 +2670,7 @@ string str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
     @throw MDC2-HMAC-ERROR error calculating digest (should not normally happen)
  */
 string MDC2_hmac(data[doc] data, string key) {
-#ifndef OPENSSL_NO_MDC2
+#ifdef OPENSSL_HAVE_MDC2
    HMACHelper dh(args);
    if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), key, xsink))
       return QoreValue();
