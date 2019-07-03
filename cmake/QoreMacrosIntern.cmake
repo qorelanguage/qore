@@ -91,7 +91,15 @@ set(CMAKE_REQUIRED_LIBRARIES ${OPENSSL_LIBRARIES})
 check_cxx_symbol_exists(EVP_mdc2 openssl/evp.h HAVE_OPENSSL_MDC2)
 check_cxx_symbol_exists(EVP_sha512 openssl/evp.h HAVE_OPENSSL_SHA512)
 check_cxx_symbol_exists(EVP_sha openssl/evp.h HAVE_OPENSSL_SHA)
-check_cxx_symbol_exists(EVP_mdc2 openssl/evp.h HAVE_OPENSSL_MDC2)
+
+# check if the EVP_mdc2() function links
+check_cxx_source_compiles("
+#include <openssl/evp.h>
+int main(void) {
+EVP_mdc2();
+return 0;
+}"
+HAVE_OPENSSL_MDC2)
 
 # check for openssl const correctness (later versions have it)
 check_cxx_source_compiles("
