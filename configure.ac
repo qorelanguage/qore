@@ -1040,6 +1040,14 @@ else
     CPPFLAGS="$CPPFLAGS $QORE_LIB_CPPFLAGS $OPENSSL_CPPFLAGS"
     LIBS="$OPENSSL_LDFLAGS $QORE_LIB_LDFLAGS $LIBS"
 
+    AC_MSG_CHECKING([for MDC2 in openssl])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/evp.h>]],
+    [[const EVP_MD *evp = EVP_mdc2();]])],
+       [AC_MSG_RESULT([found])
+        AC_DEFINE([HAVE_OPENSSL_MDC2], 1, [define if the MDC2 algorithm is available in openssl])],
+       [AC_MSG_RESULT([not found])])
+
     # check for SHA-0 algorithm
     AC_MSG_CHECKING([for SHA in openssl])
     AC_LINK_IFELSE([AC_LANG_PROGRAM(
