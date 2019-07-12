@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3448", \issue3448());
         addTestCase("issue 3438", \issue3438());
         addTestCase("issue 3429", \issue3429());
         addTestCase("issue 3404", \issue3404());
@@ -57,6 +58,18 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue3448() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("softlist<auto> l0 = (1,); list<int> l1 = l0; remove l1;", "issue-3448");
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("hash<auto> h0 = {'a': 1,}; hash<string, int> h1 = h0; remove h1;", "issue-3448");
+        }
+        assertTrue(True);
     }
 
     issue3438() {

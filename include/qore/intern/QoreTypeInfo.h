@@ -431,7 +431,9 @@ public:
     DLLLOCAL static const QoreTypeInfo* getUniqueReturnComplexList(const QoreTypeInfo* ti) {
         if (!ti || ti->return_vec.size() > 1 || !hasType(ti))
             return nullptr;
-        return ti == autoListTypeInfo ? autoTypeInfo : ti->return_vec[0].spec.getComplexList();
+        return ti == autoListTypeInfo || ti == softAutoListTypeInfo
+            ? autoTypeInfo
+            : ti->return_vec[0].spec.getComplexList();
     }
 
     // static version of method, checking for null pointer
@@ -721,10 +723,14 @@ public:
                 ctype = autoHashTypeInfo;
             } else if (bti == listTypeInfo) {
                 ctype = autoListTypeInfo;
+            } else if (bti == softListTypeInfo) {
+                ctype = softAutoListTypeInfo;
             } else if (bti == hashOrNothingTypeInfo) {
                 ctype = autoHashOrNothingTypeInfo;
             } else if (bti == listOrNothingTypeInfo) {
                 ctype = autoListOrNothingTypeInfo;
+            } else if (bti == softListOrNothingTypeInfo) {
+                ctype = softAutoListOrNothingTypeInfo;
             } else {
                 ctype = bti;
             }
@@ -2876,7 +2882,7 @@ public:
                n.assign(l);
             }
          },
-      }, q_return_vec_t {{NT_LIST, true}}) {
+      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo), true}}) {
    }
 };
 
@@ -2892,7 +2898,7 @@ public:
                n.assign(l);
             }
          },
-      }, q_return_vec_t {{NT_LIST}, {NT_NOTHING}}) {
+      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo)}, {NT_NOTHING}}) {
    }
 };
 
