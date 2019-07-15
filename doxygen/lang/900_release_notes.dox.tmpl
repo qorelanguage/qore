@@ -20,6 +20,12 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - added optional flags to the following methods to allow them to open file streams in nonblocking mode to handle
+      opening named pipes independently of the writer without blocking:
+      - @ref Qore::FileInputStream::constructor() "FileInputStream::constructor()"
+      - @ref Qore::FileLineIterator::constructor() "FileLineIterator::constructor()"
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3451">issue 3451</a>)
     - fixed a bug compiling with openssl with the MDC2 algorithm disabled
       (<a href="https://github.com/qorelanguage/qore/issues/3443">issue 3443</a>)
     - fixed a confusing error message with runtime overload type errors where complex type information was missing

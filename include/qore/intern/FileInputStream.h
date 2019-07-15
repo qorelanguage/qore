@@ -40,42 +40,42 @@
  */
 class FileInputStream : public InputStream {
 public:
-   DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, ExceptionSink *xsink) : timeout(timeout) {
-      f.open2(xsink, fileName->getBuffer(), O_RDONLY);
-   }
+    DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, int flags, ExceptionSink *xsink) : timeout(timeout) {
+        f.open2(xsink, fileName->getBuffer(), O_RDONLY | flags);
+    }
 
-   DLLLOCAL FileInputStream(int fd) : timeout(-1) {
-      f.makeSpecial(fd);
-   }
+    DLLLOCAL FileInputStream(int fd) : timeout(-1) {
+        f.makeSpecial(fd);
+    }
 
-   DLLLOCAL const char *getName() override {
-      return "FileInputStream";
-   }
+    DLLLOCAL const char *getName() override {
+        return "FileInputStream";
+    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
-      assert(limit > 0);
-      return f.read(ptr, limit, timeout, xsink);
-   }
+    DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+        assert(limit > 0);
+        return f.read(ptr, limit, timeout, xsink);
+    }
 
-   DLLLOCAL int64 peek(ExceptionSink *xsink) override {
-      qore_size_t pos = f.getPos(); // Save initial position.
-      unsigned char c;
-      qore_size_t rc = f.read(&c, 1, -1, xsink);
-      if (*xsink)
-         return -2;
-      if (rc == 0)
-         return -1;
-      f.setPos(pos); // Restore initial position.
-      return c;
-   }
+    DLLLOCAL int64 peek(ExceptionSink *xsink) override {
+        qore_size_t pos = f.getPos(); // Save initial position.
+        unsigned char c;
+        qore_size_t rc = f.read(&c, 1, -1, xsink);
+        if (*xsink)
+            return -2;
+        if (rc == 0)
+            return -1;
+        f.setPos(pos); // Restore initial position.
+        return c;
+    }
 
-   DLLLOCAL QoreFile& getFile() { return f; }
+    DLLLOCAL QoreFile& getFile() { return f; }
 
-   DLLLOCAL int64 getTimeout() const { return timeout; }
+    DLLLOCAL int64 getTimeout() const { return timeout; }
 
 private:
-   QoreFile f;
-   int64 timeout;
+    QoreFile f;
+    int64 timeout;
 };
 
 #endif // _QORE_FILEINPUTSTREAM_H

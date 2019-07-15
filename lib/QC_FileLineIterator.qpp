@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_FileLineIterator.qpp FileLineIterator class definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <cerrno>
@@ -67,24 +67,28 @@ qclass FileLineIterator [arg=FileLineIterator* i; ns=Qore; vparent=AbstractLineI
     @param encoding character encoding of the data in the file; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
     @param eol the optional end of line character(s) to use to detect lines in the file; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n" (the last one is only automatically detected when not connected to a terminal device in order to keep the I/O from stalling); if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the FileLineIterator's @ref character_encoding "character encoding"
     @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
+    @param nonblocking_open if @ref True, then the \c O_NONBLOCK flag will be set in the call to <tt>open() (2)</tt>
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the File's and an error occurs during encoding conversion
     @throw ILLEGAL-EXPRESSION FileLineIterator::constructor() cannot be called with a TTY target when @ref no-terminal-io "%no-terminal-io" is set
+
+    @since %Qore 0.9.3 added the \a nonblocking_open flag
  */
-FileLineIterator::constructor(string path, *string encoding, *string eol, bool trim = True) {
-   if (eol && eol->empty())
-      eol = 0;
+FileLineIterator::constructor(string path, *string encoding, *string eol, bool trim = True, *bool nonblocking_open) {
+    if (eol && eol->empty())
+        eol = 0;
+    int flags = nonblocking_open ? O_NONBLOCK : 0;
 
-   SimpleRefHolder<FileLineIterator> fli(new FileLineIterator(xsink, path, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim));
-   if (*xsink)
-      return;
+    SimpleRefHolder<FileLineIterator> fli(new FileLineIterator(xsink, path, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT, eol, trim, flags));
+    if (*xsink)
+        return;
 
-   if (fli->isTty() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
-      xsink->raiseException("ILLEGAL-EXPRESSION", "FileLineIterator::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
-      return;
-   }
+    if (fli->isTty() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
+        xsink->raiseException("ILLEGAL-EXPRESSION", "FileLineIterator::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
+        return;
+    }
 
-   self->setPrivate(CID_FILELINEITERATOR, fli.release());
+    self->setPrivate(CID_FILELINEITERATOR, fli.release());
 }
 
 //! Creates a new FileLineIterator object, based on the same object being iterated in the original object (the original file is reopened)
