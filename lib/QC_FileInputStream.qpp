@@ -67,12 +67,16 @@ qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; a
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
            "relative date/time value"; integer arguments will be assumed to be milliseconds);
            if not given or negative the operations will never time out
+    @param nonblocking_open if @ref True, then the \c O_NONBLOCK flag will be set in the call to <tt>open() (2)</tt>
 
     @throws FILE-OPEN2-ERROR if the file cannot be opened (does not exist, permission error, etc)
+
+    @since %Qore 0.9.3 added the \a nonblocking_open flag
  */
-FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
-   SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, timeout_ms, xsink));
-   self->setPrivate(CID_FILEINPUTSTREAM, fis.release());
+FileInputStream::constructor(string fileName, timeout timeout_ms = -1, *bool nonblocking_open) {
+    int flags = nonblocking_open ? O_NONBLOCK : 0;
+    SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, timeout_ms, flags, xsink));
+    self->setPrivate(CID_FILEINPUTSTREAM, fis.release());
 }
 
 //! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
