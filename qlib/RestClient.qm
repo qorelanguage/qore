@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
+# minimum qore version
 %requires qore >= 0.9
 
 # require type definitions everywhere
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.6";
+    version = "1.6.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -216,17 +216,15 @@ public namespace RestClient {
             const DeserializeXml = (
                 "code": "xml",
                 "arg": True,
-                "in": hash sub (string xml, reference<string> type) {
+                "in": hash<auto> sub (string xml, reference<string> type) {
                     try {
                         on_success type = "xml";
                         return parse_xmlrpc_value(xml);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         try {
                             on_success type = "rawxml";
                             return parse_xml(xml);
-                        }
-                        catch () {
+                        } catch () {
                         }
                         rethrow;
                     }
@@ -254,7 +252,7 @@ public namespace RestClient {
             const Accept = AcceptList.join(",");
 
             #! RestClient Version
-            const Version = "1.4";
+            const Version = "1.6.2";
 
             #! RestClient Version String
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -325,13 +323,13 @@ public namespace RestClient {
 
         private {
             # headers to send with every request
-            hash headers;
+            hash<auto> headers;
             # data serialization code
             string ds;
             # serialization content type
             string sct;
             # send content encoding hash
-            *hash seh;
+            *hash<auto> seh;
             # REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
             # no_charset option
@@ -355,7 +353,8 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+            - \c headers: an optional hash of headers to send with every request, these can also be overridden in
+              request method calls
             - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
@@ -503,14 +502,14 @@ rest.addDefaultHeaders(("Accept-Encoding": "compress"));
 
             @since %RestClient 1.3
         */
-        addDefaultHeaders(hash h) {
+        addDefaultHeaders(hash<auto> h) {
             headers += h;
         }
 
         #! returns the hash of default headers to sent in all requests
         /** @par Example:
             @code{.py}
-hash h = rest.getDefaultHeaders();
+hash<auto> h = rest.getDefaultHeaders();
             @endcode
 
             @return the hash of default headers to sent in all requests
@@ -521,7 +520,7 @@ hash h = rest.getDefaultHeaders();
 
             @since %RestClient 1.3
         */
-        hash getDefaultHeaders() {
+        hash<auto> getDefaultHeaders() {
             return headers;
         }
 
@@ -560,7 +559,7 @@ string ser = rest.getSerialization();
         #! sends an HTTP \c GET request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.get("/orders/1?info=verbose");
+hash<auto> ans = rest.get("/orders/1?info=verbose");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
@@ -593,14 +592,14 @@ hash ans = rest.get("/orders/1?info=verbose");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash get(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> get(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
         #! sends an HTTP \c PUT request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.put("/orders/1", ("action": "cancel"));
+hash<auto> ans = rest.put("/orders/1", ("action": "cancel"));
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
@@ -632,14 +631,14 @@ hash ans = rest.put("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash put(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> put(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("PUT", path, body, \info, NOTHING, hdr);
         }
 
         #! sends an HTTP \c PATCH request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.patch("/orders/1", ("action": "cancel"));
+hash<auto> ans = rest.patch("/orders/1", ("action": "cancel"));
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
@@ -671,14 +670,14 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash patch(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> patch(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("PATCH", path, body, \info, NOTHING, hdr);
         }
 
         #! sends an HTTP \c POST request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
+hash<auto> ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
@@ -710,14 +709,14 @@ hash ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash post(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> post(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
         #! sends an HTTP \c DELETE request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.del("/orders/1");
+hash<auto> ans = rest.del("/orders/1");
             @endcode
 
             @param path the URI path to add (will be appended to any root path given in the constructor)
@@ -749,7 +748,7 @@ hash ans = rest.del("/orders/1");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash del(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> del(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("DELETE", path, body, \info, NOTHING, hdr);
         }
 
@@ -763,7 +762,7 @@ hash ans = rest.del("/orders/1");
         }
 
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(string method, string path, reference body, reference<hash> hdr, string ct = "Content-Type") {
+        private nothing prepareMsg(string method, string path, reference body, reference<hash<auto>> hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
             # must get the path from the HTTPClient object if not given in the request
@@ -806,7 +805,7 @@ hash ans = rest.del("/orders/1");
         #! sends an HTTP request to the REST server and returns the response
         /** @par Example:
             @code{.py}
-hash ans = rest.doRequest("DELETE", "/orders/1");
+hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             @endcode
 
             @param m the HTTP method to be used; case is ignored (if not a valid method an \c HTTP-CLIENT-METHOD-ERROR exception is raised)
@@ -842,7 +841,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
             - @ref httpclient_get_with_body
          */
-        hash doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
             prepareMsg(m, path, \body, \hdr);
 
             on_exit if (exists body) {
@@ -859,8 +858,8 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! sends the outgoing HTTP message and recodes the response to data
-        hash sendAndDecodeResponse(*data body, string m, string path, hash hdr, *reference<hash> info, *softbool decode_errors) {
-            hash h;
+        hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+            hash<auto> h;
             try {
                 h = send(body, m, path, hdr, False, \info);
                 info."response-code" = h.status_code;
@@ -895,12 +894,11 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! decode any REST errors returned if possible
-        static private decodeError(hash h, *reference<hash> info) {
+        static private decodeError(hash<auto> h, *reference<hash<auto>> info) {
             try {
                 RestClient::tryDecodeErrorResponse(\h, \info);
                 info."response-body" = h.body;
-            }
-            catch () {
+            } catch () {
                 # ignore decoding exceptions
             }
             if (h.body.err) {
@@ -915,9 +913,9 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! tries to decode an error response
-        static private:internal tryDecodeErrorResponse(reference<hash> h, *reference<hash> info) {
+        static private:internal tryDecodeErrorResponse(reference<hash<auto>> h, *reference<hash<auto>> info) {
             #info."response-body" = h.body;
-            *hash dh = NullRestSchemaValidator::DataDeserializationSupport.(h."content-type");
+            *hash<auto> dh = NullRestSchemaValidator::DataDeserializationSupport.(h."content-type");
             if (!dh)
                 throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; types supported: %y; response body: %y", h."content-type", NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
 
@@ -939,6 +937,10 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
+        - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
+            request method calls; also a string giving headers can be given in the format:
+            <tt>header1=value, header2=value</tt>; the value will be parsed with
+            @ref Util::parse_to_qore_value() "parse_to_qore_value()"
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
@@ -956,7 +958,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
     public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         public {
             #! real options used when creating an object
-            hash real_opts;
+            hash<auto> real_opts;
 
             #! RestConnection object connection options
             const Options = HttpConnection::Options + {
@@ -964,6 +966,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
                 "send_encoding": True,
                 "content_encoding": True,
                 "swagger": True,
+                "headers": True,
             };
 
             const OptionList = Options.keys();
@@ -980,8 +983,8 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             @deprecated since Qore 0.9
         */
         deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
-            : HttpBasedConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        constructor(string name, string desc, string url, bool monitor, *hash<auto> opts, hash<auto> urlh)
+            : HttpBasedConnection(name, desc, url, {"monitor": monitor}, RestConnection::processOptions(opts)) {
             real_opts = {"url": real_url} + self.opts;
         }
 
@@ -995,11 +998,10 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
 
             @par Additional Attributes
-
-                - \c error a custom error string
+            - \c error a custom error string
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
-            : HttpBasedConnection(name, description, url, attributes, options) {
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+            : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
             real_opts = {"url": real_url} + opts;
         }
 
@@ -1031,6 +1033,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values when used with the null REST schema validator; the default is \c "auto"
+            - \c "headers": headers to send with each request
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
@@ -1040,12 +1043,12 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
 
             @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return HttpConnection::DefaultOptions;
         }
 
@@ -1054,12 +1057,37 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             return "rest";
         }
 
+        #! processes options for the constructor; in particular parses any string as a value of the \c "headers" option to return a hash
+        static hash<auto> processOptions(*hash<auto> opts) {
+            hash<auto> rv = {} + opts;
+            switch (opts.headers.typeCode()) {
+                case NT_NOTHING:
+                case NT_HASH:
+                    break;
+                case NT_STRING: {
+                    auto v = parse_to_qore_value(opts.headers);
+                    if (v.typeCode() != NT_HASH) {
+                        throw "REST-CONNECTION-ERROR", sprintf("\"headers\" option string parsed to type %y "
+                            "(value: %y); expecting \"hash\"",
+                            v.type(), v);
+                    }
+                    v = map {$1.key: $1.value.toString()}, v.pairIterator();
+                    rv.headers = v;
+                    break;
+                }
+                default:
+                    throw "REST-CONNECTION-ERROR", sprintf("\"headers\" option is type %y; expecting \"hash\"",
+                        opts.headers.type());
+            }
+            return rv;
+        }
+
         #! DEPRECATED: static constructor
         /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */
         deprecated
-        static RestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            hash attributes = {
+        static RestConnection make(string name, string desc, string url, bool monitor, *hash<auto> opts, hash<auto> urlh) {
+            hash<auto> attributes = {
                 "monitor": monitor,
             };
             return new RestConnection(name, desc, url, attributes, opts ?? {});

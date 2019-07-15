@@ -215,8 +215,13 @@ public class Main inherits QUnit::Test {
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
 
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {});
+        string val = get_random_string();
+        hash<auto> hdr = {
+            "X-Test": val,
+        };
+        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": hdr});
         client = conn.get(False);
+        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
         assertEq(url, client.getURL());
         assertEq(False, conn.monitor);
         assertEq(True, conn.enabled);
@@ -226,6 +231,18 @@ public class Main inherits QUnit::Test {
         assertEq("RestClient", info.class_name);
         assertEq(url, info.args[0].url);
         checkPreAndPostProcessing(info);
+
+        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
+        client = conn.get(False);
+        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+
+        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "abc=2, X-Test=" + val});
+        client = conn.get(False);
+        assertEq({"abc": "2"} + hdr, client.getDefaultHeaders(){"abc", "X-Test",});
+
+        assertThrows("REST-CONNECTION-ERROR", sub () {
+            new RestConnection("test", "test", url, {"monitor": False}, {"headers": "1"});
+        });
     }
 
     private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
