@@ -6,6 +6,7 @@
 %new-style
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mapper.qm
 
@@ -165,9 +166,10 @@ public class MapperTest inherits QUnit::Test {
         );
 
         const MapOutput2 = (
-                ("int_field" : 11),
-                ("int_field" : 10),
-                ("int_field" : NOTHING),);
+            ("int_field" : 11),
+            ("int_field" : 10),
+            ("int_field" : NOTHING),
+        );
 
         const DotMap = (
             "output.1": "input.2",
@@ -200,11 +202,76 @@ public class MapperTest inherits QUnit::Test {
             ("a": ("id": 123, "other": "abc", "something": 1)),
             ("a": ("id": 456, "other": "xyz", "something": 2)),
             );
+
+        const TypeMap0 = {
+            "output_0": {
+                "name": "input_0",
+            },
+            "output_1": {
+                "name": "input_1",
+            },
+        };
+
+        const TypeOpts0 = {
+            "input": {
+                "input_0": {
+                    "desc": "input field 0",
+                    "type": "hash",
+                },
+                "input_1": {
+                    "desc": "input field 1",
+                    "type": "any",
+                },
+            },
+            "output": {
+                "output_0": {
+                    "desc": "input field 0",
+                    "type": "hash",
+                },
+                "output_1": {
+                    "desc": "output field 1",
+                    "type": "any",
+                },
+            },
+        };
+
+        const TypeMap1 = {
+            "output_0": {
+                "name": "input_0",
+                "type": "hash",
+            },
+            "output_1": {
+                "name": "input_1",
+                "type": "any",
+            },
+        };
+
+        const TypeOpts1 = {
+            "input": {
+                "input_0": {
+                    "desc": "input field 0",
+                    "type": "hash",
+                },
+                "input_1": {
+                    "desc": "input field 1",
+                    "type": "any",
+                },
+            },
+            "output": {
+                "output_0": {
+                    "desc": "input field 0",
+                },
+                "output_1": {
+                    "desc": "output field 1",
+                },
+            },
+        };
     }
 
     constructor() : Test("MapperTest", "1.0") {
-        addTestCase("Test mapAll()", \testMapperMapAll(), NOTHING);
-        addTestCase("Test mapData()", \testMapperMapData(), NOTHING);
+        addTestCase("test types", \testTypes());
+        addTestCase("Test mapAll()", \testMapperMapAll());
+        addTestCase("Test mapData()", \testMapperMapData());
         addTestCase("Runtime test", \testMapperRuntime());
         addTestCase("Test 'input' option", \testMapperOptionInput());
         addTestCase("Bulk Test", \testMapperBulk());
@@ -222,6 +289,40 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    testTypes() {
+        {
+            Mapper m(TypeMap0, TypeOpts0);
+            assertEq("x", m.mapData({"input_1": "x"}).output_1);
+            assertEq(1n, m.mapData({"input_1": 1n}).output_1);
+            auto v = m.mapData({"input_1": <StatInfo>{}}).output_1;
+            assertEq(<StatInfo>{}, v);
+            assertEq("hash<StatInfo>", v.fullType());
+
+            hash<auto> x = {"a": get_random_string(), "b": get_random_bytes(20)};
+            assertEq(x, m.mapData({"input_0": x}).output_0);
+            v = m.mapData({"input_0": <StatInfo>{}}).output_0;
+            assertEq(<StatInfo>{}, v);
+            assertEq("hash<StatInfo>", v.fullType());
+            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+        }
+
+        {
+            Mapper m(TypeMap1, TypeOpts1);
+            assertEq("x", m.mapData({"input_1": "x"}).output_1);
+            assertEq(1n, m.mapData({"input_1": 1n}).output_1);
+            auto v = m.mapData({"input_1": <StatInfo>{}}).output_1;
+            assertEq(<StatInfo>{}, v);
+            assertEq("hash<StatInfo>", v.fullType());
+
+            hash<auto> x = {"a": get_random_string(), "b": get_random_bytes(20)};
+            assertEq(x, m.mapData({"input_0": x}).output_0);
+            v = m.mapData({"input_0": <StatInfo>{}}).output_0;
+            assertEq(<StatInfo>{}, v);
+            assertEq("hash<StatInfo>", v.fullType());
+            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+        }
     }
 
     testMapperMapAll() {
