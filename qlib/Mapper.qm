@@ -35,7 +35,7 @@
 %new-style
 
 module Mapper {
-    version = "1.4";
+    version = "1.4.1";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,8 @@ list: (2 elements)
         - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
+        - \c "hash": field accepts hash values
+        - \c "any": field accepts any value
 
     @section mapperoptions Mapper Options
 
@@ -175,6 +177,8 @@ list: (2 elements)
         - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
         - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
+        - \c "hash": field accepts hash values
+        - \c "any": field accepts any value
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
     - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
@@ -195,13 +199,13 @@ list: (2 elements)
 
     @par Example:
     @code{.py}
-hash mapv = (
+hash<auto> mapv = (
     "foo": ("constant": "bar"),
      # ...
     "date_begin": ("runtime": "start_date"), # references runtime option "start_date"
     "group": ("runtime": "group_id"),        # references runtime option "group_id"
 );
-hash opts = (
+hash<auto> opts = (
     "timezone": "Europe/Prague",
     # ...
     "runtime": (
@@ -218,6 +222,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_4_1 Mapper v1.4.1
+    - added support for types "any" and "hash"
+      (<a href="https://github.com/qorelanguage/qore/issues/2495">issue 2405</a>)
 
     @subsection mapperv1_4 Mapper v1.4
     - added support for complex types
@@ -266,7 +274,7 @@ public namespace Mapper {
             const ConstantConflictList = ("name", "struct", "code", "default");
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
-            const OptionKeys = (
+            const OptionKeys = {
                 "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
                 "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
                 "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
@@ -282,10 +290,10 @@ public namespace Mapper {
                 "timezone": "the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
                 "empty_strings_to_nothing": "converts out record's empty strings and into NOTHING - actually the value is deleted",
-                );
+            };
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
-            const ValidKeys = (
+            const ValidKeys = {
                 "name": True,
                 "struct": True,
                 "constant": True,
@@ -301,35 +309,37 @@ public namespace Mapper {
                 "number_format": True,
                 "runtime" : True,
                 "empty_strings_to_nothing" : True,
-                );
+            };
 
             #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
-            const ValidTypes = (
+            const ValidTypes = {
                 "number": True,
                 "integer": True,
                 "int": True, # is an alias for "integer"
                 "date": True,
                 "string": True,
-                );
+                "hash": True,
+                "any": True,
+            };
 
             #! output option keys
-            const OutputKeys = (
+            const OutputKeys = {
                 "desc": True,
                 "mand": True,
                 "maxlen": True,
                 "type": True,
-                );
+            };
         }
 
         private {
             #! the hash providing output field names and mappings
-            hash mapc;
+            hash<auto> mapc;
 
             #! the hash with a subset of the mappings used dynamically
-            hash mapd;
+            hash<auto> mapd;
 
             #! the hash of output records for key order
-            hash mapo;
+            hash<auto> mapo;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
             string encoding = "utf-8";
@@ -368,10 +378,10 @@ public namespace Mapper {
             *string number_format;
 
             #! an optional description of possible input hash keys
-            *hash input;
+            *hash<auto> input;
 
             #! an optional description of the output data structure
-            *hash output;
+            *hash<auto> output;
 
             #! count of records mapped
             int count = 0;
@@ -379,7 +389,7 @@ public namespace Mapper {
             #! current runtime values
             /** @since Mapper 1.1
              */
-            *hash m_runtime;
+            *hash<auto> m_runtime;
 
             #! flag to enforce deletion of the empty string in the output record
             /** @since Mapper 1.1
@@ -387,16 +397,16 @@ public namespace Mapper {
             bool m_empty_strings_to_nothing = False;
 
             #! map of fields to be mapped 1:1 input -> output
-            hash identh;
+            hash<auto> identh;
 
             #! list of fields to be mapped 1:1 input -> output
-            *list identl;
+            *list<auto> identl;
 
             #! map of constant fields
-            hash consth;
+            hash<auto> consth;
 
             #! map of constant runtime fields
-            hash rconsth;
+            hash<auto> rconsth;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -423,7 +433,7 @@ Mapper mapv(DataMap);
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
-        constructor(hash mapv, *hash opts) {
+        constructor(hash<auto> mapv, *hash<auto> opts) {
             setup(mapv, opts);
 
             # check map for logical errors
@@ -435,7 +445,7 @@ Mapper mapv(DataMap);
         }
 
         #! sets up the mapper object before checking the mapper hash
-        private setup(hash mapv, *hash opts) {
+        private setup(hash<auto> mapv, *hash<auto> opts) {
             name = opts.name;
             info_log = opts.info_log;
             input_log = opts.input_log;
@@ -480,8 +490,9 @@ Mapper mapv(DataMap);
             if (!mapv)
                 error("empty map passed to %s::constructor()", self.className());
 
-            mapc = mapv;
-            hash ck = optionKeys();
+            # the "{} + " construction is there to make sure mapc has type hash<auto>
+            mapc = {} + mapv;
+            hash<auto> ck = optionKeys();
             foreach string k in (keys opts) {
                 if (!ck{k})
                     error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
@@ -513,7 +524,8 @@ Mapper mapv(DataMap);
                     error("input key 'runtime' passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"",
                           self.className(), opts.runtime.type(), opts.runtime);
                 }
-                m_runtime = opts.runtime;
+                # the "{} + " construction is there to make sure m_runtime has type hash<auto>
+                m_runtime = {} + opts.runtime;
             }
 
             if (opts.empty_strings_to_nothing) {
@@ -538,12 +550,12 @@ Mapper mapv(DataMap);
         }
 
         #! convert a field definition to a hash if possible
-        private convertToHash(int t, string k, reference<any> fh) {
+        private convertToHash(int t, string k, reference<auto> fh) {
             switch (t) {
                 # convert to a hash if the value of the column is a string (giving the source key name)
-                case NT_STRING: fh = ("name": fh); break;
+                case NT_STRING: fh.name = fh; break;
                 case NT_CALLREF:
-                case NT_CLOSURE: fh = ("code": fh); break;
+                case NT_CLOSURE: fh.code = fh; break;
                 case NT_BOOLEAN: if (fh) {
                     fh = {};
                     break;
@@ -567,8 +579,8 @@ Mapper mapv(DataMap);
         /** @param k the field name
             @param fh a reference to the field's value in the map; will be converted to a hash
         */
-        private checkMapField(string k, reference<any> fh) {
-            *hash outf;
+        private checkMapField(string k, reference<auto> fh) {
+            *hash<auto> outf;
             # check output name
             if (output) {
                 if (!output.hasKey(k))
@@ -581,6 +593,9 @@ Mapper mapv(DataMap);
             int t = fh.typeCode();
             if (t != NT_HASH)
                 convertToHash(t, k, \fh);
+            else if (fh.fullType() != "hash<auto>") {
+                fh = {} + fh;
+            }
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
@@ -593,12 +608,10 @@ Mapper mapv(DataMap);
                     if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
                         identh{k} = True;
                 }
-            }
-            else if (fh.runtime) {
+            } else if (fh.runtime) {
                 if (!m_runtime.hasKey(fh.runtime))
                     error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
-            }
-            else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
+            } else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
                 checkInputField(k, k);
             if (exists fh.constant && exists fh.index) {
                 error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
@@ -621,8 +634,7 @@ Mapper mapv(DataMap);
                         fh.name = (remove fh.struct)[0];
                         if (input)
                             checkInputField(k, fh.name);
-                    }
-                    else if (input && !exists fh.constant && !fh.code && !exists fh.index)
+                    } else if (input && !exists fh.constant && !fh.code && !exists fh.index)
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
                     break;
                 }
@@ -635,8 +647,7 @@ Mapper mapv(DataMap);
                 if (exists fh.type) {
                     if (fh.type != "date")
                         error("field %y has a 'date_format' key but the field's type is '%s'", getFieldName(k), fh.type);
-                }
-                else
+                } else
                     fh.type = "date";
             }
 
@@ -646,8 +657,7 @@ Mapper mapv(DataMap);
                 if (exists fh.type) {
                     if (fh.type != "number")
                         error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k), fh.type);
-                }
-                else
+                } else
                     fh.type = "number";
             }
 
@@ -669,8 +679,8 @@ Mapper mapv(DataMap);
             if (fh.maxlen && !exists fh.trunc && trunc_all)
                 fh.trunc = True;
 
-            hash vk = validKeys();
-            hash vt = validTypes();
+            hash<auto> vk = validKeys();
+            hash<auto> vt = validTypes();
 
             foreach string hk in (keys fh)
                 if (!vk{hk})
@@ -682,8 +692,7 @@ Mapper mapv(DataMap);
                     error("output field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
                 fh.type = "number";
                 delete fh.number;
-            }
-            else if (exists fh.type) {
+            } else if (exists fh.type) {
                 if (!vt.(fh.type))
                     error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
                 switch (fh.type) {
@@ -701,6 +710,10 @@ Mapper mapv(DataMap);
                         fh.typeCode = NT_INT;
                         break;
                     }
+                    case "hash": {
+                        fh.typeCode = NT_HASH;
+                        break;
+                    }
                 }
             }
 
@@ -708,11 +721,10 @@ Mapper mapv(DataMap);
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
 
             if (exists fh."default" && fh.type) {
-                hash rec{k} = fh."default";
+                hash<auto> rec{k} = fh."default";
                 try {
                     mapFieldType(k, fh, \rec{k}, rec);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
                 }
             }
@@ -721,8 +733,7 @@ Mapper mapv(DataMap);
             if (!allow_output_dot && k =~ /\./) {
                 fh.ostruct = k.split(".");
                 mapo{fh.ostruct[0]} = NOTHING;
-            }
-            else {
+            } else {
                 # add to consth if a constant value is included
                 # refs #1754 if constant is 0, we cannot simply check with if(fh.constant)
                 if (exists fh.constant)
@@ -734,7 +745,7 @@ Mapper mapv(DataMap);
         }
 
         #! verifies a timezone constructor option
-        private checkTimezoneOption(hash opts, string rn) {
+        private checkTimezoneOption(hash<auto> opts, string rn) {
             auto val = opts{rn};
             if (!exists val)
                 return;
@@ -797,7 +808,7 @@ Mapper mapv(DataMap);
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        setRuntime(hash runtime) {
+        setRuntime(hash<auto> runtime) {
             if (count > 0 && m_runtime + runtime != m_runtime) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
                         "has changed %y -> %y while already %y input rows have been "
@@ -825,13 +836,14 @@ Mapper mapv(DataMap);
             @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                    processing the data.
          */
-        replaceRuntime(*hash runtime) {
+        replaceRuntime(*hash<auto> runtime) {
             if (count > 0 && runtime != m_runtime) {
                 throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
                         "has changed %y -> %y while already %y input rows have been "
                         "processed", m_runtime, runtime, count);
             }
-            m_runtime = runtime;
+            # the "{} + " construction is there to make sure m_runtime has type hash<auto>
+            m_runtime = {} + runtime;
         }
 
         #! get current @ref mapper_runtime_handling "runtime option" value for a key
@@ -858,31 +870,31 @@ Mapper mapv(DataMap);
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
         /** @return a list of valid field keys for this class (can be overridden in subclasses)
         */
-        hash validKeys() {
+        hash<auto> validKeys() {
             return ValidKeys;
         }
 
         #! returns a list of valid field types for this class (can be overridden in subclasses)
         /** @return a list of valid types for this class (can be overridden in subclasses)
         */
-        hash validTypes() {
+        hash<auto> validTypes() {
             return ValidTypes;
         }
 
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
-        hash optionKeys() {
+        hash<auto> optionKeys() {
             return OptionKeys;
         }
 
         #! returns the value of the \c "input" option
-        *hash getInputRecord() {
+        *hash<auto> getInputRecord() {
             return input;
         }
 
         #! returns the value of the \c "output" option
-        *hash getOutputRecord() {
+        *hash<auto> getOutputRecord() {
             return output;
         }
 
@@ -927,8 +939,8 @@ Mapper mapv(DataMap);
             - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
             - uses mapDataIntern() to map the data, then logOutput() is called for each output row
         */
-        hash mapData(hash rec) {
-            hash h = mapDataIntern(rec);
+        hash<auto> mapData(hash<auto> rec) {
+            hash<auto> h = mapDataIntern(rec);
             logOutput(h);
             return h;
         }
@@ -946,23 +958,21 @@ Mapper mapv(DataMap);
             - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
             - this is the same as mapData() except no output logging is performed
         */
-        private hash mapDataIntern(hash rec) {
+        private hash<auto> mapDataIntern(hash<auto> rec) {
             if (input_log)
                 input_log(rec);
 
-            # hash of mapped data to be added to h; mapo provides the output field order
-            hash h = mapo;
-
-            # first copy all 1:1 mappings to the output hash
-            if (identl)
-                h += rec{identl};
-
-            # copy all constant mappings to the output hash
-            if (consth)
-                h += consth;
-
-            # copy all runtime constant mappings to the output hash
-            map h{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
+            # hash of mapped data to be added to h
+            hash<auto> h;
+            # assigning after the declaration ensure that the hash stays "hash<auto>"
+            # mapo provides the output field order
+            h = mapo
+                # first copy all 1:1 mappings to the output hash
+                + (identl ? rec{identl} : NOTHING)
+                # then copy all constant mappings to the output hash
+                + consth
+                # then copy all runtime constant mappings to the output hash
+                + map {$1.key: m_runtime{$1.value}}, rconsth.pairIterator();
 
             # iterate through dynamic target fields
             map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
@@ -1000,16 +1010,16 @@ Mapper mapv(DataMap);
           *       and non-list values - the non-list values are used as constants
           *       in the mapping - as if expanded to lists with all values identical.
           */
-        private nothing mapFieldIntern(reference<hash> h, string key, hash rec, bool do_list, int list_size) {
+        private nothing mapFieldIntern(reference<hash<auto>> h, string key, hash<auto> rec, bool do_list, int list_size) {
             # FIXME: assert(!do_list || list_size > 0);
             # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
-            hash m = mapc{key};
+            hash<auto> m = mapc{key};
 
             # closure to get the current record hash from a hash of lists;
             # rec is not bound here for performance reasons (so it will remain unlocked);
             # NOTE that we still need the NT_LIST check here since even with do_list
             # we can get constants in 'rec' (aka non-lists).
-            code getrec = hash sub (hash rc, int offset) {
+            code getrec = hash<auto> sub (hash<auto> rc, int offset) {
                 return map {$1.key : $1.value.typeCode() == NT_LIST ?
                                         $1.value[offset] :
                                         $1.value}, rc.pairIterator();
@@ -1026,18 +1036,15 @@ Mapper mapv(DataMap);
                 v = do_list ?
                     (map m.index + count + $#, xrange(0, list_size - 1)) :
                     m.index + count;
-            }
-            else if (exists m.runtime) {
+            } else if (exists m.runtime) {
                 # actually runtime should not happen with do_list since
                 # do_list = True is only used from TableMapper that is handling
                 # runtime outside mapFieldIntern()
                 v = m_runtime{m.runtime};
-            }
-            else if (m.struct) {
+            } else if (m.struct) {
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
-            }
-            else
+            } else
                 v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
 
             bool v_is_list = v.typeCode() == NT_LIST;
@@ -1053,7 +1060,8 @@ Mapper mapv(DataMap);
 
             # move any XML CDATA into the field value
             # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
-            if (v."^cdata^")
+            # do not access "^cdata^" directly in case it's a hashdecl
+            if (v.typeCode() == NT_HASH && v.hasKey("^cdata^") && v."^cdata^".val())
                 v = v."^cdata^";
 
             # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
@@ -1073,8 +1081,7 @@ Mapper mapv(DataMap);
                     else {
                         v = m.code(v, rec);
                     }
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     ex.desc = sprintf("field %y closure: %s", key, ex.desc);
                     throw ex.err, ex.desc, ex.arg;
                 }
@@ -1082,8 +1089,7 @@ Mapper mapv(DataMap);
 
             if (v_is_list) {
                 map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
-            }
-            else {
+            } else {
                 if ((m_empty_strings_to_nothing && v === "") || v === NULL)
                     delete v;
             }
@@ -1135,7 +1141,7 @@ Mapper mapv(DataMap);
             # add value to row list
             if (m.ostruct) {
                 # recursive closure for generating structured data
-                code ah = auto sub (*hash ch, auto vc, int off = 0) {
+                code ah = auto sub (*hash<auto> ch, auto vc, int off = 0) {
                     if (off == m.ostruct.size())
                         return vc;
                     string k = m.ostruct[off];
@@ -1148,8 +1154,7 @@ Mapper mapv(DataMap);
                 try {
                     h = ah(h, v);
                     return;
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "INVALID-OUTPUT")
                         error2(ex.err, ex.desc);
                     else
@@ -1169,13 +1174,13 @@ Mapper mapv(DataMap);
         }
 
         #! called when a field exceeds its maximum length when processing hashes of lists
-        private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash rc) {
+        private fieldLengthError(string k, string val, int ix, int sze, int maxlen, hash<auto> rc) {
             error2("STRING-TOO-LONG", "field %y = %y%s, input length %d exceeds maximum byte length %d for input row: %y",
                     getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen, rc);
         }
 
         #! calls the output logging @ref closure "closure" or @ref call_reference "call reference" (if any) to log the output record
-        logOutput(hash h) {
+        logOutput(hash<auto> h) {
             if (output_log)
                 output_log(h);
         }
@@ -1195,7 +1200,7 @@ Mapper mapv(DataMap);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash m, reference<any> v, hash rec) {
+        private mapFieldType(string key, hash<auto> m, reference<auto> v, hash<auto> rec) {
             if (v === NULL) {
                 delete v;
                 return;
@@ -1233,22 +1238,23 @@ Mapper mapv(DataMap);
                 case "integer": {
                     switch (v.typeCode()) {
                         case NT_INT:
-                            return;
+                            break;
                         case NT_STRING: {
                             # check for valid integer values
                             if (v !~ /^([-+])?[0-9]+$/)
                                 error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", getFieldName(key), v, rec);
                             v = int(v);
-                            return;
+                            break;
                         }
                         default: {
                             int rc = int(v);
                             if (rc != v)
                                 error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer data in input row: %y", getFieldName(key), v, rec);
                             v = rc;
-                            return;
+                            break;
                         }
                     }
+                    break;
                 }
                 case "date": {
                     # if there is no date_format below, then the default conversion is made
@@ -1262,6 +1268,13 @@ Mapper mapv(DataMap);
                 case "string": {
                     if (v.typeCode() != NT_STRING)
                         v = string(v, encoding);
+                    break;
+                }
+                case "hash": {
+                    if (v.typeCode() != NT_HASH) {
+                        error2("INVALID-HASH", "field %y = %y is marked as a hash field, but the input data is of type %y",
+                            getFieldName(key), v, v.type());
+                    }
                     break;
                 }
             }
@@ -1286,7 +1299,7 @@ Mapper mapv(DataMap);
         }
 
         #! to be overridden as necessary in subclasses
-        private auto mapSubclass(hash m, auto v) {
+        private auto mapSubclass(hash<auto> m, auto v) {
             return v;
         }
     }
@@ -1356,7 +1369,7 @@ Mapper mapv(DataMap);
 
             @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
          */
-        constructor(Qore::AbstractIterator i, hash mapv, *hash opts) : Mapper::AbstractMapperIterator(i) {
+        constructor(Qore::AbstractIterator i, hash<auto> mapv, *hash<auto> opts) : Mapper::AbstractMapperIterator(i) {
             mapc = new Mapper(mapv, opts);
         }
 
@@ -1369,7 +1382,7 @@ Mapper mapv(DataMap);
         }
 
         #! returns the current row transformed with the mapper
-        hash getValue() {
+        hash<auto> getValue() {
             return mapc.mapData(i.getValue());
         }
 

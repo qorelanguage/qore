@@ -275,6 +275,7 @@ public namespace RestClient {
                 - \c "xml": use only XML-RPC serialization
                 - \c "text": use only plain text. No serialization is used.
                 - \c "bin": for binary message bodies without data serialization
+                - \c "url": for URL-encoded message bodies
              */
             const DataSerializationOptions = (
                 "auto": True,
