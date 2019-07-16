@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -311,25 +311,25 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 }
 
 void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const {
-   QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
+    QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
 
-   // make sure getProgram() returns this Program when module_ns_init() is called
-   QoreProgramContextHelper pch(pgm);
+    // make sure getProgram() returns this Program when module_ns_init() is called
+    QoreProgramContextHelper pch(pgm);
 
-   RootQoreNamespace* rns = pgm->getRootNS();
-   QoreNamespace* qns = pgm->getQoreNS();
+    RootQoreNamespace* rns = pgm->getRootNS();
+    QoreNamespace* qns = pgm->getQoreNS();
 
-   module_ns_init(rns, qns);
+    module_ns_init(rns, qns);
 
-   if (qmc.hasError()) {
-      // rollback all module changes
-      qmc.rollback();
-      return;
-   }
+    if (qmc.hasError()) {
+        // rollback all module changes
+        qmc.rollback();
+        return;
+    }
 
-   // commit all module changes
-   qmc.commit();
-   pgm->addFeature(name.getBuffer());
+    // commit all module changes
+    qmc.commit();
+    pgm->addFeature(name.getBuffer());
 }
 
 QoreHashNode* QoreBuiltinModule::getHash(bool with_filename) const {
@@ -646,21 +646,21 @@ static void check_module_version(QoreAbstractModule* mi, mod_op_e op, version_li
 }
 
 static void qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, version_list_t* version, QoreProgram* pgm, ExceptionSink& xsink) {
-   if (xsink) {
-       assert(!mi);
-       return;
-   }
+    if (xsink) {
+        assert(!mi);
+        return;
+    }
 
-   assert(mi);
-   // check version if necessary
-   if (version) {
-      check_module_version(mi, op, *version, xsink);
-      if (xsink)
-         return;
-   }
+    assert(mi);
+    // check version if necessary
+    if (version) {
+        check_module_version(mi, op, *version, xsink);
+        if (xsink)
+            return;
+    }
 
-   if (pgm)
-      mi->addToProgram(pgm, xsink);
+    if (pgm)
+        mi->addToProgram(pgm, xsink);
 }
 
 void QoreModuleManager::getUniqueName(QoreString& nname, const char* name, const char* prefix) {

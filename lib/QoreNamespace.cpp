@@ -1414,7 +1414,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
         NamespaceMapIterator nmi(nsmap, nscope[0]);
         while (nmi.next()) {
             QoreClass* oc;
-            //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s) matched: %d\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str(), matched);
             if ((oc = nmi.get()->parseMatchScopedClass(nscope, matched)))
                 return oc;
         }
@@ -2906,7 +2906,7 @@ TypedHashDecl* qore_ns_private::parseMatchScopedHashDecl(const NamedScope& nscop
 }
 
 QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsigned& matched) {
-    printd(5, "qore_ns_private::parseMatchScopedClass() this: %p ns: %p '%s' nscope='%s' matched: %d\n", this, ns, name.c_str(), nscope.ostr, matched);
+    //printd(5, "qore_ns_private::parseMatchScopedClass() this: %p ns: %p '%s' nscope='%s' matched: %d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
     if (nscope[0] != name) {
         QoreNamespace* fns = nsl.find(nscope[0]);
@@ -2917,7 +2917,7 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsi
     if (!matched)
         matched = 1;
 
-    printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope.ostr);
+    //printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope.ostr);
 
     QoreNamespace* fns = ns;
 

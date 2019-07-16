@@ -1,0 +1,45 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+%allow-injection
+
+%requires QUnit
+
+%exec-class InjectionTest
+
+class InjectionTest inherits QUnit::Test {
+    constructor() : QUnit::Test("InjectionTest", "1.0", \ARGV) {
+        addTestCase("injection test", \injectionTest());
+        set_return_value(main());
+    }
+
+    injectionTest() {
+        {
+            # sanity check
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES | PO_NO_USER_API | PO_ALLOW_INJECTION
+                | PO_NO_CHILD_PO_RESTRICTIONS);
+            p.loadModule("reflection");
+            p.parse("Reflection::Class c;", "");
+        }
+        {
+            # issue
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES | PO_NO_USER_API | PO_ALLOW_INJECTION
+                | PO_NO_SYSTEM_API | PO_NO_CHILD_PO_RESTRICTIONS);
+            p.importSystemApi();
+            p.parse("printf('%y\n', True);", "");
+        }
+        {
+            # issue
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES | PO_NO_USER_API | PO_ALLOW_INJECTION
+                | PO_NO_SYSTEM_API | PO_NO_CHILD_PO_RESTRICTIONS);
+            p.importSystemApi();
+            p.loadModule("reflection");
+            p.parse("Reflection::Class c;", "");
+        }
+    }
+}
