@@ -1,6 +1,27 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+/*  Copyright 2013 - 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
 # requires at least this qore version to run
 %requires qore >= 0.8.12
 
@@ -30,7 +51,7 @@
 class SfRestClient {
     public {
         #! program options
-        const Opts = (
+        const Opts = {
             "sendenc":        "e,send-encoding:s",
             "data":           "S,serialization=s",
             "examples":       "x,show-examples",
@@ -56,17 +77,17 @@ class SfRestClient {
             "pass":           "p,password=s",
 
             "help":           "h,help",
-            );
+        };
 
         #! recognized HTTP methods
-        const Methods = (
+        const Methods = {
             "GET": True,
             "PATCH": True,
             "PUT": True,
             "POST": True,
             "DELETE": True,
             "OPTIONS": True,
-            );
+        };
     }
 
     constructor() {
@@ -85,13 +106,11 @@ class SfRestClient {
                     exit(1);
                 }
                 rc = conn.get();
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
                 exit(1);
             }
-        }
-        else {
+        } else {
             opt.client_id = opt.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
             if (!opt.client_id)
                 error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
@@ -220,8 +239,7 @@ class SfRestClient {
                 : rc.doRequest(meth, "", body, \info, NOTHING, hdr);
             if (!opt.lit)
                 printf("%N\n", h.body);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (opt.fullex)
                 printf("%s\n", get_exception_string(ex));
             else {
