@@ -91,7 +91,7 @@ public:
     }
 
     // called when assimilating
-    DLLLOCAL qore_ns_private(const char* n) : name(n), constant(this), pub(false), builtin(false), ns(new QoreNamespace(this)) {
+    DLLLOCAL qore_ns_private(const char* n, bool pub) : name(n), constant(this), pub(pub), builtin(false), ns(new QoreNamespace(this)) {
     }
 
     // called when parsing
@@ -114,7 +114,6 @@ public:
     }
 
     DLLLOCAL ~qore_ns_private() {
-        printd(5, "qore_ns_private::~qore_ns_private() this: %p '%s'\n", this, name.c_str());
     }
 
     DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
