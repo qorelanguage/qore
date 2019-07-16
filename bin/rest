@@ -53,7 +53,7 @@
 class RestCmd {
     public {
         #! program options
-        const Opts = (
+        const Opts = {
             "sendenc":   "e,send-encoding:s",
             "header":    "H,header=s@",
             "proxy":     "P,proxy-url=s",
@@ -66,15 +66,16 @@ class RestCmd {
             "swagger":   "s,swagger=s",
             "example":   "x,example:s",
             "help":      "h,help",
-            );
+        };
 
         #! recognized HTTP methods
-        const Methods = (
+        const Methods = {
             "GET": True,
             "PUT": True,
             "POST": True,
             "DELETE": True,
-            );
+            "PATCH": True,
+        };
     }
 
     constructor() {
@@ -87,8 +88,7 @@ class RestCmd {
 
         if (opt.swagger) {
             opts.validator = SwaggerLoader::fromFile(opt.swagger);
-        }
-        else if (opt.example)
+        } else if (opt.example)
             error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
         else if (opt.list)
             error("option -L|--list requires -s|--swagger to provide the schema for returning the list");
@@ -111,8 +111,7 @@ class RestCmd {
             body = url;
             url = meth;
             meth = "GET";
-        }
-        else {
+        } else {
             meth = meth.upr();
             body = shift ARGV;
         }
@@ -158,8 +157,7 @@ class RestCmd {
                             print("\n");
                         print(rex.body + "\n");
                     }
-                }
-                else {
+                } else {
                     hash<RestExampleResponseInfo> res = opts.validator.getExampleResponse(meth, h.path, code);
                     #printf("res: %y\n", res);
                     printf("%s\n", res.response_uri);
@@ -170,8 +168,7 @@ class RestCmd {
                         print(res.body + "\n");
                     }
                 }
-            }
-            else {
+            } else {
                 hash<RestQoreExampleCodeInfo> qex = request
                     ? opts.validator.getQoreExampleRequest(meth, h.path)
                     : opts.validator.getQoreExampleResponse(meth, h.path, code);
@@ -237,8 +234,7 @@ class RestCmd {
             h = rest.doRequest(meth, "", body, \info);
             if (!opt.lit)
                 printf("%N\n", h.body);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (opt.fullex) {
                 printf("%s\n", get_exception_string(ex));
             } else {
