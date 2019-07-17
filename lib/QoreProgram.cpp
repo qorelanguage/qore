@@ -761,6 +761,8 @@ void qore_program_private::runtimeImportSystemClasses(ExceptionSink* xsink) {
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     runtimeImportSystemClassesIntern(*spgm->priv, xsink);
+    // issue #3461: must rebuild all indexes here or symbols will appear missing
+    qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
 void qore_program_private::runtimeImportSystemHashDecls(ExceptionSink* xsink) {
@@ -770,6 +772,8 @@ void qore_program_private::runtimeImportSystemHashDecls(ExceptionSink* xsink) {
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
+    // issue #3461: must rebuild all indexes here or symbols will appear missing
+    qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
 void qore_program_private::runtimeImportSystemConstants(ExceptionSink* xsink) {
@@ -779,6 +783,8 @@ void qore_program_private::runtimeImportSystemConstants(ExceptionSink* xsink) {
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     runtimeImportSystemConstantsIntern(*spgm->priv, xsink);
+    // issue #3461: must rebuild all indexes here or symbols will appear missing
+    qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
 void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
@@ -787,6 +793,8 @@ void qore_program_private::runtimeImportSystemFunctions(ExceptionSink* xsink) {
     // acquire safe access to parse structures in the source program
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
     runtimeImportSystemFunctionsIntern(*spgm->priv, xsink);
+    // issue #3461: must rebuild all indexes here or symbols will appear missing
+    qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
 void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
@@ -804,6 +812,8 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
     if (*xsink)
         return;
     runtimeImportSystemHashDeclsIntern(*spgm->priv, xsink);
+    // issue #3461: must rebuild all indexes here or symbols will appear missing
+    qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {

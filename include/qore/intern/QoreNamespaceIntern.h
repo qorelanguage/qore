@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -91,7 +91,7 @@ public:
     }
 
     // called when assimilating
-    DLLLOCAL qore_ns_private(const char* n) : name(n), constant(this), pub(false), builtin(false), ns(new QoreNamespace(this)) {
+    DLLLOCAL qore_ns_private(const char* n, bool pub) : name(n), constant(this), pub(pub), builtin(false), ns(new QoreNamespace(this)) {
     }
 
     // called when parsing
@@ -114,7 +114,6 @@ public:
     }
 
     DLLLOCAL ~qore_ns_private() {
-        printd(5, "qore_ns_private::~qore_ns_private() this: %p '%s'\n", this, name.c_str());
     }
 
     DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
@@ -1468,16 +1467,6 @@ protected:
 
     DLLLOCAL void parseAddNamespaceIntern(QoreNamespace* nns);
 
-    DLLLOCAL void rebuildAllIndexes() {
-        // clear depth list
-        nshlist.clear();
-
-        // rebuild root indexes
-        QorePrivateNamespaceIterator qpni(this);
-        while (qpni.next())
-            rebuildIndexes(qpni.get());
-    }
-
 public:
     RootQoreNamespace* rns;
     QoreNamespace* qoreNS;
@@ -1534,6 +1523,16 @@ public:
         return rv;
     }
 
+    DLLLOCAL void rebuildAllIndexes() {
+        // clear depth list
+        nshlist.clear();
+
+        // rebuild root indexes
+        QorePrivateNamespaceIterator qpni(this);
+        while (qpni.next())
+            rebuildIndexes(qpni.get());
+    }
+
     DLLLOCAL void deferParseCheckAbstractNew(const qore_class_private* qc, const QoreProgramLocation* loc) {
         deferred_new_check_vec.push_back(deferred_new_check_t(qc, loc));
     }
@@ -1588,6 +1587,11 @@ public:
         for (unsigned j = 0; j < qmc.mcfl.size(); ++j) {
             ModuleContextFunctionCommit& mc = qmc.mcfl[j];
             mc.parent->addBuiltinVariantIntern(mc.name, mc.v);
+        }
+
+        // issue #3461: must rebuild all indexes here or symbols will appear missing
+        if (qmc.mcnl.size() || qmc.mcfl.size()) {
+            rebuildAllIndexes();
         }
     }
 

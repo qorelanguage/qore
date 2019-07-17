@@ -321,9 +321,8 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, 
     for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
         QoreNamespace* nns = nsl.find(i->first);
         if (!nns) {
-            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str(), i->second->priv->pub);
             nns = npns->ns;
-            nns->priv->pub = i->second->priv->pub;
             nns->priv->imported = true;
             nsl.runtimeAdd(nns, this);
         }
@@ -347,9 +346,8 @@ void qore_ns_private::runtimeImportSystemHashDecls(const qore_ns_private& source
     for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
         QoreNamespace* nns = nsl.find(i->first);
         if (!nns) {
-            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str(), i->second->priv->pub);
             nns = npns->ns;
-            nns->priv->pub = i->second->priv->pub;
             nns->priv->imported = true;
             nsl.runtimeAdd(nns, this);
         }
@@ -373,9 +371,8 @@ void qore_ns_private::runtimeImportSystemConstants(const qore_ns_private& source
     for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
         QoreNamespace* nns = nsl.find(i->first);
         if (!nns) {
-            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str(), i->second->priv->pub);
             nns = npns->ns;
-            nns->priv->pub = i->second->priv->pub;
             nns->priv->imported = true;
             nsl.runtimeAdd(nns, this);
         }
@@ -399,9 +396,8 @@ void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source
     for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
         QoreNamespace* nns = nsl.find(i->first);
         if (!nns) {
-            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str(), i->second->priv->pub);
             nns = npns->ns;
-            nns->priv->pub = i->second->priv->pub;
             nns->priv->imported = true;
             nsl.runtimeAdd(nns, this);
         }
@@ -416,7 +412,7 @@ void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
     SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
-    if (!pub && v->isModulePublic() && parse_check_parse_option(PO_IN_MODULE))
+    if (!imported && !pub && v->isModulePublic() && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *v->getUserVariantBase()->getUserSignature()->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
 
     FunctionEntry* fe = func_list.findNode(fname);
@@ -1414,7 +1410,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
         NamespaceMapIterator nmi(nsmap, nscope[0]);
         while (nmi.next()) {
             QoreClass* oc;
-            //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            //printd(5, "qore_root_ns_private::parseFindScopedClassIntern(%s) ns: %p (%s) matched: %d\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str(), matched);
             if ((oc = nmi.get()->parseMatchScopedClass(nscope, matched)))
                 return oc;
         }
@@ -2079,7 +2075,7 @@ void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {
     if (!v->hasTypeInfo() && (po & PO_REQUIRE_TYPES))
         parse_error(*v->getParseLocation(), "global variable '%s' declared without type information, but parse options require all declarations to have type information", vname.ostr);
 
-    if (!pub && v->isPublic() && (po & PO_IN_MODULE))
+    if (!imported && !pub && v->isPublic() && (po & PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *v->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "global variable '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), v->getName(), name.c_str());
 }
 
@@ -2368,7 +2364,7 @@ qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
 
     //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d gvars: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub, nns->priv->pend_gvblist.size());
 
-    if (!pub && nns->priv->pub && parse_check_parse_option(PO_IN_MODULE))
+    if (!imported && !pub && nns->priv->pub && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *nns->priv->loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
 
     //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s' adding %p '%s' (exists %p)\n", this, getName(), ns, ns->getName(), priv->nsl.find(ns->getName()));
@@ -2402,7 +2398,7 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* 
       return constant.end();
    }
 
-   if (cpub && !pub && parse_check_parse_option(PO_IN_MODULE))
+   if (!imported && cpub && !pub && parse_check_parse_option(PO_IN_MODULE))
       qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
 
    return constant.parseAdd(loc, cname, vh.release(), 0, cpub);
@@ -2424,7 +2420,7 @@ void qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const Nam
 int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreClass* oc) {
     qore_class_private_holder och(oc);
 
-    if (!pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
+    if (!imported && !pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
 
     //printd(5, "qore_ns_private::parseAddPendingClass() adding str: %s (%p)\n", oc->name, oc);
@@ -2481,7 +2477,7 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, const 
 int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, TypedHashDecl* hashdecl) {
     TypedHashDeclHolder thd(hashdecl);
 
-    if (!pub && typed_hash_decl_private::get(*hashdecl)->isPublic() && parse_check_parse_option(PO_IN_MODULE))
+    if (!imported && !pub && typed_hash_decl_private::get(*hashdecl)->isPublic() && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), hashdecl->getName(), name.c_str());
 
     if (hashDeclList.add(hashdecl)) {
@@ -2634,10 +2630,10 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
 
         QoreNamespace* nns = nsl.find(i->first);
         if (!nns) {
-            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str(), i->second->priv->pub);
             nns = npns->ns;
-            nns->priv->pub = i->second->priv->pub;
             nns->priv->imported = true;
+
             //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
             nsl.runtimeAdd(nns, this);
         }
@@ -2654,7 +2650,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     qore_ns_private* pns = ans->priv;
 
     // ensure that either both namespaces are public or both are not
-    if (parse_check_parse_option(PO_IN_MODULE) && ((pub && !pns->pub) || (!pub && pns->pub))) {
+    if (parse_check_parse_option(PO_IN_MODULE) && !imported && (pub != pns->pub)) {
         std::string path;
         getPath(path, true);
         parse_error(*ans->priv->loc, "namespace '%s' is declared both with and without the 'public' keyword", path.c_str());
@@ -2685,7 +2681,11 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     pns->pend_gvblist.zero();
 
     // assimilate sub namespaces
+    //printd(5, "qore_ns_private::parseAssimilate() %p '%s' ans: %p '%s' psn->nsl.nsmap.size: %d\n", this, name.c_str(), ans, ans->getName(), (int)pns->nsl.nsmap.size());
+
     for (nsmap_t::iterator i = pns->nsl.nsmap.begin(), e = pns->nsl.nsmap.end(); i != e;) {
+        assert(i->first == i->second->getName());
+
         // throw parse exception if name is already defined as a namespace or class
         QoreNamespace* ns = nsl.find(i->second->priv->name.c_str());
 
@@ -2696,8 +2696,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
             pns->nsl.nsmap.erase(ni);
             ns->priv->parseAssimilate(nns);
             continue;
-        }
-        else if (classList.find(i->second->priv->name.c_str()))
+        } else if (classList.find(i->second->priv->name.c_str()))
             parse_error(*i->second->priv->loc, "cannot add namespace '%s' to existing namespace '%s' because a class has already been defined with this name",
                         i->second->priv->name.c_str(), name.c_str());
         ++i;
@@ -2707,6 +2706,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     nsl.parseAssimilate(pns->nsl, this);
 
     // delete source namespace
+    //printd(5, "qore_ns_private::parseAssimilate() %p '%s': ASSIMILATED %p '%s' deleting %p '%s'\n", this, name.c_str(), pns, pns->name.c_str(), ans, ans->getName());
     delete ans;
 }
 
@@ -2906,7 +2906,7 @@ TypedHashDecl* qore_ns_private::parseMatchScopedHashDecl(const NamedScope& nscop
 }
 
 QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsigned& matched) {
-    printd(5, "qore_ns_private::parseMatchScopedClass() this: %p ns: %p '%s' nscope='%s' matched: %d\n", this, ns, name.c_str(), nscope.ostr, matched);
+    //printd(5, "qore_ns_private::parseMatchScopedClass() this: %p ns: %p '%s' nscope='%s' matched: %d\n", this, ns, name.c_str(), nscope.ostr, matched);
 
     if (nscope[0] != name) {
         QoreNamespace* fns = nsl.find(nscope[0]);
@@ -2917,7 +2917,7 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsi
     if (!matched)
         matched = 1;
 
-    printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope.ostr);
+    //printd(5, "qore_ns_private::parseMatchScopedClass() matched %s in %s\n", name.c_str(), nscope.ostr);
 
     QoreNamespace* fns = ns;
 
