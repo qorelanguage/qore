@@ -829,6 +829,10 @@ bool QoreFile::isTty() const {
    return priv->isTty();
 }
 
+int QoreFile::detachFd() {
+    return priv->detachFd();
+}
+
 File::File(const QoreEncoding *cs) : QoreFile(cs) {
 }
 
@@ -836,16 +840,16 @@ File::~File() {
 }
 
 void File::deref(ExceptionSink *xsink) {
-   if (ROdereference()) {
-      cleanup(xsink);
-      delete this;
-   }
+    if (ROdereference()) {
+        cleanup(xsink);
+        delete this;
+    }
 }
 
 void File::deref() {
-   if (ROdereference()) {
-      ExceptionSink xsink;
-      cleanup(&xsink);
-      delete this;
-   }
+    if (ROdereference()) {
+        ExceptionSink xsink;
+        cleanup(&xsink);
+        delete this;
+    }
 }
