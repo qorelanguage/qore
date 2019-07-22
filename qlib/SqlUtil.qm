@@ -1081,9 +1081,9 @@ else
 
     Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
 
-    The only difference in the following examples and the preceding ones is that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples.
-
-    @par Simple Example:
+    The only difference in the following examples and the preceding ones is  any that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples. any
+ any
+    @par Simple Example: any
     @code{.py}
 # get the rows to be inserted
 list l = get_table_rows();
@@ -1956,7 +1956,7 @@ public namespace SqlUtil {
         #! for numeric data types, this value gives the scale
         softint scale;
         #! the default value for the column
-        any default_value;
+        auto default_value;
         #! a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         bool default_value_native = False;
         #! an optional comment for the column
@@ -1972,14 +1972,14 @@ public namespace SqlUtil {
     #! SQL operator info hash as returned by all @ref sql_op_funcs "operator functions"
     public hashdecl OperatorInfo {
         string op;   #!< the operator string code
-        any arg;     #!< optional argument
+        auto arg;     #!< optional argument
     }
 
     #! column operator info hash as returned by all @ref sql_cop_funcs "column operator functions"
     public hashdecl ColumnOperatorInfo {
         string cop;  #!< the column operator string code
-        any column;  #!< column sopecifier, may be a string or a complex hash
-        any arg;     #!< optional argument
+        auto column;  #!< column sopecifier, may be a string or a complex hash
+        auto arg;     #!< optional argument
     }
 
     #! insert operator info hash as returned by all @ref sql_iop_funcs() "insert operator functions"
@@ -1991,14 +1991,14 @@ public namespace SqlUtil {
     #! update operator info hash as returned by all @ref sql_uop_funcs() "update operator functions"
     public hashdecl UpdateOperatorInfo {
         string uop;  #!< the update operator string code
-        any arg;     #!< optional argument
+        auto arg;     #!< optional argument
         *hash nest;  #!< option nested operation hash
     }
 
     #! join operator info hash as returned by all @ref sql_jop_funcs "join operator functions"
     public hashdecl JoinOperatorInfo {
         string jop;           #!< the join operator string code
-        any table;            #!< the table to join with (either an @ref SqlUtil::AbstractTable "AbstractTable" object or a string table name)
+        auto table;            #!< the table to join with (either an @ref SqlUtil::AbstractTable "AbstractTable" object or a string table name)
         *string alias;        #!< optional alias for \a table in the query
         *hash jcols;          #!< the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         *hash cond;           #!< additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
@@ -2382,24 +2382,24 @@ public namespace SqlUtil {
         ),
         COP_SEQ: (
             "nocolumn": True,
-            "code": string sub (*string cve, hash arg) {
+            "code": string sub (*string cve, hash<auto> arg) {
                 throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg.seq);
             }
         ),
         COP_SEQ_CURRVAL: (
             "nocolumn": True,
-            "code": string sub (*string cve, hash arg) {
+            "code": string sub (*string cve, hash<auto> arg) {
                 throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
             }
         ),
         COP_COALESCE: (
             "columnargs": True,
-            "code": string sub (*string cve, hash arg) {
+            "code": string sub (*string cve, hash<auto> arg) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2, arg.args));
             }
         ),
         COP_SUBSTR: (
-            "code": string sub (string cve, list args) {
+            "code": string sub (string cve, list<auto> args) {
                 if (!exists args[1])
                     return sprintf("substring(%s from %d)", cve, args[0]);
                 return sprintf("substring(%s from %d for %d)", cve, args[0], args[1]);
@@ -2413,7 +2413,7 @@ public namespace SqlUtil {
         COP_OVER: (
             "columnargs" : True,
             "columnargs_ignore_nothings" : True,
-            "code": string sub (*string cve, hash args)
+            "code": string sub (*string cve, hash<auto> args)
             {
                 *string partitionby = args.args[0];
                 *string orderby = args.args[1];
@@ -2431,13 +2431,13 @@ public namespace SqlUtil {
         ),
         COP_CUME_DIST: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return "cume_dist()";
             },
         ),
         COP_DENSE_RANK: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return "dense_rank()";
             },
         ),
@@ -2454,25 +2454,25 @@ public namespace SqlUtil {
         COP_NTILE: (
             "sqlvalue": True,
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return sprintf("ntile(%d)", arg);
             },
         ),
         COP_PERCENT_RANK: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return "percent_rank()";
             },
         ),
         COP_RANK: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return "rank()";
             },
         ),
         COP_ROW_NUMBER: (
             "nocolumn": True,
-            "code": string sub (*string cve, any arg) {
+            "code": string sub (*string cve, auto arg) {
                 return "row_number()";
             },
         ),
@@ -2540,7 +2540,7 @@ public namespace SqlUtil {
     #! returns a @ref ColumnOperatorInfo hash for the \c "as" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_as("errors", "error_count")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
@@ -2557,7 +2557,7 @@ public namespace SqlUtil {
     #! returns a @ref ColumnOperatorInfo hash for the \c "cast" operator with the given argument(s)
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_cast("id", "string")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins) or any other column "cop_..." function
@@ -2576,7 +2576,7 @@ public namespace SqlUtil {
     #! returns a @ref ColumnOperatorInfo hash for the \c "prepend" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_prepend("name", "migrated-")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_prepend("name", "migrated-")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2591,7 +2591,7 @@ public namespace SqlUtil {
     #! returns a @ref ColumnOperatorInfo hash for the \c "append" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_append("name", "-migrated")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_append("name", "-migrated")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2606,7 +2606,7 @@ public namespace SqlUtil {
     #! returns a @ref ColumnOperatorInfo hash for the \c "value" (literal) operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_value(100)), "where": ("type": "user")));
         @endcode
 
         @param arg the value to be returned in the column
@@ -2691,7 +2691,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "upper" operator with the given argument; returns a column value in upper case
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_upper("name")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_upper("name")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2705,7 +2705,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "lower" operator with the given argument; returns a column value in lower case
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_lower("name")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_lower("name")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2719,7 +2719,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "distinct" operator with the given argument; returns distinct column values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_distinct("name")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_distinct("name")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2733,7 +2733,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "min" operator; returns minimum column values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": (cop_min("id")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": (cop_min("id")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2747,7 +2747,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "max" operator; returns maximum column values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": (cop_max("id")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": (cop_max("id")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2761,7 +2761,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "avg" operator; returns average column values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": (cop_avg("quantity")), "where": ("order_type": "wholesale")));
+*list<auto> rows = table.selectRows(("columns": (cop_avg("quantity")), "where": ("order_type": "wholesale")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2775,7 +2775,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "sum" operator; returns the total sum of a numeric column.
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
+*list<auto> rows = table.selectRows(("columns": (cop_sum("quantity")), "where": ("order_type": "wholesale")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2789,7 +2789,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "count" operator; returns row counts
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
+*list<auto> rows = table.selectRows(("columns": ("account_type", cop_count()), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
@@ -2801,7 +2801,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "over" clause
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("account_type", cop_count(), cop_as(cop_over(cop_max("qty"), "account_id"), "max_qty_per_account")), "where": ("type": "user"), "groupby": "account_type"));
+*list<auto> rows = table.selectRows(("columns": ("account_type", cop_count(), cop_as(cop_over(cop_max("qty"), "account_id"), "max_qty_per_account")), "where": ("type": "user"), "groupby": "account_type"));
         @endcode
 
         @return a @ref ColumnOperatorInfo hash corresponding to the arguments for use in the @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
@@ -2814,7 +2814,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "-" operator with the given arguments
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_minus("complete_count", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_minus("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
@@ -2829,7 +2829,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "+" operator with the given arguments
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_plus("complete_count", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_plus("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
@@ -2844,7 +2844,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "/" operator with the given arguments
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_divide("complete_count", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_divide("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
@@ -2859,7 +2859,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "*" operator with the given arguments
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_multiply("complete_count", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_multiply("complete_count", "error_count")), "where": ("type": "user")));
         @endcode
 
         @param column1 the column specification for the first argument (string name or dot notation for use in joins)
@@ -2874,7 +2874,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "year" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_year("error_time")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_year("error_time")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2888,7 +2888,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "year_month" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_year_month("error_time")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_year_month("error_time")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2902,7 +2902,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "year_day" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_year_day("error_time")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_year_day("error_time")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2916,7 +2916,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "year_hour" operator with the given argument
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_year_hour("error_time")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_year_hour("error_time")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -2930,7 +2930,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xis")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xis")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose value should be returned
@@ -2945,7 +2945,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "seq_currval" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xid_val"), cop_seq_currval("xid", "xid_current")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", "name", cop_seq("xid", "xid_val"), cop_seq_currval("xid", "xid_current")), "where": ("type": "user")));
         @endcode
 
         @param seq the name of the sequence whose current value should be returned
@@ -2960,7 +2960,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "coalesce" operator with the given column arguments; the first non-NULL column value will be returned
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("first_name", "last_name", cop_colesce("first_name", "last_name")), "where": ("type": "user")));
         @endcode
 
         @param col1 the name or column operator hash for the first value
@@ -2981,17 +2981,14 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
         # validate any remaining args
         map check($1), argv;
 
-        list args = (col1, col2);
-        if (argv)
-            args += argv;
-
+        list<auto> args = (col1, col2) + (argv ?? ());
         return make_cop(COP_COALESCE, "", ("args": args));
     }
 
     #! returns a @ref ColumnOperatorInfo hash for the \c "substr" operator with the given arguments; returns a substring of a column value
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_substr("name", 1, 1)), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -3007,7 +3004,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! returns a @ref ColumnOperatorInfo hash for the \c "len" operator with the given argument; returns the length of the given text field
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows(("columns": ("id", cop_length("product_code")), "where": ("type": "user")));
         @endcode
 
         @param column the column specification for the column (string name or dot notation for use in joins)
@@ -3023,7 +3020,7 @@ sql: select 1 as as_int,1.2 as as_float,3.2 as as_numeric,to_timestamp('20150421
     #! Truncates a date column or value regarding the given mask. The resulting value remains Qore::date (no conversion to eg. string)
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("columns": cop_trunc_date("mydate", DF_MINUTE));
+*list<auto> rows = table.selectRows(("columns": cop_trunc_date("mydate", DF_MINUTE));
 # input: 2017-02-01 14:22:37
 # output 2017-02-01 14:22:00
         @endcode
@@ -3401,7 +3398,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
         ),
         COP_COALESCE: (
             "columnargs": True,
-            "code": string sub (*string cve, softlist args) {
+            "code": string sub (*string cve, softlist<auto> args) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2, args));
             }
         ),
@@ -3579,7 +3576,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref UpdateOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose value should be returned
     /** @par Example:
         @code{.py}
-*list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
+*list<auto> rows = t.update(("id": uop_seq("xid")), ("type": "user"));
         @endcode
 
         @param seq the name of the sequence whose value should be returned
@@ -3593,7 +3590,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref UpdateOperatorInfo hash for the \c "seq" operator with the given argument giving the sequence name whose current value should be returned
     /** @par Example:
         @code{.py}
-*list rows = t.update(("id": uop_seq("xid")), ("type": "user"));
+*list<auto> rows = t.update(("id": uop_seq("xid")), ("type": "user"));
         @endcode
 
         @param seq the name of the sequence whose current value should be returned
@@ -3665,13 +3662,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param table the table to join with
@@ -3689,13 +3686,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param table the table to join with
@@ -3713,13 +3710,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid"))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param table_name the table to join with; table will be subject to deferred resolution
@@ -3737,13 +3734,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3764,13 +3761,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3789,13 +3786,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for standard inner joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3)));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2)));
+*list<auto> rows = table.selectRows(("join": join_inner(table2)));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3816,13 +3813,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
@@ -3840,13 +3837,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
@@ -3864,13 +3861,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table_name the table to join with
@@ -3890,13 +3887,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3915,13 +3912,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3940,13 +3937,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for left outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_left(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_left("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -3967,13 +3964,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
@@ -3991,13 +3988,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table the table to join with
@@ -4015,13 +4012,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%")))));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%")))));
         @endcode
 
         @param table_name the table to join with
@@ -4041,13 +4038,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -4066,13 +4063,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -4091,13 +4088,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns a hash for right outer joins with the given arguments for use when joining with a table other than the primary table
     /** @par Example With Explicit Join Columns:
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", ("id": "altid"), ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @par Example With Implicit Join Columns:
         (using an automatically detected foreign key to primary key constraint)
         @code{.py}
-*list rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
+*list<auto> rows = table.selectRows(("join": join_right(table2, "t2", NOTHING, ("tag", op_like("offset%"))) + join_right("t2", table3, "t3")));
         @endcode
 
         @param ta the table name or alias of the other table to join with when not joining with the primary table
@@ -4211,37 +4208,43 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = (
         OP_LIKE: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
         ),
         OP_LT: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
@@ -4249,7 +4252,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_EQ: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
                 args += arg;
@@ -4257,62 +4261,72 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_BETWEEN: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg[0];
                 args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_NOT: (
             "recursive": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s < %s", cn, arg);
             },
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s <= %s", cn, arg);
             },
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s > %s", cn, arg);
             },
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s >= %s", cn, arg);
             },
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s != %s", cn, arg);
             },
         ),
         OP_CEQ: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, string arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, string arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s = %s", cn, arg);
             },
         ),
         OP_SUBSTR: (
-            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, auto arg, reference<list> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg[0]; # start
                 if (!exists arg[1]) {
                     args += arg[2]; # text
@@ -4324,7 +4338,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_OR: (
-            "code": string sub (object t, string cn, list arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+            "code": string sub (object t, string cn, list<auto> arg, reference<list> args, *hash<auto> jch, bool join = False,
+                *hash<auto> ch, *hash<auto> psch) {
                 return t.getOrClause(arg, \args, jch, join, ch, psch);
             },
         ),
@@ -4361,7 +4376,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_like("%smith%"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_like("%smith%"))));
         @endcode
 
         @param str the argument for the operator
@@ -4375,7 +4390,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_lt("Zebra"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_lt("Zebra"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4391,7 +4406,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_le("Zebra"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_le("Zebra"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4407,7 +4422,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_gt("Apple"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_gt("Apple"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4423,7 +4438,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_ge("Apple"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_ge("Apple"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4439,7 +4454,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_ne("Smith"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_ne("Smith"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4457,7 +4472,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing column values to immediate values
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_eq("Smith"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_eq("Smith"))));
         @endcode
 
         @param arg the argument for the operator
@@ -4475,7 +4490,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "between" operator with the given arguments, neither of which can be @ref null or @ref nothing; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_between("US", "UX"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_between("US", "UX"))));
         @endcode
 
         @param l the lower bound for the \c "between" operator
@@ -4496,7 +4511,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "in" operator with all arguments passed to the function; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
+*list<auto> rows = table.selectRows(("where": ("name": op_in(200, 300, 500, 9))));
         @endcode
 
         @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
@@ -4510,7 +4525,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_in(idlist))));
+*list<auto> rows = table.selectRows(("where": ("name": op_in(idlist))));
         @endcode
 
         @param args a list of values for the \c "in" operator
@@ -4526,7 +4541,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
+*list<auto> rows = table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
         @endcode
 
         @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
@@ -4538,7 +4553,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "<" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_clt("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_clt("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4554,7 +4569,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "<=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_cle("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_cle("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4570,7 +4585,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c ">" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_cgt("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_cgt("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4586,7 +4601,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c ">=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_cge("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_cge("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4602,7 +4617,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_cne("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_cne("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4618,7 +4633,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "=" operator with the given argument for use in @ref where_clauses "where clauses" when comparing the values of two columns
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_ceq("other_name"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_ceq("other_name"))));
         @endcode
 
         @param arg the name of the column to compare against
@@ -4634,7 +4649,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_substr(1, 6, "Martin"))));
+*list<auto> rows = table.selectRows(("where": ("name": op_substr(1, 6, "Martin"))));
         @endcode
 
         @param start position where the substring starts
@@ -4650,7 +4665,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "substr" operator with the given arguments; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("hex": op_substr(5, "BEEF"))));
+*list<auto> rows = table.selectRows(("where": ("hex": op_substr(5, "BEEF"))));
         @endcode
 
         @param start position where the substring starts
@@ -4665,7 +4680,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list rows = table.selectRows(("where": ("name": op_ceq("other_name")) + wop_or(("type": "C", "validation_flag": op_ne(NULL)), ("expiration_date": op_ge(date)))));
+*list<auto> rows = table.selectRows(("where": ("name": op_ceq("other_name")) + wop_or(("type": "C", "validation_flag": op_ne(NULL)), ("expiration_date": op_ge(date)))));
         @endcode
         Generates:
         @verbatim
@@ -4910,11 +4925,11 @@ bool b = c.matchKeys(l);
 
             @return @ref Qore::True "True" if the list argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
         */
-        bool matchKeys(list l) {
+        bool matchKeys(list<auto> l) {
             if (h.size() != l.size())
                 return False;
 
-            foreach string k in (l.iterator()) {
+            foreach string k in (l) {
                 if (!h.hasKey(k))
                     return False;
             }
@@ -4968,14 +4983,14 @@ bool b = c.partialMatchKeys(l);
 
             @return @ref Qore::True "True" if the list argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
         */
-        bool partialMatchKeys(list l) {
+        bool partialMatchKeys(list<auto> l) {
             if (h.size() > l.size())
                 return False;
 
             # make a hash of the list for quick searching
             hash<string, bool> h1 = map {$1: True}, l;
 
-            foreach string k in (h.keyIterator()) {
+            foreach string k in (keys h) {
                 if (!h1{k})
                     return False;
             }
@@ -5014,7 +5029,7 @@ bool b = h.val();
         #! Returns a list of key names of the contained hash
         /** @par Example:
             @code{.py}
-list l = h.keys();
+list<string> l = h.keys();
             @endcode
 
             @return a list of key names of the contained hash
@@ -5026,12 +5041,12 @@ list l = h.keys();
         #! Returns a list of values of the contained hash
         /** @par Example:
             @code{.py}
-list l = h.values();
+list<auto> l = h.values();
             @endcode
 
             @return a list of values of the contained hash
         */
-        list values() {
+        list<auto> values() {
             return h.values();
         }
 
@@ -5322,7 +5337,7 @@ int num = l.size();
         #! returns a list of SQL strings that can be used to drop all the foreign constraints on a particular table
         /** @par Example:
             @code{.py}
-*list l = tables.getDropAllForeignConstraintsOnTableSql(name);
+*list<auto> l = tables.getDropAllForeignConstraintsOnTableSql(name);
             @endcode
 
             Make sure that all relevant tables are cached before calling this method; if the table is not cached, then @ref nothing is returned
@@ -6604,18 +6619,26 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
                 return False;
             }
 
-            string src1 = src;
+            string src1 = getNormalizedSource(src);
             src1 =~ s/\n/ /g;
-            string src2 = t.src;
+            string src2 = getNormalizedSource(t.src);
             src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
-                #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
+                # XXX DEBUG
+                printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
             #printf("%s\nXXXXXX EQUAL XXXXXX\n%s\n", src1, src2);
 
             return equalImpl(t);
+        }
+
+        #! returns normalized source for comparisons
+        string getNormalizedSource(string src) {
+            # replace newlines with spaces
+            src =~ s/\n/ /g;
+            return src;
         }
 
         #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
@@ -6820,7 +6843,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
         }
 
         #! executes a method on the contained AbstractDatabase object
-        any methodGate(string meth) {
+        auto methodGate(string meth) {
             return call_object_method_args(db, meth, argv);
         }
     }
@@ -7333,8 +7356,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
             if (opt.sql_callback) {
                 try {
                     opt.sql_callback(sql);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (opt.error_callback) {
                         opt.error_callback(ac, type, name, table, new_name, info, sql, ex);
                     }
@@ -7354,8 +7376,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 string my_sql;
                 try {
                     map opt.sql_callback(my_sql = $1), sql;
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (opt.error_callback) {
                         opt.error_callback(ac, type, name, table, new_name, info, my_sql, ex);
                     }
@@ -7377,7 +7398,7 @@ t.tryExec("drop table tmp_table");
 
             @return any return value from the SQL command executed
          */
-        any tryExec(string sql) {
+        auto tryExec(string sql) {
             return tryExecArgsImpl(sql, argv);
         }
 
@@ -7392,7 +7413,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
 
             @return any return value from the SQL command executed
          */
-        any tryExecArgs(string sql, *softlist args) {
+        auto tryExecArgs(string sql, *softlist args) {
             return tryExecArgsImpl(sql, args);
         }
 
@@ -7408,7 +7429,7 @@ t.tryExecRaw("drop table tmp_table");
 
             @return any return value from the SQL command executed
          */
-        any tryExecRaw(string sql) {
+        auto tryExecRaw(string sql) {
             return tryExecRawImpl(sql);
         }
 
@@ -7682,8 +7703,7 @@ list l = db.getDropSchemaSql(schema_hash);
                 if (!templateFunc.equal(f)) {
                     l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AC_Drop, type, name);
                     l += AbstractDatabase::doCallback(opt, templateFunc.getCreateSql(opt), AC_Create, type, name);
-                }
-                else
+                } else
                     AbstractDatabase::doOkCallback(opt, AC_Unchanged, type, name);
             }
 
@@ -7711,7 +7731,7 @@ AbstractSequence seq = db.makeSequence("seq_queues");
             return makeSequenceImpl(name, start, increment, end, opts);
         }
 
-        AbstractSequence makeSequenceFromDescription(string name, *hash sh, *hash opts) {
+        AbstractSequence makeSequenceFromDescription(string name, *hash<auto> sh, *hash opts) {
             validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
 
             return makeSequence(name, sh.start, sh.increment, sh.end);
@@ -7731,7 +7751,7 @@ AbstractTable table = db.makeTable("table", th);
 
             @see SqlUtil::AbstractTable::constructor()
         */
-        AbstractTable makeTable(string name, hash desc, *hash opts) {
+        AbstractTable makeTable(string name, hash<auto> desc, *hash opts) {
             AbstractTable t = AbstractTable::getTable(ds, name, opts);
             t.setupTable(desc, opts);
             return t;
@@ -8001,12 +8021,10 @@ list l = db.getAlignFunctionSql(f);
 
             if (!of) {
                 l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AC_Create, "function", f.name);
-            }
-            else if (!of.equal(f)) {
+            } else if (!of.equal(f)) {
                 l += AbstractDatabase::doCallback(opt, of.getDropSql(opt), AC_Drop, "function", f.name);
                 l += AbstractDatabase::doCallback(opt, of.getCreateSql(opt), AC_Create, "function", f.name);
-            }
-            else
+            } else
                 AbstractDatabase::doOkCallback(opt, AC_Unchanged, "function", f.name);
 
             return l;
@@ -8292,11 +8310,11 @@ string sql = t.getSqlFromList(list);
             return getPhysicalSizeImpl();
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
+        private validateOptionsIntern(string err, hash<auto> ropt, reference<hash> opt) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
         }
 
-        private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
+        private validateOptionsIntern(string err, hash<auto> ropt, reference<hash> opt, string tag) {
             AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
         }
 
@@ -8312,16 +8330,14 @@ string sql = t.getSqlFromList(list);
             # try to load module
             try {
                 load_module(mn);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
 
             # try to get AbstractDatabase object
             try {
                 return call_function(mn + "::" + "get_database", nds, opts);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 throw "DATABASE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractDatabase object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
             }
         }
@@ -8331,7 +8347,7 @@ string sql = t.getSqlFromList(list);
             return AbstractDatabase::getDatabase(nds, opts);
         }
 
-        static AbstractDatabase getDatabase(hash dsh, *hash opts) {
+        static AbstractDatabase getDatabase(hash<auto> dsh, *hash opts) {
             Datasource nds(dsh);
             return AbstractDatabase::getDatabase(nds, opts);
         }
@@ -8400,7 +8416,7 @@ string sql = t.getSqlFromList(list);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist<auto> args) {
             return ds.vexec(sql, args);
         }
 
@@ -8523,7 +8539,7 @@ Table table("pgsql:user/pass@db%host", "table");
             @throw TABLE-DRIVER-ERROR no database-specific module can be loaded
             @throw OPTION-ERROR invalid or unsupported option passed
         */
-        constructor(hash ds, string name, *hash opts) {
+        constructor(hash<auto> ds, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name, opts);
         }
 
@@ -8536,7 +8552,7 @@ Table table("pgsql:user/pass@db%host", "table");
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
         */
-        constructor(AbstractDatasource ds, hash desc, string name, *hash opts) {
+        constructor(AbstractDatasource ds, hash<auto> desc, string name, *hash opts) {
             t = AbstractTable::getTable(ds, name);
             t.setupTable(desc, opts);
         }
@@ -8549,7 +8565,7 @@ Table table("pgsql:user/pass@db%host", "table");
         #! executes a method on the contained AbstractTable object
         /** See @ref SqlUtil::AbstractTable API for reference
          */
-        any methodGate(string meth) {
+        auto methodGate(string meth) {
             return call_object_method_args(t, meth, argv);
         }
 
@@ -9321,7 +9337,7 @@ bool b = table.empty();
             @throw OPTION-ERROR invalid or unsupported option passed
             @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
         */
-        setupTable(hash desc, *hash opt) {
+        setupTable(hash<auto> desc, *hash opt) {
             # check description
             validateOptionsIntern("DESCRIPTION-ERROR", getTableDescriptionHashOptions(), \desc);
 
@@ -10740,16 +10756,14 @@ AbstractConstraint con = table.renameConstraint("pk_table_name", "pkey_table_nam
             if (constraints && constraints.hasKey(old_name)) {
                 c = constraints{old_name};
                 rename = sub () { constraints.renameKey(old_name, new_name); };
-            }
-            else {
+            } else {
                 if (inDb) {
                     getPrimaryKeyUnlocked();
                     if (!primaryKey.empty() && primaryKey.getName() == old_name) {
                         c = primaryKey;
                         # no need to update any container if the primary key is being updated
                         rename = sub () { };
-                    }
-                    else {
+                    } else {
                         getForeignConstraintsUnlocked();
                         if (foreignConstraints && foreignConstraints.hasKey(old_name)) {
                             c = foreignConstraints{old_name};
@@ -10874,8 +10888,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
                     if (c instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl())
                         indexes.take(cname);
                 };
-            }
-            else if (!primaryKey.empty() && primaryKey.getName() == cname) {
+            } else if (!primaryKey.empty() && primaryKey.getName() == cname) {
                 c = primaryKey;
                 rmv = sub () {
                     remove self.primaryKey;
@@ -10883,8 +10896,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
                     if (constraintsLinkedToIndexesImpl())
                         indexes.take(cname);
                 };
-            }
-            else if (foreignConstraints && foreignConstraints.hasKey(cname)) {
+            } else if (foreignConstraints && foreignConstraints.hasKey(cname)) {
                 c = foreignConstraints{cname};
                 rmv = sub () {
                     foreignConstraints.take(cname);
@@ -13462,7 +13474,7 @@ int ucnt = table.update(("id": id), ("name": name));
             return updateIntern(set, cond, NOTHING, opt);
         }
 
-        private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt) {
+        private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash opt) {
             # make query
             sql = sprintf("update %s set ", getSqlName());
 
@@ -14358,8 +14370,7 @@ list l = table.getAlignSql(table2);
                             delete primaryKey;
                         }
                     }
-                }
-                else {
+                } else {
                     # there is no PK in the table, so we have to remove the link from the index to the PK in the template
                     *string pk_index = t.primaryKey.getIndex();
                     if (pk_index && t.indexes.hasKey(pk_index))
@@ -14367,8 +14378,7 @@ list l = table.getAlignSql(table2);
                     if (constraintsLinkedToIndexesImpl() && indexes.hasKey(t.primaryKey.getName()))
                         t.primaryKey.clearIndex();
                 }
-            }
-            else if (!primaryKey.empty()) {
+            } else if (!primaryKey.empty()) {
                 l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
                 delete primaryKey;
             }
@@ -14378,15 +14388,13 @@ list l = table.getAlignSql(table2);
                 if (!columns.hasKey(c.name)) {
                     # add column to table
                     l += AbstractDatabase::doCallback(opt, c.getAddColumnSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
-                }
-                else {
+                } else {
                     # get any delta SQL
                     list cl = columns{c.name}.getModifySql(self, c);
                     # add delta SQL to list if there is any to add
                     if (cl) {
                         l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name, NOTHING, c.getNativeTypeString());
-                    }
-                    else
+                    } else
                         AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "column", c.name, name);
                 }
             }
@@ -14405,11 +14413,9 @@ list l = table.getAlignSql(table2);
                     if (!indexes.hasKey(ix.name)) {
                         # add index to table
                         l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
-                    }
-                    else if (!ix.equal(indexes{ix.name})) {
+                    } else if (!ix.equal(indexes{ix.name})) {
                         l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
-                    }
-                    else
+                    } else
                         AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
                 }
             }
@@ -14423,8 +14429,7 @@ list l = table.getAlignSql(table2);
                         l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), AbstractDatabase::AC_Rename, "constraint", primaryKey.getName(), name, t.primaryKey.getName());
                         primaryKey.rename(t.primaryKey.getName());
                     }
-                }
-                else {
+                } else {
                     l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
                 }
             }
@@ -14435,14 +14440,12 @@ list l = table.getAlignSql(table2);
                     if (!foreignConstraints.hasKey(c.getName())) {
                         # add constraint to table
                         l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
-                    }
-                    else if (!c.equal(foreignConstraints{c.getName()})) {
+                    } else if (!c.equal(foreignConstraints{c.getName()})) {
                         # drop current constraint
                         l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
                         # add new constraint to table
                         l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
-                    }
-                    else
+                    } else
                         AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
                 }
             }
@@ -14458,8 +14461,7 @@ list l = table.getAlignSql(table2);
                     }
                     # add constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
-                }
-                else if (!c.equal(constraints{c.getName()})) {
+                } else if (!c.equal(constraints{c.getName()})) {
                      # drop current constraint
                     l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                     if (constraints{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
@@ -14467,8 +14469,7 @@ list l = table.getAlignSql(table2);
 
                     # add new constraint to table
                     l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
-                }
-                else
+                } else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "constraint", c.getName(), name);
             }
 
@@ -14493,14 +14494,12 @@ list l = table.getAlignSql(table2);
                     if (!triggers.hasKey(trig.name)) {
                         # add trigger to table
                         l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
-                    }
-                    else if (!trig.equal(triggers{trig.name})) {
+                    } else if (!trig.equal(triggers{trig.name})) {
                         # drop current trigger
                         l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
                         # add new trigger to table
                         l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
-                    }
-                    else
+                    } else
                         AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
                 }
             }
@@ -15253,7 +15252,7 @@ any res = t.selectRows(sh, \sql);
             inDb = True;
         }
 
-        private getForeignConstraintsUnlocked(*hash<auto> opt) {
+        private getForeignConstraintsUnlocked(*hash opt) {
             if (foreignConstraints)
                 return;
             if (manual) {
