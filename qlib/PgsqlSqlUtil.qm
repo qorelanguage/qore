@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -153,6 +153,8 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv131 PgsqlSqlUtil v1.3.1
+    - fixed comparison of triggers with column restrictions with table alignment
+      (<a href="https://github.com/qorelanguage/qore/issues/3466">issue 3466</a>)
     - fixed quoting of reserved words in column names in table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
@@ -783,6 +785,20 @@ auto v = c.name;
         #! returns a string that can be used to rename the trigger in the database
         softlist getRenameSql(string table_name, string new_name) {
             return sprintf("alter trigger %s on %s rename to %s", name, table_name, new_name);
+        }
+
+        #! returns normalized source for comparisons
+        string getNormalizedSource(string src) {
+            # remove all line comments
+            src =~ s/--.*//gm;
+            src = AbstractTrigger::getNormalizedSource(src);
+            # remove all block comments
+            src =~ s/\/\*.*\*\///g;
+            # replace multiple whitespace chars with a single space
+            src =~ s/\s+/ /g;
+            # make everything lower case
+            src =~ tr/A-Z/a-z/;
+            return src;
         }
     }
 
@@ -1894,16 +1910,17 @@ auto v = c.name;
         }
 
         private Triggers getTriggersImpl() {
-            hash rv;
+            hash<string, PgsqlTrigger> rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from information_schema.triggers where event_object_schema = %v and event_object_table = %v", schema, name);
+            *hash<auto> qh = ds.select("select * from information_schema.triggers where event_object_schema = %v and "
+                "event_object_table = %v", schema, name);
 
             # list of trigger functions
-            list fl = ();
+            list<string> fl = ();
             # map trigger function name -> trigger name
-            hash tfh;
-            foreach hash row in (qh.contextIterator()) {
+            hash<string, string> tfh;
+            foreach hash<auto> row in (qh.contextIterator()) {
                 *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
                 if (f) {
                     fl += f;
@@ -1921,12 +1938,20 @@ auto v = c.name;
                     continue;
                 }
 
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing, row.event_manipulation, name, row.action_orientation, row.action_statement);
+                # issue #3466: get any column restrictions
+                *hash<auto> cols = ds.select("select * from information_schema.triggered_update_columns where "
+                    "event_object_schema = %v and trigger_name = %v", schema, row.trigger_name);
+                string src = sprintf("%s %s", row.action_timing, row.event_manipulation);
+                if (cols.event_object_column) {
+                    src += " of ";
+                    src += foldl $1 + ", " + $2, cols.event_object_column;
+                }
+                src += sprintf(" on %s for each %s %s", name, row.action_orientation, row.action_statement);
                 rv{row.trigger_name} = new PgsqlTrigger(row.trigger_name, src);
             }
 
             if (fl) {
-                hash fh;
+                hash<auto> fh;
                 # also get trigger functions
                 qh = ds.select("select p.proname, t1.typname return_type, a.rolname procedure_owner, l.lanname lang, prosrc body, pg_catalog.pg_get_functiondef(proname::regproc) hdr, pg_catalog.pg_get_function_arguments(proname::regproc) args, case provolatile when 'i' then 'IMMUTABLE' when 's' then 'STABLE' when 'v' then 'VOLATILE' end stability from pg_proc p left join pg_type t1 on p.prorettype = t1.oid left join pg_roles a on p.proowner = a.oid left join pg_language l on p.prolang = l.oid where proname in (%s)", (foldl $1 + "," + $2, (map sprintf("'%s'", $1), fl)));
 
