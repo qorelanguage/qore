@@ -905,8 +905,8 @@ string pass = get_random_string();
                 # runtime exception to be thrown
                 if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
                     && (ex.arg.ex instanceof hash<ExceptionInfo>
-                        || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
-                            && ex.arg.callstack.typeCode() == NT_LIST))) {
+                        || (ex.arg.ex.err.typeCode() == NT_STRING && ex.arg.ex.desc.typeCode() == NT_STRING
+                            && ex.arg.ex.callstack.typeCode() == NT_LIST))) {
                     if (ex.arg.size() > 1) {
                         str += sprintf(" (arg: %y)", ex.arg - "ex");
                     }
