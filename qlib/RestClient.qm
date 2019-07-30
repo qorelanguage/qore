@@ -111,7 +111,7 @@ module RestClient {
 %requires RestClient
 
 RestClient rest(("url": "http://localhost:8001/rest"));
-hash ans = rest.get("orders/1?option=full");
+hash<auto> ans = rest.get("orders/1?option=full");
 printf("%N\n", ans.body);
     @endcode
 
