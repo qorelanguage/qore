@@ -16,6 +16,12 @@
     with the old behavior regarding abstract method hierarchies.
 
     @subsection qore_093_new_features New Features in Qore
+    - updated the @ref Qore::HTTPClient "HTTPClient" class to support the \c error_passthru constructor option
+      and the \c "response-headers-raw" output info key plus the following methods:
+      - @ref Qore::HTTPClient::getErrorPassthru() "HTTPClient::getErrorPassthru()"
+      - @ref Qore::HTTPClient::setErrorPassthru() "HTTPClient::setErrorPassthru()"
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3472">issue 3472</a>)
     - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
       \c RestConnection objects now support the \c "headers" option
       (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -138,6 +138,9 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
+    - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+      \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+      like any other response
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
@@ -159,11 +162,13 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - other I/O errors can be thrown opening and reading the certificate and/or private key files if the \c ssl_cert_path or \c ssl_key_path options are used
     - the @ref Qore::PO_NO_FILESYSTEM sandbox restriction is checked at runtime if one of the following options is used: \c ssl_cert_path or \c ssl_key_path
 
-    @since %Qore 0.8.13 added the following options:
-    - \c ssl_cert_path
-    - \c ssl_key_path
-    - \c ssl_key_password
-    - \c ssl_verify_cert
+    @since
+    - %Qore 0.8.13 added the following options:
+      - \c ssl_cert_path
+      - \c ssl_key_path
+      - \c ssl_key_password
+      - \c ssl_verify_cert
+    - %Qore 0.9.3 added support for the \c error_passthru option
  */
 HTTPClient::constructor(hash<auto> opts) {
    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -315,6 +320,7 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
@@ -322,7 +328,12 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -334,6 +345,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
     @see @ref httpclient_get_with_body
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::send(string body, string method, *string path, *hash<auto> headers, softbool getbody = False, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -371,6 +384,7 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
@@ -378,7 +392,12 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -389,6 +408,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
     @see @ref httpclient_get_with_body
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::send(*binary body, string method, *string path, *hash<auto> headers, softbool getbody = False, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -422,6 +443,7 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
@@ -429,7 +451,12 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -444,7 +471,9 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
 
     @see @ref httpclient_get_with_body
 
-    @since Qore 0.8.10
+    @since
+    - %Qore 0.8.10
+    - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -486,6 +515,7 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
@@ -504,7 +534,9 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
 
     @see @ref httpclient_get_with_body
 
-    @since Qore 0.8.10
+    @since
+    - %Qore 0.8.10
+    - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -549,6 +581,7 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
@@ -565,7 +598,9 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
-    @since Qore 0.8.10
+    @since
+    - %Qore 0.8.10
+    - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -604,7 +639,12 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server); status errors are not thrown in case a receive callback is used
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True" (see the
+    \c error_passthru option in @ref HTTPClient::constructor()) or if a receive callback is used
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -670,7 +710,12 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server); status errors are not thrown in case a receive callback is used
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True" (see the
+    \c error_passthru option in @ref HTTPClient::constructor()) or if a receive callback is used
     @throw HTTP-CHUNK-ERROR the chunk size given is not greater than 0
     @throw HTTP-TRAILER-ERROR the trailer callback must return either @ref nothing or @ref hash_type "hash"; this exception is thrown is another type is returned
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
@@ -731,12 +776,13 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -752,7 +798,9 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
 
     @see @ref httpclient_get_with_body
 
-    @since Qore 0.8.10
+    @since
+    - %Qore 0.8.10
+    - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -785,6 +833,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case of an error or an erroneous reply by the server with no body
@@ -794,7 +843,12 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -805,6 +859,8 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
     @see @ref httpclient_get_with_body
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::get(string path, *hash<auto> headers, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -834,6 +890,7 @@ hash<auto> msg = httpclient.head("/path");
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return the headers received from the HTTP server with all key names converted to lower-case
@@ -843,7 +900,12 @@ hash<auto> msg = httpclient.head("/path");
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -852,6 +914,8 @@ hash<auto> msg = httpclient.head("/path");
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::head(string path, *hash<auto> headers, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -884,6 +948,7 @@ httpclient.post("/path", body);
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
@@ -893,7 +958,12 @@ httpclient.post("/path", body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -903,6 +973,8 @@ httpclient.post("/path", body);
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::post(string path, string body, *hash<auto> headers, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -942,6 +1014,7 @@ httpclient.post("/path", body);
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
+    - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
     @return the message body in the reply to this message or @ref nothing in case no body was present in the response
@@ -951,7 +1024,12 @@ httpclient.post("/path", body);
 
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
     @throw HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED maximum redirect count exceeded
-    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a hash equal to the return value of the send() method including a \c "status_code" key (giving the status code) and a \c "body" key (giving the message body returned by the server)
+    @throw HTTP-CLIENT-RECEIVE-ERROR unknown content encoding received or status error communicating with HTTP server
+    (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
+    hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
+    a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
+    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
@@ -960,6 +1038,8 @@ httpclient.post("/path", body);
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+
+    @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::post(string path, *binary body, *hash<auto> headers, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
@@ -1487,4 +1567,44 @@ httpclient.setPersistent();
  */
 HTTPClient::setPersistent() {
    client->setPersistent(xsink);
+}
+
+//! set the error passthru status
+/** @par Example:
+    @code{.py}
+httpclient.setErrorPassthru();
+    @endcode
+
+    @param set if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+      \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+      like any other response
+
+    @return the old \c error_passthru value
+
+    If @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+    like any other response.
+
+    @since %Qore 0.9.3
+*/
+bool HTTPClient::setErrorPassthru(bool set = True) {
+    return client->setErrorPassthru(set);
+}
+
+//! get the error passthru status
+/** @par Example:
+    @code{.py}
+bool b = httpclient.getErrorPassthru();
+    @endcode
+
+    @return the current \c error_passthru value
+
+    If @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+    like any other response.
+
+    @since %Qore 0.9.3
+ */
+bool HTTPClient::getErrorPassthru() [flags=CONSTANT] {
+    return client->getErrorPassthru();
 }

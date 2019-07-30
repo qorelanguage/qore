@@ -1684,7 +1684,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head) {
+    final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -1762,8 +1762,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection close flag set", cx.id, cx.handler_name);
             else if (!(handler instanceof HttpServer::AbstractHttpSocketHandler)) {
                 listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", cx.id, cx.handler_name, handler.className());
-            }
-            else {
+            } else {
                 if (listener.registerDedicatedSocket(cx.id, handler)) {
                     on_exit cx.close = True;
                     try {

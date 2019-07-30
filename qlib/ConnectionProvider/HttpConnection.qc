@@ -32,6 +32,9 @@ public namespace ConnectionProvider {
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
         - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
+        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+          \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+          like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
@@ -47,6 +50,7 @@ public namespace ConnectionProvider {
         public {
             #! HttpConnection object connection options
             const Options = {
+                "error_passthru": True,
                 "http_version": True,
                 "max_redirects": True,
                 "proxy": True,
@@ -123,6 +127,9 @@ public namespace ConnectionProvider {
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds
+            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+              \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+              like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
