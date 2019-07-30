@@ -65,6 +65,9 @@
     - fixed a member initialization bug with imported classes
       (<a href="https://github.com/qorelanguage/qore/issues/3368">issue 3368</a>)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module:
+      - fixed a bug where disconnected connections could cause unhandled exceptions to be output in the connection
+        thread
+        (<a href="https://github.com/qorelanguage/qore/issues/3415">issue 3415</a>)
       - fixed certificate and key errors for HTTPS listeners to generate user-friendly exceptions
         (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
     - <a href="../../modules/Mime/html/index.html">Mime</a> module:

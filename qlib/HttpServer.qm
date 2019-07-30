@@ -2188,14 +2188,19 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (ssl) {
             try {
                 s.upgradeServerToSSL(HttpServer::ReadTimeout);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 log("error upgrading secure connection to SSL: %s: %s", ex.err, ex.desc);
                 return;
             }
         }
 
-        hash info = s.getPeerInfo();
+        hash<auto> info;
+        try {
+            info = s.getPeerInfo();
+        } catch (hash<ExceptionInfo> ex) {
+            log("error getting peer socket info: %s: %s", ex.err, ex.desc);
+            return;
+        }
         # make 'desc' key for logging
         info.desc = info.address_desc;
         if (info.port)
@@ -2210,7 +2215,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             "listener-id": id,
         };
 
-        my (hash<auto> hdr, auto body);
+        hash<auto> hdr;
+        auto body;
 
         # set TCP_NODELAY on incoming socket
         #s.setNoDelay(True);

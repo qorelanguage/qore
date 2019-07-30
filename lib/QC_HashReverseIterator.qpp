@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_HashReverseIterator.qpp HashReverseIterator class definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -39,7 +39,7 @@ extern QoreClass* QC_HASHITERATOR;
 
     @par Example: HashReverseIterator basic usage
     @code{.py}
-    hash h = ( "key1" : 1, "key2" : 2, );
+    hash<auto> h = ( "key1" : 1, "key2" : 2, );
 
     HashReverseIterator it(h);
     while (it.next()) {
@@ -73,19 +73,19 @@ qclass HashReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent=Has
 HashReverseIterator hi(h);
     @endcode
  */
-HashReverseIterator::constructor(hash h) {
-   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(h));
+HashReverseIterator::constructor(hash<auto> h) {
+    self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(h));
 }
 
 //! Creates an empty iterator object
 /** @par Example:
     @code{.py}
-*hash h = get_hash_or_nothing();
+*hash<auto> h = get_hash_or_nothing();
 HashReverseIterator hi(h);
     @endcode
  */
 HashReverseIterator::constructor() {
-   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator);
+    self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator);
 }
 
 //! Creates a copy of the HashReverseIterator object, iterating the same object as the original and in the same position
@@ -95,7 +95,7 @@ HashReverseIterator ni = i.copy();
     @endcode
  */
 HashReverseIterator::copy() {
-   self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(*i));
+    self->setPrivate(CID_HASHREVERSEITERATOR, new QoreHashReverseIterator(*i));
 }
 
 //! Moves the current position to the previous element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the hash if the hash is not empty
@@ -117,9 +117,9 @@ while (i.prev()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool HashReverseIterator::next() {
-   if (i->check(xsink))
-      return false;
-   return i->prev();
+    if (i->check(xsink))
+        return false;
+    return i->prev();
 }
 
 //! Moves the current position to the next element in the hash; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the hash if the hash is not empty
@@ -141,9 +141,9 @@ while (i.next()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool HashReverseIterator::prev() {
-   if (i->check(xsink))
-      return false;
-   return i->next();
+    if (i->check(xsink))
+        return false;
+    return i->next();
 }
 
 //! returns @ref True if on the last element of the hash
@@ -158,7 +158,7 @@ while (i.next()) {
     @endcode
  */
 bool HashReverseIterator::first() [flags=CONSTANT] {
-   return i->last();
+    return i->last();
 }
 
 //! returns @ref True if on the first element of the hash
@@ -173,5 +173,5 @@ while (i.next()) {
     @endcode
  */
 bool HashReverseIterator::last() [flags=CONSTANT] {
-   return i->first();
+    return i->first();
 }

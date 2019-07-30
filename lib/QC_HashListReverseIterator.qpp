@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_HashListIterator.qpp HashListIterator class definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -37,18 +37,18 @@ extern QoreClass* QC_HASHLISTITERATOR;
 // forwards and are used in the reverse sense by the Qore language class implementation below
 class QoreHashListReverseIterator : public QoreHashListIterator {
 public:
-   DLLLOCAL QoreHashListReverseIterator(const QoreHashNode* n_h) : QoreHashListIterator(n_h) {
-   }
+    DLLLOCAL QoreHashListReverseIterator(const QoreHashNode* n_h) : QoreHashListIterator(n_h) {
+    }
 
-   DLLLOCAL QoreHashListReverseIterator() {
-   }
+    DLLLOCAL QoreHashListReverseIterator() {
+    }
 
-   DLLLOCAL QoreHashListReverseIterator(const QoreHashListReverseIterator& old) : QoreHashListIterator(old) {
-   }
+    DLLLOCAL QoreHashListReverseIterator(const QoreHashListReverseIterator& old) : QoreHashListIterator(old) {
+    }
 
-   DLLLOCAL virtual const char* getName() const {
-      return "HashListReverseIterator";
-   }
+    DLLLOCAL virtual const char* getName() const {
+        return "HashListReverseIterator";
+    }
 };
 
 //! This class a reverse iterator class for hashes of lists as returned by Qore::SQL::Datasource::select() and Qore::SQL::DatasourcePool::select(), both of which return hashes with keys giving column names where the key values are lists of column values
@@ -60,11 +60,11 @@ public:
 
     @par Example: HashListReverseIterator basic usge
     @code{.py}
-    hash data = (
+    hash<auto> data = {
         "column1": (1, 2, 3,),
         "column2": ("a", "b", "c",),
         "column3": "constant",
-    );
+    };
 
     HashListReverseIterator it(data);
     while (it.next()) {
@@ -102,19 +102,19 @@ qclass HashListReverseIterator [arg=QoreHashListReverseIterator* i; ns=Qore; vpa
 HashListReverseIterator i(h);
     @endcode
  */
-HashListReverseIterator::constructor(hash h) {
-   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(h));
+HashListReverseIterator::constructor(hash<auto> h) {
+    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(h));
 }
 
 //! Creates an empty hash list iterator object
 /** @par Example:
     @code{.py}
-*hash q = ds.select("select * from some_table");
+*hash<auto> q = ds.select("select * from some_table");
 HashListReverseIterator i(q);
     @endcode
  */
 HashListReverseIterator::constructor() {
-   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator);
+    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator);
 }
 
 //! Creates a copy of the HashListReverseIterator object, iterating the same object as the original and in the same position
@@ -124,7 +124,7 @@ HashListReverseIterator ni = i.copy();
     @endcode
  */
 HashListReverseIterator::copy() {
-   self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(*i));
+    self->setPrivate(CID_HASHLISTREVERSEITERATOR, new QoreHashListReverseIterator(*i));
 }
 
 //! Moves the current position to the next element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
@@ -143,9 +143,9 @@ while (i.next()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool HashListReverseIterator::next() {
-   if (i->check(xsink))
-      return false;
-   return i->prev();
+    if (i->check(xsink))
+        return false;
+    return i->prev();
 }
 
 //! Moves the current position to the previous element in the result list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the list if the list is not empty
@@ -164,9 +164,9 @@ while (i.prev()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool HashListReverseIterator::prev() {
-   if (i->check(xsink))
-      return false;
-   return i->next();
+    if (i->check(xsink))
+        return false;
+    return i->next();
 }
 
 //! returns @ref True if on the first element being iterated in the list (ie the last element in the list)
@@ -181,7 +181,7 @@ while (i.next()) {
     @endcode
  */
 bool HashListReverseIterator::first() [flags=CONSTANT] {
-   return i->last();
+    return i->last();
 }
 
 //! returns @ref True if on the last element being iterated in the list (ie the first element in the list)
@@ -196,7 +196,7 @@ while (i.next()) {
     @endcode
  */
 bool HashListReverseIterator::last() [flags=CONSTANT] {
-   return i->first();
+    return i->first();
 }
 
 //! This method allows the iterator to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
@@ -218,8 +218,8 @@ while (i.next()) {
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
 auto HashListReverseIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return QoreValue();
+    if (i->check(xsink))
+        return QoreValue();
 
-   return i->getReferencedKeyValue(key->getBuffer(), xsink);
+    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }

@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,11 +39,11 @@ extern QoreClass* QC_HASHITERATOR;
 
     @par Example: HashPairIterator basic usage
     @code{.py}
-    hash data = (
-            "key1" : 1,
-            "key2" : 2,
-            "key3" : 3,
-        );
+    hash<auto> data = {
+        "key1" : 1,
+        "key2" : 2,
+        "key3" : 3,
+    };
 
     HashPairIterator it(data);
     while (it.next()) {
@@ -79,7 +79,7 @@ HashPairIterator::constructor(hash<auto> h) {
 //! Creates an empty hash iterator object
 /** @par Example:
     @code{.py}
-*hash h = get_hash_or_nothing();
+*hash<auto> h = get_hash_or_nothing();
 HashPairIterator hi(h);
     @endcode
  */
