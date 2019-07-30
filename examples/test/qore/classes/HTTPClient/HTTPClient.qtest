@@ -190,6 +190,16 @@ public class Main inherits QUnit::Test {
         const NormalReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nContent-Length: 13\r\nDate: %s GMT\r\n\r\nTest Message.",
                                       gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
 
+        const ErrorReply3 = sprintf("HTTP/1.1 404 Not Found\r
+Server: Qore-Test-Server/1.0\r
+X-Powered-By: Qore/%s\r
+Connection: Close\r
+Content-Type: text/plain;charset=utf8\r
+Content-Length: 20\r
+\r
+404 Not Found: Error",
+            VersionString);
+
         const TestMessage = "Test Message.";
         const TestList = ("Test", " Mess", "age.");
 
@@ -229,6 +239,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
+        addTestCase("issue 3472", \issue3472());
         # disabled test as the external dependency is currently not working (2019-03-20)
         #addTestCase("issue 3053", \issue3053());
         addTestCase("HttpClient Test", \testClient());
@@ -236,6 +247,28 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         addTestCase("issue 2610", \issue2610());
 
         set_return_value(main());
+    }
+
+    issue3472() {
+        {
+            HttpTestServer serv(ErrorReply3);
+            on_exit serv.done();
+            HTTPClient hc({"url": "http://localhost:" + serv.port, "error_passthru": True});
+            hash<auto> info;
+            hash<auto> resp = hc.send(NOTHING, "GET", "/", NOTHING, False, \info);
+            assertEq(404, resp.status_code);
+            assertEq("Close", resp.connection);
+            assertEq("Close", info."response-headers-raw".Connection);
+            assertEq("Close", info."response-headers".connection);
+        }
+
+        {
+            HttpTestServer serv(ErrorReply3);
+            on_exit serv.done();
+            HTTPClient hc({"url": "http://localhost:" + serv.port, "error_passthru": True});
+            hc.setErrorPassthru(False);
+            assertThrows("HTTP-CLIENT-RECEIVE-ERROR", "404", \hc.send(), (NOTHING, "GET", "/"));
+        }
     }
 
     issue3053() {

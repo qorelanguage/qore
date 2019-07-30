@@ -152,6 +152,9 @@ ZeyosRestClient zeyos(
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
+            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+              \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+              like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
             - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
@@ -214,6 +217,9 @@ ZeyosRestClient zeyos(
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
+        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+          \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+          like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
@@ -301,6 +307,9 @@ ZeyosRestClient zeyos(
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
+            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+              \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+              like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use

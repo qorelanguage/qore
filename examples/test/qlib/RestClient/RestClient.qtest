@@ -31,26 +31,26 @@
 
 %disable-warning deprecated
 
-const VALUE_TEXT = (
-        "input" : "Lorem Ipsum",
-        "output" : "Lorem Ipsum",
-    );
-const VALUE_XML = (
-        "input" : "<foo><bar>1</bar></foo>",
-        "output" : ("foo" : ("bar" : "1")),
-    );
-const VALUE_XMLRPC = (
-        "input" : "<struct><member><name>foo</name><value><i4>1</i4></value></member></struct>",
-        "output" : ("foo": 1),
-    );
-const VALUE_YAML = (
-        "input": "foo:\n bar: 1\n other: '2017-01-01 00:00:00Z'",
-        "output": ("foo": ("bar": 1, "other": 2017-01-01Z)),
-    );
-const VALUE_JSON = (
-        "input" : "{\"foo\":{\"bar\":1}}",
-        "output" : ("foo" : ("bar" : 1)),
-    );
+const VALUE_TEXT = {
+    "input": "Lorem Ipsum",
+    "output": "Lorem Ipsum",
+};
+const VALUE_XML = {
+    "input": "<foo><bar>1</bar></foo>",
+    "output": {"foo": {"bar": "1"}},
+};
+const VALUE_XMLRPC = {
+    "input": "<struct><member><name>foo</name><value><i4>1</i4></value></member></struct>",
+    "output": {"foo": 1},
+};
+const VALUE_YAML = {
+    "input": "foo:\n bar: 1\n other: '2017-01-01 00:00:00Z'",
+    "output": {"foo": {"bar": 1, "other": 2017-01-01Z}},
+};
+const VALUE_JSON = {
+    "input" : "{\"foo\":{\"bar\":1}}",
+    "output" : {"foo" : {"bar" : 1}},
+};
 
 class SimpleStringHandler inherits AbstractHttpRequestHandler {
     private {
@@ -61,7 +61,10 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         m_mime = mime;
         m_data = str;
     }
-    hash handleRequest(hash cx, hash hdr, *data body) {
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        if (hdr."do-error") {
+            return makeResponse(404, "test error", {"Content-Type": MimeTypeText});
+        }
         if (hdr.method == "GET") {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         } else if (hdr.method == "PUT") {
@@ -88,6 +91,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
         addTestCase("DELETE tests", \methodDeleteTest());
         addTestCase("GET tests", \methodGetTest());
@@ -111,6 +115,15 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    issue3472() {
+        RestClient rest({"url": "http://localhost:"+port});
+        assertThrows("REST-RESPONSE-ERROR", \rest.get(), ("/api_text", NOTHING, NOTHING, {"Do-Error": True}));
+        rest.setErrorPassthru(True);
+        hash<auto> msg = rest.get("/api_text", NOTHING, NOTHING, {"Do-Error": True});
+        assertEq(404, msg.status_code);
+        assertEq("test error", msg.body);
     }
 
     methodDeleteTest() {
