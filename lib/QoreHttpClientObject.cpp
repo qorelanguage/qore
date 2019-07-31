@@ -72,7 +72,10 @@ struct qore_httpclient_priv {
         // turns off implicit connections for the current connection only
         persistent = false,
         // means that HTTP response errors do not result in exceptions being thrown
-        error_passthru = false;
+        error_passthru = false,
+        // means that redirect messages will not be processed but rather passed to the caller
+        redirect_passthru = false
+        ;
 
     int default_port = HTTPCLIENT_DEFAULT_PORT,
         max_redirects = HTTPCLIENT_DEFAULT_MAX_REDIRECTS;
@@ -299,6 +302,18 @@ struct qore_httpclient_priv {
     DLLLOCAL bool getErrorPassthru() const {
         AutoLocker al(msock->m);
         return error_passthru;
+    }
+
+    DLLLOCAL bool setRedirectPassthru(bool set) {
+        AutoLocker al(msock->m);
+        bool rv = redirect_passthru;
+        redirect_passthru = set;
+        return rv;
+    }
+
+    DLLLOCAL bool getRedirectPassthru() const {
+        AutoLocker al(msock->m);
+        return redirect_passthru;
     }
 
     DLLLOCAL void addHttpMethod(const char* method, bool enable) {
@@ -693,6 +708,11 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         http_priv->error_passthru = true;
     }
 
+    n = opts->getKeyValue("redirect_passthru");
+    if (!n.isNothing() && n.getAsBool()) {
+        http_priv->redirect_passthru = true;
+    }
+
     return 0;
 }
 
@@ -839,6 +859,13 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     QoreHashNode* ah = nullptr;
     while (true) {
         ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
+        // rename "headers-raw" in info to "response-headers-raw"
+        if (info) {
+            ValueHolder v(info->takeKeyValue("headers-raw"), xsink);
+            if (v) {
+                info->setKeyValue("response-headers-raw", v.release(), xsink);
+            }
+        }
         if (!(*ans)) {
             disconnect_unlocked();
             assert(*xsink);
@@ -1139,7 +1166,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             ans = ans->copy();
 
         // issue #3116: pass a 304 Not Modified message back to the caller without processing
-        if (code >= 300 && code < 400 && code != 304) {
+        if (!redirect_passthru && code >= 300 && code < 400 && code != 304) {
             disconnect_unlocked();
 
             host_override = false;
@@ -1209,7 +1236,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         break;
     }
 
-    if (code >= 300 && code < 400 && code != 304) {
+    if (!redirect_passthru && code >= 300 && code < 400 && code != 304) {
         sl.unlock();
         const char* mess = get_string_header(xsink, **ans, "status_message");
         if (!mess)
@@ -1631,4 +1658,12 @@ bool QoreHttpClientObject::setErrorPassthru(bool set) {
 
 bool QoreHttpClientObject::getErrorPassthru() const {
     return http_priv->getErrorPassthru();
+}
+
+bool QoreHttpClientObject::setRedirectPassthru(bool set) {
+    return http_priv->setRedirectPassthru(set);
+}
+
+bool QoreHttpClientObject::getRedirectPassthru() const {
+    return http_priv->getRedirectPassthru();
 }

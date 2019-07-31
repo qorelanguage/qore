@@ -354,6 +354,16 @@ public:
      */
     DLLEXPORT bool getErrorPassthru() const;
 
+    //! sets the new and returns the old redirect_passthru status
+    /** @since %Qore 0.9.3
+     */
+    DLLEXPORT bool setRedirectPassthru(bool set);
+
+    //! returns the current redirect_passthru status
+    /** @since %Qore 0.9.3
+     */
+    DLLEXPORT bool getRedirectPassthru() const;
+
     DLLLOCAL static void static_init();
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);

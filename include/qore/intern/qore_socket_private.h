@@ -3040,7 +3040,7 @@ struct qore_socket_private {
     }
 
     // returns true if the connection should be closed, false if not
-    DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = 0, bool* chunked = 0) {
+    DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = nullptr, bool* chunked = nullptr) {
         bool close = !(flags & CHF_HTTP11);
         // socket encoding
         const char* senc = 0;
@@ -3049,7 +3049,7 @@ struct qore_socket_private {
 
         QoreHashNode* raw_hdr = nullptr;
         if (info) {
-            info->setKeyValue("response-headers-raw", raw_hdr = new QoreHashNode(autoTypeInfo), nullptr);
+            info->setKeyValue("headers-raw", raw_hdr = new QoreHashNode(autoTypeInfo), nullptr);
         }
 
         // raw key for setting raw headers

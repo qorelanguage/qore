@@ -380,7 +380,9 @@ class SocketTest inherits QUnit::Test {
         assertEq(i8, m, who + " sendi8LSB");
         s.send("OK");
 
-        m = s.readHTTPHeader();
+        hash<auto> info;
+        m = s.readHTTPHeader(-1, \info);
+        assertEq(Type::Hash, info."headers-raw".type());
         assertEq("POST", m.method, who + " HTTP header method");
         m = s.recv(m."content-length");
         assertEq(XString, m, who + " HTTP message body");
