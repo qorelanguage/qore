@@ -364,6 +364,16 @@ public:
      */
     DLLEXPORT bool getRedirectPassthru() const;
 
+    //! sets the new and returns the old encoding_passthru status
+    /** @since %Qore 0.9.3
+     */
+    DLLEXPORT bool setEncodingPassthru(bool set);
+
+    //! returns the current encoding_passthru status
+    /** @since %Qore 0.9.3
+     */
+    DLLEXPORT bool getEncodingPassthru() const;
+
     DLLLOCAL static void static_init();
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);
