@@ -145,6 +145,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
+    - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+      processed
     - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
     - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
     - \c ssl_key_password: the password to the private key given with \c ssl_key_path
@@ -168,7 +170,9 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c ssl_key_path
       - \c ssl_key_password
       - \c ssl_verify_cert
-    - %Qore 0.9.3 added support for the \c error_passthru option
+    - %Qore 0.9.3 added the following options:
+      - \c error_passthru
+      - \c redirect_passthru
  */
 HTTPClient::constructor(hash<auto> opts) {
    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -1607,4 +1611,39 @@ bool b = httpclient.getErrorPassthru();
  */
 bool HTTPClient::getErrorPassthru() [flags=CONSTANT] {
     return client->getErrorPassthru();
+}
+
+//! set the redirect passthru status
+/** @par Example:
+    @code{.py}
+httpclient.setRedirectPassthru();
+    @endcode
+
+    @param set if @ref Qore::True "True" then redirect messages will be passed to the called instead of proceessed
+
+    @return the old \c reddirect_passthru value
+
+    If @ref Qore::True "True" then redirect messages will be passed to the called instead of proceessed
+
+    @since %Qore 0.9.3
+*/
+bool HTTPClient::setRedirectPassthru(bool set = True) {
+    return client->setRedirectPassthru(set);
+}
+
+//! get the redirect passthru status
+/** @par Example:
+    @code{.py}
+bool b = httpclient.getRedirectPassthru();
+    @endcode
+
+    @return the current \c reddirect_passthru value
+
+    If @ref Qore::True "True" then redirect messages will be passed to the called instead of proceessed
+
+
+    @since %Qore 0.9.3
+ */
+bool HTTPClient::getRedirectPassthru() [flags=CONSTANT] {
+    return client->getRedirectPassthru();
 }

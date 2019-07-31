@@ -38,6 +38,8 @@ public namespace ConnectionProvider {
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
+        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+          processed
         - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
         - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
         - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
@@ -56,6 +58,7 @@ public namespace ConnectionProvider {
                 "proxy": True,
                 "timeout": True,
                 "connect_timeout": True,
+                "redirect_passthru": True,
                 "ssl_cert_path": True,
                 "ssl_key_password": True,
                 "ssl_key_path": True,
@@ -133,6 +136,8 @@ public namespace ConnectionProvider {
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
+            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+              processed
             - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
             - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
             - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"

@@ -1803,6 +1803,7 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if present (and does not have a length of zero), the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set); string data will be automatically converted to the Socket's encoding if necessary
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c headers-raw: The raw response headers without any case conversions or other processing
     - \c request-uri: The request URI as sent in the output message
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1813,6 +1814,8 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
     @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
+
+    @since %Qore 0.9.3 added the \c "headers-raw" key in the output \c info hash
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, *string body, *reference<hash> info, timeout timeout_ms = -1) {
    TempEncodingHelper tmp_data;
@@ -1840,6 +1843,7 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
     @param headers a hash of additional headers to send (key-value pairs)
     @param body if it does not have a length of zero, the body to be sent with the message (if present, the \c "Content-Length" header will be automatically set)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c headers-raw: The raw response headers without any case conversions or other processing
     - \c request-uri: The request URI as sent in the output message
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1849,6 +1853,8 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
     @throw SOCKET-SSL-ERROR there was an error sending SSL data
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
+
+    @since %Qore 0.9.3 added the \c "headers-raw" key in the output \c info hash
  */
 nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, binary body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
@@ -1872,6 +1878,7 @@ sock.sendHTTPMessageWithCallback(send_callback, "POST", "/RPC2", "1.1", ("Conten
     @param http_version the HTTP protocol version (\c "1.0" or \c "1.1")
     @param headers a hash of additional headers to send (key-value pairs)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with the following hash key:
+    - \c headers-raw: The raw response headers without any case conversions or other processing
     - \c request-uri: The request URI as sent in the output message
     @param timeout_ms the timeout in milliseconds (1/1000 second); If no timeout is passed or is negative, then the call will not time out and will not return until all the data has been sent or the remote end closes the connection. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
 
@@ -1882,7 +1889,9 @@ sock.sendHTTPMessageWithCallback(send_callback, "POST", "/RPC2", "1.1", ("Conten
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
 
-    @since %Qore 0.8.10
+    @since
+    - %Qore 0.8.10
+    - %Qore 0.9.3 added the \c "headers-raw" key in the output \c info hash
  */
 nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash<auto> headers, *reference<hash<auto>> info, timeout timeout_ms = -1) {
    OptHashRefHelper ohrh(info, xsink);
@@ -2057,6 +2066,7 @@ hash<auto> ans = sock.readHTTPHeader(10s);
 
     @param timeout_ms The timeout in milliseconds (1/1000 second). If no timeout or if a negative timeout is passed, then the call will not time out and will not return until all the data has been read or the remote end closes the connection.  If a timeout occurs, a \c "SOCKET-TIMEOUT" exception is raised. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
     @param info An optional reference to an lvalue that can accept a hash that will be used as an output variable with one of the following two keys:
+    - \c headers-raw: the raw headers read without any case conversions or other processing
     - \c request-uri: (only set when parsing a request header) gives the request URI in an HTTP request
     - \c response-uri: (only set when parsing a response header) gives the response URI in an HTTP response
     - \c body-content-type: this is the  \c "Content-Type" header without any charset declaration
@@ -2089,6 +2099,7 @@ hash<auto> ans = sock.readHTTPHeader(10s);
     @since
     - %Qore 0.8.4 this method always returns a hash and raises a \c SOCKET-HTTP-ERROR if invalid HTTP data is received
     - %Qore 0.8.8 added the \c close, \c charset, \c body-content-type, and \c accept-charset info keys as well as the encoding handling based on the detected charset
+    - %Qore 0.9.3 added the \c "headers-raw" key in the output \c info hash
  */
 hash<auto> Socket::readHTTPHeader(timeout timeout_ms = -1, *reference<hash<auto>> info) {
    OptHashRefHelper ohrh(info, xsink);
