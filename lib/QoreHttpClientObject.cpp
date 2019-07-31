@@ -71,10 +71,12 @@ struct qore_httpclient_priv {
         proxy_connected = false,
         // turns off implicit connections for the current connection only
         persistent = false,
-        // means that HTTP response errors do not result in exceptions being thrown
+        // HTTP response errors do not result in exceptions being thrown
         error_passthru = false,
-        // means that redirect messages will not be processed but rather passed to the caller
-        redirect_passthru = false
+        // redirect messages will not be processed but rather passed to the caller
+        redirect_passthru = false,
+        // known content encodings are not decoded when set
+        encoding_passthru = false
         ;
 
     int default_port = HTTPCLIENT_DEFAULT_PORT,
@@ -361,6 +363,18 @@ struct qore_httpclient_priv {
     DLLLOCAL bool getRedirectPassthru() const {
         AutoLocker al(msock->m);
         return redirect_passthru;
+    }
+
+    DLLLOCAL bool setEncodingPassthru(bool set) {
+        AutoLocker al(msock->m);
+        bool rv = encoding_passthru;
+        encoding_passthru = set;
+        return rv;
+    }
+
+    DLLLOCAL bool getEncodingPassthru() const {
+        AutoLocker al(msock->m);
+        return encoding_passthru;
     }
 
     DLLLOCAL void addHttpMethod(const char* method, bool enable) {
@@ -763,6 +777,11 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("redirect_passthru");
     if (!n.isNothing() && n.getAsBool()) {
         http_priv->redirect_passthru = true;
+    }
+
+    n = opts->getKeyValue("encoding_passthru");
+    if (!n.isNothing() && n.getAsBool()) {
+        http_priv->encoding_passthru = true;
     }
 
     return 0;
@@ -1528,7 +1547,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     // add body to result hash and process content encoding if necessary
     if (body) {
-        if (content_encoding) {
+        if (content_encoding && !encoding_passthru) {
             if (!dec) {
                 if (!recv_callback) {
                     xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "don't know how to handle content-encoding '%s'", content_encoding);
@@ -1703,6 +1722,14 @@ QoreHashNode* QoreHttpClientObject::getUsageInfo() const {
 void QoreHttpClientObject::clearStats() {
     AutoLocker al(priv->m);
     priv->socket->clearStats();
+}
+
+bool QoreHttpClientObject::setEncodingPassthru(bool set) {
+    return http_priv->setEncodingPassthru(set);
+}
+
+bool QoreHttpClientObject::getEncodingPassthru() const {
+    return http_priv->getEncodingPassthru();
 }
 
 bool QoreHttpClientObject::setErrorPassthru(bool set) {
