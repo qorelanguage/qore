@@ -192,7 +192,52 @@ struct qore_httpclient_priv {
             persistent = true;
     }
 
-    DLLLOCAL int set_url_unlocked(const char* str, ExceptionSink* xsink) {
+    // issue #3474: process redirect messages correctly
+    DLLLOCAL int redirectUrlUnlocked(const char* str, ExceptionSink* xsink) {
+        QoreURL url(str);
+
+        if (!url.isValid()) {
+            xsink->raiseException("HTTP-CLIENT-URL-ERROR", "redirect location '%s' cannot be parsed", str);
+            return -1;
+        }
+
+        // check if the location is only a path, in which case we need to keep the rest of the connection info the same
+        if (!url.getPort() && !url.getHost() && url.getPath()) {
+            connection.path = url.getPath()->c_str();
+            return 0;
+        }
+
+        bool port_set = false;
+        if (connection.set_url(url, port_set, xsink))
+            return -1;
+
+        const QoreString* tmp = url.getProtocol();
+        if (tmp) {
+            prot_map_t::const_iterator i = prot_map.find(tmp->getBuffer());
+            if (i == prot_map.end()) {
+                xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->getBuffer());
+                return -1;
+            }
+
+            // set port only if it wasn't overridden in the URL
+            if (!port_set && !connection.is_unix)
+                connection.port = get_port(i->second);
+
+            // set SSL setting from protocol default
+            connection.ssl = get_ssl(i->second);
+        } else {
+            connection.ssl = false;
+            if (!port_set && !connection.is_unix)
+                connection.port = default_port;
+        }
+
+        if (!proxy_connection.has_url())
+            setSocketPath();
+
+        return 0;
+    }
+
+    DLLLOCAL int setUrlUnlocked(const char* str, ExceptionSink* xsink) {
         QoreURL url(str);
 
         if (!url.isValid()) {
@@ -201,8 +246,9 @@ struct qore_httpclient_priv {
         }
 
         bool port_set = false;
-        if (connection.set_url(url, port_set, xsink))
+        if (connection.set_url(url, port_set, xsink)) {
             return -1;
+        }
 
         const QoreString *tmp = url.getProtocol();
         if (tmp) {
@@ -220,8 +266,9 @@ struct qore_httpclient_priv {
             connection.ssl = get_ssl(i->second);
         } else {
             connection.ssl = false;
-            if (!port_set)
+            if (!port_set && !connection.is_unix) {
                 connection.port = default_port;
+            }
         }
 
         if (!proxy_connection.has_url())
@@ -230,7 +277,7 @@ struct qore_httpclient_priv {
         return 0;
     }
 
-    DLLLOCAL int set_proxy_url_unlocked(const char* pstr, ExceptionSink* xsink) {
+    DLLLOCAL int setProxyUrlUnlocked(const char* pstr, ExceptionSink* xsink) {
         QoreURL url(pstr);
 
         if (!url.isValid()) {
@@ -374,21 +421,26 @@ struct qore_httpclient_priv {
 
     // always generate a Host header pointing to the host hosting the resource, not the proxy
     // (RFC 2616 is not totally clear on this, but other clients do it this way)
-    DLLLOCAL AbstractQoreNode* getHostHeaderValue() {
+    DLLLOCAL QoreStringNode* getHostHeaderValue() {
         // RFC 7230 section 5.5: "if the connection's incoming TCP port number
         //   differs from the default port for the effective request URI's
         //   scheme, then a colon (":") and the incoming port number (in
         //   decimal form) are appended to the authority component"
         // https://tools.ietf.org/html/rfc7230#section-5.5
         // therefore, we don't include the port number if it's the default port for the protocol
-        if ((!connection.ssl && connection.port == 80) || (connection.ssl && connection.port == 443))
+        if ((!connection.ssl && connection.port == 80) || (connection.ssl && connection.port == 443)) {
             return new QoreStringNode(connection.host.c_str());
+        }
 
-        QoreStringNode* str = new QoreStringNode;
-        str->concat(connection.host);
-        if (connection.port)
+        QoreStringNodeHolder str(new QoreStringNode);
+        // issue #3474: Host: headers with UNIX domain sockets must be URL encoded
+        if (connection.is_unix) {
+            str->concat(connection.unix_urlencoded_path);
+        } else {
+            str->concat(connection.host);
             str->sprintf(":%d", connection.port);
-        return str;
+        }
+        return str.release();
     }
 
     DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink);
@@ -571,12 +623,12 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
 
     // check if proxy is true
     n = opts->getKeyValue("proxy");
-    if (n.getType() == NT_STRING && http_priv->set_proxy_url_unlocked((n.get<const QoreStringNode>())->c_str(), xsink))
+    if (n.getType() == NT_STRING && http_priv->setProxyUrlUnlocked((n.get<const QoreStringNode>())->c_str(), xsink))
         return -1;
 
     // parse url option if present
     n = opts->getKeyValue("url");
-    if (n.getType() == NT_STRING && http_priv->set_url_unlocked((n.get<const QoreStringNode>())->c_str(), xsink))
+    if (n.getType() == NT_STRING && http_priv->setUrlUnlocked((n.get<const QoreStringNode>())->c_str(), xsink))
         return -1;
 
     n = opts->getKeyValue("default_path");
@@ -730,7 +782,7 @@ int QoreHttpClientObject::setURL(const char* str, ExceptionSink* xsink) {
     // disconnect immediately if not using a proxy
     if (!http_priv->proxy_connection.has_url())
         http_priv->disconnect_unlocked();
-    return http_priv->set_url_unlocked(str, xsink);
+    return http_priv->setUrlUnlocked(str, xsink);
 }
 
 QoreStringNode* QoreHttpClientObject::getURL() {
@@ -775,7 +827,7 @@ int QoreHttpClientObject::setProxyURL(const char* proxy, ExceptionSink* xsink)  
         http_priv->proxy_connection.clear();
         return 0;
     }
-    return http_priv->set_proxy_url_unlocked(proxy, xsink);
+    return http_priv->setProxyUrlUnlocked(proxy, xsink);
 }
 
 QoreStringNode* QoreHttpClientObject::getProxyURL()  {
@@ -1137,8 +1189,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     while (true) {
         // set host field automatically if not overridden
-        if (!host_override)
+        if (!host_override) {
             nh->setKeyValue("Host", getHostHeaderValue(), xsink);
+        }
 
         if (info) {
             info->setKeyValue("headers", nh->copy(), xsink);
@@ -1189,7 +1242,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (++redirect_count > max_redirects)
                 break;
 
-            if (set_url_unlocked(location, xsink)) {
+            if (redirectUrlUnlocked(location, xsink)) {
                 sl.unlock();
                 const char* msg = mess ? mess->getBuffer() : "<no message>";
                 xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, msg);

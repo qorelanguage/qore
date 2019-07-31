@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9.3
 # need mime definitions
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
@@ -468,19 +468,21 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! returns a hash with one item - \c WWW-Authenticate header set to correct realm
-    hash getAuthHeader() {
-        return ("WWW-Authenticate": sprintf("Basic realm=%y", getRealm()));
+    hash<auto> getAuthHeader() {
+        return {
+            "WWW-Authenticate": sprintf("Basic realm=%y", getRealm()),
+        };
     }
 
     #! returns a 401 repsonse with the given string argument as the message body
     /** @param msg message body to return
     */
     hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server") {
-        return new hash<HttpResponseInfo>((
+        return <HttpResponseInfo>{
             "code": 401,
             "body": msg,
             "hdr": getAuthHeader(),
-            ));
+        };
     }
 
     #! primary method called to authenticate each request
@@ -488,17 +490,18 @@ public class HttpServer::AbstractAuthenticator {
         @param hdr a hash of request headers
         @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
@@ -572,17 +575,18 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
         @param hdr a hash of request headers
         @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
@@ -899,17 +903,18 @@ public class HttpServer::AbstractHttpRequestHandler {
     /**
         @param cx call context hash; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
@@ -1014,17 +1019,18 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! helper method for handling log messages
     /** @param cx the call context hash; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
@@ -1211,17 +1217,18 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         @param lid the listener ID
         @param cx call context hash; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
@@ -1283,17 +1290,18 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 
         @param cx call context hash; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
-          - \c request-uri: gives the request URI in an HTTP request
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
             be set to the first requested character encoding in the list
           - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
             @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
+            @ref Qore::False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
