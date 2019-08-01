@@ -113,7 +113,7 @@ public namespace HttpServer {
     public const ReadTimeout = DefaultTimeout;
 
     #! map of HTTP result codes and text messages
-    public const HttpCodes = (
+    public const HttpCodes = {
         # 100s: Informational
         "100": "Continue",
         "101": "Switching Protocols",
@@ -213,7 +213,7 @@ public namespace HttpServer {
 
         # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
         "511": "Network Authentication Required",
-        );
+    };
 
     /** @defgroup HttpServerLoggingOptions HttpServer Logging Options
     */
@@ -290,8 +290,7 @@ public namespace HttpServer {
                 h.host = "socket=" + remove h.path;
                 h.host =~ s/ /%20/g;
                 h.host =~ s/\//%2f/g;
-            }
-            else
+            } else
                 h.host = (!host || host == gethostname()) ? "localhost" : host;
         }
 
@@ -352,8 +351,7 @@ public namespace HttpServer {
         if (rv.body || rv.hdr."Transfer-Encoding" == "chunked") {
             if (!rv.hdr."Content-Type") {
                 rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
-            }
-            else if (rv.hdr."Content-Type" !~ /charset=/ && (rv.body.typeCode() == NT_STRING)) {
+            } else if (rv.hdr."Content-Type" !~ /charset=/ && (rv.body.typeCode() == NT_STRING)) {
                 rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
             }
         }
@@ -394,7 +392,7 @@ public class HttpServer::AbstractLogger {
     #! calls log() with the given args
     /** @param args a single string or a list of arguments used to call the log() method
     */
-    logArgs(*softlist args) {
+    logArgs(*softlist<auto> args) {
         if (args)
             call_object_method_args(self, "log", args);
     }
@@ -402,7 +400,7 @@ public class HttpServer::AbstractLogger {
     #! calls logError() with the given args
     /** @param args a single string or a list of arguments used to call the logError() method
     */
-    logErrorArgs(*softlist args) {
+    logErrorArgs(*softlist<auto> args) {
         if (args)
             call_object_method_args(self, "logError", args);
     }
@@ -422,7 +420,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
 
     #! method to log a response message
     /** @param cx the call context
-        @param the response hash
+        @param rv the response hash
     */
     logResponse(hash<auto> cx, hash<auto> rv) {
         # no implementation in the base class
@@ -558,8 +556,7 @@ public class HttpServer::AbstractAuthenticator {
             authenticateByIP(cx."peer-info".address, \user);
             cx.user = user;
             return;
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             # log the error
             string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
             listener.logError(str);
@@ -645,7 +642,7 @@ public class HttpServer::AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param n_body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash n_cx, hash n_hdr, auto n_body) {
+    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash<auto> n_cx, hash<auto> n_hdr, auto n_body) {
         listener = n_listener;
         handler = n_handler;
         s = n_s;
@@ -658,7 +655,9 @@ public class HttpServer::AbstractStreamRequest {
     hash<HttpHandlerResponseInfo> handleRequest() {
         # handle message body
         if (exists body) {
-            hash dh = ("data": body, "chunked": False);
+            hash<auto> dh = {
+                "data": body, "chunked": False
+            };
             if (cx.deserialized)
                 dh.deserialized = True;
             recv(dh);
@@ -670,8 +669,7 @@ public class HttpServer::AbstractStreamRequest {
                     s.readHTTPChunkedBodyBinaryWithCallback(\recv(), timeout_ms);
                 else
                     s.readHTTPChunkedBodyWithCallback(\recv(), timeout_ms);
-            }
-            else # signal end of data
+            } else # signal end of data
                 recvImpl(("hdr": NOTHING));
         }
 
@@ -715,9 +713,9 @@ public class HttpServer::AbstractStreamRequest {
     #! this is the primary callback for receiving chunked data; data will be logged, and then recvImpl() is called
     /** content decoding is not possible with chunked data because only the entire message can be decoded
     */
-    private nothing recv(hash v) {
-        if (exists v.data) {
-            logChunk(False, v.data.size());
+    private nothing recv(hash<auto> v) {
+        if (exists v."data") {
+            logChunk(False, v."data".size());
 
             if (cx.deserialized)
                 v.deserialized = True;
@@ -764,11 +762,11 @@ private logChunk(bool send, int size) {
         @note this method is called after the message body has been received
     */
     private hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
-        return new hash<HttpResponseInfo>({
+        return <HttpResponseInfo>{
             "code": 501,
             "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
-        });
+        };
     }
 
     #! callback method for receiving chunked data; the default implementation in this base class does nothing
@@ -781,7 +779,7 @@ private logChunk(bool send, int size) {
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
         - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     */
-    private nothing recvImpl(hash v) {
+    private nothing recvImpl(hash<auto> v) {
     }
 
     #! callback method for sending chunked data; the default implementation in this base class does nothing and returns nothing
@@ -822,7 +820,7 @@ public class HttpServer::AbstractHttpRequestHandler {
 
         #! thread-local key string for the persistent flag
         const PersistenceThreadKey = "_AHRH_p";
-}
+    }
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
@@ -843,8 +841,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         if (p) {
             save_thread_data((PersistenceThreadKey: True));
             set_thread_resource(\AbstractHttpRequestHandler::staticPersistenceCleanup());
-        }
-        else
+        } else
             remove_thread_data(PersistenceThreadKey);
     }
 
@@ -853,8 +850,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         if (c) {
             save_thread_data((NotificationThreadKey: c));
             set_thread_resource(\AbstractHttpRequestHandler::staticNotificationCleanup());
-        }
-        else {
+        } else {
             remove_thread_data(NotificationThreadKey);
         }
     }
@@ -884,8 +880,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         if (c) {
             try {
                 c();
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "OBJECT-ALREADY-DELETED")
                     rethrow;
             }
@@ -940,11 +935,11 @@ public class HttpServer::AbstractHttpRequestHandler {
         @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
     */
     hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
-        return new hash<HttpResponseInfo>((
+        return <HttpResponseInfo>{
             "code": 501,
             "body": sprintf("default handler (%s) has no implementation", self.className()),
             "close": True,
-            ));
+        };
     }
 
     #! top-level request handling method
@@ -971,26 +966,26 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! decodes a message body with content-encoding
-    static data decodeBody(string ce, binary body, *string enc) {
-        switch (ce) {
+    static data decodeBody(string content_encoding, binary body, *string string_encoding) {
+        switch (content_encoding) {
             case "deflate":
             case "x-deflate":
-                return enc ? uncompress_to_string(binary(body), enc) : uncompress_to_binary(body);
+                return string_encoding ? uncompress_to_string(binary(body), string_encoding) : uncompress_to_binary(body);
             case "gzip":
             case "x-gzip":
-                return enc ? gunzip_to_string(binary(body), enc) : gunzip_to_binary(body);
+                return string_encoding ? gunzip_to_string(binary(body), string_encoding) : gunzip_to_binary(body);
             case "bzip2":
             case "x-bzip2":
-                return enc ? bunzip2_to_string(binary(body), enc) : bunzip2_to_binary(body);
+                return string_encoding ? bunzip2_to_string(binary(body), string_encoding) : bunzip2_to_binary(body);
             case "identity":
-                return enc ? binary_to_string(body, enc) : body;
+                return string_encoding ? binary_to_string(body, string_encoding) : body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", ce);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", content_encoding);
     }
 
     #! encodes a message body with content-encoding
-    static binary encodeBody(string ce, data body) {
-        switch (ce) {
+    static binary encodeBody(string content_encoding, data body) {
+        switch (content_encoding) {
             case "deflate":
                 return compress(body);
             case "gzip":
@@ -1000,7 +995,7 @@ public class HttpServer::AbstractHttpRequestHandler {
             case "identity":
                 return body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", ce);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", content_encoding);
     }
 
     #! optionally retrieves and post-processes any message body
@@ -1075,10 +1070,10 @@ public class HttpServer::AbstractHttpRequestHandler {
                     args += "<masked>, ";
                 else if (arg.typeCode() == NT_HASH && arg) {
                     args += "{";
-                    args += foldl $1 + "," + $2, (map $1 == api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, arg.$1), arg.keyIterator());
+                    args += foldl $1 + "," + $2,
+                        (map $1 == api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, arg.$1), keys arg);
                     args += "}, ";
-                }
-                else
+                } else
                     args += sprintf("%y, ", arg);
             }
             # remove the last two characters from the string if any were added
@@ -1092,39 +1087,39 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
     /** @note the default implementation does nothing
       */
-    *hash saveThreadLocalData() {
+    *hash<auto> saveThreadLocalData() {
     }
 
     #! called after handleRequest() with any data returned from saveThreadData()
     /** @note the default implementation does nothing
       */
-    restoreThreadLocalData(*hash data) {
+    restoreThreadLocalData(*hash<auto> data) {
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
     static hash<HttpResponseInfo> makeResponse(int code, string fmt) {
-        return new hash<HttpResponseInfo>((
+        return <HttpResponseInfo>{
             "code": code,
             "body": vsprintf(fmt, argv),
-            ));
+        };
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
     static hash<HttpResponseInfo> makeResponse(hash<auto> hdr, int code, string fmt) {
-        return new hash<HttpResponseInfo>((
+        return <HttpResponseInfo>{
             "code": code,
             "body": vsprintf(fmt, argv),
             "hdr": hdr,
-            ));
+        };
     }
 
     #! creates a hash for an HTTP response with the response code and a literal response message body
     static hash<HttpResponseInfo> makeResponse(int code, *data body, *hash<auto> hdr) {
-        return new hash<HttpResponseInfo>((
+        return <HttpResponseInfo>{
             "code": code,
             "body": body,
             "hdr": hdr,
-            ));
+        };
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
@@ -1148,15 +1143,15 @@ public class HttpServer::AbstractHttpRequestHandler {
     }
 
     #! generates a redirect hash for the given path
-    static hash<HttpResponseInfo> redirect(hash<auto> cx, hash<auto> hdr, string path) {
+    static hash<HttpResponseInfo> redirect(hash<auto> cx, hash<auto> request_hdr, string path, int status_code = 301, *hash<auto> response_hdr) {
         # make sure no forward slashes are doubled in the path
         path =~ s/\/+/\//g;
-        string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", hdr.host, path);
-        return cast<hash<HttpResponseInfo>>((
-            "code": 301,
-            "hdr": ("Location": uri),
-            "body": hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
-            ));
+        string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", request_hdr.host, path);
+        return <HttpResponseInfo>{
+            "code": status_code,
+            "hdr": response_hdr + {"Location": uri},
+            "body": request_hdr.method != "HEAD" ? sprintf("redirecting to %s", uri) : NOTHING,
+        };
     }
 }
 
@@ -1196,10 +1191,10 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         bool stop = False;
 
         #! hash of listener references; this is to stop all connections associated with a particular listener
-        hash lh;
+        hash<string, int> lh;
 
         #! hash of listener stop flags
-        hash lsh;
+        hash<string, bool> lsh;
 
         #! listener reference hash mutex
         Mutex m();
