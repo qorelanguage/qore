@@ -37,6 +37,8 @@ class ReqHandler inherits AbstractHttpRequestHandler {
         string rpath = hdr.path;
         if (rpath =~ /^test400\//) {
             return make400("test400");
+        } else if (rpath =~ /^test500\//) {
+            return AbstractHttpRequestHandler::makeResponse(500, <74657374>);
         } else if (rpath =~ /^test501\//) {
             return make501("test501");
         } else if (rpath =~ /^nonexistingcode/) {
@@ -221,6 +223,8 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
     testStatusCodes() {
         code c = sub() { mClient.get("/test400/"); };
         testAssertion("400", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 400 received"));
+        c = sub() { mClient.get("/test500/abc"); };
+        testAssertion("500", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 500 received"));
         c = sub() { mClient.get("/test501/xyz"); };
         testAssertion("501", c, NOTHING, new QUnit::TestResultExceptionRegexp("HTTP-CLIENT-RECEIVE-ERROR", "status code 501 received"));
         c = sub() { mClient.get("/nonexistingcode/abc"); };

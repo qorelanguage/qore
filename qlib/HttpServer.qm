@@ -1207,13 +1207,13 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, string msg, *hash extra_hdrs, *string encoding, bool head) {
+    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, data msg, *hash extra_hdrs, *string encoding, bool head) {
         if (!s.isOpen()) {
             listener.log("cid %d: connection closed by peer", cx.id);
             return;
         }
 
-        string str;
+        data response_msg;
         # issue #3116: do not send a reply body if the response code does not allow it
         /** http://tools.ietf.org/html/rfc2616#section-4.4
             1.Any response message which "MUST NOT" include a message-body (such
@@ -1223,12 +1223,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             the message.
         */
         if (!head && (code >= 200) && (code != 204) && (code != 304)) {
-            str = !extra_hdrs."Content-Type"
-                ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on "
-                    "%s</address></body></html>",
-                        code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg),
-                        http_server_string, gethostname())
-                : msg;
+            if (msg.typeCode() == NT_STRING) {
+                response_msg = !extra_hdrs."Content-Type"
+                    ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on "
+                        "%s</address></body></html>",
+                            code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg),
+                            http_server_string, gethostname())
+                    : msg;
+            } else {
+                response_msg = msg;
+            }
         }
 
         # restore encoding on exit
@@ -1241,7 +1245,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         else if (encoding != s.getEncoding().lwr())
             s.setEncoding(encoding);
 
-        hash v_hdr = hdr;
+        hash<auto> v_hdr;
+        v_hdr += hdr;
 
         if (!extra_hdrs."Content-Type")
             v_hdr."Content-Type" = MimeTypeHtml + ";charset=" + encoding;
@@ -1258,8 +1263,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
         try {
-            s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
-            listener.logResponse(cx, code, str, v_hdr);
+            s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, response_msg);
+            listener.logResponse(cx, code, response_msg, v_hdr);
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
                 string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
@@ -2085,9 +2090,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             lstr += sprintf(" CT: %y", hdr."Content-Type");
         log(lstr);
 
-        if (log_send_body)
-            log("cid %d: SEND HDR: HTTP code %d: %y", cx.id, code, hdr);
         if (log_send_headers)
+            log("cid %d: SEND HDR: HTTP code %d: %y", cx.id, code, hdr);
+        if (log_send_body)
             log("cid %d: SEND BODY: %y", cx.id, body);
     }
 
