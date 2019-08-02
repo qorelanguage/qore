@@ -502,6 +502,12 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     .
     Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "info": this hash is passed when headers are received; in this case, the hash has at least the following keys:
+      - \c "accept-charset": the value of any \c "Accept-Charset" header
+      - \c "accept-encoding": the value of any \c "Accept-Encoding" header
+      - \c "body-content-type": the value of the \c "Content-Type" header, if any, without any character set info
+      - \c "charset": any character set value found in the \c "Content-Type" header
+      - \c "response-headers-raw": a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.
@@ -568,6 +574,12 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     .
     Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "info": this hash is passed when headers are received; in this case, the hash has at least the the following keys:
+      - \c "accept-charset": the value of any \c "Accept-Charset" header
+      - \c "accept-encoding": the value of any \c "Accept-Encoding" header
+      - \c "body-content-type": the value of the \c "Content-Type" header, if any, without any character set info
+      - \c "charset": any character set value found in the \c "Content-Type" header
+      - \c "response-headers-raw": a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param body The message body to send; pass @ref nothing (no value) to send no body
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.
@@ -640,6 +652,12 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "info": this hash is passed when headers are received; in this case, the hash has at least the the following keys:
+      - \c "accept-charset": the value of any \c "Accept-Charset" header
+      - \c "accept-encoding": the value of any \c "Accept-Encoding" header
+      - \c "body-content-type": the value of the \c "Content-Type" header, if any, without any character set info
+      - \c "charset": any character set value found in the \c "Content-Type" header
+      - \c "response-headers-raw": a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
@@ -671,8 +689,7 @@ nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string
       const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(body);
       TempEncodingHelper tmp(str, client->getEncoding(), xsink);
       client->sendWithOutputStream(method->getBuffer(), pstr, headers, str->c_str(), str->size(), getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
-   }
-   else {
+   } else {
       const BinaryNode* b = reinterpret_cast<const BinaryNode*>(body);
       client->sendWithOutputStream(method->getBuffer(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
    }
@@ -710,6 +727,12 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
     @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "info": this hash is passed when headers are received; in this case, the hash has at least the the following keys:
+      - \c "accept-charset": the value of any \c "Accept-Charset" header
+      - \c "accept-encoding": the value of any \c "Accept-Encoding" header
+      - \c "body-content-type": the value of the \c "Content-Type" header, if any, without any character set info
+      - \c "charset": any character set value found in the \c "Content-Type" header
+      - \c "response-headers-raw: a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     @param tcb An optional trailer callback for message trailers to write in the outgoing chunked message; the callback takes no arguments and must return either @ref nothing or @ref hash_type "hash" giving a hash of trailers for the final chunk
 
@@ -748,7 +771,7 @@ nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::Input
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
-/** This method is useful for sending chunked message data where the response is also a sent with chunked transfer encoding; chunks are sent to the receive callback as soon as they are received.
+/** This method is useful for sending chunked message data where the response is also sent with chunked transfer encoding; chunks are sent to the receive callback as soon as they are received.
     If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
 
     @par Example:
@@ -763,6 +786,12 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     .
     Header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
+    - \c "info": this hash is passed when headers are received; in this case, the hash has at least the following keys:
+      - \c "accept-charset": the value of any \c "Accept-Charset" header
+      - \c "accept-encoding": the value of any \c "Accept-Encoding" header
+      - \c "body-content-type": the value of the \c "Content-Type" header, if any, without any character set info
+      - \c "charset": any character set value found in the \c "Content-Type" header
+      - \c "response-headers-raw": a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
     - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.

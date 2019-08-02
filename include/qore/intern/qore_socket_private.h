@@ -2054,12 +2054,14 @@ struct qore_socket_private {
         return h.release();
     }
 
-    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, bool send_aborted = false, QoreObject* obj = nullptr) {
+    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, const QoreHashNode* info, bool take_info = false, bool send_aborted = false, QoreObject* obj = nullptr) {
         assert(xsink);
         assert(obj);
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         QoreHashNode* arg = new QoreHashNode(autoTypeInfo);
         arg->setKeyValue("hdr", hdr ? hdr->refSelf() : nullptr, xsink);
+        // cannot refference info here; must copy it
+        arg->setKeyValue("info", take_info ? info : (info ? info->copy() : nullptr), xsink);
         if (obj)
             arg->setKeyValue("obj", obj->refSelf(), xsink);
         arg->setKeyValue("send_aborted", send_aborted, xsink);
@@ -2778,16 +2780,29 @@ struct qore_socket_private {
         if (!recv_callback && !os)
             h->setKeyValue("body", b.release(), xsink);
 
+        ReferenceHolder<QoreHashNode> info(xsink);
+
         if (hdr) {
             if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
                 return recv_callback ? 0 : h.release();
 
-            convertHeaderToHash(*h, (char*)hdr->getBuffer());
+            if (recv_callback) {
+                info = new QoreHashNode(autoTypeInfo);
+            }
+            convertHeaderToHash(*h, (char*)hdr->c_str(), 0, *info);
+            if (recv_callback) {
+                assert(info);
+                ValueHolder v(info->takeKeyValue("headers-raw"), xsink);
+                if (v) {
+                    info->setKeyValue("response-headers-raw", v.release(), xsink);
+                }
+            }
             do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
         }
 
         if (recv_callback) {
-            runHeaderCallback(xsink, cname, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? 0 : *h, false, obj);
+            runHeaderCallback(xsink, cname, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? nullptr : *h,
+                info.release(), true, false, obj);
             return 0;
         }
 
@@ -2935,16 +2950,29 @@ struct qore_socket_private {
         if (!recv_callback)
             h->setKeyValue("body", buf.release(), xsink);
 
+        ReferenceHolder<QoreHashNode> info(xsink);
+
         if (hdr) {
             if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
                 return recv_callback ? 0 : h.release();
 
-            convertHeaderToHash(*h, (char*)hdr->getBuffer());
+            if (recv_callback) {
+                info = new QoreHashNode(autoTypeInfo);
+            }
+            convertHeaderToHash(*h, (char*)hdr->c_str(), 0, *info);
+            if (recv_callback) {
+                assert(info);
+                ValueHolder v(info->takeKeyValue("headers-raw"), xsink);
+                if (v) {
+                    info->setKeyValue("response-headers-raw", v.release(), xsink);
+                }
+            }
             do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
         }
 
         if (recv_callback) {
-            runHeaderCallback(xsink, cname, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h, false, obj);
+            runHeaderCallback(xsink, cname, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? nullptr : *h,
+                info.release(), true, false, obj);
             return 0;
         }
 
