@@ -929,14 +929,10 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
     QoreHashNode* ah = nullptr;
     while (true) {
-        ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
-        // rename "headers-raw" in info to "response-headers-raw"
-        if (info) {
-            ValueHolder v(info->takeKeyValue("headers-raw"), xsink);
-            if (v) {
-                info->setKeyValue("response-headers-raw", v.release(), xsink);
-            }
-        }
+        //ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
+        qore_offset_t rc;
+        ReferenceHolder<QoreHashNode> ans(msock->socket->priv->readHTTPHeader(xsink, info, timeout, rc, QORE_SOURCE_HTTPCLIENT,
+            "response-headers-raw"), xsink);
         if (!(*ans)) {
             disconnect_unlocked();
             assert(*xsink);
@@ -1063,6 +1059,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     assert(!(data && send_callback));
     assert(!(data && is));
     assert(!(is && send_callback));
+    assert(!info || info->is_unique());
 
     // check if method is valid
     method_map_t::const_iterator i = method_map.find(meth);
@@ -1205,6 +1202,12 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     // flag for aborted chunked sends
     bool send_aborted = false;
+
+    ReferenceHolder<QoreHashNode> callback_info(xsink);
+    if (recv_callback && !info) {
+        callback_info = new QoreHashNode(autoTypeInfo);
+        info = *callback_info;
+    }
 
     while (true) {
         // set host field automatically if not overridden
@@ -1380,7 +1383,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 str = p + 1;
             } while ((p = strchr(str, ';')));
             // skip whitespace
-            while (*str == ' ') str++;
+            while (*str == ' ') ++str;
             // add last field
             if (*str) {
                 check_headers(str, strlen(str), multipart, *(*ans), msock->socket->getEncoding(), xsink);
@@ -1391,9 +1394,10 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     }
 
     // send headers to recv_callback
+    // cannot reference info here; must copy it
     if (recv_callback
         && msock->socket->priv->runHeaderCallback(xsink, "HTTPClient", mname, *recv_callback, &msock->m, *ans,
-            send_aborted, obj)) {
+            info ? info->copy() : nullptr, send_aborted, obj)) {
         return nullptr;
     }
 
@@ -1565,8 +1569,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             // send data to recv_callback (already unlocked)
             if (recv_callback) {
                 ValueHolder bh(body, xsink);
-                if (msock->socket->priv->runDataCallback(xsink, "HTTPClient", mname, *recv_callback, 0, body.getInternalNode(), false)
-                    || msock->socket->priv->runHeaderCallback(xsink, "HTTPClient", mname, *recv_callback, 0, 0, send_aborted, obj))
+                // call body callbback and then header callback with no argument
+                if (msock->socket->priv->runDataCallback(xsink, "HTTPClient", mname, *recv_callback, nullptr,
+                        body.getInternalNode(), false)
+                    || msock->socket->priv->runHeaderCallback(xsink, "HTTPClient", mname, *recv_callback, nullptr,
+                        nullptr, nullptr, send_aborted, obj))
                     return nullptr;
             } else {
                 ans->setKeyValue("body", body, xsink);

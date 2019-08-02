@@ -1960,12 +1960,13 @@ struct qore_socket_private {
         return hdr.release();
     }
 
-    DLLLOCAL AbstractQoreNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout, qore_offset_t& rc, int source) {
+    DLLLOCAL QoreHashNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout,
+        qore_offset_t& rc, int source, const char* headers_raw_key = "headers-raw") {
         assert(xsink);
         QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeader", timeout, rc));
         if (!hdr) {
             assert(*xsink);
-            return 0;
+            return nullptr;
         }
         assert(rc > 0);
 
@@ -1985,13 +1986,13 @@ struct qore_socket_private {
             // readHTTPData will only return a string that satisifies one of the above conditions,
             // however an embedded 0 could have been sent which would make the above searches invalid
             xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in Socket::readHTTPHeader()");
-            return 0;
+            return nullptr;
         }
 
         char* t1;
         if (!(t1 = (char*)strstr(buf, "HTTP/"))) {
             xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first header line in Socket::readHTTPHeader()");
-            return 0;
+            return nullptr;
         }
 
         ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
@@ -2044,7 +2045,7 @@ struct qore_socket_private {
             flags |= CHF_REQUEST;
         }
 
-        bool close = convertHeaderToHash(*h, p, flags, info, &http_exp_chunked_body);
+        bool close = convertHeaderToHash(*h, p, flags, info, &http_exp_chunked_body, headers_raw_key);
         do_read_http_header(QORE_EVENT_HTTP_MESSAGE_RECEIVED, *h, source);
 
         // process header info
@@ -2054,12 +2055,14 @@ struct qore_socket_private {
         return h.release();
     }
 
-    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, bool send_aborted = false, QoreObject* obj = nullptr) {
+    // info must be already referenced for the assignment, if present
+    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, QoreHashNode* info, bool send_aborted = false, QoreObject* obj = nullptr) {
         assert(xsink);
         assert(obj);
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         QoreHashNode* arg = new QoreHashNode(autoTypeInfo);
         arg->setKeyValue("hdr", hdr ? hdr->refSelf() : nullptr, xsink);
+        arg->setKeyValue("info", info, xsink);
         if (obj)
             arg->setKeyValue("obj", obj->refSelf(), xsink);
         arg->setKeyValue("send_aborted", send_aborted, xsink);
@@ -2778,16 +2781,22 @@ struct qore_socket_private {
         if (!recv_callback && !os)
             h->setKeyValue("body", b.release(), xsink);
 
+        ReferenceHolder<QoreHashNode> info(xsink);
+
         if (hdr) {
             if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
                 return recv_callback ? 0 : h.release();
 
-            convertHeaderToHash(*h, (char*)hdr->getBuffer());
+            if (recv_callback) {
+                info = new QoreHashNode(autoTypeInfo);
+            }
+            convertHeaderToHash(*h, (char*)hdr->c_str(), 0, *info, nullptr, "response-headers-raw");
             do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
         }
 
         if (recv_callback) {
-            runHeaderCallback(xsink, cname, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? 0 : *h, false, obj);
+            runHeaderCallback(xsink, cname, "readHTTPChunkedBodyBinary", *recv_callback, l, h->empty() ? nullptr : *h,
+                info.release(), false, obj);
             return 0;
         }
 
@@ -2935,16 +2944,22 @@ struct qore_socket_private {
         if (!recv_callback)
             h->setKeyValue("body", buf.release(), xsink);
 
+        ReferenceHolder<QoreHashNode> info(xsink);
+
         if (hdr) {
             if (hdr->strlen() >= 2 && hdr->strlen() <= 4)
                 return recv_callback ? 0 : h.release();
 
-            convertHeaderToHash(*h, (char*)hdr->getBuffer());
+            if (recv_callback) {
+                info = new QoreHashNode(autoTypeInfo);
+            }
+            convertHeaderToHash(*h, (char*)hdr->c_str(), 0, *info, nullptr, "response-headers-raw");
             do_read_http_header(QORE_EVENT_HTTP_FOOTERS_RECEIVED, *h, source);
         }
 
         if (recv_callback) {
-            runHeaderCallback(xsink, cname, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? 0 : *h, false, obj);
+            runHeaderCallback(xsink, cname, "readHTTPChunkedBody", *recv_callback, l, h->empty() ? nullptr : *h,
+                info.release(), false, obj);
             return 0;
         }
 
@@ -3040,7 +3055,8 @@ struct qore_socket_private {
     }
 
     // returns true if the connection should be closed, false if not
-    DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = nullptr, bool* chunked = nullptr) {
+    DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = nullptr,
+        bool* chunked = nullptr, const char* headers_raw_key = "headers-raw") {
         bool close = !(flags & CHF_HTTP11);
         // socket encoding
         const char* senc = 0;
@@ -3049,7 +3065,7 @@ struct qore_socket_private {
 
         QoreHashNode* raw_hdr = nullptr;
         if (info) {
-            info->setKeyValue("headers-raw", raw_hdr = new QoreHashNode(autoTypeInfo), nullptr);
+            info->setKeyValue(headers_raw_key, raw_hdr = new QoreHashNode(autoTypeInfo), nullptr);
         }
 
         // raw key for setting raw headers
