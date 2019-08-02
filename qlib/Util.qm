@@ -900,19 +900,28 @@ string pass = get_random_string();
             str += sprintf("%s exception: %s: %s: %s",
                             ex.type, get_ex_pos(ex), ex.err, ex.desc);
             if (exists ex.arg) {
-                # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
-                # class with a specific member list or a hashdecl where accessing an invalid key would cause a
-                # runtime exception to be thrown
-                if (ex.arg.typeCode() == NT_HASH && ex.arg.hasKey("ex")
-                    && (ex.arg.ex instanceof hash<ExceptionInfo>
-                        || (ex.arg.ex.err.typeCode() == NT_STRING && ex.arg.ex.desc.typeCode() == NT_STRING
-                            && ex.arg.ex.callstack.typeCode() == NT_LIST))) {
-                    if (ex.arg.size() > 1) {
-                        str += sprintf(" (arg: %y)", ex.arg - "ex");
+                try {
+                    # issue #3304: do not access any potential key of "ex.arg" directly, as it might be an object of a
+                    # class with a specific member list or a hashdecl where accessing an invalid key would cause a
+                    # runtime exception to be thrown
+                    if (ex.arg.typeCode() == NT_HASH
+                        && ex.arg.hasKey("ex")
+                        && (ex.arg.ex instanceof hash<ExceptionInfo>
+                            || (ex.arg.ex.err.typeCode() == NT_STRING
+                                && ex.arg.ex.desc.typeCode() == NT_STRING
+                                && ex.arg.ex.callstack.typeCode() == NT_LIST))) {
+                        if (ex.arg.size() > 1) {
+                            str += sprintf(" (arg: %y)", ex.arg - "ex");
+                        }
+                        str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
+                    } else {
+                        str += sprintf(" (arg: %y)", ex.arg);
                     }
-                    str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
-                } else {
-                    str += sprintf(" (arg: %y)", ex.arg);
+                } catch (hash<ExceptionInfo> ex) {
+                    # in case "ex.arg" is an object from a deleted program, then ignore
+                    if (ex.err != "PROGRAM-ERROR") {
+                        rethrow;
+                    }
                 }
             }
 
