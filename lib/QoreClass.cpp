@@ -468,7 +468,9 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      num_static_user_methods(0),
      typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str())),
      orNothingTypeInfo(nullptr),
-     selfid("self", typeInfo) {
+     selfid("self", typeInfo),
+     spgm(getProgram()),
+     deref_source_program(false) {
     assert(methodID == classID);
     assert(!name.empty());
 
@@ -603,7 +605,9 @@ qore_class_private::~qore_class_private() {
     printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
 
     if (spgm) {
-        spgm->deref(nullptr);
+        if (deref_source_program) {
+            spgm->deref(nullptr);
+        }
         spgm = nullptr;
     }
     //assert(!spgm);
