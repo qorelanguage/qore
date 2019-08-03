@@ -1619,31 +1619,48 @@ OptionalObjectOnlySubstitutionHelper::~OptionalObjectOnlySubstitutionHelper() {
 }
 
 CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
-   ThreadData* td  = thread_data.get();
-   old_code = td->current_code;
-   td->current_code = code;
+    ThreadData* td  = thread_data.get();
+    old_code = td->current_code;
+    td->current_code = code;
 
-   old_obj = td->current_obj;
-   td->current_obj = obj;
+    old_obj = td->current_obj;
+    td->current_obj = obj;
 
-   old_class = td->current_class;
-   td->current_class = c;
+    old_class = td->current_class;
+    td->current_class = c;
 
-   if (obj && ref_obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
-      do_ref = true;
-   else
-      do_ref = false;
+    if (obj && ref_obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink)) {
+        do_ref = true;
+    } else {
+        do_ref = false;
+    }
+
+    // issue #3024: ensure that the program call context is saved & updated
+    QoreProgram* call_program_context = obj ? obj->getProgram() : nullptr;
+    if (!call_program_context && c) {
+        call_program_context = c->spgm;
+    }
+    if (call_program_context) {
+        old_call_program_context = td->call_program_context;
+        td->call_program_context = call_program_context;
+        do_program_context = true;
+    } else {
+        do_program_context = false;
+    }
 }
 
 CodeContextHelperBase::~CodeContextHelperBase() {
-   ThreadData* td = thread_data.get();
-   if (do_ref) {
-      assert(td->current_obj);
-      qore_object_private::get(*td->current_obj)->endCall(xsink);
-   }
-   td->current_code = old_code;
-   td->current_obj = old_obj;
-   td->current_class = old_class;
+    ThreadData* td = thread_data.get();
+    if (do_program_context) {
+        td->call_program_context = old_call_program_context;
+    }
+    if (do_ref) {
+        assert(td->current_obj);
+        qore_object_private::get(*td->current_obj)->endCall(xsink);
+    }
+    td->current_code = old_code;
+    td->current_obj = old_obj;
+    td->current_class = old_class;
 }
 
 ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink) : xsink(n_xsink) {

@@ -1808,6 +1808,9 @@ public:
     // pointer to owning program for imported classes
     QoreProgram* spgm = nullptr;
 
+    // if the souorce program should be dereference when the class is destroyed
+    bool deref_source_program = true;
+
     // the module that defined this class, if any
     std::string from_module;
 
@@ -2561,7 +2564,9 @@ public:
         }
         */
         if (spgm) {
-            spgm->deref(xsink);
+            if (deref_source_program) {
+                spgm->deref(xsink);
+            }
             spgm = nullptr;
         }
     }

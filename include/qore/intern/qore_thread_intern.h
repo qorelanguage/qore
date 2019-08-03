@@ -643,15 +643,18 @@ DLLLOCAL bool runtime_in_object_method(const char* name, const QoreObject* o);
 
 class CodeContextHelperBase {
 private:
-   const char* old_code;
-   QoreObject* old_obj;
-   const qore_class_private* old_class;
-   bool do_ref;
-   ExceptionSink* xsink;
+    const char* old_code;
+    QoreObject* old_obj;
+    const qore_class_private* old_class;
+    QoreProgram* old_call_program_context;
+    bool do_ref,
+        do_program_context;
+
+    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj = true);
-   DLLLOCAL ~CodeContextHelperBase();
+    DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj = true);
+    DLLLOCAL ~CodeContextHelperBase();
 };
 
 class ObjectSubstitutionHelper {
