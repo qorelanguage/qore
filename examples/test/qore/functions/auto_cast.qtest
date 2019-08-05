@@ -26,6 +26,22 @@ public class AutoCastTest inherits QUnit::Test {
         v = auto_cast(h);
         assertEq("hash<string, int>", v.fullType());
 
+        l = (1, 2, {"a": "one", "b": "two"});
+        v = auto_cast(l);
+        assertEq("hash<string, string>", v[2].fullType());
+
+        l = (1, 2, {"a": "one", "b": 2});
+        v = auto_cast(l);
+        assertEq("hash<auto>", v[2].fullType());
+
+        h = ("a": 1, "b": 2, "c": ("one", "two", "three"));
+        v = auto_cast(h);
+        assertEq("list<string>", v.c.fullType());
+
+        h = ("a": 1, "b": 2, "c": ("one", "two", 3));
+        v = auto_cast(h);
+        assertEq("list<auto>", v.c.fullType());
+
         assertEq("integer", auto_cast(1).fullType());
     }
 }
