@@ -12,9 +12,16 @@
 
 public class ParseToQoreValueTest inherits QUnit::Test {
     constructor() : Test ("ParseToQoreValueTest", "1.0") {
+        addTestCase("issue 3483", \issue3483());
         addTestCase("issue 3138", \issue3138());
         addTestCase("Tests for parse_to_qore_value()", \parseToQoreValueTest());
         set_return_value(main());
+    }
+
+    issue3483() {
+        auto l = parse_to_qore_value("(1,2,(3,4))");
+        assertEq((1, 2, (3, 4)), l);
+        assertEq("list<int>", l[2].fullType());
     }
 
     issue3138() {
