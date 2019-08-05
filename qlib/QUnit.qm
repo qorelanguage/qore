@@ -1128,14 +1128,14 @@ addTestCase(obj);
     }
 
     private compareHashes(hash h1, hash h2, reference<list<string>> out, string path = "", *bool soft_comparisons) {
-        foreach string key in (h1.keyIterator()) {
+        foreach string key in (keys h1) {
             if (h2.hasKey(key)) {
                 compare(h1{key}, h2{key}, \out, path + "." + key, soft_comparisons);
             } else {
                 out += sprintf("Missing expected key %s.%s (with value %N)", path, key, h1{key});
             }
         }
-        foreach string key in (h2.keyIterator()) {
+        foreach string key in (keys h2) {
             if (!h1.hasKey(key)) {
                 out += sprintf("Unexpected key %s.%s (with value %N)", path, key, h2{key});
             }
@@ -1150,7 +1150,7 @@ addTestCase(obj);
             out += sprintf("Different lengths of lists %s%s- expected: %d, actual: %s", path, path ? " " : "", len1, len2);
         }
 
-        for (int i = 0; i < min(len1, len2); ++i) {
+        for (int i = 0; i < min((len1, len2)); ++i) {
             compare(l1[i], l2[i], \out, path + "[" + i + "]", soft_comparisons);
         }
     }

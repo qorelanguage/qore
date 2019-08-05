@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class AutoCastTest
+
+public class AutoCastTest inherits QUnit::Test {
+    constructor() : Test("AutoCastTest", "1.0") {
+        addTestCase("test auto_cast()", \autoCastTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    autoCastTest() {
+        list l = (1, 2, 3);
+        auto v = auto_cast(l);
+        assertEq("list<int>", v.fullType());
+        hash h = ("a": 1, "b": 2);
+        v = auto_cast(h);
+        assertEq("hash<string, int>", v.fullType());
+
+        assertEq("integer", auto_cast(1).fullType());
+    }
+}

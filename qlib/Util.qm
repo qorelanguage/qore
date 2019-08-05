@@ -140,10 +140,10 @@ module Util {
 
 namespace Init {
     sub init() {
-        our hash storage_sizes;
+        our hash<auto> storage_sizes;
         map storage_sizes.$1 = pow(1024, $# + 1), StorageNames;
 
-        our hash marketing_storage_sizes;
+        our hash<auto> marketing_storage_sizes;
         map marketing_storage_sizes.$1 = pow(1000, $# + 1), StorageNames;
     }
 }
@@ -158,7 +158,7 @@ public namespace Util {
         string method;
 
         #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref Qore::True "True"
-        *hash params;
+        *hash<auto> params;
     }
 
     #! compares complex versions by breaking down strings into component parts
@@ -408,6 +408,7 @@ bool abs = absolute_path_windows(path);
         ET_Eq: "=",
         ET_Comma: ",",
     };
+    const Suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
 
     # private scanner for parse_to_qore_value()
     list<hash> sub scan_exp(string arg) {
@@ -508,7 +509,7 @@ bool abs = absolute_path_windows(path);
     }
 
     # private, non-exported function: tries to evaluate the argument as a Qore expression/value
-    hash sub eval_text(string arg, bool err = False) {
+    hash<auto> sub eval_text(string arg, bool err = False) {
         # try to evaluate as a Qore expression
         string str = sprintf("auto sub get() { return %s; }", arg);
         # use a sandboxed Program object
@@ -520,8 +521,7 @@ bool abs = absolute_path_windows(path);
             # if it's a float, then return a string to preseve formatting
             if (rv.typeCode() != NT_FLOAT && rv.val())
                 return ("valid": True, "value": rv);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (err)
                 throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", ex.err, ex.desc, arg);
         }
@@ -622,7 +622,7 @@ hash: (1 member)
         }
 
         # we should not use "auto" here because this lvalue must be able to convert to an untyped list
-        any v;
+        auto v;
 
         list<hash> l = scan_exp(arg);
 
@@ -670,18 +670,22 @@ hash: (1 member)
         };
 
         # process other values
-        code do_val = sub (auto val) {
+        code do_val = sub (auto val, *bool in_parens) {
             switch (v.typeCode()) {
-                case NT_LIST: {
-                    v += val;
-                    break;
-                }
                 case NT_NOTHING: {
                     v = val;
                     break;
                 }
+                case NT_LIST: {
+                    if (!in_parens) {
+                        v += val;
+                    } else {
+                        push v, val;
+                    }
+                    break;
+                }
                 default: {
-                    v = (v,val);
+                    v = (v, val);
                     break;
                 }
             }
@@ -697,7 +701,7 @@ hash: (1 member)
         };
 
         for (int i = 0; i < l.size(); ++i) {
-            hash h = l[i];
+            hash<auto> h = l[i];
             # get preceding type
             *int pt;
             if (i)
@@ -729,7 +733,7 @@ hash: (1 member)
                     if (!exists h.val) {
                         do_val(());
                     } else {
-                        do_val(parse_to_qore_value(h.val));
+                        do_val(parse_to_qore_value(h.val), True);
                     }
                     do_break = True;
                     break;
@@ -748,7 +752,10 @@ hash: (1 member)
                 }
                 case ET_Comma: {
                     if (v.typeCode() != NT_LIST && !in_hash) {
-                        v = (v,);
+                        # convert to list<auto>
+                        list<auto> tmp;
+                        tmp += v;
+                        v = tmp;
                     }
                     break;
                 }
@@ -761,7 +768,8 @@ hash: (1 member)
             }
         }
 
-        return v;
+        # try to fold all types to the most specific type when returning
+        return auto_cast(v);
     }
 
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
@@ -779,10 +787,10 @@ hash: (1 member)
             return new hash<UriQueryInfo>(("method": path));
 
         # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
-        hash<UriQueryInfo> h((
+        hash<UriQueryInfo> h({
             "method": path.substr(0, i),
             "params": {},
-            ));
+        });
 
         # remove method and "?" char; leave only args in path
         splice path, 0, i + 1;
@@ -823,7 +831,7 @@ hash: (1 member)
         if (!h.params)
             return h.method ?? "";
         string str;
-        foreach hash ph in (h.params.pairIterator()) {
+        foreach hash<auto> ph in (h.params.pairIterator()) {
             if (exists str)
                 str += arg_separator;
             str += foldl $1 + arg_separator + $2, (map sprintf("%s=%s", ph.key, $1), ph.value);
@@ -1021,11 +1029,11 @@ string str = get_marketing_byte_size(n);
         return v + k[0] + "B";
     }
 
-    #! checks whether given list has only uniq element
+    #! checks whether given list has only unique elements
     /** @par Example:
         @code{.py}
         if (same((1, 1, 1)) {
-            printf("only uniq element");
+            printf("only unique elements");
         };
         @endcode
 
@@ -1033,14 +1041,16 @@ string str = get_marketing_byte_size(n);
 
         @since Util 1.2
     */
-    public bool sub same(list l) {
+    public bool sub same(list<auto> l) {
         if (l.size() < 2) {
             return True;
         }
-        auto random_value = l[0];
-        for (int i = 1; i < l.size(); ++i) {
-            if (l[i] != random_value) {
-                return False;
+        for (int i0 = 0; i0 < l.size(); ++i0) {
+            auto current_value = l[i0];
+            for (int i1 = i0 + 1; i1 < l.size(); ++i1) {
+                if (l[i1] != current_value) {
+                    return False;
+                }
             }
         }
         return True;
@@ -1049,7 +1059,7 @@ string str = get_marketing_byte_size(n);
     #! list slice implementation
     /** @par Example:
         @code{.py}
-        list_slice(("a", "b", "c", "d"), (1, 3)); # returns ("b", "d")
+        list<string> l = slice(("a", "b", "c", "d"), (1, 3)); # returns ("b", "d")
         @endcode
 
         @param l some list
@@ -1057,7 +1067,7 @@ string str = get_marketing_byte_size(n);
 
         @since Util 1.2
     */
-    public list sub slice(list l, softlist indices) {
+    public list<auto> sub slice(list<auto> l, softlist<auto> indices) {
         return map l[$1], indices, ($1 >= 0 && $1 < l.size());
     }
 
@@ -1237,7 +1247,7 @@ string s = rpad ("ABC", 9, "-"); # returns "ABC------"
     #! Returns string with partially textual representation of ordinal integer value
     /** @par Example:
         @code{.py}
-printf ("%s grade", ordinal(1));
+printf("%s grade", ordinal(1));
 # would print "1st grade"
         @endcode
 
@@ -1247,15 +1257,13 @@ printf ("%s grade", ordinal(1));
         @since Util 1.2
     */
     public string sub ordinal(int i) {
-        list suffixes = ("th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th");
-
         switch (i % 100) {
             case 11:
             case 12:
             case 13:
                 return sprintf("%dth", i);
             default:
-                return sprintf("%d%s", i, suffixes[i % 10]);
+                return sprintf("%d%s", i, Suffixes[i % 10]);
         }
     }
 
@@ -1358,19 +1366,19 @@ string s = glob_to_regex ("*.*"); # returns ".*\\..*"
 
         @par Example:
         @code{.py}
-list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
+list<int> f = flatten(((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
         @endcode
 
         @since Util 1.3
     */
-    public list sub flatten (softlist arg) {
-        list r;
-        foreach any i in (arg) {
+    public list<auto> sub flatten(softlist<auto> arg) {
+        list<auto> r;
+        foreach auto i in (arg) {
             if (i.typeCode() == NT_LIST) {
-                foreach any j in (flatten(i))
+                foreach auto j in (flatten(i)) {
                     r += j;
-            }
-            else {
+                }
+            } else {
                 r += i;
             }
         }
@@ -1384,43 +1392,46 @@ list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
 
         @par Example:
         @code{.py}
-list ints = parse_ranges ("3,5, 7-9"); # returns (3, 5, 7, 8, 9)
+list<int> ints = parse_ranges("3,5, 7-9"); # returns (3, 5, 7, 8, 9)
         @endcode
 
         @since Util 1.4
     */
-    public list sub parse_ranges (string text) {
-        list numbers = ();
-        list parts = select (map trim($1), text.split(',')), $1;
+    public list<int> sub parse_ranges(string text) {
+        list<int> numbers = ();
+        list<string> parts = select (map trim($1), text.split(',')), $1;
         foreach string str in (parts) {
-            list bounds = str.split("-");
-            if (bounds.size() == 2)
-                numbers += range (int(bounds[0]), int(bounds[1]));
-            else
+            list<string> bounds = str.split("-");
+            if (bounds.size() == 2) {
+                numbers += range(int(bounds[0]), int(bounds[1]));
+            } else {
                 numbers += int(str);
+            }
         }
         return numbers;
     }
 
     #! Returns a duplicate-free version of the list.
     /**
-        @param  arg a list of values to filter out
+        @param arg a list of values to filter out
         @return a list of unique values
 
         @par Example:
         @code{.py}
-list u = uniq ((1,2,1,3,2,1)); # returns (1,2,3)
+list<auto> u = uniq((1,2,1,3,2,1)); # returns (1,2,3)
         @endcode
 
-        @note Since implementation of this function uses %hash to keep track of the list values, it cannot safely process values which implicit string representation collide (e.g. %float values that differ outside implicit %toString() precision).
+        @note Since the implementation of this function uses a %hash to keep track of the list values, it cannot process
+        values that cannot be coverted to strings or for which implicit string representation collide (e.g. %float
+        values that differ outside implicit %toString() precision).
 
         @throw UNIQ-ERROR if two different values from the list share the same implicit string representation
 
         @since Util 1.3
     */
-    public list sub uniq (softlist arg) {
-        hash h;
-        foreach any item in (arg) {
+    public list<auto> sub uniq(softlist<auto> arg) {
+        hash<auto> h;
+        foreach auto item in (arg) {
             string k = item.toString();
             if (exists h{k}) {
                 if (h{k} !== item)
@@ -1444,11 +1455,11 @@ list z = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
 
         @since Util 1.2
     */
-    public list sub zip() {
+    public list<auto> sub zip() {
         if (argv.size() == 0)
             return ();
         int m = max (map $1.size(), argv);
-        list r;
+        list<auto> r;
         for (int i=0; i < m; i++) {
             r[i] = map $1[i], argv;
         }
@@ -1512,5 +1523,4 @@ check_ip_address(str, True);
 
         return str_len >= substr_len && str.rfind(substr) == str_len - substr_len;
     }
-
 }

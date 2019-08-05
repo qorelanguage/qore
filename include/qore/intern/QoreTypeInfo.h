@@ -1519,6 +1519,10 @@ protected:
 class QoreComplexSoftListOrNothingTypeInfo : public QoreComplexListOrNothingTypeInfo {
 public:
     DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
+
+protected:
+    DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListOrNothingTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 };
 
 class QoreComplexReferenceTypeInfo : public QoreTypeInfo {
@@ -2798,43 +2802,43 @@ protected:
 
 class QoreSoftListTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreSoftListTypeInfo() : QoreTypeInfo("softlist", q_accept_vec_t {
-         {NT_LIST, map_get_plain_list, true},
-         {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
-               n.assign(l);
-            }
-         },
-         {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
-               l->push(n, nullptr);
-               n.assign(l);
-            }
-         },
-      }, q_return_vec_t {{NT_LIST, true}}) {
-   }
+    DLLLOCAL QoreSoftListTypeInfo() : QoreTypeInfo("softlist", q_accept_vec_t {
+            {NT_LIST, map_get_plain_list, true},
+            {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
+                QoreListNode* l = new QoreListNode;
+                n.assign(l);
+                }
+            },
+            {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
+                QoreListNode* l = new QoreListNode;
+                l->push(n, nullptr);
+                n.assign(l);
+                }
+            },
+        }, q_return_vec_t {{NT_LIST, true}}) {
+    }
 
 protected:
-   DLLLOCAL QoreSoftListTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreSoftListTypeInfo(const char* name, const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   // returns true if this type could contain an object or a closure
-   DLLLOCAL virtual bool needsScanImpl() const {
-      return true;
-   }
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return emptyList->listRefSelf();
-   }
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return emptyList->listRefSelf();
+    }
 };
 
 class QoreSoftListOrNothingTypeInfo : public QoreTypeInfo {
@@ -2867,9 +2871,9 @@ protected:
    }
 };
 
-class QoreSoftAutoListTypeInfo : public QoreSoftListTypeInfo {
+class QoreSoftAutoListTypeInfo : public QoreComplexSoftListTypeInfo {
 public:
-   DLLLOCAL QoreSoftAutoListTypeInfo() : QoreSoftListTypeInfo("softlist<auto>", q_accept_vec_t {
+   DLLLOCAL QoreSoftAutoListTypeInfo() : QoreComplexSoftListTypeInfo(q_accept_vec_t {
          {QoreComplexListTypeSpec(autoTypeInfo), nullptr, true},
          {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode(autoTypeInfo);
@@ -2886,9 +2890,9 @@ public:
    }
 };
 
-class QoreSoftAutoListOrNothingTypeInfo : public QoreSoftListOrNothingTypeInfo {
+class QoreSoftAutoListOrNothingTypeInfo : public QoreComplexSoftListTypeInfo {
 public:
-   DLLLOCAL QoreSoftAutoListOrNothingTypeInfo() : QoreSoftListOrNothingTypeInfo("*softlist<auto>", q_accept_vec_t {
+   DLLLOCAL QoreSoftAutoListOrNothingTypeInfo() : QoreComplexSoftListTypeInfo(q_accept_vec_t {
          {QoreComplexListTypeSpec(autoTypeInfo), nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
