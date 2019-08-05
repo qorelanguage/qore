@@ -38,6 +38,8 @@
 
 #include <memory>
 
+static QoreValue auto_cast(const QoreValue v);
+
 static QoreHashNode* auto_cast_hash(const QoreHashNode* h) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
 
@@ -50,7 +52,7 @@ static QoreHashNode* auto_cast_hash(const QoreHashNode* h) {
     while (i.next()) {
         const char* key = i.getKey();
         const QoreValue val = i.get();
-        hash_priv->setKeyValueIntern(key, val.refSelf());
+        hash_priv->setKeyValueIntern(key, auto_cast(val));
 
         const QoreTypeInfo* ctype = val.getTypeInfo();
 
@@ -83,7 +85,7 @@ static QoreListNode* auto_cast_list(const QoreListNode* l) {
     ConstListIterator i(l);
     while (i.next()) {
         const QoreValue val = i.getValue();
-        list_priv->pushIntern(val.refSelf());
+        list_priv->pushIntern(auto_cast(val));
 
         const QoreTypeInfo* ctype = val.getTypeInfo();
 
