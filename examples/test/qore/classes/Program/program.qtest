@@ -738,7 +738,7 @@ class ProgramTest inherits QUnit::Test {
                 assertFalse(True);
             }
             catch (hash<ExceptionInfo> ex) {
-                assertEq("RUNTIME-OVERLOAD-ERROR", ex.err);
+                assertEq("VARIANT-MATCH-ERROR", ex.err);
                 assertNRegex(name + "\\(" + name, ex.desc);
             }
             testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
