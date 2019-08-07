@@ -792,6 +792,10 @@ protected:
         //printd(5, "QoreFunction::~QoreFunction() this: %p %s\n", this, name.c_str());
     }
 
+    DLLLOCAL const AbstractQoreFunctionVariant* checkVariant(ExceptionSink* xsink, const type_vec_t& args,
+    const qore_class_private* class_ctx, const QoreFunction* aqf, const qore_class_private* last_class,
+    bool internal_access, int64 ppo, const AbstractQoreFunctionVariant* variant) const;
+
 public:
     DLLLOCAL QoreFunction(const char* n_name) : name(n_name),
         same_return_type(true),
@@ -1048,6 +1052,9 @@ public:
     // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
     DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args, bool only_user, const qore_class_private* class_ctx) const;
 
+    // finds the best match with the given arg types
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
+    // finds only an exact match with the given arg types
     DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
 
     DLLLOCAL void parseAssimilate(QoreFunction& other) {

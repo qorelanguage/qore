@@ -186,7 +186,8 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclObjectSerializationInfo,
     * hashdeclIndexedObjectSerializationInfo,
     * hashdeclHashSerializationInfo,
-    * hashdeclListSerializationInfo;
+    * hashdeclListSerializationInfo,
+    * hashdeclUrlInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -954,6 +955,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclIndexedObjectSerializationInfo = init_hashdecl_IndexedObjectSerializationInfo(qns);
     hashdeclHashSerializationInfo = init_hashdecl_HashSerializationInfo(qns);
     hashdeclListSerializationInfo = init_hashdecl_ListSerializationInfo(qns);
+    hashdeclUrlInfo = init_hashdecl_UrlInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 

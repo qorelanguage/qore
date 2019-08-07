@@ -379,7 +379,7 @@ NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -408,7 +408,7 @@ NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -437,7 +437,7 @@ StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no static method variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -466,7 +466,7 @@ StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @throw RUNTIME-OVERLOAD-ERROR no method static variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no method static variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -493,7 +493,7 @@ ConstructorMethodVariant m = cls.getConstructorVariant(TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @throw RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no constructor method variant van be found matching the given argument types
 
     @see
     - getConstructorVariantArgs()
@@ -520,7 +520,7 @@ ConstructorMethodVariant m = cls.getConstructorVariantArgs((TypeInt, TypeString)
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @throw RUNTIME-OVERLOAD-ERROR no method constructor variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no method constructor variant van be found matching the given argument types
 
     @see
     - getConstructorVariant()

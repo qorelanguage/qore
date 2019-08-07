@@ -133,7 +133,7 @@ FunctionVariant v = n.getVariant(IntType, StringType);
     @return given function variant or throws an exception if the function variant is not defined in this function
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
-    @throw RUNTIME-OVERLOAD-ERROR thrown if the function variant cannot be matched to the given arguments
+    @throw VARIANT-MATCH-ERROR thrown if the function variant cannot be matched to the given arguments
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -163,7 +163,7 @@ FunctionVariant v = n.getVariantArgs((IntType, StringType));
     @return given function variant or throws an exception if the function variant is not defined in this function
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
-    @throw RUNTIME-OVERLOAD-ERROR thrown if the function variant cannot be matched to the given arguments
+    @throw VARIANT-MATCH-ERROR thrown if the function variant cannot be matched to the given arguments
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see

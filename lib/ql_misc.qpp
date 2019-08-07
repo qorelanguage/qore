@@ -196,6 +196,29 @@ static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 #define SIGXRES 0
 #endif
 
+//! a hash describing a parsed URL
+/** @since %Qore 0.9.3
+*/
+hashdecl UrlInfo {
+    //! the scheme or protocol of the URL, if present
+    string protocol;
+
+    //! the path given in the URL string, if present
+    string path;
+
+    //! the username of the URL, if present
+    string username;
+
+    //! the password given in the URL, if any
+    string password;
+
+    //! the hostname given in the URL string, if any
+    string host;
+
+    //! the port number given in the URL string, if any
+    int port;
+}
+
 /** @defgroup StringConcatEncoding String Concatenation Encoding Codes
 
     @see <string>::getEncoded()
@@ -991,7 +1014,7 @@ string get_class_name(object obj) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash hash = parse_url(url_string);
+hash<UrlInfo> h = parse_url(url_string);
     @endcode
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
@@ -1000,12 +1023,12 @@ hash hash = parse_url(url_string);
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
-hash parse_url(string url, bool keep_brackets = False) {
-   QoreURL qurl(url, keep_brackets, xsink);
-   if (*xsink)
-      return QoreValue();
-   assert(qurl.isValid());
-   return qurl.getHash();
+hash<UrlInfo> parse_url(string url, bool keep_brackets = False) {
+    QoreURL qurl(url, keep_brackets, xsink);
+    if (*xsink)
+        return QoreValue();
+    assert(qurl.isValid());
+    return qurl.getHash();
 }
 
 //! Parses a URL string and returns a hash of the components; if the URL cannot be parsed then @ref nothing is returned
@@ -1022,16 +1045,16 @@ hash parse_url(string url, bool keep_brackets = False) {
 
     @par Example:
     @code{.py}
-*hash hash = parseURL(url_string);
+*hash<UrlInfo> h = parseURL(url_string);
     @endcode
 
     @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */
-*hash parseURL(string url, bool keep_brackets = False) [flags=CONSTANT] {
-   QoreURL qurl(url, keep_brackets);
-   return qurl.isValid() ? qurl.getHash() : QoreValue();
+*hash<UrlInfo> parseURL(string url, bool keep_brackets = False) [flags=CONSTANT] {
+    QoreURL qurl(url, keep_brackets);
+    return qurl.isValid() ? qurl.getHash() : QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1062,16 +1085,16 @@ string files = backquote("ls", \rc);
     @since %Qore 0.8.8 the \a rc argument was added
 */
 string backquote(string cmd, *reference<int> rc) [dom=EXTERNAL_PROCESS] {
-   int prc;
-   SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->getBuffer(), prc, xsink));
-   if (!*xsink && rc) {
-      QoreTypeSafeReferenceHelper rh(rc, xsink);
-      if (!rh)
-         return QoreValue();
+    int prc;
+    SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->getBuffer(), prc, xsink));
+    if (!*xsink && rc) {
+        QoreTypeSafeReferenceHelper rh(rc, xsink);
+        if (!rh)
+            return QoreValue();
 
-      rh.assign((int64)prc);
-   }
-   return str.release();
+        rh.assign((int64)prc);
+    }
+    return str.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments

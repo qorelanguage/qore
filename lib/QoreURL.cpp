@@ -29,8 +29,9 @@
     information.
 */
 
-#include <qore/Qore.h>
-#include <qore/QoreURL.h>
+#include "qore/Qore.h"
+#include "qore/QoreURL.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <cctype>
 #include <cstdlib>
@@ -201,7 +202,7 @@ private:
                                 buf);
     }
 
-    public:
+public:
     QoreStringNode* protocol, *path, *username, *password, *host;
     int port;
 
@@ -231,7 +232,7 @@ private:
             host->deref();
     }
 
-    DLLLOCAL int parse(const char* url, bool keep_brackets = false, ExceptionSink* xsink = 0) {
+    DLLLOCAL int parse(const char* url, bool keep_brackets = false, ExceptionSink* xsink = nullptr) {
         reset();
         zero();
         parse_intern(url, keep_brackets, xsink);
@@ -246,29 +247,30 @@ private:
 
     // destructive
     DLLLOCAL QoreHashNode* getHash() {
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        QoreHashNode* h = new QoreHashNode(hashdeclUrlInfo, nullptr);
+        qore_hash_private* ph = qore_hash_private::get(*h);
         if (protocol) {
-            h->setKeyValue("protocol", protocol, 0);
-            protocol = 0;
+            ph->setKeyValueIntern("protocol", protocol);
+            protocol = nullptr;
         }
         if (path) {
-            h->setKeyValue("path", path, 0);
-            path = 0;
+            ph->setKeyValueIntern("path", path);
+            path = nullptr;
         }
         if (username) {
-            h->setKeyValue("username", username, 0);
-            username = 0;
+            ph->setKeyValueIntern("username", username);
+            username = nullptr;
         }
         if (password) {
-            h->setKeyValue("password", password, 0);
-            password = 0;
+            ph->setKeyValueIntern("password", password);
+            password = nullptr;
         }
         if (host) {
-            h->setKeyValue("host", host, 0);
-            host = 0;
+            ph->setKeyValueIntern("host", host);
+            host = nullptr;
         }
         if (port)
-            h->setKeyValue("port", port, 0);
+            ph->setKeyValueIntern("port", port);
 
         return h;
     }
