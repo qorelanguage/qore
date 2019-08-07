@@ -719,7 +719,7 @@ AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -748,7 +748,7 @@ AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw VARIANT-MATCH-ERROR no variant van be found matching the given argument types
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see

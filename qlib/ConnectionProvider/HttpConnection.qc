@@ -85,7 +85,7 @@ public namespace ConnectionProvider {
             @deprecated since Qorus 0.9
         */
         deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+        constructor(string name, string desc, string url, bool monitor, *hash<auto> opts, hash<auto> urlh)
             : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
         }
 
@@ -98,7 +98,7 @@ public namespace ConnectionProvider {
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : AbstractConnection(name, description, url, attributes, options) {
         }
 

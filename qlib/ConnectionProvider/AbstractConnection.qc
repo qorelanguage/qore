@@ -81,6 +81,9 @@ public namespace ConnectionProvider {
 
             #! locked/unlocked flag
             bool locked = False;
+
+            #! connection tags; user-defined key-value pairs
+            hash<auto> tags = {};
         }
 
         #! creates the AbstractConnection object
@@ -115,7 +118,7 @@ public namespace ConnectionProvider {
         /** @param name the name of the connection
             @param description connection description
             @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
+            @param attributes various attributes; see below
             @param options connection options
 
             @par Attributes
@@ -123,15 +126,16 @@ public namespace ConnectionProvider {
             Attributes are special flags for given connection - stored as public
             attributes of the object instance.
             For now there are:
-                - \c enabled, default \c True
-                - \c monitor, default \c True
-                - \c locked, default \c False
+                - \c enabled (bool), default \c True
+                - \c monitor (bool), default \c True
+                - \c locked (bool), default \c False
+                - \c tags (hash), no default value
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {}) {
             constructorInit(name, description, url, attributes, options);
         }
 
-        private:internal constructorInit(string name, string description, string url, hash attributes, hash options) {
+        private:internal constructorInit(string name, string description, string url, hash<auto> attributes, hash<auto> options) {
             # metadata
             self.name = name;
             self.desc = description;
@@ -141,23 +145,24 @@ public namespace ConnectionProvider {
             self.urlh = parseUrl(self.url);
             self.safe_url = getSafeUrl(self.urlh);
 
-            # attributes to flags
+            # attributes
             self.monitor = attributes.monitor ?? True;
             self.enabled = attributes.enabled ?? True;
             self.locked = attributes.locked ?? False;
+            self.tags = attributes.tags ?? {};
 
             self.orig_opts = options;
             self.opts = validateOptions(options);
         }
 
         #! performs options validation in the constructor
-        /** @param options a has with options from the constructor
+        /** @param options a hash with options from the constructor
             @return hash validated option hash
 
             This method can be overloaded in connections where are options
             created dynamically for example.
          */
-        hash validateOptions(hash options) {
+        hash<auto> validateOptions(hash<auto> options) {
             options = getDefaultOptions() + options;
             if (options) {
                 *hash<auto> oh = getOptions();
@@ -178,7 +183,7 @@ public namespace ConnectionProvider {
             Reimplement \c parseUrl() if your connection uses different URL schema.
             Like eg. Qore::Datasource connection string.
          */
-        private hash parseUrl(string url) {
+        private hash<UrlInfo> parseUrl(string url) {
             return Qore::parse_url(url);
         }
 
@@ -196,7 +201,7 @@ public namespace ConnectionProvider {
 schema://user:pass@hostname:port/path
             @endcode
          */
-        private string getSafeUrl(hash urlh) {
+        private string getSafeUrl(hash<auto> urlh) {
             string url = urlh.protocol + "://";
             if (urlh.username)
                 url += urlh.username + "@";
@@ -249,7 +254,7 @@ schema://user:pass@hostname:port/path
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked", "tags") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
@@ -323,6 +328,27 @@ schema://user:pass@hostname:port/path
         /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special option formats, etc)
         */
         parseTextOptions() {
+        }
+
+        #! returns all tags associated with the connection
+        hash<auto> getTags() {
+            return tags;
+        }
+
+        #! returns the value of the given tag or @ref nothing if not present
+        auto getTag(string tag) {
+            return tags{tag};
+        }
+
+        #! returns the value of the given tag or throws an exception if the tag is not set with a value
+        /** @throw TAG-ERROR the given tag is not set on the connection
+        */
+        auto getTagEx(string tag) {
+            auto rv = tags{tag};
+            if (!exists rv) {
+                throw "TAG-ERROR", sprintf("tag %y is not set on connection %y", tag, name);
+            }
+            return rv;
         }
 
         #! this method must return the connection object corresponding to the object's configuration

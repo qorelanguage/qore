@@ -16,6 +16,10 @@
     with the old behavior regarding abstract method hierarchies.
 
     @subsection qore_093_new_features New Features in Qore
+    - the <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module was updated to
+      support connection tags
+      (<a href="https://github.com/qorelanguage/qore/issues/3486">issue 3486</a>)
+
     - updated the @ref Qore::HTTPClient "HTTPClient" class to support the following new constructor options:
       - \c encoding_passthru
       - \c error_passthru
@@ -30,6 +34,9 @@
       .
       (<a href="https://github.com/qorelanguage/qore/issues/3472">issue 3472</a>)
     - added the @ref Qore::auto_cast() "auto_cast()" function
+    - added the @ref Qore::UrlInfo hash as the return type to:
+      - @ref Qore::parse_url() "parse_url()"
+      - @ref Qore::parseURL() "parseURL()"
     - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
       \c RestConnection objects now support the \c "headers" option
       (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)

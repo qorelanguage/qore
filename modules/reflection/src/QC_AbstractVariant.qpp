@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -583,6 +583,9 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
     // the variant ptr must be valid
     SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
 
+    // do not output type for constructor, destructor, and copy methods
+    bool no_type = false;
+
     const QoreClass* cls = v->variant->getClass();
     if (cls) {
         const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
@@ -600,8 +603,12 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
 
         rv->concat(mv->getAccessString());
         rv->concat(' ');
-    }
-    else {
+
+        method_type_e mt = mv->getMethod()->getMethodType();
+        if (mt == MT_Constructor || mt == MT_Destructor || mt == MT_Copy) {
+            no_type = true;
+        }
+    } else {
         // it is a function variant
         if (v->variant->isModulePublic()) {
             rv->concat("public ");
@@ -614,9 +621,10 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
     }
 
     // add return type
-    rv->concat(type_get_name(v->variant->getReturnTypeInfo()));
-
-    rv->concat(' ');
+    if (!no_type) {
+        rv->concat(type_get_name(v->variant->getReturnTypeInfo()));
+        rv->concat(' ');
+    }
 
     if (cls) {
         rv->concat(cls->getName());

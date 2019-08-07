@@ -390,6 +390,18 @@ public:
     }
 
     // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_result_e runtimeTypeMatch(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        //printd(5, "QoreTypeInfo::runtimeTypeMatch() %p '%s' <=> %p '%s'\n", first, QoreTypeInfo::getName(first), second, QoreTypeInfo::getName(second));
+        if (first == second) {
+            return QTI_IDENT;
+        }
+        if (!hasType(second)) {
+            return !hasType(first) ? QTI_NEAR : QTI_AMBIGUOUS;
+        }
+        return first->runtimeTypeMatch(second);
+    }
+
+    // static version of method, checking for null pointer
     DLLLOCAL static qore_type_t getSingleReturnType(const QoreTypeInfo* ti) {
         if (!hasType(ti) || ti->return_vec.size() > 1)
             return NT_ALL;
@@ -970,6 +982,31 @@ protected:
             return QTI_AMBIGUOUS;
         may_not_match = false;
         return QTI_NOT_EQUAL;
+    }
+
+    DLLLOCAL qore_type_result_e runtimeTypeMatch(const QoreTypeInfo* typeInfo) const {
+        //printd(5, "QoreTypeInfo::runtimeTypeMatch() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
+        if (typeInfo->return_vec.size() > accept_vec.size()) {
+            return QTI_NOT_EQUAL;
+        }
+
+        qore_type_result_e rc = QTI_IDENT;
+        for (auto& rt : typeInfo->return_vec) {
+            bool t_no_match = true;
+            for (auto& at : accept_vec) {
+                bool may_not_match = false;
+                bool may_need_filter = false;
+                //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
+                qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
+                if (res < QTI_NEAR) {
+                    return QTI_NOT_EQUAL;
+                }
+                if (res < QTI_IDENT) {
+                    rc = QTI_NEAR;
+                }
+            }
+        }
+        return rc;
     }
 
     DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n) const;

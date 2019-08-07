@@ -206,4 +206,9 @@ DLLEXPORT extern const TypedHashDecl* hashdeclHashSerializationInfo;
 */
 DLLEXPORT extern const TypedHashDecl* hashdeclListSerializationInfo;
 
+//! UrlInfo hashdecl
+/** @since %Qore 0.9.3
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclUrlInfo;
+
 #endif

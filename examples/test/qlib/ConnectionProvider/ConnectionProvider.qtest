@@ -7,6 +7,9 @@
 %strict-args
 %allow-injection
 
+# deprecated functionality is explicitly tested
+%disable-warning deprecated
+
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
@@ -18,6 +21,13 @@ const KeyPath = normalize_dir(get_script_dir() + DirSep + "mykey.pem");
 const KeyPassword = "password";
 
 public class ConnectionProviderTest inherits QUnit::Test {
+    public {
+        const Tags = {
+            "a": 1,
+            "b": "two",
+        };
+    }
+
     constructor() : Test("ConnectionProvider Test", "1.0") {
         addTestCase("ftp", \ftpConnectionTest());
         addTestCase("ftp deprecated", \ftpConnectionTestDeprecated());
@@ -89,12 +99,18 @@ public class ConnectionProviderTest inherits QUnit::Test {
             "ssl_key_path": KeyPath,
             "ssl_key_password": KeyPassword,
         );
-        hash attributes = {
+        hash<auto> attributes = {
             "monitor": True,
+            "tags": Tags,
         };
         HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
         assertEq(False, hc.locked, "connection is unlocked by default");
+
+        assertEq(Tags, hc.getTags());
+        map assertEq($1.value, hc.getTag($1.key)), Tags.pairIterator();
+        assertNothing(hc.getTag("invalid"));
+        assertThrows("TAG-ERROR", \hc.getTagEx(), "invalid");
 
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
