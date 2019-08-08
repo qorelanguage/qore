@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9
+%requires qore >= 0.9.3
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -31,7 +31,7 @@
 %new-style
 
 module HttpServer {
-    version = "0.3.13";
+    version = "0.3.13.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,6 +113,9 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http03131 HttpServer 0.3.13.1
+    - shut down dedicated socket conenctions last in order to allow for effective keep-alive implementations with
+      WebSocket for example
+      (<a href="https://github.com/qorelanguage/qore/issues/3488">issue 3488</a>)
     - fixed certificate and key errors for HTTPS listeners to generate user-friendly exceptions
       (<a href="https://github.com/qorelanguage/qore/issues/3397">issue 3397</a>)
 
@@ -1488,8 +1491,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 if (!node)
                     break;
 %endif
-            }
-            catch (ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 log("cannot add listener on %s:%d: %s: %s", h.address_desc, h.port, ex.err, ex.desc);
             }
         }
@@ -1518,7 +1520,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash<auto> hdr, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash<auto> hdr, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated) {
         if (!http_methods{hdr.method}) {
             string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
             string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
@@ -1663,7 +1665,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
             }
 
-            sendReply(listener, s, handler, rv, \cx, hdr, head);
+            sendReply(listener, s, handler, rv, \cx, hdr, head, \dedicated);
         } catch (hash<ExceptionInfo> ex) {
             string desc = !debug
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
@@ -1689,7 +1691,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head) {
+    final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head, reference<bool> dedicated) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -1768,16 +1770,14 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             else if (!(handler instanceof HttpServer::AbstractHttpSocketHandler)) {
                 listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the handler is not derived from AbstractHttpSocketHandler (class: %y)", cx.id, cx.handler_name, handler.className());
             } else {
-                if (listener.registerDedicatedSocket(cx.id, handler)) {
+                if (listener.registerDedicatedSocket(cx.id, handler, \dedicated)) {
                     on_exit cx.close = True;
                     try {
                         cast<HttpServer::AbstractHttpSocketHandler>(handler).start(listener.getID(), cx, hdr, s);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         if (ex.err == "SOCKET-NOT-OPEN") {
                             listener.logError("cid %d: dedicated socket handler %y: socket closed by remote", cx.id, cx.handler_name);
-                        }
-                        else {
+                        } else {
                             string desc = !debug
                                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                                 : get_exception_string(ex);
@@ -1786,8 +1786,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     }
                     listener.removeDedicatedSocket(cx.id, handler);
                     listener.log("cid %d: stopped dedicated socket handler: %y", cx.id, cx.handler_name);
-                }
-                else
+                } else
                     listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is shutting down", cx.id, cx.handler_name);
             }
         }
@@ -1833,14 +1832,17 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         auto socket;
         hash socket_info;
 
-        # connection counter
+        # connection counter for normal connection threads
         Counter cThreads();
+        # connection counter for dedicated socket threads
+        Counter dThreads();
+
         bool exit = False;
         bool stopped = False;
         int id;
 
         # socket handler hash
-        hash shh;
+        hash<string, AbstractHttpSocketHandler> shh;
 
         # mutex
         Mutex m();
@@ -2057,11 +2059,24 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             exit = True;
         }
 
-        # stop all dedicated socket connections
-        map $1.stop(id), shh.iterator();
-
         # wait for all connection threads to terminate
         cThreads.waitForZero();
+
+        # stop all dedicated socket connections
+        {
+            *hash<string, AbstractHttpSocketHandler> shh_copy;
+            {
+                m.lock();
+                on_exit m.unlock();
+
+                shh_copy = remove shh;
+            }
+
+            map $1.stop(id), shh_copy.iterator();
+        }
+
+        # wait for all dedicated connection threads to terminate
+        dThreads.waitForZero();
 
         stopped = True;
         log("stopped listener");
@@ -2070,8 +2085,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (stopc) {
             try {
                 call_function(stopc, name);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc, get_ex_pos(ex), ex.err, ex.desc);
             }
         }
@@ -2109,8 +2123,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             args[0] = "HTTP" + (ssl ? "S" : "") + " " + args[0];
             try {
                 call_function_args(logger, args);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
@@ -2128,13 +2141,11 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             args[0] = "HTTP " + args[0];
             try {
                 call_function_args(errorlogger, args);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
-        }
-        else
+        } else
             serv.logErrorArgs(args);
     }
 
@@ -2153,8 +2164,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 r = accept(PollInterval);
                 if (!r)
                     continue;
-            }
-            catch (ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 if (ex.err != "SOCKET-CLOSED")
                     log("error accepting %sconnection: %s: %s", ssl ? "secure " : "", ex.err, ex.desc);
@@ -2187,7 +2197,14 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
     # thread for handling communication per connection
     private connectionThread(Socket s) {
-        on_exit cThreads.dec();
+        bool dedicated;
+        on_exit {
+            if (!dedicated) {
+                cThreads.dec();
+            } else {
+                dThreads.dec();
+            }
+        }
 
         if (ssl) {
             try {
@@ -2370,7 +2387,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
                 cx.uctx = get_thread_data("uctx");
                 cx."header-info" = header_info;
-                serv.handleRequest(self, s, \cx, hdr, body, hdr.method == "HEAD", phi, info);
+                serv.handleRequest(self, s, \cx, hdr, body, hdr.method == "HEAD", phi, info, \dedicated);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 
@@ -2394,13 +2411,19 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         s.close();
     }
 
-    bool registerDedicatedSocket(softstring id, HttpServer::AbstractHttpSocketHandler h) {
+    bool registerDedicatedSocket(softstring id, HttpServer::AbstractHttpSocketHandler h, reference<bool> dedicated) {
         m.lock();
         on_exit m.unlock();
 
         if (exit)
             return False;
 
+        # handover counter value and set dedicated flag
+        dThreads.inc();
+        cThreads.dec();
+        dedicated = True;
+
+        # save handler
         shh{id} = h;
 
         return True;
