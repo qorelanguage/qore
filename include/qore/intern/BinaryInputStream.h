@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
  */
 class BinaryInputStream : public InputStream {
 public:
-    DLLLOCAL BinaryInputStream(BinaryNode* src) : src(src), offset(0) {
+    DLLLOCAL BinaryInputStream(const BinaryNode* src) : src(src->binRefSelf()) {
     }
 
     DLLLOCAL const char* getName() override {
@@ -69,7 +69,7 @@ public:
 
 private:
     SimpleRefHolder<BinaryNode> src;
-    qore_size_t offset;                          //!< @invariant offset >= 0 && offset <= src->size()
+    qore_size_t offset = 0;                          //!< @invariant offset >= 0 && offset <= src->size()
 };
 
 #endif // _QORE_BINARYINPUTSTREAM_H

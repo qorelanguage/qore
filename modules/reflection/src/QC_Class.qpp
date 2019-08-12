@@ -372,7 +372,7 @@ NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
     and then matches the arguments by type to return the variant.
 
     @param name the name of the normal (non-static, non-special) method
-    @param ... @ref Qore::Type "Type" arguments giving parameter types
+    @param ... @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given normal (non-static, non-special) method variant
 
@@ -401,7 +401,7 @@ NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
     and then matches the arguments by type
 
     @param name the name of the normal (non-static, non-special) method
-    @param argv @ref Qore::Type "Type" arguments giving parameter types
+    @param argv @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given normal (non-static, non-special) method variant
 
@@ -430,7 +430,7 @@ StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
     and then matches the arguments by type to return the variant
 
     @param name the name of the static method
-    @param ... @ref Qore::Type "Type" arguments giving parameter types
+    @param ... @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given static method variant
 
@@ -459,7 +459,7 @@ StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
     and then matches the arguments by type
 
     @param name the name of the static method
-    @param argv @ref Qore::Type "Type" arguments giving parameter types
+    @param argv @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given static method variant
 
@@ -486,7 +486,7 @@ ConstructorMethodVariant m = cls.getConstructorVariant(TypeInt, TypeString);
 
     Searches constructor methods only and then matches the arguments by type to return the variant
 
-    @param ... @ref Qore::Type "Type" arguments giving parameter types
+    @param ... @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given constructor method variant
 
@@ -513,7 +513,7 @@ ConstructorMethodVariant m = cls.getConstructorVariantArgs((TypeInt, TypeString)
     Searches static methods only for the given method name and
     and then matches the arguments by type
 
-    @param argv @ref Qore::Type "Type" arguments giving parameter types
+    @param argv @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given static method variant
 

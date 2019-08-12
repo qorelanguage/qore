@@ -46,7 +46,7 @@ public namespace ConnectionProvider {
         - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
         - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
 
-        @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
+        @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options
     */
     public class HttpConnection inherits AbstractConnection {
         public {
@@ -91,15 +91,15 @@ public namespace ConnectionProvider {
 
         #! creates the HttpConnection object
         /** @param name the name of the connection
-            @param description connection description
+            @param desc connection description
             @param url connection URL (potentially with password info)
             @param attributes various attributes. See below
             @param options connection options
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
+        constructor(string name, string desc, string url, hash<auto> attributes = {}, hash<auto> options = {})
+            : AbstractConnection(name, desc, url, attributes, options) {
         }
 
         #! returns an @ref Qore::HTTPClient object
@@ -144,7 +144,7 @@ public namespace ConnectionProvider {
             - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
             - \c "timeout": transfer timeout to use in milliseconds
 
-            @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
+            @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options
         */
         hash getOptions() {
             return Options;

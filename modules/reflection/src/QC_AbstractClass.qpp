@@ -712,7 +712,7 @@ AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
     and then matches the arguments by type to return the variant
 
     @param name the name of the method
-    @param ... @ref Qore::Type "Type" arguments giving parameter types
+    @param ... @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given method variant
 
@@ -741,7 +741,7 @@ AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
     and then matches the arguments by type
 
     @param name the name of the method
-    @param argv @ref Qore::Type "Type" arguments giving parameter types
+    @param argv @ref Qore::Reflection::Type "Type" arguments giving parameter types
 
     @return the given method variant
 
