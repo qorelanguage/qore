@@ -46,7 +46,7 @@ public namespace ConnectionProvider {
 
         #! creates the invalid connection object
         /** @param name the name of the connection
-            @param description connection description
+            @param desc connection description
             @param url connection URL (potentially with password info)
             @param attributes various attributes. See below
             @param options connection options

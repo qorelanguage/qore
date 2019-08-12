@@ -202,7 +202,7 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
             @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
-            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
+            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor" plus the following keys:
             - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational logging
             - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
             - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging debugging/technical messages about the web socket connection

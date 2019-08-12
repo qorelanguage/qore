@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SewioWebSocketClient.qm SewioWebSocketClient implementation
 
-/*  SewioWebSocketClient.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  SewioWebSocketClient.qm Copyright 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -157,7 +157,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
             @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing_type "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
-            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
+            @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor" plus the following keys:
             - \c apikey: (required) a string giving the Sewio RTLS Studio API key
             - \c log: (optional) @ref closure "closure" or @ref call_reference "call reference" for informational logging
             - \c errlog: (optional) @ref closure "closure" or @ref call_reference "call reference" for error logging

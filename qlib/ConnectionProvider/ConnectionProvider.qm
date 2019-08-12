@@ -105,11 +105,11 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       (<a href="https://github.com/qorelanguage/qore/issues/3486">issue 3486</a>)
 
     @subsection connectionprovider_1_2 ConnectionProvider 1.2
-    - the @ref ConnectionProvider::AbstractConnection::consructor() "AbstractConnection::consructor()" refactoring
+    - the @ref ConnectionProvider::AbstractConnection::constructor() "AbstractConnection::constructor()" refactoring
     - all connection clases have unified constructor
     - old contructors and static make() constructors are deprecated
     - ConnectionProvider::AbstractConnection::parseUrl() is introduced
-    - ConnectionProvider::AbstractConnection::getSafeurl() is not static anymore
+    - ConnectionProvider::AbstractConnection::getSafeUrl() is not static anymore
     - it allows their reimplementation in the inherited class. It can be used
       to parse strange and unexpected URLs like eg. pure json strings, or Datasource connection strings.
 
@@ -119,7 +119,7 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection connectionprovider_1_0_1 ConnectionProvider 1.0.1
-    - removed unnecessary serialization from AbstractConnection::get()
+    - removed unnecessary serialization from ConnectionProvider::AbstractConnection::get() "AbstractConnection::get()"
       (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
 
     @subsection connectionprovider_1_0 ConnectionProvider 1.0
