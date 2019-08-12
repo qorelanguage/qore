@@ -33,7 +33,7 @@
 %requires Util
 
 module Logger {
-    version = "0.1";
+    version = "0.1.1";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -205,13 +205,16 @@ module Logger {
     # wait till finished
     @endcode
 
+    @subsection logger_v0_1_1 v0.1.1
+    - added Logger::Logger::logArgs() "Logger::logArgs()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3492">issue 3492</a>)
+
     @subsection logger_v0_1 v0.1
     - the initial version of the Logger module
 */
 
 #! The Logger namespace contains all the definitions in the Logger module
 public namespace Logger {
-
     #! Defines the minimum set of levels recognized by the system.
     /**
         The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
@@ -444,7 +447,7 @@ public namespace Logger {
     public class LoggerEventParameter {
         private:internal {
             code callable;
-            *list args;
+            *list<auto> args;
         }
         #! Creates object
         /**
@@ -616,7 +619,7 @@ public namespace Logger {
             if (!exists renderedMessage) {
                 # evaluating of callable parameters (via LoggerEventParameter) may be used to get time consuming stuff
                 # i.e. they are evaluated only when logging is performed
-                list args2 = ();
+                list<auto> args2 = ();
                 foreach auto arg in (messageArgs) {
                     if (arg.typeCode() == NT_OBJECT && arg instanceof LoggerEventParameter) {
                         try {
@@ -2627,7 +2630,7 @@ public namespace Logger {
             return appenders ?? ();
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+        private:internal logIntern(LoggerLevel level, string message, *list<auto> args, *hash<CallStackInfo> location,
             bool check_throwable, date time_stamp = now_us()) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
@@ -2656,7 +2659,7 @@ public namespace Logger {
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+        private:internal logIntern(LoggerLevel level, string message, *list<auto> args, *hash<CallStackInfo> location,
             *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
@@ -2695,6 +2698,34 @@ public namespace Logger {
         */
         public log(string level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+        }
+
+        #! Logs a message using the provided logging level and a single argument for any format string arguments.
+        /**
+            @param level The logging level.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+            @param args any format string arguments to the log message
+        */
+        public logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+            logIntern(level, message, args, getLocation(), True);
+        }
+
+        #! Logs a message using the provided logging level and a single argument for any format string arguments.
+        /**
+            @param level the logging level.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        */
+        public logArgs(int level, string message, *softlist<auto> args) {
+            logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
+        }
+
+        #! Logs a message using the provided logging level and a single argument for any format string arguments.
+        /**
+            @param level The logging level.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        */
+        public logArgs(string level, string message, *softlist<auto> args) {
+            logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
         }
 
         #! Logs an already prepared logging event object.

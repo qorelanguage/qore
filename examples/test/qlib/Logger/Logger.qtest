@@ -929,6 +929,16 @@ class Test inherits QUnit::Test {
         assertEq("TEST/test", sos2.getData());
         assertEq("/test", sos3.getData());
 
+        l1.logArgs(LoggerLevel::FATAL, "test-%d", 1);
+        assertEq("TEST/test-1", sos1.getData());
+        assertEq("TEST/test-1", sos2.getData());
+        assertEq("/test-1", sos3.getData());
+
+        l1.logArgs(LoggerLevel::FATAL, "test-%d", ("2", ));
+        assertEq("TEST/test-2", sos1.getData());
+        assertEq("TEST/test-2", sos2.getData());
+        assertEq("/test-2", sos3.getData());
+
         l1.assertLog(False, "test: %d,%s", 1, "a");
         assertEq("TEST/test: 1,a", sos1.getData());
         assertEq("", sos2.getData());
