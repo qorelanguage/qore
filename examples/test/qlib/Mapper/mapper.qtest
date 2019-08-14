@@ -266,9 +266,45 @@ public class MapperTest inherits QUnit::Test {
                 },
             },
         };
+
+        const TypeMap2 = {
+            "output_0.key1": {
+                "name": "input_0.k1",
+            },
+            "output_0.key2": {
+                "name": "input_0.k2",
+            },
+            "output_1": {
+                "name": "input_1",
+            },
+        };
+
+        const TypeOpts2 = {
+            "input": {
+                "input_0": {
+                    "desc": "input field 0",
+                    "type": "hash",
+                },
+                "input_1": {
+                    "desc": "input field 1",
+                    "type": "any",
+                },
+            },
+            "output": {
+                "output_0": {
+                    "type": "hash",
+                    "desc": "input field 0",
+                },
+                "output_1": {
+                    "type": "any",
+                    "desc": "output field 1",
+                },
+            },
+        };
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("hash output", \hashOutputTest());
         addTestCase("test types", \testTypes());
         addTestCase("Test mapAll()", \testMapperMapAll());
         addTestCase("Test mapData()", \testMapperMapData());
@@ -285,10 +321,22 @@ public class MapperTest inherits QUnit::Test {
     }
 
     private {
-        hash m_opts = ( "runtime" : ("runtimetest" : 1), );
+        hash<auto> m_opts = {"runtime": {"runtimetest" : 1}};
     }
 
     setUp() {
+    }
+
+    hashOutputTest() {
+        Mapper m(TypeMap2, TypeOpts2);
+        hash<auto> h = m.mapData({"input_0": {"k1": 1, "k2": 2}, "input_1": "one"});
+        assertEq({
+            "output_0": {
+                "key1": 1,
+                "key2": 2,
+            },
+            "output_1": "one",
+        }, h);
     }
 
     testTypes() {

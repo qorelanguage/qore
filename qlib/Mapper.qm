@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2018 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -143,6 +143,7 @@ list: (2 elements)
       - \c "maxlen": an integer giving the maximum output string field length in bytes
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" ior \c "index" keys
       - \c "number_format": gives the format for converting an input string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
+      - \c "output_key_path": gives the output path for hash output values; each element in the list is a string key name
       - \c "runtime": a reference to @ref mapper_runtime_handling current status. The value is key in the current runtime structure.
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" or \c "index" keys; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
       - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
@@ -225,7 +226,9 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
     @subsection mapperv1_4_1 Mapper v1.4.1
     - added support for types "any" and "hash"
-      (<a href="https://github.com/qorelanguage/qore/issues/2495">issue 2405</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3453">issue 3453</a>)
+    - added support for dot notation in output fields for the "hash" output type
+      (<a href="https://github.com/qorelanguage/qore/issues/3413">issue 3413</a>)
 
     @subsection mapperv1_4 Mapper v1.4
     - added support for complex types
@@ -309,6 +312,7 @@ public namespace Mapper {
                 "number_format": True,
                 "runtime" : True,
                 "empty_strings_to_nothing" : True,
+                "output_key_path": True,
             };
 
             #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
@@ -333,7 +337,9 @@ public namespace Mapper {
 
         private {
             #! the hash providing output field names and mappings
-            hash<auto> mapc;
+            /** note that we must strip types here
+            */
+            hash mapc;
 
             #! the hash with a subset of the mappings used dynamically
             hash<auto> mapd;
@@ -456,7 +462,7 @@ Mapper mapv(DataMap);
                 if (opts.input.typeCode() != NT_HASH)
                     error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.input.type());
                 input = opts.input;
-                foreach hash h in (input.pairIterator()) {
+                foreach hash<auto> h in (input.pairIterator()) {
                     switch (h.value.typeCode()) {
                         case NT_STRING: input{h.key} = ("desc": h.value); break;
                         case NT_HASH: break;
@@ -470,7 +476,7 @@ Mapper mapv(DataMap);
                 if (opts.output.typeCode() != NT_HASH)
                     error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.output.type());
                 output = opts.output;
-                foreach hash h in (output.pairIterator()) {
+                foreach hash<auto> h in (output.pairIterator()) {
                     if (h.value === True || !exists h.value) {
                         output{h.key} = {};
                         continue;
@@ -490,8 +496,7 @@ Mapper mapv(DataMap);
             if (!mapv)
                 error("empty map passed to %s::constructor()", self.className());
 
-            # the "{} + " construction is there to make sure mapc has type hash<auto>
-            mapc = {} + mapv;
+            mapc = mapv;
             hash<auto> ck = optionKeys();
             foreach string k in (keys opts) {
                 if (!ck{k})
@@ -535,7 +540,7 @@ Mapper mapv(DataMap);
 
         #! verifies the input map in the constructor
         private checkMap() {
-            map checkMapField($1, \mapc.$1), keys mapc;
+            map checkMapField($1, \mapc{$1}), keys mapc;
             mapd = mapc;
             if (identh) {
                 identl = keys identh;
@@ -581,10 +586,20 @@ Mapper mapv(DataMap);
         */
         private checkMapField(string k, reference<auto> fh) {
             *hash<auto> outf;
+
             # check output name
             if (output) {
-                if (!output.hasKey(k))
-                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                if (!output.hasKey(k)) {
+                    # see if field has a "." in it
+                    *string basename = (k =~ x/([^\.]+)/)[0];
+                    if (exists basename && output.hasKey(basename) && output{basename}.type == "hash") {
+                        # set key path for hash output fields
+                        fh.output_key_path = k.split(".");
+                        k = basename;
+                    } else {
+                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                    }
+                }
                 # get output definition, if any
                 outf = output{k};
             }
@@ -617,7 +632,7 @@ Mapper mapv(DataMap);
                 error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
             }
             if (exists fh.constant || exists fh.index) {
-                *list cl = keys fh{ConstantConflictList};
+                *list<string> cl = keys fh{ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
                 if (cl) {
                     error("output field %y (value %y) has key %y which conflicts with following key(s): %y", getFieldName(k), fh{fieldType}, fieldType, cl);
@@ -682,9 +697,8 @@ Mapper mapv(DataMap);
             hash<auto> vk = validKeys();
             hash<auto> vt = validTypes();
 
-            foreach string hk in (keys fh)
-                if (!vk{hk})
-                    error("output field %y in map hash contains unknown key '%s' (valid keys: %y)", getFieldName(k), hk, vk.keys());
+            map error("output field %y in map hash contains unknown key '%s' (valid keys: %y)",
+                getFieldName(k), $1, keys vk), keys fh, !vk{$1};
 
             # convert old "number" tag to new "type" tag
             if (fh.number) {
@@ -1162,7 +1176,21 @@ Mapper mapv(DataMap);
                 }
             }
 
-            h{key} = v;
+            if (m.output_key_path) {
+                # recursively write output hash
+                writeHashOutput(\h, v, m.output_key_path, 0);
+            } else {
+                h{key} = v;
+            }
+        }
+
+        # recursively write output hash
+        private writeHashOutput(reference<auto> output, auto value, list<auto> path, int offset) {
+            if (offset == path.size()) {
+                output = value;
+            } else {
+                writeHashOutput(\output{path[offset]}, value, path, offset + 1);
+            }
         }
 
         #! called to truncate fields when processing hashes of lists
@@ -1272,8 +1300,10 @@ Mapper mapv(DataMap);
                 }
                 case "hash": {
                     if (v.typeCode() != NT_HASH) {
-                        error2("INVALID-HASH", "field %y = %y is marked as a hash field, but the input data is of type %y",
-                            getFieldName(key), v, v.type());
+                        if (!m.output_key_path) {
+                            error2("INVALID-HASH", "field %y = %y is marked as a hash field, but the input data is of type %y",
+                                getFieldName(key), v, v.type());
+                        }
                     }
                     break;
                 }
