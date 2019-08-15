@@ -362,16 +362,47 @@ class HttpServer::HttpHandlerList {
     #! sets a request handler according to the arguments given
     setHandler(string name, string path, bool isregex = True, *softlist content, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers) {
         # paths are passed without the leading "/", so they have to be like this in the treemap
-        if (path =~ /^\//)
+        if (path =~ /^\//) {
             path = path.substr(1);
-        if (handlers{name})
+        }
+        if (handlers{name}) {
             throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", name);
+        }
 
         HandlerInfo handlerInfo = new HandlerInfo(name, obj, path, isregex, content, special_headers);
         handlers{name} = handlerInfo;
         if (!isregex && path) {
             treeMap.put(path, handlerInfo);
         }
+    }
+
+    #! remove handler from the list by it's name
+    removeHandler(string handler_name) {
+        if (!handlers.hasKey(handler_name)) {
+            throw "INVALID-HANDLER", sprintf("handler with name %y is not present", handler_name);
+        }
+
+        HandlerInfo hi = handlers{handler_name};
+        treeMap.take(hi.path);
+        remove handlers{handler_name};
+    }
+
+    #! remove handler from the list
+    removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
+        *string name;
+        foreach hash h in (handlers.pairIterator()) {
+            if (h.value.obj == handler) {
+                name = h.key;
+                break;
+            }
+        }
+        if (name == NOTHING) {
+            throw "INVALID-HANDLER", "handler not present";
+        }
+
+        HandlerInfo hi = handlers{name};
+        treeMap.take(hi.path);
+        remove handlers{name};
     }
 
     # matches a handler to the request
@@ -1118,6 +1149,30 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         listeners{id}.addHandlers(h);
     }
 
+    #! remove request handler from a listener given the listener's id
+    removeHandlerFromListenerID(softstring id, string handler_name) {
+        lm.enter();
+        on_exit lm.exit();
+
+        if (!listeners.hasKey(id)) {
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        }
+        listeners{id}.removeHandler(handler_name);
+        HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
+    }
+
+    #! remove request handler from a listener given the listener's id
+    removeHandlerFromListenerID(softstring id, HttpServer::AbstractHttpRequestHandler handler) {
+        lm.enter();
+        on_exit lm.exit();
+
+        if (!listeners.hasKey(id)) {
+            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        }
+        listeners{id}.removeHandler(handler);
+        HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
+    }
+
     #! turns on or off header and body logging options for receive operations for the given listener
     /** @par Example:
         @code{.py}
@@ -1572,8 +1627,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             *HandlerInfo hi;
             int score = 0;
             string root_path;
-            if (!listener.handlers.empty()) {
-                hi = listener.handlers.findHandler(hdr, \score, True, \root_path);
+            if (listener.hasHandlers()) {
+                hi = listener.findHandler(hdr, \score, True, \root_path);
                 if (!hi) {
                     if (listener.defaultHandler)
                         hi = listener.defaultHandler;
@@ -1871,14 +1926,17 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         const PollInterval = 1s;
         const ListenQueue = 100;
         const BodyLogLimit = 40;
+
+        # handler ref count
+        int handler_ref_cnt = 0;
+
+        # listener-specific handlers
+        HttpHandlerList handlers();
     }
 
     public {
         # TID of the background listener thread
         int tid;
-
-        # listener-specific handlers
-        HttpHandlerList handlers();
 
         # default handler info
         *HandlerInfo defaultHandler;
@@ -1901,8 +1959,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         errorlogger = n_errorlogger;
         stopc = n_stopc;
 
-        if (n_hi)
+        if (n_hi) {
             addHandlers(n_hi);
+        }
 
         # create SSL certificate and private key objects from PEM files if passed
         if (n_cert) {
@@ -1948,12 +2007,41 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         tid = background mainThread();
     }
 
+    #! add handlers to the listener
     addHandlers(hash hi) {
+        AutoLock al(m);
         #printf("HttpListener::addHandlers() hi: %y\n", hi);
         bool def = handlers.empty();
         map handlers.setHandler($1.key, $1.value.path, $1.value.isregex, $1.value.content, $1.value.handler, $1.value.headers), hi.pairIterator();
+        map ++handler_ref_cnt, hi.iterator();
         if (def)
             setDefaultHandler(hi.firstKey());
+    }
+
+    /** Remove handler from the listener.
+        @throw INVALID-HANDLER handler is not present in the listener's handler list
+    */
+    removeHandler(string handler_name) {
+        AutoLock al(m);
+        --handler_ref_cnt;
+
+        if (defaultHandler && defaultHandler.name == handler_name) {
+            remove defaultHandler;
+        }
+        handlers.removeHandler(handler_name);
+    }
+
+    /** Remove handler from the listener.
+        @throw INVALID-HANDLER handler is not present in the listener's handler list
+    */
+    removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
+        AutoLock al(m);
+        --handler_ref_cnt;
+
+        if (defaultHandler && defaultHandler.obj == handler) {
+            remove defaultHandler;
+        }
+        handlers.removeHandler(handler);
     }
 
     setDefaultHandler(string name) {
@@ -1961,6 +2049,26 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", name, handlers.handlers.keys());
 
         defaultHandler = handlers.handlers{name};
+    }
+
+    *HandlerInfo findHandler(hash<auto> hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
+        return handlers.findHandler(hdr, \score, finalv, root_path ? \root_path : NOTHING);
+    }
+
+    bool hasHandlers() {
+        return !handlers.empty();
+    }
+
+    static stopIfNoHandlers(HttpServer::HttpListener listener) {
+        listener.m.lock();
+        on_error listener.m.unlock();
+
+        if (listener.handler_ref_cnt == 0) {
+            listener.m.unlock();
+            listener.stop();
+            return;
+        }
+        listener.m.unlock();
     }
 
     hash getListenerSocketInfo() {
