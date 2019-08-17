@@ -81,10 +81,13 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
         set_return_value(main());
     }
 
+    private string getScriptPathImpl() {
+        return get_script_path();
+    }
+
     private performInjectionsImpl() {
         # do builtin module injections here
         injectClass("MyClass", "Class");
-        child.loadModule("reflection");
 
         injectUserModule("../../../../qlib/FixedLengthUtil.qm");
     }

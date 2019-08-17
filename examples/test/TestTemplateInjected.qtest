@@ -19,7 +19,7 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     }
 
     # mandatory for injected tests
-    private string getScriptPath() {
+    private string getScriptPathImpl() {
         return get_script_path();
     }
 

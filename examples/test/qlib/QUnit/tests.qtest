@@ -16,6 +16,10 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("DIJClass", "1.0") {
     }
 
+    private string getScriptPathImpl() {
+        return get_script_path();
+    }
+
     private performInjectionsImpl() {
     }
 }
