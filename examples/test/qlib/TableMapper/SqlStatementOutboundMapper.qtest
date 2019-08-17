@@ -197,7 +197,7 @@ class Main inherits QUnit::DependencyInjectedTest {
         set_return_value(main());
     }
 
-    private string getScriptPath() {
+    private string getScriptPathImpl() {
         return get_script_path();
     }
 

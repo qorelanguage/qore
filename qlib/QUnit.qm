@@ -119,7 +119,7 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     }
 
     # mandatory for tests with dependency injections
-    string getScriptPath() {
+    private string getScriptPathImpl() {
         return get_script_path();
     }
 
@@ -2122,14 +2122,9 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
         reloadSelf();
     }
 
-    #! Returns the absolute path to the script to be tested
+    #! Returns the path to the script to be tested
     private string getScriptPath() {
-        *string file = get_script_path();
-        if (!exists file) {
-            throw "GET-SCRIPT-PATH-ERROR", sprintf("no script path is available; update your code to override getScriptPath() "
-                "with the path to the current script");
-        }
-        return file;
+        return getScriptPathImpl();
     }
 
     #! creates the Program object subject to injection
@@ -2210,6 +2205,9 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
 
     #! implement this in subclasses to perform all injections
     private abstract performInjectionsImpl();
+
+    #! implement this in subclasses to perform all injections
+    private abstract string getScriptPathImpl();
 }
 
 public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
