@@ -24,7 +24,6 @@ public class CallStaticMethodTest inherits QUnit::Test {
 
     test() {
         assertEq(1, call_static_method("T", "get"));
-        #assertThrows("UNKNOWN-METHOD", "T::invalid", \call_static_method(), ("T", "invalid"));
         assertThrows("UNKNOWN-METHOD", "T::invalid", sub () { call_static_method("T", "invalid"); });
     }
 }
