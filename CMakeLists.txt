@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 # support <pkg>_ROOT in find_package
-cmake_policy(SET CMP0074 NEW)
+if (policy CMP0074)
+    cmake_policy(SET CMP0074 NEW)
+endif()
 # enable RPATH in macos bins (OS requires this in any case)
-cmake_policy(SET CMP0042 NEW)
+if (policy CMP0042)
+    cmake_policy(SET CMP0042 NEW)
+endif()
 
 project(qore-language)
 
