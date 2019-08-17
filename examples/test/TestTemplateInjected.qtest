@@ -31,6 +31,6 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
 
     testMethod() {
         # Same test style as in TestExample.qtest
-        testTrue(True)
+        assertTrue(True);
     }
 }
