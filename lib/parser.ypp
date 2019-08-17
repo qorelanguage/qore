@@ -1504,11 +1504,11 @@ static void check_operator_bin_xor(const QoreProgramLocation* loc, QoreValue n, 
 
 %}
 
-%pure-parser
+%define api.pure
 %lex-param {yyscan_t yyscanner}
 %parse-param {yyscan_t yyscanner}
 %locations
-%error-verbose
+%define parse.error verbose
 
 %union {
     QoreSimpleValue qv;

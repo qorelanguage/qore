@@ -63,13 +63,13 @@
 typedef void* yyscan_t;
 %}
 
-%pure-parser
+%define api.pure
 %lex-param {yyscan_t yyscanner}
 %parse-param {yyscan_t yyscanner}
 %parse-param {AstParseErrorLog* errorLog}
 %parse-param {ASTTree* parseTree}
 %locations
-%error-verbose
+%define parse.error verbose
 
 %union {
     bool b;
@@ -2478,7 +2478,7 @@ exp_c:
         }
         ;
 
-exp: 
+exp:
         exp_c
         | list                              { $$ = $1; }
         | alt_hash                          { $$ = $1; }
