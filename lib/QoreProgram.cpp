@@ -1138,9 +1138,11 @@ void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement
 }
 
 QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const {
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    const QoreTypeInfo* subType = qore_get_complex_hash_type(bigIntTypeInfo);
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(subType), xsink);
     for (auto& it : *statementIndex) {
-        QoreHashNode* h2 = new QoreHashNode(autoTypeInfo);
+        QoreHashNode* h2 = new QoreHashNode(bigIntTypeInfo);
         qore_hash_private* ph2 = qore_hash_private::get(*h2);
         for (auto& it2 : it.second->sectionMap) {
             ph2->setKeyValueIntern(it2.first, it2.second);

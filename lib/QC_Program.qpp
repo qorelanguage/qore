@@ -1171,7 +1171,7 @@ auto result = pgm.callFunctionArgs("func_name", (arg1, arg2));
 
     @note The function called could also cause other exceptions to be thrown
  */
-auto Program::callFunctionArgs(string name, *softlist vargs) {
+auto Program::callFunctionArgs(string name, *softlist<auto> vargs) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
@@ -1369,10 +1369,12 @@ nothing Program::importHashDecl(string name, *string new_name) {
 
     @par Example:
     @code{.py}
-list l = pgm.getUserFunctionList();
+list<string> l = pgm.getUserFunctionList();
     @endcode
+
+    @note the @ref reflectionintro "reflection" module supercedes this functionality
  */
-softlist Program::getUserFunctionList() [flags=CONSTANT] {
+softlist<string> Program::getUserFunctionList() [flags=CONSTANT] {
    return p->getUserFunctionList();
 }
 
@@ -1701,14 +1703,14 @@ auto Program::getDefine(string def) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-*hash val = pgm.getAllDefines();
+*hash<auto> val = pgm.getAllDefines();
     @endcode
 
     @note A parse define may be defined with no value then values may have nothing values
 
     @since %Qore 0.8.13
  */
-*hash Program::getAllDefines() [flags=CONSTANT] {
+*hash<auto> Program::getAllDefines() [flags=CONSTANT] {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
@@ -2168,7 +2170,7 @@ bool Program::setThreadInit(*code init) [dom=THREAD_CONTROL] {
 //! returns a hash of global variables
 /** @par Example:
     @code{.py}
-hash h = pgm.getGlobalVars();
+hash<auto> h = pgm.getGlobalVars();
     @endcode
 
     @return a hash of global variables and their values
@@ -2177,7 +2179,7 @@ hash h = pgm.getGlobalVars();
 
     @since %Qore 0.8.13
  */
-hash Program::getGlobalVars() [flags=CONSTANT] {
+hash<auto> Program::getGlobalVars() [flags=CONSTANT] {
    return p->getGlobalVars();
 }
 
@@ -2212,8 +2214,10 @@ nothing Program::setGlobalVarValue(string name, auto value) {
     @throw PROGRAM-ERROR thrown if the function cannot be found
 
     @since %Qore 0.8.13
+
+    @note the @ref reflectionintro "reflection" module supercedes this functionality
 */
-list Program::findFunctionVariants(string function) {
+list<hash<auto>> Program::findFunctionVariants(string function) {
     ReferenceHolder<QoreListNode> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
     if (!vl)
         return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());

@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,7 @@ int num_threads() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
 
     @par Example:
     @code{.py}
-list l = thread_list();
+list<int> l = thread_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -189,7 +189,7 @@ save_thread_data(h);
 
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
-nothing save_thread_data(hash h) [dom=THREAD_CONTROL] {
+nothing save_thread_data(hash<auto> h) [dom=THREAD_CONTROL] {
    QoreHashNode* data = getProgram()->getThreadData();
    data->merge(h, xsink);
 }
@@ -247,7 +247,7 @@ delete_thread_data(list_of_keys);
 
     @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
 */
-nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
+nothing delete_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
    delete_thread_data_intern(l, xsink);
 }
 
@@ -259,12 +259,12 @@ nothing delete_thread_data(list l) [dom=THREAD_CONTROL] {
 
     @par Example:
     @code{.py}
-hash h = remove_thread_data("filename");
+hash<auto> h = remove_thread_data("filename");
     @endcode
 
     @since %Qore 0.8.4 this function returns the values it removes
 */
-*hash remove_thread_data(...) [dom=THREAD_CONTROL] {
+*hash<auto> remove_thread_data(...) [dom=THREAD_CONTROL] {
    return num_args(args) ? remove_thread_data_intern(args, xsink) : 0;
 }
 
@@ -276,12 +276,12 @@ hash h = remove_thread_data("filename");
 
     @par Example:
     @code{.py}
-hash h = remove_thread_data(key_list);
+hash<auto> h = remove_thread_data(key_list);
     @endcode
 
     @since %Qore 0.8.4 this function returns the values it removes
 */
-hash remove_thread_data(list l) [dom=THREAD_CONTROL] {
+hash<auto> remove_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
    return remove_thread_data_intern(l, xsink);
 }
 
@@ -327,12 +327,12 @@ nothing get_thread_data() [dom=THREAD_CONTROL,THREAD_INFO;flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-hash th = get_all_thread_data();
+hash<auto> th = get_all_thread_data();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
-hash get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
+hash<auto> get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    const QoreHashNode* h = getProgram()->getThreadData();
    return h->copy();
 }

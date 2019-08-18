@@ -88,7 +88,7 @@ bool <hash>::complexType() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list l = h.keys();
+list<string> l = h.keys();
     @endcode
 
     @note this pseudo-method is also implemented in Qore::zzz8nothingzzz9, so it's safe to use where the value could be a hash or @ref nothing (ex: @ref hash_or_nothing_type "*hash")
@@ -105,7 +105,7 @@ list<string> <hash>::keys() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list l = h.values();
+list<auto> l = h.values();
     @endcode
 
     @note

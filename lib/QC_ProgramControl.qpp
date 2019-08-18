@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -155,7 +155,7 @@ auto ProgramControl::getDefine(string def) {
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program
 /** see Qore::Program::getAllDefines "Program::getAllDefines()"
  */
-*hash ProgramControl::getAllDefines() {
+*hash<auto> ProgramControl::getAllDefines() {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
@@ -194,7 +194,7 @@ static ProgramControl ProgramControl::getProgram() [flags=RET_VALUE_ONLY; dom=DE
 /**
    Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId()" to get instance
  */
-static list ProgramControl::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+static list<ProgramControl> ProgramControl::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getAllQoreObjects(xsink);
 }
 
@@ -245,7 +245,7 @@ auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists)
 //! returns a hash of global variables
 /** see Qore::Program::getGlobalVars "Program::getGlobalVars()"
  */
-hash ProgramControl::getGlobalVars() [flags=CONSTANT] {
+hash<auto> ProgramControl::getGlobalVars() [flags=CONSTANT] {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    return p->getGlobalVars();
@@ -377,7 +377,7 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
     - \c desc: a string description of the call which includes the name and the full text call signature
     - \c params: a list object that gives the params in a format that can be used by @ref findFunctionStatementId
 */
-list ProgramControl::findFunctionVariants(string function) {
+list<hash<auto>> ProgramControl::findFunctionVariants(string function) {
     if (!p->checkAllowDebugging(xsink))
         return QoreValue();
     ReferenceHolder<QoreListNode> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
@@ -392,11 +392,11 @@ list ProgramControl::findFunctionVariants(string function) {
         @ref Qore::ProgramControl::getSourceFileNames "ProgramControl::getSourceFileNames()"
 
     @return a hash where keys are file names and the value is hash of labels, in this hash, the keys are label names
-   and values are the label's section offset in the file.
+    and values are the label's section offset in the file.
 
     @since %Qore 0.8.13.3
 */
-hash ProgramControl::getSourceLabels() {
+hash<string, hash<string, int>> ProgramControl::getSourceLabels() {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    return p->getSourceLabels(xsink);
@@ -412,7 +412,7 @@ hash ProgramControl::getSourceLabels() {
 
     @since %Qore 0.8.13.3
 */
-hash ProgramControl::getSourceFileNames() {
+hash<string, hash<string, int>> ProgramControl::getSourceFileNames() {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    return p->getSourceFileNames(xsink);
