@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,89 +35,89 @@
 #include <cstring>
 
 static inline int process_type(const char* key, int& attributes, char* opt, qore_type_t& at, ExceptionSink* xsink) {
-   assert(at == -1);
-   const char* type_name = 0;
-   // get type
-   switch (*opt) {
-      case 's':
-         at = NT_STRING;
-         type_name = QoreStringNode::getStaticTypeName();
-         break;
-      case 'i':
-         at = NT_INT;
-         type_name = qoreIntTypeName;
-         break;
-      case 'f':
-         at = NT_FLOAT;
-         type_name = qoreFloatTypeName;
-         break;
-      case 'b':
-         at = NT_BOOLEAN;
-         type_name = qoreBoolTypeName;
-         break;
-      case 'd':
-         at = NT_DATE;
-         type_name = DateTimeNode::getStaticTypeName();
-         break;
-      case 'h':
-         at = NT_HASH;
-         type_name = QoreHashNode::getStaticTypeName();
-         break;
-      case '@':
-         at = NT_STRING;
-         attributes |= QGO_OPT_LIST;
-         type_name = QoreStringNode::getStaticTypeName();
-         break;
-      case '+':
-         at = NT_INT;
-         attributes |= QGO_OPT_ADDITIVE;
-         type_name = qoreIntTypeName;
-         break;
-   }
-   if (at == -1) {
-      xsink->raiseException("GETOPT-OPTION-ERROR", "type '%c' for key '%s' is unknown", *opt, key);
-      return -1;
-   }
-   if (!opt[1])
-      return 0;
+    assert(at == -1);
+    const char* type_name = 0;
+    // get type
+    switch (*opt) {
+        case 's':
+            at = NT_STRING;
+            type_name = QoreStringNode::getStaticTypeName();
+            break;
+        case 'i':
+            at = NT_INT;
+            type_name = qoreIntTypeName;
+            break;
+        case 'f':
+            at = NT_FLOAT;
+            type_name = qoreFloatTypeName;
+            break;
+        case 'b':
+            at = NT_BOOLEAN;
+            type_name = qoreBoolTypeName;
+            break;
+        case 'd':
+            at = NT_DATE;
+            type_name = DateTimeNode::getStaticTypeName();
+            break;
+        case 'h':
+            at = NT_HASH;
+            type_name = QoreHashNode::getStaticTypeName();
+            break;
+        case '@':
+            at = NT_STRING;
+            attributes |= QGO_OPT_LIST;
+            type_name = QoreStringNode::getStaticTypeName();
+            break;
+        case '+':
+            at = NT_INT;
+            attributes |= QGO_OPT_ADDITIVE;
+            type_name = qoreIntTypeName;
+            break;
+    }
+    if (at == -1) {
+        xsink->raiseException("GETOPT-OPTION-ERROR", "type '%c' for key '%s' is unknown", *opt, key);
+        return -1;
+    }
+    if (!opt[1])
+        return 0;
 
-   if (opt[2]) {
-      xsink->raiseException("GETOPT-OPTION-ERROR", "invalid attributes in option '%s'", key);
-      return -1;
-   }
+    if (opt[2]) {
+        xsink->raiseException("GETOPT-OPTION-ERROR", "invalid attributes in option '%s'", key);
+        return -1;
+    }
 
-   // process modifiers
-   if (opt[1] == '@') {
-      if (attributes & QGO_OPT_LIST) {
-         xsink->raiseException("GETOPT-OPTION-ERROR", "list attribute doubled in option key '%s'", key);
-         return -1;
-      }
-      if (attributes & QGO_OPT_ADDITIVE) {
-         xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
-         return -1;
-      }
-      attributes |= QGO_OPT_LIST;
-      return 0;
-   }
-   if (opt[1] == '+') {
-      if (attributes & QGO_OPT_ADDITIVE) {
-         xsink->raiseException("GETOPT-OPTION-ERROR", "additive attribute doubled in option key '%s'", key);
-         return -1;
-      }
-      if (attributes & QGO_OPT_LIST) {
-         xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
-         return -1;
-      }
-      if (at != NT_INT && at != NT_FLOAT) {
-         xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", type_name, key);
-         return -1;
-      }
-      attributes |= QGO_OPT_ADDITIVE;
-      return 0;
-   }
+    // process modifiers
+    if (opt[1] == '@') {
+        if (attributes & QGO_OPT_LIST) {
+            xsink->raiseException("GETOPT-OPTION-ERROR", "list attribute doubled in option key '%s'", key);
+            return -1;
+        }
+        if (attributes & QGO_OPT_ADDITIVE) {
+            xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
+            return -1;
+        }
+        attributes |= QGO_OPT_LIST;
+        return 0;
+    }
+    if (opt[1] == '+') {
+        if (attributes & QGO_OPT_ADDITIVE) {
+            xsink->raiseException("GETOPT-OPTION-ERROR", "additive attribute doubled in option key '%s'", key);
+            return -1;
+        }
+        if (attributes & QGO_OPT_LIST) {
+            xsink->raiseException("GETOPT-OPTION-ERROR", "option '%s' cannot have both additive and list attributes turned on", key);
+            return -1;
+        }
+        if (at != NT_INT && at != NT_FLOAT) {
+            xsink->raiseException("GETOPT-OPTION-ERROR", "additive attributes for type '%s' are not supported (option '%s')", type_name, key);
+            return -1;
+        }
+        attributes |= QGO_OPT_ADDITIVE;
+        return 0;
+    }
 
-   xsink->raiseException("GETOPT-OPTION-ERROR", "unknown modifier '%c' in option '%s'", opt[1], key);
-   return -1;
+    xsink->raiseException("GETOPT-OPTION-ERROR", "unknown modifier '%c' in option '%s'", opt[1], key);
+    return -1;
 }
 
 static AbstractQoreNode* GETOPT_parse2_intern(ReferenceHolder<QoreHashNode>& rv, ExceptionSink* xsink) {
@@ -150,41 +150,7 @@ static AbstractQoreNode* GETOPT_parse3_intern(ReferenceHolder<QoreHashNode>& rv,
     return 0;
 }
 
-//! The %GetOpt class provides an easy way to process POSIX-style command-line options in %Qore scripts/programs
-/**
- */
-qclass GetOpt [arg=GetOpt* g];
-
-//! Creates the GetOpt object and sets the option hash with the single required argument
-/** @param options Each key defines the key value for the return hash if any arguments are given corresponding to the string value of the key; The string value of each hash key follows the following pattern:\n
-    <em>opts</em><tt>[(=|:)</tt><em>type</em><tt>[</tt><em>modifier</em><tt>]]</tt>\n
-    Where the meaning of the above placeholders in italics is:\n
-    - <em>opts</em>: At least one short option and/or a long option name; if both are present, then they must be separated by a comma. The short option must be a single character.
-    - <tt>(=|:)</tt><em>type</em>: if \c "=" is used, then the option takes a mandatory argument, if \c ":" is used, then the argument is optional. Types are specified as follows:
-      - <em>s</em>: string
-      - <em>i</em>: integer
-      - <em>f</em>: float
-      - <em>d</em>: date
-      - <em>b</em>: boolean
-    - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
-
-    @par Example:
-    @code{.py}
-const ProgramPptions = (
-     "url"  : "u,url=s",
-     "xml"  : "x,xml",
-     "lxml" : "X,literal-xml",
-     "verb" : "v,verbose",
-     "help" : "h,help",
- );
-
-GetOpt getopt(ProgramOptions);
-    @endcode
-
-    @throw GETOPT-PARAMETER-ERROR option key value is not a string; \c "_ERRORS_" used as option key
-    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option
- */
-GetOpt::constructor(hash options) {
+static GetOpt* GETOPT_constructor_intern(const QoreHashNode* options, ExceptionSink* xsink) {
     SimpleRefHolder<GetOpt> g(new GetOpt);
 
     ConstHashIterator hi(options);
@@ -239,13 +205,11 @@ GetOpt::constructor(hash options) {
             if (tok == (val + 1)) {
                 short_opt = val[0];
                 long_opt = val + 2;
-            }
-            else if (tok - val == (signed)(strlen(val) - 2)) {
+            } else if (tok - val == (signed)(strlen(val) - 2)) {
                 (*tok) = 0;
                 short_opt = tok[1];
                 long_opt = val;
-            }
-            else { // if the comma is not in the second or second-to-last position, then it's an error
+            } else { // if the comma is not in the second or second-to-last position, then it's an error
                 xsink->raiseException("GETOPT-OPTION-ERROR", "user options can only be specified with one short option and one long option, however two long options were given for key '%s' (%s)", k, val);
                 break;
             }
@@ -268,9 +232,49 @@ GetOpt::constructor(hash options) {
             break;
         }
     }
-    if (*xsink)
-        return;
 
+    return *xsink ? nullptr : g.release();
+}
+
+//! The %GetOpt class provides an easy way to process POSIX-style command-line options in %Qore scripts/programs
+/**
+ */
+qclass GetOpt [arg=GetOpt* g];
+
+//! Creates the GetOpt object and sets the option hash with the single required argument
+/** @param options Each key defines the key value for the return hash if any arguments are given corresponding to the string value of the key; The string value of each hash key follows the following pattern:\n
+    <em>opts</em><tt>[(=|:)</tt><em>type</em><tt>[</tt><em>modifier</em><tt>]]</tt>\n
+    Where the meaning of the above placeholders in italics is:\n
+    - <em>opts</em>: At least one short option and/or a long option name; if both are present, then they must be separated by a comma. The short option must be a single character.
+    - <tt>(=|:)</tt><em>type</em>: if \c "=" is used, then the option takes a mandatory argument, if \c ":" is used, then the argument is optional. Types are specified as follows:
+      - <em>s</em>: string
+      - <em>i</em>: integer
+      - <em>f</em>: float
+      - <em>d</em>: date
+      - <em>b</em>: boolean
+    - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
+
+    @par Example:
+    @code{.py}
+const ProgramPptions = (
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+ );
+
+GetOpt getopt(ProgramOptions);
+    @endcode
+
+    @throw GETOPT-PARAMETER-ERROR option key value is not a string; \c "_ERRORS_" used as option key
+    @throw GETOPT-OPTION-ERROR list option specified as optional; empty option key value string; multiple long options given for key; duplicate options given; invalid attributes for option; unknown modifier given for option
+ */
+GetOpt::constructor(hash<auto> options) {
+    SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(options, xsink));
+    if (*xsink) {
+        return;
+    }
     self->setPrivate(CID_GETOPT, g.release());
 }
 
@@ -283,7 +287,7 @@ GetOpt::copy() {
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
-/** All arguments parsed will be removed from the list reference passed as the sol argument, leaving only unparsed arguments (for example, file names).
+/** All arguments parsed will be removed from the list reference passed as the sole argument, leaving only unparsed arguments (for example, file names).
 
     If any errors are encountered, the return value hash will have a key \c "_ERRORS_" giving a list of error messages pertaining to the options parsed.
 
@@ -293,7 +297,7 @@ GetOpt::copy() {
 
     @par Example:
     @code{.py}
-hash o = getopt.parse(\ARGV);
+hash<auto> o = getopt.parse(\ARGV);
 if (exists o."_ERRORS_") {
     foreach string err in (o."_ERRORS_")
         stderr.printf("%s\n", err);
@@ -303,19 +307,19 @@ if (exists o."_ERRORS_") {
 
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
-hash GetOpt::parse(reference<list<string>> pgm_args) {
-   QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
-   if (!ref)
-      return QoreValue();
+hash<auto> GetOpt::parse(reference<list<string>> pgm_args) {
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref)
+        return QoreValue();
 
-   if (ref.getType() != NT_LIST)
-      return new QoreHashNode(autoTypeInfo);
+    if (ref.getType() != NT_LIST)
+        return new QoreHashNode(autoTypeInfo);
 
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
-   if (*xsink)
-      return QoreValue();
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink)
+        return QoreValue();
 
-   return g->parse(l, true, xsink);
+    return g->parse(l, true, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -327,18 +331,17 @@ hash GetOpt::parse(reference<list<string>> pgm_args) {
 
     @par Example:
     @code{.py}
-hash o = getopt.parse(ARGV);
-if (exists o."_ERRORS_") {
-    foreach string err in (o."_ERRORS_")
-        stderr.printf("%s\n", err);
+hash<auto> o = getopt.parse(ARGV);
+if (o._ERRORS_) {
+    map stderr.printf("%s\n", $1), o._ERRORS_;
     exit(1);
 }
     @endcode
 
     @see GetOpt::parse2() for a similar method that throws an exception instead of putting error information in the \c "_ERRORS_" key of the hash value returned
  */
-hash GetOpt::parse(softlist pgm_args) {
-   return g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink);
+hash<auto> GetOpt::parse(softlist<auto> pgm_args) {
+    return g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -351,9 +354,8 @@ hash GetOpt::parse(softlist pgm_args) {
     @par Example:
     @code{.py}
 try {
-   hash o = getopt.parse2(\ARGV);
-}
-catch (ex) {
+   hash<auto> o = getopt.parse2(\ARGV);
+} catch (hash<ExceptionInfo> ex) {
    stderr.printf("%s\n", ex.desc);
    exit(1);
 }
@@ -363,20 +365,20 @@ catch (ex) {
 
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
-hash GetOpt::parse2(reference<list<string>> pgm_args) {
-   QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
-   if (!ref)
-      return QoreValue();
+hash<auto> GetOpt::parse2(reference<list<string>> pgm_args) {
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref)
+        return QoreValue();
 
-   if (ref.getType() != NT_LIST)
-      return new QoreHashNode(autoTypeInfo);
+    if (ref.getType() != NT_LIST)
+        return new QoreHashNode(autoTypeInfo);
 
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
-   if (*xsink)
-      return QoreValue();
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink)
+        return QoreValue();
 
-   ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
-   return *xsink ? QoreValue() : GETOPT_parse2_intern(rv, xsink);
+    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
+    return *xsink ? QoreValue() : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor
@@ -389,9 +391,8 @@ hash GetOpt::parse2(reference<list<string>> pgm_args) {
     @par Example:
     @code{.py}
 try {
-   hash o = getopt.parse2(ARGV);
-}
-catch (ex) {
+   hash<auto> o = getopt.parse2(ARGV);
+} catch (hash<ExceptionInfo> ex) {
    stderr.printf("%s\n", ex.desc);
    exit(1);
 }
@@ -401,9 +402,9 @@ catch (ex) {
 
     @see GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned instead of throwing an exception
  */
-hash GetOpt::parse2(softlist pgm_args) {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
-   return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
+hash<auto> GetOpt::parse2(softlist<auto> pgm_args) {
+    ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
+    return *xsink ? 0 : GETOPT_parse2_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor and displays an explanatory error message on stderr and exits the program if an error occurs
@@ -413,27 +414,27 @@ hash GetOpt::parse2(softlist pgm_args) {
 
     @par Example:
     @code{.py}
-hash o = getopt.parse3(\ARGV);
+hash<auto> o = getopt.parse3(\ARGV);
     @endcode
 
     @see
     - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
-hash GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
-   QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
-   if (!ref)
-      return QoreValue();
+hash<auto> GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref)
+        return QoreValue();
 
-   if (ref.getType() != NT_LIST)
-      return new QoreHashNode(autoTypeInfo);
+    if (ref.getType() != NT_LIST)
+        return new QoreHashNode(autoTypeInfo);
 
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
-   if (*xsink)
-      return QoreValue();
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink)
+        return QoreValue();
 
-   ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
-   return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
+    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
+    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
 }
 
 //! Parses the parameter list according to the option hash passed to the constructor and displays an explanatory error message on stderr and exits the program if an error occurs
@@ -443,7 +444,7 @@ hash GetOpt::parse3(reference<list<string>> pgm_args) [dom=PROCESS] {
 
     @par Example:
     @code{.py}
-hash o = getopt.parse3(ARGV);
+hash<auto> o = getopt.parse3(ARGV);
     @endcode
 
     @throw GETOPT-ERROR error parsing arguments
@@ -452,7 +453,155 @@ hash o = getopt.parse3(ARGV);
     - GetOpt::parse() for a similar method that puts error information in the \c "_ERRORS_" key of the hash value returned
     - GetOpt::parse2() for a similar method that throws exceptions instead of exiting the program
  */
-hash GetOpt::parse3(softlist pgm_args) [dom=PROCESS] {
-   ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
-   return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
+hash<auto> GetOpt::parse3(softlist<auto> pgm_args) [dom=PROCESS] {
+    ReferenceHolder<QoreHashNode> rv(g->parse(const_cast<QoreListNode*>(pgm_args), false, xsink), xsink);
+    return *xsink ? 0 : GETOPT_parse3_intern(rv, xsink);
+}
+
+//! Parses the given options and returns a hash of the parsed options
+/** @par Example:
+    @code{.py}
+hash<auto> o = getopt.parse(\ARGV);
+if (exists o."_ERRORS_") {
+    foreach string err in (o."_ERRORS_")
+        stderr.printf("%s\n", err);
+    exit(1);
+}
+    @endcode
+
+    @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
+    argument accepted by the object will be removed from the list
+
+    @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is
+    the value of the argument passed in the list argument. The hash key \c "_ERRORS_" will contain any errors.
+
+    All arguments parsed will be removed from \a pgm_args, leaving only unparsed arguments (for example, file names).
+
+    If any errors are encountered, the return value hash will have a key \c "_ERRORS_" giving a list of error messages
+    pertaining to the options parsed.
+
+    @see
+    - Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
+    - Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
+*/
+static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_args) {
+    SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref) {
+        return QoreValue();
+    }
+
+    if (ref.getType() != NT_LIST) {
+        return new QoreHashNode(autoTypeInfo);
+    }
+
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return g->parse(l, true, xsink);
+}
+
+//! Parses the given options and returns a hash of the parsed options and throws and exception if there are any errors
+/** @par Example:
+    @code{.py}
+hash<auto> o = getopt.parse(\ARGV);
+if (exists o."_ERRORS_") {
+    foreach string err in (o."_ERRORS_")
+        stderr.printf("%s\n", err);
+    exit(1);
+}
+    @endcode
+
+    @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
+    argument accepted by the object will be removed from the list
+
+    @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is
+    the value of the argument passed in the list argument.  An exception is thrown if there are any errors.
+
+    All arguments parsed will be removed from \a pgm_args, leaving only unparsed arguments (for example, file names).
+
+    If any errors are encountered, a \c GETOPT-ERROR exception is thrown.
+
+    @throw GETOPT-ERROR error parsing arguments
+
+    @see
+    - Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
+    - Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
+*/
+static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_args) {
+    SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref) {
+        return QoreValue();
+    }
+
+    if (ref.getType() != NT_LIST) {
+        return new QoreHashNode(autoTypeInfo);
+    }
+
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
+    return *xsink ? QoreValue() : GETOPT_parse2_intern(rv, xsink);
+}
+
+//! Parses the given options and returns a hash of the parsed options; prints out an error message and exits the program if there are any errors
+/** @par Example:
+    @code{.py}
+hash<auto> o = getopt.parse(\ARGV);
+if (exists o."_ERRORS_") {
+    foreach string err in (o."_ERRORS_")
+        stderr.printf("%s\n", err);
+    exit(1);
+}
+    @endcode
+
+    @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
+    argument accepted by the object will be removed from the list
+
+    @return A hash keyed by option names (as given in the hash to the GetOpt constructor), where each key's value is
+    the value of the argument passed in the list argument.  Prints out an error message and exits the program if there
+    are any errors.
+
+    All arguments parsed will be removed from \a pgm_args, leaving only unparsed arguments (for example, file names).
+
+    @see
+    - Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
+    - Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
+*/
+static hash<auto> GetOpt::parseExit(hash<auto> opts, reference<list<string>> pgm_args) [dom=PROCESS] {
+    SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreTypeSafeReferenceHelper ref(pgm_args, xsink);
+    if (!ref) {
+        return QoreValue();
+    }
+
+    if (ref.getType() != NT_LIST) {
+        return new QoreHashNode(autoTypeInfo);
+    }
+
+    QoreListNode* l = reinterpret_cast<QoreListNode*>(ref.getUnique(xsink));
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(g->parse(l, true, xsink), xsink);
+    return *xsink ? QoreValue() : GETOPT_parse3_intern(rv, xsink);
 }

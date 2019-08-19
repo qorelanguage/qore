@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,7 +68,7 @@ ListIterator li(l);
 
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
  */
-ListIterator::constructor(softlist l) {
+ListIterator::constructor(softlist<auto> l) {
    self->setPrivate(CID_LISTITERATOR, new QoreListIterator(l));
 }
 

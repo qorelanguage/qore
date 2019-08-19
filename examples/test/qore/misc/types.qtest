@@ -696,6 +696,14 @@ class TypeTest inherits QUnit::Test {
 
     testTypes() {
         {
+            hash<StatInfo> h0({"size": 1});
+            hash<auto> h1 = hash(h0);
+            assertEq(Type::Hash, h1.fullType());
+            assertEq(1, h1.size);
+            h1.newkey = 2;
+            assertEq(2, h1.newkey);
+        }
+        {
             int i = 1;
             assertEq(1, i);
             assertEq(True, i instanceof int);

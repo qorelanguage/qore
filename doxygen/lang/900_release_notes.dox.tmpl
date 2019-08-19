@@ -19,7 +19,6 @@
     - the <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module was updated to
       support connection tags
       (<a href="https://github.com/qorelanguage/qore/issues/3486">issue 3486</a>)
-
     - updated the @ref Qore::HTTPClient "HTTPClient" class to support the following new constructor options:
       - \c encoding_passthru
       - \c error_passthru
@@ -33,6 +32,10 @@
       - @ref Qore::HTTPClient::setRedirectPassthru() "HTTPClient::setRedirectPassthru()"
       .
       (<a href="https://github.com/qorelanguage/qore/issues/3472">issue 3472</a>)
+    - added the following methods:
+      - @ref Qore::GetOpt::parse(hash<auto>, reference<list<string>>) "GetOpt::parse()"
+      - @ref Qore::GetOpt::parseEx(hash<auto>, reference<list<string>>) "GetOpt::parseEx()"
+      - @ref Qore::GetOpt::parseExit(hash<auto>, reference<list<string>>) "GetOpt::parseExit()"
     - added the @ref Qore::auto_cast() "auto_cast()" function
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
@@ -46,7 +49,7 @@
     - the <a href="../../modules/Mapper/html/index.html">Mapper</a> module now supports dot notation in output fields
       for the "hash" output type
       (<a href="https://github.com/qorelanguage/qore/issues/3413">issue 3413</a>)
-    - \c qdbg-vsc-adapter supports VSCode Debug Protocol
+    - \c qdbg-vsc-adapter supports the VSCode Debug Protocol
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -389,7 +389,7 @@ int getegid() [dom=EXTERNAL_INFO] {
 
     @par Example:
     @code{.py}
-list l = getgroups();
+list<int> l = getgroups();
     @endcode
 
     @return a list of group IDs that the user is a member of
@@ -427,7 +427,7 @@ setgroups(l);
 
     @since %Qore 0.8.11.1
 */
-nothing setgroups(softlist gids) [dom=PROCESS] {
+nothing setgroups(softlist<softint> gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS
     if (gids->empty())
         return QoreValue();
@@ -1031,12 +1031,12 @@ nothing gethostbyaddr_long() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-list l = getaddrinfo("localhost");
+list<hash<auto>> l = getaddrinfo("localhost");
     @endcode
 
     @throw QOREADDRINFO-GETINFO-ERROR nodename nor servname provided, or not known
  */
-list getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, softint flags = 0) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
+list<hash<auto>> getaddrinfo(*string node, *softstring service, softint family = AF_UNSPEC, softint flags = 0) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    return q_getaddrinfo_to_list(xsink, node ? node->getBuffer() : 0, service ? service->getBuffer() : 0, (int)family, (int)flags);
 }
 

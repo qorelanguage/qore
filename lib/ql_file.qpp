@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -473,7 +473,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-*hash h = statvfs("/tmp")
+*hash<FilesystemInfo> h = statvfs("/tmp")
     @endcode
 
     @see File::statvfs() for a static method in the @ref Qore::File "File class" that throws an exception instead of returning @ref nothing when errors occur
@@ -497,7 +497,7 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-*list l = stat("/tmp/file.txt");
+*list<auto> l = stat("/tmp/file.txt");
 if (!exists l)
     printf("could not stat /tmp/file.txt: %s\n", strerror());
     @endcode
@@ -506,12 +506,12 @@ if (!exists l)
     hstat() for a version of this function that returns a user-friendly hash instead of a list\n\n
     File::stat() for a static method in the File class that throws an exception instead of returning @ref nothing when errors occur
  */
-*list stat(string path) [dom=FILESYSTEM] {
-   struct stat sbuf;
-   if (stat(path->getBuffer(), &sbuf))
-      return QoreValue();
+*list<auto> stat(string path) [dom=FILESYSTEM] {
+    struct stat sbuf;
+    if (stat(path->getBuffer(), &sbuf))
+        return QoreValue();
 
-   return stat_to_list(sbuf);
+    return stat_to_list(sbuf);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -526,7 +526,7 @@ nothing stat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
     @return a @ref stat_list "list of file status values" for the path argument and does not follow symbolic links; if any errors occur, @ref nothing is returned and errno() can be used to retrieve the error number
     @par Example:
     @code{.py}
-*list l = lstat("/tmp/file.txt");
+*list<auto> l = lstat("/tmp/file.txt");
 if (!exists l)
     printf("could not lstat /tmp/file.txt: %s\n", strerror());
     @endcode
@@ -537,7 +537,7 @@ if (!exists l)
     hlstat() for a version of this function that returns a user-friendly hash instead of a list\n\n
     File::lstat() for a static method in the File class that throws an exception instead of returning @ref nothing when errors occur
  */
-*list lstat(string path) [dom=FILESYSTEM] {
+*list<auto> lstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
 #ifdef HAVE_LSTAT
    if (lstat(path->getBuffer(), &sbuf))
@@ -627,12 +627,12 @@ nothing hlstat() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-*list gl = glob("*.txt");
-if (!exists gl)
+*list<string> gl = glob("*.txt");
+if (!gl)
     printf("failed to glob *.txt: %s\n", strerror());
     @endcode
  */
-*list glob(string glob_str) [dom=FILESYSTEM] {
+*list<string> glob(string glob_str) [dom=FILESYSTEM] {
     glob_t globbuf;
     if (glob(glob_str->getBuffer(), 0, 0, &globbuf)) {
         globfree(&globbuf);

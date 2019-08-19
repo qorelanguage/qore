@@ -370,24 +370,21 @@ binary binary(binary bin) [flags=CONSTANT] {
    return bin->refSelf();
 }
 
-//! Returns an untyped list of the arguments passed at the top level
+//! Returns a list of the arguments passed at the top level
 /** @param ... the arguments that will be returned as a list
 
-    @return an untyped list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
+    @return a list of the arguments passed at the top level; if a sole argument of @ref nothing is passed, then an empty list is returned
 
     @par Example:
     @code{.py}
-list l = list(1, 2, 3, 4);
+list<auto> l = list(1, 2, 3, 4);
     @endcode
-
-    @note if the only argument to this function is a typed list, the type information will be removed in the return value
 */
-list list(...) [flags=CONSTANT] {
+list<auto> list(...) [flags=CONSTANT] {
     QoreListNode *l;
     if (num_args(args) > 1) {
         l = args->listRefSelf();
-    }
-    else {
+    } else {
         l = new QoreListNode(autoTypeInfo);
         QoreValue p0 = get_param_value(args, 0);
         if (!p0.isNothing()) {
@@ -406,10 +403,10 @@ list list(...) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = hash(obj);
+hash<auto> h = hash(obj);
     @endcode
 */
-hash hash(object obj) [flags=RET_VALUE_ONLY] {
+hash<auto> hash(object obj) [flags=RET_VALUE_ONLY] {
    return qore_object_private::get(*obj)->getRuntimeMemberHash(xsink);
 }
 
@@ -421,10 +418,10 @@ hash hash(object obj) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-hash h = hash(("a", 1, "b", "two"));
+hash<auto> h = hash(("a", 1, "b", "two"));
     @endcode
 */
-hash hash(list l) [flags=RET_VALUE_ONLY] {
+hash<auto> hash(list<auto> l) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     bool valid = true;
@@ -448,10 +445,10 @@ hash hash(list l) [flags=RET_VALUE_ONLY] {
 
     @par Example:
     @code{.py}
-hash h = hash(keysv, values);
+hash<auto> h = hash(keysv, values);
     @endcode
 */
-hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
+hash<auto> hash(list<softstring> keys, list<auto> values) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
     ConstListIterator ki(keys);
@@ -471,30 +468,27 @@ hash hash(list keys, list values) [flags=RET_VALUE_ONLY] {
     return h.release();
 }
 
-//! Returns a hash without any key type information
-/** This function is used as an initializer and type converter
-
-    @param h the hash to return
-
-    @return an untyped hash identical to the argument but with any key type information removed
-
-    @par Example:
+//! Returns the same hash with all complex types stripped
+/** @par Example:
     @code{.py}
-hash<string, int> h1(("string": 1));
-# get an untyped hash value from h1
 hash h2 = hash(h1);
     @endcode
 
-    @since %Qore 0.8.13 this function was modified to remove type information at runtime from typed hashes
+    @param h the hash to return
+
+    @return the same hash passed as an argument with all complex types stripped
+
+    @since
+    - %Qore 0.8.13 this function was modified to remove type information at runtime from typed hashes
 */
 hash hash(hash h) [flags=CONSTANT] {
-    return qore_hash_private::getPlainHash(h->hashRefSelf());
+    return h->hashRefSelf();
 }
 
 //! Always returns the same hash passed
 /** The hash() function is used for type conversions, therefore this variant is not tagged with @ref NOOP
 */
-hash hash() [flags=CONSTANT] {
+hash<auto> hash() [flags=CONSTANT] {
     return new QoreHashNode(autoTypeInfo);
 }
 
