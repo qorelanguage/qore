@@ -377,9 +377,12 @@ class HttpServer::HttpHandlerList {
     }
 
     #! remove handler from the list by it's name
+    /**
+        @throw INVALID-HANDLER-ERROR invalid handler name passed
+    */
     removeHandler(string handler_name) {
         if (!handlers.hasKey(handler_name)) {
-            throw "INVALID-HANDLER", sprintf("handler with name %y is not present", handler_name);
+            throw "INVALID-HANDLER-ERROR", sprintf("handler with name %y is not present", handler_name);
         }
 
         HandlerInfo hi = handlers{handler_name};
@@ -388,6 +391,9 @@ class HttpServer::HttpHandlerList {
     }
 
     #! remove handler from the list
+    /**
+        @throw INVALID-HANDLER-ERROR invalid handler passed
+    */
     removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
         *string name;
         foreach hash h in (handlers.pairIterator()) {
@@ -397,7 +403,7 @@ class HttpServer::HttpHandlerList {
             }
         }
         if (name == NOTHING) {
-            throw "INVALID-HANDLER", "handler not present";
+            throw "INVALID-HANDLER-ERROR", "handler not present";
         }
 
         HandlerInfo hi = handlers{name};
@@ -1115,6 +1121,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! adds a request handler to a listener given the listener's id
+    /** @param id listener id
+        @param name handler name
+        @param path handler path
+        @param content_type handler's content type
+        @param obj handler object
+
+        @throw HTTP-SERVER-ERROR invalid listener id passed
+    */
     addHandlerToListenerID(softint id, string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
         lm.enter();
         on_exit lm.exit();
@@ -1138,6 +1152,12 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! adds a request handler to a listener given the listener's id
+    /** @param id listener id
+        @param name handler name
+        @param obj handler object
+
+        @throw HTTP-SERVER-ERROR invalid listener id passed
+    */
     addHandlerToListenerID(softint id, string name, HttpServer::AbstractUrlHandler obj) {
         lm.enter();
         on_exit lm.exit();
@@ -1150,7 +1170,13 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! remove request handler from a listener given the listener's id
-    removeHandlerFromListenerID(softstring id, string handler_name) {
+    /** @param id listener id
+        @param handler_name name of handler to remove;
+        @return whether listener was stopped
+
+        @throw HTTP-SERVER-ERROR invalid listener id passed
+    */
+    bool removeHandlerFromListenerID(softstring id, string handler_name) {
         lm.enter();
         on_exit lm.exit();
 
@@ -1158,11 +1184,17 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
         }
         listeners{id}.removeHandler(handler_name);
-        HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
+        return HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
     }
 
     #! remove request handler from a listener given the listener's id
-    removeHandlerFromListenerID(softstring id, HttpServer::AbstractHttpRequestHandler handler) {
+    /** @param id listener id
+        @param handler handler to remove;
+        @return whether listener was stopped
+
+        @throw HTTP-SERVER-ERROR invalid listener id passed
+    */
+    bool removeHandlerFromListenerID(softstring id, HttpServer::AbstractHttpRequestHandler handler) {
         lm.enter();
         on_exit lm.exit();
 
@@ -1170,7 +1202,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
         }
         listeners{id}.removeHandler(handler);
-        HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
+        return HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
     }
 
     #! turns on or off header and body logging options for receive operations for the given listener
@@ -2019,7 +2051,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     /** Remove handler from the listener.
-        @throw INVALID-HANDLER handler is not present in the listener's handler list
+        @throw INVALID-HANDLER-ERROR handler is not present in the listener's handler list
     */
     removeHandler(string handler_name) {
         AutoLock al(m);
@@ -2032,7 +2064,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     /** Remove handler from the listener.
-        @throw INVALID-HANDLER handler is not present in the listener's handler list
+        @throw INVALID-HANDLER-ERROR handler is not present in the listener's handler list
     */
     removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
         AutoLock al(m);
@@ -2059,16 +2091,21 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         return !handlers.empty();
     }
 
-    static stopIfNoHandlers(HttpServer::HttpListener listener) {
+    #! stop listeners if there are no handlers
+    /** @param listener listener to stop
+        @return whether listener was stopped
+    */
+    static bool stopIfNoHandlers(HttpServer::HttpListener listener) {
         listener.m.lock();
         on_error listener.m.unlock();
 
         if (listener.handler_ref_cnt == 0) {
             listener.m.unlock();
             listener.stop();
-            return;
+            return True;
         }
         listener.m.unlock();
+        return False;
     }
 
     hash getListenerSocketInfo() {

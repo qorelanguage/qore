@@ -476,14 +476,12 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         try {
             hc.get("/");
             fail();
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if ((ex.err == "SOCKET-CLOSED") ||
                 (ex.err == "SOCKET-SSL-ERROR" && ex.desc =~ /reset by peer/))
             {
                 assertTrue(True);
-            }
-            else {
+            } else {
                 fail();
             }
         }
