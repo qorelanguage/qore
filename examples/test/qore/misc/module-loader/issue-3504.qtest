@@ -1,0 +1,32 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%allow-injection
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%requires ./Issue3504.qm
+
+%exec-class Issue3504Test
+
+class Issue3504Test inherits QUnit::Test {
+    constructor() : Test("Issue3504Test", "1.0") {
+        addTestCase("Issue3504Test Test", \test());
+
+        set_return_value(main());
+    }
+
+    test() {
+        Program p0(PO_NO_USER_API);
+        p0.importFunction("t");
+        p0.loadApplyToUserModule("Util", True);
+        Program p1();
+        p1.loadModule("Util");
+        assertEq(Type::String, p1.callFunction("get_random_string").type());
+    }
+}

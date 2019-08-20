@@ -135,6 +135,13 @@ extern char* strcasestr(const char* s1, const char* s2);
 
 typedef std::set<QoreObject*> obj_set_t;
 
+//! for object import APIs to set the new public / private flag
+enum q_setpub_t : unsigned char {
+    CSP_UNCHANGED = 0,
+    CSP_SETPRIV = 1,
+    CSP_SETPUB = 2,
+};
+
 DLLLOCAL void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 // returns true if the node needs to be scanned for recursive references or not

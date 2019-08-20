@@ -483,7 +483,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
-qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass)
+qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub)
    // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
    : name(new_name ? new_name : old.name.c_str()),
      ns(ns),
@@ -505,7 +505,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
      has_new_user_changes(false),
      has_sig_changes(false),
      owns_ornothingtypeinfo(false),
-     pub(old.pub),
+     pub(set_pub == CSP_UNCHANGED ? old.pub : (set_pub == CSP_SETPUB)),
      final(old.final),
      inject(inject),
      gate_access(old.gate_access),
