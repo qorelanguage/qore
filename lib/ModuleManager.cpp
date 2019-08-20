@@ -361,7 +361,7 @@ QoreUserModule::~QoreUserModule() {
 }
 
 void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) const {
-    //printd(5, "QoreUserModule::addToProgram() tpgm po: %llx pgm dom: %llx\n", tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
+    //printd(5, "QoreUserModule::addToProgram() mod '%s': tpgm %p po: %llx pgm dom: %llx\n", name.c_str(), tpgm, tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
     // first check the module's functional domain
     int64 dom = qore_program_private::getDomain(*pgm);
     if (tpgm->getParseOptions64() & dom) {
@@ -389,7 +389,6 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
     // commit all module changes
     qore_root_ns_private::copyMergeCommittedNamespace(*rns, *(pgm->getRootNS()));
     qore_program_private::addUserFeature(*tpgm, name.getBuffer());
-    //tpgm->addUserFeature(name.getBuffer());
 
     // add domain to current Program's domain
     qore_program_private::runtimeAddDomain(*tpgm, dom);
@@ -950,8 +949,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
 
     if (mpgm) {
         qore_program_private::forceReplaceParseOptions(*mpgm, parseOptions);
-    }
-    else {
+    } else {
         mpgm = new QoreProgram(parseOptions);
     }
     std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(td, modulePath.c_str(), feature, mpgm,
@@ -1181,8 +1179,9 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
     // parse options for the module
     int64 po = USER_MOD_PO;
     // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
-    if (tpgm)
+    if (tpgm) {
         po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES|PO_NO_GLOBAL_VARS));
+    }
 
     QoreProgram* p = tpgm ? tpgm : path_pgm;
     if (!p) {
@@ -1192,10 +1191,11 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
     }
     const char* td = p ? p->parseGetScriptDir() : nullptr;
 
-    if (pgm)
+    if (pgm) {
         qore_program_private::forceReplaceParseOptions(*pgm, po);
-    else
+    } else {
         pgm = new QoreProgram(po);
+    }
 
     //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
 

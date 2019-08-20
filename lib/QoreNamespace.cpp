@@ -644,10 +644,17 @@ QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, con
     if ((po & PO_NO_API) == PO_NO_API) {
         return;
     }
+
+    bool skip_builtin = (po & PO_NO_SYSTEM_API) == PO_NO_SYSTEM_API;
+    bool skip_user = (po & PO_NO_USER_API) == PO_NO_USER_API;
+
     //printd(5, "QoreNamespaceList::QoreNamespaceList(old: %p) this: %p po: %lld size: %ld\n", &old, this, po, nsmap.size());
     nsmap_t::iterator last = nsmap.begin();
     for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
-        if (!qore_ns_private::isPublic(*i->second)) {
+        // issue #3504: do not copy namespaces if API should not be imported
+        if (!qore_ns_private::isPublic(*i->second)
+            || (skip_builtin && i->second->priv->builtin)
+            || (skip_user && !i->second->priv->builtin)) {
             continue;
         }
         QoreNamespace* ns = i->second->copy(po);
@@ -750,21 +757,21 @@ void QoreNamespace::addConstant(const char* cname, QoreValue val, const QoreType
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
     NamedScope nscope(nspath);
     bool is_new = false;
-    return priv->findCreateNamespacePath(nscope, false, is_new);
+    return priv->findCreateNamespacePath(nscope, false, false, is_new);
 }
 
-QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass) {
+QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, q_setpub_t set_pub, const char* new_name, bool inject, const qore_class_private* injectedClass) {
     if (checkImportClass(new_name ? new_name : c->getName(), xsink)) {
         return nullptr;
     }
 
-    QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass, this);
+    QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass, this, set_pub);
     classList.add(nc);
 
     return nc;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool user, bool& is_new) {
     assert(!is_new);
 
     // get root ns to add to namespace map if attached
@@ -773,7 +780,7 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
     // iterate through each level of the namespace path and find/create namespaces as needed
     QoreNamespace* nns = ns;
     for (unsigned i = 0; i < nscope.size() - 1; ++i) {
-        nns = nns->priv->findCreateNamespace(nscope[i], is_new, rns);
+        nns = nns->priv->findCreateNamespace(nscope[i], user, is_new, rns);
         if (pub)
             nns->priv->pub = true;
     }
@@ -781,10 +788,13 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
     return nns;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_new, qore_root_ns_private* rns) {
+QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool user, bool& is_new, qore_root_ns_private* rns) {
     QoreNamespace* ns = nsl.find(nsn);
     if (!ns) {
         ns = new QoreNamespace(nsn);
+        if (user) {
+            ns->priv->builtin = false;
+        }
         nsl.runtimeAdd(ns, this);
         is_new = true;
         // add to namespace map if attached
@@ -794,7 +804,7 @@ QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool& is_ne
     return ns;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const nslist_t& nsl, bool& is_new) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const nslist_t& nsl, bool user, bool& is_new) {
     assert(!nsl.empty());
     assert(!is_new);
 
@@ -806,7 +816,7 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const nslist_t& nsl, boo
     // iterate through each level of the namespace path and find/create namespaces as needed
     QoreNamespace* nns = ns;
     for (nslist_t::const_iterator i = nsl.begin(), e = nsl.end(); i != e; ++i)
-        nns = nns->priv->findCreateNamespace((*i)->name.c_str(), is_new, rns);
+        nns = nns->priv->findCreateNamespace((*i)->name.c_str(), user, is_new, rns);
 
     return nns;
 }
@@ -2641,7 +2651,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
         }
 
         nns->priv->copyMergeCommittedNamespace(*i->second->priv);
-        //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+        //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), nns, nns->getName());
     }
     //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s' done\n", this, name.c_str());
 }
@@ -2652,10 +2662,16 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     qore_ns_private* pns = ans->priv;
 
     // ensure that either both namespaces are public or both are not
-    if (parse_check_parse_option(PO_IN_MODULE) && !imported && (pub != pns->pub)) {
-        std::string path;
-        getPath(path, true);
-        parse_error(*ans->priv->loc, "namespace '%s' is declared both with and without the 'public' keyword", path.c_str());
+    if (parse_check_parse_option(PO_IN_MODULE) && (pub != pns->pub)) {
+        if (!imported) {
+            std::string path;
+            getPath(path, true);
+            parse_error(*ans->priv->loc, "namespace '%s' is declared both with and without the 'public' keyword", path.c_str());
+        } else if (!pub && !builtin) {
+            // issue #3504: if an existing imported user namespace is not public, and a new namespace is public, then
+            // change the current namespace to public
+            pub = true;
+        }
     }
 
     // assimilate pending constants

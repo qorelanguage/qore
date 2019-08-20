@@ -40,6 +40,8 @@
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
       - @ref Qore::parseURL() "parseURL()"
+    - added the \a module_visibility parameter to @ref Qore::Program::importClass() "Program::importClass()" and the
+      @ref import_visibility_constants as possible argument values
     - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
       \c RestConnection objects now support the \c "headers" option
       (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)
@@ -53,6 +55,8 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - fixed bugs importing user modules with an injected API in an existing @ref Qore::Program "Program" container
+      (<a href="https://github.com/qorelanguage/qore/issues/3504">issue 3504</a>)
     - fixed a memory leak in @ref Qore::Serializable::deserialize(string) "Serializable::deserialize(string)"
     - fixed a bug where HTTP redirect messages with a simple path and not a full URL were not processed correctly
       (<a href="https://github.com/qorelanguage/qore/issues/3475">issue 3475</a>)

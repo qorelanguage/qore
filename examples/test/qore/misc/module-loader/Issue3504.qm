@@ -1,0 +1,11 @@
+module Issue3504 {
+    version = "1.0";
+    desc = "issue #3504 test module";
+    author = "Qore Technologies, s.r.o.";
+    url = "https://qore.org";
+    license = "MIT";
+}
+
+public namespace Util {
+    public sub t() {}
+}

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -124,6 +124,11 @@ public:
     DLLLOCAL void setPublic() {
         assert(!pub);
         pub = true;
+    }
+
+    DLLLOCAL void setPrivate() {
+        assert(pub);
+        pub = false;
     }
 
     DLLLOCAL bool isSystem() const {

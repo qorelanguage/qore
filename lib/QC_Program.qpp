@@ -71,6 +71,22 @@ hashdecl SourceLocationInfo {
     int offset;
 }
 
+/** @defgroup import_visibility_constants Import Visibility Constants
+    Constants providing values for import visibility
+
+    @since %Qore 0.9.3
+*/
+//@{
+//! Imports the object with the same module visibility
+const CSP_UNCHANGED = CSP_UNCHANGED;
+
+//! Imports the object with public visibility
+const CSP_SETPUB = CSP_SETPUB;
+
+//! Imports the object with private visibility
+const CSP_SETPRIV = CSP_SETPRIV;
+//@}
+
 /** @defgroup functional_domain_constants Functional Domain Constants
     Constants providing values for functional domains; each constant is a unique element of a bitfield
 
@@ -1293,6 +1309,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
     @param cls the name of the class to import into the Program object
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
     @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param module_visibility see @ref import_visibility_constants for valid values
 
     @par Example:
     @code{.py}
@@ -1305,26 +1322,27 @@ pgm.importClass("MyNamespace::MyClass");
     @since
     - This method was first implemented in %Qore 0.8.7
     - %Qore 0.8.12 added the \a new_name and \a inject parameters
+    - %Qore 0.9,3 added the \a module_visibility parameter
  */
-nothing Program::importClass(string cls, *string new_name, *softbool inject) {
-   TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
-   if (!tmp) {
-      assert(*xsink);
-      return QoreValue();
-   }
+nothing Program::importClass(string cls, *string new_name, *softbool inject, int module_visibility = CSP_UNCHANGED) {
+    TempEncodingHelper tmp(cls, QCS_DEFAULT, xsink);
+    if (!tmp) {
+        assert(*xsink);
+        return QoreValue();
+    }
 
-   TempEncodingHelper nn;
-   if (new_name) {
-      nn.set(new_name, QCS_DEFAULT, xsink);
-      if (!nn) {
-         assert(*xsink);
-         return QoreValue();
-      }
+    TempEncodingHelper nn;
+    if (new_name) {
+        nn.set(new_name, QCS_DEFAULT, xsink);
+        if (!nn) {
+            assert(*xsink);
+            return QoreValue();
+        }
 
-      if (nn->empty())
-         return xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", tmp->c_str());
-   }
-   qore_program_private::get(*p)->importClass(xsink, *qore_program_private::get(*getProgram()), tmp->c_str(), new_name ? nn->c_str() : nullptr, inject);
+        if (nn->empty())
+            return xsink->raiseException("CLASS-IMPORT-ERROR", "the new class name while importing class '%s' may not be empty", tmp->c_str());
+    }
+    qore_program_private::get(*p)->importClass(xsink, *qore_program_private::get(*getProgram()), tmp->c_str(), new_name ? nn->c_str() : nullptr, inject, static_cast<q_setpub_t>(module_visibility));
 }
 
 //! Imports a @ref hashdecl "typed hash declaration" into the program object's space
@@ -1346,20 +1364,20 @@ pgm.importHashDecl("MyNamespace::MyHash");
 nothing Program::importHashDecl(string name, *string new_name) {
     TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
     if (!tmp) {
-       assert(*xsink);
-       return QoreValue();
+        assert(*xsink);
+        return QoreValue();
     }
 
     TempEncodingHelper nn;
     if (new_name) {
-       nn.set(new_name, QCS_DEFAULT, xsink);
-       if (!nn) {
-          assert(*xsink);
-          return QoreValue();
-       }
+        nn.set(new_name, QCS_DEFAULT, xsink);
+        if (!nn) {
+            assert(*xsink);
+            return QoreValue();
+        }
 
-       if (nn->empty())
-          return xsink->raiseException("HASHDECL-IMPORT-ERROR", "the new hashdecl name while importing hashdecl '%s' may not be empty", tmp->c_str());
+        if (nn->empty())
+            return xsink->raiseException("HASHDECL-IMPORT-ERROR", "the new hashdecl name while importing hashdecl '%s' may not be empty", tmp->c_str());
     }
     qore_program_private::get(*p)->importHashDecl(xsink, *qore_program_private::get(*getProgram()), tmp->c_str(), new_name ? nn->c_str() : nullptr);
 }
