@@ -2586,6 +2586,22 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
             qmc.error("duplicate global variable %s::%s", name.c_str(), i->first);
     }
 
+    // check hashdecls
+    {
+        ConstHashDeclListIterator i(mns.hashDeclList);
+        while (i.next()) {
+            const TypedHashDecl* th = i.get();
+            if (!th->isPublic()) {
+                continue;
+            }
+
+            const TypedHashDecl* curr = hashDeclList.find(th->getName());
+            if (curr) {
+                qmc.error("duplicate hashdecl %s::%s", name.c_str(), i.getName());
+            }
+        }
+    }
+
     bool in_mod = parse_check_parse_option(PO_IN_MODULE);
 
     // check subnamespaces

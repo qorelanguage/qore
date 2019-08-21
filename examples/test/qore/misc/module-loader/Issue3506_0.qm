@@ -1,0 +1,11 @@
+module Issue3506_0 {
+    version = "1.0";
+    desc = "issue #3506 test module";
+    author = "Qore Technologies, s.r.o.";
+    url = "https://qore.org";
+    license = "MIT";
+}
+
+public hashdecl Issue3506_0 {
+    int i;
+}

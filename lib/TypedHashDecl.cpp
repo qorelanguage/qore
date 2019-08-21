@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -78,8 +78,10 @@ typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& 
     from_module(old.from_module),
     orig(old.orig),
     typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())),
-    orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys),
-        parse_init_done(old.parse_init_done) {
+    orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())),
+    pub(false),
+    sys(old.sys),
+    parse_init_done(old.parse_init_done) {
     // copy member list
     for (auto& i : old.members.member_list) {
         members.addNoCheck(strdup(i.first), i.second ? new HashDeclMemberInfo(*i.second) : nullptr);
@@ -347,6 +349,10 @@ const char* TypedHashDecl::getName() const {
 
 bool TypedHashDecl::isSystem() const {
     return priv->isSystem();
+}
+
+bool TypedHashDecl::isPublic() const {
+    return priv->isPublic();
 }
 
 const QoreExternalMemberBase* TypedHashDecl::findLocalMember(const char* name) const {
