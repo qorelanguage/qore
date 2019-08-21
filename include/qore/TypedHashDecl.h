@@ -55,9 +55,16 @@ public:
     //! adds an element to a built-in hashdecl
     DLLEXPORT void addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val);
 
+    //! returns the name of the typed hash
     DLLEXPORT const char* getName() const;
 
+    //! returns true if the typed hash is a builtin typed hash
     DLLEXPORT bool isSystem() const;
+
+    //! returns true if the typed hash has the public (export) flag set
+    /** @since %Qore 0.9.3
+    */
+    DLLEXPORT bool isPublic() const;
 
     //! Finds the given local member or returns nullptr
     /** @since %Qore 0.9

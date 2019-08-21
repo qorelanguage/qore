@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%allow-injection
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%requires ./Issue3506_1.qm
+
+%requires reflection
+
+%exec-class Issue3506Test
+
+class Issue3506Test inherits QUnit::Test {
+    constructor() : Test("Issue3506Test", "1.0") {
+        addTestCase("Issue3506 Test", \test());
+
+        set_return_value(main());
+    }
+
+    test() {
+        TypedHash th = TypedHash::forName("Issue3506_1");
+        assertTrue(exists th);
+        assertEq((), TypedHash::findAllRegex("Issue3506_0"));
+    }
+}
