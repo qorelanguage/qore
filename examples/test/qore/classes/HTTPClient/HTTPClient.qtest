@@ -473,7 +473,18 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         int port = q.get();
 
         HTTPClient hc(("url": "https://localhost:" + port));
-        assertThrows("SOCKET-CLOSED", \hc.get(), ("/"));
+        try {
+            hc.get("/");
+            fail();
+        } catch (hash<ExceptionInfo> ex) {
+            if ((ex.err == "SOCKET-CLOSED") ||
+                (ex.err == "SOCKET-SSL-ERROR" && ex.desc =~ /reset by peer/))
+            {
+                assertTrue(True);
+            } else {
+                fail();
+            }
+        }
 
         # test is not reliable
         # issue 1488: currently only reproducible with the following URL
