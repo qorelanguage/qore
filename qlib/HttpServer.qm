@@ -941,14 +941,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         - \c id: the listener ID
         - \c bind: the bind specification used
 
-        @throw HTTP-SERVER-ERROR invalid listener ID
+        @throw INVALID-LISTENER-ERROR invalid listener ID
      */
     hash getListenerInfo(softint id) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         return listeners{id}.getInfo();
     }
@@ -969,7 +969,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         - \c id: the listener ID
         - \c bind: the bind specification used
 
-        @throw HTTP-SERVER-ERROR invalid listener name or bind ID
+        @throw INVALID-LISTENER-ERROR invalid listener name or bind ID
      */
     hash getListenerInfoName(string name) {
         lm.enter();
@@ -980,7 +980,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             id = nmap{name};
 
         if (!id)
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", name);
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", name);
 
         return listeners{id}.getInfo();
     }
@@ -1045,6 +1045,11 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! stops a single listener based on its name or bind address; does not return until all connections on the listener have closed
+    /** @param id listener bind address
+
+        @throw INVALID-LISTENER-ERROR invalid listener bind address
+        @throw HTTP-SERVER-ERROR cannot stop last listener
+    */
     stopListener(softstring bind) {
         lm.enter();
         on_exit lm.exit();
@@ -1054,7 +1059,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             id = nmap{bind};
 
         if (!id)
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
 
         if (elements smap == 1)
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
@@ -1063,12 +1068,17 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! stops a single listener based on its listener ID; does not return until all connections on the listener have closed
+    /** @param id listener id
+
+        @throw INVALID-LISTENER-ERROR invalid listener ID
+        @throw HTTP-SERVER-ERROR cannot stop last listener
+    */
     stopListenerID(softint id) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         if (smap.size() == 1)
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
@@ -1127,14 +1137,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param content_type handler's content type
         @param obj handler object
 
-        @throw HTTP-SERVER-ERROR invalid listener id passed
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
     */
     addHandlerToListenerID(softint id, string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         hash h{name} = ("path": path, "isregex": isregex, "content": content_type, "handler": obj, "headers": special_headers);
         listeners{id}.addHandlers(h);
@@ -1156,14 +1166,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param name handler name
         @param obj handler object
 
-        @throw HTTP-SERVER-ERROR invalid listener id passed
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
     */
     addHandlerToListenerID(softint id, string name, HttpServer::AbstractUrlHandler obj) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         hash h{name} = ("path": obj.url_root, "isregex": False, "handler": obj);
         listeners{id}.addHandlers(h);
@@ -1174,14 +1184,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param handler_name name of handler to remove;
         @return whether listener was stopped
 
-        @throw HTTP-SERVER-ERROR invalid listener id passed
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
     */
     bool removeHandlerFromListenerID(softstring id, string handler_name) {
         lm.enter();
         on_exit lm.exit();
 
         if (!listeners.hasKey(id)) {
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
         }
         listeners{id}.removeHandler(handler_name);
         return HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
@@ -1192,14 +1202,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param handler handler to remove;
         @return whether listener was stopped
 
-        @throw HTTP-SERVER-ERROR invalid listener id passed
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
     */
     bool removeHandlerFromListenerID(softstring id, HttpServer::AbstractHttpRequestHandler handler) {
         lm.enter();
         on_exit lm.exit();
 
         if (!listeners.hasKey(id)) {
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
         }
         listeners{id}.removeHandler(handler);
         return HttpServer::HttpListener::stopIfNoHandlers(listeners{id});
@@ -1232,20 +1242,24 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         @param id the unique listener ID
         @param code a binary-or'ed product of @ref ListenerLogOptions "listener log options"; bits set enable logging; bits not set disable logging
 
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
+
         @since HttpServer 0.3.11
      */
     setListenerLogOptionsID(softint id, softint code) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         setListenerLogOptionsUnlocked(id, code);
     }
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
     /**
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
+
         @since HttpServer 0.3.11
     */
     int getListenerLogOptions(softstring bind) {
@@ -1257,14 +1271,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! returns a binary-or'ed product of @ref ListenerLogOptions "listener log options" corresponding to enabled log options for the given listener
     /**
+        @throw INVALID-LISTENER-ERROR invalid listener id passed
+
         @since HttpServer 0.3.11
     */
     int getListenerLogOptionsID(softint id) {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners{id})
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with ID %d", id);
+        if (!listeners.hasKey(id))
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
 
         return getListenerLogOptionsUnlocked(id);
     }
@@ -1413,7 +1429,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! returns the listener ID from the bind name or throws an exception if not valid
-    /** @throw HTTP-SERVER-ERROR unknown bind name
+    /** @throw INVALID-LISTENER-ERROR invalid listener bind address
     */
     private int getListenerIdFromBindUnlocked(string bind) {
         *int id = smap{bind};
@@ -1421,7 +1437,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             id = nmap{bind};
 
         if (!id)
-            throw "HTTP-SERVER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
         return id;
     }
 
