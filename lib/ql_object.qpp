@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -58,7 +58,7 @@ static QoreValue call_static_method_args_intern(const QoreStringNode* class_name
     const QoreMethod* m = cls->findLocalStaticMethod(method_name->c_str());
     if (!m) {
         xsink->raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'",
-            method_name->c_str(), cls_path->c_str());
+            cls_path->c_str(), method_name->c_str());
         return QoreValue();
     }
 
@@ -131,12 +131,12 @@ nothing getMethodList() [flags=RUNTIME_NOOP,DEPRECATED] {
 
     @par Example:
     @code{.py}
-list l = get_method_list(obj);
+list<string> l = get_method_list(obj);
     @endcode
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getMethodList()
  */
-list get_method_list(object obj) [flags=CONSTANT] {
+list<string> get_method_list(object obj) [flags=CONSTANT] {
     return obj->getClass()->getMethodList();
 }
 

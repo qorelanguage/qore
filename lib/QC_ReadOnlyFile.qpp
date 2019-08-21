@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -244,8 +244,7 @@ ReadOnlyFile::copy() {
     @code{.py}
 try {
     f.open(fn, "iso-8859-1");
-}
-catch (hash ex) {
+} catch (hash<ExceptionInfo> ex) {
     printf("%s: %s: %s\n", fn, ex.err, ex.desc);
 }
     @endcode
@@ -866,7 +865,7 @@ int mode = file.stat()[2];
     - @ref File::hstat()
     - @ref file_stat_constants
  */
-list ReadOnlyFile::stat() {
+list<auto> ReadOnlyFile::stat() {
    if (check_terminal_io(self, "ReadOnlyFile::stat", xsink))
       return QoreValue();
 
@@ -878,7 +877,7 @@ list ReadOnlyFile::stat() {
 
     @par Example:
     @code{.py}
-hash h = file.hstat();
+hash<StatInfo> h = file.hstat();
     @endcode
 
     @return a @ref StatInfo hash about the file's status
@@ -905,7 +904,7 @@ hash<StatInfo> ReadOnlyFile::hstat() {
 
     @par Example:
     @code{.py}
-hash h = file.statvfs();
+hash<FilesystemInfo> h = file.statvfs();
     @endcode
 
     @return a @ref FilesystemInfo hash about the filesystem where the file resides
@@ -1043,7 +1042,7 @@ int mode = ReadOnlyFile::stat(path)[2];
 
     @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
  */
-static list ReadOnlyFile::stat(string path) [dom=FILESYSTEM] {
+static list<auto> ReadOnlyFile::stat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
    if (stat(path->getBuffer(), &sbuf))
       return xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "stat() command failed");
@@ -1071,7 +1070,7 @@ int mode = ReadOnlyFile::lstat(path)[2];
 
     @since %Qore 0.8.13 this method was moved from the @ref Qore::File "File" class (where it is still available due to public inheritance)
  */
-static list ReadOnlyFile::lstat(string path) [dom=FILESYSTEM] {
+static list<auto> ReadOnlyFile::lstat(string path) [dom=FILESYSTEM] {
    struct stat sbuf;
 #ifdef HAVE_LSTAT
    if (lstat(path->getBuffer(), &sbuf))
@@ -1089,7 +1088,7 @@ static list ReadOnlyFile::lstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-hash h = ReadOnlyFile::hstat(path);
+hash<StatInfo> h = ReadOnlyFile::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1116,7 +1115,7 @@ static hash<StatInfo> ReadOnlyFile::hstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-hash h = ReadOnlyFile::hstat(path);
+hash<StatInfo> h = ReadOnlyFile::hstat(path);
     @endcode
 
     @param path the file to stat()
@@ -1150,7 +1149,7 @@ static hash<StatInfo> ReadOnlyFile::hlstat(string path) [dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-hash h = ReadOnlyFile::statvfs(path);
+hash<FilesystemInfo> h = ReadOnlyFile::statvfs(path);
     @endcode
 
     @param path the path to the filesystem to check

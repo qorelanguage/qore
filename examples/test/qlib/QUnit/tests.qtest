@@ -16,14 +16,11 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("DIJClass", "1.0") {
     }
 
-    performModuleInjections() {
+    private string getScriptPathImpl() {
+        return get_script_path();
     }
 
-    performInjections(Program p) {
-    }
-
-    static DIJClass makeMe() {
-        return new DIJClass();
+    private performInjectionsImpl() {
     }
 }
 
@@ -92,8 +89,7 @@ public class QUnitTest inherits QUnit::Test {
         # check that asserts fail correctly and check error messages
         try {
             assertRegex("x", "y");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Regular Expression Match", ex.desc);
             # force the test that failed to pass
@@ -102,8 +98,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertNRegex("x", "1x1");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Negative Regular Expression Match", ex.desc);
             # force the test that failed to pass
@@ -112,8 +107,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertNeqSoft(1, "1");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("identical", ex.desc);
@@ -123,8 +117,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertNeq(1, "1");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("identical", ex.desc);
@@ -134,8 +127,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertNeq(1, 1);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("identical", ex.desc);
@@ -145,8 +137,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertGt(2, 2);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Greater Than", ex.desc);
@@ -156,8 +147,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertGt(2, "3");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Greater Than", ex.desc);
@@ -167,8 +157,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertGe(2, 3);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Greater Than", ex.desc);
@@ -178,8 +167,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertGe(2, "3");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Greater Than", ex.desc);
@@ -189,8 +177,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertLt(2, 2);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Less Than", ex.desc);
@@ -200,8 +187,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertLt(2, "1");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Less Than", ex.desc);
@@ -211,8 +197,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertLe(2, 1);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Less Than Or Equal To", ex.desc);
@@ -222,8 +207,7 @@ public class QUnitTest inherits QUnit::Test {
 
         try {
             assertLe(2, "1");
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Less Than Or Equal To", ex.desc);
@@ -234,8 +218,7 @@ public class QUnitTest inherits QUnit::Test {
         # check that asserts fail correctly and check error messages
         try {
             assertNothing(1);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             #printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             #assertRegex("Regular Expression Match", ex.desc);
@@ -244,12 +227,12 @@ public class QUnitTest inherits QUnit::Test {
         }
 
         {
-            list l1 = ("hello\nworld",);
-            list l2 = ("hello\nmars",);
+            list<string> l1 = ("hello\nworld",);
+            list<string> l2 = ("hello\nmars",);
             try {
                 assertEq(l1, l2);
-            }
-            catch (hash<ExceptionInfo> ex) {
+                assertTrue(False);
+            } catch (hash<ExceptionInfo> ex) {
                 #printf("desc: %y\n", ex.desc);
                 assertTrue(ex.desc =~ /hello\\\\nworld/);
                 assertTrue(ex.desc =~ /hello\\\\nmars/);
@@ -258,16 +241,14 @@ public class QUnitTest inherits QUnit::Test {
     }
 
     testInjectedClass() {
-        DIJClass dit = DIJClass::makeMe();
+        DIJClass dit();
 
-        # Try to run a dependency injected test before script path was set
-        testAssertion("missing script path", \dit.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "need to set the script path"));
         # Try to instantiate a second dependency injected test
-        testAssertion("too many instances", \DIJClass::makeMe(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "Only one instance of"));
+        assertThrows("TESTING-EXCEPTION", "Only one instance of", sub () { new DIJClass(); });
     }
 
     testEmptyTest() {
         EmptyTest t();
-        testAssertion("no tests defined", \t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
+        assertThrows("TESTING-EXCEPTION", "define some tests first", \t.main());
     }
 }

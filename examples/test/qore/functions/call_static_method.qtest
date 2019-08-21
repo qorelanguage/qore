@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CallStaticMethodTest
+
+class T {
+    static int get() { return 1; }
+}
+
+public class CallStaticMethodTest inherits QUnit::Test {
+    constructor() : Test("CallStaticMethodTest", "1.0") {
+        addTestCase("Test 1", \test());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    test() {
+        assertEq(1, call_static_method("T", "get"));
+        assertThrows("UNKNOWN-METHOD", "T::invalid", sub () { call_static_method("T", "invalid"); });
+    }
+}
+

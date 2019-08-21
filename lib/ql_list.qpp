@@ -792,7 +792,7 @@ if (inlist(str, strlist))
 
     @return @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
 
-    @see inlist_hard(any, softlist)
+    @see inlist_hard(auto, softlist<auto>)
 */
 bool inlist(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
@@ -825,7 +825,7 @@ if (inlist_hard(str, strlist))
 
     @return @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
 
-    @see inlist(any, softlist)
+    @see inlist(auto, softlist<auto>)
 */
 bool inlist_hard(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
     bool arg_is_nothing = arg.isNothing();

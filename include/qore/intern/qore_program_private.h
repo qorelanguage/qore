@@ -1695,9 +1695,9 @@ public:
             parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
     }
 
-    DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr, bool inject = false);
+    DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr, bool inject = false, q_setpub_t set_pub = CSP_UNCHANGED);
 
-    DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr);
+    DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr, q_setpub_t set_pub = CSP_UNCHANGED);
 
     DLLLOCAL const char* addString(const char* str) {
         str_set_t::iterator i = str_set.lower_bound(str);

@@ -832,7 +832,7 @@ bool Dir::removeFile(string file) {
     @par Example:
     @code{.py}
 try {
-    list l = dir.stat();
+    list<auto> l = dir.stat();
 } catch (hash<ExceptionInfo> ex) {
     if (ex.arg)
         printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));

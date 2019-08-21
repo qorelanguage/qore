@@ -10,6 +10,8 @@
 
 %requires ../../../../qlib/FixedLengthUtil.qm
 
+%requires reflection
+
 %include ../../../../qlib/QUnit.qm
 
 %exec-class DIJClass
@@ -60,23 +62,44 @@ public class InputStreamLineIteratorFake inherits Qore::AbstractLineIterator {
     }
 }
 
+public class MyClass inherits Class {
+    constructor(string path) : Class(path) {
+    }
+
+    static Class forName(string path) {
+        return Class::forName("Mutex");
+    }
+}
+
 public class DIJClass inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("Inject", "1.0") {
-        addTestCase("Directly instantiate injected classes", \testDirectlyInjectedClass(), NOTHING);
-        addTestCase("Instantiate classes with an injected ancestor", \testInheritedInjectedClass(), NOTHING);
-        addTestCase("Instantiate class from a module with injected ancestor", \testModuleInjectedClass(), NOTHING);
+        addTestCase("builtin module", \testBuiltinModuleInjection());
+        addTestCase("Directly instantiate injected classes", \testDirectlyInjectedClass());
+        addTestCase("Instantiate classes with an injected ancestor", \testInheritedInjectedClass());
+        addTestCase("Instantiate class from a module with injected ancestor", \testModuleInjectedClass());
 
-        setScriptPath(get_script_path());
         set_return_value(main());
     }
 
-    performModuleInjections() {
-        injectIntoModule("../../../../qlib/FixedLengthUtil.qm");
+    private string getScriptPathImpl() {
+        return get_script_path();
     }
 
-    performInjections(Program p) {
+    private performInjectionsImpl() {
+        # do builtin module injections here
+        injectClass("MyClass", "Class");
+
+        injectUserModule("../../../../qlib/FixedLengthUtil.qm");
+    }
+
+    private performCommonInjections(Program p) {
         p.importClass("Aalt", "A", True);
         p.importClass("InputStreamLineIteratorFake", "Qore::InputStreamLineIterator", True);
+    }
+
+    testBuiltinModuleInjection() {
+        Class c = Class::forName("invalid");
+        assertEq("Mutex", c.getName());
     }
 
     testDirectlyInjectedClass() {

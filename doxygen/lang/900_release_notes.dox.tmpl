@@ -19,7 +19,6 @@
     - the <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module was updated to
       support connection tags
       (<a href="https://github.com/qorelanguage/qore/issues/3486">issue 3486</a>)
-
     - updated the @ref Qore::HTTPClient "HTTPClient" class to support the following new constructor options:
       - \c encoding_passthru
       - \c error_passthru
@@ -33,10 +32,16 @@
       - @ref Qore::HTTPClient::setRedirectPassthru() "HTTPClient::setRedirectPassthru()"
       .
       (<a href="https://github.com/qorelanguage/qore/issues/3472">issue 3472</a>)
+    - added the following methods:
+      - @ref Qore::GetOpt::parse(hash<auto>, reference<list<string>>) "GetOpt::parse()"
+      - @ref Qore::GetOpt::parseEx(hash<auto>, reference<list<string>>) "GetOpt::parseEx()"
+      - @ref Qore::GetOpt::parseExit(hash<auto>, reference<list<string>>) "GetOpt::parseExit()"
     - added the @ref Qore::auto_cast() "auto_cast()" function
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
       - @ref Qore::parseURL() "parseURL()"
+    - added the \a module_visibility parameter to @ref Qore::Program::importClass() "Program::importClass()" and the
+      @ref import_visibility_constants as possible argument values
     - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
       \c RestConnection objects now support the \c "headers" option
       (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)
@@ -46,10 +51,12 @@
     - the <a href="../../modules/Mapper/html/index.html">Mapper</a> module now supports dot notation in output fields
       for the "hash" output type
       (<a href="https://github.com/qorelanguage/qore/issues/3413">issue 3413</a>)
-    - \c qdbg-vsc-adapter supports VSCode Debug Protocol
+    - \c qdbg-vsc-adapter supports the VSCode Debug Protocol
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - fixed bugs importing user modules with an injected API in an existing @ref Qore::Program "Program" container
+      (<a href="https://github.com/qorelanguage/qore/issues/3504">issue 3504</a>)
     - fixed a memory leak in @ref Qore::Serializable::deserialize(string) "Serializable::deserialize(string)"
     - fixed a bug where HTTP redirect messages with a simple path and not a full URL were not processed correctly
       (<a href="https://github.com/qorelanguage/qore/issues/3475">issue 3475</a>)
@@ -115,6 +122,9 @@
     - <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> module:
       - fixed the timeout value for upgrading the SSL connection in \c Pop3Client
         (<a href="https://github.com/qorelanguage/qore/issues/3388">issue 3388</a>)
+    - <a href="../../modules/QUnit/html/index.html">QUnit</a> module:
+      - allow binary modules to be subjected to dependency injections
+        (<a href="https://github.com/qorelanguage/qore/issues/3382">issue 3382</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module:
       - fixed RestHandler losing internal exception info when response was considered invalid by schema validator
         (<a href="https://github.com/qorelanguage/qore/issues/3435">issue 3435</a>)

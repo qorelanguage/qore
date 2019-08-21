@@ -189,21 +189,23 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
 
 
 class Main inherits QUnit::DependencyInjectedTest {
-
     constructor() : DependencyInjectedTest("SqlStatementOutboundMapper", "1.0") {
         addTestCase("SqlStatementOutboundMapper iterator", \testIterator());
         addTestCase("SqlStatementOutboundMapper hash rows", \testHashRows());
         addTestCase("SqlStatementOutboundMapper context", \testContext());
 
-        setScriptPath(get_script_path());
         set_return_value(main());
     }
 
-    performModuleInjections() {
-        injectIntoModule("../../../../qlib/TableMapper.qm");
+    private string getScriptPathImpl() {
+        return get_script_path();
     }
 
-    performInjections(Program p) {
+    private performInjectionsImpl() {
+        injectUserModule("../../../../qlib/TableMapper.qm");
+    }
+
+    private performCommonInjections(Program p) {
         p.importClass("FakeSQLStatement", "Qore::SQL::SQLStatement", True);
     }
 

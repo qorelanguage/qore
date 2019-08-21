@@ -1818,7 +1818,7 @@ public:
 
     // only called while the parse lock for the QoreProgram owning "old" is held
     // called for injected classes only
-    DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass);
+    DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub);
 
 public:
     DLLLOCAL const char* getModuleName() const {
@@ -3033,8 +3033,8 @@ public:
         return qc.priv->inject;
     }
 
-    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, qore_ns_private* ns) {
-        qore_class_private* priv = new qore_class_private(*qc.priv, ns, spgm, nme, inject, injectedClass);
+    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, qore_ns_private* ns, q_setpub_t set_pub) {
+        qore_class_private* priv = new qore_class_private(*qc.priv, ns, spgm, nme, inject, injectedClass, set_pub);
         //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
         return priv->cls;
     }
