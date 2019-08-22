@@ -509,11 +509,16 @@ QoreHashNode* DatasourcePool::describe(const QoreString* sql, const QoreListNode
 }
 
 int DatasourcePool::beginTransaction(ExceptionSink* xsink) {
-   DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
-   if (!dpah)
-      return 0;
+    DatasourcePoolActionHelper dpah(*this, xsink, DAH_ACQUIRE);
+    if (!dpah)
+        return 0;
 
-   return dpah->beginTransaction(xsink);
+    int rc = dpah->beginTransaction(xsink);
+    if (rc) {
+        assert(*xsink);
+        dpah.releaseNew();
+    }
+    return rc;
 }
 
 QoreValue DatasourcePool::exec_internal(bool doBind, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
