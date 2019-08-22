@@ -626,12 +626,12 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             @throw TEMPLATE-ERROR the given template does not exist
         */
-        hash render(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
+        hash<HttpResponseInfo> render(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
             *hash vth = th{tname};
             if (!vth)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, th.keys());
 
-            return {
+            return <HttpResponseInfo>{
                 "code": code,
                 "body": toh{tname}.getProgram().callFunction(vth.func, ctx),
                 "hdr": hdr + {"Content-Type": vth.ct},
@@ -654,13 +654,13 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
-        *hash tryRender(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
-            *hash vth = th{tname};
+        *hash<HttpResponseInfo> tryRender(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
+            *hash<auto> vth = th{tname};
             if (!vth) {
                 return;
             }
 
-            return {
+            return <HttpResponseInfo>{
                 "code": code,
                 "body": toh{tname}.getProgram().callFunction(vth.func, ctx),
                 "hdr": hdr + {"Content-Type": vth.ct},
@@ -668,13 +668,13 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! returns a hash of template names, values are @ref Qore::True "True" or @ref nothing if no templates are currently cached
-        *hash getTemplateHash() {
+        *hash<string, bool> getTemplateHash() {
             return map {$1: True}, keys th;
         }
 
         #! returns a list of template names, an empty list is returned if there are no templates
-        list getTemplateList() {
-            return th.keys();
+        list<string> getTemplateList() {
+            return keys th ?? ();
         }
 
         #! override in subclasses to customize the setup of template Programs; this method performs no action
@@ -898,7 +898,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! this method returns a 404 \c "Not Found" error code to \c GET requests and a 501 \c "Not Implemented" error code to all other requests
         /** this method is called when a request cannot be handled; reimplement this method in subclasses to customize unhandled request error handling
         */
-        private hash unhandledRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        private hash<HttpResponseInfo> unhandledRequest(hash<auto> cx, hash<auto> hdr, *data body) {
             return hdr.method == "GET"
                 ? makeResponse(404, "The requested page cannot be found")
                 : make501("The requested operation is not supported");
@@ -907,14 +907,14 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! this method returns a 400 \c "Bad Request" error code when a file should be served that's not a regular file
         /** this method is called when a file cannot be served because it's not a regular file; reimplement this method in subclasses to customize error handling
         */
-        private hash fileError(hash<auto> cx, hash sh) {
+        private hash<HttpResponseInfo> fileError(hash<auto> cx, hash sh) {
             return makeResponse(400, "The requested resource cannot be served");
         }
 
         #! this method returns a 500 \c "Internal Server Error" error code when an exception occurs
         /** this method is called when an exception occurs; reimplement this method in subclasses to customize error handling
         */
-        private hash serverError(hash<auto> cx, hash ex) {
+        private hash<HttpResponseInfo> serverError(hash<auto> cx, hash ex) {
             string errstr = get_exception_string(ex);
             logError(errstr);
             string desc;
@@ -928,7 +928,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! tries to serve the request from the filesystem
-        private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+        private *hash<HttpResponseInfo> tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
             string path;
             *hash<StatInfo> stat_hash = statPath(cx, hdr, \path);
             if (!stat_hash) {
@@ -964,7 +964,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             return sendFilePath(listener, s, cx, hdr, body, path, stat_hash);
         }
 
-        private *hash<auto> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx,
+        private *hash<HttpResponseInfo> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx,
             hash<auto> hdr, *data body, string path, hash<StatInfo> stat_hash) {
             # send an empty response for an empty file
             if (!stat_hash.size) {
@@ -1022,12 +1022,12 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! returns a handler hash response with the data to be sent in a monolithic message
-        private hash<auto> sendFile(InputStream stream, *hash<auto> respHdr) {
+        private hash<HttpResponseInfo> sendFile(InputStream stream, *hash<auto> respHdr) {
             binary rv;
             while (*binary bin = stream.read(1024 * 16)) {
                 rv += bin;
             }
-            return {
+            return <HttpResponseInfo>{
                 "code": 200,
                 "body": rv,
                 "hdr": respHdr,
@@ -1035,20 +1035,20 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash<auto> sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
+        private hash<HttpResponseInfo> sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
             AbstractStreamRequest fsr = getStreamRequestImpl(listener, s, cx, hdr, body, stream, respHdr);
-            return fsr.handleRequest();
+            return cast<hash<HttpResponseInfo>>(fsr.handleRequest());
         }
 
         #! this method is called when a directory should be rendered
         /** if this method returns @ref nothing then any \a default_target will be used, so to turn off directory rendering,
             subclass this class and have the reimplemented method return @ref nothing
         */
-        *hash<auto> renderDirectory(hash<auto> cx, string path) {
-            cx += (
+        *hash<HttpResponseInfo> renderDirectory(hash<auto> cx, string path) {
+            cx += {
                 "path": path,
                 "parent_url": "/" + dirname(cx.hdr.path),
-            );
+            };
             return stm.render(":dirlisting", cx);
         }
 
@@ -1084,7 +1084,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
             - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
         */
-        private *hash handleRequestImpl(reference<hash> cx, hash<auto> hdr, *data body) {
+        private *hash<HttpResponseInfo> handleRequestImpl(reference<hash> cx, hash<auto> hdr, *data body) {
         }
     }
 }
