@@ -299,6 +299,14 @@ public:
     */
     DLLLOCAL ~DatasourcePoolActionHelper();
 
+    // issue #3509: allow connections to be released if a beginTransaction() cmd fails on a new datasource
+    DLLLOCAL void releaseNew() {
+        assert(cmd == DAH_ACQUIRE);
+        if (new_ds) {
+            cmd = DAH_RELEASE;
+        }
+    }
+
 #if 0
     DLLLOCAL void addSQL(const QoreString* sql) {
         if (ds && !((cmd == DAH_RELEASE) || (new_ds && (cmd == DAH_NOCHANGE)) || ds->wasConnectionAborted()))
