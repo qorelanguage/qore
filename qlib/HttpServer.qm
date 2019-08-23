@@ -1315,7 +1315,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, data msg, *hash extra_hdrs, *string encoding, bool head) {
+    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, data msg, *hash<auto> extra_hdrs, *string encoding, bool head) {
         if (!s.isOpen()) {
             listener.log("cid %d: connection closed by peer", cx.id);
             return;
@@ -1834,7 +1834,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
             listener.logResponse(cx, rv);
         } else if (rv.code >= 400) {
             if (!rv.body) {
@@ -1859,7 +1859,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     rv.body = bzip2(rv.body);
                 }
             }
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
 
             listener.logResponse(cx, rv);
         }
