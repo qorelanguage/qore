@@ -113,6 +113,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http03131 HttpServer 0.3.13.1
+    - enable remote certificates to be retrieved in listeners and handlers by default
+      (<a href="https://github.com/qorelanguage/qore/issues/3512">issue 3512</a>)
     - shut down dedicated socket conenctions last in order to allow for effective keep-alive implementations with
       WebSocket for example
       (<a href="https://github.com/qorelanguage/qore/issues/3488">issue 3488</a>)
@@ -698,14 +700,14 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
      */
-    constructor(*code n_logfunc, *code n_errlogfunc, bool n_dbg = False, string n_name = HttpServer::HttpServerString, hash n_hdr = ("X-Powered-By": "Qore/" + Qore::VersionString)) {
-        logfunc = n_logfunc;
-        errlogfunc = n_errlogfunc;
-        debug = n_dbg;
-        http_server_string = n_name;
-        hdr = (
-            "Server": n_name,
-            ) + n_hdr;
+    constructor(*code logfunc, *code errlogfunc, bool dbg = False, string name = HttpServer::HttpServerString, hash<auto> hdr = {"X-Powered-By": "Qore/" + Qore::VersionString}) {
+        self.logfunc = logfunc;
+        self.errlogfunc = errlogfunc;
+        debug = dbg;
+        http_server_string = name;
+        hdr = {
+            "Server": name,
+         } + hdr;
     }
 
     #! calls stop() and destroys the object
@@ -1313,7 +1315,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, data msg, *hash extra_hdrs, *string encoding, bool head) {
+    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, data msg, *hash<auto> extra_hdrs, *string encoding, bool head) {
         if (!s.isOpen()) {
             listener.log("cid %d: connection closed by peer", cx.id);
             return;
@@ -1832,7 +1834,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
             listener.logResponse(cx, rv);
         } else if (rv.code >= 400) {
             if (!rv.body) {
@@ -1857,7 +1859,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     rv.body = bzip2(rv.body);
                 }
             }
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
 
             listener.logResponse(cx, rv);
         }
@@ -1971,7 +1973,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # log send body flag
         bool log_send_body = False;
 
-        const PollInterval = 1s;
+        const PollInterval = 250ms;
         const ListenQueue = 100;
         const BodyLogLimit = 40;
 
@@ -1991,49 +1993,56 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer n_server, int n_id, Sequence n_ss, *string n_node, *softstring n_service, *Qore::SSLCertificate n_cert, *Qore::SSLPrivateKey n_key, *hash n_hi, *code n_logger, *code n_errorlogger, *code n_stopc, string n_name, int n_family = AF_UNSPEC) {
-        name = n_name;
+    constructor(HttpServer server, int id, Sequence ss, *string node, *softstring service, *Qore::SSLCertificate cert, *Qore::SSLPrivateKey key, *hash<auto> hi, *code logger, *code errorlogger, *code stopc, string name, int family = AF_UNSPEC) {
+        self.name = name;
         # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         setEncoding("utf-8");
 
         # save a reference to the server object
-        serv = n_server;
+        serv = server;
 
         # set other params
-        id = n_id;
-        ss = n_ss;
-        logger = n_logger;
-        errorlogger = n_errorlogger;
-        stopc = n_stopc;
+        self.id = id;
+        self.ss = ss;
+        self.logger = logger;
+        self.errorlogger = errorlogger;
+        self.stopc = stopc;
 
-        if (n_hi) {
-            addHandlers(n_hi);
+        if (hi) {
+            addHandlers(hi);
         }
 
         # create SSL certificate and private key objects from PEM files if passed
-        if (n_cert) {
-            cert = n_cert;
-            setCertificate(n_cert);
-            key = n_key;
-            setPrivateKey(n_key);
+        if (cert) {
+            # set SSL cert and key
+            self.cert = cert;
+            setCertificate(cert);
+            self.key = key;
+            setPrivateKey(key);
+            # issue #3512: enable remote certificates to be retrieved by default for HTTPS listeners
+            captureRemoteCertificates();
+            # get certificates from peers
+            setSslVerifyMode(SSL_VERIFY_PEER);
+            # accept all certificates
+            acceptAllCertificates();
             ssl = True;
         }
 
-        if (exists n_service) {
-            bindINET(n_node, n_service, True, n_family);
-            socket = sprintf("%s:%s", n_node ? n_node : "*", n_service);
-        }
-        else {
-            socket = n_node;
-            if (n_node =~ /^\//) {
+        # make INET (tcp) bind
+        if (exists service) {
+            bindINET(node, service, True, family);
+            socket = sprintf("%s:%s", node ? node : "*", service);
+        } else {
+            socket = node;
+            if (node =~ /^\//) {
                 # try to unlink the file first if it's a UNIX domain socket
-                unlink(n_node);
-                bindUNIX(n_node);
-            }
-            else {
-                if (bind(n_node, True))
+                unlink(node);
+                bindUNIX(node);
+            } else {
+                if (bind(node, True)) {
                     throw "HTTPLISTENER-BIND-ERROR", strerror();
+                }
             }
         }
 
@@ -2056,7 +2065,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     #! add handlers to the listener
-    addHandlers(hash hi) {
+    addHandlers(hash<auto> hi) {
         AutoLock al(m);
         #printf("HttpListener::addHandlers() hi: %y\n", hi);
         bool def = handlers.empty();
@@ -2178,13 +2187,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     hash getInfo() {
-        return (
+        return {
             "name": name,
-            ) + socket_info + (
+         } + socket_info + {
             "proto": ssl ? "https" : "http",
             "id": id,
             "bind": socket,
-            );
+         };
     }
 
     auto removeUserThreadContext(*string k) {
@@ -2323,8 +2332,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             hash info;
             try {
                 r = accept(PollInterval);
-                if (!r)
+                if (!r) {
                     continue;
+                }
             } catch (hash<ExceptionInfo> ex) {
                 #printf("HTTP DEBUG: %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
                 if (ex.err != "SOCKET-CLOSED")

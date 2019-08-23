@@ -36,12 +36,17 @@
       - @ref Qore::GetOpt::parse(hash<auto>, reference<list<string>>) "GetOpt::parse()"
       - @ref Qore::GetOpt::parseEx(hash<auto>, reference<list<string>>) "GetOpt::parseEx()"
       - @ref Qore::GetOpt::parseExit(hash<auto>, reference<list<string>>) "GetOpt::parseExit()"
+      - @ref Qore::Socket::captureRemoteCertificates() "Socket::captureRemoteCertificates()"
+      - @ref Qore::Socket::getRemoteCertificate() "Socket::getRemoteCertificate()"
     - added the @ref Qore::auto_cast() "auto_cast()" function
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
       - @ref Qore::parseURL() "parseURL()"
     - added the \a module_visibility parameter to @ref Qore::Program::importClass() "Program::importClass()" and the
       @ref import_visibility_constants as possible argument values
+    - the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module was updated to
+      enable remote certificates to be retrieved in listeners and handlers by default
+      (<a href="https://github.com/qorelanguage/qore/issues/3512">issue 3512</a>)
     - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
       \c RestConnection objects now support the \c "headers" option
       (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)

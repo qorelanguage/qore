@@ -207,6 +207,8 @@ public:
    DLLEXPORT int getSslVerifyMode() const;
    DLLEXPORT void acceptAllCertificates(bool accept_all = true);
    DLLEXPORT bool getAcceptAllCertificates() const;
+   DLLEXPORT bool captureRemoteCertificates(bool set);
+   DLLEXPORT QoreObject* getRemoteCertificate() const;
 };
 
 #endif // _QORE_QORE_SOCKET_OBJECT_H

@@ -490,39 +490,43 @@ int QoreSocketObject::connectSSL(const char* name, int timeout_ms, ExceptionSink
 }
 
 QoreSocketObject* QoreSocketObject::accept(SocketSource* source, ExceptionSink* xsink) {
-   QoreSocket* s;
-   {
-      AutoLocker al(priv->m);
-      s = priv->socket->accept(source, xsink);
-   }
-   return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
+    QoreSocket* s;
+    {
+        AutoLocker al(priv->m);
+        s = priv->socket->accept(source, xsink);
+    }
+    return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
 }
 
 QoreSocketObject* QoreSocketObject::acceptSSL(SocketSource* source, ExceptionSink* xsink) {
-   QoreSocket* s;
-   {
-      AutoLocker al(priv->m);
-      s = priv->socket->acceptSSL(source, priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
-   }
-   return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
+    QoreSocket* s;
+    {
+        AutoLocker al(priv->m);
+        s = priv->socket->acceptSSL(source, priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
+    }
+    return s
+        ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0)
+        : nullptr;
 }
 
 QoreSocketObject* QoreSocketObject::accept(int timeout_ms, ExceptionSink* xsink) {
-   QoreSocket* s;
-   {
-      AutoLocker al(priv->m);
-      s = priv->socket->accept(timeout_ms, xsink);
-   }
-   return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
+    QoreSocket* s;
+    {
+        AutoLocker al(priv->m);
+        s = priv->socket->accept(timeout_ms, xsink);
+    }
+    return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
 }
 
 QoreSocketObject* QoreSocketObject::acceptSSL(int timeout_ms, ExceptionSink* xsink) {
-   QoreSocket* s;
-   {
-      AutoLocker al(priv->m);
-      s = priv->socket->acceptSSL(timeout_ms, priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
-   }
-   return s ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0) : 0;
+    QoreSocket* s;
+    {
+        AutoLocker al(priv->m);
+        s = priv->socket->acceptSSL(timeout_ms, priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
+    }
+    return s
+        ? new QoreSocketObject(s, priv->cert ? priv->cert->certRefSelf() : 0, priv->pk ? priv->pk->pkRefSelf() : 0)
+        : nullptr;
 }
 
 // c must be already referenced before this call
@@ -627,6 +631,16 @@ void QoreSocketObject::acceptAllCertificates(bool accept_all) {
 }
 
 bool QoreSocketObject::getAcceptAllCertificates() const {
-   AutoLocker al(priv->m);
-   return priv->socket->getAcceptAllCertificates();
+    AutoLocker al(priv->m);
+    return priv->socket->getAcceptAllCertificates();
+}
+
+bool QoreSocketObject::captureRemoteCertificates(bool set) {
+    AutoLocker al(priv->m);
+    return priv->socket->captureRemoteCertificates(set);
+}
+
+QoreObject* QoreSocketObject::getRemoteCertificate() const {
+    AutoLocker al(priv->m);
+    return priv->socket->getRemoteCertificate();
 }

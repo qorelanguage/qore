@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -813,19 +813,19 @@ Socket Socket::accept() {
     @see Socket::accept(), Socket::listen(), Socket::getPeerInfo()
  */
 Socket Socket::acceptSSL() {
-   QoreSocketObject *n = s->acceptSSL(-1, xsink);
-   if (!n) {
-      assert(*xsink);
-      return QoreValue();
-   }
+    QoreSocketObject *n = s->acceptSSL(-1, xsink);
+    if (!n) {
+        assert(*xsink);
+        return QoreValue();
+    }
 
-   // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+    // ensure that a socket object is returned (and not a subclass)
+    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
-   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   my_socket_priv::setAccept(*n, ns);
+    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+    my_socket_priv::setAccept(*n, ns);
 
-   return ns;
+    return ns;
 }
 
 //! Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection accepting a timeout value with a millisecond resolution
@@ -2968,4 +2968,38 @@ bool b = sock.getAcceptAllCertificates();
 */
 bool Socket::getAcceptAllCertificates() [flags=CONSTANT] {
     return s->getAcceptAllCertificates();
+}
+
+//! Sets the flag for capturing remote X.509 certificates; by default no capture of remote certificates is performed
+/** @par Example:
+    @code{.py}
+bool b = sock.captureRemoteCertificates();
+    @endcode
+
+    @param set the flag for capturing remote X.509 certificates; by default no capture of remote certificates is performed
+
+    @return the old value of the flag
+
+    @see getRemoteCertificate()
+
+    @since %Qore 0.9.3
+*/
+bool Socket::captureRemoteCertificates(bool set = True) {
+    return s->captureRemoteCertificates(set);
+}
+
+//! Returns any remote certificate captured or @ref nothing if there is none
+/** @par Example:
+    @code{.py}
+*SSLCertificate cert = sock.getRemoteCertificate();
+    @endcode
+
+    @return any remote certificate captured or @ref nothing if there is none
+
+    @see captureRemoteCertificates()
+
+    @since %Qore 0.9.3
+*/
+*SSLCertificate Socket::getRemoteCertificate() {
+    return s->getRemoteCertificate();
 }

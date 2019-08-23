@@ -14,10 +14,6 @@
 
 %exec-class HttpServerTest
 
-sub log(string str) {
-    printf("", argv);
-}
-
 class AltHandler inherits AbstractHttpRequestHandler {
     hash handleRequest(hash cx, hash hdr, *data body) {
         return makeResponse(201, "a1, " + hdr.method + ", " + hdr.path + ", " + cx.raw_path);
@@ -117,6 +113,12 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    log(string fmt) {
+        if (m_options.verbose > 2) {
+            vprintf("HTTP: " + fmt + "\n", argv);
+        }
     }
 
     globalSetUp() {
