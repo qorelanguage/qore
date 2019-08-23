@@ -283,9 +283,14 @@ int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode*
                 if (*xsink) {
                     return -1;
                 }
-                QoreValue& v = qore_hash_private::get(*h)->getValueRef(i.first);
+                qore_hash_private* h_priv = qore_hash_private::get(*h);
+                QoreValue& v = h_priv->getValueRef(i.first);
                 assert(v.isNothing());
                 v = val.release();
+                // issue #3481: maintain DGC counts
+                if (needs_scan(v)) {
+                    h_priv->incScanCount(1);
+                }
                 continue;
             }
         }
@@ -295,7 +300,8 @@ int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode*
         }
 
         if (i.second->exp) {
-            QoreValue& v = qore_hash_private::get(*h)->getValueRef(i.first);
+            qore_hash_private* h_priv = qore_hash_private::get(*h);
+            QoreValue& v = h_priv->getValueRef(i.first);
             assert(v.isNothing());
 
             ValueEvalRefHolder val(i.second->exp, xsink);
@@ -309,12 +315,21 @@ int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode*
             }
 
             v = val.takeReferencedValue();
+            // issue #3481: maintain DGC counts
+            if (needs_scan(v)) {
+                h_priv->incScanCount(1);
+            }
         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
         else {
-            QoreValue& v = qore_hash_private::get(*h)->getValueRef(i.first);
+            qore_hash_private* h_priv = qore_hash_private::get(*h);
+            QoreValue& v = h_priv->getValueRef(i.first);
             assert(v.isNothing());
             v = QoreTypeInfo::getDefaultQoreValue.second->getTypeInfo());
+            // issue #3481: maintain DGC counts
+            if (needs_scan(v)) {
+                h_priv->incScanCount(1);
+            }
         }
 #endif
     }
