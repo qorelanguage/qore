@@ -117,8 +117,13 @@ class MyQueue inherits Queue {
     }
 }
 
+hashdecl Issue3841 {
+    auto a = new Mutex();
+}
+
 class DgcTest inherits QUnit::Test {
     constructor() : Test("GcTest", "1.0") {
+        addTestCase("issue 3841 test", \issue3841Test());
         addTestCase("issue3101Test", \issue3101Test());
         addTestCase("GcTests", \gcTests());
         addTestCase("ClosureTests", \closureTests());
@@ -128,6 +133,22 @@ class DgcTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks the return value
         set_return_value(main());
+    }
+
+    issue3841Test() {
+        hash<Issue3841> h();
+        h += {
+            "a": 0,
+        };
+        assertEq(0, h.a);
+
+        h = <Issue3841>{
+            "a": new Mutex(),
+        };
+        h += {
+            "a": 0,
+        };
+        assertEq(0, h.a);
     }
 
     issue3101Test() {
