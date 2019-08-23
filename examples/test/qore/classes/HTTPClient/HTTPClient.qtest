@@ -20,6 +20,8 @@ class HttpTestServer {
         string body;
 
         hash hdr;
+
+        SSLCertificate remote_cert;
     }
 
     private {
@@ -93,11 +95,15 @@ class TestStreamRequest inherits AbstractStreamRequest {
 
     hash getResponseHeaderMessageImpl() {
         #printf("l: %N\n", l);
-        return AbstractHttpRequestHandler::makeResponse(strhdr + ("X-Got-Chunks": l.size() - 1), 200, data);
+        return AbstractHttpRequestHandler::makeResponse(strhdr + ("X-Got-Chunks": l.size() - 1), 200, data ?? "OK");
     }
 }
 
 class EchoHandler inherits AbstractHttpRequestHandler {
+    public {
+        static *SSLCertificate remote_cert;
+    }
+
     private:internal {
     }
 
@@ -107,6 +113,8 @@ class EchoHandler inherits AbstractHttpRequestHandler {
 
     # return the stream request handler
     TestStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+        remote_cert = s.getRemoteCertificate();
+        printf("XXX GSR RS: %y ssl: %y\n", remote_cert, cx.ssl);
         return new TestStreamRequest(listener, self, s, cx, hdr, body);
     }
 }
@@ -117,9 +125,9 @@ class RealTestHttpServer inherits HttpServer {
         int port;
     }
 
-    constructor() : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
+    constructor(*string cert_path, *string key_path) : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
         setDefaultHandler("echo-handler", eh);
-        port = addListener(0).port;
+        port = addListener(0, cert_path, key_path).port;
     }
 
     int getPort() {
@@ -251,6 +259,10 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
 
     clientCertTest() {
         TempFile cert("cert.pem", TestCert);
+        string cert_data = ReadOnlyFile::readTextFile(cert.getPath());
+
+        SSLCertificate x509_local(cert_data);
+        binary sig_local = x509_local.getSignature();
 
         Queue q();
         {
@@ -263,9 +275,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
                 "ssl_cert_path": cert.getPath(),
                 "ssl_key_path": cert.getPath(),
             });
-            hash<auto> h = hc.send(NOTHING, "GET");
-            SSLCertificate x509_local(ReadOnlyFile::readTextFile(cert.getPath()));
-            binary sig_local = x509_local.getSignature();
+            hc.send(NOTHING, "GET");
             SSLCertificate x509_remote = q.get();
             binary sig_remote = x509_remote.getSignature();
             #printf("%s <=> %s: %y\n", sig_local.toHex(), sig_remote.toHex(), sig_local <=> sig_remote);
@@ -297,6 +307,20 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
                 "ssl_key_path": cert.getPath(),
             });
             assertThrows("SOCKET-CLOSED", \hc.send(), (NOTHING, "GET"));
+        }
+        {
+            RealTestHttpServer serv(cert.getPath(), cert.getPath());
+            on_exit delete serv;
+
+            HTTPClient hc({
+                "url": "https://localhost:" + serv.getPort(),
+                "ssl_cert_path": cert.getPath(),
+                "ssl_key_path": cert.getPath(),
+            });
+            hc.send("", "PUT");
+            binary sig_remote = EchoHandler::remote_cert.getSignature();
+            #printf("%s <=> %s: %y\n", sig_local.toHex(), sig_remote.toHex(), sig_local <=> sig_remote);
+            assertEq(sig_local, sig_remote);
         }
     }
 

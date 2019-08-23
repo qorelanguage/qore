@@ -113,6 +113,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http03131 HttpServer 0.3.13.1
+    - enable remote certificates to be retrieved in listeners and handlers by default
+      (<a href="https://github.com/qorelanguage/qore/issues/3512">issue 3512</a>)
     - shut down dedicated socket conenctions last in order to allow for effective keep-alive implementations with
       WebSocket for example
       (<a href="https://github.com/qorelanguage/qore/issues/3488">issue 3488</a>)
@@ -703,9 +705,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         errlogfunc = n_errlogfunc;
         debug = n_dbg;
         http_server_string = n_name;
-        hdr = (
+        hdr = {
             "Server": n_name,
-            ) + n_hdr;
+         } + n_hdr;
     }
 
     #! calls stop() and destroys the object
@@ -1997,6 +1999,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         setEncoding("utf-8");
 
+        # issue #3512: enable remote certificates to be retrieved by default
+        captureRemoteCertificates();
+
         # save a reference to the server object
         serv = n_server;
 
@@ -2023,15 +2028,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (exists n_service) {
             bindINET(n_node, n_service, True, n_family);
             socket = sprintf("%s:%s", n_node ? n_node : "*", n_service);
-        }
-        else {
+        } else {
             socket = n_node;
             if (n_node =~ /^\//) {
                 # try to unlink the file first if it's a UNIX domain socket
                 unlink(n_node);
                 bindUNIX(n_node);
-            }
-            else {
+            } else {
                 if (bind(n_node, True))
                     throw "HTTPLISTENER-BIND-ERROR", strerror();
             }
@@ -2178,13 +2181,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     hash getInfo() {
-        return (
+        return {
             "name": name,
-            ) + socket_info + (
+         } + socket_info + {
             "proto": ssl ? "https" : "http",
             "id": id,
             "bind": socket,
-            );
+         };
     }
 
     auto removeUserThreadContext(*string k) {

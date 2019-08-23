@@ -198,9 +198,12 @@ class SSLSocketHelperHelper {
 protected:
     qore_socket_private* s;
     SSLSocketHelper* ssl;
+    bool context_saved = false;
 
 public:
-    DLLLOCAL SSLSocketHelperHelper(qore_socket_private* sock);
+    DLLLOCAL SSLSocketHelperHelper(qore_socket_private* sock, bool set_thread_context = false);
+
+    DLLLOCAL ~SSLSocketHelperHelper();
 
     DLLLOCAL void error();
 };
@@ -1200,7 +1203,7 @@ struct qore_socket_private {
 
     DLLLOCAL int upgradeClientToSSLIntern(const char* mname, const char* sni_target_host, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
         assert(!ssl);
-        SSLSocketHelperHelper sshh(this);
+        SSLSocketHelperHelper sshh(this, true);
 
         int rc;
         do_start_ssl_event();
@@ -1220,7 +1223,7 @@ struct qore_socket_private {
     DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
         assert(!ssl);
         //printd(5, "qore_socket_private::upgradeServerToSSLIntern() this: %p mode: %d\n", this, ssl_verify_mode);
-        SSLSocketHelperHelper sshh(this);
+        SSLSocketHelperHelper sshh(this, true);
 
         do_start_ssl_event();
         if (ssl->setServer(mname, sock, cert, pkey, xsink) || ssl->accept(mname, timeout_ms, xsink)) {

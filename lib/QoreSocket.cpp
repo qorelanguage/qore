@@ -280,9 +280,20 @@ qore_socket_op_helper::~qore_socket_op_helper() {
    s->in_op = -1;
 }
 
-SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock) : s(sock) {
-   assert(!s->ssl);
-   ssl = s->ssl = new SSLSocketHelper(*sock);
+SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock, bool set_thread_context) : s(sock) {
+    assert(!s->ssl);
+    ssl = s->ssl = new SSLSocketHelper(*sock);
+
+    if (set_thread_context && !qore_socket_private::current_socket && s->ssl_capture_remote_cert) {
+        qore_socket_private::current_socket = s;
+        context_saved = true;
+    }
+}
+
+SSLSocketHelperHelper::~SSLSocketHelperHelper() {
+    if (context_saved) {
+        qore_socket_private::current_socket = nullptr;
+    }
 }
 
 void SSLSocketHelperHelper::error() {
@@ -1826,23 +1837,23 @@ int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, E
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET) {
-      se_not_open("Socket", "upgradeServerToSSL", xsink);
-      return -1;
-   }
-   if (priv->ssl)
-      return 0;
-   return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, -1, xsink);
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "upgradeServerToSSL", xsink);
+        return -1;
+    }
+    if (priv->ssl)
+        return 0;
+    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
-   if (priv->sock == QORE_INVALID_SOCKET) {
-      se_not_open("Socket", "upgradeServerToSSL", xsink);
-      return -1;
-   }
-   if (priv->ssl)
-      return 0;
-   return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, timeout_ms, xsink);
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "upgradeServerToSSL", xsink);
+        return -1;
+    }
+    if (priv->ssl)
+        return 0;
+    return priv->upgradeServerToSSLIntern("upgradeServerToSSL", cert, pkey, timeout_ms, xsink);
 }
 
 /* currently hardcoded to SOCK_STREAM (tcp-only)
@@ -1980,14 +1991,22 @@ int QoreSocket::getPort() {
 // QoreSocket::accept()
 // returns a new socket
 QoreSocket* QoreSocket::accept(SocketSource* source, ExceptionSink* xsink) {
-   int rc = priv->accept_internal(xsink, source, -1);
-   if (rc < 0)
-      return 0;
+    int rc = priv->accept_internal(xsink, source, -1);
+    if (rc < 0)
+        return 0;
 
-   QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
-   if (!priv->socketname.empty())
-      s->priv->socketname = priv->socketname;
-   return s;
+    QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+    if (!priv->socketname.empty())
+        s->priv->socketname = priv->socketname;
+
+    // set SSL params on new socket in case SSL negotiation will be made in the background
+    s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+    s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
+    if (priv->ssl_capture_remote_cert) {
+        s->priv->ssl_capture_remote_cert = true;
+    }
+
+    return s;
 }
 
 // QoreSocket::acceptSSL()
@@ -2013,29 +2032,36 @@ QoreSocket* QoreSocket::acceptSSL(SocketSource* source, X509* cert, EVP_PKEY* pk
 
 // accept a connection and replace the socket with the new connection
 int QoreSocket::acceptAndReplace(SocketSource* source) {
-   QORE_TRACE("QoreSocket::acceptAndReplace()");
-   ExceptionSink xsink;
-   int rc = priv->accept_internal(&xsink, source);
-   // ignore exception; we just use a return code
-   if (xsink)
-      xsink.clear();
-   if (rc < 0)
-      return -1;
-   priv->close_internal();
-   priv->sock = rc;
+    QORE_TRACE("QoreSocket::acceptAndReplace()");
+    ExceptionSink xsink;
+    int rc = priv->accept_internal(&xsink, source);
+    // ignore exception; we just use a return code
+    if (xsink)
+        xsink.clear();
+    if (rc < 0)
+        return -1;
 
-   return 0;
+    priv->close_internal();
+    priv->sock = rc;
+    return 0;
 }
 
 QoreSocket* QoreSocket::accept(int timeout_ms, ExceptionSink* xsink) {
-   int rc = priv->accept_internal(xsink, 0, timeout_ms);
-   if (rc < 0)
-      return nullptr;
-   QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
-   if (!priv->socketname.empty())
-      s->priv->socketname = priv->socketname;
+    int rc = priv->accept_internal(xsink, 0, timeout_ms);
+    if (rc < 0)
+        return nullptr;
+    QoreSocket* s = new QoreSocket(rc, priv->sfamily, priv->stype, priv->sprot, priv->enc);
+    if (!priv->socketname.empty())
+        s->priv->socketname = priv->socketname;
 
-   return s;
+    // set SSL params on new socket in case SSL negotiation will be made in the background
+    s->priv->setSslVerifyMode(priv->ssl_verify_mode);
+    s->priv->acceptAllCertificates(priv->ssl_accept_all_certs);
+    if (priv->ssl_capture_remote_cert) {
+        s->priv->ssl_capture_remote_cert = true;
+    }
+
+    return s;
 }
 
 QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
@@ -2057,13 +2083,13 @@ QoreSocket* QoreSocket::acceptSSL(int timeout_ms, X509* cert, EVP_PKEY* pkey, Ex
 }
 
 int QoreSocket::acceptAndReplace(int timeout_ms, ExceptionSink* xsink) {
-   int rc = priv->accept_internal(xsink, 0, timeout_ms);
-   if (rc < 0)
-      return -1;
+    int rc = priv->accept_internal(xsink, 0, timeout_ms);
+    if (rc < 0)
+        return -1;
 
-   priv->close_internal();
-   priv->sock = rc;
-   return 0;
+    priv->close_internal();
+    priv->sock = rc;
+    return 0;
 }
 
 int QoreSocket::listen(int backlog) {
