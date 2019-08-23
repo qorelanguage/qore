@@ -239,14 +239,65 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
+        addTestCase("client certs", \clientCertTest());
         addTestCase("issue 3472", \issue3472());
         # disabled test as the external dependency is currently not working (2019-03-20)
         #addTestCase("issue 3053", \issue3053());
         addTestCase("HttpClient Test", \testClient());
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
-
         set_return_value(main());
+    }
+
+    clientCertTest() {
+        TempFile cert("cert.pem", TestCert);
+
+        Queue q();
+        {
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, True);
+            # wait for server to be listening and get port
+            int port = q.get();
+
+            HTTPClient hc({
+                "url": "https://localhost:" + port,
+                "ssl_cert_path": cert.getPath(),
+                "ssl_key_path": cert.getPath(),
+            });
+            hash<auto> h = hc.send(NOTHING, "GET");
+            SSLCertificate x509_local(ReadOnlyFile::readTextFile(cert.getPath()));
+            binary sig_local = x509_local.getSignature();
+            SSLCertificate x509_remote = q.get();
+            binary sig_remote = x509_remote.getSignature();
+            #printf("%s <=> %s: %y\n", sig_local.toHex(), sig_remote.toHex(), sig_local <=> sig_remote);
+            assertEq(sig_local, sig_remote);
+        }
+        {
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False);
+
+            # wait for server to be listening and get port
+            int port = q.get();
+
+            HTTPClient hc({
+                "url": "https://localhost:" + port,
+                "ssl_cert_path": cert.getPath(),
+                "ssl_key_path": cert.getPath(),
+            });
+            assertThrows("SOCKET-SSL-ERROR", \hc.send(), (NOTHING, "GET"));
+            assertEq("SOCKET-SSL-ERROR", q.get().err);
+        }
+        {
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False);
+
+            # wait for server to be listening and get port
+            int port = q.get();
+
+            HTTPClient hc({
+                "url": "http://localhost:" + port,
+                "ssl_cert_path": cert.getPath(),
+                "ssl_key_path": cert.getPath(),
+            });
+            assertThrows("SOCKET-CLOSED", \hc.send(), (NOTHING, "GET"));
+        }
     }
 
     issue3472() {
@@ -509,5 +560,47 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         q.push(s.getSocketInfo().port);
         Socket ns = s.acceptSSL(15s);
         ns.bind(0);
+    }
+
+    sslReadClientCertTest(Queue q, int verify_mode, bool accept_all) {
+        Socket s();
+        s.setSslVerifyMode(verify_mode);
+        if (accept_all) {
+            s.acceptAllCertificates();
+        }
+        s.captureRemoteCertificates();
+        s.bind(0);
+        s.listen();
+        s.setCertificate(TestCert);
+        s.setPrivateKey(TestCert);
+        q.push(s.getSocketInfo().port);
+        try {
+            Socket ns = s.acceptSSL(15s);
+            q.push(ns.getRemoteCertificate());
+            ns.send(NormalReply1);
+        } catch (hash<ExceptionInfo> ex) {
+            q.push(ex);
+        }
+    }
+}
+
+class TempFile {
+    private {
+        string path;
+    }
+
+    constructor(string name, data content) {
+        path = sprintf("%s%s%s", tmp_location(), DirSep, name);
+        File f();
+        f.open2(path, O_CREAT | O_WRONLY | O_TRUNC);
+        f.write(content);
+    }
+
+    destructor() {
+        unlink(path);
+    }
+
+    string getPath() {
+        return path;
     }
 }

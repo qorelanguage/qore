@@ -209,6 +209,9 @@ struct qore_socket_private {
     friend class PrivateQoreSocketTimeoutHelper;
     friend class PrivateQoreSocketThroughputHelper;
 
+    // for client certificate capture
+    static thread_local qore_socket_private* current_socket;
+
     int sock, sfamily, port, stype, sprot;
     const QoreEncoding* enc;
 
@@ -229,18 +232,22 @@ struct qore_socket_private {
     int64 tl_warning_us = 0;     // timeout threshold for network action warning in microseconds
     double tp_warning_bs = 0;    // throughput warning threshold in B/s
     int64 tp_bytes_sent = 0,     // throughput: bytes sent
-        tp_bytes_recv = 0,        // throughput: bytes received
-        tp_us_sent = 0,           // throughput: time sending
-        tp_us_recv = 0,           // throughput: time receiving
-        tp_us_min = 0             // throughput: minimum time for transfer to be considered
+        tp_bytes_recv = 0,       // throughput: bytes received
+        tp_us_sent = 0,          // throughput: time sending
+        tp_us_recv = 0,          // throughput: time receiving
+        tp_us_min = 0            // throughput: minimum time for transfer to be considered
         ;
 
     QoreValue callback_arg;
     bool del = false,
         http_exp_chunked_body = false,
-        ssl_accept_all_certs = false;
+        ssl_accept_all_certs = false,
+        ssl_capture_remote_cert = false;
     int in_op = -1,
         ssl_verify_mode = SSL_VERIFY_NONE;
+
+    // issue #3512: the remote certificate captured
+    QoreObject* remote_cert = nullptr;
 
     DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding* n_enc = QCS_DEFAULT) :
         sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc) {
@@ -301,6 +308,10 @@ struct qore_socket_private {
 
     DLLLOCAL int close_internal() {
         //printd(5, "qore_socket_private::close_internal(this: %p) sock: %d\n", this, sock);
+        if (remote_cert) {
+            remote_cert->deref(nullptr);
+            remote_cert = nullptr;
+        }
         if (sock >= 0) {
             // if an SSL connection has been established, shut it down first
             if (ssl) {
@@ -3392,6 +3403,8 @@ struct qore_socket_private {
     DLLLOCAL static const qore_socket_private* get(const QoreSocket& sock) {
         return sock.priv;
     }
+
+    DLLLOCAL static void captureRemoteCert(X509_STORE_CTX* x509_ctx);
 };
 
 #endif
