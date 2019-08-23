@@ -284,6 +284,8 @@ SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock, bool set
     assert(!s->ssl);
     ssl = s->ssl = new SSLSocketHelper(*sock);
 
+    //printd(5, "SSLSocketHelperHelper::SSLSocketHelperHelper() priv: %p STC: %d CR: %d\n", s, set_thread_context, s->ssl_capture_remote_cert);
+
     if (set_thread_context && !qore_socket_private::current_socket && s->ssl_capture_remote_cert) {
         qore_socket_private::current_socket = s;
         context_saved = true;
@@ -293,6 +295,7 @@ SSLSocketHelperHelper::SSLSocketHelperHelper(qore_socket_private* sock, bool set
 SSLSocketHelperHelper::~SSLSocketHelperHelper() {
     if (context_saved) {
         qore_socket_private::current_socket = nullptr;
+        //printd(5, "SSLSocketHelperHelper::~SSLSocketHelperHelper() priv: %p RESET\n", s);
     }
 }
 
@@ -710,7 +713,7 @@ void qore_socket_private::captureRemoteCert(X509_STORE_CTX* x509_ctx) {
         return;
     }
 
-    X509* x509 = X509_STORE_CTX_get0_cert(x509_ctx);
+    X509* x509 = X509_STORE_CTX_get_current_cert(x509_ctx);
     assert(x509);
     current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(), new QoreSSLCertificate(X509_dup(x509)));
 }

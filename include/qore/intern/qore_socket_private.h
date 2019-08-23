@@ -466,11 +466,12 @@ struct qore_socket_private {
     }
 
     DLLLOCAL int accept_intern(ExceptionSink* xsink, struct sockaddr *addr, socklen_t *size, int timeout_ms = -1) {
+        //printd(5, "qore_socket_private::accept_intern() to: %d\n", timeout_ms);
         assert(xsink);
         while (true) {
             if (timeout_ms >= 0 && !isDataAvailable(timeout_ms, "accept", xsink)) {
                 if (*xsink)
-                return -1;
+                    return -1;
                 // do not throw exception here, NOTHING will be returned in Qore on timeout
                 return QSE_TIMEOUT; // -3
             }

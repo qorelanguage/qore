@@ -114,7 +114,6 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     # return the stream request handler
     TestStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         remote_cert = s.getRemoteCertificate();
-        printf("XXX GSR RS: %y ssl: %y\n", remote_cert, cx.ssl);
         return new TestStreamRequest(listener, self, s, cx, hdr, body);
     }
 }
@@ -135,8 +134,9 @@ class RealTestHttpServer inherits HttpServer {
     }
 
     static log(string fmt) {
-        #vprintf("HTTP: " + fmt + "\n", argv);
-        delete argv;
+        if (Main::verbose > 2) {
+            vprintf("HTTP: " + fmt + "\n", argv);
+        }
     }
 }
 
@@ -186,6 +186,8 @@ class TestInputStream inherits InputStream {
 
 public class Main inherits QUnit::Test {
     public {
+        static int verbose = 0;
+
         const Utf8Str = "Hät";
         const Iso88591Str = convert_encoding(Utf8Str, "iso-8859-1");
 
@@ -247,6 +249,9 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
+        if (m_options.verbose) {
+            verbose = m_options.verbose;
+        }
         addTestCase("client certs", \clientCertTest());
         addTestCase("issue 3472", \issue3472());
         # disabled test as the external dependency is currently not working (2019-03-20)
@@ -317,7 +322,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
                 "ssl_cert_path": cert.getPath(),
                 "ssl_key_path": cert.getPath(),
             });
-            hc.send("", "PUT");
+            hc.send("", "PUT", NOTHING, {"Connection": "close"});
             binary sig_remote = EchoHandler::remote_cert.getSignature();
             #printf("%s <=> %s: %y\n", sig_local.toHex(), sig_remote.toHex(), sig_local <=> sig_remote);
             assertEq(sig_local, sig_remote);
@@ -494,7 +499,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             list l = ();
             code rcb = sub (hash h) { l += h; };
             TestOutputStream strstr();
-            hc.send(strstr, TestMessage, "POST", "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb);
+            hc.send(strstr, TestMessage, "POST", "/something", {"Content-Type": MimeTypeText}, 5s, False, NOTHING, rcb);
             assertEq(TestMessage, strstr.getData());
             assertEq(1, l.size());
             list ml = strstr.getList();
@@ -519,7 +524,11 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             code tcb = *hash sub () {
                 return ("X-Content-Done": "true");
             };
-            hc.sendChunked(strstr, is, "POST", NOTHING, "/something", ("Content-Type": MimeTypeText), 5s, False, NOTHING, rcb, tcb);
+            hc.sendChunked(strstr, is, "POST", NOTHING, "/something",
+                {
+                    "Content-Type": MimeTypeText,
+                    "Connection": "close"
+                }, 5s, False, NOTHING, rcb, tcb);
             assertEq(TestMessage, strstr.getData());
             assertEq(1, l.size());
             ml = strstr.getList();
