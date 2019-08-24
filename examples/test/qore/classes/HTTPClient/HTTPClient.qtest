@@ -124,9 +124,17 @@ class RealTestHttpServer inherits HttpServer {
         int port;
     }
 
-    constructor(*string cert_path, *string key_path) : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
+    constructor(*string cert_path, *string key_path, *hash<HttpListenerOptionInfo> listener_opts) : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
         setDefaultHandler("echo-handler", eh);
-        port = addListener(0, cert_path, key_path).port;
+        if (!listener_opts) {
+            listener_opts = <HttpListenerOptionInfo>{};
+        }
+        if (cert_path) {
+            listener_opts += HttpServer::getSSLObjects(cert_path, key_path);
+        }
+        # bind on a random port
+        listener_opts.service = 0;
+        port = addListener(listener_opts).port;
     }
 
     int getPort() {
@@ -244,8 +252,7 @@ cRXMfO4LHaOnYqkCAwEAATANBgkqhkiG9w0BAQUFAAOBgQBr21qq2lumlPmYOOcm
 DsmBA/UtpeWckjlUUk+7yxuhSRY7yeM9MR+urXvYq26H/3QTJdjDt9tWzOJhNXfe
 iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
 +LT4OPQXYrab6IlJVnK5QXbZ3g==
------END CERTIFICATE-----
-    ";
+-----END CERTIFICATE-----";
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
@@ -314,7 +321,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertThrows("SOCKET-CLOSED", \hc.send(), (NOTHING, "GET"));
         }
         {
-            RealTestHttpServer serv(cert.getPath(), cert.getPath());
+            RealTestHttpServer serv(cert.getPath(), cert.getPath(), <HttpListenerOptionInfo>{"get_remote_certs": True});
             on_exit delete serv;
 
             HTTPClient hc({

@@ -65,6 +65,10 @@ class RestCmd {
             "data":      "S,serialization=s",
             "swagger":   "s,swagger=s",
             "example":   "x,example:s",
+            "cert":      "c,cert=s",
+            "key":       "k,key=s",
+            "keypass":   "K,keypass=s",
+
             "help":      "h,help",
         };
 
@@ -186,10 +190,16 @@ class RestCmd {
 
         if (opt.to) {
             int to = opt.to * 1000;
-            opts += (
+            opts += {
                 "timeout": to,
                 "connect_timeout": to,
-                );
+            };
+        }
+
+        if (opt.cert) {
+            opts.ssl_cert_path = opt.cert;
+            opts.ssl_key_path = opt.key ?? opt.cert;
+            opts.ssl_key_password = opt.keypass;
         }
 
         RestClient rest(opts);
@@ -355,8 +365,11 @@ class RestCmd {
  -e,--send-encoding[=ARG]  set compression in outgoing request
                            [ARG=gzip,deflate,bzip2,identity]
  -E,--full-exception       show full exception output
+ -c,--cert=ARG             client X.509 certificate to use
  -H,--header=ARG           send header with request
  -l,--literal              show literal API calls (more l's, more info)
+ -K,--keypass=ARG          password to use for key for client certificate
+ -k,--key=ARG              key to use for client certificate
  -L,--list                 list URI paths and methods supported by the schema
  -P,--proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
  -R,--reformat             reformat data with -l+ for better readability
