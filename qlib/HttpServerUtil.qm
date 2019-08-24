@@ -555,6 +555,8 @@ public class HttpServer::AbstractAuthenticator {
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
@@ -639,6 +641,8 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
@@ -965,6 +969,8 @@ public class HttpServer::AbstractHttpRequestHandler {
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
@@ -1081,6 +1087,8 @@ public class HttpServer::AbstractHttpRequestHandler {
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
@@ -1279,6 +1287,8 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
@@ -1352,6 +1362,8 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
           - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
           - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
             this key
+          - \c client_cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
           - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
             @ref Qore::False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing

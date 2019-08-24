@@ -1760,8 +1760,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # don't reimplement this method; fix/enhance it in the module
     final static hash<HttpCertInfo> getSSLObjects(string cert_path, *string key_path, *string pwd) {
-        File f();
-
         # issue #3397: user friendly error messages are necessary for SSL cert or key errors
         *hash<StatInfo> statinfo = hstat(cert_path);
         if (!statinfo) {
@@ -1917,11 +1915,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     final private list<hash<auto>> addINETListenersIntern(hash<HttpListenerOptionInfo> info) {
         list<auto> al = getaddrinfo(info.node, info.service, info.family, AIFlags);
 
-        File f();
-        f.open2("/tmp/" + info.name, O_CREAT | O_WRONLY | O_TRUNC);
-
-        f.printf("al: %N\n", al);
-
         # sort ipv6 addresses first in list
         al = sort(al, int sub (hash<auto> l, hash<auto> r) {
             return l.family === AF_INET6 ? -1 : 0;
@@ -1953,11 +1946,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
 
                 log("cannot add listener on %s:%d: %s: %s: %s", h.address_desc, h.port, get_ex_pos(ex), ex.err, ex.desc);
-                f.printf("%s\n", get_exception_string(ex));
             }
         }
 
-        f.printf("RV: %N\n", rv);
         return rv;
     }
 
@@ -2954,7 +2945,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
                 # add client certificate if requested and available
                 if (get_remote_certs) {
-                    cx.client_cert = s.getRemoteCertificate();
+                    cx."client-cert" = s.getRemoteCertificate();
                 }
                 serv.handleRequest(self, s, \cx, hdr, body, hdr.method == "HEAD", phi, info, \dedicated);
 
