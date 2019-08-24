@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -147,7 +147,7 @@ binary der = cert.getDER();
 
     @return a binary object in DER format representing the certificate
 
-    @throw SSLPRIVATEKEY-ERROR could not create DER data from certificate data
+    @throw X509-ERROR could not create DER data from certificate data
 
     @since %Qore 0.9
 */
@@ -230,10 +230,10 @@ string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = cert.getSubjectHash();
+hash<auto> h = cert.getSubjectHash();
     @endcode
  */
-hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
+hash<auto> SSLCertificate::getSubjectHash() [flags=CONSTANT] {
     return s->getSubjectHash();
 }
 
@@ -242,10 +242,10 @@ hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = cert.getIssuerHash();
+hash<auto> h = cert.getIssuerHash();
     @endcode
  */
-hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
+hash<auto> SSLCertificate::getIssuerHash() [flags=CONSTANT] {
     return s->getIssuerHash();
 }
 
@@ -278,10 +278,10 @@ int SSLCertificate::getVersion() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = cert.getPurposeHash();
+hash<auto> h = cert.getPurposeHash();
     @endcode
  */
-hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
+hash<auto> SSLCertificate::getPurposeHash() [flags=CONSTANT] {
     return s->getPurposeHash();
 }
 

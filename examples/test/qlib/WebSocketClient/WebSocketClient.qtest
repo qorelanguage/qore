@@ -17,6 +17,9 @@
 
 %exec-class WebSocketClientTest
 
+# we explicitly test deprecated functionality here
+%disable-warning deprecated
+
 class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
         map send($1), WebSocketClientTest::Data;
