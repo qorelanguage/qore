@@ -1771,6 +1771,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 cert_path);
         }
 
+        File f();
+
         SSLCertificate cert;
         data cert_data;
         try {
