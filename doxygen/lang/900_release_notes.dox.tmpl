@@ -61,6 +61,9 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - fixed a bug where attempting to serialize a weak references to a serializable object would result in an
+      exception
+      (<a href="https://github.com/qorelanguage/qore/issues/3515">issue 3515</a>)
     - fixed a bug where new @ref Qore::DatasourcePool "DatasourcePool" connections were left in place when calls to
       @ref Qore::DatasourcePool::beginTransaction() "DatasourcePool::beginTransaction()" would fail with an exception
       (<a href="https://github.com/qorelanguage/qore/issues/3509">issue 3509</a>)
