@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%allow-weak-references
 
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
@@ -159,6 +160,16 @@ class OnlyTransient inherits Serializable {
     }
 }
 
+class Issue3515 inherits Serializable {
+    public {
+        TimeZone tz;
+    }
+
+    constructor(TimeZone tz) {
+        self.tz := tz;
+    }
+}
+
 class SerializableTest inherits QUnit::Test {
     public {
         const Data = (
@@ -239,6 +250,7 @@ class SerializableTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Serializable", "1.0") {
+        addTestCase("weakref test", \weakRefTest());
         addTestCase("issue 3395", \issue3395());
         addTestCase("Serializable test", \serializableTest());
         addTestCase("private key test", \privateKeyTest());
@@ -247,6 +259,12 @@ class SerializableTest inherits QUnit::Test {
         addTestCase("call stack test", \callStackTest());
 
         set_return_value(main());
+    }
+
+    weakRefTest() {
+        TimeZone tz0("Europe/Prague");
+        Issue3515 obj(tz0);
+        assertEq(tz0.region(), Serializable::deserialize(Serializable::serialize(obj)).tz.region());
     }
 
     issue3395() {
