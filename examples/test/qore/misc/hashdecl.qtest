@@ -33,13 +33,25 @@ public hashdecl R1 {
     hash<R1> r();
 }
 
+hashdecl Issue3518 {
+    int i;
+}
+
 *string sub str_test() {}
 
 class HashDeclTest inherits QUnit::Test {
     constructor() : QUnit::Test("HashDecl test", "1.0") {
+        addTestCase("serialize imported", \serializeImportedTest());
         addTestCase("issue 3167", \issue3167());
         addTestCase("Test HashDecl", \testHashDecl());
         set_return_value(main());
+    }
+
+    serializeImportedTest() {
+        Program p();
+        p.importHashDecl("Issue3518");
+        p.parse("binary sub t() { return Serializable::serialize(<Issue3518>{\"i\": 1}); }", "");
+        assertEq("hash<Issue3518>", Serializable::deserialize(p.callFunction("t")).fullType());
     }
 
     issue3167() {
