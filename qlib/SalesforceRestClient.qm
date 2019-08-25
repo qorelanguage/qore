@@ -1023,8 +1023,7 @@ sfrest.logout();
             if (api == "auto") {
                 api = api_used = api_hash.lastKey();
                 ah = api_hash.lastValue();
-            }
-            else {
+            } else {
                 *hash aah = api_hash{api};
                 if (!aah)
                     throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not supported; supported Salesforce.com APIs: %y", api, api_hash.keys());

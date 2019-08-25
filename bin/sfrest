@@ -92,7 +92,7 @@ class SfRestClient {
 
     constructor() {
         GetOpt g(Opts);
-        hash opt = g.parse3(\ARGV);
+        hash<auto> opt = g.parse3(\ARGV);
         if (opt.help)
             usage();
 
@@ -134,7 +134,7 @@ class SfRestClient {
                 printf("%s (through HTTP proxy: %s)\n", rc.getURL(), rc.getProxyURL());
             else
                 printf("%s\n", rc.getURL());
-            exit(0);
+            thread_exit;
         }
 
         if (opt.examples) {
@@ -147,13 +147,12 @@ class SfRestClient {
             usage();
 
         *string path = shift ARGV;
-        any body;
+        auto body;
         if (!Methods{meth.upr()}) {
             body = path;
             path = meth;
             meth = "GET";
-        }
-        else {
+        } else {
             meth = meth.upr();
             body = shift ARGV;
         }
@@ -191,7 +190,17 @@ class SfRestClient {
             rc.setSendEncoding(opt.sendenc);
         }
 
-        rc.login();
+        hash<auto> info;
+        try {
+            rc.login(\info);
+        } catch (hash<ExceptionInfo> ex) {
+            if (info."response-body") {
+                stderr.printf("%s: %s: %y\n", ex.err, ex.desc, info."response-body");
+            } else {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+            }
+            exit(1);
+        }
 
         if (opt.verbose)
             printf("Salesforce.com API: %y URL: %y\n", rc.getApi(), rc.getURL());
@@ -204,7 +213,7 @@ class SfRestClient {
             rc.setURL(rc.getURL() + "/" + path);
         }
 
-        hash hdr;
+        hash<auto> hdr;
 
         # set headers
         if (opt.mod)
@@ -212,9 +221,8 @@ class SfRestClient {
         if (opt.nmod)
             hdr."If-Unmodified-Since" = opt.mod;
 
-        hash info;
         try {
-            hash h;
+            hash<auto> h;
             on_exit if (opt.lit) {
                 showRestRequest(info, body, opt);
                 showRestResponse(info, h.body, opt);
@@ -252,13 +260,11 @@ class SfRestClient {
                         if (ex.arg.body.typeCode() == NT_STRING) {
                             trim ex.arg.body;
                             print(ex.arg.body);
-                        }
-                        else {
+                        } else {
                             if (ex.arg.typeCode() == NT_STRING) {
                                 trim ex.arg;
                                 printf("%y", ex.arg);
-                            }
-                            else
+                            } else
                                 printf("%y", ex.arg);
                         }
                     }
