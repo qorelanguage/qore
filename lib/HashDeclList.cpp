@@ -64,9 +64,12 @@ void HashDeclList::addInternal(TypedHashDecl* hd) {
 
 int HashDeclList::add(TypedHashDecl* hd) {
     //printd(5, "hdL::add() this: %p '%s' (%p)\n", this, hd->getName(), hd);
+    // issue #3518: ensure that hashdecls always have a namespace set before adding to the namespace hashdecl list
+    assert(typed_hash_decl_private::get(*hd)->getNamespace());
 
-    if (find(hd->getName()))
+    if (find(hd->getName())) {
         return -1;
+    }
 
     hm[hd->getName()] = hd;
     return 0;

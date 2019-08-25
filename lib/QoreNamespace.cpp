@@ -771,6 +771,32 @@ QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreC
     return nc;
 }
 
+TypedHashDecl* qore_ns_private::runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd,
+    QoreProgram* spgm, q_setpub_t set_pub, const char* new_name) {
+    if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink)) {
+        return nullptr;
+    }
+
+    TypedHashDecl* nhd = new TypedHashDecl(*hd);
+    // issue #3518: must set namespace before adding hashdecl
+    typed_hash_decl_private::get(*nhd)->setNamespace(this);
+    if (new_name) {
+        typed_hash_decl_private::get(*nhd)->setName(new_name);
+    }
+    if (set_pub == CSP_SETPUB) {
+        if (!typed_hash_decl_private::get(*nhd)->isPublic()) {
+            typed_hash_decl_private::get(*nhd)->setPublic();
+        }
+    } else if (set_pub == CSP_SETPRIV) {
+        if (typed_hash_decl_private::get(*nhd)->isPublic()) {
+            typed_hash_decl_private::get(*nhd)->setPrivate();
+        }
+    }
+    hashDeclList.add(nhd);
+
+    return nhd;
+}
+
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool user, bool& is_new) {
     assert(!is_new);
 
@@ -2492,12 +2518,12 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, Typ
     if (!imported && !pub && typed_hash_decl_private::get(*hashdecl)->isPublic() && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), hashdecl->getName(), name.c_str());
 
+    typed_hash_decl_private::get(*hashdecl)->setNamespace(this);
     if (hashDeclList.add(hashdecl)) {
         parse_error(*loc, "hashdecl '%s' is already defined in namespace '%s::'", hashdecl->getName(), name.c_str());
         return -1;
     }
 
-    typed_hash_decl_private::get(*hashdecl)->setNamespace(this);
     thd.release();
 
     return 0;

@@ -262,26 +262,7 @@ public:
 
     DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, q_setpub_t set_pub, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr);
 
-    DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, q_setpub_t set_pub, const char* new_name = nullptr) {
-        if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink))
-            return nullptr;
-
-        TypedHashDecl* nhd = new TypedHashDecl(*hd);
-        if (new_name)
-            typed_hash_decl_private::get(*nhd)->setName(new_name);
-        if (set_pub == CSP_SETPUB) {
-            if (!typed_hash_decl_private::get(*nhd)->isPublic()) {
-                typed_hash_decl_private::get(*nhd)->setPublic();
-            }
-        } else if (set_pub == CSP_SETPRIV) {
-            if (typed_hash_decl_private::get(*nhd)->isPublic()) {
-                typed_hash_decl_private::get(*nhd)->setPrivate();
-            }
-        }
-        hashDeclList.add(nhd);
-
-        return nhd;
-    }
+    DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, q_setpub_t set_pub, const char* new_name = nullptr);
 
     DLLLOCAL const FunctionEntry* runtimeFindFunctionEntry(const char* name) {
         return func_list.findNode(name, true);
