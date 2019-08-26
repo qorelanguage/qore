@@ -50,15 +50,16 @@ private:
     }
 
 public:
-    // marks all variables as finalized on the stack
+    // clears and marks all variables as finalized on the stack
     DLLLOCAL void finalize(arg_vec_t*& cl) {
         ThreadClosureVariableStack::iterator i(curr);
         while (i.next()) {
-            QoreValue n = i.get()->finalize();
-            if (n.isReferenceCounted()) {
-                if (!cl)
+            ValueHolder n(i.get()->finalize(), nullptr);
+            if (n->derefCanThrowException()) {
+                if (!cl) {
                     cl = new arg_vec_t;
-                cl->push_back(n);
+                }
+                cl->push_back(n.release());
             }
         }
     }

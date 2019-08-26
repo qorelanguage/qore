@@ -34,21 +34,24 @@
 
 class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
 public:
-    // marks all variables as finalized on the stack
+    // clears and marks all variables as finalized on the stack
     DLLLOCAL void finalize(arg_vec_t*& cl) {
         ThreadLocalVariableData::iterator i(curr);
         while (i.next()) {
-            QoreValue n = i.get().finalize();
-            if (n.isReferenceCounted()) {
-                if (!cl)
+            ValueHolder n(i.get().finalize(), nullptr);
+            if (n->derefCanThrowException()) {
+                if (!cl) {
                     cl = new arg_vec_t;
-                cl->push_back(n);
+                }
+                cl->push_back(n.release());
             }
         }
     }
 
     // deletes everything on the stack
     DLLLOCAL void del(ExceptionSink* xsink) {
+        //printd(5, "ThreadLocalVariableData::del() this: %p empty: %d prev: %p pos: %d\n", this, empty(), curr->prev, curr->pos);
+
         // then we uninstantiate
         while (curr->prev || curr->pos)
             uninstantiate(xsink);
@@ -69,6 +72,7 @@ public:
 
     DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
         uninstantiateIntern();
+        //printd(5, "ThreadLocalVariableData::uninstantiate() this: %p '%s' pos: %d\n", this, curr->var[curr->pos].id, curr->pos);
         curr->var[curr->pos].uninstantiate(xsink);
     }
 

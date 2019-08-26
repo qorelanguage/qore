@@ -413,6 +413,9 @@ public:
 
     //! returns true if the value holds a referenced-counted node
     DLLEXPORT bool isReferenceCounted() const;
+
+    //! returns true if a dereference could theoretically throw an exception (an object is reachable from this value)
+    DLLEXPORT bool derefCanThrowException() const;
 };
 
 //! base class for holding a QoreValue object

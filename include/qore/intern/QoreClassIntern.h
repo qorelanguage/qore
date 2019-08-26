@@ -2543,8 +2543,8 @@ public:
         //printd(5, "qore_class_private::clear() this: %p '%s' %d -> %d\n", this, name.c_str(), var_refs.reference_count(), var_refs.reference_count() - 1);
 
         if (var_refs.ROdereference()) {
+            // issue #3521: only clear vars here; do not delete
             vars.clear(xsink);
-            vars.del(xsink);
         }
     }
 

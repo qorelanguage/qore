@@ -620,7 +620,7 @@ public:
             delete pgm;
     }
 
-    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
+    DLLLOCAL void clearLocalVars(ExceptionSink* xsink) {
         // grab all thread-local data in a vector and finalize it outside the lock
         arg_vec_t* cl = nullptr;
         {
@@ -642,7 +642,9 @@ public:
             }
             delete cl;
         }
+    }
 
+    DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
         for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
             i->second->del(xsink);
             i->first->delProgram(pgm);
@@ -852,16 +854,14 @@ public:
             script_dir.clear();
             script_path.clear();
             script_name.clear();
-        }
-        else {
+        } else {
             // find file name
             const char* p = q_basenameptr(path);
             if (p == path) {
                 script_name = path;
                 script_dir = "." QORE_DIR_SEP_STR;
                 script_path = script_dir + script_name;
-            }
-            else {
+            } else {
                 script_path = path;
                 script_name = p;
                 script_dir.assign(path, p - path);
