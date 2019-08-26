@@ -631,13 +631,6 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         #! listener log option: log sent message body
         const LLO_SEND_BODY = (1 << 3);
-
-        #! maximum X.509 and private key file length
-        /** there is no real maximum size for these files, however an upper limit is used here to ensure that
-            huge files are not used for the SSL cert and key files which could cause a crash or memory problems;
-            currently set to 1M which is orders of magnitude higher than any real files currently in existence
-        */
-        const MaxSslFileLen = 1024 * 1024;
         #@}
     }
 
@@ -864,7 +857,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", lp.url.type());
         }
 
-        hash<HttpCertInfo> ssl_info = HttpServer::getSSLObjects(lp);
+        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(lp);
 
         # setup all listener option info except node and service
         hash<HttpListenerOptionInfo> info({
@@ -917,7 +910,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @deprecated use addListeners(string, hash<HttpListenerOptionInfo>) instead
      */
     final list<hash<auto>> addListeners(string bind, hash<auto> lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
-        hash<HttpCertInfo> ssl_info = HttpServer::getSSLObjects(lp);
+        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(lp);
 
         # setup all listener option info except node and service
         hash<HttpListenerOptionInfo> info({
@@ -955,7 +948,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     deprecated hash<auto> addListener(softstring bind, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
         hash<HttpCertInfo> ssl_info;
         if (cert_path) {
-            ssl_info = HttpServer::getSSLObjects(cert_path, key_path, pwd);
+            ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
         }
 
         # setup all listener option info except node and service
@@ -999,7 +992,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     deprecated softlist<hash<auto>> addListeners(softstring bind, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
         hash<HttpCertInfo> ssl_info;
         if (cert_path) {
-            ssl_info = HttpServer::getSSLObjects(cert_path, key_path, pwd);
+            ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
         }
 
         # setup all listener option info except node and service
@@ -1032,7 +1025,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @deprecated use addINETListeners(hash<HttpListenerOptionInfo>) instead
      */
     deprecated list<hash<auto>> addINETListeners(*string node, softstring service, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-        hash<HttpCertInfo> ssl_info = HttpServer::getSSLObjects(cert_path, key_path, pwd);
+        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
 
         # setup all listener option info except node and service
         hash<HttpListenerOptionInfo> info({
@@ -1735,170 +1728,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final static hash<HttpCertInfo> getSSLObjects(hash<auto> listener_params) {
-        if (listener_params.cert_path && !listener_params.cert) {
-            return HttpServer::getSSLObjects(listener_params.cert_path, listener_params.key_path, listener_params.key_password);
-        }
-
-        hash<HttpCertInfo> ssl_info();
-        if (listener_params.cert) {
-            if (!(listener_params.cert instanceof SSLCertificate)) {
-                throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'cert' entry in listener description; "
-                    "expecting a 'SSLCertificate' object, got type '%s' instead", listener_params.cert.fullType());
-            }
-            ssl_info.cert = listener_params.cert;
-            if (listener_params.key) {
-                if (!(listener_params.key instanceof SSLPrivateKey)) {
-                    throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'key' entry in listener description; "
-                        "expecting a 'SSLPrivateKey' object, got type '%s' instead", listener_params.key.fullType());
-                }
-                ssl_info.key = listener_params.key;
-            }
-        }
-        return ssl_info;
-    }
-
-    # don't reimplement this method; fix/enhance it in the module
-    final static hash<HttpCertInfo> getSSLObjects(string cert_path, *string key_path, *string pwd) {
-        # issue #3397: user friendly error messages are necessary for SSL cert or key errors
-        *hash<StatInfo> statinfo = hstat(cert_path);
-        if (!statinfo) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from inaccessible path "
-                "%y", cert_path);
-        }
-        if (!statinfo.size) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from empty file %y",
-                cert_path);
-        }
-
-        File f();
-
-        SSLCertificate cert;
-        data cert_data;
-        try {
-            # read in X.509 certificate file
-            f.open2(cert_path);
-            # read in X.509 certificate file
-            cert_data = cert_path =~ /\.der$/
-                ? f.readBinary(MaxSslFileLen)
-                : f.read(MaxSslFileLen);
-            # create certificate object
-            cert = new SSLCertificate(cert_data);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow user-friendly exception
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from path %y: %s: %s",
-                cert_path, ex.err, ex.desc);
-        }
-
-        SSLPrivateKey key;
-        if (key_path.val()) {
-            *hash<StatInfo> statinfo = hstat(key_path);
-            if (!statinfo) {
-                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
-                    "%y", key_path);
-            }
-            if (!statinfo.size) {
-                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from empty file %y",
-                    key_path);
-            }
-        }
-
-        try {
-            # read in private key file
-            if (key_path.val()) {
-                f.open2(key_path);
-                key = key_path =~ /\.der$/
-                    ? new SSLPrivateKey(f.readBinary(-1))
-                    : new SSLPrivateKey(f.read(-1), pwd);
-            } else {
-                key = new SSLPrivateKey(cert_data, pwd);
-            }
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow user-friendly exception
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from path %y: %s: %s",
-                key_path.val() ? key_path : cert_path, ex.err, ex.desc);
-        }
-
-        return <HttpCertInfo>{
-            "cert": cert,
-            "key": key,
-        };
-    }
-
-    #! returns a listener option info hash from flat arguments
-    /** @param node the node name or address (at least one of either \a node or \a service must be provided to make a bind)
-        @param service the service port (at least one of either \a node or \a service must be provided to make a bind)
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
-
-        @return a listener option info hash
-    */
-    static hash<HttpListenerOptionInfo> getListenerOptions(*string node, *softstring service, *string cert_path, *string key_path, *string key_password) {
-        hash<HttpListenerOptionInfo> rv({
-            "node": node,
-            "service": service,
-        });
-        if (cert_path) {
-            rv += HttpServer::getSSLObjects(cert_path, key_path, key_password);
-        }
-        return rv;
-    }
-
-    #! returns a listener option info hash from flat arguments
-    /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
-
-        @return a listener option info hash
-    */
-    static hash<HttpListenerOptionInfo> getListenerOptionsFromBind(*softstring bind, *string cert_path, *string key_path, *string key_password) {
-        hash<HttpListenerOptionInfo> rv();
-        if (cert_path) {
-            rv += HttpServer::getSSLObjects(cert_path, key_path, key_password);
-        }
-
-        if (bind =~ /:\w+/) {
-            (rv.node, rv.service) = (bind =~ x/(.+):(\w+)/);
-        } else if (bind =~ /^[0-9]+$/) {
-            rv.service = bind;
-        } else {
-            rv.node = bind;
-        }
-
-        return rv;
-    }
-
-    #! returns a listener option info hash from flat arguments
-    /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
-
-        @return a listener option info hash
-    */
-    static hash<HttpListenerOptionInfo> getListenerOptionsFromBind(*softstring bind, hash<auto> listener_params, hash<HttpListenerOptionInfo> opts = <HttpListenerOptionInfo>{}) {
-        hash<HttpCertInfo> cert_info = HttpServer::getSSLObjects(listener_params);
-        if (cert_info.cert) {
-            opts += cert_info;
-        }
-
-        if (bind =~ /:\w+/) {
-            (opts.node, opts.service) = (bind =~ x/(.+):(\w+)/);
-        } else if (bind =~ /^[0-9]+$/) {
-            opts.service = bind;
-        } else {
-            opts.node = bind;
-        }
-
-        return opts;
-    }
-
-    # don't reimplement this method; fix/enhance it in the module
     deprecated final private list<hash<auto>> addINETListenersIntern(*string node, softstring service, *hash sd, *hash<auto> handler_info, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
         if (sd.cert_path && !sd.cert)
-            sd += HttpServer::getSSLObjects(sd.cert_path, sd.key_path, sd.key_password);
+            sd += http_get_ssl_objects(sd.cert_path, sd.key_path, sd.key_password);
         return addINETListenersIntern(<HttpListenerOptionInfo>{
             "node": node,
             "service": service,

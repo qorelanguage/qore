@@ -130,7 +130,7 @@ class RealTestHttpServer inherits HttpServer {
             listener_opts = <HttpListenerOptionInfo>{};
         }
         if (cert_path) {
-            listener_opts += HttpServer::getSSLObjects(cert_path, key_path);
+            listener_opts += http_get_ssl_objects(cert_path, key_path);
         }
         # bind on a random port
         listener_opts.service = 0;
