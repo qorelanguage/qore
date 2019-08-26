@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DestrutorLockTest
+
+class Issue3521 {
+    public {
+        static Mutex m();
+    }
+
+    constructor() {
+        AutoLock a(m);
+    }
+
+    destructor() {
+        AutoLock a(m);
+    }
+}
+
+class DestrutorLockTest inherits QUnit::Test {
+    constructor() : QUnit::Test("DestrutorLockTest", "1.0") {
+        addTestCase("destructor lock", \destructorLock());
+
+        set_return_value(main());
+    }
+
+    destructorLock() {
+        {
+            Issue3521 t();
+        }
+        assertTrue(True);
+    }
+}

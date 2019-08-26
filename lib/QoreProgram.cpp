@@ -590,7 +590,11 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         // purge thread resources before clearing pgm
         purge_pgm_thread_resources(pgm, xsink);
 
-        printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
+        //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
+
+        // issue #3521: clear local variables first
+        clearLocalVars(xsink);
+
         // delete all global variables, etc
         clearNamespaceData(xsink);
 
@@ -608,8 +612,9 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         }
 
         // clear thread data if base object
-        if (base_object)
+        if (base_object) {
             clearThreadData(xsink);
+        }
 
         clearProgramThreadData(xsink);
 

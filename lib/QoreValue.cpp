@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -481,6 +481,10 @@ bool QoreValue::hasNode() const {
 
 bool QoreValue::isReferenceCounted() const {
     return type == QV_Node && v.n && v.n->isReferenceCounted();
+}
+
+bool QoreValue::derefCanThrowException() const {
+    return needs_scan(*this);
 }
 
 const QoreTypeInfo* QoreValue::getTypeInfo() const {

@@ -726,52 +726,52 @@ public:
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalDataIterator {
-   typedef ThreadLocalDataIterator<T, S1> self_t;
+    typedef ThreadLocalDataIterator<T, S1> self_t;
 
 public:
-   typedef ThreadBlock<T, S1> Block;
+    typedef ThreadBlock<T, S1> Block;
 
 protected:
-   Block* orig, * curr;
-   int pos;
+    Block* orig = nullptr, * curr = nullptr;
+    int pos = 0;
 
 public:
-   DLLLOCAL ThreadLocalDataIterator(Block* n_orig) : orig(n_orig && n_orig->pos ? n_orig : 0), curr(0), pos(0) {
-   }
+    DLLLOCAL ThreadLocalDataIterator(Block* n_orig) : orig(n_orig && n_orig->pos ? n_orig : nullptr) {
+    }
 
-   DLLLOCAL ThreadLocalDataIterator() : orig(0), curr(0), pos(0) {
-   }
+    DLLLOCAL ThreadLocalDataIterator() {
+    }
 
-   DLLLOCAL bool next() {
-      if (!orig)
-         return false;
+    DLLLOCAL bool next() {
+        if (!orig) {
+            return false;
+        }
 
-      do {
-         if (!curr) {
-            curr = orig;
-            pos = orig->pos - 1;
-         }
-         else {
-            --pos;
-            if (pos < 0) {
-               if (!curr->prev) {
-                  curr = 0;
-                  pos = 0;
-                  return false;
-               }
-               curr = curr->prev;
-               pos = curr->pos - 1;
+        do {
+            if (!curr) {
+                curr = orig;
+                pos = orig->pos - 1;
+            } else {
+                --pos;
+                if (pos < 0) {
+                    if (!curr->prev) {
+                        curr = 0;
+                        pos = 0;
+                        return false;
+                    }
+                    curr = curr->prev;
+                    pos = curr->pos - 1;
+                }
             }
-         }
-      } while (!curr->frameBoundary(pos));
+        } while (curr->frameBoundary(pos));
 
-      return true;
-   }
+        return true;
+    }
 
-   DLLLOCAL T& get() {
-      assert(curr);
-      return curr->get(pos);
-   }
+    DLLLOCAL T& get() {
+        assert(curr);
+        return curr->get(pos);
+    }
 };
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
