@@ -82,7 +82,7 @@ class ZeyosTest inherits QUnit::Test {
                           MimeTypeJson, new FakeZeyosRestHandler(MimeTypeJson, VALUE_JSON.input));
         port = m_http.addListener(0).port;
 
-        zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port});
+        zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a"});
     }
 
     globalTearDown() {
@@ -109,13 +109,13 @@ class ZeyosTest inherits QUnit::Test {
 
     negativeTest() {
         assertThrows("ZEYOSRESTCLIENT-ERROR", sub () {new ZeyosRestClient({"url": "http://localhost:" + port});});
-        ZeyosRestClient zeyosRest({"url": "http://user:pass@localhost:" + port});
+        ZeyosRestClient zeyosRest({"url": "http://localhost:" + port, "token": "asdsad"});
         assertThrows("REST-RESPONSE-ERROR", \zeyosRest.get(), "/api_json");
     }
 
     connectionTest() {
         string url = "http://user:pass@localhost:" + port;
-        ZeyosRestConnection zeyosrc("test", "test", url, {});
+        ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a"});
         assertEq(True, zeyosrc instanceof ZeyosRestConnection);
 
         ZeyosRestClient client = zeyosrc.get(False);

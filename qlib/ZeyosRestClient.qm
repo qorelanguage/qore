@@ -94,10 +94,20 @@ printf("Response body: %N\n", response.body);
 #! the ZeyosRestClient namespace contains all the objects in the ZeyosRestClient module
 public namespace ZeyosRestClient {
     #! this class provides the REST client API for communication with the <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP system
-    /** After connecting, the ZeyosRestClient class will request a session token that will be used in further communication.
+    /** This class requires one of the following options for <a href="http://www.zeyos.com">zeyos.com</a>'s
+        authentication and authorization to the target server:
+        - \c appsecret: the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
+        - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then the HTTP username, password,
+          and appsecret are not needed and will be ignored.
+
+        After connecting, the ZeyosRestClient class will request a session token that will be used in further communication.
      */
     public class ZeyosRestClient inherits RestClient::RestClient {
         public {
+            const RequiredOptions = (
+                "appsecret"
+            );
+
             const AuthPath = "/auth/v1/login";
             const LogoutPath = "/auth/v1/logout";
         }
@@ -153,6 +163,25 @@ ZeyosRestClient zeyos(
             @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a> REST authentication or communication
         */
         constructor(hash<auto> options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
+            if (options.token) {
+                headers{"Authorization"} = "Bearer " + options.token;
+                return;
+            }
+
+            # check required options
+            foreach string key in (RequiredOptions) {
+                auto value = options{key};
+                if (!value.val()) {
+                    throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing required option %y", key);
+                }
+                if (value.typeCode() != NT_STRING) {
+                    throw "ZEYOSRESTCLIENT-ERROR",
+                          sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
+                                  key, value.type(), value);
+                }
+                self{key} = value;
+            }
+
             # set username and password, if present
             if (options.url) {
                 self += parse_url(options.url){"username", "password"};
@@ -164,49 +193,7 @@ ZeyosRestClient zeyos(
                     "without both a username and password");
             }
 
-            # generate unique identifier if needed
-            if (!identifier) {
-                identifier = self.uniqueHash();
-            }
-
             getToken();
-        }
-
-        #! logs out of the Zeyos instance if connected
-        destructor() {
-            logout();
-        }
-
-        #! Disconnects from the remote socket if a connection is established (otherwise does nothing)
-        disconnect() {
-            if (isConnected()) {
-                logoutIntern();
-                HTTPClient::disconnect();
-            }
-        }
-
-        #! Disconnects from the remote socket if a connection is established (otherwise does nothing)
-        close() {
-            disconnect();
-        }
-
-        #! logs out of the Zeyos instance if connected
-        logout() {
-            if (isConnected()) {
-                logoutIntern();
-            }
-        }
-
-        private logoutIntern() {
-            on_exit {
-                # remove token from headers
-                remove headers.Authorization;
-            }
-            try {
-                get(LogoutPath);
-            } catch (hash<ExceptionInfo> ex) {
-                # ignore exceptions
-            }
         }
 
         #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
@@ -234,7 +221,7 @@ ZeyosRestClient zeyos(
             hash<auto> result = RestClient::post(AuthPath, {
                 "name": username,
                 "password": password,
-                "identifier": identifier,
+                "identifier": identifier ?? self.uniqueHash(),
                 "appsecret": appsecret,
             });
             headers{"Authorization"} = "Bearer " + result.body.token;

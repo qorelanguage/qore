@@ -33,6 +33,7 @@
 %requires Swagger
 %requires Util
 %requires Mime
+%requires ConnectionProvider
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -65,9 +66,10 @@ class RestCmd {
             "data":      "S,serialization=s",
             "swagger":   "s,swagger=s",
             "example":   "x,example:s",
-            "cert":      "c,cert=s",
+            "cert":      "C,cert=s",
             "key":       "k,key=s",
             "keypass":   "K,keypass=s",
+            "conn":      "c,connection=s",
 
             "help":      "h,help",
         };
@@ -84,7 +86,7 @@ class RestCmd {
 
     constructor() {
         GetOpt g(Opts);
-        hash opt = g.parse3(\ARGV);
+        hash<auto> opt = g.parse3(\ARGV);
         if (opt.help || (!ARGV[0] && !opt.list))
             usage();
 
@@ -110,7 +112,7 @@ class RestCmd {
             usage();
 
         *string url = shift ARGV;
-        any body;
+        auto body;
         if (!Methods{meth.upr()}) {
             body = url;
             url = meth;
@@ -125,7 +127,7 @@ class RestCmd {
             usage();
         }
 
-        {
+        if (!opt.conn) {
             string orig_url = url;
             url = get_connection_url(url);
             if (url != orig_url)
@@ -134,6 +136,9 @@ class RestCmd {
 
         if (opts.validator && url !~ /^[a-z]+:\/\//)
             url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
+
+        # get URI path
+        hash<UrlInfo> url_info = parse_url(url);
 
         if (opt.example) {
             bool msg = True;
@@ -146,13 +151,11 @@ class RestCmd {
                     default: error("unknown character %y found in example string %y; expected \"qr\"", opt.example[i]);
                 }
             }
-            # get URI path
-            hash h = parse_url(url);
 
             # generate example and exit
             if (msg) {
                 if (request) {
-                    hash<RestExampleRequestInfo> rex = opts.validator.getExampleRequest(meth, h.path);
+                    hash<RestExampleRequestInfo> rex = opts.validator.getExampleRequest(meth, url_info.path);
                     #printf("rex: %y\n", rex);
                     printf("%s\n", rex.request_uri);
                     map printf("%s: %s\n", $1.key, $1.value), rex.hdr.pairIterator();
@@ -162,7 +165,7 @@ class RestCmd {
                         print(rex.body + "\n");
                     }
                 } else {
-                    hash<RestExampleResponseInfo> res = opts.validator.getExampleResponse(meth, h.path, code);
+                    hash<RestExampleResponseInfo> res = opts.validator.getExampleResponse(meth, url_info.path, code);
                     #printf("res: %y\n", res);
                     printf("%s\n", res.response_uri);
                     map printf("%s: %s\n", $1.key, $1.value), res.hdr.pairIterator();
@@ -174,8 +177,8 @@ class RestCmd {
                 }
             } else {
                 hash<RestQoreExampleCodeInfo> qex = request
-                    ? opts.validator.getQoreExampleRequest(meth, h.path)
-                    : opts.validator.getQoreExampleResponse(meth, h.path, code);
+                    ? opts.validator.getQoreExampleRequest(meth, url_info.path)
+                    : opts.validator.getQoreExampleResponse(meth, url_info.path, code);
                 #printf("qex: %y\n", qex);
                 map printf("%s\n", $1), qex.hashdecls.iterator();
                 printf("%s\n", qex.example);
@@ -183,26 +186,46 @@ class RestCmd {
             thread_exit;
         }
 
-        opts.url = url;
+        RestClient rest;
+        string request_path;
 
-        if (opt.proxy)
-            opts.proxy = opt.proxy;
+        if (opt.conn) {
+            try {
+                AbstractConnection conn = get_connection(opt.conn);
+                if (!(conn instanceof RestConnection)) {
+                    stderr.printf("connection %y is a %y object; expecting \"RestClient\"; exiting\n", opt.conn, conn.className());
+                    exit(1);
+                }
+                rest = conn.get();
+                if (url_info.path) {
+                    request_path = url_info.path;
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
+                exit(1);
+            }
+        } else {
+            request_path = "";
+            opts.url = url;
 
-        if (opt.to) {
-            int to = opt.to * 1000;
-            opts += {
-                "timeout": to,
-                "connect_timeout": to,
-            };
+            if (opt.proxy)
+                opts.proxy = opt.proxy;
+
+            if (opt.to) {
+                int to = opt.to * 1000;
+                opts += {
+                    "timeout": to,
+                    "connect_timeout": to,
+                };
+            }
+
+            if (opt.cert) {
+                opts.ssl_cert_path = opt.cert;
+                opts.ssl_key_path = opt.key ?? opt.cert;
+                opts.ssl_key_password = opt.keypass;
+            }
+            rest = new RestClient(opts);
         }
-
-        if (opt.cert) {
-            opts.ssl_cert_path = opt.cert;
-            opts.ssl_key_path = opt.key ?? opt.cert;
-            opts.ssl_key_password = opt.keypass;
-        }
-
-        RestClient rest(opts);
 
         foreach string h in (opt.header) {
             (*string k, *string v) = (h =~ x/([^:]+):(.+)$/); #/);
@@ -232,7 +255,7 @@ class RestCmd {
             rest.setSendEncoding(opt.sendenc);
         }
 
-        hash info;
+        hash<auto> info;
         #printf("body: %y\n", body);
         try {
             hash h;
@@ -241,7 +264,7 @@ class RestCmd {
                 showRestResponse(info, h.body, opt);
             }
 
-            h = rest.doRequest(meth, "", body, \info);
+            h = rest.doRequest(meth, request_path, body, \info);
             if (!opt.lit)
                 printf("%N\n", h.body);
         } catch (hash<ExceptionInfo> ex) {
