@@ -14,6 +14,8 @@
 %require-types
 %enable-all-warnings
 
+%disable-warning deprecated
+
 %exec-class ZeyosTest
 
 class FakeZeyosRestHandler inherits AbstractHttpRequestHandler {
@@ -28,6 +30,13 @@ class FakeZeyosRestHandler inherits AbstractHttpRequestHandler {
     }
 
     hash handleRequest(hash cx, hash hdr, *data body) {
+        #printf("cx: %N\nhdr: %N\nbody: %N\n", cx, hdr, body);
+        if (cx.raw_path =~ /^\/?auth\/v1\/login$/) {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200, "{\"token\": \"token\"}");
+        }
+        if (cx.raw_path =~ /^\/?auth\/v1\/logout$/) {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200, "OK");
+        }
         if (!hdr."authorization") {
             return makeResponse(400, "Missing authorization header");
         }
@@ -61,26 +70,27 @@ class ZeyosTest inherits QUnit::Test {
     }
 
     constructor() : Test("ZeyosTest", "1.0") {
-        addTestCase("zeyos.com REST", \zeyosRestClienteRestTests());
+        addTestCase("zeyos.com REST", \zeyosRestClientRestTests());
         addTestCase("negative tests", \negativeTest());
         addTestCase("connection tests", \connectionTest());
         set_return_value(main());
     }
 
-    setUp() {
+    globalSetUp() {
         m_http = new HttpServer(\log(), \log());
         m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
                           MimeTypeJson, new FakeZeyosRestHandler(MimeTypeJson, VALUE_JSON.input));
         port = m_http.addListener(0).port;
 
-        zeyosRestClient = new ZeyosRestClient({"token": "token", "url": "http://localhost:" + port});
+        zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port});
     }
 
-    tearDown() {
+    globalTearDown() {
+        delete zeyosRestClient;
         delete m_http;
     }
 
-    zeyosRestClienteRestTests() {
+    zeyosRestClientRestTests() {
         if (!zeyosRestClient) {
             testSkip("no zeyos.com connection");
         }
@@ -93,19 +103,19 @@ class ZeyosTest inherits QUnit::Test {
             "status": 0,
         };
 
-        hash<auto> response = zeyosRestClient.put("/api/v1/actionsteps", action_data, NOTHING, NOTHING);
+        hash<auto> response = zeyosRestClient.put("/api/v1/actionsteps", action_data);
         testAssertionValue("/api/v1/actionsteps", response.body, VALUE_JSON.output);
     }
 
     negativeTest() {
         assertThrows("ZEYOSRESTCLIENT-ERROR", sub () {new ZeyosRestClient({"url": "http://localhost:" + port});});
-        ZeyosRestClient zeyosRest({"url": "http://localhost:" + port, "token": ""});
+        ZeyosRestClient zeyosRest({"url": "http://user:pass@localhost:" + port});
         assertThrows("REST-RESPONSE-ERROR", \zeyosRest.get(), "/api_json");
     }
 
     connectionTest() {
-        string url = "http://localhost:" + port;
-        ZeyosRestConnection zeyosrc("test", "test", url, {}, {"token": "token"});
+        string url = "http://user:pass@localhost:" + port;
+        ZeyosRestConnection zeyosrc("test", "test", url, {});
         assertEq(True, zeyosrc instanceof ZeyosRestConnection);
 
         ZeyosRestClient client = zeyosrc.get(False);
