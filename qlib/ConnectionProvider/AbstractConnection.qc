@@ -233,6 +233,7 @@ schema://user:pass@hostname:port/path
                 return rv += {
                     "ok": False,
                     "info": sprintf("%s: %s", ex.err, ex.desc),
+                    "ex": ex,
                 };
             }
         }
