@@ -52,8 +52,8 @@ module ZeyosRestClient {
     All the public symbols in the module are defined in the ZeyosRestClient namespace.
 
     The main classes are:
-    - @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient": this class provides the REST client API for communuication with <a href="http://www.zeyos.com">zeyos.com</a>'s REST API; it also automates authentication and authorization to the target Connected App
-    - @ref ZeyosRestClient::ZeyosRestConnection "ZeyosRestConnection": provides a REST connection object to a <a href="http://www.zeyos.com">zeyos.com</a>'s CRM ERP server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient": this class provides the REST client API for communuication with the <a href="http://www.zeyos.com">zeyos.com</a> REST API; it also automates authentication and authorization to the target Connected App
+    - @ref ZeyosRestClient::ZeyosRestConnection "ZeyosRestConnection": provides a REST connection object to a <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP server (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     @par Example:
     @code{.py}
@@ -68,8 +68,7 @@ module ZeyosRestClient {
 
 ZeyosRestClient zeyos(
     {
-        "url": "https://cloud.zeyos.com/test",
-        "name": "test", "password": "test", "identifier": "id",
+        "url": "https://name:pass@cloud.zeyos.com/test",
         "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5"
     });
 
@@ -94,31 +93,17 @@ printf("Response body: %N\n", response.body);
 
 #! the ZeyosRestClient namespace contains all the objects in the ZeyosRestClient module
 public namespace ZeyosRestClient {
-    #! this class provides the REST client API for communication with <a href="http://www.zeyos.com">zeyos.com</a>'s CRM ERP system
-    /** This class requires the following options for <a href="http://www.zeyos.com">zeyos.com</a>'s authentication and authorization to the target server:
-        - \c name: the <a href="http://www.zeyos.com">zeyos.com</a>'s name
-        - \c password: the <a href="http://www.zeyos.com">zeyos.com</a>'s password
-        - \c identifier: the <a href="http://www.zeyos.com">zeyos.com</a>'s identifier
-        - \c appsecret: the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
-        - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then name, password, identifier and appsecret are not needed and will be ignored.
-
-        The ZeyosRestClient class will receive a token that will be used in further communication.
-        Also the token can be provided directly in the options and then there is no need to pass the above options.
+    #! this class provides the REST client API for communication with the <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP system
+    /** After connecting, the ZeyosRestClient class will request a session token that will be used in further communication.
      */
     public class ZeyosRestClient inherits RestClient::RestClient {
         public {
-            const RequiredOptions = (
-                "name",
-                "password",
-                "identifier",
-                "appsecret"
-            );
-
             const AuthPath = "/auth/v1/login";
+            const LogoutPath = "/auth/v1/logout";
         }
 
         private:internal {
-            string name;
+            string username;
             string password;
             string identifier;
             string appsecret;
@@ -131,17 +116,14 @@ public namespace ZeyosRestClient {
 ZeyosRestClient zeyos(
     {
         "url": "https://cloud.zeyos.com/test",
-        "name": "test", "password": "test", "identifier": "id",
+        "identifier": "id",
         "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5"
     });
             @endcode
 
             @param options valid options are:
-            - \c name (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s name
-            - \c password (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s password
-            - \c identifier (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s identifier
-            - \c appsecret (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
-            - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then name, password, identifier and appsecret are not needed and will be ignored.
+            - \c appsecret (optional): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
+            - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
             - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
@@ -168,52 +150,101 @@ ZeyosRestClient zeyos(
             @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-            @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a>'s REST authentication or communication
+            @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a> REST authentication or communication
         */
-        constructor(hash options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
-            if (exists options.token) {
-                headers{"Authorization"} = "Bearer " + options.token;
-                return;
+        constructor(hash<auto> options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
+            # set username and password, if present
+            if (options.url) {
+                self += parse_url(options.url){"username", "password"};
             }
 
-            # check required options
-            foreach string key in (RequiredOptions) {
-                auto value = options{key};
-                if (!exists value || value == "") {
-                    throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
-                }
-                if (value.typeCode() != NT_STRING) {
-                    throw "ZEYOSRESTCLIENT-ERROR",
-                          sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
-                                  key, value.type(), value);
-                }
-                self{key} = value;
+            # if no token is set, then the URL must have a username & password
+            if (!exists username || !exists password) {
+                throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing username and password; cannot login "
+                    "without both a username and password");
             }
+
+            # generate unique identifier if needed
+            if (!identifier) {
+                identifier = self.uniqueHash();
+            }
+
             getToken();
         }
 
-        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        static hash getOptions(hash options) {
-            if (!exists options.no_charset) {
-                options.no_charset = True;
-            }
-            return options;
+        #! logs out of the Zeyos instance if connected
+        destructor() {
+            logout();
         }
 
+        #! Disconnects from the remote socket if a connection is established (otherwise does nothing)
+        disconnect() {
+            if (isConnected()) {
+                logoutIntern();
+                HTTPClient::disconnect();
+            }
+        }
+
+        #! Disconnects from the remote socket if a connection is established (otherwise does nothing)
+        close() {
+            disconnect();
+        }
+
+        #! logs out of the Zeyos instance if connected
+        logout() {
+            if (isConnected()) {
+                logoutIntern();
+            }
+        }
+
+        private logoutIntern() {
+            on_exit {
+                # remove token from headers
+                remove headers.Authorization;
+            }
+            try {
+                get(LogoutPath);
+            } catch (hash<ExceptionInfo> ex) {
+                # ignore exceptions
+            }
+        }
+
+        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        static hash<auto> getOptions(hash<auto> options) {
+            # the "{}" is to ensure that "new_options" stays "hash<auto>"
+            hash<auto> new_options = {} + options;
+
+            # remove username and password from URL
+            hash<UrlInfo> url_info = parse_url(options.url);
+            url_info -= ("username", "password");
+            new_options.url = sprintf("%s://%s%s%s",
+                url_info.protocol ?? "https",
+                url_info.host,
+                (url_info.port ? ":" + url_info.port : ""),
+                (url_info.path.val() ? "/" + url_info.path : ""));
+
+            if (!exists options.no_charset) {
+                new_options.no_charset = True;
+            }
+            return new_options;
+        }
+
+        #! logs in an sets the token for further communication
         private getToken() {
-            hash<auto> result = RestClient::post(AuthPath, self.("name", "password", "identifier", "appsecret"),
-                                                 NOTHING, NOTHING);
+            hash<auto> result = RestClient::post(AuthPath, {
+                "name": username,
+                "password": password,
+                "identifier": identifier,
+                "appsecret": appsecret,
+            });
             headers{"Authorization"} = "Bearer " + result.body.token;
         }
     }
 
-    #! class for <a href="http://www.zeyos.com">Zeyos.com</a>'s REST connections; returns @ref ZeyosRestClient::ZeyosRestClient objects
+    #! class for <a href="http://www.zeyos.com">Zeyos.com</a> REST connections; returns @ref ZeyosRestClient::ZeyosRestClient objects
     /** supports the following options:
-        - \c "name" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s name
-        - \c "password" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s password
-        - \c "identifier" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s identifier
-        - \c "appsecret" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
-        - \c "token": the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then name, password, identifier and appsecret are not needed and will be ignored.
+        - \c "identifier" (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
+        - \c "appsecret" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
@@ -236,11 +267,8 @@ ZeyosRestClient zeyos(
         public {
             #! ZeyosRestConnection object connection options
             const ZeyosOptions = {
-                "name": True,
-                "password": True,
                 "identifier": True,
                 "appsecret": True,
-                "token": True
             };
 
             const Options = RestConnection::Options + ZeyosOptions;
@@ -260,25 +288,19 @@ ZeyosRestClient zeyos(
             @throws ZEYOSRESTCONNECTION-ERROR missing needed option for Zeyos authentication
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {})
-            : RestConnection(name, description, url, attributes, options) {
-
-            if (opts.token.val()) {
-                return;
-            }
+            : RestConnection(name, description, url, attributes, ZeyosRestConnection::getConstructorOptions(options)) {
 
             foreach string key in (keys ZeyosOptions) {
                 auto value = opts{key};
                 if (!exists value || value == "") {
-                    throw "ZEYOSRESTCONNECTION-ERROR",
-                          sprintf("missing required option %y in option argument for connection %y with url %y (%s)",
-                                  key, name, url, desc);
+                    continue;
                 }
                 if (value.typeCode() != NT_STRING) {
                     throw "ZEYOSRESTCONNECTION-ERROR",
                           sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
                                   key, value.type(), value);
                 }
-                self{key} = value;
+                #self{key} = value;
             }
         }
 
@@ -318,18 +340,25 @@ ZeyosRestClient zeyos(
 
             @see @ref ZeyosRestClient::ZeyosRestClient::constructor() "ZeyosRestClient::constructor()" for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return HttpConnection::DefaultOptions;
         }
 
         #! returns \c "zeyosrest"
         string getType() {
             return "zeyosrest";
+        }
+
+        #! gets options for the constructor
+        hash<auto> getConstructorOptions(hash<auto> options) {
+            return options + (options.identifier
+                ? {}
+                : {"identifier": self.uniqueHash()});
         }
     }
 }
