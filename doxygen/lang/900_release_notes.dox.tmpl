@@ -44,6 +44,10 @@
       - @ref Qore::parseURL() "parseURL()"
     - added the \a module_visibility parameter to @ref Qore::Program::importClass() "Program::importClass()" and the
       @ref import_visibility_constants as possible argument values
+    - added the \a max_file_len param to @ref Qore::ReadOnlyFile::readTextFile() "ReadOnlyFile::readTextFile()"
+      and @ref Qore::ReadOnlyFile::readBinaryFile() "ReadOnlyFile::readBinaryFile()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3525">issue 3525</a>)
+    - added <string>::toBinary()
     - the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module was updated to
       enable remote certificates to be retrieved in listeners and handlers by default; added new API entry points for
       listeners and handlers with more flexible and saner parameters, deprecated old complex methods

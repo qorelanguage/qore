@@ -70,6 +70,8 @@ class FileTest inherits QUnit::Test {
 
         f.write("test1");
         assertEq("test1", ReadOnlyFile::readTextFile(file));
+        assertEq("test", File::readTextFile(file, NOTHING, 4));
+        assertEq("test".toBinary(), File::readBinaryFile(file, 4));
 
         stderr.redirect(f);
         stderr.setPos(0);

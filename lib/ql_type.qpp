@@ -356,6 +356,8 @@ binary binary(null[doc] x) [flags=CONSTANT] {
     @code{.py}
 binary b = binary(str);
     @endcode
+
+    @see <string>::toBinary()
 */
 binary binary(softstring str) [flags=CONSTANT] {
    BinaryNode *b = new BinaryNode;

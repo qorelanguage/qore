@@ -971,28 +971,33 @@ string data = File::readTextFile(path);
     @endcode
 
     @param path the path of the file to retrieve
-    @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this argument is not given, then the @ref default_encoding "default character encoding" is assumed
+    @param encoding the name of the @ref character_encoding "character encoding" for the string returned; if this
+    argument is not given, then the @ref default_encoding "default character encoding" is assumed
+    @param max_file_len the maximum size of the file returned; if the data on the filesystem exceeds this value, the
+    data returned will be truncated up to this byte length
 
-    @return the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding" or @ref nothing if the file is empty or cannot be read
+    @return the contents of a text file as a string optionally tagged with the given
+    @ref character_encoding "character encoding" or @ref nothing if the file is empty or cannot be read
 
     @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
 
     @since
     - %Qore 0.8.8 introduced this method
-    - %Qore 0.8.12 changed the behavior of the method; either a string (possibly an empty string for an empty file) will be returned, or an exception will be raised
+    - %Qore 0.8.12 changed the behavior of the method; either a string (possibly an empty string for an empty file)
+      will be returned, or an exception will be raised
+    - %Qore 0.9.3 added the \a max_file_len parameter
 */
-static string ReadOnlyFile::readTextFile(string path, *string encoding) [dom=FILESYSTEM] {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+static string ReadOnlyFile::readTextFile(string path, *string encoding, int max_file_len = -1) [dom=FILESYSTEM] {
+    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
-   QoreFile qf;
+    QoreFile qf;
 
-   if (qf.open2(xsink, path->getBuffer(), O_RDONLY, 0777, qe))
-      return QoreValue();
+    if (qf.open2(xsink, path->c_str(), O_RDONLY, 0777, qe)) {
+        return QoreValue();
+    }
 
-   QoreStringNode* str = qf.read(-1, xsink);
-   if (!str && !*xsink)
-      str = new QoreStringNode(qe);
-   return str;
+    QoreStringNode* str = qf.read(max_file_len, xsink);
+    return !str && !*xsink ? new QoreStringNode(qe) : str;
 }
 
 //! returns the contents of a binary file as a binary object
@@ -1002,6 +1007,8 @@ binary data = File::readBinaryFile(path);
     @endcode
 
     @param path the path of the file to retrieve
+    @param max_file_len the maximum size of the file returned; if the data on the filesystem exceeds this value, the
+    data returned will be truncated up to this byte length
 
     @return the contents of a binary file as a binary object
 
@@ -1009,18 +1016,19 @@ binary data = File::readBinaryFile(path);
 
     @since
     - %Qore 0.8.8 introduced this method
-    - %Qore 0.8.12 changed the behavior of the method; either a binary object (possibly an empty binary object for an empty file) will be returned, or an exception will be raised
+    - %Qore 0.8.12 changed the behavior of the method; either a binary object (possibly an empty binary object for an
+      empty file) will be returned, or an exception will be raised
+    - %Qore 0.9.3 added the \a max_file_len parameter
 */
-static binary ReadOnlyFile::readBinaryFile(string path) [dom=FILESYSTEM] {
-   QoreFile qf;
+static binary ReadOnlyFile::readBinaryFile(string path, int max_file_len = -1) [dom=FILESYSTEM] {
+    QoreFile qf;
 
-   if (qf.open2(xsink, path->getBuffer()))
-      return QoreValue();
+    if (qf.open2(xsink, path->c_str())) {
+        return QoreValue();
+    }
 
-   BinaryNode* b = qf.readBinary(-1, xsink);
-   if (!b && !*xsink)
-      b = new BinaryNode;
-   return b;
+    BinaryNode* b = qf.readBinary(max_file_len, xsink);
+    return !b && !*xsink ? new BinaryNode : b;
 }
 
 //! Returns a @ref stat_list about the file's status (follows symbolic links) or throws an exception if any errors occur
