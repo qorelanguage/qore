@@ -117,7 +117,7 @@ public namespace HttpServer {
         huge files are not used for the SSL cert and key files which could cause a crash or memory problems;
         currently set to 1M which is orders of magnitude higher than any real files currently in existence
     */
-    const MaxSslFileLen = 1024 * 1024;
+    public const MaxSslFileLen = 1024 * 1024;
 
     #! map of HTTP result codes and text messages
     public const HttpCodes = {

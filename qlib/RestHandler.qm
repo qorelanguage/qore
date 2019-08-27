@@ -182,8 +182,7 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
             return RestHandler::make400("missing 'newPath' parameter for rename(%y)", h.path);
         try {
             rename(h.path, cx.body.newPath);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             return RestHandler::make400("rename (%y): %s: %s", h.path, ex.err, ex.desc);
         }
         return RestHandler::makeResponse(200, "OK");
@@ -460,8 +459,7 @@ public namespace RestHandler {
             hash<HttpHandlerResponseInfo> h;
             try {
                 h = cast<hash<HttpHandlerResponseInfo>>(getResponseHeaderMessageImpl());
-            }
-            catch (hash<ExceptionInfo> n_ex) {
+            } catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -485,8 +483,7 @@ public namespace RestHandler {
         nothing recv(hash<auto> v) {
             try {
                 recvImpl(v);
-            }
-            catch (hash<ExceptionInfo> n_ex) {
+            } catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -499,8 +496,7 @@ public namespace RestHandler {
         auto send() {
             try {
                 return sendImpl();
-            }
-            catch (hash<ExceptionInfo> n_ex) {
+            } catch (hash<ExceptionInfo> n_ex) {
                 ex = n_ex;
                 rethrow;
             }
@@ -1393,12 +1389,12 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash<auto> makeResponse(int code, auto body, *hash<auto> hdr) {
-            return (
+        static hash<HttpHandlerResponseInfo> makeResponse(int code, auto body, *hash<auto> hdr) {
+            return <HttpHandlerResponseInfo>{
                 "code": code,
                 "body": body,
                 "hdr": hdr,
-            );
+            };
         }
     }
 }

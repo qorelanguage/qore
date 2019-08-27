@@ -712,15 +712,33 @@ string str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319b
  */
 string <string>::toSHA512() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   DigestHelper dh(*str);
-   if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 #else
-   missing_openssl_feature("SHA512", xsink);
-   return QoreValue();
+    missing_openssl_feature("SHA512", xsink);
+    return QoreValue();
 #endif
+}
+
+//! Returns a binary value with the string's data
+/** @par Example:
+    @code{.py}
+binary bin = str.toBinary();
+    @endcode
+
+    @return a binary value with the string's data
+
+    @see Qore::binary(softstring) "binary(softstring)"
+
+    @since %Qore 0.9.3
+*/
+binary <string>::toBinary() [flags=CONSTANT] {
+    SimpleRefHolder<BinaryNode> b(new BinaryNode);
+    b->append(str->c_str(), str->size());
+    return b.release();
 }
 
 //! returns @ref True if the string is empty or has no characters with the high bit set (ie all characters < 128)

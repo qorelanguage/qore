@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("<string>::toBinary()", \stringToBinary());
         addTestCase("issue 3448", \issue3448());
         addTestCase("issue 3438", \issue3438());
         addTestCase("issue 3429", \issue3429());
@@ -58,6 +59,10 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    stringToBinary() {
+        assertEq(<68656c6c6f>, "hello".toBinary());
     }
 
     issue3448() {
