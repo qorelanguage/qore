@@ -76,12 +76,13 @@ module AwsRestClient {
 
 %requires AwsRestClient
 
-hash<auto> opts = (
+hash<auto> opts = {
+    "url": "https://iam.amazonaws.com",
     "aws_keyid": ENV.AWS_KEY_ID,
     "aws_secret": ENV.AWS_SECRET,
     "aws_region": "eu-central-1",
     "aws_service": "iotevents",
-);
+};
 
 AwsRestClient rest(opts);
 hash<auto> ans = rest.get(...);

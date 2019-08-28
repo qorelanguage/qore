@@ -61,7 +61,8 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/TextWrap.qm \
 	qlib/VscDebugAdapter.qm \
 	qlib/WebUtil.qm \
-	qlib/ZeyosRestClient.qm
+	qlib/ZeyosRestClient.qm \
+    qlib/AwsRestClient.qm
 
 DOX_SPLIT_MODULES = \
     qlib/BulkSqlUtil \

@@ -481,8 +481,8 @@ if (exists o."_ERRORS_") {
     pertaining to the options parsed.
 
     @see
-    - Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
-    - Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
 */
 static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_args) {
     SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));
