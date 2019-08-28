@@ -67,10 +67,10 @@ class AwsTest inherits QUnit::Test {
         AwsRestClient client;
 
         const FakeAwsOptions = {
-            "aws_keyid": "x",
-            "aws_secret": "x",
-            "aws_region": "eu-central-1",
-            "aws_service": "iotevents",
+            "aws_keyid": "AKIDEXAMPLE",
+            "aws_secret": "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+            "aws_region": "us-east-1",
+            "aws_service": "iam",
         };
     }
 
@@ -97,9 +97,13 @@ class AwsTest inherits QUnit::Test {
 
     AwsRestClientRestTests() {
         # https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08
-        hash<auto> info;
-        on_exit printf("info: %N\n", info);
-        auto v = client.get("", NOTHING, \info);
+        AwsRestTestClient client({"url": "https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08"} + FakeAwsOptions);
+        # test the signature generation algorithm against a known good value for a certain request
+        hash<auto> hdr = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"};
+        # this creates a request that matches the example request in the AWS docs, so the generated signature must match
+        string sig = client.getSignatureTest("GET", "/?Action=ListUsers&Version=2010-05-08", hdr, NOTHING,
+            2015-08-30T12:36:00Z, "20150830/us-east-1/iam/aws4_request");
+        assertEq("5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7", sig);
     }
 
     negativeTest() {
@@ -137,5 +141,15 @@ class AwsTest inherits QUnit::Test {
             program.parse(post_processing, "post processing");
             assertTrue(True, "post processing: " + info.class_name);
         }
+    }
+}
+
+class AwsRestTestClient inherits AwsRestClient {
+    constructor(hash<auto> opts) : AwsRestClient(opts) {
+    }
+
+    string getSignatureTest(string meth, string path, hash<auto> hdr, *data body, date gmdate, string scope) {
+        string signed_headers;
+        return getSignature(meth, path, \hdr, body, gmdate, scope, \signed_headers);
     }
 }

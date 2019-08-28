@@ -76,9 +76,11 @@ module AwsRestClient {
 
 %requires AwsRestClient
 
-hash opts = (
+hash<auto> opts = (
     "aws_keyid": ENV.AWS_KEY_ID,
-    "aws_secret": ENV.AWS_SECRET
+    "aws_secret": ENV.AWS_SECRET,
+    "aws_region": "eu-central-1",
+    "aws_service": "iotevents",
 );
 
 AwsRestClient rest(opts);
@@ -235,12 +237,18 @@ AwsRestClient rest({
         }
 
         hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+            # get request time
             date gmtime = Qore::gmtime();
             # get credential scope
             string scope = sprintf("%s/%s", gmtime.format("YYYYMMDD"), credential_scope_suffix);
 
             # get signature and signed header string
             string signed_headers;
+
+            # add configured headers without overriding
+            hdr = headers + hdr;
+
+            # get signature
             string sig = getSignature(m, path, \hdr, body, gmtime, scope, \signed_headers);
 
             # add authorization header
@@ -257,7 +265,7 @@ AwsRestClient rest({
             # calculate a signature
             string gmdate = gmtime.format("YYYYMMDD");
             # 1: key, date
-            binary signing_key = hmac(QoreDigest, gmdate, "AWS4 " + aws_secret);
+            binary signing_key = hmac(QoreDigest, gmdate, "AWS4" + aws_secret);
             # 2: hash, region
             signing_key = hmac(QoreDigest, aws_region, signing_key);
             # 3: hash, service
@@ -267,35 +275,26 @@ AwsRestClient rest({
 
             string sig = hmac(QoreDigest, req_string, signing_key).toHex();
 
-            printf("sig: %s\n", sig);
-
             return sig;
         }
 
-        string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
+        private string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
             string scope, reference<string> signed_headers) {
             # get AWS date value
             string aws_date = gmtime.format("YYYYMMDDTHHmmSS") + "Z";
             hdr."X-Amz-Date" = aws_date;
-            string cstr = getCanonicalSignature(http_method, path, hdr, body, \signed_headers);
-
-            printf("cstr: %s\n", cstr);
+            string csig = getCanonicalSignature(http_method, path, hdr, body, \signed_headers);
 
             string msg = AwsSignatureAlgorithm + "\n"
                 + aws_date + "\n"
                 + scope + "\n"
-                + digest(QoreDigest, cstr).toHex();
-
-            printf("req: %s\n", msg);
+                + csig;
 
             return msg;
         }
 
-        string getCanonicalSignature(string http_method, string path, hash<auto> hdr, *data body,
+        private string getCanonicalSignature(string http_method, string path, hash<auto> hdr, *data body,
             reference<string> signed_headers) {
-            # add configured headers without overriding
-            hdr = headers + hdr;
-
             # create the canonical string
             # 1: HTTP request method
             string cstr = http_method + "\n";
@@ -306,15 +305,17 @@ AwsRestClient rest({
             # 2: canonical URI parameter
             string uri = uri_info.method ?? "/";
 
-            # normalize the path
-            uri = normalize_dir_unix(uri, "/");
+            # normalize the path if not an S3 request
+            if (!aws_s3) {
+                uri = normalize_dir_unix(uri, "/");
+            }
 
             # URI-encode the path
-            uri = encode_url(uri, True);
+            uri = encode_url(uri, False);
             # non-AWS-S3 requests must be URI-encoded twice
             # https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
             if (!aws_s3) {
-                uri = encode_url(uri, True);
+                uri = encode_url(uri, False);
             }
             # add to canonical string
             cstr += uri + "\n";
@@ -325,33 +326,40 @@ AwsRestClient rest({
                 cstr += (
                     foldl $1 + "&" + $2, (
                         map
-                            sprintf("%s=%s", encode_url($1, False), encode_url(uri_info.params{$1}, False)),
+                            sprintf("%s=%s", encode_url($1, True), uri_info.params{$1} === True ? "" : encode_url(uri_info.params{$1}, True)),
                             sort(keys uri_info.params)
                     )
-                ) + "\n";
+                );
             }
+            cstr += "\n";
 
             # 4: canonical headers
             # convert header keys to lowercase
             hdr = map {$1.key.lwr(): $1.value}, hdr.pairIterator();
             # add host header
             hdr += {"host": getHostHeaderValue()};
+
+            # sort headers
+            hdr = map {$1: hdr{$1}}, sort(keys hdr);
+
             cstr += (
-                foldl $1 + "\n" + $2, (
+                foldl $1 + $2, (
                     map
-                        sprintf("%s:%s", $1, trimall(hdr.$1)),
+                        sprintf("%s:%s\n", $1, trimall(hdr.$1)),
                         sort(keys hdr)
                 )
-            ) + "\n\n";
+            ) + "\n";
 
             # 5: signed headers
             signed_headers = (foldl $1 + ";" + $2, keys hdr);
             cstr += signed_headers + "\n";
 
             # 6: digest
-            cstr += digest(QoreDigest, cstr).toHex();
+            cstr += digest(QoreDigest, body ?? "").toHex();
 
-            return cstr;
+            #printf("CSTR:\n%s\n", cstr);
+
+            return digest(QoreDigest, cstr).toHex();
         }
 
         static private:internal string trimall(string str) {
