@@ -17,6 +17,7 @@ public class HmacTest inherits QUnit::Test {
     }
 
     constructor() : Test("HmacTest", "1.0") {
+        addTestCase("hmac", \hmacTest());
         addTestCase("Basic MD2 test", \md2Test());
         addTestCase("Basic MD4 test", \md4Test());
         addTestCase("Basic MD5 test", \md5Test());
@@ -32,27 +33,47 @@ public class HmacTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    hmacTest() {
+        assertThrows("DIGEST-ERROR", \hmac(), ("XXX", "", ""));
+        assertEq(Type::Hash, DigestMap.type());
+    }
+
     md2Test() {
         if (!HAVE_MD2) {
             testSkip("Missing MD2 support");
         }
         testAssertion("MD2 hmac", \MD2_hmac(), (str, key), new TestResultValue("27f5f17500b408e97643403ea8ef1413"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_MD2});
+        assertEq(<27f5f17500b408e97643403ea8ef1413>, hmac("md2", str, key));
     }
 
     md4Test() {
         testAssertion("MD4 hmac", \MD4_hmac(), (str, key), new TestResultValue("053d084f321a3886e60166ebd9609ce1"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_MD4});
+        assertEq(<053d084f321a3886e60166ebd9609ce1>, hmac("md4", str, key));
     }
 
     md5Test() {
         testAssertion("MD5 hmac", \MD5_hmac(), (str, key), new TestResultValue("87505c6164aaf6ca6315233902a01ef4"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_MD5});
+        assertEq(<87505c6164aaf6ca6315233902a01ef4>, hmac("md5", str, key));
     }
 
     sha1Test() {
         testAssertion("SHA1 hmac", \SHA1_hmac(), (str, key), new TestResultValue("37a3cc73159aa129b0eb22bbdf4b9309d389f629"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_SHA1});
+        assertEq(<37a3cc73159aa129b0eb22bbdf4b9309d389f629>, hmac("sha1", str, key));
     }
 
     ripemd160Test() {
         testAssertion("RIPEMD-160 hmac", \RIPEMD160_hmac(), (str, key), new TestResultValue("4bca70bca1601aba57624eeb2606535cb12f2079"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_RIPEMD160});
+        assertEq(<4bca70bca1601aba57624eeb2606535cb12f2079>, hmac("ripemd160", str, key));
     }
 
     mdc2Test() {
@@ -60,6 +81,9 @@ public class HmacTest inherits QUnit::Test {
             testSkip("Missing MDC2 support");
         }
         testAssertion("MDC2 hmac", \MDC2_hmac(), (str, key), new TestResultValue("e0ef6a6803e58807c5db395e180a999c"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_MDC2});
+        assertEq(<e0ef6a6803e58807c5db395e180a999c>, hmac("mdc2", str, key));
     }
 
     sha224Test() {
@@ -67,6 +91,9 @@ public class HmacTest inherits QUnit::Test {
             testSkip("Missing SHA224 support");
         }
         testAssertion("SHA224 hmac", \SHA224_hmac(), (str, key), new TestResultValue("fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_SHA224});
+        assertEq(<fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c>, hmac("sha224", str, key));
     }
 
     sha256Test() {
@@ -74,6 +101,9 @@ public class HmacTest inherits QUnit::Test {
             testSkip("Missing SHA256 support");
         }
         testAssertion("SHA256 hmac", \SHA256_hmac(), (str, key), new TestResultValue("1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_SHA256});
+        assertEq(<1c90c21e227712b62019ff831f34cba22c2e70f1a902651ef69a70705ee0f754>, hmac("sha256", str, key));
     }
 
     sha384Test() {
@@ -81,6 +111,9 @@ public class HmacTest inherits QUnit::Test {
             testSkip("Missing SHA384 support");
         }
         testAssertion("SHA384 hmac", \SHA384_hmac(), (str, key), new TestResultValue("e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_SHA384});
+        assertEq(<e2c253c6dcb050990b4da3cee95cd7b227f43388fa8116f476f59395af295d0d3bb7156ab2fcd0663b0500249a7a0865>, hmac("sha384", str, key));
     }
 
     sha512Test() {
@@ -88,5 +121,8 @@ public class HmacTest inherits QUnit::Test {
             testSkip("Missing SHA512 support");
         }
         testAssertion("SHA512 hmac", \SHA512_hmac(), (str, key), new TestResultValue("8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6"));
+
+        assertEq(True, DigestMap{CRYPTO_DIGEST_SHA512});
+        assertEq(<8dcefd7ea3f90ff1c822b5e9547fc36edf78c3e4ce13d47510a212a406bdda1a4094e7ea5ade90e1c736e204d331a814520eba49f3d074e2c261208de07264f6>, hmac("sha512", str, key));
     }
 }

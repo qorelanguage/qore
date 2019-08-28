@@ -422,20 +422,19 @@ string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! returns a string of hexadecimal digits corresponding to the contents of the binary object
+//! returns a string of hexadecimal digits corresponding to the contents of the binary object; hex characters are always in lower case
 /** @par Example:
     @code{.py}
 string str = b.toHex();
     @endcode
 
-    @return a string of hexadecimal digits corresponding to the contents of the binary object
+    @return a string of hexadecimal digits corresponding to the contents of the binary object; hex characters are always in lower case
 
     @since %Qore 0.8.8
 
     @see
     - @ref <string>::toHex()
     - @ref Qore::make_hex_string(binary)
-
  */
 string <binary>::toHex() [flags=CONSTANT] {
    QoreStringNode *rv = new QoreStringNode;

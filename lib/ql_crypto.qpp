@@ -59,151 +59,151 @@ static unsigned char def_iv[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 */
 class CryptoHelper : public BaseHelper {
 private:
-   unsigned char *iv, *output;
-   int output_len;
-   const QoreEncoding* qe;
+    unsigned char *iv, *output;
+    int output_len;
+    const QoreEncoding* qe;
 
-   DLLLOCAL const char *getOrdinal(int n) {
-      assert(n > 0 && n <= 3);
-      return n == 1 ? "first" : (n == 2 ? "second" : "third");
-   }
+    DLLLOCAL const char *getOrdinal(int n) {
+        assert(n > 0 && n <= 3);
+        return n == 1 ? "first" : (n == 2 ? "second" : "third");
+    }
 
-   DLLLOCAL void setKey(const QoreListNode *args, int n) {
-      assert(n > 0 && n <= 3);
-      const QoreValue pt = get_param_value(args, n);
-      if (pt.getType() == NT_STRING) {
-         const QoreStringNode* str = pt.get<const QoreStringNode>();
-         key[n - 1] = (unsigned char*)str->getBuffer();
-         keylen[n - 1] = str->strlen();
-         return;
-      }
+    DLLLOCAL void setKey(const QoreListNode *args, int n) {
+        assert(n > 0 && n <= 3);
+        const QoreValue pt = get_param_value(args, n);
+        if (pt.getType() == NT_STRING) {
+            const QoreStringNode* str = pt.get<const QoreStringNode>();
+            key[n - 1] = (unsigned char*)str->getBuffer();
+            keylen[n - 1] = str->strlen();
+            return;
+        }
 
-      const BinaryNode* b = pt.get<const BinaryNode>();
-      key[n - 1] = (unsigned char*)b->getPtr();
-      keylen[n - 1] = b->size();
-   }
+        const BinaryNode* b = pt.get<const BinaryNode>();
+        key[n - 1] = (unsigned char*)b->getPtr();
+        keylen[n - 1] = b->size();
+    }
 
-   DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
-      QoreValue qv = get_param_value(args, n);
-      qe = qv.getType() == NT_STRING ? QEM.findCreate(qv.get<const QoreStringNode>()) : QCS_DEFAULT;
-   }
+    DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
+        QoreValue qv = get_param_value(args, n);
+        qe = qv.getType() == NT_STRING ? QEM.findCreate(qv.get<const QoreStringNode>()) : QCS_DEFAULT;
+    }
 
-   // set the initialization vector (used with hard typing)
-   DLLLOCAL int setIV(const char *err, const QoreValue pt, ExceptionSink *xsink) {
-      assert(!pt.isNothing());
-      if (pt.getType() == NT_STRING) {
-         const QoreStringNode* str = pt.get<const QoreStringNode>();
-         if (str->strlen() < 8) {
-            xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", str->strlen());
+    // set the initialization vector (used with hard typing)
+    DLLLOCAL int setIV(const char *err, const QoreValue pt, ExceptionSink *xsink) {
+        assert(!pt.isNothing());
+        if (pt.getType() == NT_STRING) {
+            const QoreStringNode* str = pt.get<const QoreStringNode>();
+            if (str->strlen() < 8) {
+                xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", str->strlen());
+                return -1;
+            }
+            iv = (unsigned char*)str->getBuffer();
+            return 0;
+        }
+
+        assert(pt.getType() == NT_BINARY);
+        const BinaryNode* b = pt.get<const BinaryNode>();
+        if (b->size() < 8) {
+            xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
             return -1;
-         }
-         iv = (unsigned char*)str->getBuffer();
-         return 0;
-      }
-
-      assert(pt.getType() == NT_BINARY);
-      const BinaryNode* b = pt.get<const BinaryNode>();
-      if (b->size() < 8) {
-         xsink->raiseException(err, "the input vector must be at least 8 bytes long (%d bytes passed)", b->size());
-         return -1;
-      }
-      iv = (unsigned char*)b->getPtr();
-      return 0;
-   }
+        }
+        iv = (unsigned char*)b->getPtr();
+        return 0;
+    }
 
 public:
-   unsigned char *key[3];
-   int keylen[3];
+    unsigned char *key[3];
+    int keylen[3];
 
-   DLLLOCAL CryptoHelper() : iv(0), output(0), output_len(0), qe(QCS_DEFAULT) {
-   }
+    DLLLOCAL CryptoHelper() : iv(0), output(0), output_len(0), qe(QCS_DEFAULT) {
+    }
 
-   DLLLOCAL ~CryptoHelper() {
-      if (output)
-         free(output);
-   }
+    DLLLOCAL ~CryptoHelper() {
+        if (output)
+            free(output);
+    }
 
-   DLLLOCAL BinaryNode *getBinary() {
-      BinaryNode *b = new BinaryNode(output, output_len);
-      output = 0;
-      return b;
-   }
+    DLLLOCAL BinaryNode *getBinary() {
+        BinaryNode *b = new BinaryNode(output, output_len);
+        output = 0;
+        return b;
+    }
 
-   DLLLOCAL QoreStringNode *getString(const QoreEncoding *enc = QCS_DEFAULT) {
-      // create the string
-      QoreStringNode *str = new QoreStringNode((char *)output, output_len, output_len, enc);
-      // add trailing '\0'
-      str->terminate(output_len);
+    DLLLOCAL QoreStringNode *getString(const QoreEncoding *enc = QCS_DEFAULT) {
+        // create the string
+        QoreStringNode *str = new QoreStringNode((char *)output, output_len, output_len, enc);
+        // add trailing '\0'
+        str->terminate(output_len);
 
-      output = 0;
-      return str;
-   }
+        output = 0;
+        return str;
+    }
 
-   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
-      if (setIV(err, get_param_value(params, 2), xsink))
-         return -1;
-
-      setInput(get_param_value(params, 0));
-      setKey(params, 1);
-      if (has_encoding)
-         setEncoding(params, 2);
-      return 0;
-   }
-
-   DLLLOCAL int doCipher(const EVP_CIPHER *type, const char *cipher, int do_crypt, ExceptionSink *xsink) {
-      const char *err = (do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
-
-      QoreEvpCipherCtxHelper ctx;
-      EVP_CIPHER_CTX_init(*ctx);
-      EVP_CipherInit_ex(*ctx, type, 0, 0, 0, do_crypt);
-      if (key[0]) {
-         if (keylen[0] > EVP_MAX_KEY_LENGTH)
-            keylen[0] = EVP_MAX_KEY_LENGTH;
-
-         if (!EVP_CIPHER_CTX_set_key_length(*ctx, keylen[0]) || !EVP_CipherInit_ex(*ctx, 0, 0, key[0], iv, -1)) {
-            xsink->raiseException(err, "error setting %s key length=%d", cipher, keylen[0]);
+    DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
+        if (setIV(err, get_param_value(params, 2), xsink))
             return -1;
-         }
-      }
 
-      // we allocate 1 byte more than we need in case we return as a string so we can terminate it
-      output = (unsigned char *)malloc(sizeof(char) * (input_len + (EVP_MAX_BLOCK_LENGTH * 2)));
+        setInput(get_param_value(params, 0));
+        setKey(params, 1);
+        if (has_encoding)
+            setEncoding(params, 2);
+        return 0;
+    }
 
-      if (!EVP_CipherUpdate(*ctx, output, &output_len, input, input_len)) {
-         xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
-         return -1;
-      }
+    DLLLOCAL int doCipher(const EVP_CIPHER *type, const char *cipher, int do_crypt, ExceptionSink *xsink) {
+        const char *err = (do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR");
 
-      int tmplen;
-      // Buffer passed to EVP_EncryptFinal() must be after data just encrypted to avoid overwriting it.
-      if (!EVP_CipherFinal_ex(*ctx, output + output_len, &tmplen)) {
-         xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
-         return -1;
-      }
+        QoreEvpCipherCtxHelper ctx;
+        EVP_CIPHER_CTX_init(*ctx);
+        EVP_CipherInit_ex(*ctx, type, 0, 0, 0, do_crypt);
+        if (key[0]) {
+            if (keylen[0] > EVP_MAX_KEY_LENGTH)
+                keylen[0] = EVP_MAX_KEY_LENGTH;
 
-      output_len += tmplen;
-      //printd(5, "cipher_intern() %s: in=%p (%d) out=%p (%d)\n", cipher, buf, len, cbuf, *size);
-      return 0;
-   }
+            if (!EVP_CIPHER_CTX_set_key_length(*ctx, keylen[0]) || !EVP_CipherInit_ex(*ctx, 0, 0, key[0], iv, -1)) {
+                xsink->raiseException(err, "error setting %s key length=%d", cipher, keylen[0]);
+                return -1;
+            }
+        }
 
-   DLLLOCAL int checkKeyLen(const char *err, int n, int len, ExceptionSink *xsink) {
-      if (keylen[n] < len) {
-         xsink->raiseException(err, "key length is not %d bytes long (%d bytes)", len, keylen[n]);
-         return -1;
-      }
-      keylen[n] = len;
-      return 0;
-   }
+        // we allocate 1 byte more than we need in case we return as a string so we can terminate it
+        output = (unsigned char *)malloc(sizeof(char) * (input_len + (EVP_MAX_BLOCK_LENGTH * 2)));
+
+        if (!EVP_CipherUpdate(*ctx, output, &output_len, input, input_len)) {
+            xsink->raiseException(err, "error %scrypting %s block", do_crypt ? "en" : "de", cipher);
+            return -1;
+        }
+
+        int tmplen;
+        // Buffer passed to EVP_EncryptFinal() must be after data just encrypted to avoid overwriting it.
+        if (!EVP_CipherFinal_ex(*ctx, output + output_len, &tmplen)) {
+            xsink->raiseException(err, "error %scrypting final %s block", do_crypt ? "en" : "de", cipher);
+            return -1;
+        }
+
+        output_len += tmplen;
+        //printd(5, "cipher_intern() %s: in=%p (%d) out=%p (%d)\n", cipher, buf, len, cbuf, *size);
+        return 0;
+    }
+
+    DLLLOCAL int checkKeyLen(const char *err, int n, int len, ExceptionSink *xsink) {
+        if (keylen[n] < len) {
+            xsink->raiseException(err, "key length is not %d bytes long (%d bytes)", len, keylen[n]);
+            return -1;
+        }
+        keylen[n] = len;
+        return 0;
+    }
 
 /*
-   DLLLOCAL int setDESKey(int n, ExceptionSink *xsink) {
-      // force odd parity
-      //DES_set_odd_parity((DES_cblock *)key[n]);
-      // populate the schedule structure
-      //DES_set_key_unchecked((DES_cblock *)key[n], schedule);
-      //key[n] = (unsigned char *)schedule;
-      return 0;
-   }
+    DLLLOCAL int setDESKey(int n, ExceptionSink *xsink) {
+        // force odd parity
+        //DES_set_odd_parity((DES_cblock *)key[n]);
+        // populate the schedule structure
+        //DES_set_key_unchecked((DES_cblock *)key[n], schedule);
+        //key[n] = (unsigned char *)schedule;
+        return 0;
+    }
 */
 };
 
@@ -212,82 +212,82 @@ AbstractQoreNode* missing_openssl_feature(const char *f, ExceptionSink *xsink) {
 }
 
 static int check_mac(const ReferenceNode* mac, int64 mac_size, ExceptionSink* xsink) {
-   if (!mac_size)
-      return 0;
+    if (!mac_size)
+        return 0;
 
-   if (!mac) {
-      xsink->raiseException("MAC-ERROR", "mac_size argument passed but no mac argument passed");
-      return -1;
-   }
+    if (!mac) {
+        xsink->raiseException("MAC-ERROR", "mac_size argument passed but no mac argument passed");
+        return -1;
+    }
 
-   if (mac_size < 0) {
-      xsink->raiseException("MAC-ERROR", "mac_size argument is negative (" QLLD ")", mac_size);
-      return -1;
-   }
+    if (mac_size < 0) {
+        xsink->raiseException("MAC-ERROR", "mac_size argument is negative (" QLLD ")", mac_size);
+        return -1;
+    }
 
-   if (mac_size > Q_TAG_MAX) {
-      xsink->raiseException("MAC-ERROR", "mac_size argument is too large (" QLLD "); maximum value is %d", mac_size, Q_TAG_MAX);
-      return -1;
-   }
+    if (mac_size > Q_TAG_MAX) {
+        xsink->raiseException("MAC-ERROR", "mac_size argument is too large (" QLLD "); maximum value is %d", mac_size, Q_TAG_MAX);
+        return -1;
+    }
 
-   return 0;
+    return 0;
 }
 
 static QoreValue apply_transformation(SimpleRefHolder<Transform>& t, SimpleRefHolder<BinaryNode>& rv, const char* datastr, size_t data_len, ExceptionSink* xsink) {
-   // preallocate space for the decrypted data
-   rv->preallocate(data_len + (EVP_MAX_BLOCK_LENGTH * 2));
-   size_t rv_maxsize = rv->size();
-   size_t rvsize = 0;
-   size_t offset = 0;
+    // preallocate space for the decrypted data
+    rv->preallocate(data_len + (EVP_MAX_BLOCK_LENGTH * 2));
+    size_t rv_maxsize = rv->size();
+    size_t rvsize = 0;
+    size_t offset = 0;
 
-   // decrypt data
-   while (offset != data_len) {
-      // get block size
-      size_t bs = data_len - offset;
+    // decrypt data
+    while (offset != data_len) {
+        // get block size
+        size_t bs = data_len - offset;
 
-      // ensure we always have buffer space for the encryption algorithm
-      {
-         size_t new_max = rvsize + bs + (EVP_MAX_BLOCK_LENGTH * 2);
+        // ensure we always have buffer space for the encryption algorithm
+        {
+            size_t new_max = rvsize + bs + (EVP_MAX_BLOCK_LENGTH * 2);
 
-         // reallocate target buffer if necessary
-         if (new_max > rv_maxsize) {
-            rv_maxsize = new_max;
-            rv->preallocate(rv_maxsize);
-         }
-      }
+            // reallocate target buffer if necessary
+            if (new_max > rv_maxsize) {
+                rv_maxsize = new_max;
+                rv->preallocate(rv_maxsize);
+            }
+        }
 
-      size_t cbs = rv_maxsize - rvsize;
-      std::pair<int64, int64> p = t->apply(datastr + offset, bs, (char*)rv->getPtr() + rvsize, cbs, xsink);
-      if (*xsink)
-         return QoreValue();
-      offset += p.first;
-      rvsize += p.second;
-   }
+        size_t cbs = rv_maxsize - rvsize;
+        std::pair<int64, int64> p = t->apply(datastr + offset, bs, (char*)rv->getPtr() + rvsize, cbs, xsink);
+        if (*xsink)
+            return QoreValue();
+        offset += p.first;
+        rvsize += p.second;
+    }
 
-   // close the stream
-   while (true) {
-      // ensure we always have buffer space for the encryption algorithm
-      {
-         size_t new_max = rvsize + (EVP_MAX_BLOCK_LENGTH * 2);
+    // close the stream
+    while (true) {
+        // ensure we always have buffer space for the encryption algorithm
+        {
+            size_t new_max = rvsize + (EVP_MAX_BLOCK_LENGTH * 2);
 
-         // reallocate target buffer if necessary
-         if (new_max > rv_maxsize) {
-            rv_maxsize = new_max;
-            rv->preallocate(rv_maxsize);
-         }
-      }
+            // reallocate target buffer if necessary
+            if (new_max > rv_maxsize) {
+                rv_maxsize = new_max;
+                rv->preallocate(rv_maxsize);
+            }
+        }
 
-      size_t cbs = rv_maxsize - rvsize;
-      std::pair<int64, int64> p = t->apply(nullptr, 0, (char*)rv->getPtr() + rvsize, cbs, xsink);
-      if (*xsink)
-         return QoreValue();
-      if (!p.second)
-         break;
-      rvsize += p.second;
-   }
+        size_t cbs = rv_maxsize - rvsize;
+        std::pair<int64, int64> p = t->apply(nullptr, 0, (char*)rv->getPtr() + rvsize, cbs, xsink);
+        if (*xsink)
+            return QoreValue();
+        if (!p.second)
+            break;
+        rvsize += p.second;
+    }
 
-   rv->setSize(rvsize);
-   return rv.release();
+    rv->setSize(rvsize);
+    return rv.release();
 }
 
 /** @defgroup crypto_transformations Cryptographic Stream Transformations
@@ -511,6 +511,95 @@ const CRYPTO_ALG_AES_256 = "aes256";
 const DefaultIV = <0000000000000000>;
 //@}
 
+/** @defgroup digest_algorithms Crytographic Digest Algorithms
+
+    The following constants can be used with the @ref Qore::digest() "digest()" and @ref Qore::hmac() "hmac()"
+    functions to calculate cryptographic digests and HMACs on input data.
+
+    @par Example:
+    @code{.py}
+Qore::FileOutputStream of("my-file.txt");
+Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH));
+    @endcode
+
+    These constants are useful in the following functions:
+    - @ref Qore::digest()
+    - @ref Qore::hmac()
+
+    @since %Qore 0.9.3
+ */
+//@{
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD2 = "md2";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD4 = "md4";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD5 = "md5";
+
+//! specifies the insecure and outdated SHA-0 message digest; only supplied for compatibility purposes
+/**
+*/
+const CRYPTO_DIGEST_SHA = "sha";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_SHA1 = "sha1";
+
+//! specifies the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA224 = "sha224";
+
+//! specifies the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA256 = "sha256";
+
+//! specifies the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA384 = "sha384";
+
+//! specifies the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA512 = "sha512";
+
+//! specifies the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>)
+/**
+*/
+const CRYPTO_DIGEST_DSS = "dss";
+
+//! specifies the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>)
+/**
+*/
+const CRYPTO_DIGEST_DSS1 = "dss1";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MDC2 = "mdc2";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_RIPEMD160 = "ripemd160";
+
+//! A hash keyed by supported digest name where each value is @ref Qore::True "True"
+/** @since %Qore 0.9.3
+*/
+const DigestMap = qore(init_digest_map_hash());
+//@}
+
 /** @defgroup cryptographic_functions Cryptographic Functions
     %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
 
@@ -545,8 +634,8 @@ binary sub get_key(int size) {
  */
 //@{
 
-//! Returns a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
-/** @return a binary object of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+//! Returns a binary value of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
+/** @return a binary value of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
 
     @par Example:
     @code{.py}
@@ -564,7 +653,7 @@ binary des_random_key() [flags=CONSTANT] [flags=CONSTANT] {
     @param key a variable-length key (recommended 16 bytes or more)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -593,12 +682,12 @@ binary blowfish_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
    return ch.getBinary();
 }
 
-//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a> and returns a binary object of the decrypted data
+//! Decrypts data using the <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining</a> function for the <a href="http://www.counterpane.com/blowfish.html">blowfish algorithm</a> and returns a binary value of the decrypted data
 /** @param data the data to be decrypted
     @param key a variable-length key (recommended 16 bytes or more)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -669,7 +758,7 @@ string blowfish_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
     @param key the encryption key must be at least 8 bytes long (only the first 8 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -705,7 +794,7 @@ binary des_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @param key the decryption key must be at least 8 bytes long (only the first 8 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -780,7 +869,7 @@ string des_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     @param key the encryption key must be at least 16 bytes long (only the first 16 bytes will be used for the two 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -816,7 +905,7 @@ binary des_ede_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::D
     @param key the decryption key must be at least 16 bytes long (only the first 16 bytes will be used for the two 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -891,7 +980,7 @@ string des_ede_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] 
     @param key the encryption key must be at least 24 bytes long (only the first 24 bytes will be used for the three 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -927,7 +1016,7 @@ binary des_ede3_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::
     @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used for the three 8-byte keys)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1002,7 +1091,7 @@ string des_ede3_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc]
     @param key the encryption key must be at least 24 bytes long (only the first 24 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -1038,7 +1127,7 @@ binary desx_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defa
     @param key the decryption key must be at least 24 bytes long (only the first 24 bytes will be used)
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1075,7 +1164,7 @@ binary desx_decrypt_cbc(binary[doc] data, data[doc] key, data[doc] iv = Qore::De
     @param iv the initialization vector must be at least 8 bytes long if present
     @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1113,7 +1202,7 @@ string desx_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv 
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -1149,7 +1238,7 @@ binary rc4_encrypt(data[doc] data, data[doc] key, data[doc] iv = Qore::DefaultIV
     @param key a variable-width decryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1224,7 +1313,7 @@ string rc4_decrypt_to_string(binary[doc] data, data[doc] key, data[doc] iv = Qor
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -1258,7 +1347,7 @@ binary rc2_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @param key a variable-width decryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1329,7 +1418,7 @@ string rc2_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -1363,7 +1452,7 @@ binary cast5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Def
     @param key a variable-width decryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1437,7 +1526,7 @@ string cast5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv
     @param key a variable-width encryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the encrypted data
+    @return a binary value of the encrypted data
 
     @par Example:
     @code{.py}
@@ -1478,7 +1567,7 @@ binary rc5_encrypt_cbc(data[doc] data, data[doc] key, data[doc] iv = Qore::Defau
     @param key a variable-width decryption key
     @param iv the initialization vector must be at least 8 bytes long if present
 
-    @return a binary object of the decrypted data
+    @return a binary value of the decrypted data
 
     @par Example:
     @code{.py}
@@ -1592,7 +1681,9 @@ string str = MD2("hello"); # returns "a9046c73e00331af68917d3804f70655"
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MD2_bin()
+    @see
+    - MD2_bin()
+    - digest()
  */
 string MD2(data[doc] data) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
@@ -1619,7 +1710,9 @@ string str = MD4("hello"); # returns "866437cb7a794bce2b727acc0362ee27"
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MD4_bin()
+    @see
+    - MD4_bin()
+    - digest()
  */
 string MD4(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
@@ -1646,8 +1739,10 @@ string str = MD5("hello"); # returns "5d41402abc4b2a76b9719d911017c592"
     - equivalent to <string>::toMD5()
     - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
 
-    @see MD5_bin()
- */
+    @see
+    - MD5_bin()
+    - digest()
+*/
 string MD5(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
@@ -1670,8 +1765,10 @@ string str = SHA("hello"); returns "ac62a630ca850b4ea07eda664eaecf9480843152"
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA_bin()
- */
+    @see
+    - SHA_bin()
+    - digest()
+*/
 string SHA(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
@@ -1700,7 +1797,9 @@ string str = SHA1("hello"); # "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @note equivalent to <string>::toSHA1()
 
-    @see SHA1_bin()
+    @see
+    - SHA1_bin()
+    - digest()
  */
 string SHA1(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
@@ -1728,8 +1827,10 @@ string str = SHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc834
 
     @note equivalent to <string>::toSHA224()
 
-    @see SHA224_bin()
- */
+    @see
+    - digest()
+    - SHA224_bin()
+*/
 string SHA224(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -1760,8 +1861,10 @@ string str = SHA256("hello"); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5
 
     @note equivalent to <string>::toSHA256()
 
-    @see SHA256_bin()
- */
+    @see
+    - SHA256_bin()
+    - digest()
+*/
 string SHA256(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -1792,8 +1895,10 @@ string str = SHA384("hello"); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b46
 
     @note equivalent to <string>::toSHA384()
 
-    @see SHA384_bin()
- */
+    @see
+    - SHA384_bin()
+    - digest()
+*/
 string SHA384(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -1824,8 +1929,10 @@ string str = SHA512("hello"); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc
 
     @note equivalent to <string>::toSHA512()
 
-    @see SHA512_bin()
- */
+    @see
+    - SHA512_bin()
+    - digest()
+*/
 string SHA512(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -1851,10 +1958,12 @@ string str = DSS("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see DSS_bin()
+    @see
+    - DSS_bin()
+    - digest()
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
- */
+*/
 string DSS(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
@@ -1880,7 +1989,9 @@ string str = DSS1("hello"); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see DSS1_bin()
+    @see
+    - DSS1_bin()
+    - digest()
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
  */
@@ -1912,7 +2023,9 @@ string str = MDC2("hello"); # returns "4517036cf97b2407d6fe22aa5ab878a3"
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MDC2_bin()
+    @see
+    - MDC2_bin()
+    - digest()
  */
 string MDC2(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifdef OPENSSL_HAVE_MDC2
@@ -1939,8 +2052,10 @@ string str = RIPEMD160("hello"); # returns "108f07b8382412612c048d07d13f81411844
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see RIPEMD160_bin()
- */
+    @see
+    - RIPEMD160_bin()
+    - digest()
+*/
 string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
@@ -1949,14 +2064,14 @@ string RIPEMD160(data[doc] data) [flags=RET_VALUE_ONLY] {
    return dh.getString();
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MD2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -1965,8 +2080,10 @@ binary bin = MD2_bin("hello");
 
     @throw MD2-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MD2()
- */
+    @see
+    - MD2()
+    - digest()
+*/
 binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
    DigestHelper dh(args);
@@ -1979,11 +2096,11 @@ binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a> of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -1992,8 +2109,10 @@ binary bin = MD4_bin("hello");
 
     @throw MD4-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MD4()
- */
+    @see
+    - MD4()
+    - digest()
+*/
 binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD4_ERR, EVP_md4(), xsink))
@@ -2002,11 +2121,11 @@ binary MD4_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    return dh.getBinary();
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a> of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2015,8 +2134,10 @@ binary bin = MD5_bin("hello");
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MD5()
- */
+    @see
+    - MD5()
+    - digest()
+*/
 binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
@@ -2025,12 +2146,12 @@ binary MD5_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    return dh.getBinary();
 }
 
-//! Returns the SHA (outdated SHA-0) message digest of the supplied argument as a binary object
+//! Returns the SHA (outdated SHA-0) message digest of the supplied argument as a binary value
 /** This hash algorithm was withdrawn after publishing and is considered to have serious flaws.
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2039,8 +2160,10 @@ binary bin = SHA_bin("hello");
 
     @throw SHA-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA()
- */
+    @see
+    - SHA()
+    - digest()
+*/
 binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifdef HAVE_OPENSSL_SHA
    DigestHelper dh(args);
@@ -2054,11 +2177,11 @@ binary SHA_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2067,8 +2190,10 @@ binary bin = SHA1_bin("hello");
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA1()
- */
+    @see
+    - SHA1()
+    - digest()
+*/
 binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
@@ -2077,14 +2202,14 @@ binary SHA1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
    return dh.getBinary();
 }
 
-//! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+//! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA224
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2093,8 +2218,10 @@ binary bin = SHA224_bin("hello");
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA224()
- */
+    @see
+    - SHA224()
+    - digest()
+*/
 binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -2107,14 +2234,14 @@ binary SHA224_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+//! Returns the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA256
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2123,8 +2250,10 @@ binary bin = SHA256_bin("hello");
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA256()
- */
+    @see
+    - SHA256()
+    - digest()
+*/
 binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -2137,14 +2266,14 @@ binary SHA256_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+//! Returns the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2153,8 +2282,10 @@ binary bin = SHA384_bin("hello");
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA384()
- */
+    @see
+    - SHA384()
+    - digest()
+*/
 binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -2167,14 +2298,14 @@ binary SHA384_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary object
+//! Returns the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the supplied argument as a binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2183,8 +2314,10 @@ binary bin = SHA512_bin("hello");
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see SHA512()
- */
+    @see
+    - SHA512()
+    - digest()
+*/
 binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(args);
@@ -2197,11 +2330,11 @@ binary SHA512_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
+//! Returns the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2210,10 +2343,12 @@ binary bin = DSS_bin("hello");
 
     @throw DSS-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see DSS()
+    @see
+    - DSS()
+    - digest()
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
- */
+*/
 binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
@@ -2226,11 +2361,11 @@ binary DSS_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary object
+//! Returns the DSS1 message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>) of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2239,10 +2374,12 @@ binary bin = DSS1_bin("hello");
 
     @throw DSS1-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see DSS1()
+    @see
+    - DSS1()
+    - digest()
 
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
- */
+*/
 binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifndef HAVE_OPENSSL_INIT_CRYPTO
    DigestHelper dh(args);
@@ -2255,14 +2392,14 @@ binary DSS1_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a> of the supplied argument as a binary value
 /**
     @par Platform Availability:
     @ref Qore::Option::HAVE_MDC2
 
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2271,8 +2408,10 @@ binary bin = MDC2_bin("hello");
 
     @throw MDC2-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see MDC2_bin()
- */
+    @see
+    - MDC2_bin()
+    - digest()
+*/
 binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #ifdef OPENSSL_HAVE_MDC2
    DigestHelper dh(args);
@@ -2285,11 +2424,11 @@ binary MDC2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
 #endif
 }
 
-//! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a binary object
+//! Returns the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a> of the supplied argument as a binary value
 /**
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
-    @return a binary object of the digest
+    @return a binary value of the digest
 
     @par Example:
     @code{.py}
@@ -2298,8 +2437,10 @@ binary bin = RIPEMD160_bin("hello");
 
     @throw RIPEMD160-DIGEST-ERROR error calculating digest (should not normally happen)
 
-    @see RIPEMD160()
- */
+    @see
+    - RIPEMD160()
+    - digest()
+*/
 binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
    DigestHelper dh(args);
    if (dh.doDigest(RIPEMD160_ERR, EVP_ripemd160(), xsink))
@@ -2350,18 +2491,23 @@ string str = MD2_hmac("Hello There This is a Test - 1234567890", "a key");
 
     @throw MD2-HMAC-ERROR error calculating digest (should not normally happen)
 
-    @see MD2_bin()
+    @see
+    - hmac()
+    - MD2_bin()
  */
-string MD2_hmac(data[doc] data, string key) {
+string MD2_hmac(data[doc] data, data key) {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
-   HMACHelper dh(args);
-   if (dh.doHMAC("MD2-HMAC-ERROR", EVP_md2(), key, xsink))
-      return QoreValue();
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("MD2-HMAC-ERROR", EVP_md2(), ptr, len, xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("MD2", xsink);
+    (void)key;
+    return missing_openssl_feature("MD2", xsink);
 #endif
 }
 
@@ -2379,13 +2525,18 @@ string str = MD4_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw MD4-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string MD4_hmac(data[doc] data, string key) {
-   HMACHelper dh(args);
-   if (dh.doHMAC("MD4-HMAC-ERROR", EVP_md4(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+ */
+string MD4_hmac(data[doc] data, data key) {
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("MD4-HMAC-ERROR", EVP_md4(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD5">MD5</a> based HMAC of the supplied argument as a hex string
@@ -2404,13 +2555,18 @@ string str = MD5_hmac("Hello There This is a Test - 1234567890", "a key");
     @note the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
 
     @throw MD5-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string MD5_hmac(data[doc] data, string key) {
-   HMACHelper dh(args);
-   if (dh.doHMAC("MD5-HMAC-ERROR", EVP_md5(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+ */
+string MD5_hmac(data[doc] data, data key) {
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("MD5-HMAC-ERROR", EVP_md5(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA</a> based HMAC of the supplied argument as a hex string
@@ -2426,21 +2582,26 @@ string str = SHA_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "0ad47c8d36dc4606d52f7e4cbd144ef2fda492a0"
     @endcode
 
-    @note  SHA/SHA0 was withdrawn shortly after publication due to an undisclosed "significant flaw" and replaced by the slightly revised version SHA-1.
+    @note SHA/SHA0 was withdrawn shortly after publication due to an undisclosed "significant flaw" and replaced by the slightly revised version SHA-1.
 
     @throw SHA-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA_hmac(data[doc] data, string key) {
-#ifdef HAVE_OPENSSL_SHA
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+ */
+string SHA_hmac(data[doc] data, data key) {
+#ifdef HAVE_OPENSSL_SHA
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA-HMAC-ERROR", EVP_sha(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   missing_openssl_feature("SHA", xsink);
-   return 0;
+    (void)key;
+    missing_openssl_feature("SHA", xsink);
+    return QoreValue();
 #endif
 }
 
@@ -2460,13 +2621,18 @@ string str = SHA1_hmac("Hello There This is a Test - 1234567890", "a key");
     @note Cryptographic weaknesses were discovered in SHA-1, and the standard was no longer approved for most cryptographic uses after 2010.
 
     @throw SHA1-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA1_hmac(data[doc] data, string key) {
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA1-HMAC-ERROR", EVP_sha1(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+ */
+string SHA1_hmac(data[doc] data, data key) {
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA1-HMAC-ERROR", EVP_sha1(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/Secure_Hash_Algorithm">SHA224</a> based HMAC of the supplied argument as a hex string
@@ -2485,19 +2651,23 @@ string str = SHA224_hmac("Hello There This is a Test - 1234567890", "a key");
 # returns "fad5667fa5aa412044555b7e077fced62372fe9c6ce20815609da12c"
     @endcode
 
-
     @throw SHA224-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA224_hmac(data[doc] data, string key) {
-#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA224-HMAC-ERROR", EVP_sha224(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+ */
+string SHA224_hmac(data[doc] data, data key) {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA224-HMAC-ERROR", EVP_sha224(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("SHA224", xsink);
+    (void)key;
+    return missing_openssl_feature("SHA224", xsink);
 #endif
 }
 
@@ -2518,17 +2688,22 @@ string str = SHA256_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw SHA256-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA256_hmac(data[doc] data, string key) {
-#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA256-HMAC-ERROR", EVP_sha256(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string SHA256_hmac(data[doc] data, data key) {
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA256-HMAC-ERROR", EVP_sha256(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("SHA256", xsink);
+    (void)key;
+    return missing_openssl_feature("SHA256", xsink);
 #endif
 }
 
@@ -2549,17 +2724,22 @@ string str = SHA384_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw SHA384-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA384_hmac(data[doc] data, string key) {
-#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA384-HMAC-ERROR", EVP_sha384(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string SHA384_hmac(data[doc] data, data key) {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA384-HMAC-ERROR", EVP_sha384(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("SHA384", xsink);
+    (void)key;
+    return missing_openssl_feature("SHA384", xsink);
 #endif
 }
 
@@ -2580,17 +2760,22 @@ string str = SHA512_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw SHA512-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string SHA512_hmac(data[doc] data, string key) {
-#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   HMACHelper dh(args);
-   if (dh.doHMAC("SHA512-HMAC-ERROR", EVP_sha512(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string SHA512_hmac(data[doc] data, data key) {
+#if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("SHA512-HMAC-ERROR", EVP_sha512(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("SHA512", xsink);
+    (void)key;
+    return missing_openssl_feature("SHA512", xsink);
 #endif
 }
 
@@ -2610,17 +2795,22 @@ string str = DSS_hmac("Hello There This is a Test - 1234567890", "a key");
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string DSS_hmac(data[doc] data, string key) {
-#ifndef HAVE_OPENSSL_INIT_CRYPTO
-   HMACHelper dh(args);
-   if (dh.doHMAC(DSS_ERR, EVP_dss(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string DSS_hmac(data[doc] data, data key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC(DSS_ERR, EVP_dss(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   missing_openssl_feature("DSS", xsink);
+    (void)key;
+    missing_openssl_feature("DSS", xsink);
 #endif
 }
 
@@ -2640,17 +2830,22 @@ string str = DSS1_hmac("Hello There This is a Test - 1234567890", "a key");
     @note this digest algorithm is considered outdated and is included for backwards-compatibility only when %Qore is built with an older openssl library
 
     @throw DSS1-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string DSS1_hmac(data[doc] data, string key) {
-#ifndef HAVE_OPENSSL_INIT_CRYPTO
-   HMACHelper dh(args);
-   if (dh.doHMAC(DSS1_ERR, EVP_dss1(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string DSS1_hmac(data[doc] data, data key) {
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC(DSS1_ERR, EVP_dss1(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   missing_openssl_feature("DSS", xsink);
+    (void)key;
+    missing_openssl_feature("DSS", xsink);
 #endif
 }
 
@@ -2668,17 +2863,22 @@ string str = MDC2_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw MDC2-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string MDC2_hmac(data[doc] data, string key) {
-#ifdef OPENSSL_HAVE_MDC2
-   HMACHelper dh(args);
-   if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string MDC2_hmac(data[doc] data, data key) {
+#ifdef OPENSSL_HAVE_MDC2
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("MDC2-HMAC-ERROR", EVP_mdc2(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
 #else
-   (void)key;
-   return missing_openssl_feature("MDC2", xsink);
+    (void)key;
+    return missing_openssl_feature("MDC2", xsink);
 #endif
 }
 
@@ -2696,13 +2896,110 @@ string str = RIPEMD160_hmac("Hello There This is a Test - 1234567890", "a key");
     @endcode
 
     @throw RIPEMD160-HMAC-ERROR error calculating digest (should not normally happen)
- */
-string RIPEMD160_hmac(data[doc] data, string key) {
-   HMACHelper dh(args);
-   if (dh.doHMAC("RIPEMD160-HMAC-ERROR", EVP_ripemd160(), key, xsink))
-      return QoreValue();
 
-   return dh.getString();
+    @see hmac()
+*/
+string RIPEMD160_hmac(data[doc] data, data key) {
+    HMACHelper dh(args);
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+    if (dh.doHMAC("RIPEMD160-HMAC-ERROR", EVP_ripemd160(), ptr, len, xsink))
+        return QoreValue();
+
+    return dh.getString();
+}
+
+//! Returns the digest of the supplied arguments as a binary value
+/** @par Example:
+    @code{.py}
+binary bin = digest("md2", "Hello There This is a Test - 1234567890");
+# returns <a9046c73e00331af68917d3804f70655>
+    @endcode
+
+    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+
+    @return the binary value of the digest
+
+    @throw DIGEST-ERROR unknown digest
+    @throw DIGEST-CALCULATION-ERROR error calculating digest (should not normally happen)
+
+    @since %Qore 0.9.3
+*/
+binary digest(string digest, data data) [flags=RET_VALUE_ONLY] {
+    // find digest
+    digest_map_t::const_iterator i = digest_map.find(digest->c_str());
+    if (i == digest_map.end()) {
+        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check DigestMap for supported digests",
+            digest->c_str());
+        return QoreValue();
+    }
+
+    DigestHelper dh(data);
+
+    return dh.doDigest("DIGEST-CALCULATION-ERROR", i->second, xsink)
+        ? QoreValue()
+        : dh.getBinary();
+}
+
+//! Returns the digest-based HMAC of the supplied arguments as a binary value
+/** @par Example:
+    @code{.py}
+binary bin = hmac("ripemd160", "Hello There This is a Test - 1234567890", "a key");
+# returns <4bca70bca1601aba57624eeb2606535cb12f2079>
+    @endcode
+
+    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
+    @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
+    @param key a secret passphrase/key
+
+    @return the binary value of the HMAC
+
+    @throw DIGEST-ERROR unknown digest
+    @throw HMAC-CALCULATION-ERROR error calculating digest (should not normally happen)
+
+    @see @ref Qore::DigestMap "DigestMap"
+
+    @since %Qore 0.9.3
+*/
+binary hmac(string digest, data data, data key) [flags=RET_VALUE_ONLY] {
+    // find digest
+    digest_map_t::const_iterator i = digest_map.find(digest->c_str());
+    if (i == digest_map.end()) {
+        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check DigestMap for supported digests",
+            digest->c_str());
+        return QoreValue();
+    }
+
+    HMACHelper dh(data);
+
+    // get key data
+    const char* ptr;
+    size_t len;
+    q_get_data(key, ptr, len);
+
+    return dh.doHMAC("HMAC-CALCULATION-ERROR", i->second, ptr, len, xsink)
+        ? QoreValue()
+        : dh.getBinary();
+}
+
+//! Returns a list of supported digest algorithms for @ref hmac()
+/** @par Example:
+    @code{.py}
+# make a map of supported digests
+hash<string, bool> digest_map = map {$1: True}, get_digests();
+    @endcode
+
+    @return a list of supported digest algorithms for @ref hmac()
+
+    @see hmac()
+
+    @since %Qore 0.9.3
+*/
+list<string> get_digests() [flags=CONSTANT] {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    return rv.release();
 }
 
 //! Returns a @ref Transform object for encrypting data using the given @ref crypto_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
@@ -2734,24 +3031,24 @@ Qore::TransformOutputStream ts(of, get_encryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
     @since %Qore 0.8.13
  */
 Transform get_encryptor(string alg, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
-   const char* keystr;
-   size_t key_len;
-   q_get_data(key, keystr, key_len);
+    const char* keystr;
+    size_t key_len;
+    q_get_data(key, keystr, key_len);
 
-   const char* ivstr;
-   size_t iv_len;
-   q_get_data(iv, ivstr, iv_len);
+    const char* ivstr;
+    size_t iv_len;
+    q_get_data(iv, ivstr, iv_len);
 
-   if (check_mac(mac, mac_size, xsink))
-      return QoreValue();
+    if (check_mac(mac, mac_size, xsink))
+        return QoreValue();
 
-   const char* aadstr = nullptr;
-   size_t aad_len = 0;
-   if (aad)
-      q_get_data(aad, aadstr, aad_len);
+    const char* aadstr = nullptr;
+    size_t aad_len = 0;
+    if (aad)
+        q_get_data(aad, aadstr, aad_len);
 
-   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len, xsink));
-   return *xsink ? nullptr : new QoreObject(QC_TRANSFORM, getProgram(), t.release());
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len, xsink));
+    return *xsink ? nullptr : new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
 
 //! Returns a @ref Transform object for decrypting data using the given @ref crypto_transformations "algorithm" for use with @ref TransformInputStream and @ref TransformOutputStream
@@ -2781,29 +3078,29 @@ Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH, key)
     @since %Qore 0.8.13
  */
 Transform get_decryptor(string alg, data key, data iv = Qore::DefaultIV, *data mac, *data aad) [flags=RET_VALUE_ONLY] {
-   const char* keystr;
-   size_t key_len;
-   q_get_data(key, keystr, key_len);
+    const char* keystr;
+    size_t key_len;
+    q_get_data(key, keystr, key_len);
 
-   const char* ivstr;
-   size_t iv_len;
-   q_get_data(iv, ivstr, iv_len);
+    const char* ivstr;
+    size_t iv_len;
+    q_get_data(iv, ivstr, iv_len);
 
-   const char* macstr = nullptr;
-   size_t mac_len = 0;
-   if (mac)
-      q_get_data(mac, macstr, mac_len);
+    const char* macstr = nullptr;
+    size_t mac_len = 0;
+    if (mac)
+        q_get_data(mac, macstr, mac_len);
 
-   const char* aadstr = nullptr;
-   size_t aad_len = 0;
-   if (aad)
-      q_get_data(aad, aadstr, aad_len);
+    const char* aadstr = nullptr;
+    size_t aad_len = 0;
+    if (aad)
+        q_get_data(aad, aadstr, aad_len);
 
-   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
-   return *xsink ? nullptr : new QoreObject(QC_TRANSFORM, getProgram(), t.release());
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
+    return *xsink ? nullptr : new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
 
-//! Returns a binary object of encrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
+//! Returns a binary value of encrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
 /** @par Example:
     @code{.py}
 binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
@@ -2817,7 +3114,7 @@ binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @param mac_size number of bytes of the MAC to return; this value must be non-negative and less than 4096 or a \c MAC-ERROR exception will be thrown
     @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
 
-    @return a binary object of encrypted data corresponding to the input arguments
+    @return a binary value of encrypted data corresponding to the input arguments
 
     @throw MAC-ERROR this exception is thrown if the \a mac_size argument is passed but no \a mac argument or vice-versa or if the \a mac_size argument is negative or greater than 4096 bytes
     @throw ENCRYPT-ERROR unknown encryption algorithm; error with the encryption algorithm (ex: invalid key size)
@@ -2832,35 +3129,35 @@ binary bin = encrypt(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @since %Qore 0.8.13
  */
 binary encrypt(string alg, data data, data key, data iv = Qore::DefaultIV, *reference<binary> mac, *int mac_size, *data aad) [flags=RET_VALUE_ONLY] {
-   const char* datastr;
-   size_t data_len;
-   q_get_data(data, datastr, data_len);
+    const char* datastr;
+    size_t data_len;
+    q_get_data(data, datastr, data_len);
 
-   const char* keystr;
-   size_t key_len;
-   q_get_data(key, keystr, key_len);
+    const char* keystr;
+    size_t key_len;
+    q_get_data(key, keystr, key_len);
 
-   const char* ivstr;
-   size_t iv_len;
-   q_get_data(iv, ivstr, iv_len);
+    const char* ivstr;
+    size_t iv_len;
+    q_get_data(iv, ivstr, iv_len);
 
-   if (check_mac(mac, mac_size, xsink))
-      return QoreValue();
+    if (check_mac(mac, mac_size, xsink))
+        return QoreValue();
 
-   const char* aadstr = nullptr;
-   size_t aad_len = 0;
-   if (aad)
-      q_get_data(aad, aadstr, aad_len);
+    const char* aadstr = nullptr;
+    size_t aad_len = 0;
+    if (aad)
+        q_get_data(aad, aadstr, aad_len);
 
-   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), true, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, nullptr, 0, (unsigned)mac_size, mac, aadstr, (unsigned)aad_len, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   SimpleRefHolder<BinaryNode> rv(new BinaryNode);
-   return apply_transformation(t, rv, datastr, data_len, xsink);
+    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+    return apply_transformation(t, rv, datastr, data_len, xsink);
 }
 
-//! Returns a binary object of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
+//! Returns a binary value of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
 /** @par Example:
     @code{.py}
 binary bin = decrypt_to_binary(Qore::CRYPTO_ALG_BLOWFISH, data, key);
@@ -2873,7 +3170,7 @@ binary bin = decrypt_to_binary(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @param mac a message authentication code to be used to decrypt the message if required by the cryptographic algorithm, if not required, this argument is ignored
     @param aad <a href="https://www.cryptopp.com/wiki/ADATA">Additional Authenticated Data</a>; if the cryptographic algorithm does not support AAD, then this argument is ignored
 
-    @return a binary object of decrypted data corresponding to the input arguments
+    @return a binary value of decrypted data corresponding to the input arguments
 
     @throw DECRYPT-ERROR unknown decryption algorithm; error with the decryption algorithm (ex: invalid key)
 
@@ -2887,34 +3184,34 @@ binary bin = decrypt_to_binary(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @since %Qore 0.8.13
  */
 binary decrypt_to_binary(string alg, data data, data key, data iv = Qore::DefaultIV, *data mac, *data aad) [flags=RET_VALUE_ONLY] {
-   const char* datastr;
-   size_t data_len;
-   q_get_data(data, datastr, data_len);
+    const char* datastr;
+    size_t data_len;
+    q_get_data(data, datastr, data_len);
 
-   const char* keystr;
-   size_t key_len;
-   q_get_data(key, keystr, key_len);
+    const char* keystr;
+    size_t key_len;
+    q_get_data(key, keystr, key_len);
 
-   const char* ivstr;
-   size_t iv_len;
-   q_get_data(iv, ivstr, iv_len);
+    const char* ivstr;
+    size_t iv_len;
+    q_get_data(iv, ivstr, iv_len);
 
-   const char* macstr = nullptr;
-   size_t mac_len = 0;
-   if (mac)
-      q_get_data(mac, macstr, mac_len);
+    const char* macstr = nullptr;
+    size_t mac_len = 0;
+    if (mac)
+        q_get_data(mac, macstr, mac_len);
 
-   const char* aadstr = nullptr;
-   size_t aad_len = 0;
-   if (aad)
-      q_get_data(aad, aadstr, aad_len);
+    const char* aadstr = nullptr;
+    size_t aad_len = 0;
+    if (aad)
+        q_get_data(aad, aadstr, aad_len);
 
-   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   SimpleRefHolder<BinaryNode> rv(new BinaryNode);
-   return apply_transformation(t, rv, datastr, data_len, xsink);
+    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+    return apply_transformation(t, rv, datastr, data_len, xsink);
 }
 
 //! Returns a string of decrypted data corresponding to the input arguments inluding the given @ref crypto_transformations "algorithm"
@@ -2945,42 +3242,42 @@ string str = decrypt_to_string(Qore::CRYPTO_ALG_BLOWFISH, data, key);
     @since %Qore 0.8.13
  */
 string decrypt_to_string(string alg, data data, data key, data iv = Qore::DefaultIV, *data mac, *data aad, *string encoding) [flags=RET_VALUE_ONLY] {
-   const char* datastr;
-   size_t data_len;
-   q_get_data(data, datastr, data_len);
+    const char* datastr;
+    size_t data_len;
+    q_get_data(data, datastr, data_len);
 
-   const char* keystr;
-   size_t key_len;
-   q_get_data(key, keystr, key_len);
+    const char* keystr;
+    size_t key_len;
+    q_get_data(key, keystr, key_len);
 
-   const char* ivstr;
-   size_t iv_len;
-   q_get_data(iv, ivstr, iv_len);
+    const char* ivstr;
+    size_t iv_len;
+    q_get_data(iv, ivstr, iv_len);
 
-   const char* macstr = nullptr;
-   size_t mac_len = 0;
-   if (mac)
-      q_get_data(mac, macstr, mac_len);
+    const char* macstr = nullptr;
+    size_t mac_len = 0;
+    if (mac)
+        q_get_data(mac, macstr, mac_len);
 
-   const char* aadstr = nullptr;
-   size_t aad_len = 0;
-   if (aad)
-      q_get_data(aad, aadstr, aad_len);
+    const char* aadstr = nullptr;
+    size_t aad_len = 0;
+    if (aad)
+        q_get_data(aad, aadstr, aad_len);
 
-   SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<Transform> t(EncryptionTransforms::getCryptoTransform(alg->c_str(), false, keystr, (unsigned)key_len, ivstr, (unsigned)iv_len, macstr, (unsigned)mac_len, 0, nullptr, aadstr, (unsigned)aad_len, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   SimpleRefHolder<BinaryNode> bin(new BinaryNode);
-   ValueHolder vh(apply_transformation(t, bin, datastr, data_len, xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<BinaryNode> bin(new BinaryNode);
+    ValueHolder vh(apply_transformation(t, bin, datastr, data_len, xsink), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   const QoreEncoding* enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+    const QoreEncoding* enc = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
-   size_t size = vh->get<BinaryNode>()->size();
-   // create string with len == allocated to ensure that it gets terminated
-   return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size, enc) : new QoreStringNode(enc);
+    size_t size = vh->get<BinaryNode>()->size();
+    // create string with len == allocated to ensure that it gets terminated
+    return size ? new QoreStringNode((char*)vh->get<BinaryNode>()->giveBuffer(), size, size, enc) : new QoreStringNode(enc);
 }
 
 //! Returns a hash of information about each cryptographic algorithmn supported by the current build of %Qore
@@ -3013,16 +3310,16 @@ hash get_crypto_info() [flags=CONSTANT] {
     return rv.release();
 }
 
-//! returns a binary object of random bytes using openssl
+//! returns a binary value of random bytes using openssl
 /** @par Example:
     @code{.py}
 # return 16 bytes of random data
 binary b = get_random_bytes(16);
     @endcode
 
-    @param size the number of bytes in the output; if this value is not positive, an empty binary object is returned
+    @param size the number of bytes in the output; if this value is not positive, an empty binary value is returned
 
-    @return a binary object of random bytes using openssl
+    @return a binary value of random bytes using openssl
 
     @throw GET-RANDOM-BYTES-ERROR thrown if there is an error generating or acquiring random data (ex: not enough entropy; random function not supported by the current random method)
 

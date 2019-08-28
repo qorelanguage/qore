@@ -2480,7 +2480,7 @@ string decode_uri_request(string uri) [flags=CONSTANT] {
    return *xsink ? QoreValue() : str.release();
 }
 
-//! Encodes URI requests by substituting special characters in the path with percent-encoded ewquivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
+//! Encodes URI requests by substituting special characters in the path with percent-encoded equivalents and substituting spaces with \c "+" and \c "+" with the percent-encoded equivalent in the URI query component
 /** @par Example:
     @code{.py}
 string encoded_uri = encode_uri_request("path/to/something else?query=1+1 +2")'

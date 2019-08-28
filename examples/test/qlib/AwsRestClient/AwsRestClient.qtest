@@ -1,0 +1,161 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/AwsRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%requires qore >= 0.9.3
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%exec-class AwsTest
+
+class FakeAwsRestHandler inherits AbstractHttpRequestHandler {
+    private {
+        string input;
+        string mime;
+    }
+
+    constructor(string mime, string input) {
+        self.mime = mime;
+        self.input = input;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        #printf("cx: %N\nhdr: %N\nbody: %N\n", cx, hdr, body);
+        if (cx.raw_path =~ /^\/?auth\/v1\/login$/) {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200, "{\"token\": \"token\"}");
+        }
+        if (cx.raw_path =~ /^\/?auth\/v1\/logout$/) {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200, "OK");
+        }
+        if (!hdr."authorization") {
+            return makeResponse(400, "Missing authorization header");
+        }
+        if (hdr."authorization" != "Bearer token") {
+            return makeResponse(401, "Unauthorized, invalid token");
+        }
+        if (hdr.method == "GET") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+        if (hdr.method == "PUT") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+    }
+}
+
+sub log(string str) {
+    delete argv;
+}
+
+const VALUE_JSON = {
+    "input": "{\"foo\":{\"bar\":1}}",
+    "output": {"foo": {"bar": 1}},
+};
+
+class AwsTest inherits QUnit::Test {
+    private {
+        HttpServer m_http;
+        int port;
+
+        AwsRestClient client;
+
+        const FakeAwsOptions = {
+            "aws_keyid": "AKIDEXAMPLE",
+            "aws_secret": "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+            "aws_region": "us-east-1",
+            "aws_service": "iam",
+        };
+    }
+
+    constructor() : Test("AwsTest", "1.0") {
+        addTestCase("Aws.com REST", \AwsRestClientRestTests());
+        addTestCase("negative tests", \negativeTest());
+        addTestCase("connection tests", \connectionTest());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        m_http = new HttpServer(\log(), \log());
+        m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
+                          MimeTypeJson, new FakeAwsRestHandler(MimeTypeJson, VALUE_JSON.input));
+        port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+
+        client = new AwsRestClient({"url": "http://localhost:" + port} + FakeAwsOptions);
+    }
+
+    globalTearDown() {
+        delete client;
+        delete m_http;
+    }
+
+    AwsRestClientRestTests() {
+        # https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08
+        AwsRestTestClient client({"url": "https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08"} + FakeAwsOptions);
+        # test the signature generation algorithm against a known good value for a certain request
+        hash<auto> hdr = {"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"};
+        # this creates a request that matches the example request in the AWS docs, so the generated signature must match
+        string sig = client.getSignatureTest("GET", "/?Action=ListUsers&Version=2010-05-08", hdr, NOTHING,
+            2015-08-30T12:36:00Z, "20150830/us-east-1/iam/aws4_request");
+        assertEq("5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7", sig);
+
+        client = new AwsRestTestClient({"url": "https://iotevents.eu-central-1.amazonaws.com"}
+            + (FakeAwsOptions - ("aws_service", "aws_region")));
+        sig = client.getSignatureTest("GET", "/?Action=ListUsers&Version=2010-05-08", hdr, NOTHING,
+            2015-08-30T12:36:00Z, "20150830/us-east-1/iam/aws4_request");
+        assertEq(Type::String, sig.type());
+    }
+
+    negativeTest() {
+        assertThrows("AWSRESTCLIENT-ERROR", sub () {new AwsRestClient({"url": "http://localhost:" + port});});
+        AwsRestClient new_client({"url": "http://localhost:" + port} + FakeAwsOptions);
+        assertThrows("REST-RESPONSE-ERROR", \new_client.get(), "/api_json");
+    }
+
+    connectionTest() {
+        string url = "http://localhost:" + port;
+        AwsRestConnection conn("test", "test", url, NOTHING, FakeAwsOptions);
+        assertEq(True, conn instanceof AwsRestConnection);
+
+        AwsRestClient new_client = conn.get(False);
+        assertEq(True, new_client instanceof AwsRestClient);
+
+        hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
+        assertEq("AwsRestClient", info.module);
+        assertEq("AwsRestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program program(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+        if (info.module)
+            program.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            program.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            program.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
+    }
+}
+
+class AwsRestTestClient inherits AwsRestClient {
+    constructor(hash<auto> opts) : AwsRestClient(opts) {
+    }
+
+    string getSignatureTest(string meth, string path, hash<auto> hdr, *data body, date gmdate, string scope) {
+        string signed_headers;
+        return getSignature(meth, path, \hdr, body, gmdate, scope, \signed_headers);
+    }
+}

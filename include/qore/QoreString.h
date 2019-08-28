@@ -346,6 +346,8 @@ public:
    DLLEXPORT QoreString* parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
 
    //! concatenates hexidecimal digits corresponding to the binary data passed up to byte "len"
+   /** hex characters are always in lwoer case
+   */
    DLLEXPORT void concatHex(const char* buf, qore_size_t size);
 
    //! concatenates hexidecimal digits corresponding to the binary data passed

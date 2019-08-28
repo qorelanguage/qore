@@ -1162,6 +1162,12 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qore_ns_private::addNamespace(*this, rpriv->qoreNS);
 }
 
+StaticSystemNamespace::~StaticSystemNamespace() {
+    ExceptionSink xsink;
+    priv->deleteData(true, &xsink);
+    priv->purge();
+}
+
 #ifdef DEBUG_TESTS
 // moved down to allow to test internal classes
 #  include "tests/Namespace_tests.cpp"
@@ -3135,12 +3141,6 @@ QoreValue qore_ns_private::parseFindLocalConstantValue(const char* cname, const 
 
 QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {
     return nsl.find(nname);
-}
-
-StaticSystemNamespace::~StaticSystemNamespace() {
-    ExceptionSink xsink;
-    priv->deleteData(true, &xsink);
-    priv->purge();
 }
 
 QoreNamespaceIterator::QoreNamespaceIterator(QoreNamespace& ns) : priv(new QorePrivateNamespaceIterator(qore_ns_private::get(ns))) {

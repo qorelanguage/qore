@@ -109,7 +109,6 @@ public namespace ZeyosRestClient {
             );
 
             const AuthPath = "/auth/v1/login";
-            const LogoutPath = "/auth/v1/logout";
         }
 
         private:internal {

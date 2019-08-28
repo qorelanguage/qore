@@ -16,6 +16,7 @@ public class DigestTest inherits QUnit::Test {
     }
 
     constructor() : Test("DigestTest", "1.0") {
+        addTestCase("digest", \digestTest());
         addTestCase("Test MD2 Digest", \md2Test());
         addTestCase("Test MD4 Digest", \md4Test());
         addTestCase("Test MD5 Digest", \md5Test());
@@ -26,26 +27,47 @@ public class DigestTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    digestTest() {
+        assertThrows("DIGEST-ERROR", \digest(), ("XXX", ""));
+
+        if (HAVE_SHA224) {
+            assertEq(<ae62322794436ca2792aeb2c8eb2106b999e2288d377c0903edf83a5>, digest("sha224", str));
+            assertEq(<d91718a4b1b43e51bcc7b6c2a1e89b28db5b783641041fb4ede1389468c2b3fe>, digest("sha256", str));
+            assertEq(<01536d257030365cb3cb740ec8d755549b76eb5ba0b4249fba39e0a0c38ed804cdad70322ece22b49b8fa48236ec1572>, digest("sha384", str));
+            assertEq(<326ba1173c6b6aa9e99aaf31e73c659b405aceb75f2d3f9befa4f88e82d4d5edeeeaad1f209ebcf18cee67902f750ee35707818d5c7344a83f5ba17802471b95>, digest("sha512", str));
+        }
+    }
+
     md2Test() {
         if (!HAVE_MD2) {
             testSkip("No support for MD2");
         }
         testAssertion("MD2 digest", \MD2(), (str,), new TestResultValue("349ea9f6c9681278cf86955dabd72d31"));
+
+        assertEq(<349ea9f6c9681278cf86955dabd72d31>, digest("md2", str));
     }
 
     md4Test() {
         testAssertion("MD4 digest", \MD4(), (str,), new TestResultValue("675d84fbf5d63e0d68c04577c3298fdc"));
+
+        assertEq(<675d84fbf5d63e0d68c04577c3298fdc>, digest("md4", str));
     }
 
     md5Test() {
         testAssertion("MD5 digest", \MD5(), (str,), new TestResultValue("bcbece19c1fe41d8c9e2e6134665ba5b"));
+
+        assertEq(<bcbece19c1fe41d8c9e2e6134665ba5b>, digest("md5", str));
     }
 
     sha1Test() {
         testAssertion("SHA1 digest", \SHA1(), (str,), new TestResultValue("f4bc2c85698aae8961d626e2c590852b2d081199"));
+
+        assertEq(<f4bc2c85698aae8961d626e2c590852b2d081199>, digest("sha1", str));
     }
 
     ripemd160Test() {
         testAssertion("RIPEMD-160 digest", \RIPEMD160(), (str,), new TestResultValue("8f32702e0146d5db6145f36271a4ddf249c087ae"));
+
+        assertEq(<8f32702e0146d5db6145f36271a4ddf249c087ae>, digest("ripemd160", str));
     }
 }
