@@ -113,7 +113,7 @@ public namespace AwsRestClient {
             );
 
             #! Qore digest algorithm to use for HMAC calculations; must match AwsSignatureAlgorithm
-            const QoreDigest = "sha256";
+            const QoreDigest = CRYPTO_DIGEST_SHA256;
 
             #! AWS signature algorithm used; must match QoreDigest
             const AwsSignatureAlgorithm = "AWS4-HMAC-SHA256";
@@ -160,8 +160,10 @@ AwsRestClient rest({
 {"additional_methods": {"PROPFIND": True, "MKCOL": True}};
                 @endcode
             - \c aws_keyid: (required) the AWS key ID
-            - \c aws_region: (required) the AWS region to use (ex: \c "us-east-1")
-            - \c was_service: (required) the AWS service to use (ex: \c "iam")
+            - \c aws_region: the AWS region to use (ex: \c "us-east-1"); if it cannot be derived from the URL then it
+              is a required option
+            - \c was_service: the AWS service to use (ex: \c "iam"); if it cannot be derived from the URL then it is a
+              required option
             - \c aws_secret: (required) the AWS secret access key value
             - \c aws_token: a temporary session token from AWS Security Token Service for this HTTP session
             - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
@@ -206,8 +208,21 @@ AwsRestClient rest({
         */
         constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(opts + {"data": "json"}, do_not_connect) {
             # AWS does not support basic authentication
-            if (parse_url(opts.url){"username", "password"}) {
+            hash<UrlInfo> url_info = parse_url(opts.url);
+            if (url_info{"username", "password"}) {
                 throw "AWSRESTCLIENT-ERROR", sprintf("AWS URL must not contain a username or password; URL: %y", opts.url);
+            }
+
+            # set the region automatically from the URL if not provided in an option
+            *list<string> url_components = (url_info.host =~ x/([^\.]+)/g);
+            if (url_components.size() != 4 || url_components[2] != "amazonaws" || url_components[3] != "com") {
+                url_components = ();
+            }
+            if (!opts.aws_service && url_components) {
+                opts.aws_service = url_components[0];
+            }
+            if (!opts.aws_region && url_components) {
+                opts.aws_region = url_components[1];
             }
 
             # check required options

@@ -62,4 +62,7 @@ DLLLOCAL extern crypto_map_t crypto_map;
 typedef std::map<std::string, const EVP_MD*, ltstrcase> digest_map_t;
 DLLLOCAL extern digest_map_t digest_map;
 
+// init hash for encryption transformation constant
+DLLLOCAL QoreHashNode* init_digest_map_hash();
+
 #endif // _QORE_ENCRYPTIONTRANSFORMS_H

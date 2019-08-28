@@ -85,7 +85,7 @@ class AwsTest inherits QUnit::Test {
         m_http = new HttpServer(\log(), \log());
         m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
                           MimeTypeJson, new FakeAwsRestHandler(MimeTypeJson, VALUE_JSON.input));
-        port = m_http.addListener(0).port;
+        port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         client = new AwsRestClient({"url": "http://localhost:" + port} + FakeAwsOptions);
     }
@@ -104,6 +104,12 @@ class AwsTest inherits QUnit::Test {
         string sig = client.getSignatureTest("GET", "/?Action=ListUsers&Version=2010-05-08", hdr, NOTHING,
             2015-08-30T12:36:00Z, "20150830/us-east-1/iam/aws4_request");
         assertEq("5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7", sig);
+
+        client = new AwsRestTestClient({"url": "https://iotevents.eu-central-1.amazonaws.com"}
+            + (FakeAwsOptions - ("aws_service", "aws_region")));
+        sig = client.getSignatureTest("GET", "/?Action=ListUsers&Version=2010-05-08", hdr, NOTHING,
+            2015-08-30T12:36:00Z, "20150830/us-east-1/iam/aws4_request");
+        assertEq(Type::String, sig.type());
     }
 
     negativeTest() {

@@ -44,6 +44,21 @@
       - @ref Qore::digest() "digest()"
       - @ref Qore::get_digests() "get_digests()
       - @ref Qore::hmac() "hmac()"
+    - added the following new constants:
+      - @ref Qore::DigestMap "DigestMap"
+      - @ref Qore::CRYPTO_DIGEST_MD2 "CRYPTO_DIGEST_MD2"
+      - @ref Qore::CRYPTO_DIGEST_MD4 "CRYPTO_DIGEST_MD4"
+      - @ref Qore::CRYPTO_DIGEST_MD5 "CRYPTO_DIGEST_MD5"
+      - @ref Qore::CRYPTO_DIGEST_SHA "CRYPTO_DIGEST_SHA"
+      - @ref Qore::CRYPTO_DIGEST_SHA1 "CRYPTO_DIGEST_SHA1"
+      - @ref Qore::CRYPTO_DIGEST_SHA224 "CRYPTO_DIGEST_SHA224"
+      - @ref Qore::CRYPTO_DIGEST_SHA256 "CRYPTO_DIGEST_SHA256"
+      - @ref Qore::CRYPTO_DIGEST_SHA384 "CRYPTO_DIGEST_SHA384"
+      - @ref Qore::CRYPTO_DIGEST_SHA512 "CRYPTO_DIGEST_SHA512"
+      - @ref Qore::CRYPTO_DIGEST_DSS "CRYPTO_DIGEST_DSS"
+      - @ref Qore::CRYPTO_DIGEST_DSS1 "CRYPTO_DIGEST_DSS1"
+      - @ref Qore::CRYPTO_DIGEST_MDC2 "CRYPTO_DIGEST_MDC2"
+      - @ref Qore::CRYPTO_DIGEST_RIPEMD160 "CRYPTO_DIGEST_RIPEMD160"
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
       - @ref Qore::parseURL() "parseURL()"
@@ -53,6 +68,7 @@
       and @ref Qore::ReadOnlyFile::readBinaryFile() "ReadOnlyFile::readBinaryFile()"
       (<a href="https://github.com/qorelanguage/qore/issues/3525">issue 3525</a>)
     - added <string>::toBinary()
+    - added the <a href="../../modules/AwsRestClient/html/index.html">AwsRestClient</a> module
     - the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module was updated to
       enable remote certificates to be retrieved in listeners and handlers by default; added new API entry points for
       listeners and handlers with more flexible and saner parameters, deprecated old complex methods

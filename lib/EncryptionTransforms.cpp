@@ -94,7 +94,7 @@ digest_map_t digest_map = {
 #endif
 #ifndef HAVE_OPENSSL_INIT_CRYPTO
     {"dss", EVP_dss()},
-    {"dss", EVP_dss1()},
+    {"dss1", EVP_dss1()},
 #endif
 #ifdef OPENSSL_HAVE_MDC2
     {"mdc2", EVP_mdc2()},
@@ -295,4 +295,14 @@ Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_
     ReferenceHolder<Transform> rv(new CryptoTransform(cipher, do_crypt, key, key_len, iv, iv_len, mac, mac_len,
         tag_length, mac_ref, aad, aad_len, xsink), xsink);
     return *xsink ? nullptr : rv.release();
+}
+
+QoreHashNode* init_digest_map_hash() {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
+
+    for (auto& i : digest_map) {
+        rv->setKeyValue(i.first, true, nullptr);
+    }
+
+    return rv.release();
 }

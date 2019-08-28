@@ -511,6 +511,95 @@ const CRYPTO_ALG_AES_256 = "aes256";
 const DefaultIV = <0000000000000000>;
 //@}
 
+/** @defgroup digest_algorithms Crytographic Digest Algorithms
+
+    The following constants can be used with the @ref Qore::digest() "digest()" and @ref Qore::hmac() "hmac()"
+    functions to calculate cryptographic digests and HMACs on input data.
+
+    @par Example:
+    @code{.py}
+Qore::FileOutputStream of("my-file.txt");
+Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH));
+    @endcode
+
+    These constants are useful in the following functions:
+    - @ref Qore::digest()
+    - @ref Qore::hmac()
+
+    @since %Qore 0.9.3
+ */
+//@{
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD2 = "md2";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD4">MD4 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD4 = "md4";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MD5">MD5 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MD5 = "md5";
+
+//! specifies the insecure and outdated SHA-0 message digest; only supplied for compatibility purposes
+/**
+*/
+const CRYPTO_DIGEST_SHA = "sha";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_SHA1 = "sha1";
+
+//! specifies the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA224 = "sha224";
+
+//! specifies the SHA-256 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA256 = "sha256";
+
+//! specifies the SHA-384 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA384 = "sha384";
+
+//! specifies the SHA-512 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>)
+/**
+*/
+const CRYPTO_DIGEST_SHA512 = "sha512";
+
+//! specifies the DSS message digest (based on SHA-0 and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>)
+/**
+*/
+const CRYPTO_DIGEST_DSS = "dss";
+
+//! specifies the DSS1 message digest (based on <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> and <a href="http://en.wikipedia.org/wiki/Digital_Signature_Algorithm">DSA</a>)
+/**
+*/
+const CRYPTO_DIGEST_DSS1 = "dss1";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/MDC2">MDC2 message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_MDC2 = "mdc2";
+
+//! specifies the <a href="http://en.wikipedia.org/wiki/RIPEMD">RIPEMD message digest</a>
+/**
+*/
+const CRYPTO_DIGEST_RIPEMD160 = "ripemd160";
+
+//! A hash keyed by supported digest name where each value is @ref Qore::True "True"
+/** @since %Qore 0.9.3
+*/
+const DigestMap = qore(init_digest_map_hash());
+//@}
+
 /** @defgroup cryptographic_functions Cryptographic Functions
     %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
 
@@ -2828,7 +2917,7 @@ binary bin = digest("md2", "Hello There This is a Test - 1234567890");
 # returns <a9046c73e00331af68917d3804f70655>
     @endcode
 
-    @parm digest the digest to use; for supported digests, see @ref get_digests()
+    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return the binary value of the digest
@@ -2836,16 +2925,14 @@ binary bin = digest("md2", "Hello There This is a Test - 1234567890");
     @throw DIGEST-ERROR unknown digest
     @throw DIGEST-CALCULATION-ERROR error calculating digest (should not normally happen)
 
-    @see get_digests()
-
     @since %Qore 0.9.3
 */
 binary digest(string digest, data data) [flags=RET_VALUE_ONLY] {
     // find digest
     digest_map_t::const_iterator i = digest_map.find(digest->c_str());
     if (i == digest_map.end()) {
-        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check get_digests() to get a list of supported " \
-            "digests", digest->c_str());
+        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check DigestMap for supported digests",
+            digest->c_str());
         return QoreValue();
     }
 
@@ -2863,7 +2950,7 @@ binary bin = hmac("ripemd160", "Hello There This is a Test - 1234567890", "a key
 # returns <4bca70bca1601aba57624eeb2606535cb12f2079>
     @endcode
 
-    @parm digest the digest to use; for supported digests, see @ref get_digests()
+    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 
@@ -2872,7 +2959,7 @@ binary bin = hmac("ripemd160", "Hello There This is a Test - 1234567890", "a key
     @throw DIGEST-ERROR unknown digest
     @throw HMAC-CALCULATION-ERROR error calculating digest (should not normally happen)
 
-    @see get_digests()
+    @see @ref Qore::DigestMap "DigestMap"
 
     @since %Qore 0.9.3
 */
@@ -2880,8 +2967,8 @@ binary hmac(string digest, data data, data key) [flags=RET_VALUE_ONLY] {
     // find digest
     digest_map_t::const_iterator i = digest_map.find(digest->c_str());
     if (i == digest_map.end()) {
-        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check get_digests() to get a list of supported " \
-            "digests", digest->c_str());
+        xsink->raiseException("DIGEST-ERROR", "unknown digest '%s'; check DigestMap for supported digests",
+            digest->c_str());
         return QoreValue();
     }
 
@@ -2912,9 +2999,6 @@ hash<string, bool> digest_map = map {$1: True}, get_digests();
 */
 list<string> get_digests() [flags=CONSTANT] {
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    for (auto& i : digest_map) {
-        rv->push(new QoreStringNode(i.first), xsink);
-    }
     return rv.release();
 }
 
