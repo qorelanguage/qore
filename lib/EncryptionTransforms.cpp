@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,32 @@ crypto_map_t crypto_map = {
     {"aes128", {16, EVP_aes_128_gcm(), 0, true}},
     {"aes192", {24, EVP_aes_192_gcm(), 0, true}},
     {"aes256", {32, EVP_aes_256_gcm(), 0, true}},
+};
+
+digest_map_t digest_map = {
+#if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
+    {"md2", EVP_md2()},
+#endif
+    {"md4", EVP_md4()},
+    {"md5", EVP_md5()},
+#ifdef HAVE_OPENSSL_SHA
+    {"sha", EVP_sha()},
+#endif
+    {"sha1", EVP_sha1()},
+#if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
+    {"sha224", EVP_sha224()},
+    {"sha256", EVP_sha256()},
+    {"sha384", EVP_sha384()},
+    {"sha512", EVP_sha512()},
+#endif
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+    {"dss", EVP_dss()},
+    {"dss", EVP_dss1()},
+#endif
+#ifdef OPENSSL_HAVE_MDC2
+    {"mdc2", EVP_mdc2()},
+#endif
+    {"ripemd160", EVP_ripemd160()}
 };
 
 QoreHashNode* CryptoEntry::getInfo() const {

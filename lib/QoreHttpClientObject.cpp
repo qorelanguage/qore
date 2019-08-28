@@ -433,9 +433,14 @@ struct qore_httpclient_priv {
         }
     }
 
+    DLLLOCAL QoreStringNode* getHostHeaderValue() {
+        AutoLocker al(msock->m);
+        return getHostHeaderValueUnlocked();
+    }
+
     // always generate a Host header pointing to the host hosting the resource, not the proxy
     // (RFC 2616 is not totally clear on this, but other clients do it this way)
-    DLLLOCAL QoreStringNode* getHostHeaderValue() {
+    DLLLOCAL QoreStringNode* getHostHeaderValueUnlocked() {
         // RFC 7230 section 5.5: "if the connection's incoming TCP port number
         //   differs from the default port for the effective request URI's
         //   scheme, then a colon (":") and the incoming port number (in
@@ -1212,7 +1217,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     while (true) {
         // set host field automatically if not overridden
         if (!host_override) {
-            nh->setKeyValue("Host", getHostHeaderValue(), xsink);
+            nh->setKeyValue("Host", getHostHeaderValueUnlocked(), xsink);
         }
 
         if (info) {
@@ -1646,10 +1651,12 @@ AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHas
 }
 
 void QoreHttpClientObject::addProtocol(const char* prot, int new_port, bool new_ssl) {
+    AutoLocker al(priv->m);
     http_priv->prot_map[prot] = make_protocol(new_port, new_ssl);
 }
 
 void QoreHttpClientObject::setMaxRedirects(int max) {
+    AutoLocker al(priv->m);
     http_priv->max_redirects = max;
 }
 
@@ -1658,6 +1665,7 @@ int QoreHttpClientObject::getMaxRedirects() const {
 }
 
 void QoreHttpClientObject::setDefaultHeaderValue(const char* header, const char* val) {
+    AutoLocker al(priv->m);
     http_priv->default_headers[header] = val;
 }
 
@@ -1753,4 +1761,8 @@ bool QoreHttpClientObject::setRedirectPassthru(bool set) {
 
 bool QoreHttpClientObject::getRedirectPassthru() const {
     return http_priv->getRedirectPassthru();
+}
+
+QoreStringNode* QoreHttpClientObject::getHostHeaderValue() const {
+    return http_priv->getHostHeaderValue();
 }

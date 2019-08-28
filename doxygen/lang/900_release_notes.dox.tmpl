@@ -24,6 +24,7 @@
       - \c error_passthru
       - \c redirect_passthru
       as well as the \c "response-headers-raw" output info key, plus the following methods:
+      - @ref Qore::HTTPClient::getHostHeaderValue() "HTTPClient::getHostHeaderValue()"
       - @ref Qore::HTTPClient::getEncodingPassthru() "HTTPClient::getEncodingPassthru()"
       - @ref Qore::HTTPClient::setEncodingPassthru() "HTTPClient::setEncodingPassthru()"
       - @ref Qore::HTTPClient::getErrorPassthru() "HTTPClient::getErrorPassthru()"
@@ -38,7 +39,11 @@
       - @ref Qore::GetOpt::parseExit(hash<auto>, reference<list<string>>) "GetOpt::parseExit()"
       - @ref Qore::Socket::captureRemoteCertificates() "Socket::captureRemoteCertificates()"
       - @ref Qore::Socket::getRemoteCertificate() "Socket::getRemoteCertificate()"
-    - added the @ref Qore::auto_cast() "auto_cast()" function
+    - added the following new functions:
+      - @ref Qore::auto_cast() "auto_cast()"
+      - @ref Qore::digest() "digest()"
+      - @ref Qore::get_digests() "get_digests()
+      - @ref Qore::hmac() "hmac()"
     - added the @ref Qore::UrlInfo hash as the return type to:
       - @ref Qore::parse_url() "parse_url()"
       - @ref Qore::parseURL() "parseURL()"

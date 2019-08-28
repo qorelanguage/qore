@@ -374,6 +374,11 @@ public:
      */
     DLLEXPORT bool getEncodingPassthru() const;
 
+    //! returns the \c Host header value
+    /** @since %Qore 0.9.3
+     */
+    DLLEXPORT QoreStringNode* getHostHeaderValue() const;
+
     DLLLOCAL static void static_init();
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);
