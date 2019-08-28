@@ -32,6 +32,7 @@
 #include "qore/Qore.h"
 #include "qore/intern/EncryptionTransforms.h"
 #include "qore/intern/ql_crypto.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <bzlib.h>
 #include <cerrno>
@@ -299,9 +300,10 @@ Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_
 
 QoreHashNode* init_digest_map_hash() {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
+    qore_hash_private* priv = qore_hash_private::get(**rv);
 
     for (auto& i : digest_map) {
-        rv->setKeyValue(i.first, true, nullptr);
+        priv->setKeyValueIntern(i.first.c_str(), true);
     }
 
     return rv.release();
