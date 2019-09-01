@@ -77,7 +77,7 @@ qclass HashPairReverseIterator [arg=QoreHashReverseIterator* i; ns=Qore; vparent
 HashPairReverseIterator hi(h);
     @endcode
  */
-HashPairReverseIterator::constructor(hash h) {
+HashPairReverseIterator::constructor(hash<auto> h) {
     self->setPrivate(CID_HASHPAIRREVERSEITERATOR, new QoreHashReverseIterator(h));
 }
 
@@ -115,7 +115,7 @@ map printf("%s: %y\n", $1.key, $1.value), hash.pairIterator();
 
     @since %Qore 0.8.6.2
  */
-string HashPairReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
+hash<auto> HashPairReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
     if (i->check(xsink))
         return QoreValue();
     return i->getReferencedValuePair(xsink);

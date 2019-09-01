@@ -719,12 +719,6 @@ const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
     @since %Qore 0.9
 */
 const PO_BROKEN_SPRINTF = PO_BROKEN_SPRINTF;
-
-//! Enables broken \c \b abstract method matching where types do not need to match exactly in an abstract method hierarchy
-/**
-    @since %Qore 0.9.3
-*/
-const PO_BROKEN_ABSTRACT = PO_BROKEN_ABSTRACT;
 //@}
 
 /** @defgroup warning_constants Warning Constants

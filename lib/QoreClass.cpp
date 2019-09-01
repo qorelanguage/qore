@@ -271,7 +271,7 @@ void AbstractMethod::add(MethodVariantBase* v) {
 }
 
 void AbstractMethod::override(MethodVariantBase* v) {
-    // see if there is already an committed variant matching this signature
+    // see if there is already a committed variant matching this signature
     // in this case it must be inherited
     const char* sig = v->getAbstractSignature();
     vmap_t::iterator vi = vlist.find(sig);
@@ -285,11 +285,13 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
     //printd(5, "AbstractMethod::checkAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
     if (!vlist.empty()) {
         if (!desc) {
-            desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
+            desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following " \
+                "unimplemented abstract variants:", cname);
         }
         for (auto& vi : vlist) {
             MethodVariantBase* v = vi.second;
-            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname, v->getSignature()->getSignatureText());
+            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
+                v->getSignature()->getSignatureText());
         }
     }
 }

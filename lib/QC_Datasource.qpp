@@ -367,7 +367,7 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash options, *Qore::Thread::Queue[Queue] queue, auto arg) {
+Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash<auto> options, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ReferenceHolder<Queue> q(queue, xsink);
 
    if (!port && driver->find('@') != -1) {
@@ -477,7 +477,7 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-Datasource::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
+Datasource::constructor(hash<auto> opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
    ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
@@ -631,7 +631,7 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-auto Datasource::vexec(string sql, *softlist vargs) {
+auto Datasource::vexec(string sql, *softlist<auto> vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
@@ -711,7 +711,7 @@ auto Datasource::select(string sql, ...) {
 
     @par Example:
     @code{.py}
-*hash h = db.selectRow("select * from example_table where id = 1");
+*hash<auto> h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -719,7 +719,7 @@ auto Datasource::select(string sql, ...) {
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-*hash Datasource::selectRow(string sql, ...) {
+*hash<auto> Datasource::selectRow(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
@@ -740,7 +740,7 @@ auto Datasource::select(string sql, ...) {
 
     @par Example:
     @code{.py}
-*list list = db.selectRows("select * from example_table");
+*list<auto> list = db.selectRows("select * from example_table");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -771,7 +771,7 @@ auto Datasource::selectRows(string sql, ...) {
 
     @par Example:
     @code{.py}
-hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash<auto> query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
 if (query.firstValue())
     printf("got results\n");
     @endcode
@@ -787,7 +787,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-auto Datasource::vselect(string sql, *softlist vargs) {
+auto Datasource::vselect(string sql, *softlist<auto> vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
@@ -805,7 +805,7 @@ auto Datasource::vselect(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
+*hash<auto> h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -814,7 +814,7 @@ auto Datasource::vselect(string sql, *softlist vargs) {
 
     @see Datasource::selectRow()
  */
-*hash Datasource::vselectRow(string sql, *softlist vargs) {
+*hash<auto> Datasource::vselectRow(string sql, *softlist<auto> vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
@@ -836,7 +836,7 @@ auto Datasource::vselect(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
+*list<auto> list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -847,7 +847,7 @@ auto Datasource::vselect(string sql, *softlist vargs) {
 
     @see Datasource::selectRows()
  */
-auto Datasource::vselectRows(string sql, *softlist vargs) {
+auto Datasource::vselectRows(string sql, *softlist<auto> vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
@@ -868,7 +868,7 @@ auto Datasource::vselectRows(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-*hash h = db.describe("select * from example_table where id = 1");
+*hash<auto> h = db.describe("select * from example_table where id = 1");
     @endcode
 
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
@@ -877,7 +877,7 @@ auto Datasource::vselectRows(string sql, *softlist vargs) {
 
     @since %Qore 0.8.9
  */
-*hash Datasource::describe(string sql, ...) {
+*hash<auto> Datasource::describe(string sql, ...) {
    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->describe(sql, *argl, xsink);
 }
@@ -940,7 +940,7 @@ foreach string cap in (db.getCapabilityList())
     printf("- %s\n", cap);
     @endcode
  */
-list Datasource::getCapabilityList() [flags=CONSTANT] {
+list<auto> Datasource::getCapabilityList() [flags=CONSTANT] {
    return ds->getCapabilityList();
 }
 
@@ -1286,7 +1286,7 @@ int Datasource::transactionTid() [flags=CONSTANT] {
 
     @since %Qore 0.8.6
  */
-hash Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
+hash<auto> Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
    return ds->getOptionHash(xsink);
 }
 
@@ -1322,7 +1322,7 @@ auto Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-hash h = ds.getConfigHash();
+hash<auto> h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -1332,7 +1332,7 @@ hash h = ds.getConfigHash();
 
     @since %Qore 0.8.8
  */
-hash Datasource::getConfigHash() [flags=CONSTANT] {
+hash<auto> Datasource::getConfigHash() [flags=CONSTANT] {
    return ds->getConfigHash(xsink);
 }
 

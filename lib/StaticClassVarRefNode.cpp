@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,11 @@ const char *StaticClassVarRefNode::getTypeName() const {
 
 // evalImpl(): return value requires a deref(xsink) if not 0
 QoreValue StaticClassVarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-    return vi.getReferencedValue();
+    assert(needs_deref);
+    // issue 3523: evaluate in case the value is a reference
+    ValueHolder val(vi.getReferencedValue(), xsink);
+    // the value here must always require a dereference
+    return val->needsEval() ? val->eval(xsink) : val.release();
 }
 
 void StaticClassVarRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

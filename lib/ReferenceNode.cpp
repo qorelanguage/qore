@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -199,14 +199,6 @@ QoreString* ReferenceNode::getAsString(bool& del, int foff, ExceptionSink* xsink
     return rv;
 }
 
-/*
-QoreValue ReferenceNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = true;
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getReferencedValue() : QoreValue();
-}
-*/
-
 AbstractQoreNode* ReferenceNode::realCopy() const {
     return new ReferenceNode(*this);
 }
@@ -242,7 +234,13 @@ bool ReferenceNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue ReferenceNode::doEval(ExceptionSink* xsink) const {
     LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getReferencedValue() : QoreValue();
+    if (!lvh) {
+        return QoreValue();
+    }
+    // issue 3523: evaluate in case the value is a reference
+    ValueHolder val(lvh.getReferencedValue(), xsink);
+    // the value here must always require a dereference
+    return val->needsEval() ? val->eval(xsink) : val.release();
 }
 
 QoreValue ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

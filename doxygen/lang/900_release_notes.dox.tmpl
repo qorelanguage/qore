@@ -10,10 +10,9 @@
 
     @subsection qore_093_compatibility Fixes That Can Affect Backwards-Compatibility
     Complex type fixes in this release have the effect that complex type declarations are not exactly equal to
-    the base types without a complex type restrictions, which can cause concrete implementations of abstract methods
-    to no longer match if their parameters are not exactly the same; ex: <tt>hash != hash<auto></tt>.  Use the
-    @ref broken-abstract "%broken-abstract" parse directive (introduced in this release) to maintain compatibility
-    with the old behavior regarding abstract method hierarchies.
+    the base types without a complex type restrictions, and also abstract argument type matching with concrete
+    implementations has been loosened to accept nearly identical matches, so that for example an abstract method may
+    declare a parameter with a \c hash<auto> type which may be implemented by a concrete method with type \c hash.
 
     @subsection qore_093_new_features New Features in Qore
     - the <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module was updated to
@@ -72,19 +71,24 @@
       enable remote certificates to be retrieved in listeners and handlers by default; added new API entry points for
       listeners and handlers with more flexible and saner parameters, deprecated old complex methods
       (<a href="https://github.com/qorelanguage/qore/issues/3512">issue 3512</a>)
-    - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
-      \c RestConnection objects now support the \c "headers" option
-      (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)
+    - the <a href="../../modules/Mapper/html/index.html">Mapper</a> module now supports the \c "runtime_keys" option
+      for adding support for new field keys to existing classes
+      (<a href="https://github.com/qorelanguage/qore/issues/3535">issue 3535</a>)
     - the <a href="../../modules/Mapper/html/index.html">Mapper</a> module now supports \c "hash" and \c "any" types
       for output fields
       (<a href="https://github.com/qorelanguage/qore/issues/3453">issue 3453</a>)
     - the <a href="../../modules/Mapper/html/index.html">Mapper</a> module now supports dot notation in output fields
       for the "hash" output type
       (<a href="https://github.com/qorelanguage/qore/issues/3413">issue 3413</a>)
+    - the <a href="../../modules/RestClient/html/index.html">RestClient</a> module was updated so that
+      \c RestConnection objects now support the \c "headers" option
+      (<a href="https://github.com/qorelanguage/qore/issues/3455">issue 3455</a>)
     - \c qdbg-vsc-adapter supports the VSCode Debug Protocol
       (<a href="https://github.com/qorelanguage/qore/issues/3392">issue 3392</a>)
 
     @subsection qore_093_bug_fixes Bug Fixes in Qore
+    - fixed bugs in handling object members assigned to references
+      (<a href="https://github.com/qorelanguage/qore/issues/3523">issue 3523</a>)
     - fixed bugs in thread-local variable handling and Program destruction
       (<a href="https://github.com/qorelanguage/qore/issues/3521">issue 3521</a>)
     - fixed a bug where a crash would result when serializing imported typed hashes
@@ -131,9 +135,9 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3406">issue 3406</a>)
     - fixed a bug where an lvalue with a complex type accepted incompatible assignments from values without complex
       types if the base type was the same; this fix also ensures that complex type declarations with \c auto are not
-      treated as identical to the base type without any complex type restrictions; also the
-      @ref broken-abstract "%broken-abstract" and @ref correct-abstract "%correct-abstract" parse directives were
-      implemented to avoid breaking code that depends on this bug
+      treated as identical to the base type without any complex type restrictions, in addition abstract type matching
+      was loosened to accept near matches with parameter types so that ab stract method with a parameter type of
+      \c hash<auto> can be implemented with a concrete method with a \c hash parameter type, for example.
       (<a href="https://github.com/qorelanguage/qore/issues/3404">issue 3404</a>)
     - fixed a bug where a crash could result when deserializing invalid integer data
       (<a href="https://github.com/qorelanguage/qore/issues/3395">issue 3395</a>)

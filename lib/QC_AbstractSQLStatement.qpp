@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_AbstractSQLStatement.qpp AbstractSQLStatement class (interface) definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -79,7 +79,7 @@ abstract nothing AbstractSQLStatement::prepareRaw(string sql);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.bind(h.id, h.name);
     stmt.exec();
 }
@@ -107,8 +107,8 @@ abstract nothing AbstractSQLStatement::bind(...);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.bindArgs(args);
     stmt.exec();
 }
@@ -120,7 +120,7 @@ foreach hash h in (l) {
 
     @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindPlaceholdersArgs(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
 */
-abstract nothing AbstractSQLStatement::bindArgs(softlist vargs);
+abstract nothing AbstractSQLStatement::bindArgs(softlist<auto> vargs);
 
 //! Binds placeholder buffer specifications to buffers defined in AbstractSQLStatement::prepare()
 /** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
@@ -164,7 +164,7 @@ abstract nothing AbstractSQLStatement::bindPlaceholders(...);
     @par Example:
     @code{.py}
 stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-list l = list(Type::Date);
+list<auto> l = list(Type::Date);
 stmt.bindPlaceholdersArgs(l);
 date d = stmt.getOutput().sd;
     @endcode
@@ -175,7 +175,7 @@ date d = stmt.getOutput().sd;
 
     @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindArgs(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
 */
-abstract nothing AbstractSQLStatement::bindPlaceholdersArgs(softlist vargs);
+abstract nothing AbstractSQLStatement::bindPlaceholdersArgs(softlist<auto> vargs);
 
 //! Binds values to value buffer specifications to buffers defined in AbstractSQLStatement::prepare()
 /** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
@@ -191,7 +191,7 @@ abstract nothing AbstractSQLStatement::bindPlaceholdersArgs(softlist vargs);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.bindValues(h.id, h.name);
     stmt.exec();
 }
@@ -219,8 +219,8 @@ abstract nothing AbstractSQLStatement::bindValues(...);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.bindValuesArgs(args);
     stmt.exec();
 }
@@ -230,7 +230,7 @@ foreach hash h in (l) {
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
 */
-abstract nothing AbstractSQLStatement::bindValuesArgs(softlist vargs);
+abstract nothing AbstractSQLStatement::bindValuesArgs(softlist<auto> vargs);
 
 //! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values to buffers defined in AbstractSQLStatement::prepare() before executing the statement
 /** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
@@ -248,7 +248,7 @@ abstract nothing AbstractSQLStatement::bindValuesArgs(softlist vargs);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.exec(h.id, h.name);
 }
     @endcode
@@ -277,8 +277,8 @@ abstract nothing AbstractSQLStatement::exec(...);
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.execArgs(args);
 }
     @endcode
@@ -289,7 +289,7 @@ foreach hash h in (l) {
 
     @see AbstractSQLStatement::exec()
 */
-abstract nothing AbstractSQLStatement::execArgs(softlist vargs);
+abstract nothing AbstractSQLStatement::execArgs(softlist<auto> vargs);
 
 //! Returns the number of rows affected by the last call to AbstractSQLStatement::exec()
 /** @return the number of rows affected by the last call to AbstractSQLStatement::exec()
@@ -310,28 +310,28 @@ abstract int AbstractSQLStatement::affectedRows();
 
     @par Example:
     @code{.py}
-hash h = stmt.getOutput();
+hash<auto> h = stmt.getOutput();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract hash AbstractSQLStatement::getOutput();
+abstract hash<auto> AbstractSQLStatement::getOutput();
 
 //! Retrieves output buffers as a hash; result sets will be returned as lists of hashes
 /** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the hash is the same as the name given to the placeholder specification in the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
 
     @par Example:
     @code{.py}
-hash h = stmt.getOutputRows();
+hash<auto> h = stmt.getOutputRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract hash AbstractSQLStatement::getOutputRows();
+abstract hash<auto> AbstractSQLStatement::getOutputRows();
 
 //! Performs an explicit define operation on the SQLStatement
 /** It is not encessary to call this method manually; define operations are implicitly executed when needed when retrieving values from a select statement
@@ -347,7 +347,7 @@ abstract hash AbstractSQLStatement::getOutputRows();
     stmt.define();
     # note that the AbstractSQLStatement::next() would implicitly execute exec() and define()
     while (stmt.next()) {
-        hash row = stmt.fetchRow();
+        hash<auto> row = stmt.fetchRow();
         do_something(row);
     }
 }
@@ -403,7 +403,7 @@ abstract nothing AbstractSQLStatement::beginTransaction();
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.fetchRow();
+    hash<auto> h = stmt.fetchRow();
 }
     @endcode
 
@@ -432,7 +432,7 @@ abstract bool AbstractSQLStatement::valid();
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.fetchRow();
+    hash<auto> h = stmt.fetchRow();
 }
     @endcode
 
@@ -440,7 +440,7 @@ while (stmt.next()) {
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract *hash AbstractSQLStatement::fetchRow();
+abstract *hash<auto> AbstractSQLStatement::fetchRow();
 
 //! Retrieves the current row as a hash where the keys are the column names and the values are the column values
 /** Use with AbstractSQLStatement::next() to iterate through the results of a select statement one row at a time
@@ -450,7 +450,7 @@ abstract *hash AbstractSQLStatement::fetchRow();
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.getValue();
+    hash<auto> h = stmt.getValue();
 }
     @endcode
 
@@ -460,7 +460,7 @@ while (stmt.next()) {
     - Equivalent to AbstractSQLStatement::fetchRow()
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract *hash AbstractSQLStatement::getValue();
+abstract *hash<auto> AbstractSQLStatement::getValue();
 
 //! Retrieves a block of rows as a list of hashes with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call AbstractSQLStatement::next()
 /** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
@@ -471,7 +471,7 @@ abstract *hash AbstractSQLStatement::getValue();
 
     @par Example:
     @code{.py}
-list l = stmt.fetchRows(-1);
+list<auto> l = stmt.fetchRows(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
@@ -480,7 +480,7 @@ list l = stmt.fetchRows(-1);
     - There is no need to call AbstractSQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract list AbstractSQLStatement::fetchRows(softint rows = -1);
+abstract list<auto> AbstractSQLStatement::fetchRows(softint rows = -1);
 
 //! Retrieves a block of rows as a hash of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call AbstractSQLStatement::next().
 /** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
@@ -491,7 +491,7 @@ abstract list AbstractSQLStatement::fetchRows(softint rows = -1);
 
     @par Example:
     @code{.py}
-hash h = stmt.fetchColumns(-1);
+hash<auto> h = stmt.fetchColumns(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
@@ -500,7 +500,7 @@ hash h = stmt.fetchColumns(-1);
     - There is no need to call AbstractSQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
 */
-abstract hash AbstractSQLStatement::fetchColumns(softint rows = -1);
+abstract hash<auto> AbstractSQLStatement::fetchColumns(softint rows = -1);
 
 //! Describes columns in the statement result.
 /**
@@ -511,7 +511,7 @@ abstract hash AbstractSQLStatement::fetchColumns(softint rows = -1);
     - \c "native_type": (string) the database-specific name of the type
     - \c "internal_id": (integer) the database-specific type code of the type
 */
-abstract hash AbstractSQLStatement::describe();
+abstract hash<auto> AbstractSQLStatement::describe();
 
 //! Returns the current SQL string set with the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw() or @ref nothing if no SQL has been set
 /** @return Returns the current SQL string set with the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw() or @ref nothing if no SQL has been set

@@ -301,9 +301,105 @@ public class MapperTest inherits QUnit::Test {
                 },
             },
         };
+
+        const TypeMap3 = {
+            "out0": {
+                "name": "inp0",
+            },
+            "out1": {
+                "context0": "contextstr0",
+            },
+            "out2": {
+                "context1": "contextstr1",
+                "name": "inp1",
+            },
+        };
+
+        const TypeOpts3 = {
+            "input": {
+                "inp0": {
+                    "type": "string",
+                    "desc": "input",
+                },
+                "inp1": {
+                    "type": "string",
+                    "desc": "input",
+                }
+            },
+            "output": {
+                "out0": {
+                    "type": "string",
+                },
+                "out1": {
+                    "type": "string",
+                },
+                "out2": {
+                    "type": "string",
+                },
+            },
+            "runtime_keys": {
+                "context0": <MapperRuntimeKeyInfo>{
+                    "handler": auto sub (auto arg) {
+                        return arg + "-ctx";
+                    },
+                },
+                "context1": <MapperRuntimeKeyInfo>{
+                    "requires_input": True,
+                    "handler": auto sub (auto arg, auto val) {
+                        return val + "-" + arg + "-ctx";
+                    },
+                },
+            },
+        };
+
+        const TypeMap3_1 = TypeMap3 + {
+            "out1": {
+                "context0": "contextstr0",
+                "context1": 1,
+            },
+            "out2": {
+                "context1": 2,
+                "name": "inp1",
+            },
+        };
+
+        const TypeMap3_2 = TypeMap3 + {
+            "out1": {
+                "context0": "contextstr0",
+            },
+            "out2": {
+                "context1": 2,
+                "name": "inp1",
+            },
+        };
+
+        const TypeOpts3_1 = TypeOpts3 + {
+            "runtime_keys": {
+                # test auto cast from hash
+                "context0": {
+                    "conflicting_keys": {
+                        "context1": True,
+                    },
+                    "handler": auto sub (auto arg) {
+                        return arg + "-ctx";
+                    },
+                },
+                "context1": <MapperRuntimeKeyInfo>{
+                    "conflicting_keys": {
+                        "context0": True,
+                    },
+                    "requires_input": True,
+                    "value_type": Type::Int,
+                    "handler": auto sub (int arg, auto val) {
+                        return val + "-" + arg + "-ctx";
+                    },
+                },
+            },
+        };
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("runtime keys", \runtimeKeys());
         addTestCase("hash output", \hashOutputTest());
         addTestCase("test types", \testTypes());
         addTestCase("Test mapAll()", \testMapperMapAll());
@@ -325,6 +421,29 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    runtimeKeys() {
+        {
+            Mapper m(TypeMap3, TypeOpts3);
+            hash<auto> h = m.mapData({"inp0": "input-0", "inp1": "input-1"});
+            assertEq({
+                "out0": "input-0",
+                "out1": "contextstr0-ctx",
+                "out2": "input-1-contextstr1-ctx",
+            }, h);
+        }
+        assertThrows("MAP-ERROR", "context1.*expected type", sub () { Mapper m(TypeMap3, TypeOpts3_1); });
+        assertThrows("MAP-ERROR", "context.*conflict.*key", sub () { Mapper m(TypeMap3_1, TypeOpts3_1); });
+        {
+            Mapper m(TypeMap3_2, TypeOpts3_1);
+            hash<auto> h = m.mapData({"inp0": "input-0", "inp1": "input-1"});
+            assertEq({
+                "out0": "input-0",
+                "out1": "contextstr0-ctx",
+                "out2": "input-1-2-ctx",
+            }, h);
+        }
     }
 
     hashOutputTest() {

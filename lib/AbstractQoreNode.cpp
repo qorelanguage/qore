@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -106,52 +106,51 @@ bool AbstractQoreNode::derefImpl(ExceptionSink* xsink) {
 }
 
 void AbstractQoreNode::customRef() const {
-   assert(false);
+    assert(false);
 }
 
 void AbstractQoreNode::customDeref(ExceptionSink* xsink) {
-   assert(false);
+    assert(false);
 }
 
 void AbstractQoreNode::deref(ExceptionSink* xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
 /*
-   if (test(this)) {
-      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() - 1);
-      break_deref();
-   }
+    if (test(this)) {
+        printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() - 1);
+        break_deref();
+    }
 */
 #if TRACK_REFS
-   if (type == NT_OBJECT)
-      printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
-   else
-      printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() - 1);
+    if (type == NT_OBJECT)
+        printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
+    else
+        printd(REF_LVL, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references.load(), references.load() - 1);
 
 #endif
-   if (references.load() > 10000000 || references.load() <= 0){
-      if (type == NT_STRING)
-         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
-                this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
-      else
-         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
-      assert(false);
-   }
+    if (references.load() > 10000000 || references.load() <= 0){
+        if (type == NT_STRING)
+            printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
+                    this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
+        else
+            printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
+        assert(false);
+    }
 #endif
-   assert(references.load() > 0);
+    assert(references.load() > 0);
 
-   if (there_can_be_only_one) {
-      assert(is_unique());
-      return;
-   }
+    if (there_can_be_only_one) {
+        assert(is_unique());
+        return;
+    }
 
-   if (custom_reference_handlers) {
-      customDeref(xsink);
-   }
-   else if (ROdereference()) {
-      if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
-         delete this;
-   }
+    if (custom_reference_handlers) {
+        customDeref(xsink);
+    } else if (ROdereference()) {
+        if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
+            delete this;
+    }
 }
 
 QoreValue AbstractQoreNode::eval(ExceptionSink* xsink) const {

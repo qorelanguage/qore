@@ -608,7 +608,6 @@ int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
 
     needs_deref = true;
     v = exp->eval(needs_deref, xsink);
-
     return xsink && *xsink ? -1 : 0;
 }
 

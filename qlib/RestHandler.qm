@@ -134,7 +134,7 @@ module RestHandler {
 
     In all cases, the signature for these methods looks like:
     @code{.py}
-    hash method(hash<auto> cx, *hash<auto> ah) {}
+    hash<auto> method(hash<auto> cx, *hash<auto> ah) {}
     @endcode
 
     The arguments passed to the REST action methods are as follows:
@@ -152,10 +152,10 @@ module RestHandler {
     @code{.py}
 class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
     private {
-        hash h;
+        hash<auto> h;
     }
 
-    constructor(hash n_h) {
+    constructor(hash<auto> n_h) {
         h = n_h;
     }
 
@@ -224,10 +224,10 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 class WorkflowOrderRestClass inherits AbstractRestClass {
     private {
         # this holds the information or state of the REST object
-        hash wf;
+        hash<auto> wf;
     }
 
-    constructor(hash n_wf) {
+    constructor(hash<auto> n_wf) {
         wf = n_wf;
     }
 
@@ -245,7 +245,7 @@ class WorkflowOrderRestClass inherits AbstractRestClass {
     }
 
     # supports \c GET requests on the object
-    hash get(hash<auto> cx, *hash<auto> ah) {
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, wf);
     }
 }
@@ -253,10 +253,10 @@ class WorkflowOrderRestClass inherits AbstractRestClass {
 class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
     private {
         # this holds the information or state of the REST object
-        hash oh;
+        hash<auto> oh;
     }
 
-    constructor(hash n_oh) {
+    constructor(hash<auto> n_oh) {
         oh = n_oh;
     }
 
@@ -266,12 +266,12 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
     }
 
     # supports \c PUT requests where action=retry on the object
-    hash putRetry(hash<auto> cx, *hash<auto> ah) {
+    hash<HttpHandlerResponseInfo> putRetry(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, api.retryOrder(oh.order_instanceid));
     }
 
     # supports \c GET requests on the object
-    hash get(hash<auto> cx, *hash<auto> ah) {
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, oh);
     }
 }
@@ -290,7 +290,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
 
     REST action methods have the following signature:
     @code{.py}
-    hash method(hash<auto> cx, *hash<auto> ah) {}
+    hash<HttpHandlerResponseInfo> method(hash<auto> cx, *hash<auto> ah) {}
     @endcode
 
     In the usual case when only one of the above methods is used, then the argument information is copied to both
@@ -537,7 +537,7 @@ public namespace RestHandler {
 
             @note this method is called after the message body has been received
         */
-        abstract hash getResponseHeaderMessageImpl();
+        abstract hash<auto> getResponseHeaderMessageImpl();
 
         #! abstract callback method for receiving chunked data
         /**
@@ -550,7 +550,7 @@ public namespace RestHandler {
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
             - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
         */
-        abstract nothing recvImpl(hash v);
+        abstract nothing recvImpl(hash<auto> v);
 
         #! abstract callback method for sending chunked data
         /**
@@ -623,7 +623,7 @@ public namespace RestHandler {
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
             - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
         */
-        private nothing recvImpl(hash v) {
+        private nothing recvImpl(hash<auto> v) {
             stream.recv(v);
         }
 
@@ -1188,11 +1188,11 @@ public namespace RestHandler {
             ) : {};
             #path ? parse_uri_query(path) : {};
 
-            *hash args;
+            *hash<auto> args;
             if (ah.params) {
                 if (ah.params.typeCode() != NT_HASH)
                     return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params);
-                args = ah.params;
+                args = {} + ah.params;
             }
 
             if (exists body)
@@ -1251,7 +1251,7 @@ public namespace RestHandler {
 
             # make a hash of "accept" values
             *string astr = hdr.accept;
-            hash aih;
+            hash<auto> aih;
             if (astr) {
                 do {
                     astr =~ s/;[^,]*//;
