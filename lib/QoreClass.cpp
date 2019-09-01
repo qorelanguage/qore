@@ -285,11 +285,13 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
     //printd(5, "AbstractMethod::checkAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
     if (!vlist.empty()) {
         if (!desc) {
-            desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
+            desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following " \
+                "unimplemented abstract variants:", cname);
         }
         for (auto& vi : vlist) {
             MethodVariantBase* v = vi.second;
-            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname, v->getSignature()->getSignatureText());
+            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
+                v->getSignature()->getSignatureText());
         }
     }
 }

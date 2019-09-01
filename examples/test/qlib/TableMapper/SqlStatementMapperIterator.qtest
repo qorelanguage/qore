@@ -24,7 +24,7 @@ const SELECT_HASH = (
 const MAPV = (
         "mapped_a": "a",
         "mapped_b": "b",
-        "created_c" : ( "code": *string sub (*any v, hash rec) { return sprintf("%n - %n", rec.a, rec.b); } ),
+        "created_c" : ( "code": *string sub (*auto v, hash<auto> rec) { return sprintf("%n - %n", rec.a, rec.b); } ),
         "constant_d" : ( "constant" : 1 ),
     );
 
@@ -50,39 +50,39 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
 
     bool valid() { return True; }
 
-    any getValue() {
-        hash ret = INPUT[m_ix];
+    auto getValue() {
+        hash<auto> ret = INPUT[m_ix];
         m_ix++;
         return ret;
     }
 
     prepare(string s) {}
-    execArgs(list l) {}
-    hash getOutput() {}
+    execArgs(list<auto> l) {}
+    hash<auto> getOutput() {}
     getSQL() {}
 
-    hash fetchColumns(softint rows = -1) { throw "X"; }
+    hash<auto> fetchColumns(softint rows = -1) { throw "X"; }
     nothing rollback() { throw "X"; }
-    list fetchRows(softint rows = -1) { throw "X"; }
-    hash describe() { throw "X"; }
+    list<auto> fetchRows(softint rows = -1) { throw "X"; }
+    hash<auto> describe() { throw "X"; }
     nothing commit() { throw "X"; }
-    nothing bindArgs(softlist vargs) { throw "X"; }
-    nothing execArgs(softlist vargs) { throw "X"; }
-    hash getOutputRows() { throw "X"; }
+    nothing bindArgs(softlist<auto> vargs) { throw "X"; }
+    nothing execArgs(softlist<auto> vargs) { throw "X"; }
+    hash<auto> getOutputRows() { throw "X"; }
     nothing prepareRaw(string sql) { throw "X"; }
     bool active() { throw "X"; }
     nothing bindPlaceholders() { throw "X"; }
-    *hash fetchRow() { throw "X"; }
+    *hash<auto> fetchRow() { throw "X"; }
     nothing define() { throw "X"; }
     bool currentThreadInTransaction() { throw "X"; }
     nothing bindValues() { throw "X"; }
     int affectedRows() { throw "X"; }
     nothing bind() { throw "X"; }
-    nothing bindValuesArgs(softlist vargs) { throw "X"; }
+    nothing bindValuesArgs(softlist<auto> vargs) { throw "X"; }
     nothing close() { throw "X"; }
     nothing exec() { throw "X"; }
     nothing beginTransaction() { throw "X"; }
-    nothing bindPlaceholdersArgs(softlist vargs) { throw "X"; }
+    nothing bindPlaceholdersArgs(softlist<auto> vargs) { throw "X"; }
 }
 
 # dummy datasource-like class for FakeAbstractTable
@@ -90,27 +90,27 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource {
     *string getPassword() {}
     *string getOSEncoding() {}
     *string getDBName() {}
-    any selectRows(string sql) {}
+    auto selectRows(string sql) {}
     bool inTransaction() { return False;}
-    any getClientVersion() {}
-    any exec(string sql) {}
+    auto getClientVersion() {}
+    auto exec(string sql) {}
     *int getPort() {}
-    any execRaw(string sql) {}
-    any getServerVersion() {}
+    auto execRaw(string sql) {}
+    auto getServerVersion() {}
     *string getHostName() {}
     string getDriverName() { return ""; }
-    any select(string sql) {}
+    auto select(string sql) {}
     string getDBEncoding() { return ""; }
-    any vselect(string sql, *softlist vargs) {}
+    auto vselect(string sql, *softlist<auto> vargs) {}
     string getConfigString() { return ""; }
-    any vselectRows(string sql, *softlist vargs) {}
+    auto vselectRows(string sql, *softlist<auto> vargs) {}
     nothing beginTransaction() {}
     nothing rollback() {}
-    any selectRow(string sql) {}
-    hash getConfigHash() {}
+    auto selectRow(string sql) {}
+    hash<auto> getConfigHash() {}
     nothing commit() {}
-    any vselectRow(string sql, *softlist vargs) {}
-    any vexec(string sql, *softlist vargs) {}
+    auto vselectRow(string sql, *softlist<auto> vargs) {}
+    auto vexec(string sql, *softlist<auto> vargs) {}
     *string getUserName() {}
     AbstractSQLStatement getSQLStatement() { return new FakeSQLStatement(); }
 }
@@ -118,44 +118,44 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource {
 # Actually we don't need real table. Just a FakeSQLStatement returned from getRowIterator()
 class FakeAbstractTable inherits SqlUtil::AbstractTable {
     constructor() : SqlUtil::AbstractTable(new FakeDatasource(), "foo_table") {}
-    AbstractIterator getRowIterator(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
-    AbstractIterator getRowIteratorNoExec(hash h) { return new FakeSQLStatement(); }
-    AbstractIterator getStatement(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
-    AbstractIterator getStatementNoExec(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getRowIterator(hash<auto> h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getRowIteratorNoExec(hash<auto> h) { return new FakeSQLStatement(); }
+    AbstractIterator getStatement(hash<auto> h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getStatementNoExec(hash<auto> h, *reference<string> sql) { return new FakeSQLStatement(); }
 
     string getRenameSqlImpl(string new_name) {}
-    AbstractPrimaryKey getPrimaryKeyImpl(any a) {}
-    Constraints getConstraintsImpl(any a)  { return new Constraints(); }
-    AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash opt) {}
-    nothing setupTableImpl(hash desc, *hash opt) {}
-    bool uniqueIndexCreatesConstraintImpl(any a) {}
-    ForeignConstraints getForeignConstraintsImpl(*hash opt) {}
-    bool checkExistenceImpl(any a) {}
-    AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {}
-    AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {}
-    Indexes getIndexesImpl(any a) {}
-    AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {}
+    AbstractPrimaryKey getPrimaryKeyImpl(auto a) {}
+    Constraints getConstraintsImpl(auto a)  { return new Constraints(); }
+    AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash<auto> opt) {}
+    nothing setupTableImpl(hash<auto> desc, *hash<auto> opt) {}
+    bool uniqueIndexCreatesConstraintImpl(auto a) {}
+    ForeignConstraints getForeignConstraintsImpl(*hash<auto> opt) {}
+    bool checkExistenceImpl(auto a) {}
+    AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash<auto> ch, *hash<auto> opt) {}
+    AbstractColumn addColumnImpl(string cname, hash<auto> opt, bool nullable = True) {}
+    Indexes getIndexesImpl(auto a) {}
+    AbstractForeignConstraint addForeignConstraintImpl(string cname, hash<auto> ch, string table, hash<auto> tch, *hash<auto> opt) {}
     Columns describeImpl() { return new Columns(("a": NOTHING, "b": NOTHING)); }
-    AbstractTrigger addTriggerImpl(string tname, string src, *hash opt) {}
-    AbstractIndex addIndexImpl(string iname, bool enabled, hash ch, *hash opt) {}
-    *list getAlignSqlImpl(AbstractTable t, *hash opt) {}
-    Triggers getTriggersImpl(any a) {}
-    string getCreateTableSqlImpl(*hash opt) {}
-    bool tryInsertImpl(string sql, hash row) {}
-    bool supportsTablespacesImpl(any a) {}
-    *string getSqlValueImpl(any v) {}
-    AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash opt) {}
-    hash getQoreTypeMapImpl(any a) {}
-    *hash doReturningImpl(hash opt, reference<string> sql, list args) {}
-    hash getTypeMapImpl(any a) {}
-    bool constraintsLinkedToIndexesImpl(any a) {}
-    bool emptyImpl(any a) {}
-    *list getCreateMiscSqlImpl(*hash opt, bool cache) {}
-    string getCreateSqlImpl(list l) {}
-    bool hasArrayBind(any a) {}
-    nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {}
+    AbstractTrigger addTriggerImpl(string tname, string src, *hash<auto> opt) {}
+    AbstractIndex addIndexImpl(string iname, bool enabled, hash<auto> ch, *hash<auto> opt) {}
+    *list<auto> getAlignSqlImpl(AbstractTable t, *hash<auto> opt) {}
+    Triggers getTriggersImpl(auto a) {}
+    string getCreateTableSqlImpl(*hash<auto> opt) {}
+    bool tryInsertImpl(string sql, hash<auto> row) {}
+    bool supportsTablespacesImpl(auto a) {}
+    *string getSqlValueImpl(auto v) {}
+    AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash<auto> ch, *hash<auto> opt) {}
+    hash<auto> getQoreTypeMapImpl(auto a) {}
+    *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {}
+    hash<auto> getTypeMapImpl(auto a) {}
+    bool constraintsLinkedToIndexesImpl(auto a) {}
+    bool emptyImpl(auto a) {}
+    *list<auto> getCreateMiscSqlImpl(*hash<auto> opt, bool cache) {}
+    string getCreateSqlImpl(list<auto> l) {}
+    bool hasArrayBind(auto a) {}
+    nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh) {}
     nothing copyImpl(AbstractTable old) {}
-    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {}
+    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
 }
 
 class Main inherits QUnit::Test {
@@ -172,7 +172,7 @@ class Main inherits QUnit::Test {
 
         int i = 0;
         while (m.next()) {
-            hash row = m.getValue();
+            hash<auto> row = m.getValue();
             testAssertion(sprintf("Row verification: %d", i), \equals(), (row, OUTPUT[i]));
             i++;
         }

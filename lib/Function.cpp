@@ -475,64 +475,63 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs)
 }
 
 void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types) {
-   // check for duplicate name
-   for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
-      if (*i == v->getName())
-         parse_error(*loc, "duplicate variable '%s' declared in parameter list", (*i).c_str());
+    // check for duplicate name
+    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
+        if (*i == v->getName())
+            parse_error(*loc, "duplicate variable '%s' declared in parameter list", (*i).c_str());
 
-   names.push_back(v->getName());
+    names.push_back(v->getName());
 
-   bool is_decl = v->isDecl();
-   if (needs_types && !is_decl)
-      parse_error(*loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
+    bool is_decl = v->isDecl();
+    if (needs_types && !is_decl)
+        parse_error(*loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
 
-   // see if this is a new object call
-   if (v->has_effect()) {
-      // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
-      parse_error(*loc, "parameter '%s' may not be declared with implicit constructor syntax; instead use: '%s %s = new %s()'", v->getName(), v->parseGetTypeName(), v->getName(), v->parseGetTypeName());
-   }
+    // see if this is a new object call
+    if (v->has_effect()) {
+        // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
+        parse_error(*loc, "parameter '%s' may not be declared with implicit constructor syntax; instead use: '%s %s = new %s()'", v->getName(), v->parseGetTypeName(), v->getName(), v->parseGetTypeName());
+    }
 
-   if (is_decl) {
-      VarRefDeclNode* vd = reinterpret_cast<VarRefDeclNode*>(v);
-      QoreParseTypeInfo* pti = vd->takeParseTypeInfo();
-      parseTypeList.push_back(pti);
-      const QoreTypeInfo* ti = vd->getTypeInfo();
-      typeList.push_back(ti);
+    if (is_decl) {
+        VarRefDeclNode* vd = reinterpret_cast<VarRefDeclNode*>(v);
+        QoreParseTypeInfo* pti = vd->takeParseTypeInfo();
+        parseTypeList.push_back(pti);
+        const QoreTypeInfo* ti = vd->getTypeInfo();
+        typeList.push_back(ti);
 
-      assert(!(pti && ti));
+        assert(!(pti && ti));
 
-      if (pti || QoreTypeInfo::hasType(ti)) {
-         ++num_param_types;
-         // only increment min_param_types if there is no default argument
-         if (!defArg)
-            ++min_param_types;
-      }
+        if (pti || QoreTypeInfo::hasType(ti)) {
+            ++num_param_types;
+            // only increment min_param_types if there is no default argument
+            if (!defArg)
+                ++min_param_types;
+        }
 
-      // add type name to signature
-      if (pti)
-         QoreParseTypeInfo::concatName(pti, str);
-      else
-         QoreTypeInfo::concatName(ti, str);
-   }
-   else {
-      parseTypeList.push_back(0);
-      typeList.push_back(0);
-      str.append(NO_TYPE_INFO);
-   }
+        // add type name to signature
+        if (pti)
+            QoreParseTypeInfo::concatName(pti, str);
+        else
+            QoreTypeInfo::concatName(ti, str);
+    } else {
+        parseTypeList.push_back(0);
+        typeList.push_back(0);
+        str.append(NO_TYPE_INFO);
+    }
 
-   str.append(" ");
-   str.append(v->getName());
+    str.append(" ");
+    str.append(v->getName());
 
-   defaultArgList.push_back(defArg);
-   if (defArg)
-      addDefaultArgument(defArg);
+    defaultArgList.push_back(defArg);
+    if (defArg)
+        addDefaultArgument(defArg);
 
-   if (v->explicitScope()) {
-      if (v->getType() == VT_LOCAL)
-         parse_error(*loc, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
-      else if (v->getType() == VT_GLOBAL)
-         parse_error(*loc, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
-   }
+    if (v->explicitScope()) {
+        if (v->getType() == VT_LOCAL)
+            parse_error(*loc, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
+        else if (v->getType() == VT_GLOBAL)
+            parse_error(*loc, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+    }
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {

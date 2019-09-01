@@ -1285,6 +1285,7 @@ private:
    }
 
    DLLLOCAL void concatName(std::string& str) const {
+      assert(!tname.empty());
       str.append(tname);
    }
 
