@@ -43,11 +43,11 @@
 #include <cstdio>
 
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
-   parseException(*sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
+    parseException(*sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
 static void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const UserSignature* sig2) {
-   parseException(*sig2->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
+    parseException(*sig2->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
 }
 
 QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class,
@@ -83,29 +83,15 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
         return false;
     }
 
-    // issue #3404: supports %broken-abstract
-    bool broken_abstract;
-    {
-        // there is no progrm context when initializing Qore
-        QoreProgram* pgm = getProgram();
-        if (pgm) {
-            broken_abstract = pgm->getParseOptions64() & PO_BROKEN_ABSTRACT;
-        } else {
-            broken_abstract = false;
-        }
-    }
-
     for (unsigned i = 0; i < typeList.size(); ++i) {
         const QoreTypeInfo* ti = sig.typeList.size() <= i
             ? nullptr
             : sig.typeList[i];
         bool match;
-        if (broken_abstract) {
-            match = (QoreTypeInfo::parseAccepts(typeList[i], ti) >= QTI_AMBIGUOUS)
-                || (QoreTypeInfo::parseAccepts(ti, typeList[i]) >= QTI_AMBIGUOUS);
-        } else {
-            match = QoreTypeInfo::isInputIdentical(typeList[i], ti);
-        }
+        match = (QoreTypeInfo::runtimeTypeMatch(typeList[i], ti) >= QTI_NEAR);
+
+        //printd(5, "AbstractFunctionSignature::operator==() param %d (%s =~ %s) %d\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(ti), QoreTypeInfo::runtimeTypeMatch(typeList[i], ti));
+
         if (!match) {
             //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
             return false;
@@ -117,7 +103,7 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
 }
 
 int64 AbstractQoreFunctionVariant::getParseOptions(int64 po) const {
-   return is_user ? getUserVariantBase()->getParseOptions(po) : po;
+    return is_user ? getUserVariantBase()->getParseOptions(po) : po;
 }
 
 void AbstractQoreFunctionVariant::parseResolveUserSignature() {
@@ -127,7 +113,7 @@ void AbstractQoreFunctionVariant::parseResolveUserSignature() {
 }
 
 bool AbstractQoreFunctionVariant::hasBody() const {
-   return is_user ? getUserVariantBase()->hasBody() : true;
+    return is_user ? getUserVariantBase()->hasBody() : true;
 }
 
 LocalVar* AbstractQoreFunctionVariant::getSelfId() const {
@@ -139,10 +125,10 @@ LocalVar* AbstractQoreFunctionVariant::getSelfId() const {
 }
 
 static void do_call_name(QoreString &desc, const QoreFunction* func) {
-   const char* class_name = func->className();
-   if (class_name)
-      desc.sprintf("%s::", class_name);
-   desc.sprintf("%s(", func->getName());
+    const char* class_name = func->className();
+    if (class_name)
+        desc.sprintf("%s::", class_name);
+    desc.sprintf("%s(", func->getName());
 }
 
 static void add_args(QoreStringNode &desc, const QoreListNode* args) {
@@ -970,8 +956,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
         desc->concat(") can be found; ");
         if (!cnt) {
             desc->concat("no variants were accessible in this execution context");
-        }
-        else {
+        } else {
             desc->concat("the following variants were tested:");
 
             last_class = 0;
@@ -1373,8 +1358,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                                 // we are missing parse-time type information, we need to match at runtime
                                 variant_runtime_match = true;
                                 break;
-                            }
-                            else if (sig->hasDefaultArg(pi))
+                            } else if (sig->hasDefaultArg(pi))
                                 rc = QTI_IGNORE;
                             else
                                 a = nothingTypeInfo;
@@ -1438,8 +1422,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         variant = nullptr;
                         runtime_match = true;
                         break;
-                    }
-                    else {
+                    } else {
                         // only set variant if it's the longest absolute match and the
                         // longest potential match
                         pmatch = variant_pmatch;
@@ -1449,8 +1432,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         //printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
                         variant = *i;
                     }
-                }
-                else if (variant_pmatch && variant_pmatch >= pmatch) {
+                } else if (variant_pmatch && variant_pmatch >= pmatch) {
                     // if we could possibly match less than another variant
                     // then we have to match at runtime
                     variant = nullptr;
@@ -1525,8 +1507,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             }
         }
         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
-    }
-    else if (variant) {
+    } else if (variant) {
         int64 flags = variant->getFlags();
         if (flags & (QCF_NOOP | QCF_RUNTIME_NOOP)) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);

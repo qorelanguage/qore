@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ extern QoreClass* QC_ABSTRACTDATASOURCE;
     on_exit stmt.commit();
     stmt.prepare("select * from table");
     while (stmt.next()) {
-        hash row = stmt.fetchRow();
+        hash<auto> row = stmt.fetchRow();
         do_something(row);
     }
 }
@@ -215,7 +215,7 @@ nothing SQLStatement::prepareRaw(string sql) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.bind(h.id, h.name);
     stmt.exec();
 }
@@ -245,8 +245,8 @@ nothing SQLStatement::bind(...) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.bindArgs(args);
     stmt.exec();
 }
@@ -258,7 +258,7 @@ foreach hash h in (l) {
 
     @see SQLStatement::bind(), SQLStatement::bindPlaceholders(), SQLStatement::bindPlaceholdersArgs(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
-nothing SQLStatement::bindArgs(softlist vargs) {
+nothing SQLStatement::bindArgs(softlist<auto> vargs) {
    stmt->bind(*vargs, xsink);
 }
 
@@ -306,7 +306,7 @@ nothing SQLStatement::bindPlaceholders(...) {
     @par Example:
     @code{.py}
 stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
-list l = list(Type::Date);
+list<auto> l = list(Type::Date);
 stmt.bindPlaceholdersArgs(l);
 date d = stmt.getOutput().sd;
     @endcode
@@ -317,7 +317,7 @@ date d = stmt.getOutput().sd;
 
     @see SQLStatement::bind(), SQLStatement::bindArgs(), SQLStatement::bindPlaceholders(), SQLStatement::bindValues(), and SQLStatement::bindValuesArgs()
  */
-nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
+nothing SQLStatement::bindPlaceholdersArgs(softlist<auto> vargs) {
    stmt->bindPlaceholders(*vargs, xsink);
 }
 
@@ -335,7 +335,7 @@ nothing SQLStatement::bindPlaceholdersArgs(softlist vargs) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.bindValues(h.id, h.name);
     stmt.exec();
 }
@@ -365,8 +365,8 @@ nothing SQLStatement::bindValues(...) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.bindValuesArgs(args);
     stmt.exec();
 }
@@ -376,7 +376,7 @@ foreach hash h in (l) {
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
  */
-nothing SQLStatement::bindValuesArgs(softlist vargs) {
+nothing SQLStatement::bindValuesArgs(softlist<auto> vargs) {
    stmt->bindValues(*vargs, xsink);
 }
 
@@ -396,7 +396,7 @@ nothing SQLStatement::bindValuesArgs(softlist vargs) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
+foreach hash<auto> h in (l) {
     stmt.exec(h.id, h.name);
 }
     @endcode
@@ -427,8 +427,8 @@ nothing SQLStatement::exec(...) {
     @par Example:
     @code{.py}
 stmt.prepare("insert into table (id, name) values (%v, %v)");
-foreach hash h in (l) {
-    list args = (h.id, h.name);
+foreach hash<auto> h in (l) {
+    list<auto> args = (h.id, h.name);
     stmt.execArgs(args);
 }
     @endcode
@@ -439,7 +439,7 @@ foreach hash h in (l) {
 
     @see SQLStatement::exec()
  */
-nothing SQLStatement::execArgs(softlist vargs) {
+nothing SQLStatement::execArgs(softlist<auto> vargs) {
    stmt->exec(vargs, xsink);
 }
 
@@ -464,14 +464,14 @@ int SQLStatement::affectedRows() {
 
     @par Example:
     @code{.py}
-hash h = stmt.getOutput();
+hash<auto> h = stmt.getOutput();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
  */
-hash SQLStatement::getOutput() {
+hash<auto> SQLStatement::getOutput() {
    return stmt->getOutput(xsink);
 }
 
@@ -480,14 +480,14 @@ hash SQLStatement::getOutput() {
 
     @par Example:
     @code{.py}
-hash h = stmt.getOutputRows();
+hash<auto> h = stmt.getOutputRows();
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
  */
-hash SQLStatement::getOutputRows() {
+hash<auto> SQLStatement::getOutputRows() {
    return stmt->getOutputRows(xsink);
 }
 
@@ -505,7 +505,7 @@ hash SQLStatement::getOutputRows() {
     stmt.define();
     # note that the SQLStatement::next() would implicitly execute exec() and define()
     while (stmt.next()) {
-        hash row = stmt.fetchRow();
+        hash<auto> row = stmt.fetchRow();
         do_something(row);
     }
 }
@@ -571,7 +571,7 @@ nothing SQLStatement::beginTransaction() {
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.fetchRow();
+    hash<auto> h = stmt.fetchRow();
 }
     @endcode
 
@@ -604,7 +604,7 @@ bool SQLStatement::valid() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.fetchRow();
+    hash<auto> h = stmt.fetchRow();
 }
     @endcode
 
@@ -612,7 +612,7 @@ while (stmt.next()) {
 
     @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
-*hash SQLStatement::fetchRow() {
+*hash<auto> SQLStatement::fetchRow() {
    return stmt->fetchRow(xsink);
 }
 
@@ -624,7 +624,7 @@ while (stmt.next()) {
     @par Example:
     @code{.py}
 while (stmt.next()) {
-    hash h = stmt.getValue();
+    hash<auto> h = stmt.getValue();
 }
     @endcode
 
@@ -636,7 +636,7 @@ while (stmt.next()) {
 
     @since %Qore 0.8.5
  */
-*hash SQLStatement::getValue() {
+*hash<auto> SQLStatement::getValue() {
    return stmt->fetchRow(xsink);
 }
 
@@ -649,7 +649,7 @@ while (stmt.next()) {
 
     @par Example:
     @code{.py}
-list l = stmt.fetchRows(-1);
+list<auto> l = stmt.fetchRows(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -658,7 +658,7 @@ list l = stmt.fetchRows(-1);
     - There is no need to call SQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
-list SQLStatement::fetchRows(softint rows = -1) {
+list<auto> SQLStatement::fetchRows(softint rows = -1) {
    return stmt->fetchRows((int)rows, xsink);
 }
 
@@ -671,7 +671,7 @@ list SQLStatement::fetchRows(softint rows = -1) {
 
     @par Example:
     @code{.py}
-hash h = stmt.fetchColumns(-1);
+hash<auto> h = stmt.fetchColumns(-1);
     @endcode
 
     @throw SQLSTATEMENT-ERROR No %SQL has been set with SQLStatement::prepare() or SQLStatement::prepareRaw()
@@ -680,7 +680,7 @@ hash h = stmt.fetchColumns(-1);
     - There is no need to call SQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
     - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
  */
-hash SQLStatement::fetchColumns(softint rows = -1) {
+hash<auto> SQLStatement::fetchColumns(softint rows = -1) {
    return stmt->fetchColumns((int)rows, xsink);
 }
 
@@ -693,7 +693,7 @@ hash SQLStatement::fetchColumns(softint rows = -1) {
     - \c "native_type": (string) the database-specific name of the type
     - \c "internal_id": (integer) the database-specific type code of the type
  */
-hash SQLStatement::describe() {
+hash<auto> SQLStatement::describe() {
     return stmt->describe(xsink);
 }
 

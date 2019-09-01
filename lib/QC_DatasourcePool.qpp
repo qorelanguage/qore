@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -298,14 +298,14 @@ DatasourcePool ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @since %Qore 0.8.6
  */
 DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
-   ReferenceHolder<Queue> q(queue, xsink);
-   ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
-   if (!h) {
-      assert(*xsink);
-      return;
-   }
+    ReferenceHolder<Queue> q(queue, xsink);
+    ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
+    if (!h) {
+        assert(*xsink);
+        return;
+    }
 
-   dsp_constructor_hash(*h, self, q.release(), arg, xsink);
+    dsp_constructor_hash(*h, self, q.release(), arg, xsink);
 }
 
 //! Creates a DatasourcePool object from a hash argument giving parameters for the constructor
@@ -330,7 +330,7 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @throw DATASOURCEPOOL-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; \c "port" value is \<= 0; invalid \c "min" or \c "max" keys
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
  */
-DatasourcePool::constructor(hash opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
+DatasourcePool::constructor(hash<auto> opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
    dsp_constructor_hash(opts, self, queue, arg, xsink);
 }
 
@@ -420,7 +420,7 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-auto DatasourcePool::vexec(string sql, *softlist vargs) {
+auto DatasourcePool::vexec(string sql, *softlist<auto> vargs) {
    return ds->exec(sql, vargs, xsink);
 }
 
@@ -496,7 +496,7 @@ auto DatasourcePool::select(string sql, ...) {
 
     @par Example:
     @code{.py}
-*hash h = db.selectRow("select * from example_table where id = 1");
+*hash<auto> h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -524,7 +524,7 @@ auto DatasourcePool::selectRow(string sql, ...) {
 
     @par Example:
     @code{.py}
-*list list = db.selectRows("select * from example_table");
+*list<auto> list = db.selectRows("select * from example_table");
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
@@ -551,7 +551,7 @@ auto DatasourcePool::selectRows(string sql, ...) {
 
     @par Example:
     @code{.py}
-hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash<auto> query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
 if (query.firstValue())
     printf("got results\n");
     @endcode
@@ -565,7 +565,7 @@ if (query.firstValue())
     - <hash>::contextIterator()
     - @ref context
  */
-auto DatasourcePool::vselect(string sql, *softlist vargs) {
+auto DatasourcePool::vselect(string sql, *softlist<auto> vargs) {
    return ds->select(sql, vargs, xsink);
 }
 
@@ -583,14 +583,14 @@ auto DatasourcePool::vselect(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
+*hash<auto> h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see DatasourcePool::selectRow()
  */
-auto DatasourcePool::vselectRow(string sql, *softlist vargs) {
+auto DatasourcePool::vselectRow(string sql, *softlist<auto> vargs) {
    return ds->selectRow(sql, vargs, xsink);
 }
 
@@ -612,14 +612,14 @@ auto DatasourcePool::vselectRow(string sql, *softlist vargs) {
 
     @par Example:
     @code{.py}
-*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
+*list<auto> list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see DatasourcePool::selectRows()
  */
-auto DatasourcePool::vselectRows(string sql, *softlist vargs) {
+auto DatasourcePool::vselectRows(string sql, *softlist<auto> vargs) {
    return ds->selectRows(sql, vargs, xsink);
 }
 
@@ -870,7 +870,7 @@ bool DatasourcePool::currentThreadInTransaction() [flags=CONSTANT] {
 
     @since %Qore 0.8.6
  */
-hash DatasourcePool::getOptionHash() [flags=CONSTANT] {
+hash<auto> DatasourcePool::getOptionHash() [flags=CONSTANT] {
    return ds->getOptionHash();
 }
 
@@ -888,14 +888,14 @@ auto DatasourcePool::getOption(string opt) [flags=RET_VALUE_ONLY] {
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-hash h = ds.getConfigHash();
+hash<auto> h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
 
     @since %Qore 0.8.8
  */
-hash DatasourcePool::getConfigHash() [flags=CONSTANT] {
+hash<auto> DatasourcePool::getConfigHash() [flags=CONSTANT] {
    return ds->getConfigHash(xsink);
 }
 
@@ -949,7 +949,7 @@ DatasourcePool::setWarningCallback(timeout ms, code callback, auto arg) {
 //! Returns a hash with usage information about the DatasourcePool object
 /** @par Example:
     @code{.py}
-hash h = ds.getUsageInfo();
+hash<auto> h = ds.getUsageInfo();
     @endcode
 
     @return a hash with the following keys (note that the \c callback, \c timeout, and optionally \c arg keys are only set if a warning callback is set):
@@ -964,7 +964,7 @@ hash h = ds.getUsageInfo();
 
     @since %Qore 0.8.9
 */
-*hash DatasourcePool::getUsageInfo() [flags=CONSTANT] {
+*hash<auto> DatasourcePool::getUsageInfo() [flags=CONSTANT] {
    return ds->getUsageInfo();
 }
 
@@ -1050,7 +1050,7 @@ foreach string cap in (db.getCapabilityList())
 
     @since %Qore 0.8.12
 */
-list DatasourcePool::getCapabilityList() [flags=CONSTANT] {
+list<auto> DatasourcePool::getCapabilityList() [flags=CONSTANT] {
    return ds->getCapabilityList();
 }
 

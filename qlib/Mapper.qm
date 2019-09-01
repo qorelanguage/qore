@@ -270,6 +270,32 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
 #! the Mapper namespace contains all the definitions in the Mapper module
 public namespace Mapper {
+    #! describes a runtime type
+    public hashdecl MapperRuntimeKeyInfo {
+        #! the type of value that must be assigned to this key
+        string value_type = "string";
+
+        #! hash of conflicting keys, if any
+        *hash<string, bool> conflicting_keys;
+
+        #! if the key requires in input field for the mapping
+        bool requires_input = False;
+
+        #! the code to handle the key at runtime
+        /** the signature of this closure or call reference depends on \a requires_input:
+            - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
+              - parameters:
+                - \c arg: the argument to the runtime key in the mapping
+                - \c val: the current value of the mapping, if any
+            - \a requires_input == False: <tt>auto sub (auto arg) {}</tt>
+              - parameters:
+                - \c arg: the argument to the runtime key in the mapping
+
+            In both cases the return value is the value to use for the field
+        */
+        code handler;
+    }
+
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
         public {
@@ -290,6 +316,7 @@ public namespace Mapper {
                 "number_format": "the default number format when parsing number fields from strings; ex: \".,\"",
                 "output": "a hash describing the output record",
                 "output_log": "a call reference / closure for input record logging",
+                "runtime_keys": "field key support provided as a Mapper option; format: hash<string, hash<MapperRuntimeKeyInfo>>",
                 "timezone": "the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
                 "empty_strings_to_nothing": "converts out record's empty strings and into NOTHING - actually the value is deleted",
@@ -413,6 +440,18 @@ public namespace Mapper {
 
             #! map of constant runtime fields
             hash<auto> rconsth;
+
+            #! map of field keys provided by the "runtime_keys" option
+            hash<string, hash<MapperRuntimeKeyInfo>> runtime_keys;
+
+            #! hash of runtime keys that provide independent mappings (where their "requires_input" values are False)
+            hash<string, hash<MapperRuntimeKeyInfo>> runtime_independent_keys;
+
+            #! hash of valid keys
+            hash<string, bool> valid_keys;
+
+            #! hash of valid types
+            hash<string, bool> valid_types;
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -497,10 +536,15 @@ Mapper mapv(DataMap);
                 error("empty map passed to %s::constructor()", self.className());
 
             mapc = mapv;
-            hash<auto> ck = optionKeys();
-            foreach string k in (keys opts) {
-                if (!ck{k})
-                    error("unknown option key %y passed to %s::constructor(); recognized option keys: %y", getFieldName(k), self.className(), ck.keys());
+            {
+                # check for invalid option keys
+                list<string> all_keys = keys optionKeys();
+                *hash<auto> invalid_option_keys = opts - all_keys;
+                if (invalid_option_keys) {
+                    error("unknown option key%s %y passed to %s::constructor(); recognized option keys: %y",
+                        invalid_option_keys.size() == 1 ? "" : "s", keys invalid_option_keys, self.className(),
+                        all_keys);
+                }
             }
 
             if (opts.encoding)
@@ -526,7 +570,7 @@ Mapper mapv(DataMap);
             # runtime options
             if (opts.runtime) {
                 if (opts.runtime.typeCode() != NT_HASH) {
-                    error("input key 'runtime' passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"",
+                    error("option 'runtime' passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"",
                           self.className(), opts.runtime.type(), opts.runtime);
                 }
                 # the "{} + " construction is there to make sure m_runtime has type hash<auto>
@@ -536,6 +580,44 @@ Mapper mapv(DataMap);
             if (opts.empty_strings_to_nothing) {
                 m_empty_strings_to_nothing = parse_boolean(opts.empty_strings_to_nothing);
             }
+
+            # validate and set runtime types
+            if (opts.runtime_keys) {
+                if (opts.runtime_keys.typeCode() != NT_HASH) {
+                    error("option 'runtime_keys' passed to %s::constructor() assigned to type %y (value %y); "
+                        "expecting \"hash<string, hash<MapperRuntimeKeyInfo>>\"", self.className(),
+                        opts.runtime.type(), opts.runtime);
+                }
+                foreach hash<auto> i in (opts.runtime_keys.pairIterator()) {
+                    if (i.value.fullType() != "hash<MapperRuntimeKeyInfo>") {
+                        # try to cast for older code
+                        bool ok;
+                        if (i.value.typeCode() == NT_HASH) {
+                            try {
+                                if (i.value = cast<hash<MapperRuntimeKeyInfo>>(i.value)) {
+                                    ok = True;
+                                }
+                            } catch (hash<ExceptionInfo> ex) {
+                            }
+                        }
+
+                        if (!ok) {
+                            error("option 'runtime_keys' key %y passed to %s::constructor() has type %y; expecting "
+                                "\"hash<MapperRuntimeKeyInfo>\"", i.key, self.className(), i.value.fullType());
+                        }
+                    }
+                    runtime_keys{i.key} = i.value;
+                    if (!i.value.requires_input) {
+                        runtime_independent_keys{i.key} = i.value;
+                    }
+                }
+            }
+
+            # set valid keys
+            valid_keys = validKeys();
+
+            # set valid types
+            valid_types = validTypes();
         }
 
         #! verifies the input map in the constructor
@@ -626,7 +708,7 @@ Mapper mapv(DataMap);
             } else if (fh.runtime) {
                 if (!m_runtime.hasKey(fh.runtime))
                     error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
-            } else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index)
+            } else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index && !runtime_independent_keys{keys fh})
                 checkInputField(k, k);
             if (exists fh.constant && exists fh.index) {
                 error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
@@ -694,11 +776,42 @@ Mapper mapv(DataMap);
             if (fh.maxlen && !exists fh.trunc && trunc_all)
                 fh.trunc = True;
 
-            hash<auto> vk = validKeys();
-            hash<auto> vt = validTypes();
+            # check valid keys
+            {
+                hash<string, bool> all_valid_keys = valid_keys;
+                if (runtime_keys) {
+                    map all_valid_keys{$1} = True, keys runtime_keys;
+                }
+                *hash<auto> invalid_keys = fh - (keys all_valid_keys);
+                if (invalid_keys) {
+                    error("output field %y in map hash contains unknown key%s %y (valid keys: %y)",
+                        getFieldName(k), invalid_keys.size() == 1 ? "" : "s", keys invalid_keys, keys all_valid_keys);
+                }
+            }
 
-            map error("output field %y in map hash contains unknown key '%s' (valid keys: %y)",
-                getFieldName(k), $1, keys vk), keys fh, !vk{$1};
+            # check runtime keys
+            foreach hash<auto> i in (runtime_keys{keys fh}.pairIterator()) {
+                # check for conflicts
+                if (*hash<auto> conflicts = fh{keys i.value.conflicting_keys}) {
+                    error("output field %y contains key %y which conflicts with the following keys: %y",
+                        getFieldName(k), i.key, keys conflicts);
+                }
+
+                # check type
+                if (i.value.value_type != "any") {
+                    string type = i.value.value_type;
+                    if (i.value.value_type[0] == "*") {
+                        if (!exists fh{i.key}) {
+                            continue;
+                        }
+                        type = type[1..];
+                    }
+                    if (type != fh{i.key}.type()) {
+                        error("output field %y key %y has value %y with type %y which is not compatible with the "
+                            "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), i.value.value_type);
+                    }
+                }
+            }
 
             # convert old "number" tag to new "type" tag
             if (fh.number) {
@@ -707,8 +820,8 @@ Mapper mapv(DataMap);
                 fh.type = "number";
                 delete fh.number;
             } else if (exists fh.type) {
-                if (!vt.(fh.type))
-                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, vt.keys());
+                if (!valid_types.(fh.type))
+                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, valid_types.keys());
                 switch (fh.type) {
                     case "date": {
                         if (!timezone)
@@ -884,14 +997,14 @@ Mapper mapv(DataMap);
         #! returns a list of valid field keys for this class (can be overridden in subclasses)
         /** @return a list of valid field keys for this class (can be overridden in subclasses)
         */
-        hash<auto> validKeys() {
+        hash<string, bool> validKeys() {
             return ValidKeys;
         }
 
         #! returns a list of valid field types for this class (can be overridden in subclasses)
         /** @return a list of valid types for this class (can be overridden in subclasses)
         */
-        hash<auto> validTypes() {
+        hash<string, bool> validTypes() {
             return ValidTypes;
         }
 
@@ -922,7 +1035,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(list recs) {
+        list<hash> mapAll(list<auto> recs) {
             return map mapData($1), recs;
         }
 
@@ -936,7 +1049,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(hash recs) {
+        list<hash> mapAll(hash<auto> recs) {
             return map mapData($1), recs.contextIterator();
         }
 
@@ -1081,6 +1194,14 @@ Mapper mapv(DataMap);
             # if the internal field was marked as needing processing by a subclass, then call the mapSubclass method
             if (m.subclass)
                 v = v_is_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
+
+            # process any runtime keys if present in the current field mapping
+            if (*hash<string, hash<MapperRuntimeKeyInfo>> current_runtime_keys = runtime_keys{keys m}) {
+                map v = $1.value.requires_input
+                    ? $1.value.handler(m{$1.key}, v)
+                    : $1.value.handler(m{$1.key}),
+                    current_runtime_keys.pairIterator();
+            }
 
             # execute any field filter if necessary
             if (m.code) {

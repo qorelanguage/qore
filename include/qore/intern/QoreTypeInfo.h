@@ -984,28 +984,42 @@ protected:
         return QTI_NOT_EQUAL;
     }
 
+    // checks that types are near identical at runtime
+    /** accept and return types match in the same order and with no match worse than QTI_NEAR
+    */
     DLLLOCAL qore_type_result_e runtimeTypeMatch(const QoreTypeInfo* typeInfo) const {
-        //printd(5, "QoreTypeInfo::runtimeTypeMatch() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
-        if (typeInfo->return_vec.size() > accept_vec.size()) {
+        //printd(5, "QoreTypeInfo::runtimeTypeMatch() '%s' <=> '%s'\n", tname.c_str(), typeInfo->tname.c_str());
+        if (typeInfo->return_vec.size() != return_vec.size() || typeInfo->accept_vec.size() != accept_vec.size()) {
             return QTI_NOT_EQUAL;
         }
 
+        // check accept types
         qore_type_result_e rc = QTI_IDENT;
-        for (auto& rt : typeInfo->return_vec) {
-            bool t_no_match = true;
-            for (auto& at : accept_vec) {
-                bool may_not_match = false;
-                bool may_need_filter = false;
-                //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
-                qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
-                if (res < QTI_NEAR) {
-                    return QTI_NOT_EQUAL;
-                }
-                if (res < QTI_IDENT) {
-                    rc = QTI_NEAR;
-                }
+        for (size_t i = 0; i < accept_vec.size(); ++i) {
+            bool may_not_match = false;
+            bool may_need_filter = false;
+            qore_type_result_e res = accept_vec[i].spec.match(typeInfo->accept_vec[i].spec, may_not_match, may_need_filter);
+            if (res < QTI_NEAR) {
+                return QTI_NOT_EQUAL;
+            }
+            if (res < rc) {
+                rc = res;
             }
         }
+
+        // check return types
+        for (size_t i = 0; i < return_vec.size(); ++i) {
+            bool may_not_match = false;
+            bool may_need_filter = false;
+            qore_type_result_e res = return_vec[i].spec.match(typeInfo->return_vec[i].spec, may_not_match, may_need_filter);
+            if (res < QTI_NEAR) {
+                return QTI_NOT_EQUAL;
+            }
+            if (res < rc) {
+                rc = res;
+            }
+        }
+
         return rc;
     }
 

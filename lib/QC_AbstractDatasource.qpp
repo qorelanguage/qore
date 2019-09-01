@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_AbstractDatasource.qpp AbstractDatasource class (interface) definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -83,7 +83,7 @@ abstract auto AbstractDatasource::exec(string sql, ...);
 int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
  */
-abstract auto AbstractDatasource::vexec(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vexec(string sql, *softlist<auto> vargs);
 
 //! Executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
@@ -119,7 +119,7 @@ abstract auto AbstractDatasource::execRaw(string sql);
     @par Example:
     @code{.py}
 # bind a string and a date/time value by value in a query
-hash query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
+hash<auto> query = db.select("select * from table where varchar_column = %v and timestamp_column > %v", string, 2007-10-11T15:31:26.289);
 if (query.firstValue())
     printf("got results\n");
     @endcode
@@ -143,7 +143,7 @@ abstract auto AbstractDatasource::select(string sql, ...);
 
     @par Example:
     @code{.py}
-*hash h = db.selectRow("select * from example_table where id = 1");
+*list<auto> h = db.selectRow("select * from example_table where id = 1");
     @endcode
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
@@ -166,7 +166,7 @@ abstract auto AbstractDatasource::selectRow(string sql, ...);
 
     @par Example:
     @code{.py}
-*list list = db.selectRows("select * from example_table");
+*list<auto> list = db.selectRows("select * from example_table");
     @endcode
 
     @see AbstractDatasource::select()
@@ -191,7 +191,7 @@ abstract auto AbstractDatasource::selectRows(string sql, ...);
 
     @par Example:
     @code{.py}
-hash query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
+hash<auto> query = db.vselect("select * from example_table where id = %v and name = %v", arg_list);
 if (query.firstValue())
     printf("got results\n");
     @endcode
@@ -200,7 +200,7 @@ if (query.firstValue())
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract auto AbstractDatasource::vselect(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselect(string sql, *softlist<auto> vargs);
 
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
 /** This method is the same as the AbstractDatasource::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
@@ -217,12 +217,12 @@ abstract auto AbstractDatasource::vselect(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-*hash h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
+*hash<auto> h = db.vselectRow("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRow()
  */
-abstract auto AbstractDatasource::vselectRow(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselectRow(string sql, *softlist<auto> vargs);
 
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
 /** Same as the AbstractDatasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
@@ -243,14 +243,14 @@ abstract auto AbstractDatasource::vselectRow(string sql, *softlist vargs);
 
     @par Example:
     @code{.py}
-*list list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
+*list<auto> list = db.vselectRows("select * from example_table where id = %v and type = %v", arg_list);
     @endcode
 
     @see AbstractDatasource::selectRows()
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract auto AbstractDatasource::vselectRows(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselectRows(string sql, *softlist<auto> vargs);
 
 //! Manually signals the start of transaction management on the AbstractDatasource
 /** This method should be called when the AbstractDatasource object will be shared between more than 1 thread, and a transaction will be started with a AbstractDatasource::select() method or the like.
@@ -383,14 +383,14 @@ abstract bool AbstractDatasource::inTransaction();
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
 /** @par Example:
     @code{.py}
-hash h = ds.getConfigHash();
+hash<auto> h = ds.getConfigHash();
     @endcode
 
     @return a @ref datasource_hash "datasource hash" describing the configuration of the current object
 
     @since %Qore 0.8.8
  */
-abstract hash AbstractDatasource::getConfigHash();
+abstract hash<auto> AbstractDatasource::getConfigHash();
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
 /** @par Example:

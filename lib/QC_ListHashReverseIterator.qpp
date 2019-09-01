@@ -54,7 +54,7 @@ public:
 
     @par Example: ListHashReverseIterator basic usage
     @code{.py}
-    list data = (
+    list<auto> data = (
              ( "column1" : 1, "column2" : "a"),
              ( "column1" : 2, "column2" : "b"),
         );

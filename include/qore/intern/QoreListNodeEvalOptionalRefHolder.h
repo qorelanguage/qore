@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -50,8 +50,7 @@ private:
         if (exp) {
             val = exp->evalList(needs_deref, xsink);
             //printd(0, "QoreListNodeEvalOptionalRefHolder::evalIntern() this: %p exp: %p '%s' (%d) val: %p '%s' (%d)\n", this, exp, exp ? get_full_type_name(exp) : "n/a", exp->size(), val, val ? get_full_type_name(val) : "n/a", val ? val->size() : 0);
-        }
-        else {
+        } else {
             val = nullptr;
             needs_deref = false;
         }

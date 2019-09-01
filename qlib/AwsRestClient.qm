@@ -62,8 +62,10 @@ module AwsRestClient {
     All the public symbols in the module are defined in the AwsRestClient namespace.
 
     The main classes are:
-    - @ref AwsRestClient::AwsRestClient "AwsRestClient": this class provides the REST client API for communuication with <a href="http://www.Aws.net">Aws.net</a>'s RTLS Studio REST API; it also automates authentication and authorization to the target Connected App
-    - @ref AwsRestClient::AwsRestConnection "AwsRestConnection": provides a REST connection object to a <a href="http://www.Aws.net">Aws.net</a>'s RTLS Studio server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref AwsRestClient::AwsRestClient "AwsRestClient": this class provides the REST client API for communuication
+      with the AWS REST API; it also automates authentication and authorization
+    - @ref AwsRestClient::AwsRestConnection "AwsRestConnection": provides a REST connection object to a the AWS server
+      (based on the @ref connectionproviderintro "ConnectionProvider" module)
 
     @par Example:
     @code{.py}
@@ -140,7 +142,7 @@ public namespace AwsRestClient {
             string credential_scope_suffix;
         }
 
-        #! creates the object with the given options (which include the mandatory \c apikey option for <a href="http://www.Aws.net">Aws.net</a>'s RTLS Studio server authentication)
+        #! creates the object with the given options
         /**
             @par Example:
             @code{.py}
@@ -391,7 +393,8 @@ AwsRestClient rest({
     /** supports the following options:
         - \c "aws_keyid": (required) AWS key ID
         - \c "aws_region": (required) the AWS region to use (ex: \c "us-east-1")
-        - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special message encoding
+        - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special message
+          encoding
         - \c "aws_secret": (required) the AWS secret access key value
         - \c "aws_service": (required) the AWS service to use (ex: \c "iam")
         - \c "aws_token": (optional) a temporary session token from AWS Security Token Service for this HTTP session
@@ -468,12 +471,12 @@ AwsRestClient rest({
 
         private:internal constructorInit() {
             if (!opts.aws_keyid.val()) {
-                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_keyid' option for connection %y with url %y (%s)",
-                    name, url, desc);
+                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_keyid' option for connection %y with url "
+                    "%y (%s)", name, url, desc);
             }
             if (!opts.aws_secret.val()) {
-                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_secret' option for connection %y with url %y (%s)",
-                    name, url, desc);
+                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_secret' option for connection %y with url "
+                    "%y (%s)", name, url, desc);
             }
             real_opts = {"url": real_url} + urlh.("username", "password") + self.opts;
         }
@@ -502,24 +505,30 @@ AwsRestClient rest({
 
         #! gets options
         /** @return returns a hash with the following supported options:
-            - \c "apikey": the <a href="http://www.Aws.net">Aws.net</a>'s RTLS Studio API key in use
+            - \c "aws_keyid": (required) AWS key ID
+            - \c "aws_region": (required) the AWS region to use (ex: \c "us-east-1")
+            - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special
+              message encoding
+            - \c "aws_secret": (required) the AWS secret access key value
+            - \c "aws_service": (required) the AWS service to use (ex: \c "iam")
+            - \c "aws_token": (optional) a temporary session token from AWS Security Token Service for this HTTP
+              session
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
               requested response encoding; for possible values, see
               @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is
-              \c "json"
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
-              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
+            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause
+              an \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+              caller like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
             - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called
               instead of processed
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the
-              value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on
-              sent message bodies
+              value
+              \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+              message bodies
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref AwsRestClient::AwsRestClient::constructor() "AwsRestClient::constructor()" for more information

@@ -54,7 +54,11 @@ const char *SelfVarrefNode::getTypeName() const {
 
 QoreValue SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     assert(runtime_get_stack_object());
-    return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
+    assert(needs_deref);
+    // issue 3523: evaluate in case the value is a reference
+    ValueHolder val(runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink), xsink);
+    // the value here must always require a dereference
+    return val->needsEval() ? val->eval(xsink) : val.release();
 }
 
 char* SelfVarrefNode::takeString() {

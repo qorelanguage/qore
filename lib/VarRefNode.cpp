@@ -106,41 +106,38 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
 }
 
 QoreValue VarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   QoreValue v;
-   if (type == VT_LOCAL) {
-      v = ref.id->eval(needs_deref, xsink);
-      printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s) v: '%s'\n", this, ref.id, ref.id->getName(), v.getTypeName());
-   }
-   else if (type == VT_CLOSURE) {
-      printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());
-      ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      v = val->eval(needs_deref, xsink);
-   }
-   else if (type == VT_LOCAL_TS) {
-      printd(5, "VarRefNode::evalImpl() this: %p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
-      ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      v = val->eval(needs_deref, xsink);
-   }
-   else if (type == VT_IMMEDIATE)
-      v = ref.cvv->eval(needs_deref, xsink);
-   else {
-      assert(needs_deref);
-      printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
-      v = ref.var->eval();
-   }
+    QoreValue v;
+    if (type == VT_LOCAL) {
+        v = ref.id->eval(needs_deref, xsink);
+        printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s) v: '%s'\n", this, ref.id, ref.id->getName(), v.getTypeName());
+    } else if (type == VT_CLOSURE) {
+        printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());
+        ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
+        v = val->eval(needs_deref, xsink);
+    } else if (type == VT_LOCAL_TS) {
+        printd(5, "VarRefNode::evalImpl() this: %p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
+        ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
+        v = val->eval(needs_deref, xsink);
+    } else if (type == VT_IMMEDIATE)
+        v = ref.cvv->eval(needs_deref, xsink);
+    else {
+        assert(needs_deref);
+        printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
+        v = ref.var->eval();
+    }
 
-   AbstractQoreNode* n = v.getInternalNode();
-   if (n && n->getType() == NT_REFERENCE) {
-      ReferenceNode* r = reinterpret_cast<ReferenceNode*>(n);
-      bool nd;
-      QoreValue nv = r->eval(nd, xsink);
-      if (needs_deref)
-         discard(v.getInternalNode(), xsink);
-      needs_deref = nd;
-      return v = nv;
-   }
+    AbstractQoreNode* n = v.getInternalNode();
+    if (n && n->getType() == NT_REFERENCE) {
+        ReferenceNode* r = reinterpret_cast<ReferenceNode*>(n);
+        bool nd = true;
+        QoreValue nv = r->eval(nd, xsink);
+        if (needs_deref)
+            discard(v.getInternalNode(), xsink);
+        needs_deref = nd;
+        return v = nv;
+    }
 
-   return v;
+    return v;
 }
 
 void VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
@@ -209,42 +206,42 @@ void VarRefNode::makeGlobal() {
 }
 
 int VarRefNode::getLValue(LValueHelper& lvh, bool for_remove) const {
-   if (type == VT_LOCAL)
-      return ref.id->getLValue(lvh, for_remove, new_decl);
-   if (type == VT_CLOSURE)
-      return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
-   if (type == VT_LOCAL_TS)
-      return thread_find_closure_var(ref.id->getName())->getLValue(lvh, for_remove);
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->getLValue(lvh, for_remove);
-   assert(type == VT_GLOBAL);
-   return ref.var->getLValue(lvh, for_remove);
+    if (type == VT_LOCAL)
+        return ref.id->getLValue(lvh, for_remove, new_decl);
+    if (type == VT_CLOSURE)
+        return thread_get_runtime_closure_var(ref.id)->getLValue(lvh, for_remove);
+    if (type == VT_LOCAL_TS)
+        return thread_find_closure_var(ref.id->getName())->getLValue(lvh, for_remove);
+    if (type == VT_IMMEDIATE)
+        return ref.cvv->getLValue(lvh, for_remove);
+    assert(type == VT_GLOBAL);
+    return ref.var->getLValue(lvh, for_remove);
 }
 
 void VarRefNode::remove(LValueRemoveHelper& lvrh) {
-   if (type == VT_LOCAL)
-      return ref.id->remove(lvrh);
-   if (type == VT_CLOSURE)
-      return thread_get_runtime_closure_var(ref.id)->remove(lvrh);
-   if (type == VT_LOCAL_TS)
-      return thread_find_closure_var(ref.id->getName())->remove(lvrh);
-   if (type == VT_IMMEDIATE)
-      return ref.cvv->remove(lvrh);
-   assert(type == VT_GLOBAL);
-   return ref.var->remove(lvrh);
+    if (type == VT_LOCAL)
+        return ref.id->remove(lvrh);
+    if (type == VT_CLOSURE)
+        return thread_get_runtime_closure_var(ref.id)->remove(lvrh);
+    if (type == VT_LOCAL_TS)
+        return thread_find_closure_var(ref.id->getName())->remove(lvrh);
+    if (type == VT_IMMEDIATE)
+        return ref.cvv->remove(lvrh);
+    assert(type == VT_GLOBAL);
+    return ref.var->remove(lvrh);
 }
 
 bool VarRefNode::scanMembers(RSetHelper& rsh) {
-   if (type == VT_CLOSURE)
-      return rsh.checkNode(*thread_get_runtime_closure_var(ref.id));
-   if (type == VT_LOCAL_TS)
-      return rsh.checkNode(*thread_find_closure_var(ref.id->getName()));
-   if (type == VT_IMMEDIATE)
-      return rsh.checkNode(*ref.cvv);
-   // never called with type == VT_LOCAL
-   // we don't scan global vars; they are deleted explicitly when the program goes out of scope
-   assert(type == VT_GLOBAL);
-   return false;
+    if (type == VT_CLOSURE)
+        return rsh.checkNode(*thread_get_runtime_closure_var(ref.id));
+    if (type == VT_LOCAL_TS)
+        return rsh.checkNode(*thread_find_closure_var(ref.id->getName()));
+    if (type == VT_IMMEDIATE)
+        return rsh.checkNode(*ref.cvv);
+    // never called with type == VT_LOCAL
+    // we don't scan global vars; they are deleted explicitly when the program goes out of scope
+    assert(type == VT_GLOBAL);
+    return false;
 }
 
 GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char *n, const QoreTypeInfo* typeInfo) : VarRefNode(loc, n, 0, false, true) {

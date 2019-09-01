@@ -73,7 +73,7 @@ HashIterator::constructor(hash<auto> h) {
 //! Creates an empty hash iterator object
 /** @par Example:
     @code{.py}
-*hash h = get_hash_or_nothing();
+*hash<auto> h = get_hash_or_nothing();
 HashIterator hi(h);
     @endcode
  */

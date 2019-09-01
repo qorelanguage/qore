@@ -271,7 +271,7 @@ void AbstractMethod::add(MethodVariantBase* v) {
 }
 
 void AbstractMethod::override(MethodVariantBase* v) {
-    // see if there is already an committed variant matching this signature
+    // see if there is already a committed variant matching this signature
     // in this case it must be inherited
     const char* sig = v->getAbstractSignature();
     vmap_t::iterator vi = vlist.find(sig);

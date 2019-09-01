@@ -29,6 +29,9 @@
 %define NoYaml
 %endtry
 
+# this test explicitly tests deprecated funtionality
+%disable-warning deprecated
+
 %exec-class RestHandlerTest
 
 class MyStaticRestClass inherits AbstractRestClass {

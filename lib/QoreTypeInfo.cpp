@@ -707,8 +707,10 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                     //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
                     // the passed argument's type must be a superset or equal to the reference type's subtype
                     // that is; if the types are different, the reference type's subtype must be more restrictive than the passed type's
-                    if (QoreTypeInfo::equal(t.u.ti, u.ti))
-                        return QTI_IDENT;
+                    qore_type_result_e ref_res = QoreTypeInfo::runtimeTypeMatch(t.u.ti, u.ti);
+                    if (ref_res != QTI_NOT_EQUAL) {
+                        return ref_res;
+                    }
                     return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
                 }
                 case QTS_TYPE:

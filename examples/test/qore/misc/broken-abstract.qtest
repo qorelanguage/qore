@@ -17,6 +17,16 @@ class BrokenAbstractTest inherits QUnit::Test {
             "return {}; } } hash<auto> sub test() { C c(); return c.get(); }";
         const CompatArgTypes = "class B { abstract get(hash a); } class C inherits B { get(hash<auto> a) {} } "
             "sub test() { C c(); c.get({}); }";
+        const CompatArgTypes2 = "class B { abstract get(hash<auto> a); } class C inherits B { get(hash a) {} } "
+            "sub test() { C c(); c.get({}); }";
+        const CompatArgTypes3 = "class B { abstract get(*hash<auto> a); } class C inherits B { get(*hash a) {} } "
+            "sub test() { C c(); c.get({}); }";
+        const CompatArgTypes4 = "class B { abstract get(*hash a); } class C inherits B { get(*hash<auto> a) {} } "
+            "sub test() { C c(); c.get({}); }";
+        const CompatArgTypes5 = "class B { abstract get(*reference<hash<auto>> a); } class C inherits B { get(*reference<hash> a) {} } "
+            "sub test() { C c(); c.get(); }";
+        const CompatArgTypes6 = "class B { abstract get(*reference<hash> a); } class C inherits B { get(*reference<hash<auto>> a) {} } "
+            "sub test() { C c(); c.get(); }";
     }
 
     constructor() : QUnit::Test("Broken abstract test", "1.0") {
@@ -33,21 +43,46 @@ class BrokenAbstractTest inherits QUnit::Test {
         }
 
         {
-            Program p(PO_NEW_STYLE | PO_BROKEN_ABSTRACT | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
             p.parse(CompatReturnTypes, "test");
             assertEq({}, p.callFunction("test"));
         }
 
-        # argument types must be idenitical in abstract method hierarchies
+        # argument types must be a near match in abstract method hierarchies
         {
-            Program p(PO_NEW_STYLE | PO_BROKEN_ABSTRACT | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
             p.parse(CompatArgTypes, "test");
             assertNothing(p.callFunction("test"));
         }
 
         {
             Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
-            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), (CompatArgTypes, "test"));
+            p.parse(CompatArgTypes2, "test");
+            assertNothing(p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatArgTypes3, "test");
+            assertNothing(p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatArgTypes4, "test");
+            assertNothing(p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatArgTypes5, "test");
+            assertNothing(p.callFunction("test"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            p.parse(CompatArgTypes6, "test");
+            assertNothing(p.callFunction("test"));
         }
     }
 }
