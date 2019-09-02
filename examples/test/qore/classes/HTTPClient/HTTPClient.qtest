@@ -333,6 +333,11 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             binary sig_remote = EchoHandler::remote_cert.getSignature();
             #printf("%s <=> %s: %y\n", sig_local.toHex(), sig_remote.toHex(), sig_local <=> sig_remote);
             assertEq(sig_local, sig_remote);
+
+            hash<auto> info = serv.getListenerInfo("listener-0");
+            assertEq(True, info.get_remote_certs);
+            assertEq(True, info.ssl_accept_all_certs);
+            assertEq(("SSL_VERIFY_PEER",), info.ssl_verify_flags);
         }
     }
 
@@ -553,6 +558,11 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq("text/plain;charset=utf8", h.hdr._qore_orig_content_type);
             assertEq(hc, h.obj);
             assertEq(False, h.send_aborted);
+
+            hash<auto> info = hs.getListenerInfo("listener-0");
+            assertEq(False, info.get_remote_certs);
+            assertEq(True, info.ssl_accept_all_certs);
+            assertEq(("SSL_VERIFY_NONE",), info.ssl_verify_flags);
         }
     }
 

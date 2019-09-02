@@ -2156,8 +2156,14 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # log send body flag
         bool log_send_body = False;
 
-        # get remote certificates
-        bool get_remote_certs;
+        #! get remote certificates
+        bool get_remote_certs = False;
+
+        #! SSL verify flags
+        int ssl_verify_flags = SSL_VERIFY_NONE;
+
+        #! accept all certificates
+        bool ssl_accept_all_certs = True;
 
         const PollInterval = 250ms;
         const ListenQueue = 100;
@@ -2168,6 +2174,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
         # listener-specific handlers
         HttpHandlerList handlers();
+
+        #! map for converting ssl verify flags to strings
+        const SslVerifyMap = {
+            SSL_VERIFY_PEER: "SSL_VERIFY_PEER",
+            SSL_VERIFY_FAIL_IF_NO_PEER_CERT: "SSL_VERIFY_FAIL_IF_NO_PEER_CERT",
+            SSL_VERIFY_CLIENT_ONCE: "SSL_VERIFY_CLIENT_ONCE",
+        };
     }
 
     public {
@@ -2220,15 +2233,15 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # issue #3512: enable remote certificates to be retrieved by default for HTTPS listeners
                 captureRemoteCertificates();
                 # get certificates from peers
-                opts.ssl_verify_flags |= SSL_VERIFY_PEER;
+                ssl_verify_flags = opts.ssl_verify_flags |= SSL_VERIFY_PEER;
                 get_remote_certs = True;
             }
             if (opts.ssl_verify_flags) {
-                setSslVerifyMode(opts.ssl_verify_flags);
+                setSslVerifyMode(ssl_verify_flags = opts.ssl_verify_flags);
             }
-            if (opts.ssl_accept_all_certs) {
+            if (exists opts.ssl_accept_all_certs) {
                 # accept all certificates
-                acceptAllCertificates();
+                acceptAllCertificates(ssl_accept_all_certs = opts.ssl_accept_all_certs);
             }
             ssl = True;
         }
@@ -2411,8 +2424,14 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             "proto": ssl ? "https" : "http",
             "id": id,
             "bind": socket,
-            "get_remote_certs": True,
+            "get_remote_certs": get_remote_certs,
+            "ssl_verify_flags": getSslVerifyModeList(),
+            "ssl_accept_all_certs": ssl_accept_all_certs,
          };
+    }
+
+    private softlist<string> getSslVerifyModeList() {
+        return (map $1.value, SslVerifyMap.pairIterator(), ssl_verify_flags & $1.key.toInt()) ?* "SSL_VERIFY_NONE";
     }
 
     auto removeUserThreadContext(*string k) {
