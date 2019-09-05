@@ -197,7 +197,13 @@ class RestCmd {
                     exit(1);
                 }
                 rest = conn.get();
+                if (url_info.host) {
+                    request_path = url_info.host;
+                }
                 if (url_info.path) {
+                    if (request_path) {
+                        request_path += "/";
+                    }
                     request_path = url_info.path;
                 }
             } catch (hash<ExceptionInfo> ex) {
@@ -264,7 +270,7 @@ class RestCmd {
                 showRestResponse(info, h.body, opt);
             }
 
-            h = rest.doRequest(meth, request_path, body, \info);
+            h = rest.doRequest(meth, request_path ?? "", body, \info);
             if (!opt.lit)
                 printf("%N\n", h.body);
         } catch (hash<ExceptionInfo> ex) {
