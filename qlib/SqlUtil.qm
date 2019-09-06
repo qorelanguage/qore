@@ -6626,7 +6626,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             if (src1 != src2) {
                 # XXX DEBUG
-                printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
+                #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
             #printf("%s\nXXXXXX EQUAL XXXXXX\n%s\n", src1, src2);
