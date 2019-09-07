@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8.12)
 
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 4)
+
 # support <pkg>_ROOT in find_package
 if (POLICY CMP0074)
     cmake_policy(SET CMP0074 NEW)
@@ -14,10 +18,6 @@ project(qore-language)
 option(ICONV_TRANSLIT
        "Force //Translit to iconv encoding to do transliteration, if OFF it is tested for"
        OFF)
-
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 9)
-set(VERSION_SUB 3)
 
 STRING(LENGTH ${VERSION_SUB} SUB_LEN)
 if (${SUB_LEN} EQUAL 1)
@@ -657,7 +657,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES VERSION 6.1.1)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 

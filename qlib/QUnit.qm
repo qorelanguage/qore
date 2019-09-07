@@ -1928,6 +1928,7 @@ fail("Unexpected code executed");
     }
 
     private auto testAssertionIntern(TestCase tc, string name, QUnit::AbstractTestResult actualResult, QUnit::AbstractTestResult expectedResult, auto ret, *string pos) {
+        #printf("tAI act: %y exp: %y ret: %y\n", actualResult, expectedResult, ret);
         if (!expectedResult.equals(actualResult)) {
             auto exp = expectedResult instanceof TestResultValue ? expectedResult.m_value : expectedResult.toString();
             auto act = actualResult instanceof TestResultValue ? actualResult.m_value : actualResult.toString();

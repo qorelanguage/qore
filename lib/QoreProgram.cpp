@@ -2507,3 +2507,16 @@ QoreExternalProgramContextHelper::QoreExternalProgramContextHelper(ExceptionSink
 QoreExternalProgramContextHelper::~QoreExternalProgramContextHelper() {
     delete priv;
 }
+
+class QoreExternalProgramCallContextHelperPriv : ProgramCallContextHelper {
+public:
+    DLLLOCAL QoreExternalProgramCallContextHelperPriv(QoreProgram* pgm) : ProgramCallContextHelper(pgm) {
+    }
+};
+
+QoreExternalProgramCallContextHelper::QoreExternalProgramCallContextHelper(QoreProgram* pgm) : priv(new QoreExternalProgramCallContextHelperPriv(pgm)) {
+}
+
+QoreExternalProgramCallContextHelper::~QoreExternalProgramCallContextHelper() {
+    delete priv;
+}
