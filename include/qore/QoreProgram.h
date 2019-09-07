@@ -1129,4 +1129,19 @@ private:
     class ProgramThreadCountContextHelper* priv;
 };
 
+//! allows the program call context to be set by external modules
+/** @since %Qore 0.9.4
+*/
+class QoreExternalProgramCallContextHelper {
+public:
+    //! sets the call context to the given program
+    DLLEXPORT QoreExternalProgramCallContextHelper(QoreProgram* pgm);
+
+    //! resets the call context to the original state
+    DLLEXPORT ~QoreExternalProgramCallContextHelper();
+
+private:
+    class QoreExternalProgramCallContextHelperPriv* priv;
+};
+
 #endif  // _QORE_QOREPROGRAM_H
