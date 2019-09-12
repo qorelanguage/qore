@@ -91,6 +91,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
+Provides: qore-module(abi)%{?_isa} = 0.23
 %if %{libname} == "libqore"
 Provides: libqore6 = %{version}
 Obsoletes: libqore6 < 0.9.4
@@ -123,7 +124,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.22
+Requires: qore-module(abi)%{?_isa} = 0.23
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed

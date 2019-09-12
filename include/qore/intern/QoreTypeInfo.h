@@ -133,6 +133,19 @@ public:
         return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
     }
 
+    //! returns the element type, if any (nullptr if not applicable)
+    DLLLOCAL const QoreTypeInfo* getElementType() const {
+        switch (typespec) {
+            case QTS_COMPLEXHASH:
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return u.ti;
+            default:
+                break;
+        }
+        return nullptr;
+    }
+
     // returns true if the type has auto in it somewhere (even for complex types)
     DLLLOCAL bool isAutoType() const;
 
@@ -762,6 +775,23 @@ public:
                 return true;
         }
         return false;
+    }
+
+    //! returns the element type, if any (nullptr if not applicable)
+    DLLLOCAL static const QoreTypeInfo* getElementType(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return nullptr;
+        }
+        assert(!ti->return_vec.empty());
+        if (ti == autoListTypeInfo
+            || ti == autoListOrNothingTypeInfo
+            || ti == softAutoListTypeInfo
+            || ti == softAutoListOrNothingTypeInfo
+            || ti == autoHashTypeInfo
+            || ti == autoHashOrNothingTypeInfo) {
+            return autoTypeInfo;
+        }
+        return ti->return_vec[0].spec.getElementType();
     }
 
     DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {

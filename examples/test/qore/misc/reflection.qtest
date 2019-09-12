@@ -98,6 +98,7 @@ class CTestComplex {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("type tests", \typeTests());
         addTestCase("pgm tests", \pgmTests());
         addTestCase("issue 3145", \issue3145Test());
         addTestCase("issue 3141", \issue3141Test());
@@ -107,6 +108,17 @@ class ReflectionTest inherits QUnit::Test {
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    typeTests() {
+        assertTrue(StringType.isAssignableFrom(StringOrNothingType));
+        bool may_not_match;
+        assertTrue(StringType.isAssignableFrom(StringOrNothingType, \may_not_match));
+        assertTrue(may_not_match);
+        assertEq(QTI_WILDCARD, AutoType.isAssignableFrom(1));
+        assertEq(QTI_IDENT, StringType.isAssignableFrom("str"));
+        assertEq(QTI_AMBIGUOUS, StringOrNothingType.isAssignableFrom(NOTHING));
+        assertEq(QTI_NOT_EQUAL, StringOrNothingType.isAssignableFrom({}));
     }
 
     pgmTests() {

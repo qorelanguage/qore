@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -302,6 +302,37 @@ const TimeoutType = qore(get_type_object(timeoutTypeInfo));
 const TimeoutOrNothingType = qore(get_type_object(timeoutOrNothingTypeInfo));
 //@}
 
+/** @defgroup type_match_constants Type Match Constants
+
+    @since %Qore 0.9.4
+*/
+//@{
+//! types do not match
+/**
+*/
+const QTI_NOT_EQUAL = QTI_NOT_EQUAL;
+
+//! types match because at least one side matches all types
+/**
+*/
+const QTI_WILDCARD = QTI_WILDCARD;
+
+//! types match but are not closely related
+/**
+*/
+const QTI_AMBIGUOUS = QTI_AMBIGUOUS;
+
+//! types match and are closely related
+/**
+*/
+const QTI_NEAR = QTI_NEAR;
+
+//! types are identical
+/**
+*/
+const QTI_IDENT = QTI_IDENT;
+//@}
+
 //! The abstract base class for %Qore data types
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
@@ -352,11 +383,76 @@ bool b = t1.isOutputCompatible(t2);
 
     @param type the type to check output value compatibility with the current type
 
-    @return @ref True if the output of the Type object passed as an argument is compatible with the return type if the current Type
+    @return @ref True if the output of the Type object passed as an argument is compatible with the return type if the
+    current Type
 */
 bool Type::isOutputCompatible(Type[QoreType] type) [flags=CONSTANT] {
     ReferenceHolder<QoreType> holder(type, xsink);
-    return qore_type_is_output_compatiblee(t->typeInfo, type->typeInfo);
+    return qore_type_is_output_compatible(t->typeInfo, type->typeInfo);
+}
+
+//! Returns @ref True if the output of the Type object passed as an argument is compatible with the input type if the current Type
+/** @par Example:
+    @code{.py}
+int v = t1.isAssignableFrom(t2);
+    @endcode
+
+    @param type the type to check output value compatibility with the current type
+    @param may_not_match an output variable, if @ref Qore::True "True" then the assignment is not guaranteed to
+    succeed and may fail at runtime
+
+    @return @ref True if the output of the Type object passed as an argument is compatible with the input type if the
+    current Type
+
+    @since %Qore 0.9.4
+*/
+bool Type::isAssignableFrom(Type[QoreType] type, reference<bool> may_not_match) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    QoreTypeSafeReferenceHelper r(may_not_match, xsink);
+    if (!r) {
+        return QoreValue();
+    }
+
+    bool may_not_match_flag = false;
+    bool rv = qore_type_is_assignable_from(t->typeInfo, type->typeInfo, may_not_match_flag);
+    if (r.assign(may_not_match_flag)) {
+        return QoreValue();
+    }
+    return rv;
+}
+
+//! Returns @ref True if the output of the Type object passed as an argument is compatible with the input type if the current Type
+/** @par Example:
+    @code{.py}
+bool b = t1.isAssignableFrom(t2);
+    @endcode
+
+    @param type the type to check output value compatibility with the current type
+
+    @return @ref True if the output of the Type object passed as an argument is compatible with the input type if the
+    current Type
+
+    @since %Qore 0.9.4
+*/
+int Type::isAssignableFrom(Type[QoreType] type) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    return qore_type_is_assignable_from(t->typeInfo, type->typeInfo);
+}
+
+//! Returns @ref True if the Type object can be assigned from the value given as an argument
+/** @par Example:
+    @code{.py}
+bool b = t.isAssignableFrom(val);
+    @endcode
+
+    @param value the value to check
+
+    @return a match code for the assignment; see @ref type_match_constants for possible values
+
+    @since %Qore 0.9.4
+*/
+int Type::isAssignableFrom(auto value) [flags=CONSTANT] {
+    return qore_type_is_assignable_from(t->typeInfo, value);
 }
 
 //! Returns @ref True if values of this type can be converted to a scalar value
@@ -407,6 +503,24 @@ Type Type::getOrNothingType() [flags=CONSTANT] {
     return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(t->typeInfo)));
 }
 
+//! Returns the element type for lists and hashes, if any, otherwise returns @ref nothing
+/** @par Example:
+    @code{.py}
+*Type element_type = type.getElementType();
+    @endcode
+
+    @return the element type for lists and hashes, if any, otherwise returns @ref nothing
+
+    @since %Qore 0.9.4
+*/
+*Type Type::getElementType() [flags=CONSTANT] {
+    const QoreTypeInfo* element_type = t->getElementType();
+    if (!t) {
+        return QoreValue();
+    }
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(element_type));
+}
+
 //! Returns the type object for the value
 /** @par Example:
     @code{.py}
@@ -433,4 +547,3 @@ static Type Type::getOrNothingType(auto v) [flags=CONSTANT] {
     // the class ptr must be valid
     return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(v.getFullTypeInfo())));
 }
-

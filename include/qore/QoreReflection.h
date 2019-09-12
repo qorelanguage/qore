@@ -323,7 +323,45 @@ DLLEXPORT const char* qore_type_get_name(const QoreTypeInfo* ti);
 DLLEXPORT bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
 
 //! returns true if ti2's return type is compatible with ti1's; either argument may be nullptr meaning no type restrictions
-DLLEXPORT bool qore_type_is_output_compatiblee(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+DLLEXPORT bool qore_type_is_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+/** @param ti1 the type to check assignability to
+    @param ti2 the type to see if it can be assigned to \a ti1
+
+    @returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+
+    either argument may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+/** @param ti1 the type to check assignability to
+    @param ti2 the type to see if it can be assigned to \a ti1
+    @param may_not_match an output variable, if true then the assignment is not guaranteed to succeed and may fail at
+    runtime
+
+    @returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+
+    either argument may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match);
+
+//! returns true if the given type can be assigned from the given value
+/** @param t the type to check assignability to
+    @param value the value to check if it can be assigned to \a t
+
+    @returns a type match code for the assignability
+
+    The type argument \a t may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT int qore_type_is_assignable_from(const QoreTypeInfo* t, QoreValue value);
 
 //! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);
