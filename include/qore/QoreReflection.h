@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -371,5 +371,9 @@ DLLEXPORT bool qore_type_has_default_value(const QoreTypeInfo* ti);
 
 //! returns the default value of the type (if any); the caller owns any reference returned; the argument may be nullptr meaning no type restrictions
 DLLEXPORT QoreValue qore_type_get_default_value(const QoreTypeInfo* ti);
+
+//! returns true if the types are compatible with inputs and outputs
+DLLEXPORT bool qore_type_is_input_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
 
 #endif

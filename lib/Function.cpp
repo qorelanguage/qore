@@ -78,9 +78,13 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
         return false;
     }
 
-    if (!QoreTypeInfo::isOutputCompatible(sig.returnTypeInfo, returnTypeInfo)) {
-        //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo, sig.returnTypeInfo);
-        return false;
+    // return types for abstract methods must be 100% compatible
+    {
+        bool may_not_match = false;
+        if (!QoreTypeInfo::parseAccepts(sig.returnTypeInfo, returnTypeInfo, may_not_match) || may_not_match) {
+            //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo, sig.returnTypeInfo);
+            return false;
+        }
     }
 
     for (unsigned i = 0; i < typeList.size(); ++i) {

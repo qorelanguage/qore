@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore DataProviderQoreType class definition
+#! Qore QoreDataField class definition
 
-/** DataProviderQoreType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreDataField.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,26 +37,39 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type
-public class DataProviderQoreType inherits AbstractDataProviderType {
+#! describes a data type based on a hashdecl
+public class QoreDataField inherits AbstractDataField {
     private {
-        #! the Qore type
-        Type type;
+        #! name of the field
+        string name;
+
+        #! field type
+        AbstractDataProviderType type;
+
+        #! the default value for the field, if any
+        auto def_value;
     }
 
-    #! creates the type
-    constructor(Type type) {
-        self.type = type;
+    #! creates the field from the arguments
+    constructor(string name, Type type, auto def_value) {
+        self.name = name;
+        self.type = AbstractDataProviderType::get(type),
+        self.def_value = def_value;
     }
 
-    #! returns the type name
+    #! returns the name of the field
     string getName() {
-        return type.getName();
+        return name;
     }
 
-    #! returns the base type for the type, if any
-    *Type getBaseType() {
+    #! returns the type of the field
+    AbstractDataProviderType getType() {
         return type;
+    }
+
+    #! get default value, if any
+    auto getDefaultValue() {
+        return def_value;
     }
 }
 }

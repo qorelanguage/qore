@@ -34,8 +34,11 @@
 # do not use "$" for vars
 %new-style
 
+# supports using the DataProvider module to describe input and output records
+%requires DataProvider
+
 module Mapper {
-    version = "1.4.1";
+    version = "1.5";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -223,6 +226,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5 Mapper v1.5
+    - added support for the DataProvider module to describe input and output records
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection mapperv1_4_1 Mapper v1.4.1
     - added support for types "any" and "hash"

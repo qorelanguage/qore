@@ -54,6 +54,10 @@ bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
     return QoreTypeInfo::equal(ti1, ti2);
 }
 
+bool qore_type_is_input_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+    return QoreTypeInfo::runtimeTypeMatch(ti1, ti2) > 0;
+}
+
 bool qore_type_is_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
     return QoreTypeInfo::isOutputCompatible(ti1, ti2);
 }

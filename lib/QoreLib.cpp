@@ -2804,3 +2804,15 @@ QoreValue qore_get_module_option(std::string mod, std::string opt) {
     mod_opt_val_map_t::const_iterator vi = i->second.find(opt);
     return vi == i->second.end() ? QoreValue() : vi->second.refSelf();
 }
+
+const QoreTypeInfo* qore_get_type_from_string(const char* str, ExceptionSink& xsink) {
+    ProgramRuntimeParseAccessHelper pah(&xsink, getProgram());
+    if (xsink) {
+        return nullptr;
+    }
+    const QoreTypeInfo* rv = qore_get_type_from_string_intern(str);
+    if (!rv) {
+        xsink.raiseException("UNKNOWN-TYPE", "cannot resolve '%s' to any known type", str);
+    }
+    return rv;
+}

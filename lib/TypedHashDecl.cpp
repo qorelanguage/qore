@@ -403,6 +403,11 @@ const char* TypedHashDecl::getModuleName() const {
     return priv->getModuleName();
 }
 
+const QoreNamespace* TypedHashDecl::getNamespace() const {
+    const qore_ns_private* ns = priv->getNamespace();
+    return ns ? ns->ns : nullptr;
+}
+
 TypedHashDeclHolder::~TypedHashDeclHolder() {
     if (thd) {
         typed_hash_decl_private::get(*thd)->deref();

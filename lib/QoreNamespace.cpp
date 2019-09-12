@@ -2004,7 +2004,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
                 return nullptr;
             }
             // look up type from string
-            const QoreTypeInfo* ti = qore_get_type_from_string(tname.c_str());
+            const QoreTypeInfo* ti = qore_get_type_from_string_intern(tname.c_str());
             if (!ti) {
                 xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
                 return nullptr;

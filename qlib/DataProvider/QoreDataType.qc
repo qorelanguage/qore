@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractDataProviderType class definition
+#! Qore QoreDataType class definition
 
-/** AbstractDataProviderType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,54 +38,37 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type
-public class AbstractDataProviderType {
+public class QoreDataType inherits AbstractDataProviderType {
     private {
-        static Type nothingType("nothing");
+        #! the Qore type
+        Type type;
     }
 
-    #! returns True if this type can be assigned from values of the argument type
-    bool isAssignableFrom(AbstractDataProviderType t) {
-        *Type thistype = getValueType();
-        if (!thistype) {
-            return False;
-        }
-        *Type othertype = t.getValueType();
-        if (!othertype) {
-            return False;
-        }
-        return thistype.isAssignableFrom(othertype);
-    }
-
-    #! returns True if this type is a list
-    bool isList() {
-        *Type thistype = getValueType();
-        return thistype ? AutoListOrNothingType.isOutputCompatible(thistype) : False;
-    }
-
-    #! returns True if the type must have a value
-    bool isMandatory() {
-        *Type thistype = getValueType();
-        return thistype ? !thistype.isOrNothingType() : True;
+    #! creates the type
+    constructor(Type type) {
+        self.type = type;
     }
 
     #! returns the type name
-    abstract string getName();
+    string getName() {
+        return type.getName();
+    }
 
     #! returns the base type for the type, if any
-    abstract *Type getValueType();
+    *Type getValueType() {
+        return type;
+    }
 
     #! returns the subtype (for lists or hashes) if there is only one
-    abstract *AbstractDataProviderType getElementType();
+    *AbstractDataProviderType getElementType() {
+        if (*Type elementType = type.getElementType()) {
+            return AbstractDataProviderType::get(elementType);
+        }
+    }
 
     #! returns the fields of the data structure; if any
-    abstract *hash<string, AbstractDataProviderType> getFields();
-
-    #! returns an appropriate object for the given type
-    static AbstractDataProviderType get(Type type) {
-        if (type.isTypedHash()) {
-            return new HashDeclDataType(type);
-        }
-        return new QoreDataType(type);
+    *hash<string, AbstractDataProviderType> getFields() {
+        # this method intentionally left blank
     }
 }
 }

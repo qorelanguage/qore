@@ -30,6 +30,7 @@
 
 #include "qore_reflection.h"
 #include "QC_Type.h"
+#include "QC_TypedHash.h"
 #include "QC_AbstractReflectionFunction.h"
 
 QoreObject* get_type_object(const QoreTypeInfo* t) {
@@ -341,11 +342,19 @@ const QTI_IDENT = QTI_IDENT;
  */
 qclass Type [ns=Qore::Reflection; arg=QoreType* t; dom=REFLECTION];
 
-//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
-/** @throw TYPE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+//! Creates the type from the given string
+/** @param string the type string
+
+    @throw UNKNOWN-TYPE cannot find the given type
  */
-Type::constructor() {
-    xsink->raiseException("TYPE-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+Type::constructor(string typestr) {
+    TempEncodingHelper utf8_typestr(typestr, QCS_UTF8, xsink);
+    const QoreTypeInfo* type = qore_get_type_from_string(utf8_typestr->c_str(), *xsink);
+    if (*xsink) {
+        return;
+    }
+    assert(type);
+    self->setPrivate(CID_TYPE, new QoreType(type));
 }
 
 //! returns the type's name
@@ -385,10 +394,31 @@ bool b = t1.isOutputCompatible(t2);
 
     @return @ref True if the output of the Type object passed as an argument is compatible with the return type if the
     current Type
+
+    @see isCompatible()
 */
 bool Type::isOutputCompatible(Type[QoreType] type) [flags=CONSTANT] {
     ReferenceHolder<QoreType> holder(type, xsink);
     return qore_type_is_output_compatible(t->typeInfo, type->typeInfo);
+}
+
+//! Returns @ref True if the argument type is compatible with the current type (inputs and outputs)
+/** @par Example:
+    @code{.py}
+bool b = t1.isCompatible(t2);
+    @endcode
+
+    @param type the type to check compatibility with the current type
+
+    @return @ref True if the argument type is compatible with the current type (inputs and outputs)
+
+    @note a more strict check than @ref isOutputCompatible()
+
+    @since %Qore 0.9.4
+*/
+bool Type::isCompatible(Type[QoreType] type) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    return qore_type_is_input_output_compatible(t->typeInfo, type->typeInfo);
 }
 
 //! Returns @ref True if the output of the Type object passed as an argument is compatible with the input type if the current Type
@@ -491,6 +521,53 @@ auto Type::getDefaultValue() [flags=CONSTANT] {
     return qore_type_get_default_value(t->typeInfo);
 }
 
+//! Returns @ref Qore::True "True" if the type accepts and returns @ref nothing in addition to other values
+/** @par Example:
+    @code{.py}
+bool b = type.isOrNothingType();
+    @endcode
+
+    @return @ref Qore::True "True" if the type accepts and returns @ref nothing in addition to other values
+
+    @since %Qore 0.9.4
+*/
+bool Type::isOrNothingType() [flags=CONSTANT] {
+    return qore_type_is_output_compatible(nothingTypeInfo, t->typeInfo);
+}
+
+//! Returns the base type for the current type; if the type is already a base type (i.e. not an "or nothing" type), then the same type is returned
+/** @par Example:
+    @code{.py}
+auto v = t.getBaseType();
+    @endcode
+
+    @return the base type for the current type; if the type is already a base type (i.e. not an "or nothing" type), then the same type is returned
+
+    @see getOrNothingType()
+
+    @since %Qore 0.9.4
+*/
+Type Type::getBaseType() [flags=CONSTANT] {
+    if (!qore_type_is_output_compatible(nothingTypeInfo, t->typeInfo) || t->typeInfo == nothingTypeInfo) {
+        return self->refSelf();
+    }
+    // get type string
+    QoreString typestr(QoreTypeInfo::getName(t->typeInfo));
+    if (typestr[0] != '*') {
+        return self->refSelf();
+    }
+    typestr.splice(0, 1, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreTypeInfo* type = qore_get_type_from_string(typestr.c_str(), *xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(type));
+}
+
 //! Returns the "or nothing" type for the current type; if the type is already an "or nothing" type (i.e. it already accepts @ref nothing), then the same type is returned
 /** @par Example:
     @code{.py}
@@ -498,27 +575,61 @@ auto v = t.getOrNothingType();
     @endcode
 
     @return the "or nothing" type for the current type; if the type is already an "or nothing" type (i.e. it already accepts @ref nothing), then the same type is returned
+
+    @see getBaseType()
 */
 Type Type::getOrNothingType() [flags=CONSTANT] {
     return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(t->typeInfo)));
 }
 
-//! Returns the element type for lists and hashes, if any, otherwise returns @ref nothing
+//! Returns the element type for complex list and hash types, if any, otherwise returns @ref nothing
 /** @par Example:
     @code{.py}
 *Type element_type = type.getElementType();
     @endcode
 
-    @return the element type for lists and hashes, if any, otherwise returns @ref nothing
+    @return the element type for complex list and hash types, if any, otherwise returns @ref nothing
 
     @since %Qore 0.9.4
 */
 *Type Type::getElementType() [flags=CONSTANT] {
-    const QoreTypeInfo* element_type = t->getElementType();
-    if (!t) {
+    const QoreTypeInfo* element_type = QoreTypeInfo::getElementType(t->typeInfo);
+    if (!element_type) {
         return QoreValue();
     }
     return new QoreObject(QC_TYPE, getProgram(), new QoreType(element_type));
+}
+
+//! Returns the TypedHash for the type, if the type specifies a typed hash
+/** @par Example:
+    @code{.py}
+*TypedHash hd = type.getTypedHash();
+    @endcode
+
+    @return the TypedHash for the type, if the type specifies a typed hash
+
+    @since %Qore 0.9.4
+*/
+*TypedHash Type::getTypedHash() [flags=CONSTANT] {
+    const TypedHashDecl* hashdecl = QoreTypeInfo::getTypedHash(t->typeInfo);
+    if (!hashdecl) {
+        return QoreValue();
+    }
+    return new QoreObject(QC_TYPEDHASH, getProgram(), new QoreReflectionTypedHash(getProgram(), hashdecl));
+}
+
+//! Returns @ref Qore::True "True" if the type is a TypedHash type, @ref Qore::False "False" if not
+/** @par Example:
+    @code{.py}
+bool b = type.isTypedHash();
+    @endcode
+
+    @return @ref Qore::True "True" if the type is a TypedHash type, @ref Qore::False "False" if not
+
+    @since %Qore 0.9.4
+*/
+bool Type::isTypedHash() [flags=CONSTANT] {
+    return QoreTypeInfo::getTypedHash(t->typeInfo) ? true : false;
 }
 
 //! Returns the type object for the value

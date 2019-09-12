@@ -119,6 +119,41 @@ class ReflectionTest inherits QUnit::Test {
         assertEq(QTI_IDENT, StringType.isAssignableFrom("str"));
         assertEq(QTI_AMBIGUOUS, StringOrNothingType.isAssignableFrom(NOTHING));
         assertEq(QTI_NOT_EQUAL, StringOrNothingType.isAssignableFrom({}));
+        assertFalse(StringType.isTypedHash());
+        assertNothing(StringType.getTypedHash());
+        assertNothing(StringType.getElementType());
+
+        Type t("hash<StatInfo>");
+        assertEq("hash<StatInfo>", t.getName());
+        assertTrue(t.isTypedHash());
+        assertEq("StatInfo", t.getTypedHash().getName());
+        assertNothing(StringType.getElementType());
+        assertThrows("UNKNOWN-TYPE", sub () { new Type("xx"); });
+        assertThrows("UNKNOWN-TYPE", sub () { new Type("hash<string"); });
+        assertThrows("UNKNOWN-TYPE", sub () { new Type("hash<1>"); });
+
+        t = new Type("hash<string,  bool>");
+        assertTrue(BoolType.isEqual(t.getElementType()));
+        assertFalse(IntType.isEqual(t.getElementType()));
+        assertFalse(t.isTypedHash());
+        assertNothing(StringType.getTypedHash());
+
+        assertFalse(AutoListType.isOutputCompatible(IntType));
+        assertFalse(IntType.isOutputCompatible(AutoListType));
+        assertTrue((new Type("nothing")).isOutputCompatible(new Type("*hash")));
+        assertTrue((new Type("*hash")).isOutputCompatible(new Type("nothing")));
+        assertTrue((new Type("*hash")).isOutputCompatible(new Type("*string")));
+        assertTrue((new Type("*string")).isOutputCompatible(new Type("*hash")));
+
+        assertFalse(AutoListType.isCompatible(IntType));
+        assertFalse(IntType.isCompatible(AutoListType));
+        assertFalse((new Type("nothing")).isCompatible(new Type("*hash")));
+        assertFalse((new Type("*hash")).isCompatible(new Type("nothing")));
+        assertFalse((new Type("*hash")).isCompatible(new Type("*string")));
+        assertFalse((new Type("*string")).isCompatible(new Type("*hash")));
+
+        assertTrue(IntType.isEqual(IntOrNothingType.getBaseType()));
+        assertTrue(IntOrNothingType.isEqual(IntType.getOrNothingType()));
     }
 
     pgmTests() {

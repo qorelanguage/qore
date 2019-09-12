@@ -636,11 +636,14 @@ public:
         return hta || htb ? false : true;
     }
 
-    // if second's return type is compatible with first's return type
+    /// if second's return type is compatible with first's return type
     // static version of method, checking for null pointer
     DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-        if (hasType(first) && hasType(second))
-            return first->isOutputCompatible(second);
+        if (hasType(first) && hasType(second)) {
+            bool may_not_match = false;
+            bool may_need_filter = false;
+            return parseAccepts(first, second);
+        }
         return true;
     }
 
@@ -792,6 +795,15 @@ public:
             return autoTypeInfo;
         }
         return ti->return_vec[0].spec.getElementType();
+    }
+
+    //! returns the typed hash ptr, if applicable
+    DLLLOCAL static const TypedHashDecl* getTypedHash(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return nullptr;
+        }
+        assert(!ti->return_vec.empty());
+        return ti->return_vec[0].spec.getHashDecl();
     }
 
     DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
@@ -969,17 +981,6 @@ protected:
         return false;
     }
 
-    // if the argument's return type is compatible with "this"'s return type
-    DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const {
-        for (auto& rt : typeInfo->return_vec) {
-            for (auto& at : accept_vec) {
-                if (at.spec.match(rt.spec))
-                    return true;
-            }
-        }
-        return false;
-    }
-
     DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
         //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
         if (typeInfo->return_vec.size() > accept_vec.size()) {
@@ -1029,6 +1030,7 @@ protected:
             bool may_not_match = false;
             bool may_need_filter = false;
             qore_type_result_e res = accept_vec[i].spec.match(typeInfo->accept_vec[i].spec, may_not_match, may_need_filter);
+            //printd(5, " + accept: %s %d <=> %s %d: %d\n", QoreTypeInfo::getName(accept_vec[i].spec.getBaseTypeInfo()), accept_vec[i].spec.getTypeSpec(), QoreTypeInfo::getName(typeInfo->accept_vec[i].spec.getBaseTypeInfo()), typeInfo->accept_vec[i].spec.getTypeSpec(), res);
             if (res < QTI_NEAR) {
                 return QTI_NOT_EQUAL;
             }
@@ -1042,6 +1044,7 @@ protected:
             bool may_not_match = false;
             bool may_need_filter = false;
             qore_type_result_e res = return_vec[i].spec.match(typeInfo->return_vec[i].spec, may_not_match, may_need_filter);
+            //printd(5, " + return: %s %d <=> %s %d: %d\n", QoreTypeInfo::getName(return_vec[i].spec.getBaseTypeInfo()), return_vec[i].spec.getTypeSpec(), QoreTypeInfo::getName(typeInfo->return_vec[i].spec.getBaseTypeInfo()), typeInfo->return_vec[i].spec.getTypeSpec(), res);
             if (res < QTI_NEAR) {
                 return QTI_NOT_EQUAL;
             }

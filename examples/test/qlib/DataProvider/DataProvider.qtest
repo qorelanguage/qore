@@ -1,0 +1,32 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+
+%requires reflection
+
+%exec-class DataProviderTest
+
+public class DataProviderTest inherits QUnit::Test {
+    constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("test", \dataProviderTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    dataProviderTest() {
+        Type type("hash<StatInfo>");
+        AbstractDataProviderType datatype = AbstractDataProviderType::get(type);
+        assertEq("hash<StatInfo>", datatype.getName());
+
+        #printf("%N\n", datatype.getFields());
+    }
+}

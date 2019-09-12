@@ -94,6 +94,11 @@ public:
     */
     DLLEXPORT const char* getModuleName() const;
 
+    //! Returns the namespace owning the typed hash declaration
+    /** @since %Qore 0.9.4
+    */
+    DLLEXPORT const QoreNamespace* getNamespace() const;
+
 protected:
     //! deletes the object and frees all memory
     DLLEXPORT ~TypedHashDecl();

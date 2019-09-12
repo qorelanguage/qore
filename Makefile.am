@@ -20,7 +20,6 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
-	qlib/Mapper.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -30,7 +29,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketClient.qm
 
 DOX_SRC_SPLIT_MODULES = \
-    qlib/ConnectionProvider
+    qlib/ConnectionProvider \
+    qlib/DataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -56,6 +56,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/Schema.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
+	qlib/Mapper.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
 	qlib/TextWrap.qm \
@@ -69,10 +70,12 @@ DOX_SPLIT_MODULES = \
 	qlib/CsvUtil
 
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
+DataProvider_modverdir = $(modverdir)/DataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
 
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
+dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
 

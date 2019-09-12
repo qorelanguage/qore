@@ -1142,8 +1142,8 @@ public:
     }
 };
 
-const QoreTypeInfo* qore_get_type_from_string(const char* str) {
-    // issue #3318: does not use ProgramRuntimeParseAccessHelper as it is notmally not needed, if this is
+const QoreTypeInfo* qore_get_type_from_string_intern(const char* str) {
+    // issue #3318: does not use ProgramRuntimeParseAccessHelper as it is normally not needed, if this is
     // necessary, then the call to this function must be wrapped using this class
     return ParserTypeStruct::getRuntimeType(str);
 }

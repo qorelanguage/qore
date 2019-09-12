@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractDataStructure class definition
+#! Qore AbstractDataField class definition
 
-/** AbstractDataStructure.qc Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractDataField.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,14 +33,19 @@
 # enable all warnings
 %enable-all-warnings
 
+%requires reflection
+
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a hahs-like data structure
-public class AbstractDataStructure {
-    #! returns the data structure's name
+#! describes a data type based on a hashdecl
+public class AbstractDataField {
+    #! returns the name of the field
     abstract string getName();
 
-    #! returns the fields of the data structure
-    abstract hash<string, DataField> getFields();
+    #! returns the type of the field
+    abstract AbstractDataProviderType getType();
+
+    #! get default value, if any
+    abstract auto getDefaultValue();
 }
 }

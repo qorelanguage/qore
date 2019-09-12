@@ -44,6 +44,9 @@ public:
 
     DLLLOCAL QoreReflectionTypedHash(QoreProgram* pgm, const TypedHashDecl* th, const QoreNamespace* ns) : AbstractReflectionObject(pgm), th(th), ns(ns) {
     }
+
+    DLLLOCAL QoreReflectionTypedHash(QoreProgram* pgm, const TypedHashDecl* th) : AbstractReflectionObject(pgm), th(th), ns(th->getNamespace()) {
+    }
 };
 
 DLLEXPORT extern qore_classid_t CID_TYPEDHASH;
