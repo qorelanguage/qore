@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DataProvider.qm module for performing bulk DML operations with SqlUtil
+#! Qore QoreSoftIntTypeBase class definition
 
-/** DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftIntTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,31 +33,40 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires(reexport) reflection
-
-module DataProvider {
-    version = "1.0";
-    desc = "user module for generic data providers";
-    author = "David Nichols <david@qore.org>";
-    url = "http://qore.org";
-    license = "MIT";
-}
-
-/** @mainpage DataProvider Module
-
-    @tableofcontents
-
-    @section dataproviderintro Introduction to the DataProvider Module
-
-    The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
-    queried, introspected, and updated.
-
-    @section dataprovider_relnotes Release Notes
-
-    @subsection dataprovider_v1_0 DataProvider v1.0
-    - initial release of the module
-*/
+%requires reflection
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! describes a data type based on softint with validation for parsing strings
+public class QoreSoftIntTypeBase inherits QoreDataType {
+    #! creates the object with no format string
+    private constructor(Type type) : QoreDataType(type) {
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        # try to convert from a string
+        if (value.typeCode() == NT_STRING) {
+            # check for valid integer values
+            if (value !~ /^([-+])?[0-9]+$/) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
+                    "non-integer text", value, getName());
+            }
+            return int(value);
+        }
+
+        *int rc = type.acceptsValue(value);
+        if (rc && value && rc != value) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
+                "non-integer data", value, getName());
+        }
+        return rc;
+    }
+}
 }

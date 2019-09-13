@@ -451,6 +451,22 @@ bool Type::isAssignableFrom(Type[QoreType] type, reference<bool> may_not_match) 
     return rv;
 }
 
+//! Returns the value after any conversions by the type
+/** @par Example:
+    @code{.py}
+auto v1 = t1.acceptsValue(v0);
+    @endcode
+
+    @param value the value to assign to the type
+
+    @return the value to be assigned; can be converted by the type
+
+    @throw VALUE-ERROR if the value cannot be assigned to the type
+*/
+auto Type::acceptsValue(auto value) {
+    return qore_type_assign_value(t->typeInfo, value, xsink);
+}
+
 //! Returns @ref True if the output of the Type object passed as an argument is compatible with the input type if the current Type
 /** @par Example:
     @code{.py}
@@ -630,6 +646,20 @@ bool b = type.isTypedHash();
 */
 bool Type::isTypedHash() [flags=CONSTANT] {
     return QoreTypeInfo::getTypedHash(t->typeInfo) ? true : false;
+}
+
+//! Returns @ref Qore::True "True" if the type is not a wildcard type; i.e. has type restrictions
+/** @par Example:
+    @code{.py}
+bool b = type.hasType();
+    @endcode
+
+    @return @ref Qore::True "True" if the type is not a wildcard type; i.e. has type restrictions
+
+    @since %Qore 0.9.4
+*/
+bool Type::hasType() [flags=CONSTANT] {
+    return QoreTypeInfo::hasType(t->typeInfo);
 }
 
 //! Returns the type object for the value

@@ -35,7 +35,7 @@
 %new-style
 
 # supports using the DataProvider module to describe input and output records
-%requires DataProvider
+%requires(reexport) DataProvider
 
 module Mapper {
     version = "1.5";
@@ -382,7 +382,7 @@ public namespace Mapper {
             hash<auto> mapo;
 
             #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
-            string encoding = "utf-8";
+            string encoding = "UTF-8";
 
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
             *string name;
@@ -418,10 +418,14 @@ public namespace Mapper {
             *string number_format;
 
             #! an optional description of possible input hash keys
-            *hash<auto> input;
+            *AbstractDataProviderType input;
+            #! input fields
+            *hash<string, AbstractDataField> input_fields;
 
             #! an optional description of the output data structure
-            *hash<auto> output;
+            *AbstractDataProviderType output;
+            #! output fields
+            *hash<string, AbstractDataField> output_fields;
 
             #! count of records mapped
             int count = 0;
@@ -496,6 +500,96 @@ Mapper mapv(DataMap);
         private constructor() {
         }
 
+        private AbstractDataProviderType getInputType(*string type) {
+            if (!type.val() || type == "any") {
+                return AbstractDataProviderType::get(AutoType);
+            }
+            return new AbstractDataProviderType::get(type);
+        }
+
+        private AbstractDataProviderType getInputFromHash(hash<auto> input) {
+            HashDataType input_data("hash");
+            foreach hash<auto> h in (input.pairIterator()) {
+                switch (h.value.typeCode()) {
+                    case NT_STRING: input{h.key} = {"desc": h.value}; break;
+                    case NT_HASH: break;
+                    default: error("\"input\" key %y passed to %s::constructor() assigned to type %y (value %y); "
+                        "expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
+                }
+                input_data.addField(h.key, new QoreDataField(h.key, input{h.key}.desc, getInputType(h.type),
+                    h.default_value));
+            }
+            return input_data;
+        }
+
+        private AbstractDataProviderType getOutputType(hash<auto> hdesc) {
+            if (!hdesc.type.val() || hdesc.type == "any" || hdesc.type == "auto") {
+                return hdesc.mand
+                    ? new SomethingDataType()
+                    : AbstractDataProviderType::get(AutoType);
+            }
+
+            switch (hdesc.type) {
+                case "number":
+                    return hdesc.mand
+                        ? new QoreSoftNumberType(hdesc.number_format ?? number_format)
+                        : new QoreSoftNumberOrNothingType(hdesc.number_format ?? number_format);
+
+                case "int":
+                case "integer":
+                    return hdesc.mand
+                        ? new QoreSoftIntType()
+                        : new QoreSoftIntOrNothingType();
+
+                case "date": {
+                    hash<QoreSoftDateOptionInfo> opts({
+                        "format": hdesc.date_format ?? date_format,
+                        "input_timezone": input_timezone,
+                        "output_timezone": timezone,
+                    });
+                    return hdesc.mand
+                        ? new QoreSoftDateType(opts)
+                        : new QoreSoftDateOrNothingType(opts);
+                }
+
+                case "string":
+                    return hdesc.mand
+                        ? new QoreSoftStringType(encoding)
+                        : new QoreSoftStringOrNothingType(encoding);
+            }
+
+            Type type(hdesc.type);
+            if (hdesc.mand) {
+                type = type.getBaseType();
+            } else {
+                type = type.getOrNothingType();
+            }
+            return AbstractDataProviderType::get(type, h.maxlen);
+        }
+
+        private AbstractDataProviderType getOutputFromHash(hash<auto> output) {
+            HashDataType output_data("hash");
+            foreach hash<auto> h in (output.pairIterator()) {
+                if (h.value === True || !exists h.value) {
+                    output_data.addField(h.key, new QoreDataField(h.key, NOTHING, AutoType));
+                    continue;
+                }
+                if (h.value.typeCode() != NT_HASH) {
+                    error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting "
+                        "\"hash\"", h.key, self.className(), h.value.type(), h.value);
+                }
+                foreach string k in (keys h.value) {
+                    if (!OutputKeys{k}) {
+                        error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)",
+                            h.key, self.className(), k, OutputKeys.keys());
+                    }
+                }
+
+                output_data.addField(h.key, new QoreDataField(h.key, h.value.desc, getOutputType(h.value), h.value.default_value));
+            }
+            return output_data;
+        }
+
         #! sets up the mapper object before checking the mapper hash
         private setup(hash<auto> mapv, *hash<auto> opts) {
             name = opts.name;
@@ -505,35 +599,30 @@ Mapper mapv(DataMap);
 
             # validate input record definition
             if (opts.input) {
-                if (opts.input.typeCode() != NT_HASH)
-                    error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.input.type());
-                input = opts.input;
-                foreach hash<auto> h in (input.pairIterator()) {
-                    switch (h.value.typeCode()) {
-                        case NT_STRING: input{h.key} = ("desc": h.value); break;
-                        case NT_HASH: break;
-                        default: error("\"input\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
+                if (opts.input instanceof AbstractDataProviderType) {
+                    input = opts.input;
+                } else {
+                    if (opts.input.typeCode() != NT_HASH) {
+                        error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y "
+                            "instead", self.className(), opts.input.type());
                     }
+                    input = getInputFromHash(opts.input);
                 }
+                input_fields = input.getFields();
             }
 
             # validate output record definition
             if (opts.output) {
-                if (opts.output.typeCode() != NT_HASH)
-                    error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.output.type());
-                output = opts.output;
-                foreach hash<auto> h in (output.pairIterator()) {
-                    if (h.value === True || !exists h.value) {
-                        output{h.key} = {};
-                        continue;
+                if (opts.output instanceof AbstractDataProviderType) {
+                    output = opts.output;
+                } else {
+                    if (opts.output.typeCode() != NT_HASH) {
+                        error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y "
+                            "instead", self.className(), opts.output.type());
                     }
-                    if (h.value.typeCode() != NT_HASH)
-                        error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    foreach string k in (keys h.value) {
-                        if (!OutputKeys{k})
-                            error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
-                    }
+                    output = getOutputFromHash(opts.output);
                 }
+                output_fields = output.getFields();
             }
 
             if (opts.trunc_all)
@@ -665,8 +754,9 @@ Mapper mapv(DataMap);
         #! raises an error if an invalid input field name is declared; only call this if "input" is defined
         private checkInputField(string k, string name) {
             string n = allow_dot ? name : name.split('.')[0];
-            if (!input.hasKey(n))
-                error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
+            if (!input_fields{n})
+                error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k),
+                    name, keys input_fields);
         }
 
         #! perform per-field pre-processing on the passed map in the constructor
@@ -674,23 +764,25 @@ Mapper mapv(DataMap);
             @param fh a reference to the field's value in the map; will be converted to a hash
         */
         private checkMapField(string k, reference<auto> fh) {
-            *hash<auto> outf;
+            *AbstractDataField field;
 
             # check output name
             if (output) {
-                if (!output.hasKey(k)) {
+                if (!output_fields.hasKey(k)) {
                     # see if field has a "." in it
                     *string basename = (k =~ x/([^\.]+)/)[0];
-                    if (exists basename && output.hasKey(basename) && output{basename}.type == "hash") {
+                    if (exists basename && (field = output_fields{basename}) && field.isAssignableFrom(HashType)) {
                         # set key path for hash output fields
                         fh.output_key_path = k.split(".");
                         k = basename;
                     } else {
-                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), keys output_fields);
                     }
                 }
-                # get output definition, if any
-                outf = output{k};
+                if (!field) {
+                    # get output definition, if any
+                    field = output{k};
+                }
             }
 
             # check field description
@@ -736,10 +828,12 @@ Mapper mapv(DataMap);
                         error("output field %y has an empty 'struct' key", getFieldName(k));
                     if (fh.struct.size() == 1) {
                         fh.name = (remove fh.struct)[0];
-                        if (input)
+                        if (input) {
                             checkInputField(k, fh.name);
-                    } else if (input && !exists fh.constant && !fh.code && !exists fh.index)
+                        }
+                    } else if (input && !exists fh.constant && !fh.code && !exists fh.index) {
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
+                    }
                     break;
                 }
                 default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
@@ -766,22 +860,52 @@ Mapper mapv(DataMap);
             }
 
             # check for contradictory definitions and assign values according to the output definition
-            if (outf) {
-                foreach string ok in (keys outf) {
-                    # ignore the "desc" key
-                    if (ok == "desc")
-                        continue;
-                    if (exists fh{ok} && outf{ok} != fh{ok})
-                        error("field %y has the %y key set to %y but the output definition has %y set to %y", getFieldName(k), ok, fh{ok}, ok, outf{ok});
-                    fh{ok} = outf{ok};
+            if (field) {
+                hash<auto> field_desc_hash = {
+                    "mand": field.isMandatory(),
+                    "maxlen": field.maxSize(),
+                };
+                if (exists fh.mand && fh.mand != field.isMandatory()) {
+                    error("field %y has the \"mand\" key set to %y but the output definition has mandatory flag: %y",
+                        getFieldName(k), fh.mand, field.isMandatory());
                 }
+                if (exists fh.maxlen && fh.maxlen != field.maxSize()) {
+                    error("field %y has the \"maxlen\" key set to %y but the output definition has a maximum size of "
+                        "%y", getFieldName(k), fh.maxlen, field.maxSize());
+                }
+                # check type compatibility
+                if (exists fh.type && !field.isAssignableFrom(new Type(fh.type))) {
+                    error("field %y has the \"type\" key set to %y but the output definition has a type of "
+                        "to %y, and the types are not compatible; remove or correct the type in the mapper "
+                        "definition to correct this error", getFieldName(k), fh.type, field.getTypeName());
+                }
+                # check number_format
+                if (fh.number_format) {
+                    if (!(field.getType() instanceof QoreNumberTypeBase)) {
+                        error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k),
+                            field.getTypeName());
+                    }
+                    # override any existing number format
+                    cast<QoreNumberTypeBase>(field).setFormat(fh.number_format);
+                }
+                # allow the field hash to override any output default value
+                if (exists fh."default") {
+                    field.setDefaultValue(fh."default");
+                }
+
+                fh.field = field;
+            } else {
+                # create field object based on mapper hash
+                field = fh.field = new QoreDataField(k, fh.desc, getOutputType(fh), fh."default");
             }
 
-            if (fh.trunc && !fh.maxlen)
+            if (fh.trunc && field.maxSize() < 0) {
                 error("output field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
+            }
 
-            if (fh.maxlen && !exists fh.trunc && trunc_all)
+            if (field.maxSize() >= 0 && !exists fh.trunc && trunc_all) {
                 fh.trunc = True;
+            }
 
             # check valid keys
             {
@@ -824,9 +948,15 @@ Mapper mapv(DataMap);
             if (fh.number) {
                 if (exists fh.type)
                     error("output field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
-                fh.type = "number";
+                if (!field.getType().isEqual(NumberType)) {
+                    error("output field %y type %y cannot be converted to \"number\" by the deprecated 'number' tag",
+                        getFieldName(k), field.getTypeName());
+                }
                 delete fh.number;
-            } else if (exists fh.type) {
+            }
+
+            /*
+            else if (exists fh.type) {
                 if (!valid_types.(fh.type))
                     error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, valid_types.keys());
                 switch (fh.type) {
@@ -850,10 +980,13 @@ Mapper mapv(DataMap);
                     }
                 }
             }
+            */
 
-            if (exists fh.code && !fh.code.callp())
+            if (exists fh.code && !fh.code.callp()) {
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
+            }
 
+            /*
             if (exists fh."default" && fh.type) {
                 hash<auto> rec{k} = fh."default";
                 try {
@@ -862,6 +995,7 @@ Mapper mapv(DataMap);
                     error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
                 }
             }
+            */
 
             # check if the output field should be a hash
             if (!allow_output_dot && k =~ /\./) {
@@ -1023,12 +1157,12 @@ Mapper mapv(DataMap);
         }
 
         #! returns the value of the \c "input" option
-        *hash<auto> getInputRecord() {
+        *hash<string, AbstractDataField> getInputRecord() {
             return input;
         }
 
         #! returns the value of the \c "output" option
-        *hash<auto> getOutputRecord() {
+        *hash<string, AbstractDataField> getOutputRecord() {
             return output;
         }
 
@@ -1042,7 +1176,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(list<auto> recs) {
+        list<hash<auto>> mapAll(list<auto> recs) {
             return map mapData($1), recs;
         }
 
@@ -1056,7 +1190,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(hash<auto> recs) {
+        list<hash<auto>> mapAll(hash<auto> recs) {
             return map mapData($1), recs.contextIterator();
         }
 
@@ -1185,7 +1319,8 @@ Mapper mapv(DataMap);
             if (v_is_list) {
                 if (do_list) {
                     if (list_size != v.size())
-                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the input batch length expected is %d", key, v, v.size(), list_size);
+                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the "
+                            "input batch length expected is %d", key, v, v.size(), list_size);
                 }
                 else {
                     error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y in non-list mode", key, v);
@@ -1193,7 +1328,6 @@ Mapper mapv(DataMap);
             }
 
             # move any XML CDATA into the field value
-            # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
             # do not access "^cdata^" directly in case it's a hashdecl
             if (v.typeCode() == NT_HASH && v.hasKey("^cdata^") && v."^cdata^".val())
                 v = v."^cdata^";
@@ -1219,8 +1353,7 @@ Mapper mapv(DataMap);
                         # here we make a list from 'v' either way, since we simply
                         # cannot predict what 'code' could do with 'v' and 'rec'
                         v_is_list = True;
-                    }
-                    else {
+                    } else {
                         v = m.code(v, rec);
                     }
                 } catch (hash<ExceptionInfo> ex) {
@@ -1236,7 +1369,7 @@ Mapper mapv(DataMap);
                     delete v;
             }
 
-            if (m.type) {
+            if (m.field.hasType()) {
                 # note: v_is_list implies do_list
                 if (v_is_list)
                     map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
@@ -1244,40 +1377,39 @@ Mapper mapv(DataMap);
                     mapFieldType(key, m, \v, rec);
             }
 
-            if (exists m."default") {
+            if (exists (auto default_value = m.field.getDefaultValue())) {
                 if (v_is_list) {
-                    map v[$#] = m."default", v, !exists $1;
-                }
-                else if (!exists v)
-                    v = m."default";
+                    map v[$#] = default_value, v, !exists $1;
+                } else if (!exists v)
+                    v = default_value;
             }
 
             # check maximum length
-            if (m.maxlen) {
+            if ((int maxlen = m.field.getMaxSize()) >= 0) {
                 if (v_is_list) {
                     if (m.trunc)
-                        map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
+                        map v[$1] = truncateField(key, $1, $#, v.size(), maxlen), v, $1.size() > maxlen;
                     else
-                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec(rec, $#)), v, $1.size() > m.maxlen;
-                }
-                else {
-                    if (v.size() > m.maxlen) {
+                        map fieldLengthError(key, $1, $#, v.size(), maxlen, getrec(rec, $#)), v, $1.size() > maxlen;
+                } else {
+                    if (v.size() > maxlen) {
                         # truncate the string if necessary
                         if (m.trunc) {
-                            v = truncateField(key, v, 0, 0, m.maxlen);
+                            v = truncateField(key, v, 0, 0, maxlen);
+                        } else {
+                            fieldLengthError(key, v, 0, 0, maxlen, rec);
                         }
-                        else
-                            fieldLengthError(key, v, 0, 0, m.maxlen, rec);
                     }
                 }
             }
 
             if (m.mand) {
                 if (v_is_list) {
-                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
-                }
-                else if (!exists v)
-                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
+                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the "
+                        "input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
+                } else if (!exists v)
+                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y",
+                        getFieldName(key), rec);
             }
 
             # add value to row list
@@ -1357,6 +1489,8 @@ Mapper mapv(DataMap);
 
         #! performs type handling
         private mapFieldType(string key, hash<auto> m, reference<auto> v, hash<auto> rec) {
+            v = m.field.acceptsValue(v);
+            /*
             if (v === NULL) {
                 delete v;
                 return;
@@ -1379,13 +1513,15 @@ Mapper mapv(DataMap);
                                 return;
                             }
                             if (v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                                error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", getFieldName(key), v, rec);
+                                error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input "
+                                    "data contains non-numeric text in input row: %y", getFieldName(key), v, rec);
                             else
                                 v = number(v);
                             return;
                         }
                         default: {
-                            error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains is type %y (value %y) in input row: %y", getFieldName(key), v.type(), v, rec);
+                            error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data "
+                                "contains is type %y (value %y) in input row: %y", getFieldName(key), v.type(), v, rec);
                             return;
                         }
                     }
@@ -1398,14 +1534,17 @@ Mapper mapv(DataMap);
                         case NT_STRING: {
                             # check for valid integer values
                             if (v !~ /^([-+])?[0-9]+$/)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", getFieldName(key), v, rec);
+                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the "
+                                    "input data contains non-integer text in input row: %y", getFieldName(key), v,
+                                    rec);
                             v = int(v);
                             break;
                         }
                         default: {
                             int rc = int(v);
                             if (rc != v)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer data in input row: %y", getFieldName(key), v, rec);
+                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input "
+                                    "data contains non-integer data in input row: %y", getFieldName(key), v, rec);
                             v = rc;
                             break;
                         }
@@ -1436,6 +1575,7 @@ Mapper mapv(DataMap);
                     break;
                 }
             }
+            */
         }
 
         #! throws a \c MAP-ERROR exception; prepends the map name to the description if known

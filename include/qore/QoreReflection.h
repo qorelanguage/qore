@@ -363,6 +363,12 @@ DLLEXPORT bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreT
 */
 DLLEXPORT int qore_type_is_assignable_from(const QoreTypeInfo* t, QoreValue value);
 
+//! processes the given value by the given type and returns the result; a Qore-language exception is thrown if the value is not assignable to the type
+/**
+    @since %Qore 0.9.4
+*/
+DLLEXPORT QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, ExceptionSink* xsink);
+
 //! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);
 
@@ -374,6 +380,5 @@ DLLEXPORT QoreValue qore_type_get_default_value(const QoreTypeInfo* ti);
 
 //! returns true if the types are compatible with inputs and outputs
 DLLEXPORT bool qore_type_is_input_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
-
 
 #endif

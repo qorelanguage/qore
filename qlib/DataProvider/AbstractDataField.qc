@@ -39,13 +39,79 @@
 public namespace DataProvider {
 #! describes a data type based on a hashdecl
 public class AbstractDataField {
+    private {
+        #! the default value for the field, if any
+        auto default_value;
+    }
+
+    #! returns True if this field's type can be assigned from values of the argument type
+    bool isAssignableFrom(AbstractDataProviderType t) {
+        return getType().isAssignableFrom(t);
+    }
+
+    #! returns True if this field's type can be assigned from values of the argument type
+    bool isAssignableFrom(Type t) {
+        return getType().isAssignableFrom(t);
+    }
+
+    #! returns True if this field's type is a list
+    bool isList() {
+        return getType().isList();
+    }
+
+    #! returns True if the field's type must have a value
+    bool isMandatory() {
+        return getType().isMandatory();
+    }
+
+    #! returns the maximum size of values for the field's type
+    /** @return the maximum size of values for the field's type; characters for string fields, bytes for binary fields,
+        elements for all other types; -1 = no limit
+    */
+    int maxSize() {
+        return getType().maxSize();
+    }
+
+    #! returns the type name
+    string getTypeName() {
+        return getType().getName();
+    }
+
+    #! sets the default value for the field
+    setDefaultValue(auto default_value) {
+        # check that the value can be assigned to the type
+        self.default_value = getType().acceptsValue(default_value);
+    }
+
+    #! get default value, if any
+    auto getDefaultValue() {
+        return default_value;
+    }
+
+    #! returns True if the field's type is not a wildcard type
+    bool hasType() {
+        return getType().hasType();
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+    */
+    auto acceptsValue(auto value) {
+        if (!exists value && exists default_value) {
+            return default_value;
+        }
+        return getType().acceptsValue(value);
+    }
+
     #! returns the name of the field
     abstract string getName();
 
+    #! returns the description, if any
+    abstract *string getDescription();
+
     #! returns the type of the field
     abstract AbstractDataProviderType getType();
-
-    #! get default value, if any
-    abstract auto getDefaultValue();
 }
 }

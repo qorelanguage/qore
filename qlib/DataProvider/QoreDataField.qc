@@ -43,18 +43,31 @@ public class QoreDataField inherits AbstractDataField {
         #! name of the field
         string name;
 
+        #! description of the field
+        *string desc;
+
         #! field type
         AbstractDataProviderType type;
-
-        #! the default value for the field, if any
-        auto def_value;
     }
 
     #! creates the field from the arguments
-    constructor(string name, Type type, auto def_value) {
+    constructor(string name, *string desc, Type type, auto default_value) {
         self.name = name;
-        self.type = AbstractDataProviderType::get(type),
-        self.def_value = def_value;
+        self.desc = desc;
+        self.type = AbstractDataProviderType::get(type);
+        if (exists default_value) {
+            setDefaultValue(default_value);
+        }
+    }
+
+    #! creates the field from the arguments
+    constructor(string name, *string desc, AbstractDataProviderType type, auto default_value){
+        self.name = name;
+        self.desc = desc;
+        self.type = type;
+        if (exists default_value) {
+            setDefaultValue(default_value);
+        }
     }
 
     #! returns the name of the field
@@ -62,14 +75,14 @@ public class QoreDataField inherits AbstractDataField {
         return name;
     }
 
+    #! returns the description, if any
+    *string getDescription() {
+        return desc;
+    }
+
     #! returns the type of the field
     AbstractDataProviderType getType() {
         return type;
-    }
-
-    #! get default value, if any
-    auto getDefaultValue() {
-        return def_value;
     }
 }
 }

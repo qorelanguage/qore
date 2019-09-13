@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreDataType class definition
+#! Qore SomethingDataType class definition
 
-/** QoreDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SomethingDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,32 +38,36 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type
-public class QoreDataType inherits AbstractDataProviderType {
-    private {
-        #! the Qore type
-        Type type;
-    }
-
-    #! creates the type
-    constructor(Type type, int max_size = -1) : AbstractDataProviderType(max_size) {
-        self.type = type;
-    }
-
+public class SomethingDataType inherits AbstractDataProviderType {
     #! returns the type name
     string getName() {
-        return type.getName();
+        return "something";
+    }
+
+    bool isAssignableFrom(AbstractDataProviderType t) {
+        if (t instanceof SomethingDataType) {
+            return True;
+        }
+        *Type othertype = t.getValueType();
+        if (!othertype) {
+            return True;
+        }
+        return !t.isEqual(nothingType);
+    }
+
+    #! returns True if this type can be assigned from values of the argument type
+    bool isAssignableFrom(Type t) {
+        return !t.isEqual(nothingType);
     }
 
     #! returns the base type for the type, if any
     *Type getValueType() {
-        return type;
+        # this method intentionally left blank
     }
 
     #! returns the subtype (for lists or hashes) if there is only one
     *AbstractDataProviderType getElementType() {
-        if (*Type elementType = type.getElementType()) {
-            return AbstractDataProviderType::get(elementType);
-        }
+        # this method intentionally left blank
     }
 
     #! returns the value if the value can be assigned to the type
@@ -71,10 +75,13 @@ public class QoreDataType inherits AbstractDataProviderType {
 
         @return the value to be assigned; can be converted by the type
 
-        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
     */
     auto acceptsValue(auto value) {
-        return type.acceptsValue(value);
+        if (!exists value) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("the \"something\" type cannot accept \"nothing\"");
+        }
+        return value;
     }
 
     #! returns the fields of the data structure; if any

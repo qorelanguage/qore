@@ -66,6 +66,12 @@ bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* t
     return QoreTypeInfo::parseAccepts(ti1, ti2);
 }
 
+QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, ExceptionSink* xsink) {
+    ValueHolder rv(value.refSelf(), xsink);
+    QoreTypeInfo::acceptAssignment(t, "<type assignment>", *rv, xsink);
+    return *xsink ? QoreValue() : rv.release();
+}
+
 bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match) {
     if (may_not_match) {
         may_not_match = false;

@@ -41,19 +41,33 @@ public namespace DataProvider {
 public class AbstractDataProviderType {
     private {
         static Type nothingType("nothing");
+        static Type anyType("any");
+
+        #! the maximum size of the type
+        int max_size;
+    }
+
+    #! creates the type and sets the maximum size
+    constructor(int max_size = -1) {
+        self.max_size = max_size;
     }
 
     #! returns True if this type can be assigned from values of the argument type
     bool isAssignableFrom(AbstractDataProviderType t) {
-        *Type thistype = getValueType();
-        if (!thistype) {
-            return False;
-        }
         *Type othertype = t.getValueType();
         if (!othertype) {
             return False;
         }
-        return thistype.isAssignableFrom(othertype);
+        return isAssignableFrom(othertype);
+    }
+
+    #! returns True if this type can be assigned from values of the argument type
+    bool isAssignableFrom(Type t) {
+        *Type thistype = getValueType();
+        if (!thistype) {
+            return False;
+        }
+        return thistype.isAssignableFrom(t);
     }
 
     #! returns True if this type is a list
@@ -68,6 +82,25 @@ public class AbstractDataProviderType {
         return thistype ? !thistype.isOrNothingType() : True;
     }
 
+    #! returns the maximum size of values for the type
+    /** @return the maximum size of values for the type; characters for string fields, bytes for binary fields,
+        elements for all other types; -1 = no limit
+    */
+    int maxSize() {
+        return max_size;
+    }
+
+    #! returns the given field, if present, or @ref nothing if not
+    *AbstractDataField getField(string name) {
+        return getFields().name;
+    }
+
+    #! returns True if the type is not a wildcard type
+    bool hasType() {
+        *Type thistype = getValueType();
+        return !thistype || thistype.hasType();
+    }
+
     #! returns the type name
     abstract string getName();
 
@@ -78,14 +111,21 @@ public class AbstractDataProviderType {
     abstract *AbstractDataProviderType getElementType();
 
     #! returns the fields of the data structure; if any
-    abstract *hash<string, AbstractDataProviderType> getFields();
+    abstract *hash<string, AbstractDataField> getFields();
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+    */
+    abstract auto acceptsValue(auto value);
 
     #! returns an appropriate object for the given type
-    static AbstractDataProviderType get(Type type) {
+    static AbstractDataProviderType get(Type type, int max_size = -1) {
         if (type.isTypedHash()) {
             return new HashDeclDataType(type);
         }
-        return new QoreDataType(type);
+        return new QoreDataType(type, max_size);
     }
 }
 }

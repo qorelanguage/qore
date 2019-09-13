@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore HashDeclDataType class definition
+#! Qore QoreSoftNumberTypeBase class definition
 
-/** HashDeclDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftNumberTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,46 +37,51 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on a hashdecl
-public class HashDeclDataType inherits QoreDataType {
+#! describes a data type based on softnumber with validation for parsing strings
+public class QoreSoftNumberTypeBase inherits QoreDataType {
     private {
-        TypedHash hd;
+        #! the format string to convert strings to numbers
+        *string format;
     }
 
-    #! creates the object from the TypedHash
-    constructor(TypedHash hd) : QoreDataType(hd.getType()) {
-        self.hd = hd;
-    }
-
-    #! creates the object from a TypedHash Type
+    #! creates the object with no format string
     private constructor(Type type) : QoreDataType(type) {
-        hd = type.getTypedHash();
     }
 
-    #! returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return map {
-            $1.getName(): new QoreDataField($1.getName(), NOTHING, $1.getType(), $1.getDefaultValue()),
-        }, hd.getMembers();
+    #! creates the object with a format string
+    constructor(Type type, string format) : QoreDataType(type) {
+        self.format = format;
     }
 
-    #! returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        *TypedHashMember member;
-        try {
-            member = hd.getMember(name);
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err == "UNKNOWN-MEMBER") {
-                return;
+    #! sets or clears the format string
+    setFormat(*string format) {
+        self.format = format;
+    }
+
+    #! returns the format string
+    *string getFormat() {
+        return format;
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        # try to convert from a string
+        if (value.typeCode() == NT_STRING) {
+            if (format) {
+                return parse_number(value, format);
             }
-            rethrow;
+            if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                throw "INVALID-NUMBER", sprintf("value %y cannot be parsed by type \"number\"; the input data contains "
+                    "non-numeric text", value);
+            return number(value);
         }
-        return new QoreDataField(name, NOTHING, member.getType(), member.getDefaultValue());
-    }
-
-    #! returns the TypedHash backing the type
-    TypedHash getTypedHash() {
-        return hd;
+        return type.acceptsValue(value);
     }
 }
 }
