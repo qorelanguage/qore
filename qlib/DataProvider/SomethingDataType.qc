@@ -39,6 +39,10 @@
 public namespace DataProvider {
 #! describes a data type
 public class SomethingDataType inherits AbstractDataProviderType {
+    #! creates the object
+    constructor(int max_size = -1) : AbstractDataProviderType(max_size) {
+    }
+
     #! returns the type name
     string getName() {
         return "something";

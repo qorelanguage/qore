@@ -29,7 +29,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
                 "dte": c_timestamp(C_NOT_NULL),
                 "code1": c_varchar(50, C_NULL),
             ),
-            );
+        );
 
         const T_TableMapperUpsertTest = (
             "columns": (
@@ -40,16 +40,16 @@ public class TableMapperTestSchema inherits AbstractSchema {
             "indexes": (
                 "driver": ("oracle": ("pk_table_mapper_upsert_test": ("columns": "id", "unique": True))),
             ),
-            );
+        );
 
         const Tables = (
             "table_mapper_test": T_TableMapperTest,
             "table_mapper_upsert_test": T_TableMapperUpsertTest,
-            );
+        );
 
         const Sequences = (
             "seq_table_mapper_test": {},
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
@@ -322,7 +322,7 @@ public class TableMapperTest inherits QUnit::Test {
                  "dte" : date("2017-05-03"),);
         const OutputHash5 =
                 ("id" : (10,11,12,13),
-                 "dte" : date("2017-05-03"),);
+                 "dte" : 2017-05-03,);
         const OutputHash6 =
                 ("id" : 1,
                  "string" : "string_6",
@@ -349,8 +349,7 @@ public class TableMapperTest inherits QUnit::Test {
             # get table objects
             table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
             upsert_table = (new Table(schema.getDatasource(), "table_mapper_upsert_test")).getTable();
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
@@ -363,7 +362,6 @@ public class TableMapperTest inherits QUnit::Test {
         addTestCase("InboundTableMapper upsert", \inboundTableMapperUpsertTest());
         addTestCase("OutputTableMapper", \outputTableMapperTest());
         addTestCase("OutputTableMapper", \rawOutputTableMapperTest());
-
         set_return_value(main());
     }
 
@@ -546,7 +544,7 @@ public class TableMapperTest inherits QUnit::Test {
             checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
             # test for issue #2520
-            assertRegex("; test; test1$", mapper.getOutputRecord().id.desc);
+            assertRegex("; test; test1$", mapper.getOutputRecord().id.getDescription());
         }
 
         # iterator() test
@@ -628,24 +626,22 @@ public class TableMapperTest inherits QUnit::Test {
             InboundTableMapper mapper(table, Map2WithIndex, ("info_log": info_log));
             # assuming insert_block > size of Input3
             # a bulk inserted
-            *hash ret = mapper.queueData(Input3.contextIterator());
+            *hash<auto> ret = mapper.queueData(Input3.contextIterator());
             # single row inserted
-            *hash ret2 = mapper.queueData(Input6.contextIterator());
+            *hash<auto> ret2 = mapper.queueData(Input6.contextIterator());
             if (ret) {
                 if (ret2) {
-                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                    map ret{$1} += ret2{$1}, keys ret, ret2{$1}.typeCode() == NT_LIST;
                 }
-            }
-            else {
+            } else {
                 ret = ret2;
             }
             ret2 = mapper.flush();
             if (ret) {
                 if (ret2) {
-                    map ret{$1} += ret2{$1}, ret.keyIterator(), ret2{$1}.typeCode() == NT_LIST;
+                    map ret{$1} += ret2{$1}, keys ret, ret2{$1}.typeCode() == NT_LIST;
                 }
-            }
-            else {
+            } else {
                 ret = ret2;
             }
             checkMap(table.selectRows(("orderby": "id")), Output5);
@@ -1001,8 +997,8 @@ public class TableMapperTest inherits QUnit::Test {
             # issue #1849: check flush messages
             fl = ();
 
-            list rl = ();
-            code rowcode = sub (hash h) { rl += h; };
+            list<auto> rl = ();
+            code rowcode = sub (hash<auto> h) { rl += h; };
             InboundTableMapper mapper(table, Map2 + ("code1": ("constant": "code")), ("rowcode": rowcode, "info_log": info_log));
             mapper.queueData(Input3);
             checkMap((map $1, mapper.flush().contextIterator()), Output3);
@@ -1144,7 +1140,7 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(3, i.getCount());
         assertEq(3, m.getCount());
         # issue #2520
-        assertRegex("; test$", m.getInputRecord().id.desc);
+        assertRegex("; test$", m.getInputRecord().id.getDescription());
     }
 
     rawOutputTableMapperTest() {

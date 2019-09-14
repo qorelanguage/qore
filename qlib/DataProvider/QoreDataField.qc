@@ -84,5 +84,16 @@ public class QoreDataField inherits AbstractDataField {
     AbstractDataProviderType getType() {
         return type;
     }
+
+    #! adds a string to the description
+    /** @param separator string to add first if there is already a description
+        @param new_desc the new string to add to the description
+    */
+    appendDescription(string separator, string new_desc) {
+        if (desc) {
+            desc += separator;
+        }
+        desc += new_desc;
+    }
 }
 }

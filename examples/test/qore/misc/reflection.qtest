@@ -154,6 +154,9 @@ class ReflectionTest inherits QUnit::Test {
 
         assertTrue(IntType.isEqual(IntOrNothingType.getBaseType()));
         assertTrue(IntOrNothingType.isEqual(IntType.getOrNothingType()));
+
+        assertEq(NT_INT, IntOrNothingType.getBaseTypeCode());
+        assertEq(NT_INT, IntType.getBaseTypeCode());
     }
 
     pgmTests() {

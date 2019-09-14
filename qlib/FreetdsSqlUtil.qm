@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+#! @file FreetdsSqlUtil.qm Qore user module for working with FreeTDS SQL data
 
 /*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2019 Qore Technologies, s.r.o.
 
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,6 +113,10 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
+    @subsection freetdssqlutilv14 FreetdsSqlUtil v1.4
+    - added support for the DataProvider module
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+
     @subsection freetdssqlutilv131 FreetdsSqlUtil v1.3.1
     - fixed quoting of reserved words in column names in table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
@@ -152,10 +156,16 @@ public namespace FreetdsSqlUtil {
             schema = sstr;
             splice nname, 0, schema.size() + 1;
             name = nname;
-        }
-        else {
+        } else {
             schema = "dbo";
             name = nname;
+        }
+    }
+
+    #! the data type for FreeTDS DECIMAL columns
+    public class FreetdsNumberDataType inherits SqlUtil::AbstractNumericDataType {
+        #! creates the object
+        constructor(string native_type, bool nullable, *string format) : AbstractNumericDataType(native_type, nullable, format) {
         }
     }
 
@@ -1304,7 +1314,7 @@ any v = c.name;
                 )
                 );
 
-            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            #! Map @ref SqlUtil::cop_trunc_date() constants to FreeTDS internal masks
             /*  Impl. note here. There is shorter workaround for this, but it does not work with seconds
                 and with dates older than 1.1.1970. (minutes will overflow later too etc.).
                 So no usage for: dateadd(ss, datediff(ss, 0, %s), 0) for example
@@ -2051,6 +2061,11 @@ order by
             list args = row{updc}.values() + row{cols.keys()}.values();
             auto x = ds.vexec(sql, args);
             return x.typeCode() == NT_HASH ? x.firstValue() : x;
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *string format) {
+            return new FreetdsNumberDataType(native_type, nullable, format);
         }
     }
 }

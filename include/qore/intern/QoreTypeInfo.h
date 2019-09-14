@@ -327,6 +327,11 @@ public:
     }
 
     // static version of method, checking for null pointer
+    DLLLOCAL static qore_type_t getBaseType(const QoreTypeInfo* ti) {
+        return ti && hasType(ti) ? ti->getBaseType() : NT_ALL;
+    }
+
+    // static version of method, checking for null pointer
     DLLLOCAL static bool parseAcceptsReturns(const QoreTypeInfo* ti, qore_type_t t) {
         return ti && hasType(ti) ? ti->parseAcceptsReturns(t) : true;
     }
@@ -806,6 +811,15 @@ public:
         return ti->return_vec[0].spec.getHashDecl();
     }
 
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreClass* getReturnClass(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return nullptr;
+        }
+        assert(!ti->return_vec.empty());
+        return ti->return_vec[0].spec.getClass();
+    }
+
     DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
         if (priv_error) {
             if (obj) {
@@ -935,6 +949,11 @@ protected:
                 return qt;
         }
         return NT_ALL;
+    }
+
+    DLLLOCAL qore_type_t getBaseType() const {
+        assert(!return_vec.empty());
+        return return_vec[0].spec.getType();
     }
 
     DLLLOCAL bool parseAcceptsReturns(qore_type_t t) const {

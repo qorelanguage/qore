@@ -42,11 +42,18 @@ public class QoreDataType inherits AbstractDataProviderType {
     private {
         #! the Qore type
         Type type;
+
+        #! hash of base types where no translations are performed
+        hash<string, bool> base_type_hash;
     }
 
     #! creates the type
     constructor(Type type, int max_size = -1) : AbstractDataProviderType(max_size) {
         self.type = type;
+        base_type_hash{type.getBaseTypeCode()} = True;
+        if (type.isOrNothingType()) {
+            base_type_hash{NT_NOTHING} = True;
+        }
     }
 
     #! returns the type name
@@ -57,6 +64,11 @@ public class QoreDataType inherits AbstractDataProviderType {
     #! returns the base type for the type, if any
     *Type getValueType() {
         return type;
+    }
+
+    #! returns a hash of native base type code where no translations are performed
+    *hash<string, bool> getDirectTypeHash() {
+        return base_type_hash;
     }
 
     #! returns the subtype (for lists or hashes) if there is only one

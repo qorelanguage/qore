@@ -91,14 +91,48 @@ public class AbstractDataProviderType {
     }
 
     #! returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        return getFields().name;
+    *AbstractDataField getField(string field_name) {
+        return getFields().field_name;
     }
 
     #! returns True if the type is not a wildcard type
     bool hasType() {
         *Type thistype = getValueType();
         return !thistype || thistype.hasType();
+    }
+
+    #! returns the base type code for the type
+    int getBaseTypeCode() {
+        *Type thistype = getValueType();
+        return thistype
+            ? thistype.getBaseTypeCode()
+            : NT_ALL;
+    }
+
+    #! returns a hash of native base type code where no translations are performed
+    *hash<string, bool> getDirectTypeHash() {
+        *Type thistype = getValueType();
+        if (thistype) {
+            return {
+                thistype.getBaseTypeCode(): True,
+            };
+        }
+    }
+
+    #! returns True if the type also accepts @ref nothing
+    bool isOrNothingType() {
+        *Type thistype = getValueType();
+        return thistype
+            ? thistype.isOrNothingType()
+            : False;
+    }
+
+    #! get the given field type if it exists, otherwise return @ref nothing
+    *AbstractDataProviderType getFieldType(string field_name) {
+        *AbstractDataField field = getField(field_name);
+        if (field) {
+            return field.getType();
+        }
     }
 
     #! returns the type name
@@ -124,6 +158,8 @@ public class AbstractDataProviderType {
     static AbstractDataProviderType get(Type type, int max_size = -1) {
         if (type.isTypedHash()) {
             return new HashDeclDataType(type);
+        } else if (type.getBaseTypeCode() == NT_HASH) {
+            return new QoreHashDataType(type, max_size);
         }
         return new QoreDataType(type, max_size);
     }

@@ -369,6 +369,12 @@ DLLEXPORT int qore_type_is_assignable_from(const QoreTypeInfo* t, QoreValue valu
 */
 DLLEXPORT QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, ExceptionSink* xsink);
 
+//! returns the base type code for the type or NT_ALL for those that don't have types
+/**
+    @since %Qore 0.9.4
+*/
+DLLEXPORT qore_type_t qore_type_get_base_type(const QoreTypeInfo* t);
+
 //! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);
 

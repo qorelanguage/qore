@@ -42,7 +42,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
     assert(!typeInfo);
     assert(!returnTypeInfo);
 
-    const QoreTypeInfo* lti = 0, *rti = 0;
+    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
     parse_init_value(left, oflag, pflag, lvids, lti);
     parse_init_value(right, oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
@@ -63,15 +63,18 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
         bool is_obj = can_be_obj ? QoreTypeInfo::isType(lti, NT_OBJECT) : false;
         bool is_hash = can_be_hash ? QoreTypeInfo::isType(lti, NT_HASH) : false;
 
-        const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(lti);
+        const QoreClass* qc = QoreTypeInfo::getReturnClass(lti);
         // see if we can check for legal access
         if (qc && right) {
+            bool only_class = (bool)QoreTypeInfo::getUniqueReturnHashDecl(lti);
             qore_type_t rt = right.getType();
             if (rt == NT_STRING) {
                 const char* member = right.get<const QoreStringNode>()->c_str();
                 qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-            }
-            else if (rt == NT_LIST) { // check object slices as well if strings are available
+                if (!only_class && QoreTypeInfo::hasType(returnTypeInfo)) {
+                    returnTypeInfo = get_or_nothing_type_check(returnTypeInfo);
+                }
+            } else if (rt == NT_LIST) { // check object slices as well if strings are available
                 ConstListIterator li(right.get<const QoreListNode>());
                 while (li.next()) {
                     if (li.getValue().getType() == NT_STRING) {
@@ -80,17 +83,21 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                         qore_class_private::parseCheckMemberAccess(*qc, loc, member, mti, pflag);
                     }
                 }
+                returnTypeInfo = only_class ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
             }
         } else {
-            const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(lti);
+            const TypedHashDecl* hd = QoreTypeInfo::getTypedHash(lti);
             if (hd) {
                 if (right) {
+                    bool only_hashdecl = (bool)QoreTypeInfo::getUniqueReturnHashDecl(lti);
                     qore_type_t rt = right.getType();
                     if (rt == NT_STRING) {
                         const char* member = right.get<const QoreStringNode>()->c_str();
                         typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
-                    }
-                    else if (rt == NT_LIST) { // check object slices as well if strings are available
+                        if (!only_hashdecl && QoreTypeInfo::hasType(returnTypeInfo)) {
+                            returnTypeInfo = get_or_nothing_type_check(returnTypeInfo);
+                        }
+                    } else if (rt == NT_LIST) { // check object slices as well if strings are available
                         ConstListIterator li(right.get<const QoreListNode>());
                         while (li.next()) {
                             if (li.getValue().getType() == NT_STRING) {
@@ -99,10 +106,10 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                                 typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
                             }
                         }
+                        returnTypeInfo = only_hashdecl ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
                     }
                 }
-            }
-            else {
+            } else {
                 // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
                 complexKeyTypeInfo = get_or_nothing_type_check(QoreTypeInfo::getUniqueReturnComplexHash(lti));
             }

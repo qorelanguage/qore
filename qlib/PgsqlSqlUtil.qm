@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,10 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.4
+    - added support for the DataProvider module
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+
     @subsection pgsqlsqlutilv131 PgsqlSqlUtil v1.3.1
     - fixed comparison of triggers with column restrictions with table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3466">issue 3466</a>)
@@ -201,6 +205,29 @@ public namespace PgsqlSqlUtil {
     #! returns a PgsqlDatabase object corresponding to the arguments
     public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
         return new PgsqlDatabase(nds, opts);
+    }
+
+    #! the data type for PostgreSQL NUMBER columns
+    public class PgsqlNumberDataType inherits SqlUtil::AbstractNumericDataType {
+        #! creates the object
+        constructor(string native_type, bool nullable, *string format) : AbstractNumericDataType(native_type, nullable, format) {
+        }
+
+        #! returns a hash of native base type code where no translations are performed
+        /** PostgreSQL does not accept string binds for numeric columns
+        */
+        *hash<string, bool> getDirectTypeHash() {
+            return {
+                NT_NUMBER: True,
+                NT_FLOAT: True,
+                NT_INT: True,
+            } + nullable
+                ? {
+                    NT_NOTHING: True,
+                    NT_NULL: True,
+                }
+                : NOTHING;
+        }
     }
 
     sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
@@ -2243,6 +2270,11 @@ auto v = c.name;
                 }
             }
             return ce;
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *string format) {
+            return new PgsqlNumberDataType(native_type, nullable, format);
         }
     }
 }

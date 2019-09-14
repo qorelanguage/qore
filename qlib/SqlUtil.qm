@@ -28,6 +28,9 @@
 # requires the Util module
 %requires Util >= 1.0
 
+# requires the DataProvider module
+%requires(reexport) DataProvider >= 1.0
+
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
 
@@ -38,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.5.2";
+    version = "1.6";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +102,10 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_6 SqlUtil v1.6
+    - added support for the DataProvider module
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection sqlutilv1_5_2 SqlUtil v1.5.2
     - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality
@@ -2004,6 +2011,29 @@ public namespace SqlUtil {
         *hash cond;           #!< additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
         *string ta;           #!< optional table name or alias of the other table to join with when not joining with the primary table
         *hash<auto> opt;            #!< optional join options (for example, to specify a partition for the join if supported)
+    }
+
+    #! column data type options
+    public hashdecl SqlUtilDataTypeOptionInfo {
+        #! optional format string for converting strings to dates for date / timestamp columns
+        *string date_format;
+
+        #! the timezone when converting dates from external data to the DB's date
+        *TimeZone data_timezone;
+
+        #! the timezone to use when sending date/time values to the DB
+        *TimeZone db_timezone;
+
+        #! optional format string for converting strings to numeric / decimal / number columns
+        *string number_format;
+
+        #! optional flag to overrude any nullable attribute and require data for the column
+        *softbool mandatory;
+
+        #! optional additional limit to the maximum length of the data
+        /** only takes effect if the value is smaller than the column's maximum length
+        */
+        *softint maxlen;
     }
 
     /** @defgroup DBFeaturesConstants DB Features Constants
@@ -4821,6 +4851,210 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
             "ds_type": ds.className(),
             "ds": ds.getConfigString(),
         };
+    }
+
+    #! data type for DB-specific types that are not convertible to other types
+    /** by default any DB-specific type without a known mapping to a Qore type and without a specific type
+        implementation will be assigned this type
+    */
+    public class SqlUtilDbSpecificDataType inherits DataProvider::AbstractDataProviderType {
+        private {
+            #! the type name
+            string name;
+
+            #! nullable flag
+            bool nullable;
+        }
+
+        #! creates the object from the given parameters
+        constructor(string native_type, bool nullable, int max_size = -1) : DataProvider::AbstractDataProviderType(max_size) {
+            name = native_type;
+            self.nullable = nullable;
+        }
+
+        #! returns the type name
+        string getName() {
+            return name;
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            # this method intentionally left empty
+        }
+
+        #! returns the subtype (for lists or hashes) if there is only one
+        *AbstractDataProviderType getElementType() {
+            # this method intentionally left empty
+        }
+
+        #! returns the fields of the data structure; if any
+        *hash<string, AbstractDataField> getFields() {
+            # this method intentionally left empty
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+        */
+        auto acceptsValue(auto value) {
+            return value;
+        }
+    }
+
+    #! type for date / timestamp columns
+    public class SqlUtilDateType inherits DataProvider::QoreSoftDateTypeBase {
+        private {
+            #! the type name
+            string name;
+
+            #! nullable flag
+            bool nullable;
+        }
+
+        #! creates the object
+        constructor(string native_type, bool nullable, *hash<QoreSoftDateOptionInfo> opts)
+            : QoreSoftDateTypeBase(nullable ? SoftDateOrNothingType : SoftDateType, opts) {
+            name = native_type;
+            self.nullable = nullable;
+
+            if (base_type_hash{NT_NOTHING}) {
+                base_type_hash{NT_NULL} = True;
+            }
+        }
+
+        #! returns the type name
+        string getName() {
+            return name;
+        }
+    }
+
+    #! generic type for SQL datatypes where no translations are provided for NULL for "or nothing" types
+    public class SqlUtilColumnDataType inherits DataProvider::AbstractDataProviderType {
+        private {
+            #! the type name
+            string name;
+
+            #! wrapped type
+            DataProvider::AbstractDataProviderType type;
+
+            #! hash of base types where no translations are performed
+            hash<string, bool> base_type_hash;
+        }
+
+        #! creates the object
+        constructor(string native_type, string type, int max_size = -1) {
+            name = native_type;
+            self.type = AbstractDataProviderType::get(new Type(type), max_size);
+            init();
+        }
+
+        #! creates the object
+        constructor(DataProvider::AbstractDataProviderType type) : AbstractDataProviderType(type.maxSize()) {
+            self.type = type;
+            init();
+        }
+
+        #! returns a hash of native base type code where no translations are performed
+        *hash<string, bool> getDirectTypeHash() {
+            return base_type_hash;
+        }
+
+        #! returns the type name
+        string getName() {
+            return name;
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            return type.getValueType();
+        }
+
+        #! returns the subtype (for lists or hashes) if there is only one
+        *AbstractDataProviderType getElementType() {
+            return type.getElementType();
+        }
+
+        #! returns the fields of the data structure; if any
+        *hash<string, AbstractDataField> getFields() {
+            return type.getFields();
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+        */
+        auto acceptsValue(auto value) {
+            if (base_type_hash{value.typeCode()}) {
+                return value;
+            }
+            return type.acceptsValue(value);
+        }
+
+        #! initializes the object
+        private init() {
+            base_type_hash = type.getDirectTypeHash();
+            if (base_type_hash{NT_NOTHING}) {
+                base_type_hash{NT_NULL} = True;
+            }
+        }
+    }
+
+    #! the data type for Oracle NUMBER columns
+    public class AbstractNumericDataType inherits DataProvider::QoreSoftNumberTypeBase {
+        private {
+            #! the type name
+            string name;
+
+            #! "or nothing" flag
+            bool nullable;
+        }
+
+        #! creates the object
+        constructor(string name, bool nullable) : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType) {
+            self.name = name;
+            self.nullable = nullable;
+            init();
+        }
+
+        #! creates the object
+        constructor(string name, bool nullable, string format) : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType, format) {
+            self.name = name;
+            self.nullable = nullable;
+            init();
+        }
+
+        #! returns the type name
+        string getName() {
+            return name;
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+        */
+        auto acceptsValue(auto value) {
+            if (getDirectTypeHash(){value.typeCode()}) {
+                return value;
+            }
+            return QoreSoftNumberTypeBase::acceptsValue(value);
+        }
+
+        #! common initialization
+        private init() {
+            base_type_hash += {
+                NT_FLOAT: True,
+                NT_INT: True,
+            } + (format.val() ? NOTHING : {
+                NT_STRING: True,
+            }) + (nullable
+                ? {
+                    NT_NULL: True,
+                }
+                : NOTHING);
+        }
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
@@ -14835,6 +15069,115 @@ string sql = table.getAlignSqlString(table2);
             return False;
         }
 
+        #! returns a field object for the given column
+        /** @param column_name the column name
+            @param append_desc an optional string to append to the field's description
+
+            @return a field object for the given column
+
+            @throw COLUMN-ERROR unknown column
+        */
+        AbstractDataField getColumnDataField(string column_name, *hash<auto> options, *string append_desc) {
+            *Columns columns = describe();
+            *AbstractColumn column = columns{column_name};
+            if (!column) {
+                throw "COLUMN-ERROR", sprintf("column %y is unknown; valid columns: %y", column_name, columns.keys());
+            }
+            return getColumnDataField(column, options, append_desc);
+        }
+
+        #! returns a field object for the given column
+        /** @param column_name the column
+            @param type options
+            @param append_desc an optional string to append to the field's description
+
+            @return a field object for the given column
+        */
+        AbstractDataField getColumnDataField(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options, *string append_desc) {
+            AbstractDataProviderType type = getDbType(column.native_type, column.qore_type, column.nullable,
+                column.size ? column.size : -1, options);
+
+            string desc = column.getNativeTypeString();
+            if (!column.nullable) {
+                desc += " NOT NULL";
+            }
+            if (column.comment) {
+                desc += "; " + column.comment;
+            }
+            if (append_desc) {
+                desc += "; " + append_desc;
+            }
+
+            return new QoreDataField(column.name.lwr(), desc, type, column.def_val);
+        }
+
+        #! returns the data type for the given column
+        /** @param column_name the column name
+
+            @return the data type for the given column
+
+            @throw COLUMN-ERROR unknown column
+        */
+        AbstractDataProviderType getColumnDataType(string column_name, *hash<SqlUtilDataTypeOptionInfo> options) {
+            *Columns columns = describe();
+            *AbstractColumn column = columns{column_name};
+            if (!column) {
+                throw "COLUMN-ERROR", sprintf("column %y is unknown; valid columns: %y", column_name, columns.keys());
+            }
+
+            return getDbType(column.native_type, column.qore_type, column.nullable, column.size ? column.size : -1,
+                options);
+        }
+
+        #! returns the DB type for the given column type
+        /** @since SqlUtil 1.6
+        */
+        AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1, *hash<SqlUtilDataTypeOptionInfo> options) {
+            if (nullable && options.mandatory) {
+                nullable = False;
+            }
+            if (options.maxlen && (max_size < 0 || max_size > options.maxlen)) {
+                max_size = options.maxlen;
+            }
+            if (!qore_type) {
+                qore_type = getTypeMapImpl(){native_type};
+                if (!qore_type) {
+                    return new SqlUtilDbSpecificDataType(native_type, nullable, max_size);
+                }
+            }
+            switch (qore_type) {
+                case "number":
+                    return getNumericType(native_type, nullable, options.number_format);
+
+                case "date":
+                    hash<QoreSoftDateOptionInfo> date_opts({
+                        "format": options.date_format,
+                        "output_timezone": options.db_timezone,
+                    });
+                    if (options.data_timezone) {
+                        date_opts.input_timezone = options.data_timezone;
+                    }
+                    return getDateType(native_type, nullable, date_opts);
+
+                default:
+                    return new SqlUtilColumnDataType(native_type, (nullable ? "*" : "") + qore_type, max_size);
+            }
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        /** @since SqlUtil 1.6
+        */
+        AbstractDataProviderType getNumericType(string type_name, bool nullable, *string format) {
+            return getNumericTypeImpl(type_name, nullable, format);
+        }
+
+        #! returns the type for date / timestamp columns for the database so that data conversions can be handled properly
+        /** @since SqlUtil 1.6
+        */
+        AbstractDataProviderType getDateType(string type_name, bool nullable, hash<QoreSoftDateOptionInfo> date_opts) {
+            return new SqlUtilDateType(type_name, nullable, date_opts);
+        }
+
         #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
         abstract bool hasArrayBind();
 
@@ -15359,6 +15702,11 @@ any res = t.selectRows(sh, \sql);
 
         private preSetupTableImpl(reference desc, *hash<auto> opt) {
         }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        /** @since SqlUtil 1.6
+        */
+        private abstract AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *string format);
 
         private abstract *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args);
 

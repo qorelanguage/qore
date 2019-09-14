@@ -65,6 +65,10 @@ public class QoreSoftDateTypeBase inherits QoreDataType {
     #! creates the object with no format string
     private constructor(Type type, *hash<QoreSoftDateOptionInfo> opts) : QoreDataType(type) {
         self += opts;
+        # translations are performed on date types if there is an output_timezone
+        if (opts.output_timezone) {
+            remove base_type_hash{NT_DATE};
+        }
     }
 
     #! sets or clears the format string
@@ -105,7 +109,7 @@ public class QoreSoftDateTypeBase inherits QoreDataType {
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
     */
     auto acceptsValue(auto value) {
-        if (exists value & value != NULL) {
+        if (exists value && value !== NULL) {
             # try to convert from the source type
             if (value.typeCode() !== NT_DATE) {
                 value = input_timezone.date(value, format);

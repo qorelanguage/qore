@@ -74,5 +74,17 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq("123", str2.acceptsValue(123));
         assertEq(NOTHING, str2.acceptsValue());
         assertEq(NOTHING, str2.acceptsValue(NULL));
+
+        QoreHashDataType hash1(new Type("hash<string, bool>"));
+        assertEq({"a": True}, hash1.acceptsValue({"a": True}));
+        assertTrue(BoolType.isEqual(hash1.getFieldType("xxx").getValueType()));
+        assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue(), {"a": 1});
+        assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue());
+
+        QoreHashDataType hash2(new Type("*hash<string, bool>"));
+        assertTrue(BoolType.isEqual(hash2.getFieldType("xxx").getValueType()));
+        assertThrows("RUNTIME-TYPE-ERROR", \hash2.acceptsValue(), {"a": 1});
+        assertEq(NOTHING, hash2.acceptsValue());
+        assertEq(NOTHING, hash2.acceptsValue(NULL));
     }
 }

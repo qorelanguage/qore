@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+/*  OracleSqlUtil.qm Copyright 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.5
+%requires SqlUtil >= 1.6
 
 # requires the Util module
 %requires Util >= 1.0
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -255,6 +255,10 @@ hash schema = (
 
     @section ora_relnotes Release Notes
 
+    @subsection v14 OracleSqlUtil v1.4
+    - added support for the DataProvider module
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+
     @subsection v131 OracleSqlUtil v1.3.1
     - fixed quoting of reserved words in column names in table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
@@ -313,6 +317,13 @@ public namespace OracleSqlUtil {
     #! returns an OracleDatabase object corresponding to the arguments
     public OracleDatabase sub get_database(AbstractDatasource nds, *hash opts) {
         return new OracleDatabase(nds, opts);
+    }
+
+    #! the data type for Oracle NUMBER columns
+    public class OracleNumberDataType inherits SqlUtil::AbstractNumericDataType {
+        #! creates the object
+        constructor(string native_type, bool nullable, *string format) : AbstractNumericDataType(native_type, nullable, format) {
+        }
     }
 
     #! represents an Oracle column
@@ -1714,7 +1725,7 @@ auto v = c.name;
     public class OracleTable inherits SqlUtil::AbstractTable {
         public {
             #! maps oracle type names to type descriptions
-            const OraTypeMap = (
+            const OraTypeMap = {
                 "number": ("qore": Type::Number, "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
                 "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
                 "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
@@ -1803,10 +1814,10 @@ auto v = c.name;
                 "binary_double": ("qore": Type::Float,),
                 "rowid": ("qore": Type::String,),
                 "urowid": ("qore": Type::String, "size": SZ_OPT, "size_range": (1, 4000)),
-                );
+            };
 
             #! maps qore type names to an oracle type
-            const QoreTypeMap = (
+            const QoreTypeMap = {
                 "integer": "number",
                 "float": "number",
                 "number": "number",
@@ -1816,11 +1827,11 @@ auto v = c.name;
                 SqlUtil::CHAR: "char",
                 SqlUtil::CLOB: "clob",
                 SqlUtil::BLOB: "blob",
-                );
+            };
 
-            const OraColumnOpts = (
+            const OraColumnOpts = {
                 "character_semantics": Type::Boolean,
-                );
+            };
 
             #! Oracle-specific column options
             /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by \c OracleSqlUtil::OracleTable::getColumnOptions() with the following keys:
@@ -1838,17 +1849,17 @@ auto v = c.name;
             /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by \c OracleSqlUtil::OracleTable::getIndexOptions() with the following keys:
                 - \c compute_statistics: adds "compute statistics" to index creation strings
             */
-            const OracleIndexOptions = AbstractTable::IndexOptions + (
+            const OracleIndexOptions = AbstractTable::IndexOptions + {
                 "compute_statistics": Type::Boolean,
-                );
+            };
 
             #! Oracle-specific constraint options
             /** this constant extends @ref OracleIndexOptions as returned by \c OracleSqlUtil::OracleTable::getConstraintOptions() with the following keys:
                 - \c index: adds "using index <indexname>" to the constraint creation string
             */
-            const OracleConstraintOptions = OracleIndexOptions + (
+            const OracleConstraintOptions = OracleIndexOptions + {
                 "index": Type::String,
-                );
+            };
 
             #! Oracle table creation options
             const OracleTableCreationOptions = AbstractTable::TableCreationOptions
@@ -1863,9 +1874,9 @@ auto v = c.name;
                 @ref OracleSqlUtil::OracleTable::getSelectOptions():
                 - \c partition: the partition name to use in a query (see @ref ora_partitioning_select)
             */
-            const OracleSelectOptions = AbstractTable::SelectOptions + (
+            const OracleSelectOptions = AbstractTable::SelectOptions + {
                 "partition": Type::String,
-                );
+            };
 
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
@@ -2117,7 +2128,7 @@ auto v = c.name;
             # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
             # An internal cache to find the highest priority available
             # system dictionary object. Priority: DBA > ALL
-            hash m_sys_views = (
+            hash<string, string> m_sys_views = {
                     "dba_col_comments"      : "all_col_comments",
                     "dba_cons_columns"      : "all_cons_columns",
                     "dba_constraints"       : "all_constraints",
@@ -2133,7 +2144,7 @@ auto v = c.name;
                     "dba_tables"            : "all_tables",
                     "dba_triggers"          : "all_triggers",
                     "dba_views"             : "all_views",
-                );
+            };
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -3090,6 +3101,11 @@ auto v = c.name;
 
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *string format) {
+            return new OracleNumberDataType(native_type, nullable, format);
         }
     }
 }

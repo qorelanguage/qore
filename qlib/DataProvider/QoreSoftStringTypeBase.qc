@@ -45,8 +45,12 @@ public class QoreSoftStringTypeBase inherits QoreDataType {
     }
 
     #! creates the object with the given target encoding
-    constructor(Type type, string encoding = "UTF-8") : QoreDataType(type) {
+    constructor(Type type, string encoding = "UTF-8", int maxlen = -1) : QoreDataType(type, maxlen) {
         setEncoding(encoding);
+        # translations are done on string types if there is an encoding arg
+        if (encoding) {
+            remove base_type_hash{NT_STRING};
+        }
     }
 
     #! sets the target encoding

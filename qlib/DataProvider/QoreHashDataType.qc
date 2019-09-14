@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore HashDataType class definition
+#! Qore QoreHashDataType class definition
 
-/** HashDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreHashDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,34 +37,18 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on a hash
-public class HashDataType inherits QoreDataType {
-    private {
-        #! the name of the type
-        string name;
-
-        #! fields
-        hash<string, AbstractDataField> fields;
+#! describes a data type
+public class QoreHashDataType inherits QoreDataType {
+    #! creates the type
+    constructor(Type type, int max_size = -1) : QoreDataType(type, max_size) {
+        if (type.getBaseTypeCode() != NT_HASH || type.isTypedHash()) {
+            throw "HASH-ERROR", sprintf("cannot create a QoreHashDataType object from type %y", type.getName());
+        }
     }
 
-    #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName()) : QoreDataType(AutoHashType) {
-        self.name = name;
-    }
-
-    #! adds a field to the type
-    addField(AbstractDataField field) {
-        fields{field.getName()} = field;
-    }
-
-    #! returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        return fields{name};
-    }
-
-    #! returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return fields;
+    #! get the given field type if it exists, otherwise return @ref nothing
+    *AbstractDataProviderType getFieldType(string field_name) {
+        return getElementType();
     }
 }
 }

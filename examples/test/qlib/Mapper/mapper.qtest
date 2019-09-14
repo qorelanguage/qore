@@ -473,9 +473,8 @@ public class MapperTest inherits QUnit::Test {
             v = m.mapData({"input_0": <StatInfo>{}}).output_0;
             assertEq(<StatInfo>{}, v);
             assertEq("hash<StatInfo>", v.fullType());
-            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+            assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"input_0": 1});
         }
-
         {
             Mapper m(TypeMap1, TypeOpts1);
             assertEq("x", m.mapData({"input_1": "x"}).output_1);
@@ -489,7 +488,7 @@ public class MapperTest inherits QUnit::Test {
             v = m.mapData({"input_0": <StatInfo>{}}).output_0;
             assertEq(<StatInfo>{}, v);
             assertEq("hash<StatInfo>", v.fullType());
-            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+            assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"input_0": 1});
         }
     }
 

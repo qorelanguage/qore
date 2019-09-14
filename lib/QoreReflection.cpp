@@ -72,6 +72,10 @@ QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, E
     return *xsink ? QoreValue() : rv.release();
 }
 
+qore_type_t qore_type_get_base_type(const QoreTypeInfo* t) {
+    return QoreTypeInfo::getBaseType(t);
+}
+
 bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match) {
     if (may_not_match) {
         may_not_match = false;

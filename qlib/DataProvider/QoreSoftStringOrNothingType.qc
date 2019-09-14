@@ -40,7 +40,7 @@ public namespace DataProvider {
 #! describes a data type based on *softstring with a target encoding
 public class QoreSoftStringOrNothingType inherits QoreSoftStringTypeBase {
     #! creates the object with the given target encoding
-    constructor(string encoding = "UTF-8") : QoreSoftStringTypeBase(SoftStringOrNothingType, encoding) {
+    constructor(string encoding = "UTF-8", int maxlen = -1) : QoreSoftStringTypeBase(SoftStringOrNothingType, encoding, maxlen) {
     }
 }
 }
