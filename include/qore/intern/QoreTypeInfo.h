@@ -645,8 +645,6 @@ public:
     // static version of method, checking for null pointer
     DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
         if (hasType(first) && hasType(second)) {
-            bool may_not_match = false;
-            bool may_need_filter = false;
             return parseAccepts(first, second);
         }
         return true;

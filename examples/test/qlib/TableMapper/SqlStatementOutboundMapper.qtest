@@ -50,7 +50,7 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
 
     bool valid() { return True; }
 
-    any getValue() {
+    hash<auto> getValue() {
         hash<auto> ret = INPUT[m_ix];
         m_ix++;
         return ret;
@@ -90,7 +90,8 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
     hash<auto> getOutput() {}
     getSQL() {}
 
-    *hash<auto> describe() {
+    hash<auto> describe() {
+        return {};
     }
 
     nothing execArgs(softlist<auto> vargs) { throw "X"; }
@@ -185,6 +186,7 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh) {}
     nothing copyImpl(AbstractTable old) {}
     nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
+    AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *string format) {}
 }
 
 
