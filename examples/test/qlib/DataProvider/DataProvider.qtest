@@ -29,11 +29,11 @@ public class DataProviderTest inherits QUnit::Test {
         assertTrue(datatype.isAssignableFrom(HashType));
         assertTrue(IntType.isEqual(datatype.getField("size").getType().getValueType()));
 
-        QoreSoftNumberType num1(".,");
+        QoreSoftNumberType num1({"number.format": ".,"});
         assertEq(1234.56n, num1.acceptsValue("1.234,56"));
         assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue());
 
-        QoreSoftNumberOrNothingType num2(".,");
+        QoreSoftNumberOrNothingType num2({"number.format": ".,"});
         assertEq(1234.56n, num2.acceptsValue("1.234,56"));
         assertEq(NOTHING, num2.acceptsValue());
         assertEq(NOTHING, num2.acceptsValue(NULL));
@@ -47,15 +47,10 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq(NOTHING, int2.acceptsValue());
         assertEq(NOTHING, int2.acceptsValue(NULL));
 
-        SomethingDataType something();
-        assertEq(1, something.acceptsValue(1));
-        assertTrue(something.isAssignableFrom(IntType));
-        assertFalse(something.isAssignableFrom(new Type("nothing")));
-
-        hash<QoreSoftDateOptionInfo> opts({
-            "format": "DD.MM.YYYY",
-            "input_timezone": new TimeZone("America/Chicago"),
-            "output_timezone": new TimeZone("UTC"),
+        hash<auto> opts({
+            "date.format": "DD.MM.YYYY",
+            "date.input_timezone": new TimeZone("America/Chicago"),
+            "date.output_timezone": new TimeZone("UTC"),
         });
         QoreSoftDateType date1(opts);
         assertEq(2019-09-13T05:00:00Z, date1.acceptsValue("13.09.2019"));
@@ -66,11 +61,11 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq(NOTHING, date2.acceptsValue());
         assertEq(NOTHING, date2.acceptsValue(NULL));
 
-        QoreSoftStringType str1();
+        QoreStringTypeBase str1(SoftStringType);
         assertEq("123", str1.acceptsValue(123));
         assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue());
 
-        QoreSoftStringOrNothingType str2();
+        QoreStringTypeBase str2(SoftStringOrNothingType);
         assertEq("123", str2.acceptsValue(123));
         assertEq(NOTHING, str2.acceptsValue());
         assertEq(NOTHING, str2.acceptsValue(NULL));

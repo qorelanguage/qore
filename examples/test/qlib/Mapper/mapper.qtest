@@ -461,6 +461,12 @@ public class MapperTest inherits QUnit::Test {
 
     testTypes() {
         {
+            SomethingDataType something();
+            assertEq(1, something.acceptsValue(1));
+            assertTrue(something.isAssignableFrom(IntType));
+            assertFalse(something.isAssignableFrom(new Type("nothing")));
+        }
+        {
             Mapper m(TypeMap0, TypeOpts0);
             assertEq("x", m.mapData({"input_1": "x"}).output_1);
             assertEq(1n, m.mapData({"input_1": 1n}).output_1);
