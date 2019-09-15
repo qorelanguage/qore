@@ -151,8 +151,8 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     static bool hasSdoGeometry(AbstractDatasource ds) {
-        return ds.selectRow("select object_name from user_objects where object_type = %v and object_name = %v",
-            "TYPE", "SDO_GEOMETRY").object_name.val();
+        return ds.select("select object_name from all_objects where object_type = %v and object_name = %v",
+            "TYPE", "SDO_GEOMETRY").object_name[0].val();
     }
 }
 
