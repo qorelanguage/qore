@@ -48,7 +48,7 @@ public class QoreDataType inherits AbstractDataProviderType {
     }
 
     #! creates the type
-    constructor(Type type, int max_size = -1) : AbstractDataProviderType(max_size) {
+    constructor(Type type, *hash<auto> options) : AbstractDataProviderType(options) {
         self.type = type;
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {

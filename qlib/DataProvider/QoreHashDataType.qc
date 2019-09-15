@@ -40,9 +40,11 @@ public namespace DataProvider {
 #! describes a data type
 public class QoreHashDataType inherits QoreDataType {
     #! creates the type
-    constructor(Type type, int max_size = -1) : QoreDataType(type, max_size) {
+    /** @throw HASH-TYPE-ERROR invalid type; must be a hash type but not a hashdecl
+    */
+    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
         if (type.getBaseTypeCode() != NT_HASH || type.isTypedHash()) {
-            throw "HASH-ERROR", sprintf("cannot create a QoreHashDataType object from type %y", type.getName());
+            throw "HASH-TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(), type.getName());
         }
     }
 

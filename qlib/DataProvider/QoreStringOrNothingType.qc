@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftStringType class definition
+#! Qore QoreStringOrNothingType class definition
 
-/** QoreSoftStringType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreStringOrNothingType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,10 +37,10 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softstring with a target encoding
-public class QoreSoftStringType inherits QoreSoftStringTypeBase {
+#! describes a data type based on *softstring with a target encoding
+public class QoreStringOrNothingType inherits QoreStringTypeBase {
     #! creates the object with the given target encoding
-    constructor(string encoding = "UTF-8", int maxlen = -1) : QoreSoftStringTypeBase(SoftStringType, encoding, maxlen) {
+    constructor(*hash<auto> options) : QoreStringTypeBase(SoftStringOrNothingType, options) {
     }
 }
 }

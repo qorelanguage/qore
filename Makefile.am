@@ -977,13 +977,13 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@
 
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm $< $@
+	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm -tDataProvider.tag=../../DataProvider/html $< $@
 
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ConnectionProvider:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@

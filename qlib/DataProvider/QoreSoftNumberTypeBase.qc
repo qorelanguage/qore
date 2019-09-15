@@ -40,27 +40,17 @@ public namespace DataProvider {
 #! describes a data type based on softnumber with validation for parsing strings
 public class QoreSoftNumberTypeBase inherits QoreDataType {
     private {
-        #! the format string to convert strings to numbers
-        *string format;
+        #! supported options
+        const SupportedOptions = {
+            "number.format": <DataProviderTypeOptionInfo>{
+                "type": Type::String,
+                "desc": "the format string for converting strings to numbers",
+            },
+        };
     }
 
-    #! creates the object with no format string
-    private constructor(Type type) : QoreDataType(type) {
-    }
-
-    #! creates the object with a format string
-    constructor(Type type, string format) : QoreDataType(type) {
-        self.format = format;
-    }
-
-    #! sets or clears the format string
-    setFormat(*string format) {
-        self.format = format;
-    }
-
-    #! returns the format string
-    *string getFormat() {
-        return format;
+    #! creates the object
+    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
     }
 
     #! returns the value if the value can be assigned to the type
@@ -73,8 +63,8 @@ public class QoreSoftNumberTypeBase inherits QoreDataType {
     auto acceptsValue(auto value) {
         # try to convert from a string
         if (value.typeCode() == NT_STRING) {
-            if (format) {
-                return parse_number(value, format);
+            if (options."number.format") {
+                return parse_number(value, options."number.format");
             }
             if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
                 throw "INVALID-NUMBER", sprintf("value %y cannot be parsed by type \"number\"; the input data contains "
@@ -82,6 +72,11 @@ public class QoreSoftNumberTypeBase inherits QoreDataType {
             return number(value);
         }
         return type.acceptsValue(value);
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        return SupportedOptions;
     }
 }
 }

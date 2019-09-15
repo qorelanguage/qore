@@ -40,7 +40,7 @@ public namespace DataProvider {
 #! describes a data type based on *softint with validation for parsing strings
 public class QoreSoftIntOrNothingType inherits QoreSoftIntTypeBase {
     #! creates the object
-    constructor() : QoreSoftIntTypeBase(SoftIntOrNothingType) {
+    constructor(*hash<auto> options) : QoreSoftIntTypeBase(SoftIntOrNothingType, options) {
     }
 }
 }

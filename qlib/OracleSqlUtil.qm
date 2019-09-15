@@ -322,7 +322,7 @@ public namespace OracleSqlUtil {
     #! the data type for Oracle NUMBER columns
     public class OracleNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
-        constructor(string native_type, bool nullable, *string format) : AbstractNumericDataType(native_type, nullable, format) {
+        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
         }
     }
 
@@ -1227,7 +1227,7 @@ auto v = c.name;
             string schema;
             getSchemaName(\name, \schema);
 
-            *hash row = ds.selectRow("select * from all_sequences where sequence_owner = %v and sequence_name = %v", schema.upr(), name.upr());
+            *hash<auto> row = ds.selectRow("select * from all_sequences where sequence_owner = %v and sequence_name = %v", schema.upr(), name.upr());
             if (!row)
                 return;
             return new OracleSequence(name, row.min_value, row.increment_by, row.max_value > 9000000000000000000n ? NOTHING : row.max_value);
@@ -1237,7 +1237,7 @@ auto v = c.name;
             string schema;
             getSchemaName(\name, \schema);
 
-            *hash row = ds.selectRow("select * from all_views where owner = %v and view_name = %v", schema.upr(), name.upr());
+            *hash<auto> row = ds.selectRow("select * from all_views where owner = %v and view_name = %v", schema.upr(), name.upr());
             if (!row)
                 return;
 
@@ -1383,7 +1383,7 @@ auto v = c.name;
 
         #! returns an OracleMaterializedView object for the package name given or @ref nothing if the object does not exist or is not accessible
         *OracleMaterializedView getMaterializedView(string name) {
-            *hash row = ds.selectRow("select * from user_mviews mv, user_tables t where mview_name = %v and mview_name = table_name", name.upr());
+            *hash<auto> row = ds.selectRow("select * from user_mviews mv, user_tables t where mview_name = %v and mview_name = table_name", name.upr());
             if (!row)
                 return;
 
@@ -1584,7 +1584,7 @@ auto v = c.name;
         bool rebuildIndexAnalyze(string name, int maxh, int maxleaf) {
             # unfortunately analyze index/select * from index_stats requires one transaction
             ds.select("analyze index " + name + " validate structure");
-            *hash is = ds.selectRow("select name, height, lf_rows as leafrows, del_lf_rows as leafrowsdeleted from index_stats");
+            *hash<auto> is = ds.selectRow("select name, height, lf_rows as leafrows, del_lf_rows as leafrowsdeleted from index_stats");
             if (!is)
                 return False;
 
@@ -1960,7 +1960,7 @@ auto v = c.name;
             #! column operator specializations for Oracle
             const OracleCopMap = (
                 COP_CAST: (
-                    "code": string sub (string cve, list args) {
+                    "code": string sub (string cve, list<auto> args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
                         hash desc = OraTypeMap{name};
                         string sql = sprintf ("cast (%s as %s", cve, name);
@@ -1984,7 +1984,7 @@ auto v = c.name;
                     },
                 ),
                 COP_SUBSTR: (
-                    "code": string sub (string cve, list args) {
+                    "code": string sub (string cve, list<auto> args) {
                         if (!exists args[1])
                             return sprintf("substr(%s,%d)", cve, args[0]);
                         return sprintf("substr(%s,%d,%d)", cve, args[0], args[1]);
@@ -2217,7 +2217,7 @@ auto v = c.name;
         }
 
         private setTableInfoIntern() {
-            hash row = (schema.lwr() == ds.getUserName().lwr()) ? setTable() : setSchemaTable();
+            hash<auto> row = (schema.lwr() == ds.getUserName().lwr()) ? setTable() : setSchemaTable();
 
             tablespace = row.tablespace_name;
             readonly = row.read_only == "YES";
@@ -2245,7 +2245,7 @@ auto v = c.name;
 
         private hash setSchemaTable() {
             # get the table information if possible
-            *hash row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash<auto> row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (row)
                 return row;
 
@@ -2339,7 +2339,7 @@ auto v = c.name;
 
         private hash setTable() {
             # see if the current user has the table
-            *hash row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
+            *hash<auto> row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (row) {
                 schema = getUserSchema();
                 return row;
@@ -2530,7 +2530,7 @@ auto v = c.name;
             }
 
             hash rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 #if (row.column_name == "TAX_AMOUNT")
                 #    printf("DBG: %y\n", row);
                 *hash th = OraTypeMap.(row.data_type.lwr());
@@ -2626,11 +2626,11 @@ auto v = c.name;
  from " + systemView("dba_indexes") + (dblink ? "@" + dblink : "") + " i left join " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
  where i.owner = %v and i.table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
-                hash ih;
+                hash<auto> ih;
 
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from " + systemView("dba_ind_columns") + (dblink ? "@" + dblink : "") + " c left join " + systemView("dba_ind_expressions") + (dblink ? "@" + dblink : "") + " e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
-                foreach hash row in (iqh.contextIterator()) {
+                *hash<auto> iqh = ds.select("select c.index_name, c.column_name, e.column_expression from " + systemView("dba_ind_columns") + (dblink ? "@" + dblink : "") + " c left join " + systemView("dba_ind_expressions") + (dblink ? "@" + dblink : "") + " e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
+                foreach hash<auto> row in (iqh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("index_name", "column_name", "column_expression"), row.$1;
                     # process function indexes
@@ -2642,7 +2642,7 @@ auto v = c.name;
                         ih{row.index_name}{row.column_name} = columns{row.column_name};
                 }
 
-                foreach hash row in (qh.contextIterator()) {
+                foreach hash<auto> row in (qh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("index_name", "tablespace_name", "constraint_name"), row.$1;
 
@@ -2674,7 +2674,7 @@ auto v = c.name;
             *hash qh = ds.select("select constraint_name, status from user_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'R'", schema.upr(), name.upr());
             if (qh.status) {
                 hash rv;
-                foreach hash row in (qh.contextIterator()) {
+                foreach hash<auto> row in (qh.contextIterator()) {
                     if (!native_case)
                         row.constraint_name = row.constraint_name.lwr();
                     rv.(row.constraint_name) = (
@@ -2682,7 +2682,7 @@ auto v = c.name;
                         );
                 }
                 qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols1, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
-                foreach hash row in (qh.contextIterator()) {
+                foreach hash<auto> row in (qh.contextIterator()) {
                     if (!native_case) {
                         row.constraint_name = row.constraint_name.lwr();
                         row.source_column = row.source_column.lwr();
@@ -2715,7 +2715,7 @@ auto v = c.name;
             # get only user check constraints
             *hash qh = ds.select("select constraint_name, search_condition, status from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
             hash rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 if (!native_case)
                     row.constraint_name = row.constraint_name.lwr();
                 rv.(row.constraint_name) = new OracleCheckConstraint(row.constraint_name, row.search_condition, row.status == "ENABLED");
@@ -2726,7 +2726,7 @@ auto v = c.name;
             # now get unique constraints
             qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
             delete rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
                 reference<OracleUniqueConstraint> ch = \rv.(row.constraint_name);
@@ -2758,7 +2758,7 @@ auto v = c.name;
 
             # get trigger description
             *hash qh = ds.select("select * from " + systemView("dba_triggers") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
                 #printf("%y: %s\n", row.trigger_name, row.description);
@@ -2833,11 +2833,10 @@ auto v = c.name;
             return new OracleTrigger(tname, src);
         }
 
-        private bool tryInsertImpl(string sql, hash row) {
+        private bool tryInsertImpl(string sql, hash<auto> row) {
             try {
                 ds.vexec(sql, row.values());
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /ORA-00001/)
                     return False;
                 rethrow;
@@ -2940,7 +2939,7 @@ auto v = c.name;
         }
 
         #! returns a closure for performing upserts; if the \a upsert_strategy argument is @ref UpsertInsertFirst or @ref UpsertUpdateFirst, then this argument is ignored and a closure using an Oracle merge statement is returned
-        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
+        code getUpsertClosure(hash<auto> row, int upsert_strategy = UpsertAuto, *hash opt) {
             Columns cols = checkUpsertRow(row, \upsert_strategy);
 
             switch (upsert_strategy) {
@@ -2980,7 +2979,7 @@ auto v = c.name;
             #printf("sql: %s\n", sql);
 
             return int sub (hash crow) {
-                list args = crow.values();
+                list<auto> args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
@@ -2988,7 +2987,7 @@ auto v = c.name;
         }
 
         #! high-performance "insert only" upsert supporting bulk DML
-        private code getUpsertInsertOnly(Columns cols, hash row, *hash opt) {
+        private code getUpsertInsertOnly(Columns cols, hash<auto> row, *hash opt) {
             string sql = sprintf("merge into %s t using (select ", getSqlName());
             sql += foldl $1 + "," + $2, (map sprintf("%v as %s", $1), row.keys());
             sql += " from dual) source on (";
@@ -3002,7 +3001,7 @@ auto v = c.name;
             #printf("sql: %s\n", sql);
 
             return int sub (hash crow) {
-                list args = crow.values();
+                list<auto> args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 int rc = ds.vexec(sql, args);
                 return crow.firstValue().lsize() > 1 ? UR_Verified : (rc ? UR_Inserted : UR_Unchanged);
@@ -3010,7 +3009,7 @@ auto v = c.name;
         }
 
         #! high-performance "update only" upsert supporting bulk DML
-        private code getUpsertUpdateOnly(Columns cols, hash row, *hash opt) {
+        private code getUpsertUpdateOnly(Columns cols, hash<auto> row, *hash opt) {
             # get update columns
             list updc = ();
             # hash of columns to skip on update if applicable
@@ -3030,7 +3029,7 @@ auto v = c.name;
             #printf("sql: %s\n", sql);
 
             return int sub (hash crow) {
-                list args = crow.(cols.keys()).values() + crow{updc}.values();
+                list<auto> args = crow.(cols.keys()).values() + crow{updc}.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 int rc = ds.vexec(sql, args);
                 return crow.firstValue().lsize() > 1 ? UR_Verified : (rc ? UR_Verified : UR_Unchanged);
@@ -3054,7 +3053,7 @@ auto v = c.name;
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
+        private *hash doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
             list l = ();
             foreach auto v in (opt.returning) {
                 hash rh;
@@ -3081,7 +3080,7 @@ auto v = c.name;
             return True;
         }
 
-        private setupTableImpl(hash desc, *hash opt) {
+        private setupTableImpl(hash<auto> desc, *hash<auto> opt) {
         }
 
         #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
@@ -3104,8 +3103,8 @@ auto v = c.name;
         }
 
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
-        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *string format) {
-            return new OracleNumberDataType(native_type, nullable, format);
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
+            return new OracleNumberDataType(native_type, nullable, options);
         }
     }
 }

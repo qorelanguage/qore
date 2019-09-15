@@ -1669,7 +1669,7 @@ hash uk_desc = (
 
     The following is an example of an index description hash:
     @code{.py}
-hash ix_desc = (
+hash<auto> ix_desc = (
     "columns": ("type", "name"),
     "unique": True,
 );
@@ -4867,7 +4867,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         }
 
         #! creates the object from the given parameters
-        constructor(string native_type, bool nullable, int max_size = -1) : DataProvider::AbstractDataProviderType(max_size) {
+        constructor(string native_type, bool nullable, *hash<auto> options) : DataProvider::AbstractDataProviderType(options) {
             name = native_type;
             self.nullable = nullable;
         }
@@ -4913,8 +4913,37 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         }
 
         #! creates the object
-        constructor(string native_type, bool nullable, *hash<QoreSoftDateOptionInfo> opts)
-            : QoreSoftDateTypeBase(nullable ? SoftDateOrNothingType : SoftDateType, opts) {
+        constructor(string native_type, bool nullable, *hash<auto> options)
+            : QoreSoftDateTypeBase(nullable ? SoftDateOrNothingType : SoftDateType, options) {
+            name = native_type;
+            self.nullable = nullable;
+
+            if (base_type_hash{NT_NOTHING}) {
+                base_type_hash{NT_NULL} = True;
+            }
+        }
+
+        #! returns the type name
+        string getName() {
+            return name;
+        }
+    }
+
+    #! type for string / varchar / char columns
+    public class SqlUtilStringType inherits DataProvider::QoreStringTypeBase {
+        private {
+            #! the type name
+            string name;
+
+            #! nullable flag
+            bool nullable;
+        }
+
+        #! creates the object
+        /** we let the DB drive do any encoding conversions
+        */
+        constructor(string native_type, bool nullable, *hash<auto> options)
+            : QoreStringTypeBase(nullable ? SoftStringOrNothingType : SoftStringType, options) {
             name = native_type;
             self.nullable = nullable;
 
@@ -4943,14 +4972,14 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         }
 
         #! creates the object
-        constructor(string native_type, string type, int max_size = -1) {
+        constructor(string native_type, string type, *hash<auto> options) {
             name = native_type;
-            self.type = AbstractDataProviderType::get(new Type(type), max_size);
+            self.type = AbstractDataProviderType::get(new Type(type), options);
             init();
         }
 
         #! creates the object
-        constructor(DataProvider::AbstractDataProviderType type) : AbstractDataProviderType(type.maxSize()) {
+        constructor(DataProvider::AbstractDataProviderType type) : AbstractDataProviderType() {
             self.type = type;
             init();
         }
@@ -4992,6 +5021,31 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
             return type.acceptsValue(value);
         }
 
+        #! returns the value of the given option
+        auto getOptionValue(string opt) {
+            return type.getOptionValue(opt);
+        }
+
+        #! returns options set on the type
+        *hash<auto> getOptions() {
+            return type.getOptions();
+        }
+
+        #! returns supported options
+        *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+            return type.getSupportedOptions();
+        }
+
+        #! sets the given option on the type
+        /** @param opt the option to set
+            @param value the value to set
+
+            @throw TYPE-OPTION-ERROR invalid option or invalid option type
+        */
+        setOption(string opt, auto value) {
+            type.setOption(opt, value);
+        }
+
         #! initializes the object
         private init() {
             base_type_hash = type.getDirectTypeHash();
@@ -5012,17 +5066,20 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         }
 
         #! creates the object
-        constructor(string name, bool nullable) : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType) {
+        constructor(string name, bool nullable, *hash<auto> options)
+            : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType, options) {
             self.name = name;
             self.nullable = nullable;
-            init();
-        }
-
-        #! creates the object
-        constructor(string name, bool nullable, string format) : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType, format) {
-            self.name = name;
-            self.nullable = nullable;
-            init();
+            base_type_hash += {
+                NT_FLOAT: True,
+                NT_INT: True,
+            } + (options."number.format".val() ? NOTHING : {
+                NT_STRING: True,
+            }) + (nullable
+                ? {
+                    NT_NULL: True,
+                }
+                : NOTHING);
         }
 
         #! returns the type name
@@ -5040,20 +5097,6 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
                 return value;
             }
             return QoreSoftNumberTypeBase::acceptsValue(value);
-        }
-
-        #! common initialization
-        private init() {
-            base_type_hash += {
-                NT_FLOAT: True,
-                NT_INT: True,
-            } + (format.val() ? NOTHING : {
-                NT_STRING: True,
-            }) + (nullable
-                ? {
-                    NT_NULL: True,
-                }
-                : NOTHING);
         }
     }
 
@@ -9647,7 +9690,7 @@ bool b = table.empty();
                 if (desc.indexes{ixn}.typeCode() != NT_HASH)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", getDesc(), ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
 
-                hash ih = desc.indexes{ixn};
+                hash<auto> ih = desc.indexes{ixn};
 
                 if (!ih.columns || !inlist(ih.columns.typeCode(), (NT_LIST, NT_STRING)))
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", getDesc(), ixn, ih.columns.type(), ih.columns);
@@ -10474,7 +10517,7 @@ printf("%s;\n", sql);
 
             @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
          */
-        string getAddIndexSql(string iname, bool unique, softlist cols, *hash ixopt, *hash<auto> opt) {
+        string getAddIndexSql(string iname, bool unique, softlist cols, *hash<auto> ixopt, *hash<auto> opt) {
             validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
             l.lock();
@@ -10541,7 +10584,7 @@ printf("%s;\n", sql);
             }
 
             # validate options
-            hash ixopt = getIndexOptions();
+            hash<auto> ixopt = getIndexOptions();
             validateOptionsIntern("INDEX-ERROR", ixopt, \opt);
 
             # get the new index object
@@ -11547,7 +11590,7 @@ table.insertCommit(row);
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        *hash insertCommit(hash<auto> row) {
+        *hash<auto> insertCommit(hash<auto> row) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -11559,7 +11602,7 @@ table.insertCommit(row);
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
          */
-        *hash insertCommit(hash<auto> row, reference<string> sql) {
+        *hash<auto> insertCommit(hash<auto> row, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -11571,7 +11614,7 @@ table.insertCommit(row);
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
          */
-        *hash insertCommit(hash<auto> row, hash<auto> opt) {
+        *hash<auto> insertCommit(hash<auto> row, hash<auto> opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -11584,7 +11627,7 @@ table.insertCommit(row);
             @param sql an optional reference to a string to return the SQL generated for the insert statement
             @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
          */
-        *hash insertCommit(hash<auto> row, reference<string> sql, hash<auto> opt) {
+        *hash<auto> insertCommit(hash<auto> row, reference<string> sql, hash<auto> opt) {
             on_success ds.commit();
             on_error ds.rollback();
 
@@ -11604,7 +11647,7 @@ table.insert(row);
 
             @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
          */
-        *hash insert(hash<auto> row) {
+        *hash<auto> insert(hash<auto> row) {
             return insertIntern(row);
         }
 
@@ -11613,7 +11656,7 @@ table.insert(row);
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param sql an optional reference to a string to return the SQL generated for the insert statement
          */
-        *hash insert(hash<auto> row, reference<string> sql) {
+        *hash<auto> insert(hash<auto> row, reference<string> sql) {
             return insertIntern(row, \sql);
         }
 
@@ -11622,7 +11665,7 @@ table.insert(row);
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
             @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
          */
-        *hash insert(hash<auto> row, hash<auto> opt) {
+        *hash<auto> insert(hash<auto> row, hash<auto> opt) {
             return insertIntern(row, NOTHING, opt);
         }
 
@@ -11632,21 +11675,21 @@ table.insert(row);
             @param sql an optional reference to a string to return the SQL generated for the insert statement
             @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
          */
-        *hash insert(hash<auto> row, reference<string> sql, hash<auto> opt) {
+        *hash<auto> insert(hash<auto> row, reference<string> sql, hash<auto> opt) {
             return insertIntern(row, \sql, opt);
         }
 
         #! A legacy wrapper for @ref SqlUtil::AbstractTable::insert()
-        deprecated *hash insertNoCommit(hash<auto> row, *reference<string> sql, *hash<auto> opt) {
+        deprecated *hash<auto> insertNoCommit(hash<auto> row, *reference<string> sql, *hash<auto> opt) {
             return insertIntern(row, \sql, opt);
         }
 
         #! A legacy wrapper for @ref SqlUtil::AbstractTable::insert()
-        deprecated *hash insertNoCommit(hash<auto> row, hash<auto> opt) {
+        deprecated *hash<auto> insertNoCommit(hash<auto> row, hash<auto> opt) {
             return insertIntern(row, NOTHING, opt);
         }
 
-        private *hash insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt) {
+        private *hash<auto> insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt) {
             # check data callback options if any
             validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -11708,7 +11751,7 @@ table.insert(row);
         }
 
         private hash<auto> getPlaceholdersAndValues(hash<auto> row) {
-            hash im;
+            hash<auto> im;
             # placeholder list
             list phl = ();
             # value list
@@ -15133,49 +15176,44 @@ string sql = table.getAlignSqlString(table2);
         /** @since SqlUtil 1.6
         */
         AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1, *hash<SqlUtilDataTypeOptionInfo> options) {
+            hash<auto> type_options;
             if (nullable && options.mandatory) {
                 nullable = False;
             }
             if (options.maxlen && (max_size < 0 || max_size > options.maxlen)) {
-                max_size = options.maxlen;
+                type_options."string.max_size_chars" = options.maxlen;
             }
             if (!qore_type) {
                 qore_type = getTypeMapImpl(){native_type};
                 if (!qore_type) {
-                    return new SqlUtilDbSpecificDataType(native_type, nullable, max_size);
+                    return new SqlUtilDbSpecificDataType(native_type, nullable, type_options);
                 }
             }
             switch (qore_type) {
                 case "number":
-                    return getNumericType(native_type, nullable, options.number_format);
+                    return getNumericType(native_type, nullable, {"number.format": options.number_format});
 
                 case "date":
-                    hash<QoreSoftDateOptionInfo> date_opts({
-                        "format": options.date_format,
-                        "output_timezone": options.db_timezone,
-                    });
-                    if (options.data_timezone) {
-                        date_opts.input_timezone = options.data_timezone;
-                    }
-                    return getDateType(native_type, nullable, date_opts);
+                    type_options = {
+                        "date.format": options.date_format,
+                        "date.output_timezone": options.db_timezone,
+                        "date.input_timezone": options.data_timezone,
+                    };
+                    return new SqlUtilDateType(native_type, nullable, type_options);
+
+                case "string":
+                    return new SqlUtilStringType(native_type, nullable, type_options);
 
                 default:
-                    return new SqlUtilColumnDataType(native_type, (nullable ? "*" : "") + qore_type, max_size);
+                    return new SqlUtilColumnDataType(native_type, (nullable ? "*" : "") + qore_type, type_options);
             }
         }
 
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
         /** @since SqlUtil 1.6
         */
-        AbstractDataProviderType getNumericType(string type_name, bool nullable, *string format) {
-            return getNumericTypeImpl(type_name, nullable, format);
-        }
-
-        #! returns the type for date / timestamp columns for the database so that data conversions can be handled properly
-        /** @since SqlUtil 1.6
-        */
-        AbstractDataProviderType getDateType(string type_name, bool nullable, hash<QoreSoftDateOptionInfo> date_opts) {
-            return new SqlUtilDateType(type_name, nullable, date_opts);
+        AbstractDataProviderType getNumericType(string type_name, bool nullable, *hash<auto> options) {
+            return getNumericTypeImpl(type_name, nullable, options);
         }
 
         #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
@@ -15706,7 +15744,7 @@ any res = t.selectRows(sh, \sql);
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
         /** @since SqlUtil 1.6
         */
-        private abstract AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *string format);
+        private abstract AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options);
 
         private abstract *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args);
 

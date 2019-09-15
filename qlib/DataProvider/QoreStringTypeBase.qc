@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftStringTypeBase class definition
+#! Qore QoreStringTypeBase class definition
 
-/** QoreSoftStringTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreStringTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,30 +38,37 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on softstring with a target encoding
-public class QoreSoftStringTypeBase inherits QoreDataType {
+public class QoreStringTypeBase inherits QoreDataType {
     private {
         #! the target encoding for the string when converting
         string encoding;
+
+        #! supported options
+        const SupportedOptions = {
+            "string.encoding": <DataProviderTypeOptionInfo>{
+                "type": Type::String,
+                "desc": "the output encoding when writing to the type",
+            },
+            # the max_size_chars option is to be enforced externally
+            "string.max_size_chars": <DataProviderTypeOptionInfo>{
+                "type": Type::Int,
+                "desc": "the maximum length of the string in characters",
+            },
+        };
     }
 
     #! creates the object with the given target encoding
-    constructor(Type type, string encoding = "UTF-8", int maxlen = -1) : QoreDataType(type, maxlen) {
-        setEncoding(encoding);
+    /** @throw STRING-TYPE-ERROR invalid type; must be a string type
+    */
+    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+        if (type.getBaseTypeCode() != NT_STRING) {
+            throw "STRING-TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(), type.getName());
+        }
+
         # translations are done on string types if there is an encoding arg
-        if (encoding) {
+        if (options.encoding) {
             remove base_type_hash{NT_STRING};
         }
-    }
-
-    #! sets the target encoding
-    setEncoding(string encoding) {
-        # make sure the encoding is recognized and the internal target encoding
-        self.encoding = string("", encoding).encoding();
-    }
-
-    #! returns the target encoding
-    string getEncoding() {
-        return encoding;
     }
 
     #! returns the value if the value can be assigned to the type
@@ -79,6 +86,21 @@ public class QoreSoftStringTypeBase inherits QoreDataType {
             return value;
         }
         return type.acceptsValue(value);
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+       return SupportedOptions;
+    }
+
+    #! sets the given option without any validation of the option
+    private setOptionInternal(string opt, auto value) {
+        if (opt == "string.encoding") {
+            # make sure the encoding is recognized and is the internal target encoding
+            options.encoding = string("", encoding).encoding();
+        } else {
+            options{opt} = value;
+        }
     }
 }
 }

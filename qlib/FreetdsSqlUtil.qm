@@ -141,12 +141,12 @@ module FreetdsSqlUtil {
 #! the FreetdsSqlUtil namespace contains all the objects in the FreetdsSqlUtil module
 public namespace FreetdsSqlUtil {
     #! returns a FreetdsTable object corresponding to the arguments
-    public FreetdsTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+    public FreetdsTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
         return new FreetdsTable(nds, nname, opts);
     }
 
     #! returns a FreetdsDatabase object corresponding to the arguments
-    public FreetdsDatabase sub get_database(AbstractDatasource nds, *hash opts) {
+    public FreetdsDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
         return new FreetdsDatabase(nds, opts);
     }
 
@@ -165,7 +165,7 @@ public namespace FreetdsSqlUtil {
     #! the data type for FreeTDS DECIMAL columns
     public class FreetdsNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
-        constructor(string native_type, bool nullable, *string format) : AbstractNumericDataType(native_type, nullable, format) {
+        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
         }
     }
 
@@ -884,7 +884,7 @@ any v = c.name;
             parse_schema_name(name, \schema, \name);
 
             # information_schema will return NULL if the view definition > 4000 chars, so we use system tables
-            *hash row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
+            *hash<auto> row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
 
             if (!row)
                 return;
@@ -1040,17 +1040,17 @@ any v = c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist<auto> args) {
             return FreetdsDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist<auto> args) {
             return FreetdsDatabase::tryExecRaw(ds, sql);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist<auto> args) {
             ds.exec("save tran " + FreeTDS_TempSavepoint);
 
             auto rv;
@@ -1216,7 +1216,7 @@ any v = c.name;
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = (
                 COP_CAST: (
-                    "code": string sub (string cve, list args) {
+                    "code": string sub (string cve, list<auto> args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
                         hash desc = FreetdsTypeMap{name};
                         string sql = sprintf ("cast (%s as %s", cve, name);
@@ -1254,7 +1254,7 @@ any v = c.name;
                     },
                 ),
                 COP_SUBSTR: (
-                    "code": string sub (string cve, list args) {
+                    "code": string sub (string cve, list<auto> args) {
                         if (!exists args[1])
                             return sprintf("substring(%s,%d,32767)", cve, args[0]); # NOTE: length arg is required
                         return sprintf("substring(%s,%d,%d)", cve, args[0], args[1]);
@@ -1392,7 +1392,7 @@ any v = c.name;
         }
 
         #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
-        code getUpsertClosure(hash row, int upsert_strategy = UpsertAuto, *hash opt) {
+        code getUpsertClosure(hash<auto> row, int upsert_strategy = UpsertAuto, *hash opt) {
             if (!ss_has_merge)
                 return AbstractTable::getUpsertClosure(row, upsert_strategy, opt);
 
@@ -1436,7 +1436,7 @@ any v = c.name;
 
             if (upsert_strategy == UpsertInsertOnly) {
                 return int sub (hash crow) {
-                    list args = crow.values();
+                    list<auto> args = crow.values();
                     #on_error printf("SQL: %s args: %y\n", sql, args);
                     return ds.vexec(sql, args) ? UR_Inserted : UR_Unchanged;
                 };
@@ -1444,14 +1444,14 @@ any v = c.name;
 
             if (upsert_strategy == UpsertUpdateOnly) {
                 return int sub (hash crow) {
-                    list args = crow.values();
+                    list<auto> args = crow.values();
                     #on_error printf("SQL: %s args: %y\n", sql, args);
                     return ds.vexec(sql, args) ? UR_Verified : UR_Unchanged;
                 };
             }
 
             return int sub (hash crow) {
-                list args = crow.values();
+                list<auto> args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
@@ -1574,7 +1574,7 @@ where
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
 
             hash rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 row.column_name = row.column_name.lwr();
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.length;
@@ -1609,7 +1609,7 @@ where
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
 
             hash rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 row.column_name = row.column_name.lwr();
                 *hash th = FreetdsTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
@@ -1727,8 +1727,8 @@ where
 	and s.name = %v and t.name = %v order by i.name, ic.key_ordinal", schema, name);
 
             if (qh.index_name) {
-                hash ih;
-                foreach hash row in (qh.contextIterator()) {
+                hash<auto> ih;
+                foreach hash<auto> row in (qh.contextIterator()) {
                     row.column_name = row.column_name.lwr();
                     row.index_name = row.index_name.lwr();
 
@@ -1745,7 +1745,7 @@ where
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
-                foreach hash i in (ih.pairIterator()) {
+                foreach hash<auto> i in (ih.pairIterator()) {
                     # check primary key index and add filegroup to primary key definition
                     if (i.primary && !primaryKey.empty()) {
                         FreetdsPrimaryKey pk = cast<FreetdsPrimaryKey>(primaryKey);
@@ -1798,7 +1798,7 @@ order by
                                  name, schema);
             if (qh.constraint_name) {
                 hash ch;
-                foreach hash row in (qh.contextIterator()) {
+                foreach hash<auto> row in (qh.contextIterator()) {
                     reference<hash> c = \ch.(row.constraint_name.lwr());
                     row.source_column = row.source_column.lwr();
                     c.columns.(row.source_column) = columns{row.source_column};
@@ -1829,7 +1829,7 @@ order by
             # get check constraints
             *hash qh;
             hash rv;
-            #foreach hash row in (qh.contextIterator())
+            #foreach hash<auto> row in (qh.contextIterator())
             #    rv.(row.constraint_name) = new FreetdsCheckConstraint(row.constraint_name, row.consrc);
 
             Constraints c = new Constraints(rv);
@@ -1846,7 +1846,7 @@ where
 order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 reference<FreetdsUniqueConstraint> ch = \rv.(row.constraint_name.lwr());
                 if (!ch)
                     ch = new FreetdsUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
@@ -1924,11 +1924,10 @@ order by
             return new FreetdsTrigger(tname, src);
         }
 
-        private bool tryInsertImpl(string sql, hash row) {
+        private bool tryInsertImpl(string sql, hash<auto> row) {
             try {
                 ds.vexec(sql, row.values());
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /Cannot insert duplicate/)
                     return False;
                 rethrow;
@@ -2018,12 +2017,12 @@ order by
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist<auto> args) {
             return FreetdsDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist<auto> args) {
             return FreetdsDatabase::tryExecRaw(ds, sql);
         }
 
@@ -2031,7 +2030,7 @@ order by
         private copyImpl(AbstractTable old) {
         }
 
-        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list<auto> args) {
             list l = ();
             foreach auto v in (opt.returning) {
                 hash rh;
@@ -2057,15 +2056,15 @@ order by
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
 
-        private softbool tryUpdate(string sql, hash row, Columns cols, list updc) {
-            list args = row{updc}.values() + row{cols.keys()}.values();
+        private softbool tryUpdate(string sql, hash<auto> row, Columns cols, list updc) {
+            list<auto> args = row{updc}.values() + row{cols.keys()}.values();
             auto x = ds.vexec(sql, args);
             return x.typeCode() == NT_HASH ? x.firstValue() : x;
         }
 
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
-        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *string format) {
-            return new FreetdsNumberDataType(native_type, nullable, format);
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
+            return new FreetdsNumberDataType(native_type, nullable, options);
         }
     }
 }

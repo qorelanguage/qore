@@ -44,12 +44,12 @@ public class HashDeclDataType inherits QoreDataType {
     }
 
     #! creates the object from the TypedHash
-    constructor(TypedHash hd) : QoreDataType(hd.getType()) {
+    constructor(TypedHash hd, *hash<auto> options) : QoreDataType(hd.getType(), options) {
         self.hd = hd;
     }
 
     #! creates the object from a TypedHash Type
-    private constructor(Type type) : QoreDataType(type) {
+    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
         hd = type.getTypedHash();
     }
 

@@ -37,68 +37,36 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! hash for date type options
-public hashdecl QoreSoftDateOptionInfo {
-    #! the format string to convert strings to dates
-    *string format;
-
-    #! the input timezone for converting strings to dates
-    TimeZone input_timezone = TimeZone::get();
-
-    #! the output timezone for ensuring that output dates are correct
-    *TimeZone output_timezone;
-}
-
 #! describes a data type based on softdate with validation for string parsing and time zone support
 public class QoreSoftDateTypeBase inherits QoreDataType {
     private {
-        #! the format string to convert strings to dates
-        *string format;
-
-        #! the input timezone for converting strings to dates
-        TimeZone input_timezone;
-
-        #! the output timezone for ensuring that output dates are correct
-        *TimeZone output_timezone;
+        #! supported options
+        const SupportedOptions = {
+            "date.format": <DataProviderTypeOptionInfo>{
+                "type": Type::String,
+                "desc": "the format string for converting strings to dates",
+            },
+            "date.input_timezone": <DataProviderTypeOptionInfo>{
+                "type": "object<TimeZone>",
+                "desc": "the time zone for external data when writing to the type and converting strings to dates",
+            },
+            "date.output_timezone": <DataProviderTypeOptionInfo>{
+                "type": "object<TimeZone>",
+                "desc": "the time zone to use when writing to the type",
+            },
+        };
     }
 
     #! creates the object with no format string
-    private constructor(Type type, *hash<QoreSoftDateOptionInfo> opts) : QoreDataType(type) {
-        self += opts;
+    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
         # translations are performed on date types if there is an output_timezone
-        if (opts.output_timezone) {
+        if (options.output_timezone) {
             remove base_type_hash{NT_DATE};
         }
-    }
-
-    #! sets or clears the format string
-    setFormat(*string format) {
-        self.format = format;
-    }
-
-    #! returns the format string
-    *string getFormat() {
-        return format;
-    }
-
-    #! sets or clears the input timezone
-    setInputTimeZone(*TimeZone input_timezone) {
-        self.input_timezone = input_timezone;
-    }
-
-    #! returns the input timezone
-    *TimeZone getInputTimeZone() {
-        return input_timezone;
-    }
-
-    #! sets or clears the input timezone
-    setOutputTimeZone(*TimeZone output_timezone) {
-        self.output_timezone = output_timezone;
-    }
-
-    #! returns the output timezone
-    *TimeZone getOutputTimeZone() {
-        return output_timezone;
+        # set the input timezone option unconditionally
+        if (!options."date.input_timezone") {
+            self.options."date.input_timezone" = TimeZone::get();
+        }
     }
 
     #! returns the value if the value can be assigned to the type
@@ -112,16 +80,21 @@ public class QoreSoftDateTypeBase inherits QoreDataType {
         if (exists value && value !== NULL) {
             # try to convert from the source type
             if (value.typeCode() !== NT_DATE) {
-                value = input_timezone.date(value, format);
+                value = options."date.input_timezone".date(value, options."date.format");
             }
 
             # convert to the output TimeZone if necessary
-            if (output_timezone) {
-                value = output_timezone.date(value);
+            if (options."date.output_timezone") {
+                value = options."date.output_timezone".date(value);
             }
             return value;
         }
         return type.acceptsValue(value);
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        return SupportedOptions;
     }
 }
 }

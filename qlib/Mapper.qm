@@ -526,18 +526,27 @@ Mapper mapv(DataMap);
 
         private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
             *string fieldtype = hdesc.type ?? mapdesc.type;
-            *int maxlen = hdesc.maxlen ?? mapdesc.maxlen;
+            hash<auto> field_options = {
+                "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
+                "number.format": hdesc.number_format ?? number_format,
+                "date.format": hdesc.date_format ?? date_format,
+                "date.input_timezone": input_timezone,
+                "date.output_timezone": timezone,
+                "string.encoding": encoding,
+            };
+
             if (!fieldtype.val() || fieldtype == "any" || fieldtype == "auto") {
+                # return types that support string.max_size_chars
                 return hdesc.mand
-                    ? new SomethingDataType(maxlen)
-                    : AbstractDataProviderType::get(AutoType, maxlen);
+                    ? new SomethingDataType(field_options)
+                    : new AnythingDataType(field_options);
             }
 
             switch (fieldtype) {
                 case "number":
                     return hdesc.mand
-                        ? new QoreSoftNumberType(hdesc.number_format ?? number_format)
-                        : new QoreSoftNumberOrNothingType(hdesc.number_format ?? number_format);
+                        ? new QoreSoftNumberType(field_options)
+                        : new QoreSoftNumberOrNothingType(field_options);
 
                 case "int":
                 case "integer":
@@ -546,21 +555,15 @@ Mapper mapv(DataMap);
                         : new QoreSoftIntOrNothingType();
 
                 case "date": {
-                    *string format = hdesc.date_format ?? date_format;
-                    hash<QoreSoftDateOptionInfo> opts({
-                        "format": format,
-                        "input_timezone": input_timezone,
-                        "output_timezone": timezone,
-                    });
                     return hdesc.mand
-                        ? new QoreSoftDateType(opts)
-                        : new QoreSoftDateOrNothingType(opts);
+                        ? new QoreSoftDateType(field_options)
+                        : new QoreSoftDateOrNothingType(field_options);
                 }
 
                 case "string": {
                     return hdesc.mand
-                        ? new QoreSoftStringType(encoding, maxlen)
-                        : new QoreSoftStringOrNothingType(encoding, maxlen);
+                        ? new QoreStringTypeBase(SoftStringType, field_options)
+                        : new QoreStringTypeBase(SoftStringOrNothingType, field_options);
                 }
             }
 
@@ -570,7 +573,7 @@ Mapper mapv(DataMap);
             } else {
                 type = type.getOrNothingType();
             }
-            return AbstractDataProviderType::get(type, maxlen);
+            return AbstractDataProviderType::get(type, field_options);
         }
 
         private hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, hash<auto> mapv) {
@@ -871,9 +874,9 @@ Mapper mapv(DataMap);
                     error("field %y has the \"mand\" key set to %y but the output definition has mandatory flag: %y",
                         getFieldName(k), fh.mand, field.isMandatory());
                 }
-                if (exists fh.maxlen && fh.maxlen != field.maxSize()) {
+                if (exists fh.maxlen && fh.maxlen != field.getOptionValue("string.max_size_chars")) {
                     error("field %y has the \"maxlen\" key set to %y but the output definition has a maximum size of "
-                        "%y", getFieldName(k), fh.maxlen, field.maxSize());
+                        "%y", getFieldName(k), fh.maxlen, field.getOptionValue("string.max_size_chars"));
                 }
                 # check type compatibility
                 if (exists fh.type && !field.isAssignableFrom(new Type(fh.type))) {
@@ -888,7 +891,7 @@ Mapper mapv(DataMap);
                             field.getTypeName());
                     }
                     # override any existing number format
-                    cast<QoreSoftNumberTypeBase>(field.getType()).setFormat(fh.number_format);
+                    cast<QoreSoftNumberTypeBase>(field.getType()).setOption("number.format", fh.number_format);
                 }
                 # check date format
                 if (fh.date_format) {
@@ -897,7 +900,7 @@ Mapper mapv(DataMap);
                             field.getTypeName());
                     }
                     # override any existing date format
-                    cast<QoreSoftDateTypeBase>(field.getType()).setFormat(fh.date_format);
+                    cast<QoreSoftDateTypeBase>(field.getType()).setOption("date.format", fh.date_format);
                 }
 
                 # allow the field hash to override any output default value
@@ -911,11 +914,11 @@ Mapper mapv(DataMap);
                 field = fh.field = new QoreDataField(k, fh.desc, getOutputType(fh), fh."default");
             }
 
-            if (fh.trunc && field.maxSize() < 0) {
+            if (fh.trunc && field.getOptionValue("string.max_size_chars") < 0) {
                 error("output field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
             }
 
-            if (field.maxSize() >= 0 && !exists fh.trunc && trunc_all) {
+            if (field.getOptionValue("string.max_size_chars") >= 0 && !exists fh.trunc && trunc_all) {
                 fh.trunc = True;
             }
 
@@ -967,47 +970,9 @@ Mapper mapv(DataMap);
                 delete fh.number;
             }
 
-            /*
-            else if (exists fh.type) {
-                if (!valid_types.(fh.type))
-                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, valid_types.keys());
-                switch (fh.type) {
-                    case "date": {
-                        if (!timezone)
-                            fh.typeCode = NT_DATE;
-                        break;
-                    }
-                    case "string": {
-                        fh.typeCode = NT_STRING;
-                        break;
-                    }
-                    case "integer":
-                    case "int": {
-                        fh.typeCode = NT_INT;
-                        break;
-                    }
-                    case "hash": {
-                        fh.typeCode = NT_HASH;
-                        break;
-                    }
-                }
-            }
-            */
-
             if (exists fh.code && !fh.code.callp()) {
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
             }
-
-            /*
-            if (exists fh."default" && fh.type) {
-                hash<auto> rec{k} = fh."default";
-                try {
-                    mapFieldType(k, fh, \rec{k}, rec);
-                } catch (hash<ExceptionInfo> ex) {
-                    error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
-                }
-            }
-            */
 
             # check if the output field should be a hash
             if (!allow_output_dot && k =~ /\./) {
@@ -1422,10 +1387,10 @@ Mapper mapv(DataMap);
                     v = default_value;
             }
 
-            #printf("k: %y type: %y maxlen: %y\n", key, m.field.getTypeName(), m.field.maxSize());
+            #printf("k: %y type: %y maxlen: %y\n", key, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"));
 
             # check maximum length
-            if ((int maxlen = m.field.maxSize()) >= 0) {
+            if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {
                 if (v_is_list) {
                     if (m.trunc)
                         map v[$1] = truncateField(key, $1, $#, v.size(), maxlen), v, $1.size() > maxlen;
@@ -1532,94 +1497,8 @@ Mapper mapv(DataMap);
             try {
                 return type.acceptsValue(value);
             } catch (hash<ExceptionInfo> ex) {
-                throw ex.err, sprintf("error in field %y with value %y; %s; rec: %y", key, value, ex.desc, rec), ex.arg;
+                throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y", get_ex_pos(ex), key, value, ex.desc, rec), ex.arg;
             }
-            /*
-            if (v === NULL) {
-                delete v;
-                return;
-            }
-            if (!exists v)
-                return;
-
-            # valid types are checked in the map initialization
-            switch (m.type) {
-                case "number": {
-                    switch (v.typeCode()) {
-                        case NT_NUMBER:
-                        case NT_FLOAT:
-                        case NT_INT:
-                            return;
-                        case NT_STRING: {
-                            *string nf = m.number_format ? m.number_format : number_format;
-                            if (nf) {
-                                v = parse_number(v, nf);
-                                return;
-                            }
-                            if (v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                                error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input "
-                                    "data contains non-numeric text in input row: %y", getFieldName(key), v, rec);
-                            else
-                                v = number(v);
-                            return;
-                        }
-                        default: {
-                            error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data "
-                                "contains is type %y (value %y) in input row: %y", getFieldName(key), v.type(), v, rec);
-                            return;
-                        }
-                    }
-                }
-                case "int":
-                case "integer": {
-                    switch (v.typeCode()) {
-                        case NT_INT:
-                            break;
-                        case NT_STRING: {
-                            # check for valid integer values
-                            if (v !~ /^([-+])?[0-9]+$/)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the "
-                                    "input data contains non-integer text in input row: %y", getFieldName(key), v,
-                                    rec);
-                            v = int(v);
-                            break;
-                        }
-                        default: {
-                            int rc = int(v);
-                            if (rc != v)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input "
-                                    "data contains non-integer data in input row: %y", getFieldName(key), v, rec);
-                            v = rc;
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case "date": {
-                    # if there is no date_format below, then the default conversion is made
-                    if (v.typeCode() != NT_DATE)
-                        v = input_timezone.date(v, m.date_format ? m.date_format : date_format);
-                    # convert to the output TimeZone if necessary
-                    if (timezone)
-                        v = timezone.date(v);
-                    break;
-                }
-                case "string": {
-                    if (v.typeCode() != NT_STRING)
-                        v = string(v, encoding);
-                    break;
-                }
-                case "hash": {
-                    if (v.typeCode() != NT_HASH) {
-                        if (!m.output_key_path) {
-                            error2("INVALID-HASH", "field %y = %y is marked as a hash field, but the input data is of type %y",
-                                getFieldName(key), v, v.type());
-                        }
-                    }
-                    break;
-                }
-            }
-            */
         }
 
         #! throws a \c MAP-ERROR exception; prepends the map name to the description if known
@@ -1747,6 +1626,117 @@ Mapper mapv(DataMap);
         */
         resetCount() {
             mapc.resetCount();
+        }
+    }
+
+    #! describes a data type that accepts any value; stores "string.max_size_chars" as a type attribute for external enforcement
+    public class AnythingDataType inherits AbstractDataProviderType {
+        private {
+            #! supports a max_size_chars option for strings; to be enforced externally
+            const SupportedOptions = {
+                "string.max_size_chars": <DataProviderTypeOptionInfo>{
+                    "type": Type::Int,
+                    "desc": "the maximum size of strings in chars",
+                },
+            };
+        }
+
+        #! creates the object
+        constructor(*hash<auto> options) : AbstractDataProviderType(options) {
+        }
+
+        #! returns the type name
+        string getName() {
+            return "anything";
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(AbstractDataProviderType t) {
+            return True;
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(Type t) {
+            return True;
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            return AutoType;
+        }
+
+        #! returns the subtype (for lists or hashes) if there is only one
+        *AbstractDataProviderType getElementType() {
+            # this method intentionally left blank
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+
+            @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
+        */
+        auto acceptsValue(auto value) {
+            return value;
+        }
+
+        #! returns the fields of the data structure; if any
+        *hash<string, AbstractDataField> getFields() {
+            # this method intentionally left blank
+        }
+
+        #! returns supported options
+        *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+            return SupportedOptions;
+        }
+    }
+
+    #! describes a data type that accepts any value except NOTHING; stores "string.max_size_chars" as a type attribute for external enforcement
+    public class SomethingDataType inherits AnythingDataType {
+        #! creates the object
+        constructor(*hash<auto> options) : AnythingDataType(options) {
+        }
+
+        #! returns the type name
+        string getName() {
+            return "something";
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(AbstractDataProviderType t) {
+            if (t instanceof SomethingDataType) {
+                return True;
+            }
+            *Type othertype = t.getValueType();
+            if (!othertype) {
+                return True;
+            }
+            return !othertype.isEqual(nothingType);
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(Type t) {
+            return !t.isEqual(nothingType);
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            # this method intentionally left blank
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+
+            @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
+        */
+        auto acceptsValue(auto value) {
+            if (!exists value) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("type %y cannot accept \"nothing\"", getName());
+            }
+            return value;
         }
     }
 }

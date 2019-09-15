@@ -39,12 +39,8 @@
 public namespace DataProvider {
 #! describes a data type based on softnumber with validation for parsing strings
 public class QoreSoftNumberType inherits QoreSoftNumberTypeBase {
-    #! creates the object with no format string
-    constructor() : QoreSoftNumberTypeBase(SoftNumberType) {
-    }
-
-    #! creates the object with a format string
-    constructor(string format) : QoreSoftNumberTypeBase(SoftNumberType, format) {
+    #! creates the object
+    constructor(*hash<auto> options) : QoreSoftNumberTypeBase(SoftNumberType, options) {
     }
 }
 }

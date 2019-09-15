@@ -64,12 +64,29 @@ public class AbstractDataField {
         return getType().isMandatory();
     }
 
-    #! returns the maximum size of values for the field's type
-    /** @return the maximum size of values for the field's type; characters for string fields, bytes for binary fields,
-        elements for all other types; -1 = no limit
+    #! returns the value of the given option on the field's type
+    auto getOptionValue(string opt) {
+        return getType().getOptionValue(opt);
+    }
+
+    #! returns options set on the field's type
+    *hash<auto> getOptions() {
+        return getType().getOptions();
+    }
+
+    #! returns supported options on the field's type
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        return getType().getSupportedOptions();
+    }
+
+    #! sets the given option on the field's type
+    /** @param opt the option to set
+        @param value the value to set
+
+        @throw TYPE-OPTION-ERROR invalid option or invalid option type
     */
-    int maxSize() {
-        return getType().maxSize();
+    setOption(string opt, auto value) {
+        getType().setOption(opt, value);
     }
 
     #! returns the type name

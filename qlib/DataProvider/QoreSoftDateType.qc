@@ -40,7 +40,7 @@ public namespace DataProvider {
 #! describes a data type based on softdate with validation for string parsing and time zone support
 public class QoreSoftDateType inherits QoreSoftDateTypeBase {
     #! creates the object with the given arguments
-    constructor(*hash<QoreSoftDateOptionInfo> opts) : QoreSoftDateTypeBase(SoftDateType, opts) {
+    constructor(*hash<auto> options) : QoreSoftDateTypeBase(SoftDateType, options) {
     }
 }
 }
