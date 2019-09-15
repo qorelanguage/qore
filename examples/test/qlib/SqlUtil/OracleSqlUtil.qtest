@@ -117,7 +117,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         if (hasSdoGeometry(ds)) {
             # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
             # actually it tests it for any named type
-            tables.oracle_test.location = {"native_type": "sdo_geometry"};
+            tables.oracle_test.columns.location = {"native_type": "sdo_geometry"};
         }
 
         return doTables(tables, OracleTest::CustomColumns) + (
