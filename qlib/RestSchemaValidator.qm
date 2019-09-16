@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.3
 
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.1.1";
+    version = "1.1.2";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +69,11 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_1_1_2 RestSchemaValidator v1.1.2
+    - fixed \c NullRestSchemaValidator to report serialization errors instead of ignoring them and returning about
+      <tt>200 OK</tt> response
+      (<a href="https://github.com/qorelanguage/qore/issues/3547">issue 3547</a>)
 
     @subsection restschemavalidator_1_1_1 RestSchemaValidator v1.1.1
     - fixed \c NullRestSchemaValidator not respecting set Content-Type header from RestClass
@@ -451,7 +456,12 @@ public namespace RestSchemaValidator {
                         case NT_BINARY:
                             return s;
                         default:
-                            return sprintf("%s", s);
+                            # issue #3547: send as a YAML-serialized string if possible to catch unserialiable data
+%ifndef NoYaml
+                            return make_yaml(s);
+%else
+                            throw "TEXT-SERIALIZATION-ERROR", sprintf("cannot serialize type %y without YAML support", s.type());
+%endif
                     }
                 },
                 MimeTypeOctetStream: binary sub (auto s) {
@@ -461,7 +471,12 @@ public namespace RestSchemaValidator {
                         case NT_BINARY:
                             return s;
                         default:
-                            return binary(sprintf("%s", s));
+                            # issue #3547: send as a YAML-serialized string if possible to catch unserialiable data
+%ifndef NoYaml
+                            return binary(make_yaml(s));
+%else
+                            throw "BINARY-SERIALIZATION-ERROR", sprintf("cannot serialize type %y without YAML support", s.type());
+%endif
                     }
                 },
             };
@@ -472,7 +487,7 @@ public namespace RestSchemaValidator {
             const DeserializeYaml = (
                 "code": "yaml",
                 "in": \parse_yaml(),
-                );
+            );
 %endif
 %ifndef NoXml
             const DeserializeXml = (
@@ -493,7 +508,7 @@ public namespace RestSchemaValidator {
                         rethrow;
                     }
                 },
-                );
+            );
 %endif
 
             #! Data deserialization support MIME types to codes and de/serialization functions

@@ -626,8 +626,9 @@ public:
     // if second's return type is compatible with first's return type
     // static version of method, checking for null pointer
     DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
-        if (hasType(first) && hasType(second))
-            return first->isOutputCompatible(second);
+        if (hasType(first) && hasType(second)) {
+            return parseAccepts(first, second);
+        }
         return true;
     }
 
@@ -935,17 +936,6 @@ protected:
         for (auto& at : accept_vec) {
             if (at.map && at.spec.matchType(n.getType()) != QTI_NOT_EQUAL)
                 return true;
-        }
-        return false;
-    }
-
-    // if the argument's return type is compatible with "this"'s return type
-    DLLLOCAL bool isOutputCompatible(const QoreTypeInfo* typeInfo) const {
-        for (auto& rt : typeInfo->return_vec) {
-            for (auto& at : accept_vec) {
-                if (at.spec.match(rt.spec))
-                    return true;
-            }
         }
         return false;
     }

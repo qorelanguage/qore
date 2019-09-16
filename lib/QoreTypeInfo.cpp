@@ -657,7 +657,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                         ? QTI_NEAR
                         : QTI_NOT_EQUAL;
                 case QTS_TYPE:
-                    if (u.ti == autoTypeInfo) {
+                    if (t.getType() == NT_HASH && u.ti == autoTypeInfo) {
                         return QTI_NEAR;
                     }
                     // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
@@ -685,7 +685,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                 case QTS_EMPTYLIST:
                     return QTI_NEAR;
                 case QTS_TYPE:
-                    if (u.ti == autoTypeInfo) {
+                    if (t.getType() == NT_LIST && u.ti == autoTypeInfo) {
                         return QTI_NEAR;
                     }
                     // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
