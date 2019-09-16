@@ -7,6 +7,20 @@
     @par Release Summary
     TDB
 
+    @section qore_0931 Qore 0.9.3.1
+
+    @par Release Summary
+
+    Bugfix release; see details below
+
+    @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>: fixed a bug where REST
+      serialization errors in server responses were ignored and a <tt>200 OK</tt> response was sent instead
+      (<a href="https://github.com/qorelanguage/qore/issues/3547">issue 3547</a>)
+    - fixed a bug where false positive parse-time matches with a complex list or hash type could be made with
+      incompatible types
+      (<a href="https://github.com/qorelanguage/qore/issues/3546">issue 3546</a>)
+
     @section qore_093 Qore 0.9.3
 
     @par Release Summary
