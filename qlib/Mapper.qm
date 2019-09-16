@@ -512,6 +512,20 @@ Mapper mapv(DataMap);
         private constructor() {
         }
 
+        static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
+            if (recordType.isAssignableFrom(input)) {
+                return cast<hash<string, AbstractDataField>>(input);
+            }
+            return Mapper::getInputFromHashIntern(input);
+        }
+
+        static hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
+            if (recordType.isAssignableFrom(output)) {
+                return cast<hash<string, AbstractDataField>>(output);
+            }
+            return Mapper::getOutputFromHashIntern(output, mapv, global_options);
+        }
+
         private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
             return Mapper::getOutputType(hdesc, mapdesc, getGlobalOptions());
         }
@@ -519,21 +533,6 @@ Mapper mapv(DataMap);
         #! returns a hash of global translation options
         private hash<auto> getGlobalOptions() {
             return self{GlobalOptions};
-        }
-
-        static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
-            HashDataType input_data();
-            foreach hash<auto> h in (input.pairIterator()) {
-                switch (h.value.typeCode()) {
-                    case NT_STRING: input{h.key} = {"desc": h.value}; break;
-                    case NT_HASH: break;
-                    default: throw "INPUT-OPTION-ERROR", sprintf("\"input\" key %y value has type %y (value %y); "
-                        "expecting \"hash\"", h.key, h.value.type(), h.value);
-                }
-                input_data.addField(new QoreDataField(h.key, input{h.key}.desc, Mapper::getInputType(h.type),
-                    h.default_value));
-            }
-            return input_data.getFields();
         }
 
         private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options) {
@@ -588,7 +587,25 @@ Mapper mapv(DataMap);
             return AbstractDataProviderType::get(type, field_options);
         }
 
-        static hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
+        private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input) {
+            HashDataType input_data();
+            foreach hash<auto> h in (input.pairIterator()) {
+                switch (h.value.typeCode()) {
+                    case NT_STRING:
+                        input_data.addField(new QoreDataField(h.key, h.value, AbstractDataProviderType::get(AutoType)));
+                        break;
+                    case NT_HASH:
+                        input_data.addField(new QoreDataField(h.key, input{h.key}.desc, Mapper::getInputType(h.type),
+                            h.default_value));
+                        break;
+                    default: throw "INPUT-OPTION-ERROR", sprintf("\"input\" key %y value has type %y (value %y); "
+                        "expecting \"hash\"", h.key, h.value.type(), h.value);
+                }
+            }
+            return input_data.getFields();
+        }
+
+        private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
             HashDataType output_data();
             foreach hash<auto> h in (output.pairIterator()) {
                 if (h.value === True || !exists h.value) {
@@ -630,7 +647,7 @@ Mapper mapv(DataMap);
                             "instead", self.className(), opts.input.type());
                     }
                     try {
-                        input = getInputFromHash(opts.input);
+                        input = getInputFromHashIntern(opts.input);
                     } catch (hash<ExceptionInfo> ex) {
                         error("%s: %s", ex.err, ex.desc);
                     }

@@ -95,5 +95,15 @@ public class QoreDataField inherits AbstractDataField {
         }
         desc += new_desc;
     }
+
+    #! returns information about the field
+    hash<DataFieldInfo> getInfo() {
+        return <DataFieldInfo>{
+            "name": name,
+            "default_value": default_value,
+            "type": type.getInfo(),
+        };
+    }
+
 }
 }

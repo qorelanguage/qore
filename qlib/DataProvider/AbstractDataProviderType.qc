@@ -121,7 +121,9 @@ public class AbstractDataProviderType {
         return <DataTypeInfo>{
             "name": getName(),
             "supported_options": getSupportedOptions(),
-            "options": options,
+            "options": (map {
+                $1.key: $1.value.typeCode() == NT_OBJECT || $1.value.callp() ? "<" + $1.value.fullType() + ">" : $1.value,
+            }, options.pairIterator()),
             "types_accepted": keys getAcceptTypeHash(),
             "types_returned": keys getReturnTypeHash(),
         };

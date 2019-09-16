@@ -37,6 +37,18 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! describes a data type
+public hashdecl DataFieldInfo {
+    #! the name of the field
+    string name;
+
+    #! the default value for the field
+    auto default_value;
+
+    #! type info
+    hash<DataTypeInfo> type;
+}
+
 #! describes a data type based on a hashdecl
 public class AbstractDataField {
     private {
@@ -120,6 +132,15 @@ public class AbstractDataField {
             return default_value;
         }
         return getType().acceptsValue(value);
+    }
+
+    #! returns information about the field
+    hash<DataFieldInfo> getInfo() {
+        return <DataFieldInfo>{
+            "name": getName(),
+            "default_value": default_value,
+            "type": getType().getInfo(),
+        };
     }
 
     #! returns the name of the field

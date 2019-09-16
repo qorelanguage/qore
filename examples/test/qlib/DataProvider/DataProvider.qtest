@@ -89,5 +89,15 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(3, info.types_accepted.size());
             assertEq(2, info.types_returned.size());
         }
+
+        {
+            HashDataType fields();
+            fields.addField(new QoreDataField("key1", "desc1", StringType));
+            assertTrue(fields.getFields().key1 instanceof QoreDataField);
+            assertEq("key1", fields.getFields().key1.getName());
+            assertEq("desc1", fields.getFields().key1.getDescription());
+            assertEq("key1", fields.getFields().key1.getInfo().name);
+            assertEq("string", fields.getFields().key1.getInfo().type.name);
+        }
     }
 }
