@@ -501,7 +501,7 @@ int Type::isAssignableFrom(auto value) [flags=CONSTANT] {
     return qore_type_is_assignable_from(t->typeInfo, value);
 }
 
-//! returns the base type code for the type or @ref Qore::NT_ALL for those that don't have types
+//! Returns the base type code for the type or @ref Qore::NT_ALL for those that don't have types
 /** @par Example:
     @code{.py}
 int t = t.getBaseTypeCode();
@@ -513,6 +513,24 @@ int t = t.getBaseTypeCode();
 */
 int Type::getBaseTypeCode() [flags=CONSTANT] {
     return qore_type_get_base_type(t->typeInfo);
+}
+
+//! Returns a hash of types accepted by this type
+/** @return a hash of types accepted by this type
+
+    @since %Qore 0.9.4
+*/
+hash<string, bool> Type::getAcceptTypeHash() [flags=CONSTANT] {
+    return qore_type_get_accept_types(t->typeInfo);
+}
+
+//! Returns a hash of types returned by this type
+/** @return a hash of types returned by this type
+
+    @since %Qore 0.9.4
+*/
+hash<string, bool> Type::getReturnTypeHash() [flags=CONSTANT] {
+    return qore_type_get_return_types(t->typeInfo);
 }
 
 //! Returns @ref True if values of this type can be converted to a scalar value

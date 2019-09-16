@@ -81,5 +81,13 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("RUNTIME-TYPE-ERROR", \hash2.acceptsValue(), {"a": 1});
         assertEq(NOTHING, hash2.acceptsValue());
         assertEq(NOTHING, hash2.acceptsValue(NULL));
+        {
+            hash<DataTypeInfo> info = hash2.getInfo();
+            assertEq("*hash<string, bool>", info.name);
+            assertNothing(info.supported_options);
+            assertNothing(info.options);
+            assertEq(3, info.types_accepted.size());
+            assertEq(2, info.types_returned.size());
+        }
     }
 }

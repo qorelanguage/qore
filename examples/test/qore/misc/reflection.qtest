@@ -157,6 +157,36 @@ class ReflectionTest inherits QUnit::Test {
 
         assertEq(NT_INT, IntOrNothingType.getBaseTypeCode());
         assertEq(NT_INT, IntType.getBaseTypeCode());
+
+        assertEq("hash<StatInfo>", (new Type("hash<StatInfo>")). getAcceptTypeHash().firstKey());
+        assertEq("hash<StatInfo>", (new Type("hash<StatInfo>")). getReturnTypeHash().firstKey());
+        assertEq("object<Mutex>", (new Type("Mutex")). getAcceptTypeHash().firstKey());
+        assertEq("object<Mutex>", (new Type("Mutex")). getReturnTypeHash().firstKey());
+        assertEq(("string", "binary"), keys (new Type("data")). getAcceptTypeHash());
+        assertEq(("string", "binary"), keys (new Type("data")). getReturnTypeHash());
+        assertEq(("int",), keys (new Type("int")). getAcceptTypeHash());
+        assertEq(("int",), keys (new Type("int")). getReturnTypeHash());
+        assertEq(("hash<string, bool>",), keys (new Type("hash<string, bool>")). getAcceptTypeHash());
+        assertEq(("hash<string, bool>",), keys (new Type("hash<string, bool>")). getReturnTypeHash());
+        assertEq(("list<string>",), keys (new Type("list<string>")). getAcceptTypeHash());
+        assertEq(("list<string>",), keys (new Type("list<string>")). getReturnTypeHash());
+        assertEq(("reference<string>",), keys (new Type("reference<string>")). getAcceptTypeHash());
+        assertEq(("reference<string>",), keys (new Type("reference<string>")). getReturnTypeHash());
+
+        assertEq("hash<StatInfo>", (new Type("*hash<StatInfo>")). getAcceptTypeHash().firstKey());
+        assertEq("hash<StatInfo>", (new Type("*hash<StatInfo>")). getReturnTypeHash().firstKey());
+        assertEq("object<Mutex>", (new Type("*Mutex")). getAcceptTypeHash().firstKey());
+        assertEq("object<Mutex>", (new Type("*Mutex")). getReturnTypeHash().firstKey());
+        assertEq(("string", "binary", "nothing", "null"), keys (new Type("*data")). getAcceptTypeHash());
+        assertEq(("string", "binary", "nothing"), keys (new Type("*data")). getReturnTypeHash());
+        assertEq(("int", "nothing", "null"), keys (new Type("*int")). getAcceptTypeHash());
+        assertEq(("int", "nothing"), keys (new Type("*int")). getReturnTypeHash());
+        assertEq(("hash<string, bool>", "nothing", "null"), keys (new Type("*hash<string, bool>")). getAcceptTypeHash());
+        assertEq(("hash<string, bool>", "nothing"), keys (new Type("*hash<string, bool>")). getReturnTypeHash());
+        assertEq(("list<string>", "nothing", "null"), keys (new Type("*list<string>")). getAcceptTypeHash());
+        assertEq(("list<string>", "nothing"), keys (new Type("*list<string>")). getReturnTypeHash());
+        assertEq(("reference<string>", "nothing", "null"), keys (new Type("*reference<string>")). getAcceptTypeHash());
+        assertEq(("reference<string>", "nothing"), keys (new Type("*reference<string>")). getReturnTypeHash());
     }
 
     pgmTests() {

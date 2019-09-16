@@ -602,6 +602,10 @@ static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTy
     return res;
 }
 
+const char* QoreTypeSpec::getName() const {
+    return QoreTypeInfo::getName(getTypeInfo());
+}
+
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
     //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
     switch (typespec) {

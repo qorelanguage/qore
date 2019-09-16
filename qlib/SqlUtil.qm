@@ -4900,6 +4900,16 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         auto acceptsValue(auto value) {
             return value;
         }
+
+        #! returns a hash of types accepted by this type
+        hash<string, bool> getAcceptTypeHash() {
+            return {"all": True};
+        }
+
+        #! returns a hash of types returned by this type
+        hash<string, bool> getReturnTypeHash() {
+            return {"all": True};
+        }
     }
 
     #! type for date / timestamp columns
@@ -5044,6 +5054,16 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         */
         setOption(string opt, auto value) {
             type.setOption(opt, value);
+        }
+
+        #! returns a hash of types accepted by this type
+        hash<string, bool> getAcceptTypeHash() {
+            return type.getAcceptTypeHash();
+        }
+
+        #! returns a hash of types returned by this type
+        hash<string, bool> getReturnTypeHash() {
+            return type.getReturnTypeHash();
         }
 
         #! initializes the object

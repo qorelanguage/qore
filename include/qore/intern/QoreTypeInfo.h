@@ -88,6 +88,8 @@ public:
         return typespec;
     }
 
+    DLLLOCAL const char* getName() const;
+
     DLLLOCAL qore_type_t getType() const {
         switch (typespec) {
             case QTS_TYPE:
@@ -155,6 +157,37 @@ public:
                 || typespec == QTS_COMPLEXLIST
                 || typespec == QTS_COMPLEXSOFTLIST
                 || typespec == QTS_COMPLEXREF;
+    }
+
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+        switch (typespec) {
+            case QTS_HASHDECL:
+                return u.hd->getTypeInfo();
+
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return qore_get_complex_list_type(u.ti);
+
+            case QTS_COMPLEXHASH:
+                return qore_get_complex_hash_type(u.ti);
+
+            case QTS_COMPLEXREF:
+                return qore_get_complex_reference_type(u.ti);
+
+            case QTS_CLASS:
+                return u.qc->getTypeInfo();
+
+            case QTS_TYPE:
+                return getTypeInfoForType(u.t);
+
+            case QTS_EMPTYLIST:
+                return emptyListTypeInfo;
+
+            case QTS_EMPTYHASH:
+                return emptyHashTypeInfo;
+        }
+        assert(false);
+        return nullptr;
     }
 
     DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
@@ -320,6 +353,28 @@ public:
     }
 
     DLLLOCAL virtual ~QoreTypeInfo() = default;
+
+    // static version of method, checking for null pointer
+    DLLLOCAL static QoreHashNode* getAcceptTypes(const QoreTypeInfo* ti) {
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(boolTypeInfo), nullptr);
+        if (ti && hasType(ti)) {
+            ti->getAcceptTypes(rv);
+        } else {
+            rv->setKeyValue("any", true, nullptr);
+        }
+        return rv.release();
+    }
+
+    // static version of method, checking for null pointer
+    DLLLOCAL static QoreHashNode* getReturnTypes(const QoreTypeInfo* ti) {
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(boolTypeInfo), nullptr);
+        if (ti && hasType(ti)) {
+            ti->getReturnTypes(rv);
+        } else {
+            rv->setKeyValue("any", true, nullptr);
+        }
+        return rv.release();
+    }
 
     // static version of method, checking for null pointer
     DLLLOCAL static qore_type_t getSingleType(const QoreTypeInfo* ti) {
@@ -816,6 +871,18 @@ public:
         }
         assert(!ti->return_vec.empty());
         return ti->return_vec[0].spec.getClass();
+    }
+
+    DLLLOCAL void getAcceptTypes(ReferenceHolder<QoreHashNode>& h) const {
+        for (auto& i : accept_vec) {
+            h->setKeyValue(i.spec.getName(), true, nullptr);
+        }
+    }
+
+    DLLLOCAL void getReturnTypes(ReferenceHolder<QoreHashNode>& h) const {
+        for (auto& i : return_vec) {
+            h->setKeyValue(i.spec.getName(), true, nullptr);
+        }
     }
 
     DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {

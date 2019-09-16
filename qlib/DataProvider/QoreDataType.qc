@@ -43,8 +43,14 @@ public class QoreDataType inherits AbstractDataProviderType {
         #! the Qore type
         Type type;
 
-        #! hash of base types where no translations are performed
+        #! hash of base types where no translations are performed; keys are type codes, not names
         hash<string, bool> base_type_hash;
+
+        #! hash of base types accepted by this type; keys are type names
+        *hash<string, bool> accept_type_hash;
+
+        #! hash of base types returned by this type; keys are type names
+        *hash<string, bool> return_type_hash;
     }
 
     #! creates the type
@@ -54,6 +60,8 @@ public class QoreDataType inherits AbstractDataProviderType {
         if (type.isOrNothingType()) {
             base_type_hash{NT_NOTHING} = True;
         }
+        accept_type_hash = type.getAcceptTypeHash();
+        return_type_hash = type.getReturnTypeHash();
     }
 
     #! returns the type name
@@ -66,7 +74,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         return type;
     }
 
-    #! returns a hash of native base type code where no translations are performed
+    #! returns a hash of native base type code where no translations are performed; keys are type codes, not names
     *hash<string, bool> getDirectTypeHash() {
         return base_type_hash;
     }
@@ -92,6 +100,16 @@ public class QoreDataType inherits AbstractDataProviderType {
     #! returns the fields of the data structure; if any
     *hash<string, AbstractDataField> getFields() {
         # this method intentionally left blank
+    }
+
+    #! returns a hash of base types accepted by this type; keys are type names
+    hash<string, bool> getAcceptTypeHash() {
+        return accept_type_hash;
+    }
+
+    #! returns a hash of base types returned by this type; keys are type names
+    hash<string, bool> getReturnTypeHash() {
+        return return_type_hash;
     }
 }
 }

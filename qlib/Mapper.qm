@@ -1690,6 +1690,16 @@ Mapper mapv(DataMap);
         *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
             return SupportedOptions;
         }
+
+        #! returns a hash of base types accepted by this type
+        hash<string, bool> getAcceptTypeHash() {
+            return {"all": True};
+        }
+
+        #! returns a hash of base types returned by this type
+        hash<string, bool> getReturnTypeHash() {
+            return {"all": True};
+        }
     }
 
     #! describes a data type that accepts any value except NOTHING; stores "string.max_size_chars" as a type attribute for external enforcement

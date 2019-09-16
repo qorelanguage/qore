@@ -37,6 +37,23 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! maps type codes to type names
+const TypeCodeMap = {
+    NT_INT: "int",
+    NT_STRING: "string",
+    NT_BOOLEAN: "bool",
+    NT_FLOAT: "float",
+    NT_NUMBER: "number",
+    NT_BINARY: "binary",
+    NT_LIST: "list",
+    NT_HASH: "hash",
+    NT_OBJECT: "object",
+    NT_ALL: "any",
+    NT_DATE: "date",
+    NT_NULL: "null",
+    NT_NOTHING: "nothing",
+};
+
 #! describes type options
 public hashdecl DataProviderTypeOptionInfo {
     #! the option value type
@@ -47,10 +64,28 @@ public hashdecl DataProviderTypeOptionInfo {
 }
 
 #! describes a data type
+public hashdecl DataTypeInfo {
+    #! the name of the type
+    string name;
+
+    #! options supported by the type
+    *hash<string, hash<DataProviderTypeOptionInfo>> supported_options;
+
+    #! current options
+    *hash<auto> options;
+
+    #! list of types accepted
+    list<string> types_accepted;
+
+    #! list of types returned
+    list<string> types_returned;
+}
+
+#! describes a data type
 public class AbstractDataProviderType {
     private {
         static Type nothingType("nothing");
-        static Type anyType("any");
+        static Type anyType("auto");
 
         #! type options
         hash<auto> options;
@@ -79,6 +114,17 @@ public class AbstractDataProviderType {
                 setOptionIntern(i.key, value);
             }
         }
+    }
+
+    #! returns a description of the type as a hash
+    hash<DataTypeInfo> getInfo() {
+        return <DataTypeInfo>{
+            "name": getName(),
+            "supported_options": getSupportedOptions(),
+            "options": options,
+            "types_accepted": keys getAcceptTypeHash(),
+            "types_returned": keys getReturnTypeHash(),
+        };
     }
 
     #! returns True if this type can be assigned from values of the argument type
@@ -130,7 +176,7 @@ public class AbstractDataProviderType {
             : NT_ALL;
     }
 
-    #! returns a hash of native base type code where no translations are performed
+    #! returns a hash of native base type code keys where no translations are performed; keys are type codes, not names
     *hash<string, bool> getDirectTypeHash() {
         *Type thistype = getValueType();
         if (thistype) {
@@ -205,6 +251,12 @@ public class AbstractDataProviderType {
 
     #! returns the fields of the data structure; if any
     abstract *hash<string, AbstractDataField> getFields();
+
+    #! returns a hash of types accepted by this type; keys are type names
+    abstract hash<string, bool> getAcceptTypeHash();
+
+    #! returns a hash of types returned by this type; keys are type names
+    abstract hash<string, bool> getReturnTypeHash();
 
     #! returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
