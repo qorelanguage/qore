@@ -472,6 +472,9 @@ public namespace Mapper {
                 "softlist": "softlist<auto>",
                 "*softlist": "*softlist<auto>",
             };
+
+            #! global translation options
+            const GlobalOptions = ("number_format", "date_format", "input_timezone", "timezone", "encoding");
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -509,30 +512,39 @@ Mapper mapv(DataMap);
         private constructor() {
         }
 
-        private hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
+        private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
+            return Mapper::getOutputType(hdesc, mapdesc, getGlobalOptions());
+        }
+
+        #! returns a hash of global translation options
+        private hash<auto> getGlobalOptions() {
+            return self{GlobalOptions};
+        }
+
+        static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
             HashDataType input_data();
             foreach hash<auto> h in (input.pairIterator()) {
                 switch (h.value.typeCode()) {
                     case NT_STRING: input{h.key} = {"desc": h.value}; break;
                     case NT_HASH: break;
-                    default: error("\"input\" key %y passed to %s::constructor() assigned to type %y (value %y); "
-                        "expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
+                    default: throw "INPUT-OPTION-ERROR", sprintf("\"input\" key %y value has type %y (value %y); "
+                        "expecting \"hash\"", h.key, h.value.type(), h.value);
                 }
-                input_data.addField(new QoreDataField(h.key, input{h.key}.desc, getInputType(h.type),
+                input_data.addField(new QoreDataField(h.key, input{h.key}.desc, Mapper::getInputType(h.type),
                     h.default_value));
             }
             return input_data.getFields();
         }
 
-        private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
+        private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options) {
             *string fieldtype = hdesc.type ?? mapdesc.type;
             hash<auto> field_options = {
                 "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
-                "number.format": hdesc.number_format ?? number_format,
-                "date.format": hdesc.date_format ?? date_format,
-                "date.input_timezone": input_timezone,
-                "date.output_timezone": timezone,
-                "string.encoding": encoding,
+                "number.format": hdesc.number_format ?? global_options.number_format,
+                "date.format": hdesc.date_format ?? global_options.date_format,
+                "date.input_timezone": global_options.input_timezone,
+                "date.output_timezone": global_options.timezone,
+                "string.encoding": global_options.encoding,
             };
 
             if (!fieldtype.val() || fieldtype == "any" || fieldtype == "auto") {
@@ -576,7 +588,7 @@ Mapper mapv(DataMap);
             return AbstractDataProviderType::get(type, field_options);
         }
 
-        private hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, hash<auto> mapv) {
+        static hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
             HashDataType output_data();
             foreach hash<auto> h in (output.pairIterator()) {
                 if (h.value === True || !exists h.value) {
@@ -584,18 +596,18 @@ Mapper mapv(DataMap);
                     continue;
                 }
                 if (h.value.typeCode() != NT_HASH) {
-                    error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting "
-                        "\"hash\"", h.key, self.className(), h.value.type(), h.value);
+                    throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); expecting "
+                        "\"hash\"", h.key, h.value.type(), h.value);
                 }
                 foreach string k in (keys h.value) {
                     if (!OutputKeys{k}) {
-                        error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)",
-                            h.key, self.className(), k, OutputKeys.keys());
+                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y hash has unknown key %y (valid keys: "
+                            "%y)", h.key, k, keys OutputKeys);
                     }
                 }
 
                 output_data.addField(new QoreDataField(h.key, h.value.desc,
-                    getOutputType(h.value, mapv{h.key}.typeCode() == NT_HASH ? mapv{h.key} : NOTHING),
+                    Mapper::getOutputType(h.value, mapv{h.key}.typeCode() == NT_HASH ? mapv{h.key} : NOTHING, global_options),
                     h.value.default_value));
             }
             return output_data.getFields();
@@ -617,7 +629,11 @@ Mapper mapv(DataMap);
                         error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y "
                             "instead", self.className(), opts.input.type());
                     }
-                    input = getInputFromHash(opts.input);
+                    try {
+                        input = getInputFromHash(opts.input);
+                    } catch (hash<ExceptionInfo> ex) {
+                        error("%s: %s", ex.err, ex.desc);
+                    }
                 }
             }
 
@@ -630,7 +646,11 @@ Mapper mapv(DataMap);
                         error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y "
                             "instead", self.className(), opts.output.type());
                     }
-                    output = getOutputFromHash(opts.output, mapv);
+                    try {
+                        output = getOutputFromHash(opts.output, mapv, getGlobalOptions());
+                    } catch (hash<ExceptionInfo> ex) {
+                        error("%s: %s", ex.err, ex.desc);
+                    }
                 }
             }
 

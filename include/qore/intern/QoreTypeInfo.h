@@ -696,7 +696,7 @@ public:
         return hta || htb ? false : true;
     }
 
-    /// if second's return type is compatible with first's return type
+    // if second's return type is compatible with first's return type
     // static version of method, checking for null pointer
     DLLLOCAL static bool isOutputCompatible(const QoreTypeInfo* first, const QoreTypeInfo* second) {
         if (hasType(first) && hasType(second)) {
