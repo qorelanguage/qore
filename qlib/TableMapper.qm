@@ -448,7 +448,8 @@ InboundTableMapper mapper(table, DbMapper);
                     "date_format",
                 };
                 string cname = column.name.lwr();
-                AbstractDataField field = table.getColumnDataField(cname, this_field_opts, opts.output{cname}.desc);
+                *string desc = opts.output{cname} ? opts.output{cname}.getDescription() : NOTHING;
+                AbstractDataField field = table.getColumnDataField(cname, this_field_opts, desc);
                 rv{cname} = field;
             }
             return rv;
@@ -1752,17 +1753,6 @@ InboundTableMapperIterator i(input, mapper);
             const OptionDefaults = {
                 "select_block": 1000,
             };
-
-            #! maps Qore type codes to type names
-            const QoreTypeMap = {
-                NT_STRING: "string",
-                NT_INT: "int",
-                NT_FLOAT: "float",
-                NT_DATE: "date",
-                NT_BINARY: "binary",
-                NT_NUMBER: "number",
-                NT_BOOLEAN: "bool",
-            };
         }
 
         private {
@@ -1927,10 +1917,10 @@ InboundTableMapperIterator i(input, mapper);
                     desc += sprintf("(%d)", i.value.maxsize);
                 }
                 # if there is any input description, then add it here
-                if (*string input_desc = input{key}.desc) {
+                if (input{key} && (*string input_desc = input{key}.getDescription())) {
                     desc += "; " + input_desc;
                 }
-                *string type = QoreTypeMap{i.value.type};
+                *string type = DataProvider::TypeCodeMap{i.value.type};
                 input_data.addField(new QoreDataField(key, desc, Mapper::getInputType(type)));
             }
             return input_data.getFields();

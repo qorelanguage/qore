@@ -84,18 +84,29 @@ public class DataProviderTest inherits QUnit::Test {
         {
             hash<DataTypeInfo> info = hash2.getInfo();
             assertEq("*hash<string, bool>", info.name);
+            assertTrue(info.hasKey("supported_options"));
+            assertTrue(info.hasKey("options"));
             assertNothing(info.supported_options);
             assertNothing(info.options);
             assertEq(3, info.types_accepted.size());
             assertEq(2, info.types_returned.size());
         }
-
+        {
+            hash<DataTypeInfo> info = hash2.getInputInfo();
+            assertEq("*hash<string, bool>", info.name);
+            assertFalse(info.hasKey("supported_options"));
+            assertFalse(info.hasKey("options"));
+            assertFalse(info.hasKey("types_accepted"));
+            assertEq(2, info.types_returned.size());
+        }
         {
             HashDataType fields();
             fields.addField(new QoreDataField("key1", "desc1", StringType));
             assertTrue(fields.getFields().key1 instanceof QoreDataField);
             assertEq("key1", fields.getFields().key1.getName());
             assertEq("desc1", fields.getFields().key1.getDescription());
+            assertEq("key1", fields.getFields().key1.getInputInfo().name);
+            assertEq("string", fields.getFields().key1.getInputInfo().type.name);
             assertEq("key1", fields.getFields().key1.getInfo().name);
             assertEq("string", fields.getFields().key1.getInfo().type.name);
         }

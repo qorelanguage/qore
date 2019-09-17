@@ -38,7 +38,7 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! maps type codes to type names
-const TypeCodeMap = {
+public const TypeCodeMap = {
     NT_INT: "int",
     NT_STRING: "string",
     NT_BOOLEAN: "bool",
@@ -68,16 +68,16 @@ public hashdecl DataTypeInfo {
     #! the name of the type
     string name;
 
-    #! options supported by the type
+    #! output: transformation options supported by the type
     *hash<string, hash<DataProviderTypeOptionInfo>> supported_options;
 
-    #! current options
+    #! output: current transformation option values
     *hash<auto> options;
 
-    #! list of types accepted
+    #! output: list of types accepted
     list<string> types_accepted;
 
-    #! list of types returned
+    #! input: list of types returned
     list<string> types_returned;
 }
 
@@ -116,14 +116,28 @@ public class AbstractDataProviderType {
         }
     }
 
+    #! returns a description of the type as an input type
+    /** @return a description of the type as an input type; only the following keys are returned
+        - \c name
+        - \c types_returned
+    */
+    hash<DataTypeInfo> getInputInfo() {
+        return <DataTypeInfo>{
+            "name": getName(),
+            "types_returned": keys getReturnTypeHash(),
+        };
+    }
+
     #! returns a description of the type as a hash
     hash<DataTypeInfo> getInfo() {
         return <DataTypeInfo>{
             "name": getName(),
             "supported_options": getSupportedOptions(),
-            "options": (map {
-                $1.key: $1.value.typeCode() == NT_OBJECT || $1.value.callp() ? "<" + $1.value.fullType() + ">" : $1.value,
-            }, options.pairIterator()),
+            "options": options
+                ? (map {
+                    $1.key: $1.value.typeCode() == NT_OBJECT || $1.value.callp() ? "<" + $1.value.fullType() + ">" : $1.value,
+                }, options.pairIterator())
+                : NOTHING,
             "types_accepted": keys getAcceptTypeHash(),
             "types_returned": keys getReturnTypeHash(),
         };

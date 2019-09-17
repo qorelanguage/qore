@@ -134,6 +134,16 @@ public class AbstractDataField {
         return getType().acceptsValue(value);
     }
 
+    #! returns information about the field as an input field
+    /** the \c default_value key is not returned, and the \c type key returns only input information
+    */
+    hash<DataFieldInfo> getInputInfo() {
+        return <DataFieldInfo>{
+            "name": getName(),
+            "type": getType().getInputInfo(),
+        };
+    }
+
     #! returns information about the field
     hash<DataFieldInfo> getInfo() {
         return <DataFieldInfo>{

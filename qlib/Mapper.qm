@@ -594,10 +594,17 @@ Mapper mapv(DataMap);
                     case NT_STRING:
                         input_data.addField(new QoreDataField(h.key, h.value, AbstractDataProviderType::get(AutoType)));
                         break;
+                    case NT_NOTHING:
                     case NT_HASH:
                         input_data.addField(new QoreDataField(h.key, input{h.key}.desc, Mapper::getInputType(h.type),
                             h.default_value));
                         break;
+                    case NT_OBJECT:
+                        if (h.value instanceof AbstractDataField) {
+                            input_data.addField(h.value);
+                            continue;
+                        }
+                        # continue to default and throw an exception
                     default: throw "INPUT-OPTION-ERROR", sprintf("\"input\" key %y value has type %y (value %y); "
                         "expecting \"hash\"", h.key, h.value.type(), h.value);
                 }
@@ -610,6 +617,10 @@ Mapper mapv(DataMap);
             foreach hash<auto> h in (output.pairIterator()) {
                 if (h.value === True || !exists h.value) {
                     output_data.addField(new QoreDataField(h.key, NOTHING, AutoType));
+                    continue;
+                }
+                if (h.value instanceof AbstractDataField) {
+                    output_data.addField(h.value);
                     continue;
                 }
                 if (h.value.typeCode() != NT_HASH) {
