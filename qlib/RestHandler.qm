@@ -1308,15 +1308,12 @@ public namespace RestHandler {
                 rv = returnRestException(ex);
             }
 
-            logDebug("DBG: PRE-SERIALIZATION rv: %N", rv);
-
             if (!rv.reply_sent) {
                 # verify response with the REST schema
                 hash<HttpResponseInfo> res;
 
                 try {
                     res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr, aih."*/*" ? NOTHING : keys aih);
-                    logDebug("DBG: POST-SERIALIZATION res: %N", res);
                 } catch (hash<ExceptionInfo> ex) {
                     logDebug("REST DBG: %s", get_exception_string(ex));
                     if (ex.err == "ACCEPT-ERROR") {
