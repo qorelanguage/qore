@@ -33,6 +33,8 @@
     Bugfix release; see details below
 
     @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - fixed a race condition in thread resource cleanups where a spurious exception could be raised
+      (<a href="https://github.com/qorelanguage/qore/issues/3551">issue 3551</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>: fixed a bug where REST
       serialization errors in server responses were ignored and a <tt>200 OK</tt> response was sent instead
       (<a href="https://github.com/qorelanguage/qore/issues/3547">issue 3547</a>)
