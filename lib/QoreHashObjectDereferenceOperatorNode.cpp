@@ -66,7 +66,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
         const QoreClass* qc = QoreTypeInfo::getReturnClass(lti);
         // see if we can check for legal access
         if (qc && right) {
-            bool only_class = (bool)QoreTypeInfo::getUniqueReturnHashDecl(lti);
+            bool only_class = (bool)QoreTypeInfo::getUniqueReturnClass(lti);
             qore_type_t rt = right.getType();
             if (rt == NT_STRING) {
                 const char* member = right.get<const QoreStringNode>()->c_str();
@@ -79,7 +79,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                 while (li.next()) {
                     if (li.getValue().getType() == NT_STRING) {
                         const char* member = li.getValue().get<const QoreStringNode>()->c_str();
-                        const QoreTypeInfo* mti = 0;
+                        const QoreTypeInfo* mti = nullptr;
                         qore_class_private::parseCheckMemberAccess(*qc, loc, member, mti, pflag);
                     }
                 }
@@ -134,8 +134,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                 edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
                 qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
             }
-        }
-        else if (!can_be_hash && !can_be_obj) {
+        } else if (!can_be_hash && !can_be_obj) {
             QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
             QoreTypeInfo::getThisType(lti, *edesc);
             edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
