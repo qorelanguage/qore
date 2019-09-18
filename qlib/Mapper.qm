@@ -578,7 +578,13 @@ Mapper mapv(DataMap);
                 }
             }
 
-            Type type(TypeMap{fieldtype} ?? fieldtype);
+            Type type;
+            if (fieldtype =~ /^\*/) {
+                string base_field_type = fieldtype[1..];
+                type = new Type(OptimalTypeCodeMap{base_field_type} ?? base_field_type);
+            } else {
+                type = new Type(OptimalTypeCodeMap{fieldtype} ?? fieldtype);
+            }
             if (hdesc.mand) {
                 type = type.getBaseType();
             } else {

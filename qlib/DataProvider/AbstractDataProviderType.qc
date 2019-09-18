@@ -54,6 +54,23 @@ public const TypeCodeMap = {
     NT_NOTHING: "nothing",
 };
 
+#! maps type codes to optimal types
+public const OptimalTypeCodeMap = {
+    NT_INT: "int",
+    NT_STRING: "string",
+    NT_BOOLEAN: "bool",
+    NT_FLOAT: "float",
+    NT_NUMBER: "number",
+    NT_BINARY: "binary",
+    NT_LIST: "list<auto>",
+    NT_HASH: "hash<auto>",
+    NT_OBJECT: "object",
+    NT_ALL: "any",
+    NT_DATE: "date",
+    NT_NULL: "null",
+    NT_NOTHING: "nothing",
+};
+
 #! describes type options
 public hashdecl DataProviderTypeOptionInfo {
     #! the option value type

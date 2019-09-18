@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -85,9 +85,9 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
 
             atr->cleanup(xsink);
             atr->deref();
-        }
-        else
+        } else {
             ++i;
+        }
     }
 
     for (crmap_t::iterator i = crmap.begin(), e = crmap.end(); i != e;) {
@@ -110,9 +110,9 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
 
             rcr->execValue(*args, xsink).discard(xsink);
             rcr->deref(xsink);
-        }
-        else
+        } else {
             ++i;
+        }
     }
 
     //printd(5, "TRL::purge() this: %p pgm: %p done\n", this, pgm);
