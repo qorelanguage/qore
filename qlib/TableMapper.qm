@@ -448,7 +448,12 @@ InboundTableMapper mapper(table, DbMapper);
                     "date_format",
                 };
                 string cname = column.name.lwr();
-                *string desc = opts.output{cname} ? opts.output{cname}.getDescription() : NOTHING;
+                *string desc;
+                if (opts.output{cname} instanceof AbstractDataField) {
+                    desc = opts.output{cname}.getDescription();
+                } else if (opts.output{cname}.hasKey("desc") && opts.output{cname}.desc.typeCode() == NT_STRING) {
+                    desc = opts.output{cname}.desc;
+                }
                 AbstractDataField field = table.getColumnDataField(cname, this_field_opts, desc);
                 rv{cname} = field;
             }
@@ -1917,8 +1922,11 @@ InboundTableMapperIterator i(input, mapper);
                     desc += sprintf("(%d)", i.value.maxsize);
                 }
                 # if there is any input description, then add it here
-                if (input{key} && (*string input_desc = input{key}.getDescription())) {
-                    desc += "; " + input_desc;
+
+                if (input{key} instanceof AbstractDataField) {
+                    desc += "; " + input{key}.getDescription();
+                } else if (input{key}.hasKey("desc") && input{key}.desc.typeCode() == NT_STRING) {
+                    desc += "; " + input{key}.desc;
                 }
                 *string type = DataProvider::TypeCodeMap{i.value.type};
                 input_data.addField(new QoreDataField(key, desc, Mapper::getInputType(type)));
