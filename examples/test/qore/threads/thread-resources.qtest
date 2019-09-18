@@ -115,7 +115,7 @@ class ThreadResourcesTest inherits QUnit::Test {
         };
         background del();
         cnt.waitForZero();
-        testAssertion("exception-1", \throw_thread_resource_exceptions(), NOTHING, new TestResultExceptionType("OBJECT-ALREADY-DELETED"));
+        assertNothing(throw_thread_resource_exceptions());
 
         int i = 0;
         code inc = sub () {++i;};

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,13 @@ public:
 
    DLLLOCAL virtual void cleanup(ExceptionSink* xsink) {
       obj.evalMethod("cleanup", 0, xsink).discard(xsink);
+      // issue #3551: if the first exception is "OBJECT-ALREADY-DELETED", then ignore
+      if (*xsink) {
+          const QoreValue err = xsink->getExceptionErr();
+          if (err.getType() == NT_STRING && *err.get<const QoreStringNode>() == "OBJECT-ALREADY-DELETED") {
+              xsink->clear();
+          }
+      }
    }
 
    DLLLOCAL virtual QoreProgram* getProgram() {
