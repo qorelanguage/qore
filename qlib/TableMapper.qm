@@ -470,12 +470,19 @@ InboundTableMapper mapper(table, DbMapper);
             map self{$1.key} = opts{$1.key} ?* $1.value, OptionDefaults.pairIterator();
 
             # get output field definitions from the table description
-            hash<SqlUtilDataTypeOptionInfo> field_opts({
-                "date_format": date_format,
-                "number_format": number_format,
-                "db_timezone": timezone,
-                "data_timezone": input_timezone,
-            });
+            hash<SqlUtilDataTypeOptionInfo> field_opts();
+            if (*string date_format = global_transform_opts."date.format") {
+                field_opts.date_format = date_format;
+            }
+            if (*string number_format = global_transform_opts."number.format") {
+                field_opts.number_format = number_format;
+            }
+            if (*TimeZone output_timezone = global_transform_opts."date.output_timezone") {
+                field_opts.db_timezone = output_timezone;
+            }
+            if (*TimeZone input_timezone = global_transform_opts."date.input_timezone") {
+                field_opts.data_timezone = input_timezone;
+            }
 
             # setup output description for Mapper
             output = InboundTableMapper::getOutputRecord(opts.name ?? table.getSqlName(), table, opts, field_opts, mapv);
@@ -484,7 +491,7 @@ InboundTableMapper mapper(table, DbMapper);
             # converting "" to NOTHING makes proper identification of NULLs
             # in not null columns in Oracle. Remember: '' == NULL in oracle db.
             if (table.bindEmptyStringsAsNull() && !exists opts.empty_strings_to_nothing) {
-                m_empty_strings_to_nothing = True;
+                global_transform_opts."string.empty_to_nothing" = True;
             }
 
             if (insert_block < 1)
@@ -561,11 +568,9 @@ InboundTableMapper mapper(table, DbMapper);
                     if (fh.type) {
                         if (fh.type != "number" && fh.type != "integer")
                             error("column '%s.%s' has a 'sequence' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
-                    }
-                    else
+                    } else
                         fh.type = "number";
-                }
-                else {
+                } else {
                     fh.constant = iop_seq(fh.sequence);
                     ret_args += k;
                 }
@@ -581,24 +586,15 @@ InboundTableMapper mapper(table, DbMapper);
                     if (fh.type) {
                         if (fh.type != "number" && fh.type != "integer")
                             error("column '%s.%s' has a 'sequence_currval' key, but the type is '%s'", table.getSqlName(), getFieldName(k), fh.type);
-                    }
-                    else
+                    } else
                         fh.type = "number";
-                }
-                else {
+                } else {
                     fh.constant = iop_seq_currval(fh.sequence_currval);
                     ret_args += k;
                 }
             }
 
             Mapper::checkMapField(k, \fh);
-        }
-
-        #! returns a list of valid field types for this class (can be overridden in subclasses)
-        /** @return a list of valid types for this class (can be overridden in subclasses)
-        */
-        hash<string, bool> validTypes() {
-            return ValidTypes + (has_returning ? ("sequence": True, "sequence_currval": True) : NOTHING);
         }
 
         #! returns a list of valid field keys for this class (can be overridden in subclasses)

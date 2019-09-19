@@ -161,36 +161,67 @@ list: (2 elements)
     @section mapperoptions Mapper Options
 
     Mapper objects accept the following options in the option hash:
-    - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
-    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
-    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
-    - \c "encoding": the output character encoding; if not present then \c "UTF-8" is assumed
-    - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-    - \c "input": an optional hash describing the input records where each key is a possible input field name (where dot notation indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
+    - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style
+      arguments
+    - \c "input": this should be a description of the input fields with type
+      <tt>hash&lt;string, DataProvider::AbstractDataField&gt;</tt>, for backwards compatibility, this option also
+      accepts a hash describing the input fields where each key is a possible input field name (and where dot notation
+      indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
       - \c "desc": this gives the description of the input field
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-    - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
     - \c "name": the name of the mapper for use in logging and error strings
-    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
-    - \c "output": an optional hash describing the output data structure; each hash key is a output field name (where dot notation indicates a multi-level hash) and each value is an optional hash describing the output field taking an optional \c "desc" key and a subset of @ref mapperkeys "mapper field hash keys" as follows:
+    - \c "output": this should be a description of the output fields with type
+      <tt>hash&lt;string, DataProvider::AbstractDataField&gt;</tt>, for backwards compatibility, this option also
+      accepts a hash describing the output data structure where each hash key is a output field name (and where dot
+      notation indicates a multi-level hash) and each value is an optional hash describing the output field taking a
+      subset of @ref mapperkeys "mapper field hash keys" as follows:
       - \c "desc": a description of the output field
-      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data
+        is supplied
       - \c "maxlen": an integer giving the maximum length of a string field in bytes
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
-        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
-        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
-        - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be
+          thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to
+          be thrown when mapping); numeric values are left in their original types, any other type is converted to a
+          @ref number_type "arbitrary-precision numeric" value
+        - \c "string": field accepts string values; in this case any other value will be converted to a string in the
+          output
         - \c "hash": field accepts hash values
         - \c "any": field accepts any value
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
-    - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
+    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+      any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated
+      if a \c "maxlen" attribute is set for the field
+
+    The following deprecated options are also accepted:
+    - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+      field names with \c "." characters do not imply a structured internal element lookup; in this case input field
+      names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups
+      (see @ref mapperkeys \c "struct" docs for more info)
+    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()")
+      then output field names with \c "." characters do not imply a structured/hash output element; in this case
+      output field names may have \c "." characters in them
+    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the
+      format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format"
+      value that overrides this global setting
+    - \c "encoding": the output character encoding; if not present then \c "UTF-8" is assumed
+    - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing
+      input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
+    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number()
+      for the format of this string; this is applied to all fields of type \c "number" unless the field has a
+      \c "number_format" value that overrides this global setting
+    - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for
+      output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
 
     @note
-    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
-    - if the \c "output" option is given, then only those defined fields can be referenced as output fields, additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash"; all possible output fields should be defined here if this option is used
+    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the
+      @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
+    - if the \c "output" option is given, then only those defined fields can be referenced as output fields,
+      additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash";
+      all possible output fields should be defined here if this option is used
 
     @section mapper_runtime_handling Mapper Runtime Options
 
@@ -311,22 +342,22 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = {
-                "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
-                "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
-                "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
-                "encoding": "gives the default output character encoding for string fields",
+                "allow_dot": "DEPRECATED: allows input fields to have a dot in their name without implying a structured format",
+                "allow_output_dot": "DEPRECATED: allows output fields to have a dot in their name without implying a structured format",
+                "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
+                "encoding": "DEPRECATED: gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
                 "input": "a hash describing the input record",
                 "input_log": "a call reference / closure for input record logging",
-                "input_timezone": "the default timezone to assume when parsing input dates",
+                "input_timezone": "DEPRECATED: the default timezone to assume when parsing input dates",
                 "name": "the name of the Mapper object",
-                "number_format": "the default number format when parsing number fields from strings; ex: \".,\"",
+                "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: \".,\"",
                 "output": "a hash describing the output record",
                 "output_log": "a call reference / closure for input record logging",
                 "runtime_keys": "field key support provided as a Mapper option; format: hash<string, hash<MapperRuntimeKeyInfo>>",
-                "timezone": "the default output timezone for date/time values",
+                "timezone": "DEPRECATED: the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
-                "empty_strings_to_nothing": "converts out record's empty strings and into NOTHING - actually the value is deleted",
+                "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
             };
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -341,23 +372,14 @@ public namespace Mapper {
                 "trunc": True,
                 "mand": True,
                 "number": True,
-                "type": True,
-                "date_format": True,
-                "number_format": True,
-                "runtime" : True,
-                "empty_strings_to_nothing" : True,
+                "runtime": True,
                 "output_key_path": True,
-            };
 
-            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
-            const ValidTypes = {
-                "number": True,
-                "integer": True,
-                "int": True, # is an alias for "integer"
-                "date": True,
-                "string": True,
-                "hash": True,
-                "any": True,
+                # DEPRECATED keys
+                "type": True,                     # type must be specified in the output record
+                "date_format": True,              # should be set as a transformation option
+                "number_format": True,            # should be set as a transformation option
+                "empty_strings_to_nothing": True, # should be set as a transformation option
             };
 
             #! output option keys
@@ -384,9 +406,6 @@ public namespace Mapper {
             #! the hash of output records for key order
             hash<auto> mapo;
 
-            #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
-            string encoding = "UTF-8";
-
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
             *string name;
 
@@ -399,26 +418,27 @@ public namespace Mapper {
             #! an optional output data logging callback; must accept a hash giving the output data hash
             *code output_log;
 
-            #! an optional timezone for output date fields
-            *Qore::TimeZone timezone;
+            #! global transformation options; can be overridden on a per-field basis
+            hash<auto> global_transform_opts = {} + {
+                "date.input_timezone": TimeZone::get(),
+            };
 
-            #! the timezone for input fields in case of parsing text values; if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-            Qore::TimeZone input_timezone = TimeZone::get();
-
-            #! truncate all option
+            #! truncate all strings quietly / automatically to their maximum length
             bool trunc_all = False;
 
-            #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
+            #! DEPRECATED: do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
+            /** only used when a plain hash is provided for input
+
+                @deprecated use a field description for input instead
+            */
             bool allow_dot = False;
 
-            #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            #! DEPRECATED: do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            /** only used when a plain hash is provided for output
+
+                @deprecated use a field description for output instead
+            */
             bool allow_output_dot = False;
-
-            #! the global date format for parsing dates
-            *string date_format;
-
-            #! the global number format for parsing numbers
-            *string number_format;
 
             #! an optional description of possible input hash keys
             *hash<string, AbstractDataField> input;
@@ -426,18 +446,23 @@ public namespace Mapper {
             #! an optional description of the output data structure
             *hash<string, AbstractDataField> output;
 
+            #! flag if the field descriptions were provided to the constructor
+            /** if so then allow_dot cannot be set
+            */
+            bool structured_input;
+
+            #! flag if the field descriptions were provided to the constructor
+            /** if so then allow_output_dot cannot be set
+            */
+            bool structured_output;
+
             #! count of records mapped
             int count = 0;
 
             #! current runtime values
             /** @since Mapper 1.1
-             */
+            */
             *hash<auto> m_runtime;
-
-            #! flag to enforce deletion of the empty string in the output record
-            /** @since Mapper 1.1
-             */
-            bool m_empty_strings_to_nothing = False;
 
             #! map of fields to be mapped 1:1 input -> output
             hash<auto> identh;
@@ -460,9 +485,6 @@ public namespace Mapper {
             #! hash of valid keys
             hash<string, bool> valid_keys;
 
-            #! hash of valid types
-            hash<string, bool> valid_types;
-
             #! maps standard types to auto types to avoid type stripping
             const TypeMap = {
                 "hash": "hash<auto>",
@@ -473,8 +495,15 @@ public namespace Mapper {
                 "*softlist": "*softlist<auto>",
             };
 
-            #! global translation options
-            const GlobalOptions = ("number_format", "date_format", "input_timezone", "timezone", "encoding");
+            #! maps deprecated transform options to global tranform options
+            const DeprecatedGlobalTransformOptionMap = {
+                "encoding": "string.encoding",
+                "empty_strings_to_nothing": "string.empty_to_nothing",
+                "date_format": "date.format",
+                "timezone": "date.output_timezone",
+                "input_timezone": "date.input_timezone",
+                "number_format": "number.format",
+            };
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -527,23 +556,18 @@ Mapper mapv(DataMap);
         }
 
         private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
-            return Mapper::getOutputType(hdesc, mapdesc, getGlobalOptions());
-        }
-
-        #! returns a hash of global translation options
-        private hash<auto> getGlobalOptions() {
-            return self{GlobalOptions};
+            return Mapper::getOutputType(hdesc, mapdesc, global_transform_opts);
         }
 
         private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options) {
             *string fieldtype = hdesc.type ?? mapdesc.type;
             hash<auto> field_options = {
                 "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
-                "number.format": hdesc.number_format ?? global_options.number_format,
-                "date.format": hdesc.date_format ?? global_options.date_format,
-                "date.input_timezone": global_options.input_timezone,
-                "date.output_timezone": global_options.timezone,
-                "string.encoding": global_options.encoding,
+                "number.format": hdesc.number_format ?? global_options."number.format",
+                "date.format": hdesc.date_format ?? global_options."date.format",
+                "date.input_timezone": global_options."date.input_timezone",
+                "date.output_timezone": global_options."date.output_timezone",
+                "string.encoding": global_options."string.encoding",
             };
 
             if (!fieldtype.val() || fieldtype == "any" || fieldtype == "auto") {
@@ -593,7 +617,7 @@ Mapper mapv(DataMap);
             return AbstractDataProviderType::get(type, field_options);
         }
 
-        private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input) {
+        private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input, *reference<bool> structured_input) {
             HashDataType input_data();
             foreach hash<auto> h in (input.pairIterator()) {
                 switch (h.value.typeCode()) {
@@ -608,6 +632,7 @@ Mapper mapv(DataMap);
                     case NT_OBJECT:
                         if (h.value instanceof AbstractDataField) {
                             input_data.addField(h.value);
+                            structured_input = True;
                             continue;
                         }
                         # continue to default and throw an exception
@@ -618,7 +643,7 @@ Mapper mapv(DataMap);
             return input_data.getFields();
         }
 
-        private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
+        private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options, *reference<bool> structured_output) {
             HashDataType output_data();
             foreach hash<auto> h in (output.pairIterator()) {
                 if (h.value === True || !exists h.value) {
@@ -627,6 +652,7 @@ Mapper mapv(DataMap);
                 }
                 if (h.value instanceof AbstractDataField) {
                     output_data.addField(h.value);
+                    structured_output = True;
                     continue;
                 }
                 if (h.value.typeCode() != NT_HASH) {
@@ -654,17 +680,28 @@ Mapper mapv(DataMap);
             input_log = opts.input_log;
             output_log = opts.output_log;
 
+            # set global transform options
+            global_transform_opts += (map {
+                DeprecatedGlobalTransformOptionMap{$1.key}: $1.value,
+            }, opts{keys DeprecatedGlobalTransformOptionMap}.pairIterator());
+
+            if (opts) {
+                checkTimezoneOption("input_timezone");
+                checkTimezoneOption("output_timezone");
+            }
+
             # validate input record definition
             if (opts.input) {
                 if (recordType.isAssignableFrom(opts.input)) {
                     input = opts.input;
+                    structured_input = True;
                 } else {
                     if (opts.input.typeCode() != NT_HASH) {
                         error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y "
                             "instead", self.className(), opts.input.type());
                     }
                     try {
-                        input = getInputFromHashIntern(opts.input);
+                        input = getInputFromHashIntern(opts.input, \structured_input);
                     } catch (hash<ExceptionInfo> ex) {
                         error("%s: %s", ex.err, ex.desc);
                     }
@@ -675,13 +712,14 @@ Mapper mapv(DataMap);
             if (opts.output) {
                 if (recordType.isAssignableFrom(opts.output)) {
                     output = opts.output;
+                    structured_output = True;
                 } else {
                     if (opts.output.typeCode() != NT_HASH) {
                         error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y "
                             "instead", self.className(), opts.output.type());
                     }
                     try {
-                        output = getOutputFromHash(opts.output, mapv, getGlobalOptions());
+                        output = getOutputFromHashIntern(opts.output, mapv, global_transform_opts, \structured_output);
                     } catch (hash<ExceptionInfo> ex) {
                         error("%s: %s", ex.err, ex.desc);
                     }
@@ -706,25 +744,19 @@ Mapper mapv(DataMap);
                 }
             }
 
-            if (opts.encoding)
-                encoding = opts.encoding;
-
-            if (opts.allow_dot)
+            if (opts.allow_dot) {
                 allow_dot = parse_boolean(opts.allow_dot);
-
-            if (opts.allow_output_dot)
-                allow_output_dot = parse_boolean(opts.allow_output_dot);
-
-            if (opts) {
-                checkTimezoneOption(opts, "timezone");
-                checkTimezoneOption(opts, "input_timezone");
+                if (allow_dot && structured_input) {
+                    error("the deprecated 'allow_dot' option cannot be used with an input field description");
+                }
             }
 
-            if (opts.date_format)
-                date_format = opts.date_format;
-
-            if (opts.number_format)
-                number_format = opts.number_format;
+            if (opts.allow_output_dot) {
+                allow_output_dot = parse_boolean(opts.allow_output_dot);
+                if (allow_output_dot && structured_output) {
+                    error("the deprecated 'allow_output_dot' option cannot be used with an output field description");
+                }
+            }
 
             # runtime options
             if (opts.runtime) {
@@ -734,10 +766,6 @@ Mapper mapv(DataMap);
                 }
                 # the "{} + " construction is there to make sure m_runtime has type hash<auto>
                 m_runtime = {} + opts.runtime;
-            }
-
-            if (opts.empty_strings_to_nothing) {
-                m_empty_strings_to_nothing = parse_boolean(opts.empty_strings_to_nothing);
             }
 
             # validate and set runtime types
@@ -774,9 +802,6 @@ Mapper mapv(DataMap);
 
             # set valid keys
             valid_keys = validKeys();
-
-            # set valid types
-            valid_types = validTypes();
         }
 
         #! verifies the input map in the constructor
@@ -1044,18 +1069,18 @@ Mapper mapv(DataMap);
         }
 
         #! verifies a timezone constructor option
-        private checkTimezoneOption(hash<auto> opts, string rn) {
-            auto val = opts{rn};
+        private checkTimezoneOption(string rn) {
+            auto val = global_transform_opts{rn};
             if (!exists val)
                 return;
             if (val instanceof TimeZone) {
-                self{rn} = val;
+                global_transform_opts{rn} = val;
                 return;
             }
 
             switch (val.typeCode()) {
                 case NT_STRING:
-                case NT_INT: self{rn} = new TimeZone(val); break;
+                case NT_INT: global_transform_opts{rn} = new TimeZone(val); break;
                 default: error("type %y assigned to the %s option (expecting TimeZone, string, or int)", val.type(), rn);
             }
         }
@@ -1171,13 +1196,6 @@ Mapper mapv(DataMap);
         */
         hash<string, bool> validKeys() {
             return ValidKeys;
-        }
-
-        #! returns a list of valid field types for this class (can be overridden in subclasses)
-        /** @return a list of valid types for this class (can be overridden in subclasses)
-        */
-        hash<string, bool> validTypes() {
-            return ValidTypes;
         }
 
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
@@ -1402,10 +1420,12 @@ Mapper mapv(DataMap);
                 }
             }
 
+            *bool empty_strings_to_nothing = m.field.getOptionValue("string.empty_to_nothing")
+                ?? global_transform_opts."string.empty_to_nothing";
             if (v_is_list) {
-                map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
+                map delete v[$#], v, (empty_strings_to_nothing && $1 === "" || $1 === NULL);
             } else {
-                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
+                if ((empty_strings_to_nothing && v === "") || v === NULL)
                     delete v;
             }
 
@@ -1517,7 +1537,7 @@ Mapper mapv(DataMap);
             if (info_log)
                 info_log("field %y = %y%s input length %d truncating to %d bytes",
                         getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
-            return trunc_str(val, maxlen, encoding);
+            return trunc_str(val, maxlen, global_transform_opts."string.encoding");
         }
 
         #! called when a field exceeds its maximum length when processing hashes of lists
@@ -1692,6 +1712,10 @@ Mapper mapv(DataMap);
                     "type": Type::Int,
                     "desc": "the maximum size of strings in chars",
                 },
+                "string.empty_to_nothing": <DataProviderTypeOptionInfo>{
+                    "type": Type::Boolean,
+                    "desc": "if an empty string should be converted to no value",
+                },
             };
         }
 
@@ -1732,6 +1756,9 @@ Mapper mapv(DataMap);
             @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
         */
         auto acceptsValue(auto value) {
+            if (value === "" && options."string.empty_to_nothing") {
+                return;
+            }
             return value;
         }
 

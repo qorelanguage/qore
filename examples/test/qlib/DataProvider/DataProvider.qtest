@@ -110,5 +110,18 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq("key1", fields.getFields().key1.getInfo().name);
             assertEq("string", fields.getFields().key1.getInfo().type.name);
         }
+
+        {
+            QoreStringTypeBase str(new Type("*softstring"), {"string.encoding": "iso-8859-1"});
+            assertEq("ISO-8859-1", str.acceptsValue("hi").encoding());
+            assertEq("", str.acceptsValue(""));
+            assertNothing(str.acceptsValue());
+        }
+
+        {
+            QoreStringTypeBase str(new Type("*softstring"), {"string.empty_to_nothing": True});
+            assertEq("UTF-8", str.acceptsValue("hi").encoding());
+            assertNothing(str.acceptsValue(""));
+        }
     }
 }
