@@ -644,3 +644,10 @@ QoreObject* QoreSocketObject::getRemoteCertificate() const {
     AutoLocker al(priv->m);
     return priv->socket->getRemoteCertificate();
 }
+
+int64 QoreSocketObject::getConnectionId() const {
+    AutoLocker al(priv->m);
+    return priv->socket->getConnectionId();
+}
+
+
