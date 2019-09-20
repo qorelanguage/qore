@@ -230,7 +230,7 @@ string fn = f.getFileName();
     @return the file path/name used to open the file
  */
 string FileLineIterator::getFileName() [flags=CONSTANT] {
-    return i->getFileName();
+    return i->getFileName()->stringRefSelf();
 }
 
 //! Returns @ref stat_list of stat() of the underlying file
