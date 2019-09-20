@@ -1,0 +1,30 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/FsUtil.qm
+
+%exec-class FileLineIteratorTest
+
+class FileLineIteratorTest inherits QUnit::Test {
+    constructor() : QUnit::Test("FileLineIterator", "1.0") {
+        addTestCase("FileLineIteratorTest", \fileLineIteratorTest());
+        set_return_value(main());
+    }
+
+    fileLineIteratorTest() {
+        TmpFile tmp();
+        tmp.file.write("a\nb\nc\n");
+
+        FileLineIterator i(tmp.path);
+        while (i.next()) {
+            assertEq(tmp.path, i.getFileName());
+        }
+    }
+}
