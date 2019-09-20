@@ -209,6 +209,7 @@ public:
    DLLEXPORT bool getAcceptAllCertificates() const;
    DLLEXPORT bool captureRemoteCertificates(bool set);
    DLLEXPORT QoreObject* getRemoteCertificate() const;
+   DLLEXPORT int64 getConnectionId() const;
 };
 
 #endif // _QORE_QORE_SOCKET_OBJECT_H

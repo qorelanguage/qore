@@ -9,6 +9,10 @@
     Bugfix release; see details below
 
     @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - fixed a bug where different connections on the same @ref Qore::Socket "Socket" object could not be identified;
+      code that relied on @ref Qore::Socket::getSocket() "Socket::getSocket()" is unreliable as the same descriptor
+      can be reassigned
+      (<a href="https://github.com/qorelanguage/qore/issues/3558">issue 3558</a>)
     - fixed a core dump in @ref Qore::FileLineIterator::getFileName() "FileLineIterator::getFileName()"
       (<a href="https://github.com/qorelanguage/qore/issues/3555">issue 3555</a>)
     - fixed a race condition in thread resource cleanups where a spurious exception could be raised
