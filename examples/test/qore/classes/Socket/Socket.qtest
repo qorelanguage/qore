@@ -10,33 +10,17 @@
 
 %exec-class SocketTest
 
-const opts = (
-    "help"       : "h,help",
-    "server"     : "S,server=s",
-    "servonly"   : "O,server-only",
-    "ipv4"       : "4,ipv4",
-    "ipv6"       : "6,ipv6",
-    "ssl"        : "s,ssl",
-    "key"        : "k,private-key=s",
-    "cert"       : "c,cert=s",
-    "pass"       : "p,private-key-password=s",
-    "clientkey"  : "K,client-private-key=s",
-    "clientcert" : "C,client-cert=s",
-    "events"     : "e,show-events",
-    "verbose"    : "v,verbose",
-    );
-
 const i1 = 10;
 const i2 = 5121;
 const i4 = 2393921;
 const i8 = 12309309203932;
 
-const http_headers =  (
+const http_headers = (
     "Accept"       : "text",
     "Content-Type" : "text",
     "User-Agent"   : "Qore HTTP Test Agent",
     "Connection"   : "Keep-Alive",
-    );
+);
 
 const TestCert = "-----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQDLa47sQHENJhycRfO20lgWdhSSNQKVUFsaHLtAo2N9j+xIlmIf
@@ -74,8 +58,8 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
 
 class SocketTest inherits QUnit::Test {
     private {
-        any o;
-        any fam;
+        auto o;
+        auto fam;
 
         const XString = "This is a binary string";
         const XBinary = Qore::binary(XString);
@@ -89,11 +73,26 @@ class SocketTest inherits QUnit::Test {
         int client_port;
 
         string client_host;
+
+        const MyOpts = {
+            "server"     : "S,server=s",
+            "servonly"   : "O,server-only",
+            "ipv4"       : "4,ipv4",
+            "ipv6"       : "6,ipv6",
+            "ssl"        : "s,ssl",
+            "key"        : "k,private-key=s",
+            "cert"       : "c,cert=s",
+            "pass"       : "p,private-key-password=s",
+            "clientkey"  : "K,client-private-key=s",
+            "clientcert" : "C,client-cert=s",
+            "events"     : "e,show-events",
+        } + Opts;
     }
 
-    constructor() : QUnit::Test("Socket test", "1.0") {
+    constructor() : QUnit::Test("Socket test", "1.0", \ARGV, MyOpts) {
         process_command_line();
 
+        addTestCase("tls13 test", \tls13Test());
         addTestCase("connection ID", \connectionIdTest());
         addTestCase("Client/Server Socket tests", \clientServerSocketTest());
         addTestCase("Unconnected Socket tests", \unconnectedSocketTest());
@@ -101,6 +100,34 @@ class SocketTest inherits QUnit::Test {
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("SSL write disconnect test", \sslWriteDisconnectTest());
         set_return_value(main());
+    }
+
+    private doServ(Queue q) {
+        Socket s0();
+        # bind on a random free port
+        s0.bind(0);
+        s0.listen();
+        q.push(s0.getSocketInfo().port);
+        s0.setCertificate(TestCert);
+        s0.setPrivateKey(TestCert);
+        s0.acceptSSL();
+    }
+
+    tls13Test() {
+        # disable TLS 1.3
+        qore_set_library_options(QLO_DISABLE_TLS_13);
+
+        Queue q();
+        background doServ(q);
+
+        Socket s1();
+        s1.connectSSL("localhost:" + q.get());
+
+        if (m_options.verbose > 2) {
+            SocketTest::printf("server: secure connection (%s %s) from %s\n", s1.getSSLCipherName(), s1.getSSLCipherVersion(),
+                s1.getPeerInfo().address_desc);
+        }
+        assertNeq("TLSv1.3", s1.getSSLCipherVersion());
     }
 
     connectionIdTest() {
@@ -221,20 +248,20 @@ class SocketTest inherits QUnit::Test {
 
     clientServerSocketTest() {
         # create event queue and start listening thread if necessary
-        if (o.events)
+        if (m_options.events)
             background listen();
 
-        if (!exists o.server) {
+        if (!exists m_options.server) {
             stopc.inc();
             background server_thread();
         }
-        if (!o.servonly) {
+        if (!m_options.servonly) {
             stopc.inc();
             background client_thread();
         }
 
         stopc.waitForZero();
-        if (o.events)
+        if (m_options.events)
             queue.push();
     }
 
@@ -243,7 +270,7 @@ class SocketTest inherits QUnit::Test {
         #SocketTest::printf("listening for incoming connections on %s\n", server_port);
         Socket s();
         # setting the callback will output far too much data
-        if (o.events) {
+        if (m_options.events) {
             s.setEventQueue(queue);
         }
 
@@ -262,8 +289,7 @@ class SocketTest inherits QUnit::Test {
                     s.bindINET(a.address, server_port, True, a.family);
                     #SocketTest::printf("server: bound to %s socket on %s:%d\n", a.familystr, a.address_desc, server_port);
                     break;
-                }
-                catch (ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if ($# == (elements addr - 1)) {
                         #SocketTest::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", a.address_desc, server_port, ex.err, ex.desc, ex.arg);
                         thread_exit;
@@ -278,15 +304,15 @@ class SocketTest inherits QUnit::Test {
         }
 
         try {
-            if (o.ssl) {
-                if (o.cert) {
+            if (m_options.ssl) {
+                if (m_options.cert) {
                     File f();
-                    f.open2(o.cert);
+                    f.open2(m_options.cert);
                     SSLCertificate cert(f.read(-1));
                     s.setCertificate(cert);
-                    if (o.key) {
-                        f.open2(o.key);
-                        s.setPrivateKey(new SSLPrivateKey(f.read(-1), o.pass));
+                    if (m_options.key) {
+                        f.open2(m_options.key);
+                        s.setPrivateKey(new SSLPrivateKey(f.read(-1), m_options.pass));
                     }
                 }
                 s = s.acceptSSL();
@@ -297,16 +323,14 @@ class SocketTest inherits QUnit::Test {
                     SocketTest::printf("server: no client certificate\n");
                 else
                     SocketTest::printf("server: client certificate: %n %s: %s\n", str, X509_VerificationReasons{str});
-            }
-            else {
+            } else {
                 s = s.accept();
                 #SocketTest::printf("server: cleartext connection from %s\n", s.getPeerInfo().address_desc);
             }
-            if (o.events)
+            if (m_options.events)
                 s.setEventQueue(queue);
-        }
-        catch (ex) {
-            SocketTest::printf("server error: %s: %s\n", ex.err, ex.desc);
+        } catch (hash<ExceptionInfo> ex) {
+            SocketTest::printf("server error: %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             thread_exit;
         }
 
@@ -318,22 +342,22 @@ class SocketTest inherits QUnit::Test {
 
     private client_thread() {
         on_exit stopc.dec();
-        if (!exists o.server)
+        if (!exists m_options.server)
             counter.waitForZero();
         Socket s();
         # setting the callback will output far too much data
-        if (o.events)
+        if (m_options.events)
             s.setEventQueue(queue);
 
         try {
-            if (o.ssl) {
-                if (strlen(o.clientcert)) {
-                    s.setCertificate(o.clientcert);
-                    if (!strlen(o.clientkey))
-                        s.setPrivateKey(o.clientcert);
+            if (m_options.ssl) {
+                if (strlen(m_options.clientcert)) {
+                    s.setCertificate(m_options.clientcert);
+                    if (!strlen(m_options.clientkey))
+                        s.setPrivateKey(m_options.clientcert);
                 }
-                if (strlen(o.clientkey))
-                    s.setPrivateKey(o.clientkey);
+                if (strlen(m_options.clientkey))
+                    s.setPrivateKey(m_options.clientkey);
                 s.connectINETSSL(client_host, client_port, 15s, fam);
 
                 string str = s.verifyPeerCertificate();
@@ -341,9 +365,8 @@ class SocketTest inherits QUnit::Test {
             }
             else
                 s.connectINET(client_host, client_port, 15s, fam);
-        }
-        catch (ex) {
-            SocketTest::printf("client error (line %d): %s: %s\n", ex.line, ex.err, ex.desc);
+        } catch (hash<ExceptionInfo> ex) {
+            SocketTest::printf("client error %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             thread_exit;
         }
 
@@ -352,7 +375,7 @@ class SocketTest inherits QUnit::Test {
     }
 
     private receive_messages(Socket s, string who) {
-        any m = s.recv();
+        auto m = s.recv();
         assertEq(XString, m, who + " string");
         s.send("OK");
 
@@ -436,13 +459,14 @@ class SocketTest inherits QUnit::Test {
     }
 
     private get_http_response(Socket s) {
-        any m = s.readHTTPHeader();
+        auto m = s.readHTTPHeader();
         m = s.recv(m."content-length");
         if (m != "OK")
             throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", m);
     }
 
-    private static usage() {
+    private usageIntern(int offset = OffsetColumn) {
+        TestReporter::usageIntern();
         SocketTest::printf("usage: %s -[options] [port]
   -h,--help                    this help text
   -S,--server=ip:port          no server thread; connect to remote server
@@ -456,38 +480,28 @@ class SocketTest inherits QUnit::Test {
   -K,--client-private-key=arg  set client SSL private key
   -e,--show-events             monitor socket events
 ", basename(ENV."_"));
-        exit();
     }
 
     private process_command_line() {
-        GetOpt g(opts);
-        o = g.parse(\ARGV);
+        #if (m_options.help)
+        #    SocketTest::usage();
 
-        if (exists o."_ERRORS_") {
-            SocketTest::printf("%s\n", o{"_ERRORS_"}[0]);
-            exit(1);
-        }
-
-        if (o.help)
-            SocketTest::usage();
-
-        if (exists o.server && o.servonly) {
-            SocketTest::printf("server only flag set and remote server option=%n set - aborting\n", o.server);
+        if (exists m_options.server && m_options.servonly) {
+            SocketTest::printf("server only flag set and remote server option=%n set - aborting\n", m_options.server);
             exit(1);
         }
 
         if (!(server_port = int(shift ARGV)))
             server_port = 9001;
 
-        if (exists o.server) {
-            if (o.server == int(o.server)) {
-                client_port = int(o.server);
+        if (exists m_options.server) {
+            if (m_options.server == int(m_options.server)) {
+                client_port = int(m_options.server);
                 client_host = "localhost";
-            }
-            else {
-                hash h = parse_url(o.server);
+            } else {
+                hash h = parse_url(m_options.server);
                 if (!exists h.port) {
-                    SocketTest::printf("missing port in server specification %n - aborting\n", o.server);
+                    SocketTest::printf("missing port in server specification %n - aborting\n", m_options.server);
                     exit(1);
                 }
 
@@ -497,16 +511,15 @@ class SocketTest inherits QUnit::Test {
                 else
                     client_host = h.host;
             }
-        }
-        else {
+        } else {
             client_port = server_port;
             client_host = "localhost";
         }
 
         # set address family for sockets
-        if (o.ipv4 && !o.ipv6)
+        if (m_options.ipv4 && !m_options.ipv6)
             fam = AF_INET;
-        else if (o.ipv6 && !o.ipv4)
+        else if (m_options.ipv6 && !m_options.ipv4)
             fam = AF_INET6;
         else
             fam = AF_UNSPEC;
@@ -514,12 +527,11 @@ class SocketTest inherits QUnit::Test {
 
     private listen() {
         while (True) {
-
             # get a message from the event queue; a hash is returned with at
             # least the following keys: "event" with the event code, and
             # "source" with the event source identifier
 
-            any e = queue.get();
+            auto e = queue.get();
 
             # stop listening when empty event posted to queue in constructor()
             if (!exists e)

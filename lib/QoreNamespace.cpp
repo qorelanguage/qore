@@ -159,6 +159,7 @@ DLLLOCAL void init_option_constants(QoreNamespace& ns);
 DLLLOCAL void init_math_constants(QoreNamespace& ns);
 DLLLOCAL void init_qore_constants(QoreNamespace& ns);
 DLLLOCAL void init_errno_constants(QoreNamespace& ns);
+DLLLOCAL void init_lib_constants(QoreNamespace& ns);
 
 DLLLOCAL void init_dbi_functions(QoreNamespace& ns);
 DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
@@ -1137,6 +1138,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     init_misc_constants(qns);
     init_string_constants(qns);
     init_math_constants(qns);
+    init_lib_constants(qns);
 
     init_string_functions(qns);
     init_time_functions(qns);
