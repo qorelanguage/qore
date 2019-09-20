@@ -2127,6 +2127,16 @@ bool qore_is_gc_enabled() {
    return !q_disable_gc;
 }
 
+int qore_set_library_options(int opts) {
+    int val = opts & QLO_RUNTIME_OPTS;
+    qore_library_options |= val;
+    return val;
+}
+
+int qore_get_library_options() {
+    return qore_library_options;
+}
+
 void qore_init_random_salt() {
    random_salt.sprintf(QLLD, q_clock_getmicros());
 }
