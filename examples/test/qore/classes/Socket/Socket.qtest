@@ -94,12 +94,21 @@ class SocketTest inherits QUnit::Test {
     constructor() : QUnit::Test("Socket test", "1.0") {
         process_command_line();
 
+        addTestCase("connection ID", \connectionIdTest());
         addTestCase("Client/Server Socket tests", \clientServerSocketTest());
         addTestCase("Unconnected Socket tests", \unconnectedSocketTest());
         addTestCase("Random Port tests", \randomPortSocketTest());
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("SSL write disconnect test", \sslWriteDisconnectTest());
         set_return_value(main());
+    }
+
+    connectionIdTest() {
+        Socket s();
+        assertEq(0, s.getConnectionId());
+        s.bind(0);
+        s.close();
+        assertEq(1, s.getConnectionId());
     }
 
     sslWriteDisconnectTest() {
@@ -118,12 +127,11 @@ class SocketTest inherits QUnit::Test {
         # accept a new connection
         Socket ns = s.acceptSSL(15s);
 
-        hash ex1;
+        hash<ExceptionInfo> ex1;
         while (True) {
             try {
                 ns.send(TestCert);
-            }
-            catch (hash ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 ex1 = ex;
                 break;
             }

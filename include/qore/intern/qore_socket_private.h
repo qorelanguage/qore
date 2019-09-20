@@ -216,6 +216,10 @@ struct qore_socket_private {
     static thread_local qore_socket_private* current_socket;
 
     int sock, sfamily, port, stype, sprot;
+
+    // issue #3558: connection sequence to show when a connection has been reestablished
+    int64 connection_id = 0;
+
     const QoreEncoding* enc;
 
     std::string socketname;
@@ -329,10 +333,14 @@ struct qore_socket_private {
                 socketname.clear();
             }
             do_close_event();
+            // issue #3558: increment the connection sequence here. so the connection sequence is different as soon as
+            // it's closed
+            ++connection_id;
+
             return close_and_reset();
-        }
-        else
+        } else {
             return 0;
+        }
     }
 
     DLLLOCAL int getSendTimeout() const {

@@ -3003,3 +3003,19 @@ bool Socket::captureRemoteCertificates(bool set = True) {
 *SSLCertificate Socket::getRemoteCertificate() {
     return s->getRemoteCertificate();
 }
+
+//! Returns an integer connection ID that is incremented every time the socket is disconnected
+/** @par Example:
+    @code{.py}
+int conn_id = sock.getConnectionId();
+    @endcode
+
+    @return an integer connection ID that is incremented every time the socket is disconnected
+
+    This number can be used to identify new connections
+
+    @since %Qore 0.9.3.1
+*/
+int Socket::getConnectionId() [flags=CONSTANT] {
+    return s->getConnectionId();
+}
