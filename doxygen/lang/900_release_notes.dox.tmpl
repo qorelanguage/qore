@@ -33,6 +33,8 @@
     Bugfix release; see details below
 
     @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - fixed a core dump in @ref Qore::FileLineIterator::getFileName() "FileLineIterator::getFileName()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3555">issue 3555</a>)
     - fixed a race condition in thread resource cleanups where a spurious exception could be raised
       (<a href="https://github.com/qorelanguage/qore/issues/3551">issue 3551</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>: fixed a bug where REST
