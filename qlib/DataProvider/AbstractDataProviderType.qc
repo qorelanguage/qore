@@ -54,21 +54,23 @@ public const TypeCodeMap = {
     NT_NOTHING: "nothing",
 };
 
-#! maps type codes to optimal types
-public const OptimalTypeCodeMap = {
-    NT_INT: "int",
-    NT_STRING: "string",
-    NT_BOOLEAN: "bool",
-    NT_FLOAT: "float",
-    NT_NUMBER: "number",
-    NT_BINARY: "binary",
-    NT_LIST: "list<auto>",
-    NT_HASH: "hash<auto>",
-    NT_OBJECT: "object",
-    NT_ALL: "any",
-    NT_DATE: "date",
-    NT_NULL: "null",
-    NT_NOTHING: "nothing",
+#! maps Qore type name constant values from the @ref Qore::Type "Type" namespace to optimal Qore types names
+/** additionally, \c "all" is mapped to \c "any"
+*/
+public const OptimalQoreDataTypeMap = {
+    Type::Int: "int",
+    Type::String: "string",
+    Type::Boolean: "bool",
+    Type::Float: "float",
+    Type::Number: "number",
+    Type::Binary: "binary",
+    Type::List: "list<auto>",
+    Type::Hash: "hash<auto>",
+    Type::Object: "object",
+    Type::Date: "date",
+    Type::NullType: "null",
+    Type::NothingType: "nothing",
+    "all": "any",
 };
 
 #! describes type options

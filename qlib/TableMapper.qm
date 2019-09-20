@@ -769,15 +769,15 @@ table_mapper.setRowCode(rowcode);
             }
 
             if (insert_block == 1) {
-                *hash h;
-                foreach hash row in (rec.contextIterator()) {
+                *hash<auto> h;
+                foreach hash<auto> row in (rec.contextIterator()) {
                     # FIXME --PQ 21-Mar-2017
                     # for constant mappers, we have a problem here, since
                     # the row is actually inserted multiple times into the table,
                     # but appears only once on the output!
-                    *hash th = insertRow(row + crec);
+                    *hash<auto> th = insertRow(row + crec);
                     if (th) {
-                        hash batchth = record2Batch(th);
+                        hash<auto> batchth = record2Batch(th);
                         addBatchToBatch(\h, batchth);
                     }
                 }
@@ -785,19 +785,19 @@ table_mapper.setRowCode(rowcode);
             }
 
             if (rec_list_size > 0) {
+                # cannot use "hash<auto>" here
                 hash dh;
 
                 if (crec) {
                     # expand crec to have the same number of rows as rec in any key
                     # that has already got a list value in crec. This is to avoid
                     # situations that crec changes the number of rows really inserted.
-                    foreach hash i in (crec.pairIterator()) {
+                    foreach hash<auto> i in (crec.pairIterator()) {
                         if (i.value.typeCode() != NT_LIST &&
                             (exists rec{i.key} &&
                              rec{i.key}.typeCode() == NT_LIST)) {
                             rec{i.key} = map i.value, xrange(0, rec_list_size-1);
-                        }
-                        else {
+                        } else {
                             rec{i.key} = i.value;
                         }
                     }
@@ -1304,9 +1304,12 @@ InboundIdentityTableMapper mapper(table, DbMapper);
         #! common constructor initialization
         private init(hash<auto> mapv, *hash<auto> opts) {
             # setup input description as equal to the output
-            opts.input = getInputRecord(table, opts);
-            mapv = (map {$1: {"name": $1}}, (map $1.lwr(), keys table.describe())) + mapv;
-            InboundTableMapper::init(mapv, opts);
+            hash<auto> new_opts = {
+                "input": getInputRecord(table, opts),
+            } + (opts - "input");
+            new_opts.output = new_opts.input;
+            mapv = (map {$1: {"name": $1}}, keys new_opts.input) + mapv;
+            InboundTableMapper::init(mapv, new_opts);
         }
 
         #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
@@ -1924,7 +1927,7 @@ InboundTableMapperIterator i(input, mapper);
                 } else if (input{key}.hasKey("desc") && input{key}.desc.typeCode() == NT_STRING) {
                     desc += "; " + input{key}.desc;
                 }
-                *string type = DataProvider::TypeCodeMap{i.value.type};
+                *string type = DataProvider::OptimalQoreDataTypeMap{i.value.type};
                 input_data.addField(new QoreDataField(key, desc, Mapper::getInputType(type)));
             }
             return input_data.getFields();

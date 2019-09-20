@@ -4984,7 +4984,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         #! creates the object
         constructor(string native_type, string type, *hash<auto> options) {
             name = native_type;
-            self.type = AbstractDataProviderType::get(new Type(OptimalTypeCodeMap{type} ?? type), options);
+            self.type = AbstractDataProviderType::get(new Type(OptimalQoreDataTypeMap{type} ?? type), options);
             init();
         }
 
