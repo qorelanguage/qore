@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -176,6 +176,9 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_DISABLE_OPENSSL_CLEANUP    (1 << 2)  //!< do not perform cleanup on the openssl library (= is cleaned up manually)
 #define QLO_DISABLE_GARBAGE_COLLECTION (1 << 3)  //!< disable garbage collection / recursive object reference detection
 #define QLO_DO_NOT_SEED_RNG            (1 << 4)  //!< disable seeding the random number generator when the Qore library is initialized
+#define QLO_DISABLE_TLS_13             (1 << 5)  //!< disable TLS v1.3 (may be set at runtime with qore_set_library_options())
+
+#define QLO_RUNTIME_OPTS (QLO_DISABLE_TLS_13)
 
 //! do not perform any initialization or cleanup of the openssl library (= is performed outside of the qore library)
 #define QLO_DISABLE_OPENSSL_INIT_CLEANUP (QLO_DISABLE_OPENSSL_INIT|QLO_DISABLE_OPENSSL_CLEANUP)
@@ -214,6 +217,18 @@ DLLEXPORT int qore_set_library_cleanup_options(int options);
 
 //! returns true if all the bits set in the argument are also set in the qore library init option variable
 DLLEXPORT bool qore_check_option(int opt);
+
+//! set library options at runtime
+/** @param opts options to set must be in QLO_RUNTIME_OPTS
+
+    @return the options set (opts & QLO_RUNTIME_OPTS)
+*/
+DLLEXPORT int qore_set_library_options(int opts);
+
+//! returns library options
+/** @return library options
+*/
+DLLEXPORT int qore_get_library_options();
 
 #include <qore/support.h>
 

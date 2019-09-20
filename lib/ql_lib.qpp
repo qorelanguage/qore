@@ -127,6 +127,36 @@ TEST() {
 }
 #endif
 
+/** @defgroup library_option_constants Qore Library Option Constants
+
+    @since %Qore 0.9.3.1
+*/
+//@{
+//! disable qore signal handling entirely (init only)
+const QLO_DISABLE_SIGNAL_HANDLING = QLO_DISABLE_SIGNAL_HANDLING;
+
+//! do not initialize the openssl library (= is initialized before the qore library is initialized; init only)
+const QLO_DISABLE_OPENSSL_INIT = QLO_DISABLE_OPENSSL_INIT;
+
+//! do not perform cleanup on the openssl library (= is cleaned up manually; init only)
+const QLO_DISABLE_OPENSSL_CLEANUP = QLO_DISABLE_OPENSSL_CLEANUP;
+
+//! disable garbage collection / recursive object reference detection (init only)
+const QLO_DISABLE_GARBAGE_COLLECTION = QLO_DISABLE_GARBAGE_COLLECTION;
+
+//! disable seeding the random number generator when the Qore library is initialized (init only)
+const QLO_DO_NOT_SEED_RNG = QLO_DO_NOT_SEED_RNG;
+
+//! disable TLS v1.3 (may be set at runtime with qore_set_library_options())
+const QLO_DISABLE_TLS_13 = QLO_DISABLE_TLS_13;
+
+//! bitmask for library options that can be set at runtime
+/** the following options can be set at runtime:
+    - @ref Qore::QLO_DISABLE_TLS_13
+*/
+const QLO_RUNTIME_OPTS = QLO_RUNTIME_OPTS;
+//@}
+
 //! network interface info hash
 /** @since %Qore 0.9.0
 */
@@ -1184,4 +1214,28 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
 #endif
 }
 
+//! sets %Qore runtime library options
+/** @param opts the runtime options to set, binary-anded with @ref Qore::QLO_RUNTIME_OPTS; see
+    @ref library_option_constants and @ref Qore::QLO_RUNTIME_OPTS "QLO_RUNTIME_OPTS" for more information
+
+    @return the options used
+
+    @see qore_get_library_options()
+
+    @since %Qore 0.9.3.1
+*/
+int qore_set_library_options(int opts) [dom=PROCESS] {
+    return qore_set_library_options(opts);
+}
+
+//! returns all %Qore library options
+/** @return all %Qore library options; see @ref library_option_constants for more information
+
+    @see qore_set_library_options()
+
+    @since %Qore 0.9.3.1
+*/
+int qore_get_library_options() [dom=PROCESS] {
+    return qore_library_options;
+}
 //@}
