@@ -1764,6 +1764,13 @@ public:
     */
     DLLEXPORT QoreObject* getRemoteCertificate() const;
 
+    //! returns a connection ID to help identifying when new connections are made
+    /** @return a connection ID to help identifying when new connections are made
+
+        @since %Qore 0.9.3.1
+    */
+    DLLEXPORT int64 getConnectionId() const;
+
     DLLLOCAL static void doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink);
 
     //! sets the event queue (not part of the library's pubilc API), must be already referenced before call

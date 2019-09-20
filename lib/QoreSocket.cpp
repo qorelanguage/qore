@@ -2269,6 +2269,10 @@ QoreObject* QoreSocket::getRemoteCertificate() const {
     return nullptr;
 }
 
+int64 QoreSocket::getConnectionId() const {
+    return priv->connection_id;
+}
+
 QoreSocketTimeoutHelper::QoreSocketTimeoutHelper(QoreSocket& s, const char* op) : priv(new PrivateQoreSocketTimeoutHelper(qore_socket_private::get(s), op)) {
 }
 
