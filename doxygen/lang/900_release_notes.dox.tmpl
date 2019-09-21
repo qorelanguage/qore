@@ -33,6 +33,9 @@
     Bugfix release; see details below
 
     @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - added library option constants and functions to allow the TLS v1.3 protocol to be disabled when the library is
+      initialized or at runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/3561">issue 3561</a>)
     - fixed a bug where different connections on the same @ref Qore::Socket "Socket" object could not be identified;
       code that relied on @ref Qore::Socket::getSocket() "Socket::getSocket()" is unreliable as the same descriptor
       can be reassigned
