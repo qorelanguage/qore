@@ -962,8 +962,7 @@ struct qore_socket_private {
         if (*xsink || (rc == QSE_TIMEOUT)) {
             return false;
         }
-        assert(!rc);
-        return rc;
+        return rc > 0 ? true : false;
     }
 
     DLLLOCAL bool isSocketDataAvailable(int timeout_ms, const char* mname, ExceptionSink* xsink) {
