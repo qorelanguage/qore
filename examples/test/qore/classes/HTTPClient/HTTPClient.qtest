@@ -99,6 +99,23 @@ class TestStreamRequest inherits AbstractStreamRequest {
     }
 }
 
+class TestDisconnectStreamRequest inherits AbstractStreamRequest {
+    private:internal {
+    }
+
+    # setup the object and the headers for the response
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+    }
+
+    recvImpl(hash<auto> v) {
+    }
+
+    hash<auto> getResponseHeaderMessageImpl() {
+        s.close();
+        return {};
+    }
+}
+
 class EchoHandler inherits AbstractHttpRequestHandler {
     public {
         static *SSLCertificate remote_cert;
@@ -112,8 +129,11 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     }
 
     # return the stream request handler
-    TestStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
         remote_cert = s.getRemoteCertificate();
+        if (hdr."x-test-disconnect") {
+            return new TestDisconnectStreamRequest(listener, self, s, cx, hdr, body);
+        }
         return new TestStreamRequest(listener, self, s, cx, hdr, body);
     }
 }
@@ -259,6 +279,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("chunked disconnect test", \chunkedDisconnectTest());
         addTestCase("client certs", \clientCertTest());
         addTestCase("issue 3472", \issue3472());
         # disabled test as the external dependency is currently not working (2019-03-20)
@@ -267,6 +288,25 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
         set_return_value(main());
+    }
+
+    chunkedDisconnectTest() {
+        TempFile cert("cert.pem", TestCert);
+
+        RealTestHttpServer serv(cert.getPath(), cert.getPath());
+        on_exit delete serv;
+
+        HTTPClient hc({
+            "url": "https://localhost:" + serv.getPort(),
+        });
+        hash<auto> hdr = {
+            "X-Test-Disconnect": "true",
+            "Connection": "Keep-Alive",
+        };
+        # returns nothing - no chunked data sent
+        code send_callback = auto sub () {};
+        assertThrows("SOCKET-CLOSED", \hc.sendWithSendCallback(), (send_callback, "PUT", NOTHING, hdr, 5m));
+        assertFalse(hc.isConnected());
     }
 
     clientCertTest() {
