@@ -43,6 +43,20 @@
 
 struct qore_socket_private;
 
+typedef enum {
+    READ,
+    WRITE,
+    PEEK,
+} SslAction;
+
+static inline const char* get_action_method(SslAction action) {
+    switch (action) {
+        case READ: return "SSL_read";
+        case WRITE: return "SSL_write";
+        case PEEK: return "SSL_peek";
+    }
+}
+
 class SSLSocketHelper {
 private:
     qore_socket_private& qs;
@@ -80,7 +94,7 @@ public:
     }
 
     // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
-    DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms, bool read, bool do_timeout = true);
+    DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms, SslAction action, bool do_timeout = true);
 
     DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
     DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
