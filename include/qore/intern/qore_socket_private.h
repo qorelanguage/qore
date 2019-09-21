@@ -933,7 +933,7 @@ struct qore_socket_private {
             //printd(5, "select_intern() rc: %d err: %d\n", rc, FD_ISSET(sock, &err));
             if (rc != QORE_SOCKET_ERROR) {
                 if (FD_ISSET(sock, &err))
-                aborted = true;
+                    aborted = true;
                 break;
             }
             if (sock_get_error() != EINTR)
@@ -952,18 +952,17 @@ struct qore_socket_private {
     DLLLOCAL bool tryReadSocketData(const char* mname, ExceptionSink* xsink) {
         assert(xsink);
         assert(!buflen);
-        bool b = asyncIoWait(0, true, false, "Socket", mname, xsink);
-        if (b || !ssl)
-            return b;
+        if (!ssl) {
+            // issue #3564 see if any data is available on the socket
+            return asyncIoWait(0, true, false, "Socket", mname, xsink);
+        }
         // select can return true if there is protocol negotiation data available,
-        // so we try to read 1 byte with a timeout of 0 with the SSL connection
-        int rc = ssl->doSSLRW(xsink, mname, rbuf, 1, 0, true, false);
-        if (*xsink || (rc == QSE_TIMEOUT))
+        // so we try to peek 1 byte of applicatoin data with a timeout of 0 with the SSL connection
+        int rc = ssl->doSSLRW(xsink, mname, rbuf, 1, 0, PEEK, false);
+        if (*xsink || (rc == QSE_TIMEOUT)) {
             return false;
-        if (rc == 1)
-            buflen = 1;
-        else
-            assert(!rc);
+        }
+        assert(!rc);
         return rc;
     }
 

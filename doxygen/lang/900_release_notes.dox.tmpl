@@ -14,6 +14,8 @@
     Bugfix release; see details below
 
     @subsection qore_0931_bug_fixes Bug Fixes in Qore
+    - fixed an error handling aborted chunked HTTP transfers that can result in a long timeout stalling the I/O thread
+      (<a href="https://github.com/qorelanguage/qore/issues/3564">issue 3564</a>)
     - added library option constants and functions to allow the TLS v1.3 protocol to be disabled when the library is
       initialized or at runtime
       (<a href="https://github.com/qorelanguage/qore/issues/3561">issue 3561</a>)

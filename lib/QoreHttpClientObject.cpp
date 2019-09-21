@@ -50,6 +50,9 @@
 #include <set>
 #include <string>
 
+// issue #3564: set the I/O timeout for reading an incoming HTTP header after an aborted outbound chunked transfer
+static const int ABORTED_TIMEOUT_MS = 5000;
+
 method_map_t method_map;
 strcase_set_t header_ignore;
 
@@ -906,20 +909,24 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
 
     if (!msock->socket->isOpen()) {
         if (persistent) {
-            xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as persistent, but has been disconnected");
-            return 0;
+            xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as " \
+                "persistent, but has been disconnected");
+            return nullptr;
         }
 
         if (connect_unlocked(xsink)) {
             // if we have an info hash then write the request-uri key for reporting/logging purposes
             if (info)
-                info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth, msgpath && msgpath[0] ? msgpath : "/", http11 ? "1.1" : "1.0"), 0);
-            return 0;
+                info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth,
+                    msgpath && msgpath[0] ? msgpath : "/", http11 ? "1.1" : "1.0"), 0);
+            return nullptr;
         }
     }
 
     // send the message
-    int rc = msock->socket->priv->sendHttpMessage(xsink, info, "HTTPClient", mname, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, send_callback, is, max_chunk_size, trailer_callback, QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
+    int rc = msock->socket->priv->sendHttpMessage(xsink, info, "HTTPClient", mname, meth, msgpath,
+        http11 ? "1.1" : "1.0", &nh, data, size, send_callback, is, max_chunk_size, trailer_callback,
+        QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
 
     //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() '%s' path: '%s' send_callback: %p aborted: %d rc: %d\n", meth, msgpath, send_callback, aborted, rc);
 
@@ -928,35 +935,44 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
         assert(*xsink);
         if (rc == QSE_NOT_OPEN)
             disconnect_unlocked();
-        return 0;
+        return nullptr;
+    }
+
+    // issue #3564 in case an outbound chunked transfer was aborted and we have incoming data,
+    // change the timeout to 5 seconds to avoid stalling I/O in case of a slow or incomplete response,
+    // because anyway the connection must be aborted; we just try to quickly read any possible incoming
+    // HTTP response for error reporting
+    if (aborted && (timeout < 0 || timeout > ABORTED_TIMEOUT_MS)) {
+        timeout = ABORTED_TIMEOUT_MS;
+        printd(0, "qore_httpclient_priv::sendMessageAndGetResponse() aborted: %d timeout: %d open: %d\n", aborted, timeout, msock->socket->isOpen());
     }
 
     // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
-    QoreHashNode* ah = nullptr;
+    ReferenceHolder<QoreHashNode> response_hash(xsink);
     while (true) {
         //ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
         qore_offset_t rc;
-        ReferenceHolder<QoreHashNode> ans(msock->socket->priv->readHTTPHeader(xsink, info, timeout, rc, QORE_SOURCE_HTTPCLIENT,
-            "response-headers-raw"), xsink);
-        if (!(*ans)) {
+        response_hash = msock->socket->priv->readHTTPHeader(xsink, info, timeout, rc, QORE_SOURCE_HTTPCLIENT,
+            "response-headers-raw");
+        if (!(*response_hash)) {
             disconnect_unlocked();
             assert(*xsink);
-            return 0;
+            return nullptr;
         }
 
         // check HTTP status code
-        QoreValue v = ans->getKeyValue("status_code");
+        QoreValue v = response_hash->getKeyValue("status_code");
         if (v.isNothing()) {
             xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
-            return 0;
+            return nullptr;
         }
 
         code = (int)v.getAsBigInt();
         // continue processing if "100 Continue" response received (ignore this response)
-        if (code == 100)
+        if (code == 100) {
             continue;
+        }
 
-        ah = ans.release();
         break;
     }
 
@@ -966,7 +982,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
         xsink->clear();
     }
 
-    return ah;
+    return response_hash.release();
 }
 
 void do_content_length_event(Queue *cb_queue, int64 id, int len) {
