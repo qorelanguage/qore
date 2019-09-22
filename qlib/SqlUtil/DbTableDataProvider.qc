@@ -49,22 +49,22 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
         #! Search options
         const SearchOptions = {
-            "select_hash": <DataProviderOptionInfo>{
+            "where_hash": <DataProviderOptionInfo>{
                 "type": HashType,
                 "required": False,
-                "desc": "a select hash for SqlUtil-based selects; if neither this option nor \"select_sql\" are "
-                    "present, then the entire table is selected",
+                "desc": "a select \"where hash\" for SqlUtil-based selects; if neither this option nor "
+                    "\"select_sql\" are present, then the entire table is selected",
             },
-            "select_sql": <DataProviderOptionInfo>{
+            "where_sql": <DataProviderOptionInfo>{
                 "type": StringType,
                 "required": False,
-                "desc": "a select string; if neither this option nor \"select_hash\" are present, then the entire "
-                    "table is selected",
+                "desc": "the where clause of a select string; if neither this option nor \"where_hash\" are present, "
+                    "then the entire table is selected",
             },
-            "select_sql_args": <DataProviderOptionInfo>{
+            "where_sql_args": <DataProviderOptionInfo>{
                 "type": SoftAutoListType,
                 "required": False,
-                "desc": "optional bind arguments for \"select_sql\"",
+                "desc": "optional bind arguments for \"where_sql\"",
             },
         };
     }
@@ -101,8 +101,23 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     *AbstractDataProvider getChildProviders() {
     }
 
-    #! Returns True if the data provider supports writing output
-    bool supportsWrite() {
+    #! Returns @ref True if the data provider supports the record creation API
+    bool supportsCreate() {
+        return True;
+    }
+
+    #! Returns @ref True if the data provider supports the record update API
+    bool supportsUpdate() {
+        return True;
+    }
+
+    #! Returns @ref True if the data provider supports the record upsert API
+    bool supportsUpsert() {
+        return True;
+    }
+
+    #! Returns @ref True if the data provider supports the record deletion API
+    bool supportsDelete() {
         return True;
     }
 
@@ -111,7 +126,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
         @return the data written to the data provider
     */
-    *hash<auto> writeRecord(hash<auto> rec) {
+    *hash<auto> createRecord(hash<auto> rec) {
         table.insert(rec);
         return rec;
     }
@@ -157,23 +172,69 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     /** @param search_options the search options after processing by validateSearchOptions()
     */
     private *hash<auto> searchSingleRecordImpl(*hash<auto> search_options) {
-        if (search_options.select_sql) {
-            return table.getDatasource().selectRow(search_options.select_sql, search_options.select_sql_args);
+        if (search_options.where_sql) {
+            string sql = "select * from " + table.getSqlName() + " where " + search_options.where_sql;
+            return table.getDatasource().selectRow(sql, search_options.where_sql_args);
         }
-        return table.selectRow(search_options.select_hash);
+        return table.selectRow({"where": search_options.where_hash});
     }
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
+
+        @note this method acquires a transaction lock and requires a commit or rollback after the iteration is done
     */
     private AbstractIterator searchRecordsImpl(*hash<auto> search_options) {
-        if (search_options.select_sql) {
+        if (search_options.where_sql) {
             AbstractSQLStatement stmt = table.getDatasource().getSQLStatement();
-            stmt.prepare(search_options.select_sql);
-            stmt.execArgs(search_options.select_sql_args);
+            stmt.prepare("select * from " + table.getSqlName() + " where " + search_options.where_sql);
+            stmt.execArgs(search_options.where_sql_args);
             return stmt;
         }
-        return table.getStatement(search_options.select_hash);
+        return table.getStatement({"where": search_options.where_hash});
+    }
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @note this API will commit the row to the database unless the datasource was already in a transaction before
+        this call
+    */
+    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> search_options) {
+        if (!search_options.where_hash && !search_options.where_sql) {
+            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("missing \"where_hash\" or \"where_sql\" in update call; "
+                "search options: %y", search_options);
+        }
+        hash<SqlCommandInfo> update_hash = table.getUpdateSql(set, search_options.where_hash);
+        if (search_options.where_sql) {
+            update_hash = table.getUpdateSql(set);
+            update_hash.sql += " where " + search_options.where_sql;
+        } else {
+            update_hash = table.getUpdateSql(set, search_options.where_hash);
+        }
+
+        AbstractDatasource ds = table.getDatasource();
+
+        # commit transaction on success if we are not already in a transaction
+        bool in_trans = ds.currentThreadInTransaction();
+        on_error {
+            if (!in_trans) {
+                ds.rollback();
+            }
+        }
+        on_success {
+            if (!in_trans) {
+                ds.commit();
+            }
+        }
+
+        int rows = ds.vexec(update_hash.sql, update_hash.args);
+        if (rows > 1) {
+            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("%d record(s) were updated; the update has been rolled "
+                "back; search args: %y (set: %y)", rows, search_options, set);
+        }
+        return rows.toBool();
     }
 }
 }

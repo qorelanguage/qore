@@ -2036,6 +2036,17 @@ public namespace SqlUtil {
         *softint maxlen;
     }
 
+    #! A hash describing SQL and arguments for an SQL DML command
+    /** @since %SqlUtil 1.6
+    */
+    public hashdecl SqlCommandInfo {
+        #! the SQL string for the update
+        string sql;
+
+        #! the arguments for the string
+        list<auto> args;
+    }
+
     /** @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */

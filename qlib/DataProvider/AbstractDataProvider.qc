@@ -52,17 +52,26 @@ public hashdecl DataProviderInfo {
     #! Data provider name
     string name;
 
-    #! Does the data provider support searching?
-    bool supports_searching;
+    #! Does the data provider support record searching?
+    bool supports_search;
 
-    #! Does the data provider support writing?
-    bool supports_writing;
+    #! Does the data provider support record creation?
+    bool supports_create;
 
-    #! Does the data provider support fast bulk writing?
-    /** if this is @ref False and \a supports_writing is @ref True, the data provider will still support bulk write
+    #! Does the data provider support record updates?
+    bool supports_update;
+
+    #! Does the data provider support record upserts (create or update)?
+    bool supports_upsert;
+
+    #! Does the data provider support record deletion?
+    bool supports_delete;
+
+    #! Does the data provider support fast bulk creation?
+    /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
         APIs but without any performance improvements for bulk data
     */
-    bool supports_bulk_writing;
+    bool supports_bulk_create;
 
     #! Search options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> search_options;
@@ -85,14 +94,28 @@ public class AbstractDataProvider {
         return searchRecordsImpl(search_options);
     }
 
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @returns @ref True if the record was updated, @ref False if not (no record found)
+    */
+    bool updateSingleRecord(hash<auto> set, hash<auto> search_options) {
+        search_options = validateSearchOptions(search_options);
+        return updateSingleRecordImpl(set, search_options);
+    }
+
     #! Returns info about the data provider
     hash<DataProviderInfo> getInfo() {
         *hash<string, hash<DataProviderOptionInfo>> search_opts = getSearchOptions();
         return <DataProviderInfo>{
             "name": getName(),
-            "supports_searching": exists search_opts,
-            "supports_writing": supportsWrite(),
-            "supports_bulk_writing": supportsBulkWrite(),
+            "supports_search": exists search_opts,
+            "supports_create": supportsCreate(),
+            "supports_update": supportsUpdate(),
+            "supports_upsert": supportsUpsert(),
+            "supports_delete": supportsDelete(),
+            "supports_bulk_create": supportsBulkCreate(),
             "search_options": search_opts,
             "transaction_management": requiresTransactionManagement(),
         };
@@ -126,22 +149,22 @@ public class AbstractDataProvider {
     rollback() {
     }
 
-    #! Returns True if the data provider supports writing output
-    bool supportsBulkWrite() {
+    #! Returns True if the data provider supports bulk creation output
+    bool supportsBulkCreate() {
         return False;
     }
 
-    #! Queues the given record for writing
+    #! Queues the given record for creation
     /** @param rec a hash representing a single input record
 
         @return if data was inserted (flushed) then a hash (columns) of lists (row data) of all data written
         (including generated /default data, if applicable); if data was only queued and not written, @ref nothing is
         returned.
 
-        @note if bulk writing is not supported then this method is identical to writeRecord()
+        @note if bulk creation is not supported then this method is identical to createRecord()
     */
-    *hash<auto> queueWriteRecord(hash<auto> rec) {
-        return writeRecord(rec);
+    *hash<auto> queueCreateRecord(hash<auto> rec) {
+        return createRecord(rec);
     }
 
     #! validates search options
@@ -208,15 +231,24 @@ public class AbstractDataProvider {
     #! Returns child providers; return @ref nothing if there are no child providers
     abstract *AbstractDataProvider getChildProviders();
 
-    #! Returns True if the data provider supports writing output
-    abstract bool supportsWrite();
+    #! Returns @ref True if the data provider supports the record creation API
+    abstract bool supportsCreate();
 
-    #! Writes the given record to the data provider
+    #! Returns @ref True if the data provider supports the record update API
+    abstract bool supportsUpdate();
+
+    #! Returns @ref True if the data provider supports the record upsert API
+    abstract bool supportsUpsert();
+
+    #! Returns @ref True if the data provider supports the record deletion API
+    abstract bool supportsDelete();
+
+    #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
 
         @return the data written to the data provider
     */
-    abstract *hash<auto> writeRecord(hash<auto> rec);
+    abstract *hash<auto> createRecord(hash<auto> rec);
 
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
@@ -227,5 +259,11 @@ public class AbstractDataProvider {
     /** @param search_options the search options after processing by validateSearchOptions()
     */
     private abstract AbstractIterator searchRecordsImpl(*hash<auto> search_options);
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private abstract bool updateSingleRecordImpl(hash<auto> set, hash<auto> search_options);
 }
 }

@@ -2888,7 +2888,7 @@ table.insert(row);
             getColumnsUnlocked();
         }
         sql = sprintf("insert into %s (", getSqlName());
-        foreach string k in (row.keyIterator()) {
+        foreach string k in (keys row) {
             if (!columns.hasKey(k))
                 throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
         }
@@ -3200,8 +3200,8 @@ int rows = table.insertFromIterator(i);
         hash<auto> row = i.getValue();
 
         # make insert statement template
-        string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator())),
-                                (foldl $1 + "," + $2, (map "%v", row.keyIterator())));
+        string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, (map getColumnSqlName($1), keys row)),
+                                (foldl $1 + "," + $2, (map "%v", keys row)));
         AbstractSQLStatement stmt = ds.getSQLStatement();
         stmt.prepare(sql);
 
@@ -4586,28 +4586,25 @@ string sql = table.getSelectSql(sh, \args);
         *string tp = (cv =~ x/(\w+)\..+/)[0];
         if (tp) {
             if (!jch{tp})
-                throw "SELECT-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
             # remove table alias from column name
             splice cv, 0, tp.size() + 1;
 
             if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
-                throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
-        }
-        # substitute aliases with their actual definition
-        else if (psch{cv} && psch{cv}.typeCode() == NT_STRING) {
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
+        } else if (psch{cv} && psch{cv}.typeCode() == NT_STRING) {
+            # substitute aliases with their actual definition
             return psch{cv};
-        }
-        else if (ch) {
+        } else if (ch) {
             if (!ch{cv} && !psch{cv})
-                throw "SELECT-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
             return cv;
-        }
-        else {
+        } else {
             tp = getSqlName();
             if (cv == "*")
                 use_prefix = asteriskRequiresPrefix();
             else if (!columns.hasKey(cv) && !psch{cv})
-                throw "SELECT-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
         }
 
         # ensure that reserved words are properly quoted
@@ -4691,8 +4688,7 @@ string sql = table.getSelectSql(sh, \args);
             if (cmd.recursive) {
                 cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch);
                 delete we.arg;
-            }
-            else if (cmd.argcolumn) {
+            } else if (cmd.argcolumn) {
                 if (!we.arg || we.arg.typeCode() != NT_STRING)
                     throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got type %y instead", getDesc(), cn, we.arg.type());
                 we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
@@ -4850,7 +4846,7 @@ int ucnt = table.updateCommit(("id": id), ("name": name));
         @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
         @see update()
-        */
+    */
     int updateCommit(hash set, hash cond, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
@@ -4902,7 +4898,7 @@ int ucnt = table.update(("id": id), ("name": name));
         @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
         @see updateCommit()
-        */
+    */
     int update(hash set, hash cond, reference<string> sql, hash<auto> opt) {
         return updateIntern(set, cond, \sql, opt);
     }
@@ -4927,6 +4923,55 @@ int ucnt = table.update(("id": id), ("name": name));
         return updateIntern(set);
     }
 
+    #! Returns the SQL for the given update parameters
+    /** @param set the column names and values to set in the update
+        @param cond the update condition
+
+        @return a hash with the following keys:
+        - \c sql: the SQL for the given update parameters
+        - \c args: the arguments for the SQL statement
+
+        @throw UPDATE-ERROR set hash is empty; invalid operators or update expressions
+        @throw COLUMN-ERROR invalid column reference
+
+        @since %SqlUtil 1.6
+    */
+    hash<SqlCommandInfo> getUpdateSql(hash<auto> set, *hash<auto> cond) {
+        if (!set) {
+            throw "UPDATE-ERROR", sprintf("%s: the set hash is empty", getDesc());
+        }
+
+        # make query
+        string sql = sprintf("update %s set ", getSqlName());
+
+        list<auto> args;
+        list<string> sl = ();
+        HashIterator i(set);
+        while (i.next()) {
+            string key = i.getKey();
+            auto value = i.getValue();
+            string exp = sprintf("%s = ", getColumnSqlName(key));
+            if (value.uop) {
+                exp += getUpdateExpression(key, cast<hash<UpdateOperatorInfo>>(value));
+            } else {
+                exp += "%v";
+                args += value;
+            }
+            sl += exp;
+        }
+
+        sql += foldl $1 + ", " + $2, sl;
+
+        if (cond) {
+            sql += getWhereClause(cond, \args);
+        }
+
+        return <SqlCommandInfo>{
+            "sql": sql,
+            "args": args,
+        };
+    }
+
     #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
     deprecated int updateNoCommit(hash set, *hash cond, *reference<string> sql) {
         return updateIntern(set, cond, \sql);
@@ -4938,36 +4983,10 @@ int ucnt = table.update(("id": id), ("name": name));
     }
 
     private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt) {
-        # make query
-        sql = sprintf("update %s set ", getSqlName());
-
-        if (!set)
-            throw "UPDATE-ERROR", sprintf("%s: the set hash is empty", getDesc());
-
-        list<auto> args;
-
-        list sl = ();
-        HashIterator i(set);
-        while (i.next()) {
-            string key = i.getKey();
-            auto value = i.getValue();
-            string exp = sprintf("%s = ", getColumnSqlName(key));
-            if (value.uop)
-                exp += getUpdateExpression(key, cast<hash<UpdateOperatorInfo>>(value));
-            else {
-                exp += "%v";
-                args += value;
-            }
-            sl += exp;
-        }
-
-        sql += foldl $1 + ", " + $2, sl;
-
-        if (cond)
-            sql += getWhereClause(cond, \args);
-
-        #printf("sql: %y\nargs: %y\n", sql, args);
-        return execData(opt, sql, args);
+        hash<SqlCommandInfo> update_hash = getUpdateSql(set, cond);
+        sql = update_hash.sql;
+        #printf("update_hash: %y\n", update_hash);
+        return execData(opt, update_hash.sql, update_hash.args);
     }
 
     private string getUpdateExpression(string col, hash<UpdateOperatorInfo> uh) {
@@ -5027,7 +5046,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
         # column list: make sure all columns in the key are used and have a value
         list cl = ();
-        foreach string k in (row.keyIterator()) {
+        foreach string k in (keys row) {
             if (!columns.hasKey(k))
                 throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
             if (cols.hasKey(k))
@@ -5159,7 +5178,7 @@ int ucnt = table.update(("id": id), ("name": name));
     private string getUpsertSelectSql(hash<auto> row, Columns cols, reference<list<string>> updc) {
         if (cols.size() != row.size()) {
             # make list of columns not in unique key
-            map updc += $1, row.keyIterator(), !cols.hasKey($1);
+            map updc += $1, keys row, !cols.hasKey($1);
         }
         else
             updc = cols.keys();
@@ -5173,9 +5192,9 @@ int ucnt = table.update(("id": id), ("name": name));
 
     private string getUpsertInsertSql(hash<auto> row) {
         string sql = sprintf("insert into %s (", getSqlName());
-        sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator()));
+        sql += (foldl $1 + "," + $2, (map getColumnSqlName($1), keys row));
         sql += ") values (";
-        sql += (foldl $1 + "," + $2, (map "%v", row.keyIterator()));
+        sql += (foldl $1 + "," + $2, (map "%v", keys row));
         sql += ")";
         return sql;
     }
@@ -5185,7 +5204,7 @@ int ucnt = table.update(("id": id), ("name": name));
         if (!updc) {
             # hash of columns to skip on update if applicable
             *hash suh = map {$1: True}, opt.omit_update;
-            map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
+            map updc += $1, keys row, !cols.hasKey($1) && !suh.$1;
         }
 
         # make sql
@@ -6223,7 +6242,7 @@ string sql = table.getAlignSqlString(table2);
 
         # make query
         string sql = sprintf("select * from %s where ", getSqlName());
-        sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), row.keyIterator());
+        sql += foldl $1 + " and " + $2, (map sprintf("%s = %v", getColumnSqlName($1)), keys row);
         return ds.vselectRow(sql, row.values());
     }
 
@@ -6418,6 +6437,15 @@ string sql = table.getAlignSqlString(table2);
     */
     AbstractDataProviderType getNumericType(string type_name, bool nullable, *hash<auto> options) {
         return getNumericTypeImpl(type_name, nullable, options);
+    }
+
+    #! get DB-specific savepoint helper
+    /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+        @since SqlUtil 1.6
+    */
+    AbstractSavepointHelper getSavepointHelper(*string savepoint) {
+        return getSavepointHelperImpl(savepoint);
     }
 
     #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
@@ -7013,5 +7041,12 @@ any res = t.selectRows(sh, \sql);
 
     #! db-specific copy actions
     private abstract copyImpl(AbstractTable old);
+
+    #! get DB-specific savepoint helper
+    /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+        @since SqlUtil 1.6
+    */
+    private abstract AbstractSavepointHelper getSavepointHelperImpl(*string savepoint);
 }
 }

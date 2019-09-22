@@ -162,6 +162,28 @@ public namespace FreetdsSqlUtil {
         }
     }
 
+    #! FreeTDS savepoint helper
+    public class FreetdsSavepointHelper inherits AbstractSavepointHelper {
+        #! Creates the object
+        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        }
+
+        #! Creates the savepoint
+        private createSavepointImpl() {
+            ds.exec("save transaction " + savepoint);
+        }
+
+        #! Rolls back to the savepoint
+        private rollbackImpl() {
+            ds.exec("rollback transaction " + savepoint);
+        }
+
+        #! Deletes the savepoint
+        private deleteSavepointImpl() {
+            # this method intentionally left blank
+        }
+    }
+
     #! the data type for FreeTDS DECIMAL columns
     public class FreetdsNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
@@ -2065,6 +2087,15 @@ order by
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
         private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
             return new FreetdsNumberDataType(native_type, nullable, options);
+        }
+
+        #! get DB-specific savepoint helper
+        /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+            @since SqlUtil 1.6
+        */
+        private AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {
+            return new FreetdsSavepointHelper(ds, savepoint);
         }
     }
 }

@@ -148,6 +148,28 @@ public namespace MysqlSqlUtil {
         }
     }
 
+    #! MySQL savepoint helper
+    public class MysqlSavepointHelper inherits AbstractSavepointHelper {
+        #! Creates the object
+        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        }
+
+        #! Creates the savepoint
+        private createSavepointImpl() {
+            ds.exec("savepoint " + savepoint);
+        }
+
+        #! Rolls back to the savepoint
+        private rollbackImpl() {
+            ds.exec("rollback to " + savepoint);
+        }
+
+        #! Deletes the savepoint
+        private deleteSavepointImpl() {
+            ds.exec("release savepoint " + savepoint);
+        }
+    }
+
     #! the data type for PostgreSQL DECIMAL columns
     public class MysqlNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
@@ -1950,6 +1972,15 @@ my string $str = $table.getSqlValue($date);
         #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
         private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
             return new MysqlNumberDataType(native_type, nullable, options);
+        }
+
+        #! get DB-specific savepoint helper
+        /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+            @since SqlUtil 1.6
+        */
+        private AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {
+            return new MysqlSavepointHelper(ds, savepoint);
         }
     }
 }

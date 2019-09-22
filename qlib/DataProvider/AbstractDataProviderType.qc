@@ -73,6 +73,19 @@ public const OptimalQoreDataTypeMap = {
     "all": "any",
 };
 
+#! maps Qore type name constant values from the @ref Qore::Type "Type" namespace to optimal Qore types names
+/** additionally, \c "all" is mapped to \c "any"
+*/
+public const OptimalQoreSoftDataTypeMap = OptimalQoreDataTypeMap + {
+    Type::Int: "softint",
+    Type::String: "softstring",
+    Type::Boolean: "softbool",
+    Type::Float: "softfloat",
+    Type::Number: "softnumber",
+    Type::List: "softlist<auto>",
+    Type::Date: "softdate",
+};
+
 #! describes type options
 public hashdecl DataProviderTypeOptionInfo {
     #! the option value type
