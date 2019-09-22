@@ -29,7 +29,7 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     private {
         const GenericOptions = (
             "replace": True,
-            );
+        );
 
         const IndexOptions = {};
 
@@ -45,15 +45,15 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
                 "dvtest_f": c_varchar(10) + ("default_value": "test"),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
-            );
+        );
 
         const Tables = (
             "pgsql_test": T_PgsqlTest,
-            );
+        );
 
         const Sequences = (
             "pgsql_test_seq": {},
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -111,7 +111,6 @@ class Bug2963Schema inherits SqlUtilTestSchema {
         };
     }
 } # class Bug2963Schema
-
 
 class PgsqlTest inherits SqlTestBase {
     public {
@@ -189,8 +188,7 @@ class PgsqlTest inherits SqlTestBase {
         Datasource ds;
         try {
             ds = getDatasource();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
@@ -213,14 +211,12 @@ class PgsqlTest inherits SqlTestBase {
                 on_error ds.rollback();
                 on_success ds.commit();
                 ds.exec("drop table pgsql_test");
-            }
-            catch () {}
+            } catch () {}
             try {
                 on_error ds.rollback();
                 on_success ds.commit();
                 ds.exec("drop sequence pgsql_test_seq");
-            }
-            catch () {}
+            } catch () {}
 
             schema.align(False, m_options.verbose);
 
@@ -243,7 +239,7 @@ class PgsqlTest inherits SqlTestBase {
         hash sh = (
             "columns": ("id", cop_seq("pgsql_test_seq", "seq"), cop_seq_currval("pgsql_test_seq", "seq_currval")),
             "where": ("id": 2),
-            );
+        );
 
         assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
         assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));

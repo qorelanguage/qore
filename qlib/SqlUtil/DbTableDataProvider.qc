@@ -38,6 +38,15 @@ public namespace SqlUtil {
 #! Defines a data provider based on a single SQL table
 public class DbTableDataProvider inherits AbstractDataProvider {
     public {
+        #! Constructor options
+        const ConstructorOptions = {
+            "table": <DataProviderOptionInfo>{
+                "type": new Type("AbstractTable"),
+                "required": True,
+                "desc": "the table the object is based on",
+            },
+        };
+
         #! Search options
         const SearchOptions = {
             "select_hash": <DataProviderOptionInfo>{
@@ -66,11 +75,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object
-    DbTableDataProvider(AbstractTable table) {
-        self.table = table;
+    constructor(hash<auto> options) {
+        processConstructorOptions(ConstructorOptions, options);
     }
 
-    #! Returns the type name
+    #! Returns the data provider name
     string getName() {
         return table.getName();
     }
@@ -129,10 +138,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         table.rollback();
     }
 
+    #! returns constructor options
+    static hash<string, hash<DataProviderOptionInfo>> getConstructorOptions() {
+        return ConstructorOptions;
+    }
+
     #! validates search options
     /** @throw SEARCH-OPTION-ERROR invalid or unsupported search option
     */
-    private hash<auto> validateSearchOptions(hash<auto> search_options) {
+    private *hash<auto> validateSearchOptions(*hash<auto> search_options) {
         if (search_options.select_hash && search_options.select_sql) {
             error("SEARCH-OPTION-ERROR", "\"search_hash\" and \"search_sql\" cannot be given together");
         }
@@ -142,7 +156,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
-    private *hash<auto> searchSingleRecordImpl(hash<auto> search_options) {
+    private *hash<auto> searchSingleRecordImpl(*hash<auto> search_options) {
         if (search_options.select_sql) {
             return table.getDatasource().selectRow(search_options.select_sql, search_options.select_sql_args);
         }
@@ -152,7 +166,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Returns an iterator for zero or more records matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
-    private AbstractIterator searchRecordsImpl(hash<auto> search_options) {
+    private AbstractIterator searchRecordsImpl(*hash<auto> search_options) {
         if (search_options.select_sql) {
             AbstractSQLStatement stmt = table.getDatasource().getSQLStatement();
             stmt.prepare(search_options.select_sql);

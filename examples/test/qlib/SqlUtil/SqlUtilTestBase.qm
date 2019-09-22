@@ -23,19 +23,19 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     private {
         # see testAnalyticFunctions() for more info.
         # the table is the same everywhere
-        const T_TestAnalyticFunctions = (
-            "columns" : (
-                    "id" : c_number(),
-                    "row_type" : c_varchar(10),
-                    "row_value" : c_number(),
-                ),
-        );
+        const T_TestAnalyticFunctions = {
+            "columns": {
+                "id": c_number(),
+                "row_type": c_varchar(10),
+                "row_value": c_number(),
+            },
+        };
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
-    private *hash doTables(hash tables, hash columns) {
+    private *hash doTables(hash<auto> tables, hash<auto> columns) {
         foreach string table in (tables.keyIterator()) {
             foreach hash h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
@@ -71,7 +71,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
-            );
+        );
 
         const OptionColumn = 22;
 
@@ -82,6 +82,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
@@ -122,6 +123,49 @@ public class SqlTestBase inherits QUnit::Test {
         # test that the table object works
         string sql = t.getSelectSql(("columns": "id", "limit": 1));
         assertEq(Type::String, sql.type());
+    }
+
+    dbTableProviderTest() {
+        if (!table) testSkip("no DB connection");
+
+        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({}); });
+        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({"error": 1}); });
+        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({"table": 1}); });
+        {
+            DbTableDataProvider dp({"table": table});
+
+            assertTrue(dp.requiresTransactionManagement());
+
+            on_error dp.rollback();
+            on_success dp.commit();
+
+            map dp.queueWriteRecord($1), insert_data;
+        }
+
+        on_exit {
+            on_error table.rollback();
+            on_success table.commit();
+
+            table.truncate();
+        }
+
+        assertFalse(table.empty());
+
+        {
+            DbTableDataProvider dp({"table": table});
+
+            on_error dp.rollback();
+            on_success dp.commit();
+
+            list<hash<auto>> rows = map $1, dp.searchRecords();
+            assertEq(2, rows.size());
+
+            hash<auto> select_hash = {
+                "limit": 1,
+            };
+            hash<auto> row = dp.searchSingleRecord({"select_hash": select_hash});
+            assertEq(Type::Int, row.id.type());
+        }
     }
 
     insertTest() {

@@ -74,13 +74,13 @@ public hashdecl DataProviderInfo {
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
     #! Returns a single record matching the search options
-    *hash<auto> searchSingleRecord(hash<auto> search_options) {
+    *hash<auto> searchSingleRecord(*hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
         return searchSingleRecordImpl(search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    AbstractIterator searchRecords(hash<auto> search_options) {
+    AbstractIterator searchRecords(*hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
         return searchRecordsImpl(search_options);
     }
@@ -104,6 +104,14 @@ public class AbstractDataProvider {
     */
     bool requiresTransactionManagement() {
         return False;
+    }
+
+    #! flushes any remaining queued data to the data provider; has no effect if the data provider does not support bulk writes
+    *hash<auto> flush() {
+    }
+
+    #! discards any remaining queued data; has no effect if the data provider does not support bulk writes
+    discard() {
     }
 
     #! Commits data written to the data provider
@@ -139,42 +147,50 @@ public class AbstractDataProvider {
     #! validates search options
     /** @throw SEARCH-OPTION-ERROR invalid or unsupported search option
     */
-    private hash<auto> validateSearchOptions(hash<auto> search_options) {
-        *hash<string, hash<DataProviderOptionInfo>> opts = getSearchOptions();
-        if (!opts && search_options) {
-            error("SEARCH-OPTION-ERROR", "invalid search options: %y; does not support searching",
-                keys search_options);
+    private *hash<auto> validateSearchOptions(*hash<auto> search_options) {
+        return checkOptions("SEARCH-OPTION-ERROR", getSearchOptions(), search_options);
+    }
+
+    #! processes options passed to the constructor
+    private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
+        self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options);
+    }
+
+    #! verifies options according to the option
+    private *hash<auto> checkOptions(string err, *hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
+        if (!option_desc && options) {
+            error(err, "invalid options: %y; no options are supported",
+                keys options);
         }
-        if (*list<string> invalid_keys = (search_options - (keys opts))) {
-            error("SEARCH-OPTION-ERROR", "invalid search options: %y; supported search options: %y", invalid_keys,
-                keys opts);
+        if (*list<string> invalid_keys = keys (options - (keys option_desc))) {
+            error(err, "invalid options: %y; supported options: %y", invalid_keys, keys option_desc);
         }
         # check types and required keys
-        foreach hash<auto> i in (opts.pairIterator()) {
-            bool present = search_options.hasKey(i.key);
+        foreach hash<auto> i in (option_desc.pairIterator()) {
+            bool present = options.hasKey(i.key);
             if (i.value.required && !present) {
-                error("SEARCH-OPTION-ERROR", "missing required search option %y", i.key, getName());
+                error(err, "missing required search option %y", i.key);
             }
             if (!present) {
                 continue;
             }
             # process value
             try {
-                search_options{i.key} = i.value.type.accepsValue(search_options{i.key});
+                options{i.key} = i.value.type.acceptsValue(options{i.key});
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "RUNTIME-TYPE-ERROR") {
-                    error("SEARCH-OPTION-ERROR", "search option %y of type %y cannot be assigned a value of type "
-                        "%y: %s: %s", i.key, i.value.type.getName(), search_options{i.key}.type(), ex.err, ex.desc);
+                    error(err, "option %y of type %y cannot be assigned a value of type %y: %s: %s", i.key,
+                        i.value.type.getName(), options{i.key}.type(), ex.err, ex.desc);
                 }
                 rethrow;
             }
         }
-        return search_options;
+        return options;
     }
 
     #! thrown an exception
     private error(string err, string fmt) {
-        throw err, sprintf("data provider %y: %s", getName(), vsprintf(fmt, argv));
+        throw err, sprintf("data provider %y: %s", self.className(), vsprintf(fmt, argv));
     }
 
     #! Returns the type name
@@ -182,12 +198,6 @@ public class AbstractDataProvider {
 
     #! Returns the description of the record type, if any
     abstract *hash<string, AbstractDataField> getRecordType();
-
-    #! Returns options for creating a new provider
-    /** @return a hash of options that can be used for searching; keys are search option names, values describe the
-        search option; if @ref nothing is returned, then the provider does not support searching
-    */
-    abstract *hash<string, hash<DataProviderOptionInfo>> getCreationOptions();
 
     #! Returns options that can be used for searching
     /** @return a hash of options that can be used for searching; keys are search option names, values describe the
@@ -211,11 +221,11 @@ public class AbstractDataProvider {
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract *hash<auto> searchSingleRecordImpl(hash<auto> search_options);
+    private abstract *hash<auto> searchSingleRecordImpl(*hash<auto> search_options);
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract AbstractIterator searchRecordsImpl(hash<auto> search_options);
+    private abstract AbstractIterator searchRecordsImpl(*hash<auto> search_options);
 }
 }
