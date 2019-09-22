@@ -691,7 +691,7 @@ table_mapper.setRowCode(rowcode);
     on_success table_mapper.flush();
     on_error table_mapper.discard();
 
-    while (*hash h = stmt.fetchColumns(1000)) {
+    while (*hash<auto> h = stmt.fetchColumns(1000)) {
         table_mapper.queueData(h);
     }
 }
@@ -708,12 +708,12 @@ table_mapper.setRowCode(rowcode);
 
     on_error table_mapper.discard();
 
-    list data = (("a" : 1, "b" : "bar"), ("a" : 2, "b" : "foo"));
+    list<hash<auto>> data = (("a": 1, "b": "bar"), ("a": 2, "b": "foo"));
 
-    list mapped_data = (map table_mapper.queueData($1), data.iterator()) ?? ();
+    list<hash<auto>> mapped_data = (map table_mapper.queueData($1), data.iterator()) ?? ();
     # mapped_data = () - no insertion done yet since to insert_block=3
 
-    list flushed_data = table_mapper.flush() ?? ();
+    list<hash<auto>> flushed_data = table_mapper.flush() ?? ();
 
     mapped_data += flushed_data;
     # mapped_data = ("num" : (1,2), "str" : ("bar","foo"));
@@ -721,42 +721,60 @@ table_mapper.setRowCode(rowcode);
 }
             @endcode
 
-            Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted into the cache, no value is returned.
+            Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block"
+            option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only
+            inserted into the cache, no value is returned.
 
             @param rec the input record or record set in case a hash of lists is passed
             @param crec an optional simple hash of data to be added to each input row before mapping
 
-            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; always returns a batch (hash of lists)
+            @return if batch data was inserted then a hash (columns) of lists (row data) of all data inserted and
+            potentially returned (in case of sequences) from the database server is returned; if constant mappings are
+            used with batch data, then they are returned as single values assigned to the hash keys; always returns a
+            batch (hash of lists)
 
             @note
-            - make sure to call flush() before committing the transaction or discard() before rolling back the transaction or destroying the object when using this method
-            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers whereas the DB transaction needs to be committed or rolled back once per datasource
-            - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is given in the constructor
-            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please note that in this case the return value is a hash of single value lists corresponding to a batch data insert
-            - if an error occurs flushing data, the count is reset by calling @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
-            - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that support Bulk DML
+            - make sure to call flush() before committing the transaction or discard() before rolling back the
+              transaction or destroying the object when using this method
+            - flush() or discard() needs to be executed for each mapper used in the block when using multiple mappers
+              whereas the DB transaction needs to be committed or rolled back once per datasource
+            - this method and batched inserts/upserts in general cannot be used when the \c "unstable_input" option is
+              given in the constructor
+            - if the \c "insert_block" option is set to 1, then this method simply calls insertRow(); however please
+              note that in this case the return value is a hash of single value lists corresponding to a batch data
+              insert
+            - if an error occurs flushing data, the count is reset by calling
+              @ref Mapper::Mapper::resetCount() "Mapper::resetCount()"
+            - using a hash of lists in \a rec; note that this provides very high performance with SQL drivers that
+              support Bulk DML
             - in case a hash of empty lists is passed, Qore::NOTHING is returned
-            - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of a column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with \c C = "mystring" on the input.
-            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
+            - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of
+              a column \c C and 'crec = ("C" : "mystring")' then the output will be as if there was 'N' rows with
+              \c C = "mystring" on the input.
+            - on mappers with "insert_block > 1" (i.e. also the underlying DB must allow for bulk operations), it is
+              not allowed to use both single-record insertions (like insertRow()) and bulk operations (queueData()) in
+              one transaction. Mixing insertRow() with queueData() leads to mismatch of Oracle DB types raising
+              corresponding exceptions depending on particular record types (e.g. "ORA-01722: invalid number").
 
             @see
             - flush()
             - discard()
 
-            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input" option was given in the constructor
+            @throw MAPPER-BATCH-ERROR this exception is thrown if this method is called when the \c "unstable_input"
+            option was given in the constructor
             @throw MISSING-INPUT a field marked mandatory is missing
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
         *hash<auto> queueData(hash<auto> rec, *hash<auto> crec) {
             if (unstable_input)
-                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
+                throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is "
+                    "set", self.className());
 
             if (crec) {
                 if (exists getRecListSize(crec)) {
-                    throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not "
-                          "accept a batch as its 2nd argument, got %y",
-                          self.className(), crec);
+                    throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not accept a batch as its 2nd "
+                        "argument, got %y", self.className(), crec);
                 }
             }
 
@@ -875,7 +893,7 @@ on_error table_mapper.rollback();
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        *hash<auto> queueData(Qore::AbstractIterator iter, *hash crec) {
+        *hash<auto> queueData(Qore::AbstractIterator iter, *hash<auto> crec) {
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
@@ -947,12 +965,15 @@ on_error table_mapper.rollback();
             return h;
         }
 
-#! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
+        #! inserts a row into the block buffer based on a mapped input record; does not commit the transaction
         /** Data is only inserted/upserted if the block buffer size reaches the limit defined by the \c "insert_block" option, in which case this method returns all the data inserted/upserted.  In case the mapped data is only inserted/upserted into the cache, no value is returned.
 
             @param rec a hash representing a single input record
 
-            @return if batch data was inserted (flushed) then a hash (columns) of lists (row data) of all data inserted and potentially returned (in case of sequences) from the database server is returned; if constant mappings are used with batch data, then they are returned as single values assigned to the hash keys; if nothing was flushed to the database in the call, Qore::NOTHING is returned
+            @return if batch data was inserted (flushed) then a hash (columns) of lists (row data) of all data
+            inserted and potentially returned (in case of sequences) from the database server is returned; if constant
+            mappings are used with batch data, then they are returned as single values assigned to the hash keys; if
+            nothing was flushed to the database in the call, Qore::NOTHING is returned
 
             @note this function does not process hashes of lists (bulk format), it expects always single input record on the input; it returns a batch, though.
 
@@ -981,11 +1002,11 @@ on_error table_mapper.rollback();
         /** For a possible hash of lists (bulk data) returns the size of
          * the first list found within the hash. If no list if found, returns
          * NOTHING.
-         * @param rec a hash representing (possiblee) bulk data
+         * @param rec a hash representing (possible) bulk data
          * @return NOTHING if the hash represents single input record, or the number
          *         of records represented (may also be 0)
          */
-        private *int getRecListSize(hash rec) {
+        private *int getRecListSize(hash<auto> rec) {
             foreach auto v in (rec.iterator()) {
                 if (v.typeCode() == NT_LIST) {
                     return v.size();
@@ -1336,7 +1357,7 @@ InboundIdentityTableMapper mapper(table, DbMapper);
             int cnt = 0;
 
             #! a copy of the last hash value mapped
-            hash val;
+            hash<auto> val;
         }
 
         #! creates the iterator from the mapper passed
@@ -1448,7 +1469,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! returns the current row transformed with the mapper
-        hash getValue() {
+        hash<auto> getValue() {
             if (val)
                 return val;
             return val = mapc.mapData(i.getValue());
@@ -1541,7 +1562,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        setRuntime(hash runtime) {
+        setRuntime(hash<auto> runtime) {
             mapc.setRuntime(runtime);
         }
 
@@ -1556,7 +1577,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        replaceRuntime(*hash runtime) {
+        replaceRuntime(*hash<auto> runtime) {
             mapc.replaceRuntime(runtime);
         }
 
@@ -1648,7 +1669,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! returns the current row transformed with the mapper
-        hash getValue() {
+        hash<auto> getValue() {
             return m_mapper.mapData(i.getValue());
         }
 
@@ -1676,7 +1697,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @return a list of mapped hashes with a maximum number of rows corresponding to the \a size argument; in case there is less input data than requested, the list returned could have fewer rows than requested; in case there is no more data, the return value is an empty list
          */
-        list mapBulk(int size) {
+        list<auto> mapBulk(int size) {
             AbstractSQLStatement stmt = cast<AbstractSQLStatement>(i);
             *hash h = stmt.fetchColumns(size);
             return !h ? () : m_mapper.mapAll(h);
@@ -1709,7 +1730,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1.1
          */
-        setRuntime(hash runtime) {
+        setRuntime(hash<auto> runtime) {
             m_mapper.setRuntime(runtime);
         }
 
@@ -1724,7 +1745,7 @@ InboundTableMapperIterator i(input, mapper);
 
             @since %TableMapper 1.1
          */
-        replaceRuntime(*hash runtime) {
+        replaceRuntime(*hash<auto> runtime) {
             m_mapper.replaceRuntime(runtime);
         }
 
@@ -1765,7 +1786,7 @@ InboundTableMapperIterator i(input, mapper);
             # a select_block size. Taken from options
             int select_block;
             # original option hash
-            *hash m_orig_opts;
+            *hash<auto> m_orig_opts;
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic

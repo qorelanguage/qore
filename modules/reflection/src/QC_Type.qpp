@@ -461,7 +461,7 @@ auto v1 = t1.acceptsValue(v0);
 
     @return the value to be assigned; can be converted by the type
 
-    @throw VALUE-ERROR if the value cannot be assigned to the type
+    @throw RUNTIME-TYPE-ERROR if the value cannot be assigned to the type
 */
 auto Type::acceptsValue(auto value) {
     return qore_type_assign_value(t->typeInfo, value, xsink);

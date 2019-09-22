@@ -19,7 +19,6 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServerUtil.qm \
 	qlib/HttpServer.qm \
 	qlib/WebSocketUtil.qm \
-	qlib/SqlUtil.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -30,6 +29,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 
 DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider \
+    qlib/SqlUtil \
     qlib/DataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
@@ -69,11 +69,13 @@ DOX_SPLIT_MODULES = \
     qlib/BulkSqlUtil \
 	qlib/CsvUtil
 
+SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
 DataProvider_modverdir = $(modverdir)/DataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
 
+dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
 dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
@@ -977,7 +979,7 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
+	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@

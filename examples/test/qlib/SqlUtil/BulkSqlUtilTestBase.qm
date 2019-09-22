@@ -15,7 +15,7 @@ module BulkSqlUtilTestBase {
 }
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/Schema.qm
 

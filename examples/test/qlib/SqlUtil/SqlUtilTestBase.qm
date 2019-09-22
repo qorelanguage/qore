@@ -15,7 +15,7 @@ module SqlUtilTestBase {
 }
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/Schema.qm
 
@@ -622,7 +622,7 @@ public class SqlTestBase inherits QUnit::Test {
                         "count": 2,
                         "data": (("id": 1), ("id": 2)),
                         ),
-                    "skip_for": ("FreetdsTest"), # TODO: remove once support is implemented in FreetdsSqlUtil
+                    "skip_for": ("FreetdsTest"), # TODO: remove once support is implemented in FreetdsSqlUtil.qm
                     ),
                 "op_not": (
                     "in": (
@@ -796,7 +796,7 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         if (!table) testSkip("no DB connection");
 
-        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
+        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil.qm
         if (self.className() == "FreetdsTest")
             testSkip("FreetdsSqlUtil does not support offset (yet)");
 

@@ -9,7 +9,7 @@
 %enable-all-warnings
 %strict-args
 
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
