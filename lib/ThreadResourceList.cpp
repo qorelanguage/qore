@@ -133,7 +133,7 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
         ResolvedCallReferenceNode* rcr = i->first;
         //printd(5, "TRL::purge() this: %p cleaning up rcr: %p (pgm: %p) pgm: %p\n", this, rcr, i->second.pgm, pgm);
         if (!pgm || (i->second.pgm == pgm)) {
-            QoreValue arg = i->second.arg;
+            AbstractQoreNode* arg = i->second.arg;
             crmap_t::iterator j = i;
             ++i;
 
@@ -143,8 +143,8 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
 
             ReferenceHolder<QoreListNode> args(xsink);
             if (arg) {
-                args = new QoreListNode(autoTypeInfo);
-                args->push(arg, xsink);
+                args = new QoreListNode;
+                args->push(arg);
             }
 
             // issue #3571: make sure that every time we run the callback, we run with a clean xsink
