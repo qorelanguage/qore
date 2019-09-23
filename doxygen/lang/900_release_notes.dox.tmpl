@@ -8,7 +8,9 @@
     Bugfix release; see details below
 
     @subsection qore_081310_bug_fixes Bug Fixes in Qore
-    TBD
+    - fixed crical error handling thread resources where if an exception was thrown handling thread resources, user
+      thread resource handlers queued afterwards were not executed
+      (<a href="https://github.com/qorelanguage/qore/issues/3571">issue 3571</a>)
 
     @section qore_08139 Qore 0.8.13.9
 
