@@ -147,7 +147,14 @@ class ThreadResourcesTest inherits QUnit::Test {
         assertEq(3, i);
 
         # make sure thread resource can be cleaned up automatically when threads are terminated
-        background sub () {TRS btrs(); set_thread_resource(btrs);}();
+        Counter c0(1);
+        code c = sub () {
+            TRS btrs();
+            set_thread_resource(btrs);
+            c0.dec();
+        };
+        background c();
+        c0.waitForZero();
     }
 
     threadResourceSandboxingTests() {
