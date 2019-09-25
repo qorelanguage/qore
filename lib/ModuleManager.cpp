@@ -925,6 +925,12 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     QoreProgram* path_pgm, unsigned load_opt, int warning_mask) {
     assert(feature);
     printd(5, "QoreModuleManager::loadSeparatedModule() path: %s, feature: %s, pgm: %p, reexport: %d, mpgm: %p, path_pgm: %p, load_opt: %d warning_mask: %d\n", path.c_str(), feature, pgm, reexport, mpgm, path_pgm, load_opt, warning_mask);
+    if (module_load_check(feature)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", feature);
+        return nullptr;
+    }
+    ON_BLOCK_EXIT(module_load_clear, feature);
+
     QoreParseCountContextHelper pcch;
     // parse options for the module
     int64 parseOptions = USER_MOD_PO;
