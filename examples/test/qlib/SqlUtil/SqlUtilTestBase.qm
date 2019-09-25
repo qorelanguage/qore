@@ -36,14 +36,14 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
-    private *hash doTables(hash<auto> tables, hash<auto> columns) {
+    private *hash<auto> doTables(hash<auto> tables, hash<auto> columns) {
         foreach string table in (tables.keyIterator()) {
-            foreach hash h in (columns.pairIterator()) {
+            foreach hash<auto> h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
-                hash ch = (
+                hash<GenericColumnInfo> ch({
                     "native_type": type,
                     "notnull": True,
-                );
+                });
                 if (h.value.typeCode() == NT_HASH)
                     ch += (h.value - ("value", "bind", "expect", "type"));
                 tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
@@ -164,13 +164,12 @@ public class SqlTestBase inherits QUnit::Test {
                 };
                 hash<auto> row = dp.searchSingleRecord({"where_hash": where_hash});
                 assertEq(Type::Int, row.id.type());
-
             }
 
             # get first string column
             string fname;
             foreach QoreDataField field in (dp.getRecordType().iterator()) {
-                if (field.getType().getDirectTypeHash(){NT_STRING}) {
+                if (field.getType().getReturnTypeHash().string) {
                     fname = field.getName();
                     break;
                 }
