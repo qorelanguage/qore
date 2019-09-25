@@ -83,26 +83,33 @@ public hashdecl DataProviderInfo {
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
     #! Returns a single record matching the search options
-    *hash<auto> searchSingleRecord(*hash<auto> search_options) {
+    /** @param where_cond the search criteria
+        @param search_options the search options; will be processed by validateSearchOptions()
+    */
+    *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
-        return searchSingleRecordImpl(search_options);
+        return searchSingleRecordImpl(where_cond, search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    AbstractIterator searchRecords(*hash<auto> search_options) {
+    /** @param where_cond the search criteria
+        @param search_options the search options; will be processed by validateSearchOptions()
+    */
+    AbstractIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
         return searchRecordsImpl(search_options);
     }
 
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
-        @param search_options the search options after processing by validateSearchOptions()
+        @param where_cond the search criteria
+        @param search_options the search options; will be processed by validateSearchOptions()
 
         @returns @ref True if the record was updated, @ref False if not (no record found)
     */
-    bool updateSingleRecord(hash<auto> set, hash<auto> search_options) {
+    bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
-        return updateSingleRecordImpl(set, search_options);
+        return updateSingleRecordImpl(set, where_cond, search_options);
     }
 
     #! Returns info about the data provider
@@ -110,7 +117,7 @@ public class AbstractDataProvider {
         *hash<string, hash<DataProviderOptionInfo>> search_opts = getSearchOptions();
         return <DataProviderInfo>{
             "name": getName(),
-            "supports_search": exists search_opts,
+            "supports_search": supportsSearch(),
             "supports_create": supportsCreate(),
             "supports_update": supportsUpdate(),
             "supports_upsert": supportsUpsert(),
@@ -231,6 +238,9 @@ public class AbstractDataProvider {
     #! Returns child providers; return @ref nothing if there are no child providers
     abstract *AbstractDataProvider getChildProviders();
 
+    #! Returns @ref True if the data provider supports the record search API
+    abstract bool supportsSearch();
+
     #! Returns @ref True if the data provider supports the record creation API
     abstract bool supportsCreate();
 
@@ -251,19 +261,22 @@ public class AbstractDataProvider {
     abstract *hash<auto> createRecord(hash<auto> rec);
 
     #! Returns a single record matching the search options
-    /** @param search_options the search options after processing by validateSearchOptions()
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract *hash<auto> searchSingleRecordImpl(*hash<auto> search_options);
+    private abstract *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options);
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param search_options the search options after processing by validateSearchOptions()
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract AbstractIterator searchRecordsImpl(*hash<auto> search_options);
+    private abstract AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options);
 
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
+        @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract bool updateSingleRecordImpl(hash<auto> set, hash<auto> search_options);
+    private abstract bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options);
 }
 }

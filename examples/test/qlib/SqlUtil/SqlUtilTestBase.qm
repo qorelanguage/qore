@@ -153,16 +153,10 @@ public class SqlTestBase inherits QUnit::Test {
             DbTableDataProvider dp({"table": table});
 
             {
-                on_error dp.rollback();
-                on_success dp.commit();
-
                 list<hash<auto>> rows = map $1, dp.searchRecords();
                 assertEq(2, rows.size());
 
-                hash<auto> where_hash = {
-                    "id": 1,
-                };
-                hash<auto> row = dp.searchSingleRecord({"where_hash": where_hash});
+                hash<auto> row = dp.searchSingleRecord({"id": 1});
                 assertEq(Type::Int, row.id.type());
             }
 
@@ -178,13 +172,10 @@ public class SqlTestBase inherits QUnit::Test {
             if (fname) {
                 # test update API
                 string rstr = get_random_string();
-                assertTrue(dp.updateSingleRecord({fname: rstr}, {"where_hash": {"id": 1}}));
+                assertTrue(dp.updateSingleRecord({fname: rstr}, {"id": 1}));
                 assertFalse(table.getDatasource().currentThreadInTransaction());
 
-                hash<auto> where_hash = {
-                    "id": 1,
-                };
-                hash<auto> row = dp.searchSingleRecord({"where_hash": where_hash});
+                hash<auto> row = dp.searchSingleRecord({"id": 1});
                 assertEq(rstr, row{fname});
             }
         }

@@ -46,27 +46,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                 "desc": "the table the object is based on",
             },
         };
-
-        #! Search options
-        const SearchOptions = {
-            "where_hash": <DataProviderOptionInfo>{
-                "type": HashType,
-                "required": False,
-                "desc": "a select \"where hash\" for SqlUtil-based selects; if neither this option nor "
-                    "\"select_sql\" are present, then the entire table is selected",
-            },
-            "where_sql": <DataProviderOptionInfo>{
-                "type": StringType,
-                "required": False,
-                "desc": "the where clause of a select string; if neither this option nor \"where_hash\" are present, "
-                    "then the entire table is selected",
-            },
-            "where_sql_args": <DataProviderOptionInfo>{
-                "type": SoftAutoListType,
-                "required": False,
-                "desc": "optional bind arguments for \"where_sql\"",
-            },
-        };
     }
 
     private {
@@ -94,11 +73,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         search option; if @ref nothing is returned, then the provider does not support searching
     */
     *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
-        return SearchOptions;
     }
 
     #! Returns child providers; return @ref nothing if there are no child providers
     *AbstractDataProvider getChildProviders() {
+    }
+
+    #! Returns @ref True if the data provider supports the record search API
+    bool supportsSearch() {
+        return True;
     }
 
     #! Returns @ref True if the data provider supports the record creation API
@@ -158,40 +141,23 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return ConstructorOptions;
     }
 
-    #! validates search options
-    /** @throw SEARCH-OPTION-ERROR invalid or unsupported search option
-    */
-    private *hash<auto> validateSearchOptions(*hash<auto> search_options) {
-        if (search_options.select_hash && search_options.select_sql) {
-            error("SEARCH-OPTION-ERROR", "\"search_hash\" and \"search_sql\" cannot be given together");
-        }
-        return AbstractDataProvider::validateSearchOptions(search_options);
-    }
-
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
-    private *hash<auto> searchSingleRecordImpl(*hash<auto> search_options) {
-        if (search_options.where_sql) {
-            string sql = "select * from " + table.getSqlName() + " where " + search_options.where_sql;
-            return table.getDatasource().selectRow(sql, search_options.where_sql_args);
-        }
-        return table.selectRow({"where": search_options.where_hash});
+    private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        return table.selectRow({"where": where_cond});
     }
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
 
-        @note this method acquires a transaction lock and requires a commit or rollback after the iteration is done
+        @note this method acquires a transaction lock if one is not already acquired; the iterator returned performs a
+        rollback in the destructor if a new transaction lock was acquired and
+        @ref SqlUtil::DbTableRecordIterator::keepTransactionLock() "DbTableRecordIterator::keepTransactionLock()" is
+        not called
     */
-    private AbstractIterator searchRecordsImpl(*hash<auto> search_options) {
-        if (search_options.where_sql) {
-            AbstractSQLStatement stmt = table.getDatasource().getSQLStatement();
-            stmt.prepare("select * from " + table.getSqlName() + " where " + search_options.where_sql);
-            stmt.execArgs(search_options.where_sql_args);
-            return stmt;
-        }
-        return table.getStatement({"where": search_options.where_hash});
+    private DbTableRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        return new DbTableRecordIterator(table, where_cond, search_options);
     }
 
     #! Updates a single record matching the search options
@@ -201,19 +167,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @note this API will commit the row to the database unless the datasource was already in a transaction before
         this call
     */
-    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> search_options) {
-        if (!search_options.where_hash && !search_options.where_sql) {
-            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("missing \"where_hash\" or \"where_sql\" in update call; "
-                "search options: %y", search_options);
-        }
-        hash<SqlCommandInfo> update_hash = table.getUpdateSql(set, search_options.where_hash);
-        if (search_options.where_sql) {
-            update_hash = table.getUpdateSql(set);
-            update_hash.sql += " where " + search_options.where_sql;
-        } else {
-            update_hash = table.getUpdateSql(set, search_options.where_hash);
-        }
-
+    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        hash<SqlCommandInfo> update_hash = table.getUpdateSql(set, where_cond);
         AbstractDatasource ds = table.getDatasource();
 
         # commit transaction on success if we are not already in a transaction
@@ -231,8 +186,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
         int rows = ds.vexec(update_hash.sql, update_hash.args);
         if (rows > 1) {
-            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("%d record(s) were updated; the update has been rolled "
-                "back; search args: %y (set: %y)", rows, search_options, set);
+            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("%d record(s) were updated; %ssearch args: %y (set: %y)", rows,
+                (!in_trans ? "the update has been rolled back; " : ""), search_options, set);
         }
         return rows.toBool();
     }
