@@ -1,0 +1,13 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+module RD1 {
+    version = "1.0";
+    desc = "Test Module RD1";
+    author = "Qore Technologies, s.r.o.";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires ./RD2
