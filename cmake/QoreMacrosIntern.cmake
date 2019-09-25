@@ -168,6 +168,15 @@ return 0;
 }"
 HAVE_OPENSSL_INIT_CRYPTO)
 
+# check for SSL_set_max_proto_version()
+check_cxx_source_compiles("
+#include <openssl/ssl.h>
+int main(void) {
+SSL_set_max_proto_version(nullptr, 0x0303);
+return 0;
+}"
+HAVE_SSL_SET_MAX_PROTO_VERSION)
+
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
