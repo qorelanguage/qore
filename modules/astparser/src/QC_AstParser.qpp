@@ -24,6 +24,8 @@
   DEALINGS IN THE SOFTWARE.
 */
 
+#include <memory>
+
 #include "qore/Qore.h"
 
 #include "AstParserHolder.h"
@@ -52,10 +54,12 @@ AstParser::constructor() {
     @return parsed AST tree
  */
 *AstTree AstParser::parseFile(string filename) {
-    ASTTree* tree = aph->parseFile(filename->getBuffer());
+    std::unique_ptr<ASTTree> tree(aph->parseFile(filename->getBuffer()));
     if (!tree)
         return QoreValue();
-    return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
+
+    std::unique_ptr<AstTreeHolder> ath(new AstTreeHolder(tree.release()));
+    return new QoreObject(QC_ASTTREE, getProgram(), ath.release());
 }
 
 //! Parse string.
@@ -64,10 +68,12 @@ AstParser::constructor() {
     @return parsed AST tree
  */
 *AstTree AstParser::parseString(string str) {
-    ASTTree* tree = aph->parseString(str->getBuffer());
+    std::unique_ptr<ASTTree> tree(aph->parseString(str->getBuffer()));
     if (!tree)
         return QoreValue();
-    return new QoreObject(QC_ASTTREE, getProgram(), new AstTreeHolder(tree));
+
+    std::unique_ptr<AstTreeHolder> ath(new AstTreeHolder(tree.release()));
+    return new QoreObject(QC_ASTTREE, getProgram(), ath.release());
 }
 
 //! Get parse error count.
