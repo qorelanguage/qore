@@ -1129,6 +1129,15 @@ else
         AC_DEFINE([HAVE_OPENSSL_INIT_CRYPTO], 1, [Define if OPENSSL_init_crypto() is present])],
        [AC_MSG_RESULT([no OPENSSL_init_crypto() present])])
 
+    # check for SSL_set_max_proto_version()
+    AC_MSG_CHECKING([SSL_set_max_proto_version() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[SSL_set_max_proto_version(nullptr, 0x0303);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_SSL_SET_MAX_PROTO_VERSION], 1, [Define if SSL_set_max_proto_version is present])],
+       [AC_MSG_RESULT([no SSL_set_max_proto_version() present])])
+
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
 fi

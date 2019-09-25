@@ -363,7 +363,7 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
         setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs);
     }
 
-#ifdef TLS1_2_VERSION
+#if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_2_VERSION)
     if (qore_library_options & QLO_DISABLE_TLS_13) {
         SSL_set_max_proto_version(ssl, TLS1_2_VERSION);
     }
