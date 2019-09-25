@@ -54,37 +54,37 @@ struct qore_string_private {
 private:
 
 public:
-    qore_size_t len;
-    qore_size_t allocated;
-    char* buf;
-    const QoreEncoding* charset;
+    qore_size_t len = 0;
+    qore_size_t allocated = 0;
+    char* buf = nullptr;
+    const QoreEncoding* charset = nullptr;
 
     DLLLOCAL qore_string_private() {
     }
 
     DLLLOCAL qore_string_private(const qore_string_private &p) {
-            allocated = p.len + STR_CLASS_EXTRA;
-            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
-            buf = (char*)malloc(sizeof(char) * allocated);
-            len = p.len;
-            if (len)
-                memcpy(buf, p.buf, len);
-            buf[len] = '\0';
-            charset = p.getEncoding();
+        allocated = p.len + STR_CLASS_EXTRA;
+        allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+        buf = (char*)malloc(sizeof(char) * allocated);
+        len = p.len;
+        if (len)
+            memcpy(buf, p.buf, len);
+        buf[len] = '\0';
+        charset = p.getEncoding();
     }
 
     DLLLOCAL ~qore_string_private() {
-            if (buf)
-                free(buf);
+        if (buf)
+            free(buf);
     }
 
     DLLLOCAL void check_char(qore_size_t i) {
-            if (i >= allocated) {
-                qore_size_t d = i >> 2;
-                allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
-                allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
-                buf = (char*)realloc(buf, allocated * sizeof(char));
-            }
+        if (i >= allocated) {
+            qore_size_t d = i >> 2;
+            allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
+            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+            buf = (char*)realloc(buf, allocated * sizeof(char));
+        }
     }
 
     DLLLOCAL qore_size_t check_offset(qore_offset_t offset) {

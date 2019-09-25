@@ -94,6 +94,8 @@ AstTreeSearcher::constructor() {
     @return hash with hover info
  */
 *hash AstTreeSearcher::hoverInfo(astparser::AstTree[AstTreeHolder] tree, int kind, int line, int col) {
+    ReferenceHolder<AstTreeHolder> holder(tree, xsink);
+
     std::unique_ptr<std::vector<ASTNode*> > nodes(AstTreeSearcher::findNodeAndParents(tree->get(), line+1, col+1));
     if (!nodes)
         return QoreValue();
@@ -153,6 +155,8 @@ AstTreeSearcher::constructor() {
     @return hash with hover info
  */
 *hash AstTreeSearcher::findSymbolInfo(astparser::AstTree[AstTreeHolder] tree, int line, int col) {
+    ReferenceHolder<AstTreeHolder> holder(tree, xsink);
+
     ASTSymbolInfo si = std::move(AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1));
     if ((si.kind == 0 && si.usage == 0) ||
         (si.loc.firstLine == 0 &&
@@ -204,6 +208,8 @@ AstTreeSearcher::constructor() {
     @return list of reference locations
  */
 *list AstTreeSearcher::findReferences(astparser::AstTree[AstTreeHolder] tree, string uri, int line, int col, bool includeDecl) {
+    ReferenceHolder<AstTreeHolder> holder(tree, xsink);
+
     std::unique_ptr<std::vector<ASTNode*> > vec(AstTreeSearcher::findReferences(tree->get(), line+1, col+1, includeDecl));
     if (!vec)
         return QoreValue();
@@ -252,7 +258,9 @@ AstTreeSearcher::constructor() {
     @return list of symbols
  */
 *list AstTreeSearcher::findSymbols(astparser::AstTree[AstTreeHolder] tree, string uri, bool fixSymbols = True, bool bareNames = False) {
-    const std::vector<ASTSymbolInfo>* vec = AstTreeSearcher::findSymbols(tree->get(), fixSymbols, bareNames);
+    ReferenceHolder<AstTreeHolder> holder(tree, xsink);
+
+    std::unique_ptr<std::vector<ASTSymbolInfo> > vec(AstTreeSearcher::findSymbols(tree->get(), fixSymbols, bareNames));
     if (!vec)
         return QoreValue();
 
@@ -308,6 +316,8 @@ AstTreeSearcher::constructor() {
     @return list of symbols
  */
 *list AstTreeSearcher::findMatchingSymbols(astparser::AstTree[AstTreeHolder] tree, string uri, string query, bool exactMatch = False, bool fixSymbols = True, bool bareNames = False) {
+    ReferenceHolder<AstTreeHolder> holder(tree, xsink);
+
     std::string queryStr(query->c_str());
     std::unique_ptr<std::vector<ASTSymbolInfo> > vec(AstTreeSearcher::findMatchingSymbols(tree->get(), queryStr, exactMatch, fixSymbols, bareNames));
     if (!vec)
