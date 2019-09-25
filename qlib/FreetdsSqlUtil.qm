@@ -28,6 +28,9 @@
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
 
+# requires the Util module
+%requires Util >= 1.0
+
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
 
@@ -150,14 +153,14 @@ public namespace FreetdsSqlUtil {
         return new FreetdsDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
+    sub parse_schema_name(string nname, reference<string> schema, reference<string> name, string default_schema = "dbo") {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
             splice nname, 0, schema.size() + 1;
             name = nname;
         } else {
-            schema = "dbo";
+            schema = default_schema;
             name = nname;
         }
     }
@@ -165,17 +168,22 @@ public namespace FreetdsSqlUtil {
     #! FreeTDS savepoint helper
     public class FreetdsSavepointHelper inherits AbstractSavepointHelper {
         #! Creates the object
-        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        /** @note MS SQL Server savepoint identifiers cannot be longer than 32 character by default; the default
+            savepoint value uses the unique hash for the object, which is 40 characters long, so we have to use
+            another algorithm to create the savepoint string on Oracle
+        */
+        constructor(AbstractDatasource ds, *string savepoint = "x" + get_random_string(31))
+            : AbstractSavepointHelper(ds, savepoint) {
         }
 
         #! Creates the savepoint
         private createSavepointImpl() {
-            ds.exec("save transaction " + savepoint);
+            ds.exec("save tran " + savepoint);
         }
 
         #! Rolls back to the savepoint
         private rollbackImpl() {
-            ds.exec("rollback transaction " + savepoint);
+            ds.exec("rollback tran " + savepoint);
         }
 
         #! Deletes the savepoint
@@ -686,6 +694,9 @@ any v = c.name;
             #! sybase flag
             bool is_sybase;
 
+            #! default schema for user
+            string default_schema = "dbo";
+
             #! FreeTDS-specific schema description keys
             const FreetdsSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions;
 
@@ -886,6 +897,9 @@ any v = c.name;
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
             is_sybase = FreetdsDatabase::isSybase(ds);
+            if (!is_sybase) {
+                default_schema = nds.selectRow("select schema_name() as \"schema\"").schema;
+            }
         }
 
         private list featuresImpl() {
@@ -903,7 +917,7 @@ any v = c.name;
 
         private *AbstractView getViewImpl(string name) {
             string schema;
-            parse_schema_name(name, \schema, \name);
+            parse_schema_name(name, \schema, \name, default_schema);
 
             # information_schema will return NULL if the view definition > 4000 chars, so we use system tables
             *hash<auto> row = ds.selectRow("select smv.definition from sys.all_views v join sys.sql_modules smv on smv.object_id = v.object_id join sys.schemas s on s.schema_id = v.schema_id where s.name = %v and v.name = %v", schema, name);
@@ -1160,7 +1174,7 @@ any v = c.name;
                 # The following are Sybase specific
                 "long binary": ("qore": Type::Binary,),
                 "long varchar": ("qore": Type::String,),
-                );
+            );
 
             #! maps qore type names to DB type names
             const QoreTypeMap = (
@@ -1173,12 +1187,12 @@ any v = c.name;
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",
                 SqlUtil::CLOB: "text",
-                );
+            );
 
             #! maps qore type names to MS SQL Server type names
             const MsQoreTypeMap = QoreTypeMap + (
                 SqlUtil::BLOB: "varbinary(max)",
-                );
+            );
 
             #! maps qore type names to Sybase/SAP type names
             const SybaseQoreTypeMap = QoreTypeMap;
@@ -1199,7 +1213,7 @@ any v = c.name;
             #! select options supported by FreetdsSqlUtil
             const FreetdsSelectOptions = AbstractTable::SelectOptions + (
                 "tablehint": "softstringlist",
-                );
+            );
 
             #! query hints
             const MsSqlServerTableHints = (
@@ -1217,7 +1231,7 @@ any v = c.name;
                 "tablockx": True,
                 "updlock": True,
                 "xlock": True,
-                );
+            );
 
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
@@ -1334,7 +1348,7 @@ any v = c.name;
                         return replace(cmd, "%s", arg1);
                     }
                 )
-                );
+            );
 
             #! Map @ref SqlUtil::cop_trunc_date() constants to FreeTDS internal masks
             /*  Impl. note here. There is shorter workaround for this, but it does not work with seconds
@@ -1342,13 +1356,13 @@ any v = c.name;
                 So no usage for: dateadd(ss, datediff(ss, 0, %s), 0) for example
              */
             const FreetdsTruncDate = (
-                    DT_YEAR     : "datetimefromparts(datepart(year, %s), 1, 1, 0, 0, 0, 0)",
-                    DT_MONTH    : "datetimefromparts(datepart(year, %s), datepart(month, %s), 1, 0, 0, 0, 0)",
-                    DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), 0, 0, 0, 0)",
-                    DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), 0, 0, 0)",
-                    DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), 0, 0)",
-                    DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
-                );
+                DT_YEAR     : "datetimefromparts(datepart(year, %s), 1, 1, 0, 0, 0, 0)",
+                DT_MONTH    : "datetimefromparts(datepart(year, %s), datepart(month, %s), 1, 0, 0, 0, 0)",
+                DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), 0, 0, 0, 0)",
+                DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), 0, 0, 0)",
+                DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), 0, 0)",
+                DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
+            );
 
             #! a hash of default value operator descriptions for FreeTDS
             const FreetdsIopMap = DefaultIopMap + (
@@ -1356,7 +1370,7 @@ any v = c.name;
                     "arg": Type::String,
                     "placeholder": "next value for %v",
                 ),
-                );
+            );
 
             #! a hash of default update operator definitions for FreeTDS
             const FreetdsUopMap = DefaultUopMap + (
@@ -1373,7 +1387,7 @@ any v = c.name;
                         throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg);
                     }
                 ),
-                );
+            );
         }
 
         private {
@@ -1385,6 +1399,9 @@ any v = c.name;
 
             #! contains any trigger functions supporting triggers on the table
             Functions triggerFunctions;
+
+            #! the default schema for the user
+            string default_schema = "dbo";
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1398,9 +1415,10 @@ any v = c.name;
                         ss_has_sequences = True;
                     }
                 }
+                default_schema = nds.selectRow("select schema_name() as \"schema\"").schema;
             }
             # see if there is a schema in the name
-            parse_schema_name(nname, \schema, \name);
+            parse_schema_name(nname, \schema, \name, default_schema);
         }
 
         #! returns the schema name

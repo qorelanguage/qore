@@ -248,8 +248,8 @@ public namespace MysqlSqlUtil {
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
-            byte_size = bs;
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+            byte_size = bs ?? 0;
         }
 
         #! returns a list of sql strings that can be used to add the column to an existing table
@@ -1471,7 +1471,7 @@ end";
                     row.column_type =~ s/ unsigned$//;
                 }
 
-                softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
+                softint size = row.character_maximum_length ?? row.numeric_precision ?? 0;
 
                 if (row.column_type == "year(2)")
                     size = 2;

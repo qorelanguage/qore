@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -73,6 +71,9 @@ public hashdecl DataProviderInfo {
     */
     bool supports_bulk_create;
 
+    #! Create options supported by the data provider
+    *hash<string, hash<DataProviderOptionInfo>> create_options;
+
     #! Search options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> search_options;
 
@@ -82,39 +83,49 @@ public hashdecl DataProviderInfo {
 
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
+    #! Creates the given record inthe data provider
+    /** @param rec a hash representing a single input record
+        @param create_options the create options; will be processed by validateCreateOptions()
+
+        @return the data written to the data provider
+    */
+    *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
+        create_options = validateCreateOptions(create_options);
+        return createRecordImpl(rec, create_options);
+    }
+
     #! Returns a single record matching the search options
-    /** @param where_cond the search criteria
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
     */
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
-        return searchSingleRecordImpl(where_cond, search_options);
+        return searchSingleRecordImpl(processFieldValues(where_cond), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
     */
     AbstractIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
-        return searchRecordsImpl(search_options);
+        return searchRecordsImpl(processFieldValues(where_cond), search_options);
     }
 
     #! Updates a single record matching the search options
-    /** @param set the hash of field data to set
-        @param where_cond the search criteria
+    /** @param set the hash of field data to set; will be processed by processFieldValues()
+        @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @returns @ref True if the record was updated, @ref False if not (no record found)
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
-        return updateSingleRecordImpl(set, where_cond, search_options);
+        return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond), search_options);
     }
 
     #! Returns info about the data provider
     hash<DataProviderInfo> getInfo() {
-        *hash<string, hash<DataProviderOptionInfo>> search_opts = getSearchOptions();
         return <DataProviderInfo>{
             "name": getName(),
             "supports_search": supportsSearch(),
@@ -123,7 +134,8 @@ public class AbstractDataProvider {
             "supports_upsert": supportsUpsert(),
             "supports_delete": supportsDelete(),
             "supports_bulk_create": supportsBulkCreate(),
-            "search_options": search_opts,
+            "search_options": getSearchOptions(),
+            "create_options": getCreateOptions(),
             "transaction_management": requiresTransactionManagement(),
         };
     }
@@ -174,6 +186,13 @@ public class AbstractDataProvider {
         return createRecord(rec);
     }
 
+    #! validates create options
+    /** @throw CREATE-OPTION-ERROR invalid or unsupported create option
+    */
+    private *hash<auto> validateCreateOptions(*hash<auto> create_options) {
+        return checkOptions("CREATE-OPTION-ERROR", getCreateOptions(), create_options);
+    }
+
     #! validates search options
     /** @throw SEARCH-OPTION-ERROR invalid or unsupported search option
     */
@@ -218,6 +237,33 @@ public class AbstractDataProvider {
         return options;
     }
 
+    #! processes search or set values to convert types if necessary
+    /** @param h the hash of field values to process
+
+        @return processed field values, all non-hash values of \a h are processed with the field's type to ensure
+        that the values are valid for the comparison or set operation; hash values are assumed to be provider-
+        specific comparison or set operations and should be processed by the provider-specific method
+    */
+    private *hash<auto> processFieldValues(*hash<auto> h) {
+        if (!h) {
+            return;
+        }
+        *hash<string, AbstractDataField> rec = getRecordType();
+        hash<auto> rv;
+        foreach hash<auto> i in (h.pairIterator()) {
+            if (!rec{i.key}) {
+                throw "INVALID-FIELD", sprintf("field %y is not a defined field in records of type %y; valid "
+                    "fields: %y", i.key, getName(), keys rec);
+            }
+            # we assume a hash is a provider-specific search option
+            if (i.value.typeCode() == NT_HASH) {
+                continue;
+            }
+            rv{i.key} = rec{i.key}.acceptsValue(i.value);
+        }
+        return rv;
+    }
+
     #! thrown an exception
     private error(string err, string fmt) {
         throw err, sprintf("data provider %y: %s", self.className(), vsprintf(fmt, argv));
@@ -231,9 +277,15 @@ public class AbstractDataProvider {
 
     #! Returns options that can be used for searching
     /** @return a hash of options that can be used for searching; keys are search option names, values describe the
-        search option; if @ref nothing is returned, then the provider does not support searching
+        search option; if @ref nothing is returned, then the provider does not support any search options
     */
     abstract *hash<string, hash<DataProviderOptionInfo>> getSearchOptions();
+
+    #! Returns options that can be used for creating records
+    /** @return a hash of options that can be used for creating records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any creation options
+    */
+    abstract *hash<string, hash<DataProviderOptionInfo>> getCreateOptions();
 
     #! Returns child providers; return @ref nothing if there are no child providers
     abstract *AbstractDataProvider getChildProviders();
@@ -255,10 +307,11 @@ public class AbstractDataProvider {
 
     #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
+        @param create_options the create options after processing by validateCreateOptions()
 
         @return the data written to the data provider
     */
-    abstract *hash<auto> createRecord(hash<auto> rec);
+    abstract *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options);
 
     #! Returns a single record matching the search options
     /** @param where_cond the search criteria

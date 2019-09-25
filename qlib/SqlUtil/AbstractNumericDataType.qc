@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -50,19 +48,14 @@ public class AbstractNumericDataType inherits DataProvider::QoreSoftNumberTypeBa
 
     #! creates the object
     constructor(string name, bool nullable, *hash<auto> options)
-        : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType, options) {
+        : QoreSoftNumberTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType, options
+            + {"qore.no_null": True}) {
         self.name = name;
         self.nullable = nullable;
-        base_type_hash += {
-            NT_FLOAT: True,
-            NT_INT: True,
-        } + (options."number.format".val() ? NOTHING : {
-            NT_STRING: True,
-        }) + (nullable
-            ? {
-                NT_NULL: True,
-            }
-            : NOTHING);
+        # remove string as an accepted type if the type does not supports strings
+        if (!options."number.format".val()) {
+            accept_type_hash -= Type::String;
+        }
     }
 
     #! returns the type name
@@ -74,6 +67,8 @@ public class AbstractNumericDataType inherits DataProvider::QoreSoftNumberTypeBa
     /** @param value the value to assign to the type
 
         @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value is not accepted by the type
     */
     auto acceptsValue(auto value) {
         if (getDirectTypeHash(){value.typeCode()}) {

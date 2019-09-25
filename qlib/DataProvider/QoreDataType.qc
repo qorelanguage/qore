@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -37,7 +35,10 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type
+#! describes a data type based on a %Qore data type
+/** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
+    inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
+*/
 public class QoreDataType inherits AbstractDataProviderType {
     private {
         #! the Qore type
@@ -51,22 +52,46 @@ public class QoreDataType inherits AbstractDataProviderType {
 
         #! hash of base types returned by this type; keys are type names
         *hash<string, bool> return_type_hash;
+
+        #! hash of type accepted by the base type but not accepted by this type: code -> True
+        hash<string, bool> blacklist_type_hash;
+
+        #! supported options
+        const SupportedOptions = {
+            "qore.no_null": <DataProviderTypeOptionInfo>{
+                "type": Type::Boolean,
+                "desc": "if True then NULL is not supported on input if NOTHING is also not accepted",
+            },
+        };
     }
 
     #! creates the type
-    constructor(Type type, *hash<auto> options) : AbstractDataProviderType(options) {
+    constructor(Type type, *hash<auto> options) {
         self.type = type;
+        if (options) {
+            setOptions(options);
+        }
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {
             base_type_hash{NT_NOTHING} = True;
         }
         accept_type_hash = type.getAcceptTypeHash();
         return_type_hash = type.getReturnTypeHash();
+
+        if (self.options."qore.no_null") {
+            accept_type_hash -= Type::NullType;
+            blacklist_type_hash{NT_NULL} = True;
+        }
     }
 
     #! returns the type name
     string getName() {
         return type.getName();
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        return type.isOrNothingType() ? NOTHING : SupportedOptions;
     }
 
     #! returns the base type for the type, if any
@@ -94,6 +119,10 @@ public class QoreDataType inherits AbstractDataProviderType {
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
     */
     auto acceptsValue(auto value) {
+        if (blacklist_type_hash && blacklist_type_hash{value.typeCode()}) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
+                value.type());
+        }
         return type.acceptsValue(value);
     }
 

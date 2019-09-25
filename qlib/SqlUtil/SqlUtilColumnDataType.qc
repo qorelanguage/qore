@@ -54,7 +54,8 @@ public class SqlUtilColumnDataType inherits DataProvider::AbstractDataProviderTy
     #! creates the object
     constructor(string native_type, string type, *hash<auto> options) {
         name = native_type;
-        self.type = AbstractDataProviderType::get(new Type(OptimalQoreSoftDataTypeMap{type} ?? type), options);
+        self.type = AbstractDataProviderType::get(new Type(OptimalQoreSoftDataTypeMap{type} ?? type),
+            options + {"qore.no_null": True});
         init();
     }
 

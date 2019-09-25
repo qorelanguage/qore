@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,6 +36,9 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on softstring with a target encoding
+/** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
+    inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
+*/
 public class QoreStringTypeBase inherits QoreDataType {
     private {
         #! supported options
@@ -102,7 +103,7 @@ public class QoreStringTypeBase inherits QoreDataType {
 
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return SupportedOptions;
+        return QoreDataType::getSupportedOptions() + SupportedOptions;
     }
 
     #! sets the given option without any validation of the option

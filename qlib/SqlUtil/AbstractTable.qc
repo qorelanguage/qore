@@ -210,8 +210,8 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             - \c returning: a list having elements of one of the two following types:
                 - @ref string_type "string": column names to return the value inserted
                 - @ref hash_type "hash": a hash having the following keys:
-                - \c "key": (required) the column name to return
-                - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
+                  - \c "key": (required) the column name to return
+                  - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
 
             @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
         */

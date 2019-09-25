@@ -322,7 +322,11 @@ public namespace OracleSqlUtil {
     #! Oracle savepoint helper
     public class OracleSavepointHelper inherits AbstractSavepointHelper {
         #! Creates the object
-        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        /** @note Oracle identifiers cannot be longer than 30 character by default; the default savepoint value uses
+            the unique hash for the object, which is 40 characters long, so we have to use another algorithm to create
+            the savepoint string on Oracle
+        */
+        constructor(AbstractDatasource ds, *string savepoint = "x" + get_random_string(29)) : AbstractSavepointHelper(ds, savepoint) {
         }
 
         #! Creates the savepoint

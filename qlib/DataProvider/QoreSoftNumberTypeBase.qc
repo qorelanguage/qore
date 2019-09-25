@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -67,16 +65,16 @@ public class QoreSoftNumberTypeBase inherits QoreDataType {
                 return parse_number(value, options."number.format");
             }
             if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                throw "INVALID-NUMBER", sprintf("value %y cannot be parsed by type \"number\"; the input data contains "
-                    "non-numeric text", value);
+                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot be parsed by type %y; the input data "
+                    "contains non-numeric text", value, getName());
             return number(value);
         }
-        return type.acceptsValue(value);
+        return QoreDataType::acceptsValue(value);
     }
 
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return SupportedOptions;
+        return QoreDataType::getSupportedOptions() + SupportedOptions;
     }
 }
 }

@@ -160,6 +160,8 @@ public class SqlTestBase inherits QUnit::Test {
                 assertEq(Type::Int, row.id.type());
             }
 
+            assertThrows("RUNTIME-TYPE-ERROR", \dp.searchSingleRecord(), {"id": "abc"});
+
             # get first string column
             string fname;
             foreach QoreDataField field in (dp.getRecordType().iterator()) {
@@ -177,6 +179,11 @@ public class SqlTestBase inherits QUnit::Test {
 
                 hash<auto> row = dp.searchSingleRecord({"id": 1});
                 assertEq(rstr, row{fname});
+
+                AbstractSavepointHelper sph = table.getSavepointHelper();
+                on_exit sph.rollback();
+                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": "abc"}, {"id": 1}));
+                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
             }
         }
     }
@@ -187,7 +194,8 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        string sql; on_error printf ("SQL: %s\n", sql);
+        string sql;
+        on_error printf("SQL: %s\n", sql);
 
         foreach hash data in (insert_data)
             assertEq(NOTHING, table.insert(data, \sql));
@@ -199,19 +207,20 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        string sql; on_error printf ("SQL: %s\n", sql);
+        string sql;
+        on_error printf ("SQL: %s\n", sql);
 
-        *list rows = table.selectRows();
-        assertEq (2, rows.size());
+        *list rows = table.selectRows({}, \sql);
+        assertEq(2, rows.size());
 
         foreach hash e in (expect_data.pairIterator()) {
             # printf("* %s\n", e.key);
             # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
             # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
             if (e.value === NOTHING)
-                assertSkip ("checking data in column " + e.key);
+                assertSkip("checking data in column " + e.key);
             else
-                assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
         }
 
         # select a single column and then asterisk
@@ -221,7 +230,7 @@ public class SqlTestBase inherits QUnit::Test {
             # issue #2163: make sure we can reference aliases that are keywords
             "where": ("table": op_ceq(col)),
             "limit": 1,
-            );
+        );
 
         assertEq(Type::Hash, table.selectRow(sh, \sql).type());
         sh = (

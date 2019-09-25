@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -115,10 +113,12 @@ public hashdecl DataTypeInfo {
 
 #! describes a data type
 public class AbstractDataProviderType {
-    private {
+    public {
         static Type nothingType("nothing");
         static Type anyType("auto");
+    }
 
+    private {
         #! type options
         hash<auto> options;
     }
@@ -133,19 +133,12 @@ public class AbstractDataProviderType {
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */
     constructor(hash<auto> options) {
-        foreach hash<auto> i in (getSupportedOptions().pairIterator()) {
-            if (exists (auto value = options{i.key})) {
-                string value_type = value.type();
-                if (value_type == "object") {
-                    value_type = value.fullType();
-                }
-                if (i.value.type != value_type) {
-                    throw "TYPE-OPTION-ERROR", sprintf("type %y expects type %y for option %y; got type %y instead "
-                        "(value: %y)", getName(), i.value.type, i.key, value.type());
-                }
-                setOptionIntern(i.key, value);
-            }
-        }
+        setOptions(options);
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        # this method intentionally left blank
     }
 
     #! returns a description of the type as an input type
@@ -260,11 +253,6 @@ public class AbstractDataProviderType {
         return options;
     }
 
-    #! returns supported options
-    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        # this method intentionally left empty
-    }
-
     #! sets the given option on the type
     /** @param opt the option to set
         @param value the value to set
@@ -281,11 +269,28 @@ public class AbstractDataProviderType {
             value_type = value.fullType();
         }
         if (options{opt}.type != value_type) {
-            throw "TYPE-OPTION-ERROR", sprintf("type %y expectys type %y for option %y; got type %y instead "
+            throw "TYPE-OPTION-ERROR", sprintf("type %y expects type %y for option %y; got type %y instead "
                 "(value: %y)", getName(), options{opt}.type, opt, value.type(), value);
         }
 
         setOptionIntern(opt, value);
+    }
+
+    #! sets options on the type; called in the constructor
+    private setOptions(hash<auto> options) {
+        foreach hash<auto> i in (getSupportedOptions().pairIterator()) {
+            if (exists (auto value = options{i.key})) {
+                string value_type = value.type();
+                if (value_type == "object") {
+                    value_type = value.fullType();
+                }
+                if (i.value.type != value_type) {
+                    throw "TYPE-OPTION-ERROR", sprintf("type %y expects type %y for option %y; got type %y instead "
+                        "(value: %y)", getName(), i.value.type, i.key, value.type());
+                }
+                setOptionIntern(i.key, value);
+            }
+        }
     }
 
     #! returns the type name

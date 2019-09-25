@@ -22,8 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -48,7 +46,7 @@ public class AbstractSavepointHelper {
     #! Creates the object
     constructor(AbstractDatasource ds, *string savepoint) {
         if (!savepoint.val()) {
-            savepoint = "_temp_" + self.uniqueHash();
+            savepoint = "temp_" + self.uniqueHash();
         }
         self.ds = ds;
         self.savepoint = savepoint;

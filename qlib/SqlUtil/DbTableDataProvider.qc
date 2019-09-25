@@ -38,6 +38,16 @@ public namespace SqlUtil {
 #! Defines a data provider based on a single SQL table
 public class DbTableDataProvider inherits AbstractDataProvider {
     public {
+        #! Create options
+        const CreateOptions = {
+            "returning": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::anyType,
+                "desc": "a string (giving the output name) or a hash describing the return parameters for an insert; "
+                    "a hash will have the following keys: 'key': (required) the column name to return, and 'type' "
+                    "(optional) the data type for the output placeholder buffer (ex: 'number')",
+            },
+        };
+
         #! Constructor options
         const ConstructorOptions = {
             "table": <DataProviderOptionInfo>{
@@ -70,9 +80,17 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Returns options that can be used for searching
     /** @return a hash of options that can be used for searching; keys are search option names, values describe the
-        search option; if @ref nothing is returned, then the provider does not support searching
+        search option; if @ref nothing is returned, then the provider does not support any search options
     */
     *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
+    }
+
+    #! Returns options that can be used for creating records
+    /** @return a hash of options that can be used for creating records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any creation options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
+        return CreateOptions;
     }
 
     #! Returns child providers; return @ref nothing if there are no child providers
@@ -104,16 +122,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return True;
     }
 
-    #! Writes the given record to the data provider
-    /** @param rec a hash representing a single input record
-
-        @return the data written to the data provider
-    */
-    *hash<auto> createRecord(hash<auto> rec) {
-        table.insert(rec);
-        return rec;
-    }
-
     #! Returns @ref True if the data provider supports transaction management
     /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
         must be called to flush or discard data written to the data provider
@@ -141,6 +149,17 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return ConstructorOptions;
     }
 
+    #! Writes the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param create_options the create options after processing by validateCreateOptions()
+
+        @return the data written to the data provider plus any output (returning) variables
+    */
+    private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        *hash<auto> returning = table.insert(rec, create_options);
+        return rec + returning;
+    }
+
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
     */
@@ -152,7 +171,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     /** @param search_options the search options after processing by validateSearchOptions()
 
         @note this method acquires a transaction lock if one is not already acquired; the iterator returned performs a
-        rollback in the destructor if a new transaction lock was acquired and
+        rollback in the destructor if a new transaction lock was acquired by this call and
         @ref SqlUtil::DbTableRecordIterator::keepTransactionLock() "DbTableRecordIterator::keepTransactionLock()" is
         not called
     */

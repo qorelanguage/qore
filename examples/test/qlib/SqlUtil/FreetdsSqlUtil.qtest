@@ -26,7 +26,7 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
     private {
         const GenericOptions = (
             "replace": True,
-            );
+        );
 
         const IndexOptions = {};
 
@@ -41,11 +41,11 @@ class FreetdsTestSchema inherits SqlUtilTestSchema {
                 "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
-            );
+        );
 
         const Tables = (
             "sqlutil_test": T_SqlUtilTest,
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -130,7 +130,7 @@ class FreetdsTest inherits SqlTestBase {
             #"varbinary": <bead>,
 
             "image": <bead>,
-            );
+        );
     }
 
     constructor() : SqlTestBase("FreetdsTest", "1.0", \ARGV, MyOpts) {

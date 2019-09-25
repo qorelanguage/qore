@@ -29,41 +29,126 @@ public class DataProviderTest inherits QUnit::Test {
         assertTrue(datatype.isAssignableFrom(HashType));
         assertTrue(IntType.isEqual(datatype.getField("size").getType().getValueType()));
 
-        QoreSoftNumberType num1({"number.format": ".,"});
-        assertEq(1234.56n, num1.acceptsValue("1.234,56"));
-        assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue());
+        {
+            QoreSoftNumberType num1({"number.format": ".,"});
+            assertEq(1234.56n, num1.acceptsValue("1.234,56"));
+            assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue());
+            assertEq(0n, num1.acceptsValue(NULL));
+        }
 
-        QoreSoftNumberOrNothingType num2({"number.format": ".,"});
-        assertEq(1234.56n, num2.acceptsValue("1.234,56"));
-        assertEq(NOTHING, num2.acceptsValue());
-        assertEq(NOTHING, num2.acceptsValue(NULL));
+        {
+            QoreSoftNumberType num1({"qore.no_null": True});
+            assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue(), NULL);
+        }
 
-        QoreSoftIntType int1();
-        assertEq(1234, int1.acceptsValue("1234"));
-        assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue());
+        {
+            QoreSoftNumberOrNothingType num2({"number.format": ".,"});
+            assertEq(1234.56n, num2.acceptsValue("1.234,56"));
+            assertEq(NOTHING, num2.acceptsValue());
+            assertEq(NOTHING, num2.acceptsValue(NULL));
+        }
 
-        QoreSoftIntOrNothingType int2();
-        assertEq(1234, int2.acceptsValue("1234"));
-        assertEq(NOTHING, int2.acceptsValue());
-        assertEq(NOTHING, int2.acceptsValue(NULL));
+        {
+            QoreSoftIntType int1();
+            assertEq(1234, int1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue());
+            assertEq(0, int1.acceptsValue(NULL));
+        }
+
+        {
+            QoreSoftIntType int1({"qore.no_null": True});
+            assertEq(1234, int1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreSoftIntOrNothingType int2();
+            assertEq(1234, int2.acceptsValue("1234"));
+            assertEq(NOTHING, int2.acceptsValue());
+            assertEq(NOTHING, int2.acceptsValue(NULL));
+        }
+
+        {
+            QoreDataType bool1(SoftBoolType);
+            assertEq(True, bool1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \bool1.acceptsValue());
+            assertEq(False, bool1.acceptsValue(NULL));
+        }
+
+        {
+            QoreDataType bool1(SoftBoolType, {"qore.no_null": True});
+            assertEq(True, bool1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \bool1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \bool1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreDataType bool1(SoftBoolOrNothingType);
+            assertEq(True, bool1.acceptsValue("1234"));
+            assertEq(NOTHING, bool1.acceptsValue());
+            assertEq(NOTHING, bool1.acceptsValue(NULL));
+        }
+
+        {
+            QoreDataType float1(SoftFloatType);
+            assertEq(1234.0, float1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue());
+            assertEq(0.0, float1.acceptsValue(NULL));
+        }
+
+        {
+            QoreDataType float1(SoftFloatType, {"qore.no_null": True});
+            assertEq(1234.0, float1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreDataType float1(SoftFloatOrNothingType);
+            assertEq(1234.0, float1.acceptsValue("1234"));
+            assertEq(NOTHING, float1.acceptsValue());
+            assertEq(NOTHING, float1.acceptsValue(NULL));
+        }
 
         hash<auto> opts({
             "date.format": "DD.MM.YYYY",
             "date.input_timezone": new TimeZone("America/Chicago"),
             "date.output_timezone": new TimeZone("UTC"),
         });
-        QoreSoftDateType date1(opts);
-        assertEq(2019-09-13T05:00:00Z, date1.acceptsValue("13.09.2019"));
-        assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
 
-        QoreSoftDateOrNothingType date2(opts);
-        assertEq(2019-09-13T05:00:00Z, date2.acceptsValue("13.09.2019"));
-        assertEq(NOTHING, date2.acceptsValue());
-        assertEq(NOTHING, date2.acceptsValue(NULL));
+        {
+            QoreSoftDateType date1(opts);
+            assertEq(2019-09-13T05:00:00Z, date1.acceptsValue("13.09.2019"));
+            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
+            assertEq(1970-01-01, date1.acceptsValue(NULL));
+        }
 
-        QoreStringTypeBase str1(SoftStringType);
-        assertEq("123", str1.acceptsValue(123));
-        assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue());
+        {
+            QoreSoftDateType date1({"qore.no_null": True});
+            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreSoftDateOrNothingType date2(opts);
+            assertEq(2019-09-13T05:00:00Z, date2.acceptsValue("13.09.2019"));
+            assertEq(NOTHING, date2.acceptsValue());
+            assertEq(NOTHING, date2.acceptsValue(NULL));
+        }
+
+        {
+            QoreStringTypeBase str1(SoftStringType);
+            assertEq("123", str1.acceptsValue(123));
+            assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue());
+            assertEq("", str1.acceptsValue(NULL));
+        }
+
+        {
+            QoreStringTypeBase str(new Type("softstring"), {"qore.no_null": True});
+            assertThrows("RUNTIME-TYPE-ERROR", \str.acceptsValue(), NULL);
+        }
 
         QoreStringTypeBase str2(SoftStringOrNothingType);
         assertEq("123", str2.acceptsValue(123));

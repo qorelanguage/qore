@@ -212,22 +212,6 @@ public namespace PgsqlSqlUtil {
         #! creates the object
         constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
         }
-
-        #! returns a hash of native base type code where no translations are performed
-        /** PostgreSQL does not accept string binds for numeric columns
-        */
-        *hash<string, bool> getDirectTypeHash() {
-            return {
-                NT_NUMBER: True,
-                NT_FLOAT: True,
-                NT_INT: True,
-            } + nullable
-                ? {
-                    NT_NOTHING: True,
-                    NT_NULL: True,
-                }
-                : NOTHING;
-        }
     }
 
     sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
@@ -236,8 +220,7 @@ public namespace PgsqlSqlUtil {
             schema = sstr;
             splice nname, 0, schema.size() + 1;
             name = nname;
-        }
-        else {
+        } else {
             schema = "public";
             name = nname;
         }
