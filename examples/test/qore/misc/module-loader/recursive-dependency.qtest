@@ -19,6 +19,9 @@ class RecursiveDependencyTest inherits QUnit::Test {
 
     test() {
         assertThrows('LOAD-MODULE-ERROR', sub() {load_module("./R1.qm");});
+
+        assertRegex("LOAD-MODULE-ERROR", `qore ./recursive-load.q 2>&1`);
+        assertRegex("LOAD-MODULE-ERROR", `qore ./recursive-load-dir.q 2>&1`);
     }
 }
 
