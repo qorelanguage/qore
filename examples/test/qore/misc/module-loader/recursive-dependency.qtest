@@ -11,6 +11,10 @@
 %exec-class RecursiveDependencyTest
 
 class RecursiveDependencyTest inherits QUnit::Test {
+    private {
+        const Scripts = ("recursive-load.q", "recursive-load-dir.q");
+    }
+
     constructor() : Test("Recursive dependency test", "1.0") {
         addTestCase("RD Test", \test());
 
@@ -20,8 +24,11 @@ class RecursiveDependencyTest inherits QUnit::Test {
     test() {
         assertThrows('LOAD-MODULE-ERROR', sub() {load_module("./R1.qm");});
 
-        assertRegex("LOAD-MODULE-ERROR", `qore ./recursive-load.q 2>&1`);
-        assertRegex("LOAD-MODULE-ERROR", `qore ./recursive-load-dir.q 2>&1`);
+        string dir = get_script_dir();
+        foreach string script in (Scripts) {
+            string loc = dir + DirSep + script;
+            assertRegex("LOAD-MODULE-ERROR", backquote("qore " + loc + " 2>&1"), script);
+        }
     }
 }
 
