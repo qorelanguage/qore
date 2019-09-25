@@ -82,7 +82,7 @@ class QoreString {
    friend struct qore_string_private;
 protected:
    //! the private implementation of QoreString
-   struct qore_string_private* priv;
+   struct qore_string_private* priv = nullptr;
 
    DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, QoreString* extract = 0);
    DLLLOCAL void splice_simple(qore_size_t offset, qore_size_t length, const char* str, qore_size_t str_len, QoreString* extract = 0);
