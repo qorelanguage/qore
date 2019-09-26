@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreHashDataType class definition
+#! Qore QoreSoftNumberDataType class definition
 
-/** QoreHashDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftNumberDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,20 +35,13 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type
-public class QoreHashDataType inherits QoreDataType {
-    #! creates the type
-    /** @throw TYPE-ERROR invalid type; must be a hash type but not a hashdecl
-    */
-    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
-        if (type.getBaseTypeCode() != NT_HASH || type.isTypedHash()) {
-            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(), type.getName());
-        }
-    }
-
-    #! get the given field type if it exists, otherwise return @ref nothing
-    *AbstractDataProviderType getFieldType(string field_name) {
-        return getElementType();
+#! describes a data type based on softnumber with validation for parsing strings
+/** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
+    inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
+*/
+public class QoreSoftNumberDataType inherits QoreNumberDataTypeBase {
+    #! creates the object
+    constructor(*hash<auto> options) : QoreNumberDataTypeBase(SoftNumberType, options) {
     }
 }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftIntNoNullType class definition
+#! Qore QoreIntOrNothingDataType class definition
 
-/** QoreSoftIntNoNullType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreIntOrNothingDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,10 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softint with validation for parsing strings
-public class QoreSoftIntNoNullType inherits QoreSoftIntType {
+#! describes a data type based on *int
+public class QoreIntOrNothingDataType inherits QoreIntDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreSoftIntType(options + {"qore.no_null": True}) {
+    constructor(*hash<auto> options) : QoreIntDataTypeBase(IntOrNothingType, options) {
     }
 }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreStringOrNothingType class definition
+#! Qore QoreSoftBoolOrNothingDataType class definition
 
-/** QoreStringOrNothingType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftBoolOrNothingDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,10 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on *softstring with a target encoding
-public class QoreStringOrNothingType inherits QoreStringTypeBase {
-    #! creates the object with the given target encoding
-    constructor(*hash<auto> options) : QoreStringTypeBase(SoftStringOrNothingType, options) {
+#! describes a data type based on *softint with validation for parsing strings
+public class QoreSoftBoolOrNothingDataType inherits QoreSoftBoolDataTypeBase {
+    #! creates the object
+    constructor(*hash<auto> options) : QoreSoftBoolDataTypeBase(SoftBoolOrNothingType, options) {
     }
 }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftDateNoNullType class definition
+#! Qore QoreIntDataTypeBase class definition
 
-/** QoreSoftDateNoNullType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreIntDataTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,37 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softdate with validation for string parsing and time zone support
-public class QoreSoftDateNoNullType inherits QoreSoftDateType {
-    #! creates the object with the given arguments
-    constructor(*hash<auto> options) : QoreSoftDateType(options + {"qore.no_null": True}) {
+#! describes a data type based on softint with validation for parsing strings
+public class QoreIntDataTypeBase inherits QoreDataType {
+    #! creates the object
+    /** @throw TYPE-ERROR invalid type; must be an integer type
+    */
+    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+        if (type.getBaseTypeCode() != NT_INT) {
+            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
+                type.getName());
+        }
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        # try to convert from a string
+        if (value.typeCode() == NT_STRING && soft_type) {
+            # check for valid integer values
+            if (value !~ /^([-+])?[0-9]+$/) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
+                    "non-integer text", value, getName());
+            }
+            return int(value);
+        }
+
+        return QoreDataType::acceptsValue(value);
     }
 }
 }

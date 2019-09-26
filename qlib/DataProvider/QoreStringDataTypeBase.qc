@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreStringTypeBase class definition
+#! Qore QoreStringDataTypeBase class definition
 
-/** QoreStringTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreStringDataTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,11 +35,11 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softstring with a target encoding
+#! describes a data type based on a string tyoe with a target encoding option
 /** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
     inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
 */
-public class QoreStringTypeBase inherits QoreDataType {
+public class QoreStringDataTypeBase inherits QoreDataType {
     private {
         #! supported options
         const SupportedOptions = {
@@ -52,6 +52,10 @@ public class QoreStringTypeBase inherits QoreDataType {
                 "type": Type::Int,
                 "desc": "the maximum length of the string in characters",
             },
+        };
+
+        #! supported "or nothing" options
+        const SupportedOrNothingOptions = {
             # only used with "or nothing" types
             "string.empty_to_nothing": <DataProviderTypeOptionInfo>{
                 "type": Type::Boolean,
@@ -60,12 +64,12 @@ public class QoreStringTypeBase inherits QoreDataType {
         };
     }
 
-    #! creates the object with the given target encoding
-    /** @throw STRING-TYPE-ERROR invalid type; must be a string type
+    #! creates the object with the given options
+    /** @throw TYPE-ERROR invalid type; must be a string type
     */
     constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
         if (type.getBaseTypeCode() != NT_STRING) {
-            throw "STRING-TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
+            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
                 type.getName());
         }
 
@@ -85,7 +89,7 @@ public class QoreStringTypeBase inherits QoreDataType {
     auto acceptsValue(auto value) {
         if (exists value && value !== NULL) {
             if ((value.typeCode() != NT_STRING)) {
-                if (!value.strp()) {
+                if (!soft_type || !value.strp()) {
                     throw "RUNTIME-TYPE-ERROR", sprintf("value of type %y cannot be converted to type %y",
                         value.type(), getName());
                 }
@@ -98,12 +102,13 @@ public class QoreStringTypeBase inherits QoreDataType {
             }
             return value;
         }
-        return type.acceptsValue(value);
+        return QoreDataType::acceptsValue(value);
     }
 
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return QoreDataType::getSupportedOptions() + SupportedOptions;
+        return QoreDataType::getSupportedOptions() + SupportedOptions
+            + (or_nothing_type ? SupportedOrNothingOptions : NOTHING);
     }
 
     #! sets the given option without any validation of the option

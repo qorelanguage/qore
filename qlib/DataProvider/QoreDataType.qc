@@ -44,7 +44,18 @@ public class QoreDataType inherits AbstractDataProviderType {
         #! the Qore type
         Type type;
 
+        #! flag for soft types
+        bool soft_type;
+
+        #! flag for "or nothing" types
+        bool or_nothing_type;
+
         #! hash of base types where no translations are performed; keys are type codes, not names
+        /** @note
+            - this hash wil not contain the primary type code for the type if such values might undergo translation in
+              acceptsValue()
+            - keys are %Qore type codes converted to integers, not type names
+        */
         hash<string, bool> base_type_hash;
 
         #! hash of base types accepted by this type; keys are type names
@@ -53,7 +64,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         #! hash of base types returned by this type; keys are type names
         *hash<string, bool> return_type_hash;
 
-        #! hash of type accepted by the base type but not accepted by this type: code -> True
+        #! hash of type codes accepted by the base type but not accepted by this type: code -> True
         hash<string, bool> blacklist_type_hash;
 
         #! supported options
@@ -68,15 +79,20 @@ public class QoreDataType inherits AbstractDataProviderType {
     #! creates the type
     constructor(Type type, *hash<auto> options) {
         self.type = type;
-        if (options) {
-            setOptions(options);
-        }
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {
             base_type_hash{NT_NOTHING} = True;
         }
         accept_type_hash = type.getAcceptTypeHash();
         return_type_hash = type.getReturnTypeHash();
+
+        soft_type = (type.getName() =~ /^.?soft/);
+        or_nothing_type = type.isOrNothingType();
+
+        # set options after setting base type info
+        if (options) {
+            setOptions(options);
+        }
 
         if (self.options."qore.no_null") {
             accept_type_hash -= Type::NullType;
@@ -91,7 +107,7 @@ public class QoreDataType inherits AbstractDataProviderType {
 
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return type.isOrNothingType() ? NOTHING : SupportedOptions;
+        return or_nothing_type ? NOTHING : SupportedOptions;
     }
 
     #! returns the base type for the type, if any

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftDateOrNothingType class definition
+#! Qore QoreSoftBoolNotNullDataType class definition
 
-/** QoreSoftDateOrNothingType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftBoolNotNullDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,10 +35,10 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softdate with validation for string parsing and time zone support
-public class QoreSoftDateOrNothingType inherits QoreSoftDateTypeBase {
-    #! creates the object with the given arguments
-    constructor(*hash<auto> options) : QoreSoftDateTypeBase(SoftDateOrNothingType, options) {
+#! describes a data type based on softint with validation for parsing strings
+public class QoreSoftBoolNotNullDataType inherits QoreDataType {
+    #! creates the object
+    private constructor(*hash<auto> options) : QoreDataType(SoftBoolType, options + {"qore.no_null": True}) {
     }
 }
 }

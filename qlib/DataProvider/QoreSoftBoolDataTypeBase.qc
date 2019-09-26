@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftNumberTypeBase class definition
+#! Qore QoreSoftBoolDataTypeBase class definition
 
-/** QoreSoftNumberTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftBoolDataTypeBase.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,20 +35,16 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softnumber with validation for parsing strings
-public class QoreSoftNumberTypeBase inherits QoreDataType {
-    private {
-        #! supported options
-        const SupportedOptions = {
-            "number.format": <DataProviderTypeOptionInfo>{
-                "type": Type::String,
-                "desc": "the format string for converting strings to numbers",
-            },
-        };
-    }
-
+#! describes a data type based on softint with validation for parsing strings
+public class QoreSoftBoolDataTypeBase inherits QoreDataType {
     #! creates the object
+    /** @throw TYPE-ERROR invalid type; must be a bool type
+    */
     private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+        if (type.getBaseTypeCode() != NT_BOOLEAN) {
+            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
+                type.getName());
+        }
     }
 
     #! returns the value if the value can be assigned to the type
@@ -61,20 +57,15 @@ public class QoreSoftNumberTypeBase inherits QoreDataType {
     auto acceptsValue(auto value) {
         # try to convert from a string
         if (value.typeCode() == NT_STRING) {
-            if (options."number.format") {
-                return parse_number(value, options."number.format");
+            # check for valid integer values
+            if (value !~ /^([-+])?[0-9]+$/) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
+                    "non-integer text", value, getName());
             }
-            if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot be parsed by type %y; the input data "
-                    "contains non-numeric text", value, getName());
-            return number(value);
+            return boolean(value);
         }
-        return QoreDataType::acceptsValue(value);
-    }
 
-    #! returns supported options
-    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return QoreDataType::getSupportedOptions() + SupportedOptions;
+        return type.acceptsValue(value);
     }
 }
 }

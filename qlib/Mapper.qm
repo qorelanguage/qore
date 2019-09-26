@@ -580,25 +580,25 @@ Mapper mapv(DataMap);
             switch (fieldtype) {
                 case "number":
                     return hdesc.mand
-                        ? new QoreSoftNumberType(field_options)
-                        : new QoreSoftNumberOrNothingType(field_options);
+                        ? new QoreSoftNumberDataType(field_options)
+                        : new QoreSoftNumberOrNothingDataType(field_options);
 
                 case "int":
                 case "integer":
                     return hdesc.mand
-                        ? new QoreSoftIntType()
-                        : new QoreSoftIntOrNothingType();
+                        ? new QoreSoftIntDataType()
+                        : new QoreSoftIntOrNothingDataType();
 
                 case "date": {
                     return hdesc.mand
-                        ? new QoreSoftDateType(field_options)
-                        : new QoreSoftDateOrNothingType(field_options);
+                        ? new QoreSoftDateDataType(field_options)
+                        : new QoreSoftDateOrNothingDataType(field_options);
                 }
 
                 case "string": {
                     return hdesc.mand
-                        ? new QoreStringTypeBase(SoftStringType, field_options)
-                        : new QoreStringTypeBase(SoftStringOrNothingType, field_options);
+                        ? new QoreSoftStringDataType(field_options)
+                        : new QoreSoftStringOrNothingDataType(field_options);
                 }
             }
 
@@ -965,21 +965,21 @@ Mapper mapv(DataMap);
                 }
                 # check number_format
                 if (fh.number_format) {
-                    if (!(field.getType() instanceof QoreSoftNumberTypeBase)) {
+                    if (!(field.getType() instanceof QoreNumberDataTypeBase)) {
                         error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k),
                             field.getTypeName());
                     }
                     # override any existing number format
-                    cast<QoreSoftNumberTypeBase>(field.getType()).setOption("number.format", fh.number_format);
+                    cast<QoreNumberDataTypeBase>(field.getType()).setOption("number.format", fh.number_format);
                 }
                 # check date format
                 if (fh.date_format) {
-                    if (!(field.getType() instanceof QoreSoftDateTypeBase)) {
+                    if (!(field.getType() instanceof QoreDateDataTypeBase)) {
                         error("field %y has a 'date_format' key but the field's type is '%s'", getFieldName(k),
                             field.getTypeName());
                     }
                     # override any existing date format
-                    cast<QoreSoftDateTypeBase>(field.getType()).setOption("date.format", fh.date_format);
+                    cast<QoreDateDataTypeBase>(field.getType()).setOption("date.format", fh.date_format);
                 }
 
                 # allow the field hash to override any output default value

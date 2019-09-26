@@ -325,7 +325,7 @@ public class AbstractDataProviderType {
         } else if (type.getBaseTypeCode() == NT_HASH) {
             return new QoreHashDataType(type, options);
         } else if (type.getBaseTypeCode() == NT_STRING) {
-            return new QoreStringTypeBase(type, options);
+            return new QoreStringDataTypeBase(type, options);
         }
         return new QoreDataType(type, options);
     }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftNumberOrNothingType class definition
+#! Qore QoreSoftNumberOrNothingDataType class definition
 
-/** QoreSoftNumberOrNothingType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreSoftNumberOrNothingDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,9 +36,9 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on *softnumber with validation for parsing strings
-public class QoreSoftNumberOrNothingType inherits QoreSoftNumberTypeBase {
+public class QoreSoftNumberOrNothingDataType inherits QoreNumberDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreSoftNumberTypeBase(SoftNumberOrNothingType, options) {
+    constructor(*hash<auto> options) : QoreNumberDataTypeBase(SoftNumberOrNothingType, options) {
     }
 }
 }
