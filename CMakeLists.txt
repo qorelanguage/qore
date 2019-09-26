@@ -18,6 +18,7 @@ option(ICONV_TRANSLIT
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_SUB 3)
+set(VERSION_PATCH 1)
 
 STRING(LENGTH ${VERSION_SUB} SUB_LEN)
 if (${SUB_LEN} EQUAL 1)
@@ -657,7 +658,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES VERSION 6.0.1)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
