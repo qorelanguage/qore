@@ -85,11 +85,17 @@ public hashdecl DataProviderInfo {
     #! Does the data provider support record deletion?
     bool supports_delete;
 
-    #! Does the data provider support fast bulk creation?
+    #! Does the data provider support optimized bulk creation?
     /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
         APIs but without any performance improvements for bulk data
     */
     bool supports_bulk_create;
+
+    #! Does the data provider support optimized bulk upserts?
+    /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
+        APIs but without any performance improvements for bulk data
+    */
+    bool supports_bulk_upsert;
 
     #! Create options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> create_options;
@@ -111,8 +117,11 @@ public class AbstractDataProvider {
         @param create_options the create options; will be processed by validateCreateOptions()
 
         @return the data written to the data provider
+
+        @throw INVALID-OPERATION the data provide does not support record creation
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
+        checkCreate();
         create_options = validateCreateOptions(create_options);
         return createRecordImpl(rec, create_options);
     }
@@ -122,8 +131,11 @@ public class AbstractDataProvider {
         @param upsert_options the upsert options; will be processed by validateUpsertOptions()
 
         @return see @ref db_provider_upsert_results for possible values
+
+        @throw INVALID-OPERATION the data provide does not support upsert operations
     */
     string upsertRecord(hash<auto> rec, *hash<auto> upsert_options) {
+        checkUpsert();
         upsert_options = validateUpsertOptions(upsert_options);
         return upsertRecordImpl(rec, upsert_options);
     }
@@ -131,8 +143,11 @@ public class AbstractDataProvider {
     #! Returns a single record matching the search options
     /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provide does not support record searching
     */
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
+        checkSearch();
         search_options = validateSearchOptions(search_options);
         return searchSingleRecordImpl(processFieldValues(where_cond), search_options);
     }
@@ -140,6 +155,8 @@ public class AbstractDataProvider {
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provide does not support record searching
     */
     AbstractIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
@@ -152,8 +169,11 @@ public class AbstractDataProvider {
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @returns @ref True if the record was updated, @ref False if not (no record found)
+
+        @throw INVALID-OPERATION the data provide does not support record updating
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        checkUpdate();
         search_options = validateSearchOptions(search_options);
         return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond), search_options);
     }
@@ -168,6 +188,7 @@ public class AbstractDataProvider {
             "supports_upsert": supportsUpsert(),
             "supports_delete": supportsDelete(),
             "supports_bulk_create": supportsBulkCreate(),
+            "supports_bulk_upsert": supportsBulkUpsert(),
             "search_options": getSearchOptions(),
             "create_options": getCreateOptions(),
             "upsert_options": getUpsertOptions(),
@@ -208,22 +229,69 @@ public class AbstractDataProvider {
         return False;
     }
 
-    #! Queues the given record for creation
-    /** @param rec a hash representing a single input record
-
-        @note if bulk creation is not supported then this method is identical to createRecord()
-    */
-    queueCreateRecord(hash<auto> rec) {
-        createRecord(rec);
+    #! Returns True if the data provider supports bulk upserts
+    bool supportsBulkUpsert() {
+        return False;
     }
 
-    #! Queues the given record for upserting
-    /** @param rec a hash representing a single input record
+    #! Returns a bulk insert operation object for the data provider
+    /** @return a bulk insert operation object for the data provider
 
-        @note if bulk creation is not supported then this method is identical to upsertRecord()
+        @throw INVALID-OPERATION the data provide does not support create operations
     */
-    queueUpsertRecord(hash<auto> rec) {
-        upsertRecord(rec);
+    AbstractDataProviderBulkOperation getBulkInserter() {
+        checkCreate();
+        return new DefaultBulkInserter(self);
+    }
+
+    #! Returns a bulk upsert operation object for the data provider
+    /** @return a bulk upsert operation object for the data provider
+
+        @throw INVALID-OPERATION the data provide does not support upsert operations
+    */
+    AbstractDataProviderBulkOperation getBulkUpserter() {
+        checkUpsert();
+        return new DefaultBulkUpserter(self);
+    }
+
+    #! Ensures that the data provider supports record searching
+    /**
+        @throw INVALID-OPERATION the data provide does not support record searching
+    */
+    private checkSearch() {
+        if (!supportsSearch()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support record searching", getName());
+        }
+    }
+
+    #! Ensures that the data provider supports record creation
+    /**
+        @throw INVALID-OPERATION the data provide does not support record creation
+    */
+    private checkCreate() {
+        if (!supportsCreate()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support record creation", getName());
+        }
+    }
+
+    #! Ensures that the data provider supports record upserts
+    /**
+        @throw INVALID-OPERATION the data provide does not support upsert operations
+    */
+    private checkUpsert() {
+        if (!supportsUpsert()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support record upserts", getName());
+        }
+    }
+
+    #! Ensures that the data provider supports record upserts
+    /**
+        @throw INVALID-OPERATION the data provide does not support record updating
+    */
+    private checkUpdate() {
+        if (!supportsUpdate()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support record updating", getName());
+        }
     }
 
     #! validates create options

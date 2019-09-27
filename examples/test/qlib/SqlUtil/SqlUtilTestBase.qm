@@ -136,10 +136,17 @@ public class SqlTestBase inherits QUnit::Test {
 
             assertTrue(dp.requiresTransactionManagement());
 
-            on_error dp.rollback();
-            on_success dp.commit();
+            AbstractDataProviderBulkOperation inserter = dp.getBulkInserter();
+            on_error {
+                inserter.discard();
+                inserter.rollback();
+            }
+            on_success {
+                inserter.flush();
+                inserter.commit();
+            }
 
-            map dp.queueCreateRecord($1), insert_data;
+            map inserter.queueData($1), insert_data;
         }
 
         on_exit {

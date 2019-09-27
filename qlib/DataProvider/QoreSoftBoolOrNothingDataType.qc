@@ -36,9 +36,9 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on *softint with validation for parsing strings
-public class QoreSoftBoolOrNothingDataType inherits QoreSoftBoolDataTypeBase {
+public class QoreSoftBoolOrNothingDataType inherits QoreBoolDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreSoftBoolDataTypeBase(SoftBoolOrNothingType, options) {
+    constructor(*hash<auto> options) : QoreBoolDataTypeBase(SoftBoolOrNothingType, options) {
     }
 }
 }

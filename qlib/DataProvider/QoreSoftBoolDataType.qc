@@ -39,9 +39,9 @@ public namespace DataProvider {
 /** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
     inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
 */
-public class QoreSoftBoolDataType inherits QoreSoftBoolDataTypeBase {
+public class QoreSoftBoolDataType inherits QoreBoolDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreSoftBoolDataTypeBase(SoftBoolType, options) {
+    constructor(*hash<auto> options) : QoreBoolDataTypeBase(SoftBoolType, options) {
     }
 }
 }

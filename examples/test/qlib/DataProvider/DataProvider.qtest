@@ -23,11 +23,13 @@ public class DataProviderTest inherits QUnit::Test {
     }
 
     dataProviderTest() {
-        Type type("hash<StatInfo>");
-        AbstractDataProviderType datatype = AbstractDataProviderType::get(type);
-        assertEq("hash<StatInfo>", datatype.getName());
-        assertTrue(datatype.isAssignableFrom(HashType));
-        assertTrue(IntType.isEqual(datatype.getField("size").getType().getValueType()));
+        {
+            Type type("hash<StatInfo>");
+            AbstractDataProviderType datatype = AbstractDataProviderType::get(type);
+            assertEq("hash<StatInfo>", datatype.getName());
+            assertTrue(datatype.isAssignableFrom(HashType));
+            assertTrue(IntType.isEqual(datatype.getField("size").getType().getValueType()));
+        }
 
         {
             QoreSoftNumberDataType num1({"number.format": ".,"});
@@ -92,81 +94,175 @@ public class DataProviderTest inherits QUnit::Test {
         }
 
         {
-            QoreDataType float1(SoftFloatType);
+            QoreSoftFloatDataType float1();
             assertEq(1234.0, float1.acceptsValue("1234"));
             assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue());
             assertEq(0.0, float1.acceptsValue(NULL));
         }
 
         {
-            QoreDataType float1(SoftFloatType, {"qore.no_null": True});
+            QoreSoftFloatDataType float1({"qore.no_null": True});
             assertEq(1234.0, float1.acceptsValue("1234"));
             assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue());
             assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue(), NULL);
         }
 
         {
-            QoreDataType float1(SoftFloatOrNothingType);
+            QoreSoftFloatOrNothingDataType float1();
             assertEq(1234.0, float1.acceptsValue("1234"));
             assertEq(NOTHING, float1.acceptsValue());
             assertEq(NOTHING, float1.acceptsValue(NULL));
         }
 
-        hash<auto> opts({
-            "date.format": "DD.MM.YYYY",
-            "date.input_timezone": new TimeZone("America/Chicago"),
-            "date.output_timezone": new TimeZone("UTC"),
-        });
-
         {
-            QoreSoftDateDataType date1(opts);
-            assertEq(2019-09-13T05:00:00Z, date1.acceptsValue("13.09.2019"));
-            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
-            assertEq(1970-01-01, date1.acceptsValue(NULL));
+            QoreNumberDataType num1();
+            assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \num1.acceptsValue(), NULL);
         }
 
         {
-            QoreSoftDateDataType date1({"qore.no_null": True});
-            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
-            assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue(), NULL);
+            QoreNumberOrNothingDataType num2();
+            assertEq(NOTHING, num2.acceptsValue());
+            assertEq(NOTHING, num2.acceptsValue(NULL));
         }
 
         {
-            QoreSoftDateOrNothingDataType date2(opts);
-            assertEq(2019-09-13T05:00:00Z, date2.acceptsValue("13.09.2019"));
-            assertEq(NOTHING, date2.acceptsValue());
-            assertEq(NOTHING, date2.acceptsValue(NULL));
+            QoreIntDataType int1();
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue(), NULL);
         }
 
         {
-            QoreStringDataTypeBase str1(SoftStringType);
+            QoreIntOrNothingDataType int2();
+            assertEq(NOTHING, int2.acceptsValue());
+            assertEq(NOTHING, int2.acceptsValue(NULL));
+        }
+
+        {
+            QoreBoolDataType bool1();
+            assertThrows("RUNTIME-TYPE-ERROR", \bool1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \bool1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreBoolOrNothingDataType bool1();
+            assertEq(NOTHING, bool1.acceptsValue());
+            assertEq(NOTHING, bool1.acceptsValue(NULL));
+        }
+
+        {
+            QoreFloatDataType float1();
+            assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \float1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreFloatOrNothingDataType float1();
+            assertEq(NOTHING, float1.acceptsValue());
+            assertEq(NOTHING, float1.acceptsValue(NULL));
+        }
+
+        {
+            hash<auto> date_opts({
+                "date.format": "DD.MM.YYYY",
+                "date.input_timezone": new TimeZone("America/Chicago"),
+                "date.output_timezone": new TimeZone("UTC"),
+            });
+
+            {
+                QoreSoftDateDataType date1(date_opts);
+                assertEq(2019-09-13T05:00:00Z, date1.acceptsValue("13.09.2019"));
+                assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
+                assertEq(1970-01-01, date1.acceptsValue(NULL));
+            }
+
+            {
+                QoreSoftDateDataType date1({"qore.no_null": True});
+                assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
+                assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue(), NULL);
+            }
+
+            {
+                QoreSoftDateOrNothingDataType date2(date_opts);
+                assertEq(2019-09-13T05:00:00Z, date2.acceptsValue("13.09.2019"));
+                assertEq(NOTHING, date2.acceptsValue());
+                assertEq(NOTHING, date2.acceptsValue(NULL));
+            }
+
+            {
+                QoreDateDataType date1(date_opts);
+                assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue());
+                assertThrows("RUNTIME-TYPE-ERROR", \date1.acceptsValue(), NULL);
+            }
+
+            {
+                QoreDateOrNothingDataType date2(date_opts);
+                assertEq(NOTHING, date2.acceptsValue());
+                assertEq(NOTHING, date2.acceptsValue(NULL));
+            }
+        }
+
+        {
+            QoreSoftStringDataType str1();
             assertEq("123", str1.acceptsValue(123));
             assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue());
             assertEq("", str1.acceptsValue(NULL));
         }
 
         {
-            QoreStringDataTypeBase str(new Type("softstring"), {"qore.no_null": True});
+            QoreSoftStringDataType str({"qore.no_null": True});
             assertThrows("RUNTIME-TYPE-ERROR", \str.acceptsValue(), NULL);
         }
 
-        QoreStringDataTypeBase str2(SoftStringOrNothingType);
-        assertEq("123", str2.acceptsValue(123));
-        assertEq(NOTHING, str2.acceptsValue());
-        assertEq(NOTHING, str2.acceptsValue(NULL));
-
-        QoreHashDataType hash1(new Type("hash<string, bool>"));
-        assertEq({"a": True}, hash1.acceptsValue({"a": True}));
-        assertTrue(BoolType.isEqual(hash1.getFieldType("xxx").getValueType()));
-        assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue(), {"a": 1});
-        assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue());
-
-        QoreHashDataType hash2(new Type("*hash<string, bool>"));
-        assertTrue(BoolType.isEqual(hash2.getFieldType("xxx").getValueType()));
-        assertThrows("RUNTIME-TYPE-ERROR", \hash2.acceptsValue(), {"a": 1});
-        assertEq(NOTHING, hash2.acceptsValue());
-        assertEq(NOTHING, hash2.acceptsValue(NULL));
         {
+            QoreSoftStringDataType str({"string.encoding": "iso-8859-1"});
+            assertEq("ISO-8859-1", str.acceptsValue("hi").encoding());
+            assertEq("", str.acceptsValue(""));
+            assertThrows("RUNTIME-TYPE-ERROR", \str.acceptsValue());
+        }
+
+        {
+            QoreStringDataType str1();
+            assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue(), 123);
+            assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \str1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreStringOrNothingDataType str2();
+            assertThrows("RUNTIME-TYPE-ERROR", \str2.acceptsValue(), 123);
+            assertEq(NOTHING, str2.acceptsValue());
+            assertEq(NOTHING, str2.acceptsValue(NULL));
+        }
+
+        {
+            QoreStringOrNothingDataType str({"string.empty_to_nothing": True});
+            assertEq("UTF-8", str.acceptsValue("hi").encoding());
+            assertNothing(str.acceptsValue(""));
+        }
+
+        {
+            QoreSoftStringOrNothingDataType str2();
+            assertEq("123", str2.acceptsValue(123));
+            assertEq(NOTHING, str2.acceptsValue());
+            assertEq(NOTHING, str2.acceptsValue(NULL));
+        }
+
+        {
+            QoreHashDataType hash1(new Type("hash<string, bool>"));
+            assertEq({"a": True}, hash1.acceptsValue({"a": True}));
+            assertTrue(BoolType.isEqual(hash1.getFieldType("xxx").getValueType()));
+            assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue(), {"a": 1});
+            assertThrows("RUNTIME-TYPE-ERROR", \hash1.acceptsValue());
+        }
+
+        {
+            QoreHashDataType hash2(new Type("*hash<string, bool>"));
+            assertTrue(BoolType.isEqual(hash2.getFieldType("xxx").getValueType()));
+            assertThrows("RUNTIME-TYPE-ERROR", \hash2.acceptsValue(), {"a": 1});
+            assertEq(NOTHING, hash2.acceptsValue());
+            assertEq(NOTHING, hash2.acceptsValue(NULL));
+
             hash<DataTypeInfo> info = hash2.getInfo();
             assertEq("*hash<string, bool>", info.name);
             assertTrue(info.hasKey("supported_options"));
@@ -175,15 +271,15 @@ public class DataProviderTest inherits QUnit::Test {
             assertNothing(info.options);
             assertEq(3, info.types_accepted.size());
             assertEq(2, info.types_returned.size());
-        }
-        {
-            hash<DataTypeInfo> info = hash2.getInputInfo();
+
+            info = hash2.getInputInfo();
             assertEq("*hash<string, bool>", info.name);
             assertFalse(info.hasKey("supported_options"));
             assertFalse(info.hasKey("options"));
             assertFalse(info.hasKey("types_accepted"));
             assertEq(2, info.types_returned.size());
         }
+
         {
             HashDataType fields();
             fields.addField(new QoreDataField("key1", "desc1", StringType));
@@ -194,19 +290,6 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq("string", fields.getFields().key1.getInputInfo().type.name);
             assertEq("key1", fields.getFields().key1.getInfo().name);
             assertEq("string", fields.getFields().key1.getInfo().type.name);
-        }
-
-        {
-            QoreStringDataTypeBase str(new Type("*softstring"), {"string.encoding": "iso-8859-1"});
-            assertEq("ISO-8859-1", str.acceptsValue("hi").encoding());
-            assertEq("", str.acceptsValue(""));
-            assertNothing(str.acceptsValue());
-        }
-
-        {
-            QoreStringDataTypeBase str(new Type("*softstring"), {"string.empty_to_nothing": True});
-            assertEq("UTF-8", str.acceptsValue("hi").encoding());
-            assertNothing(str.acceptsValue(""));
         }
     }
 }

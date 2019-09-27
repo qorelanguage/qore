@@ -31,8 +31,6 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a string tyoe with a target encoding option

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftBoolNoNullDataType class definition
+#! Qore DbTableBulkInserter class definition
 
-/** QoreSoftBoolNoNullDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DbTableBulkInserter.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
+# minimum required Qore version
+%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -31,14 +33,13 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires reflection
-
-#! contains all public definitions in the DataProvider module
-public namespace DataProvider {
-#! describes a data type based on softint with validation for parsing strings
-public class QoreSoftBoolNoNullDataType inherits QoreBoolDataTypeBase {
-    #! creates the object
-    private constructor(*hash<auto> options) : QoreBoolDataTypeBase(SoftBoolType, options + {"qore.no_null": True}) {
+#! Contains all public definitions in the DbDataProvider module
+public namespace DbDataProvider {
+#! Bulk insert object for tables
+public class DbTableBulkInserter inherits DbDataProvider::AbstractDbTableBulkOperation {
+    #! Creates the object
+    constructor(DbTableDataProvider provider, AbstractTable table)
+        : AbstractDbTableBulkOperation(provider, new BulkInsertOperation(table)) {
     }
 }
 }

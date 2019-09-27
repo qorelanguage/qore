@@ -157,6 +157,16 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return True;
     }
 
+    #! Returns True if the data provider supports bulk creation output
+    bool supportsBulkCreate() {
+        return True;
+    }
+
+    #! Returns True if the data provider supports bulk upserts
+    bool supportsBulkUpsert() {
+        return True;
+    }
+
     #! Returns @ref True if the data provider supports transaction management
     /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
         must be called to flush or discard data written to the data provider
@@ -177,6 +187,20 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     rollback() {
         table.rollback();
+    }
+
+    #! Returns a bulk insert operation object for the data provider
+    /** @return a bulk insert operation object for the data provider
+    */
+    AbstractDataProviderBulkOperation getBulkInserter() {
+        return new DbTableBulkInserter(self, table);
+    }
+
+    #! Returns a bulk upsert operation object for the data provider
+    /** @return a bulk upsert operation object for the data provider
+    */
+    AbstractDataProviderBulkOperation getBulkUpserter() {
+        return new DbTableBulkUpserter(self, table);
     }
 
     #! returns constructor options

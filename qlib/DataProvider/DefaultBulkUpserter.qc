@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreSoftBoolNoNullDataType class definition
+#! Qore DefaultBulkUpserter class definition
 
-/** QoreSoftBoolNoNullDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DefaultBulkUpserter.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,14 +31,40 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softint with validation for parsing strings
-public class QoreSoftBoolNoNullDataType inherits QoreBoolDataTypeBase {
-    #! creates the object
-    private constructor(*hash<auto> options) : QoreBoolDataTypeBase(SoftBoolType, options + {"qore.no_null": True}) {
+#! Default builk inserter class
+public class DefaultBulkUpserter inherits AbstractDataProviderBulkOperation {
+    #! Creates the object
+    constructor(AbstractDataProvider provider) : AbstractDataProviderBulkOperation(provider) {
+    }
+
+    #! Queues data in the buffer
+    queueData(hash<auto> record) {
+        if (record.firstValue().typeCode() == NT_LIST) {
+            map provider.upsertRecord($1), record.contextIterator();
+        } else {
+            provider.upsertRecord(record);
+        }
+    }
+
+    #! Queues data in the buffer
+    queueData(list<hash<auto>> records) {
+        map provider.upsertRecord($1), records;
+    }
+
+    #! Flushes any remaining data to the data provider
+    /** This method should always be called before committing the transaction (if the data provider supports
+        transaction management) or destroying the object
+    */
+    flush() {
+    }
+
+    #! Discards any buffered data
+    /** This method should be called before rolling back the transaction (if the data provider supports transaction
+        management) or destroying the object if an error occurs
+    */
+    discard() {
     }
 }
 }
