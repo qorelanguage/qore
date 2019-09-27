@@ -39,24 +39,19 @@ public namespace SqlUtil {
 /**
     @since SqlUtil 1.6
 */
-public class SqlUtilStringType inherits DataProvider::QoreStringTypeBase {
+public class SqlUtilStringType inherits DataProvider::QoreStringDataTypeBase {
     private {
         #! the type name
         string name;
-
-        #! nullable flag
-        bool nullable;
     }
 
     #! creates the object
     /** we let the DB drive do any encoding conversions
     */
     constructor(string native_type, bool nullable, *hash<auto> options)
-        : QoreStringTypeBase(nullable ? SoftStringOrNothingType : SoftStringType, options) {
+        : QoreStringDataTypeBase(nullable ? SoftStringOrNothingType : SoftStringType, options) {
         name = native_type;
-        self.nullable = nullable;
-
-        if (base_type_hash{NT_NOTHING}) {
+        if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
     }
@@ -64,6 +59,18 @@ public class SqlUtilStringType inherits DataProvider::QoreStringTypeBase {
     #! returns the type name
     string getName() {
         return name;
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+    */
+    auto acceptsValue(auto value) {
+        if (base_type_hash{value.typeCode()}) {
+            return value;
+        }
+        return QoreStringDataTypeBase::acceptsValue(value);
     }
 }
 }

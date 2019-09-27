@@ -160,7 +160,7 @@ public class SqlTestBase inherits QUnit::Test {
                 assertEq(Type::Int, row.id.type());
             }
 
-            assertThrows("RUNTIME-TYPE-ERROR", \dp.searchSingleRecord(), {"id": "abc"});
+            assertThrows("RUNTIME-TYPE-ERROR", \dp.searchSingleRecord(), {"id": <00>});
 
             # get first string column
             string fname;
@@ -182,7 +182,7 @@ public class SqlTestBase inherits QUnit::Test {
 
                 AbstractSavepointHelper sph = table.getSavepointHelper();
                 on_exit sph.rollback();
-                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": "abc"}, {"id": 1}));
+                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
                 assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
             }
         }

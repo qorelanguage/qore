@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractNumericDataType class definition
+#! Qore SqlUtilColumnField class definition
 
-/** AbstractNumericDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SqlUtilColumnField.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,48 +33,33 @@
 
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
-#! the data type for Oracle NUMBER columns
-/**
-    @since SqlUtil 1.6
-*/
-public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBase {
-    private {
-        #! the type name
-        string name;
-    }
-
-    #! creates the object
-    constructor(string native_type, bool nullable, *hash<auto> options)
-        : QoreNumberDataTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType,
-            options + {"qore.no_null": True}) {
-        name = native_type;
-        # make sure compatible values are otherwise passed straight through without conversions; we let the DB do
-        # conversions for performance reasons
-        base_type_hash += {
-            NT_INT: True,
-            NT_FLOAT: True,
-            NT_STRING: True,
-        };
-        if (or_nothing_type) {
-            base_type_hash{NT_NULL} = True;
-        }
-    }
-
-    #! returns the type name
-    string getName() {
-        return name;
-    }
-
-    #! returns the value if the value can be assigned to the type
-    /** @param value the value to assign to the type
-
-        @return the value to be assigned; can be converted by the type
+#! SqlUtil column field class
+public class SqlUtilColumnField inherits QoreDataField {
+    #! creates the field from the arguments
+    /** if a default value is given, the value may be an expression executed server side
+        which will fail the type checks in the assignment, so if we have a default value, in case we cannot set it,
+        we set the type to nullable as anyway the value will be generated server side
     */
-    auto acceptsValue(auto value) {
-        if (base_type_hash{value.typeCode()}) {
-            return value;
+    constructor(string name, *string desc, Type type, auto default_value)
+        : QoreDataField(name, desc, exists default_value ? type.getOrNothingType() : type, default_value) {
+    }
+
+    #! creates the field from the arguments
+    constructor(string name, *string desc, AbstractDataProviderType type, auto default_value)
+        : QoreDataField(name, desc, type, default_value) {
+    }
+
+    #! sets the default value for the field
+    setDefaultValue(auto default_value) {
+        # if an exception occurs, then we assume that the default value is an expression that is executed server side
+        try {
+            # check that the value can be assigned to the type
+            QoreDataField::setDefaultValue(default_value);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "RUNTIME-TYPE-ERROR") {
+                rethrow;
+            }
         }
-        return QoreNumberDataTypeBase::acceptsValue(value);
     }
 }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractNumericDataType class definition
+#! Qore SqlUtilFloatType class definition
 
-/** AbstractNumericDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SqlUtilFloatType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
+# minimum required Qore version
+%requires qore >= 0.9.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -33,11 +35,11 @@
 
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
-#! the data type for Oracle NUMBER columns
+#! type for date / timestamp columns
 /**
     @since SqlUtil 1.6
 */
-public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBase {
+public class SqlUtilFloatType inherits DataProvider::QoreFloatDataTypeBase {
     private {
         #! the type name
         string name;
@@ -45,16 +47,8 @@ public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBa
 
     #! creates the object
     constructor(string native_type, bool nullable, *hash<auto> options)
-        : QoreNumberDataTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType,
-            options + {"qore.no_null": True}) {
+        : QoreFloatDataTypeBase(nullable ? SoftFloatOrNothingType : SoftFloatType, options + {"qore.no_null": True}) {
         name = native_type;
-        # make sure compatible values are otherwise passed straight through without conversions; we let the DB do
-        # conversions for performance reasons
-        base_type_hash += {
-            NT_INT: True,
-            NT_FLOAT: True,
-            NT_STRING: True,
-        };
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
@@ -74,7 +68,7 @@ public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBa
         if (base_type_hash{value.typeCode()}) {
             return value;
         }
-        return QoreNumberDataTypeBase::acceptsValue(value);
+        return QoreFloatDataTypeBase::acceptsValue(value);
     }
 }
 }

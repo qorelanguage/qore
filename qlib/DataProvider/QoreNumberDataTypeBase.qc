@@ -35,7 +35,7 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! describes a data type based on softnumber with validation for parsing strings
+#! describes a data type based on number types with validation for parsing strings when used with soft types
 public class QoreNumberDataTypeBase inherits QoreDataType {
     private {
         #! supported soft options

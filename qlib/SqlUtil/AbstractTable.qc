@@ -6358,8 +6358,8 @@ string sql = table.getAlignSqlString(table2);
         @since SqlUtil 1.6
     */
     AbstractDataField getColumnDataField(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options, *string append_desc) {
-        AbstractDataProviderType type = getDbType(column.native_type, column.qore_type, column.nullable,
-            column.size ? column.size : -1, options);
+        AbstractDataProviderType type = getDbType(column.native_type, column.qore_type,
+            exists column.def_val ? True : column.nullable, column.size ? column.size : -1, options);
 
         string desc = column.getNativeTypeString();
         if (!column.nullable) {
@@ -6372,7 +6372,7 @@ string sql = table.getAlignSqlString(table2);
             desc += "; " + append_desc;
         }
 
-        return new QoreDataField(column.name.lwr(), desc, type, column.def_val);
+        return new SqlUtilColumnField(column.name.lwr(), desc, type, column.def_val);
     }
 
     #! returns the data type for the given column
@@ -6415,6 +6415,12 @@ string sql = table.getAlignSqlString(table2);
         switch (qore_type) {
             case "number":
                 return getNumericType(native_type, nullable, {"number.format": options.number_format});
+
+            case "integer":
+                return new SqlUtilIntType(native_type, nullable, {"number.format": options.number_format});
+
+            case "float":
+                return new SqlUtilFloatType(native_type, nullable, {"number.format": options.number_format});
 
             case "date":
                 type_options = {

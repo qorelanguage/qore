@@ -211,6 +211,8 @@ public namespace PgsqlSqlUtil {
     public class PgsqlNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
         constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
+            # cannot bind a string to a numeric column
+            base_type_hash -= NT_STRING.toString();
         }
     }
 

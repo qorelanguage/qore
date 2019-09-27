@@ -39,55 +39,33 @@ public namespace SqlUtil {
 /**
     @since SqlUtil 1.6
 */
-public class SqlUtilColumnDataType inherits DataProvider::AbstractDataProviderType {
+public class SqlUtilColumnDataType inherits DataProvider::QoreDataType {
     private {
         #! the type name
         string name;
-
-        #! wrapped type
-        DataProvider::AbstractDataProviderType type;
-
-        #! hash of base types where no translations are performed
-        hash<string, bool> base_type_hash;
     }
 
     #! creates the object
-    constructor(string native_type, string type, *hash<auto> options) {
+    constructor(string native_type, string type, *hash<auto> options)
+        : QoreDataType(new Type(OptimalQoreSoftDataTypeMap{type} ?? type), options + {"qore.no_null": True}) {
         name = native_type;
-        self.type = AbstractDataProviderType::get(new Type(OptimalQoreSoftDataTypeMap{type} ?? type),
-            options + {"qore.no_null": True});
-        init();
+        if (or_nothing_type) {
+            base_type_hash{NT_NULL} = True;
+        }
     }
 
     #! creates the object
-    constructor(DataProvider::AbstractDataProviderType type) : AbstractDataProviderType() {
-        self.type = type;
-        init();
-    }
-
-    #! returns a hash of native base type code where no translations are performed
-    *hash<string, bool> getDirectTypeHash() {
-        return base_type_hash;
+    constructor(string native_type, Type type, *hash<auto> options)
+        : QoreDataType(type, options + {"qore.no_null": True}) {
+        name = native_type;
+        if (or_nothing_type) {
+            base_type_hash{NT_NULL} = True;
+        }
     }
 
     #! returns the type name
     string getName() {
         return name;
-    }
-
-    #! returns the base type for the type, if any
-    *Type getValueType() {
-        return type.getValueType();
-    }
-
-    #! returns the subtype (for lists or hashes) if there is only one
-    *AbstractDataProviderType getElementType() {
-        return type.getElementType();
-    }
-
-    #! returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return type.getFields();
     }
 
     #! returns the value if the value can be assigned to the type
@@ -99,50 +77,7 @@ public class SqlUtilColumnDataType inherits DataProvider::AbstractDataProviderTy
         if (base_type_hash{value.typeCode()}) {
             return value;
         }
-        return type.acceptsValue(value);
-    }
-
-    #! returns the value of the given option
-    auto getOptionValue(string opt) {
-        return type.getOptionValue(opt);
-    }
-
-    #! returns options set on the type
-    *hash<auto> getOptions() {
-        return type.getOptions();
-    }
-
-    #! returns supported options
-    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return type.getSupportedOptions();
-    }
-
-    #! sets the given option on the type
-    /** @param opt the option to set
-        @param value the value to set
-
-        @throw TYPE-OPTION-ERROR invalid option or invalid option type
-    */
-    setOption(string opt, auto value) {
-        type.setOption(opt, value);
-    }
-
-    #! returns a hash of types accepted by this type
-    hash<string, bool> getAcceptTypeHash() {
-        return type.getAcceptTypeHash();
-    }
-
-    #! returns a hash of types returned by this type
-    hash<string, bool> getReturnTypeHash() {
-        return type.getReturnTypeHash();
-    }
-
-    #! initializes the object
-    private init() {
-        base_type_hash = type.getDirectTypeHash();
-        if (base_type_hash{NT_NOTHING}) {
-            base_type_hash{NT_NULL} = True;
-        }
+        return QoreDataType::acceptsValue(value);
     }
 }
 }
