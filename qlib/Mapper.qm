@@ -626,8 +626,8 @@ Mapper mapv(DataMap);
                         break;
                     case NT_NOTHING:
                     case NT_HASH:
-                        input_data.addField(new QoreDataField(h.key, input{h.key}.desc, Mapper::getInputType(h.type),
-                            h.default_value));
+                        input_data.addField(new QoreDataField(h.key, h.value.desc, Mapper::getInputType(h.value.type),
+                            h.value.default_value));
                         break;
                     case NT_OBJECT:
                         if (h.value instanceof AbstractDataField) {

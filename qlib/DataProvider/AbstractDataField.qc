@@ -40,6 +40,9 @@ public hashdecl DataFieldInfo {
     #! the name of the field
     string name;
 
+    #! the description of the field, if available
+    *string desc;
+
     #! the default value for the field
     auto default_value;
 
@@ -138,6 +141,7 @@ public class AbstractDataField {
     hash<DataFieldInfo> getInputInfo() {
         return <DataFieldInfo>{
             "name": getName(),
+            "desc": getDescription(),
             "type": getType().getInputInfo(),
         };
     }
@@ -146,6 +150,7 @@ public class AbstractDataField {
     hash<DataFieldInfo> getInfo() {
         return <DataFieldInfo>{
             "name": getName(),
+            "desc": getDescription(),
             "default_value": default_value,
             "type": getType().getInfo(),
         };

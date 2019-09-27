@@ -1942,10 +1942,12 @@ InboundTableMapperIterator i(input, mapper);
                     desc += sprintf("(%d)", i.value.maxsize);
                 }
                 # if there is any input description, then add it here
-
                 if (input{key} instanceof AbstractDataField) {
-                    desc += "; " + input{key}.getDescription();
-                } else if (input{key}.hasKey("desc") && input{key}.desc.typeCode() == NT_STRING) {
+                    *string fdesc = input{key}.getDescription();
+                    if (fdesc) {
+                        desc += "; " + fdesc;
+                    }
+                } else if (input{key}.hasKey("desc") && input{key}.desc.typeCode() == NT_STRING && input{key}.desc.val()) {
                     desc += "; " + input{key}.desc;
                 }
                 *string type = DataProvider::OptimalQoreDataTypeMap{i.value.type};
