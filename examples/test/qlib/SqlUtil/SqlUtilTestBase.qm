@@ -14,11 +14,13 @@ module SqlUtilTestBase {
     license = "MIT";
 }
 
-%requires ../../../../qlib/Util.qm
-%requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil
-%requires ../../../../qlib/BulkSqlUtil
-%requires ../../../../qlib/Schema.qm
+%requires(reexport) ../../../../qlib/Util.qm
+%requires(reexport) ../../../../qlib/QUnit.qm
+%requires(reexport) ../../../../qlib/DataProvider
+%requires(reexport) ../../../../qlib/SqlUtil
+%requires(reexport) ../../../../qlib/BulkSqlUtil
+%requires(reexport) ../../../../qlib/Schema.qm
+%requires(reexport) ../../../../qlib/DbDataProvider
 
 public class SqlUtilTestSchema inherits AbstractSchema {
     private {

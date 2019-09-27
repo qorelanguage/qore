@@ -33,8 +33,8 @@
 # enable all warnings
 %enable-all-warnings
 
-#! contains all public definitions in the SqlUtil module
-public namespace SqlUtil {
+#! contains all public definitions in the DbDataProvider module
+public namespace DbDataProvider {
 #! Defines a data provider based on a single SQL table
 public class DbTableDataProvider inherits AbstractDataProvider {
     public {
@@ -48,6 +48,24 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             },
         };
 
+        #! Upsert options
+        const UpsertOptions = {
+            "upsert_strategy": <DataProviderOptionInfo>{
+                "type": StringType,
+                "desc": "providers the upsert strategy; 'UpsertInsertFirst': try to insert first, if it fails, try "
+                    "updating; 'UpsertUpdateFirst': try to update first, if it fails, try inserting; "
+                    "'UpsertSelectFirst': try to select first, if it fails, insert, if it succeeds, update if "
+                    "necessary; 'UpsertInsertOnly': only insert, never update, 'UpsertUpdateOnly': only update, "
+                    "never insert; 'UpsertAuto' (the default) use the most efficient upsert for the underlying DB",
+            },
+            "omit_update": <DataProviderOptionInfo>{
+                "type": new Type("softlist<string>"),
+                "desc": "allows for an asymmetrical upsert where a set of column values is inserted, but a smaller "
+                    "set is updated in case the unique key values are present in the target table; the value of this "
+                    "option should be set to the columns to omit in the update clause",
+            },
+        };
+
         #! Constructor options
         const ConstructorOptions = {
             "table": <DataProviderOptionInfo>{
@@ -55,6 +73,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                 "required": True,
                 "desc": "the table the object is based on",
             },
+        };
+
+        #! Maps SqlUtil @ref upsert_results to @ref db_provider_upsert_results
+        const DbUpsertMap = {
+            AbstractTable::UR_Inserted: UpsertResultInserted,
+            AbstractTable::UR_Verified: UpsertResultVerified,
+            AbstractTable::UR_Updated: UpsertResultUpdated,
+            AbstractTable::UR_Unchanged: UpsertResultUnchanged,
+            AbstractTable::UR_Deleted: UpsertResultDeleted,
         };
     }
 
@@ -91,6 +118,14 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
         return CreateOptions;
+    }
+
+    #! Returns options that can be used for upserting records
+    /** @return a hash of options that can be used for upserting records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any upsert options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions() {
+        return UpsertOptions;
     }
 
     #! Returns child providers; return @ref nothing if there are no child providers
@@ -158,6 +193,18 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         *hash<auto> returning = table.insert(rec, create_options);
         return rec + returning;
+    }
+
+    #! Upserts the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param upsert_options the create options after processing by validateUpsertOptions()
+
+        @return see @ref db_provider_upsert_results for possible values
+    */
+    string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options) {
+        return DbUpsertMap{table.upsert(rec,
+            AbstractTable::UpsertStrategyDescriptionMap{remove upsert_options.upsert_strategy}
+            ?? AbstractTable::UpsertAuto, upsert_options)};
     }
 
     #! Returns a single record matching the search options

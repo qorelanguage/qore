@@ -30,7 +30,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider \
     qlib/SqlUtil \
-    qlib/DataProvider
+    qlib/DataProvider \
+    qlib/DbDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -72,12 +73,14 @@ DOX_SPLIT_MODULES = \
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
 DataProvider_modverdir = $(modverdir)/DataProvider
+DbDataProvider_modverdir = $(modverdir)/DbDataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
 dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
+dist_DbDataProvider_modver_DATA = $(wildcard qlib/DbDataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
 
@@ -969,6 +972,9 @@ doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm $< $@
 
+doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm $< $@
+
 doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
@@ -980,6 +986,9 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
+
+doxygen/qlib/Doxyfile.DbDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/DbDataProvider:doxygen/qlib/DbDataProvider.qm -tDataProvider.tag=../../DataProvider/html -SqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@

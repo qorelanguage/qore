@@ -79,7 +79,7 @@ on_error ds.rollback();
 }
         @endcode
 
-        @note Wach bulk DML object must be manually flush()ed before committing or manually
+        @note Each bulk DML object must be manually flush()ed before committing or manually
         discard()ed before rolling back to ensure that all data is managed properly in the same
         transaction and to ensure that no exception is thrown in the destructor().
         See the example above for more information.

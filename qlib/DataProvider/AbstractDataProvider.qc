@@ -33,6 +33,26 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup db_provider_upsert_results DB Provider Upsert Result Codes
+    These are the results codes returned with single-record upsert actions
+*/
+#@{
+#! Indicates that the record was inserted
+public const UpsertResultInserted = "inserted";
+
+#! Indicates that the record was updated
+public const UpsertResultUpdated = "updated";
+
+#! Indicates that the record was verified as already in the target state
+public const UpsertResultVerified = "verified";
+
+#! Indicates that the record was left unchanged
+public const UpsertResultUnchanged = "unchanged";
+
+#! Indicates that the record was deleted
+public const UpsertResultDeleted = "deleted";
+#@}
+
 #! Data provider search option info
 public hashdecl DataProviderOptionInfo {
     #! The option value type
@@ -74,6 +94,9 @@ public hashdecl DataProviderInfo {
     #! Create options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> create_options;
 
+    #! Upsert options supported by the data provider
+    *hash<string, hash<DataProviderOptionInfo>> upsert_options;
+
     #! Search options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> search_options;
 
@@ -83,7 +106,7 @@ public hashdecl DataProviderInfo {
 
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
-    #! Creates the given record inthe data provider
+    #! Creates the given record in the data provider
     /** @param rec a hash representing a single input record
         @param create_options the create options; will be processed by validateCreateOptions()
 
@@ -92,6 +115,17 @@ public class AbstractDataProvider {
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         create_options = validateCreateOptions(create_options);
         return createRecordImpl(rec, create_options);
+    }
+
+    #! Upserts the given record in the data provider
+    /** @param rec a hash representing a single input record
+        @param upsert_options the upsert options; will be processed by validateUpsertOptions()
+
+        @return see @ref db_provider_upsert_results for possible values
+    */
+    string upsertRecord(hash<auto> rec, *hash<auto> upsert_options) {
+        upsert_options = validateUpsertOptions(upsert_options);
+        return upsertRecordImpl(rec, upsert_options);
     }
 
     #! Returns a single record matching the search options
@@ -136,6 +170,7 @@ public class AbstractDataProvider {
             "supports_bulk_create": supportsBulkCreate(),
             "search_options": getSearchOptions(),
             "create_options": getCreateOptions(),
+            "upsert_options": getUpsertOptions(),
             "transaction_management": requiresTransactionManagement(),
         };
     }
@@ -176,14 +211,19 @@ public class AbstractDataProvider {
     #! Queues the given record for creation
     /** @param rec a hash representing a single input record
 
-        @return if data was inserted (flushed) then a hash (columns) of lists (row data) of all data written
-        (including generated /default data, if applicable); if data was only queued and not written, @ref nothing is
-        returned.
-
         @note if bulk creation is not supported then this method is identical to createRecord()
     */
-    *hash<auto> queueCreateRecord(hash<auto> rec) {
-        return createRecord(rec);
+    queueCreateRecord(hash<auto> rec) {
+        createRecord(rec);
+    }
+
+    #! Queues the given record for upserting
+    /** @param rec a hash representing a single input record
+
+        @note if bulk creation is not supported then this method is identical to upsertRecord()
+    */
+    queueUpsertRecord(hash<auto> rec) {
+        upsertRecord(rec);
     }
 
     #! validates create options
@@ -191,6 +231,13 @@ public class AbstractDataProvider {
     */
     private *hash<auto> validateCreateOptions(*hash<auto> create_options) {
         return checkOptions("CREATE-OPTION-ERROR", getCreateOptions(), create_options);
+    }
+
+    #! validates upsert options
+    /** @throw UPSERT-OPTION-ERROR invalid or unsupported upsert option
+    */
+    private *hash<auto> validateUpsertOptions(*hash<auto> upsert_options) {
+        return checkOptions("UPSERT-OPTION-ERROR", getUpsertOptions(), upsert_options);
     }
 
     #! validates search options
@@ -287,6 +334,12 @@ public class AbstractDataProvider {
     */
     abstract *hash<string, hash<DataProviderOptionInfo>> getCreateOptions();
 
+    #! Returns options that can be used for upserting records
+    /** @return a hash of options that can be used for upserting records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any upsert options
+    */
+    abstract *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions();
+
     #! Returns child providers; return @ref nothing if there are no child providers
     abstract *AbstractDataProvider getChildProviders();
 
@@ -312,6 +365,14 @@ public class AbstractDataProvider {
         @return the data written to the data provider
     */
     abstract *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options);
+
+    #! Upserts the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param upsert_options the create options after processing by validateUpsertOptions()
+
+        @return see @ref db_provider_upsert_results for possible values
+    */
+    abstract string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options);
 
     #! Returns a single record matching the search options
     /** @param where_cond the search criteria

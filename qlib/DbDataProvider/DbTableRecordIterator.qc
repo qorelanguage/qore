@@ -33,8 +33,8 @@
 # enable all warnings
 %enable-all-warnings
 
-#! contains all public definitions in the SqlUtil module
-public namespace SqlUtil {
+#! contains all public definitions in the DbDataProvider module
+public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
 public class DbTableRecordIterator inherits AbstractDataProviderRecordIterator {
     private:internal {

@@ -20,6 +20,9 @@ BuildRequires: mpfr-devel
 BuildRequires: doxygen
 BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
+%if 0%{?redhat} >= 8 || 0%{?centos} >= 8
+BuildRequires: gdb-headless
+%endif
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed

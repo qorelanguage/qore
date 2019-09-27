@@ -7,14 +7,12 @@
 %strict-args
 
 %requires ../../../../qlib/Util.qm
-%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
-%requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/OracleSqlUtil.qm
-%requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module oracle
 %define NoOracle
 %endtry
