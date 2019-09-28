@@ -90,6 +90,8 @@ public:
 
     DLLLOCAL const char* getName() const;
 
+    DLLLOCAL const char* getSimpleName() const;
+
     DLLLOCAL qore_type_t getType() const {
         switch (typespec) {
             case QTS_TYPE:
@@ -875,13 +877,13 @@ public:
 
     DLLLOCAL void getAcceptTypes(ReferenceHolder<QoreHashNode>& h) const {
         for (auto& i : accept_vec) {
-            h->setKeyValue(i.spec.getName(), true, nullptr);
+            h->setKeyValue(i.spec.getSimpleName(), true, nullptr);
         }
     }
 
     DLLLOCAL void getReturnTypes(ReferenceHolder<QoreHashNode>& h) const {
         for (auto& i : return_vec) {
-            h->setKeyValue(i.spec.getName(), true, nullptr);
+            h->setKeyValue(i.spec.getSimpleName(), true, nullptr);
         }
     }
 

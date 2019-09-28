@@ -559,7 +559,7 @@ Mapper mapv(DataMap);
             return Mapper::getOutputType(hdesc, mapdesc, global_transform_opts);
         }
 
-        private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options) {
+        private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options, *bool has_default_value) {
             *string fieldtype = hdesc.type ?? mapdesc.type;
             hash<auto> field_options = {
                 "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
@@ -577,6 +577,10 @@ Mapper mapv(DataMap);
                     : new AnythingDataType(field_options);
             }
 
+            if (hdesc.mand && !exists field_options."qore.no_null" && !has_default_value) {
+                field_options += {"qore.no_null": True};
+            }
+
             switch (fieldtype) {
                 case "number":
                     return hdesc.mand
@@ -586,7 +590,7 @@ Mapper mapv(DataMap);
                 case "int":
                 case "integer":
                     return hdesc.mand
-                        ? new QoreSoftIntDataType()
+                        ? new QoreSoftIntDataType(field_options)
                         : new QoreSoftIntOrNothingDataType();
 
                 case "date": {
@@ -609,7 +613,7 @@ Mapper mapv(DataMap);
             } else {
                 type = new Type(OptimalQoreDataTypeMap{fieldtype} ?? fieldtype);
             }
-            if (hdesc.mand) {
+            if (hdesc.mand && !has_default_value) {
                 type = type.getBaseType();
             } else {
                 type = type.getOrNothingType();
@@ -667,7 +671,8 @@ Mapper mapv(DataMap);
                 }
 
                 output_data.addField(new QoreDataField(h.key, h.value.desc,
-                    Mapper::getOutputType(h.value, mapv{h.key}.typeCode() == NT_HASH ? mapv{h.key} : NOTHING, global_options),
+                    Mapper::getOutputType(h.value, mapv{h.key}.typeCode() == NT_HASH ? mapv{h.key} : NOTHING,
+                        global_options, exists h.value.default_value),
                     h.value.default_value));
             }
             return output_data.getFields();
