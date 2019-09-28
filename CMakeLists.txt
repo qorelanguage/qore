@@ -836,7 +836,7 @@ qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSock
 qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
-qore_user_module("qlib/DbDataProvider", "DataProvider;SqlUtil;BulkSqlUtil")
+qore_user_module("qlib/DbDataProvider" "DataProvider;SqlUtil;BulkSqlUtil")
 
 # base 5 modules
 qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServer;HttpServerUtil;WebSocketHandler;WebSocketUtil")
