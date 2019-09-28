@@ -55,6 +55,8 @@ static inline const char* get_action_method(SslAction action) {
         case WRITE: return "SSL_write";
         case PEEK: return "SSL_peek";
     }
+    assert(false);
+    return "<unknown>";
 }
 
 class SSLSocketHelper {
