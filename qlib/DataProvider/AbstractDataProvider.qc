@@ -125,8 +125,7 @@ public class AbstractDataProvider {
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         checkCreate();
-        create_options = validateCreateOptions(create_options);
-        return createRecordImpl(rec, create_options);
+        return createRecordImpl(rec, validateCreateOptions(create_options));
     }
 
     #! Upserts the given record in the data provider
@@ -139,8 +138,7 @@ public class AbstractDataProvider {
     */
     string upsertRecord(hash<auto> rec, *hash<auto> upsert_options) {
         checkUpsert();
-        upsert_options = validateUpsertOptions(upsert_options);
-        return upsertRecordImpl(rec, upsert_options);
+        return upsertRecordImpl(rec, validateUpsertOptions(upsert_options));
     }
 
     #! Returns the first record matching the search options
@@ -151,8 +149,7 @@ public class AbstractDataProvider {
     */
     *hash<auto> searchFirstRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
-        search_options = validateSearchOptions(search_options);
-        return searchFirstRecordImpl(processFieldValues(where_cond), search_options);
+        return searchFirstRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
     #! Returns a single record matching the search options
@@ -164,8 +161,7 @@ public class AbstractDataProvider {
     */
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
-        search_options = validateSearchOptions(search_options);
-        return searchSingleRecordImpl(processFieldValues(where_cond), search_options);
+        return searchSingleRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
     #! Returns an iterator iterating all records
@@ -183,8 +179,7 @@ public class AbstractDataProvider {
         @throw INVALID-OPERATION the data provider does not support reading
     */
     AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
-        search_options = validateSearchOptions(search_options);
-        return searchRecordsImpl(processFieldValues(where_cond), search_options);
+        return searchRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
     #! Updates a single record matching the search options
@@ -198,8 +193,37 @@ public class AbstractDataProvider {
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
-        search_options = validateSearchOptions(search_options);
-        return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond), search_options);
+        return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond),
+            validateSearchOptions(search_options));
+    }
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be updated
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records updated
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    int updateRecords(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        checkUpdate();
+        return updateRecordsImpl(processFieldValues(set), processFieldValues(where_cond),
+            validateSearchOptions(search_options));
+    }
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records deleted
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    int deleteRecords(hash<auto> where_cond, *hash<auto> search_options) {
+        checkDelete();
+        return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
     #! Returns info about the data provider
@@ -316,6 +340,16 @@ public class AbstractDataProvider {
     private checkUpdate() {
         if (!supportsUpdate()) {
             throw "INVALID-OPERATION", sprintf("data provider %y does not support record updating", getName());
+        }
+    }
+
+    #! Ensures that the data provider supports record deletion
+    /**
+        @throw INVALID-OPERATION the data provider does not support record deletion
+    */
+    private checkDelete() {
+        if (!supportsDelete()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support record deletion", getName());
         }
     }
 
@@ -513,5 +547,25 @@ public class AbstractDataProvider {
         @param search_options the search options after processing by validateSearchOptions()
     */
     private abstract bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options);
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be update
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records updated
+    */
+    private abstract int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options);
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records deleted
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    private abstract int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options);
 }
 }

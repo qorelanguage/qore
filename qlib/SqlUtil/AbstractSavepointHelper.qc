@@ -50,16 +50,22 @@ public class AbstractSavepointHelper {
         }
         self.ds = ds;
         self.savepoint = savepoint;
+        # remove the savepoint if there's an error creating it
+        on_error remove savepoint;
         createSavepointImpl();
     }
 
     #! Deletes the savepoint
     destructor() {
-        deleteSavepointImpl();
+        if (savepoint) {
+            deleteSavepointImpl();
+        }
     }
 
     #! Rolls back to the savepoint
     rollback() {
+        # remove the savepoint unconditionally on exit
+        on_exit remove savepoint;
         rollbackImpl();
     }
 

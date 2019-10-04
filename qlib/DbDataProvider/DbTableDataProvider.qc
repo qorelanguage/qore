@@ -266,13 +266,71 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
-        @param search_options the search options after processing by validateSearchOptions()
+        @param where_cond a hash for identifying the record to be update
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @throw UPDATE-SINGLE-RECORD-ERROR if the update would update more than one record
 
         @note this API will commit the row to the database unless the datasource was already in a transaction before
         this call
     */
     private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
-        hash<SqlCommandInfo> update_hash = table.getUpdateSql(set, where_cond);
+        int rows = updateRecordsImpl(set, where_cond, search_options);
+        if (rows > 1) {
+            bool in_trans = table.getDatasource().currentThreadInTransaction();
+            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("%d record(s) were updated; %ssearch args: %y (set: %y)", rows,
+                (!in_trans ? "the update has been rolled back; " : ""), search_options, set);
+        }
+        return rows.toBool();
+    }
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be updated
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records updated
+
+        @note this API will commit the row to the database unless the datasource was already in a transaction before
+        this call
+    */
+    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        DbTableTransactionHelper db(table);
+        return db.update(set, where_cond);
+    }
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records deleted
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+
+        @note this API will commit the row to the database unless the datasource was already in a transaction before
+        this call
+    */
+    private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        DbTableTransactionHelper db(table);
+        return db.del(where_cond);
+    }
+}
+}
+
+# private namespace
+namespace Priv {
+# private class; helps manage transactions in DbTableDataProvider methods
+class DbTableTransactionHelper {
+    private {
+        AbstractTable table;
+    }
+
+    constructor(AbstractTable table) {
+        self.table = table;
+    }
+
+    auto methodGate(string method) {
         AbstractDatasource ds = table.getDatasource();
 
         # commit transaction on success if we are not already in a transaction
@@ -288,12 +346,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             }
         }
 
-        int rows = ds.vexec(update_hash.sql, update_hash.args);
-        if (rows > 1) {
-            throw "UPDATE-SINGLE-RECORD-ERROR", sprintf("%d record(s) were updated; %ssearch args: %y (set: %y)", rows,
-                (!in_trans ? "the update has been rolled back; " : ""), search_options, set);
-        }
-        return rows.toBool();
+        return call_object_method_args(table, method, argv);
     }
 }
 }
