@@ -561,7 +561,9 @@ Mapper mapv(DataMap);
 
         private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options, *bool has_default_value) {
             *string fieldtype = hdesc.type ?? mapdesc.type;
-            hash<auto> field_options = {
+            hash<auto> field_options;
+            # use += here to ensure that field_options stays "hash<auto>"
+            field_options += {
                 "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
                 "number.format": hdesc.number_format ?? global_options."number.format",
                 "date.format": hdesc.date_format ?? global_options."date.format",
@@ -659,9 +661,15 @@ Mapper mapv(DataMap);
                     structured_output = True;
                     continue;
                 }
-                if (h.value.typeCode() != NT_HASH) {
-                    throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); expecting "
-                        "\"hash\"", h.key, h.value.type(), h.value);
+                switch (h.value.typeCode()) {
+                    case NT_STRING:
+                        h.value = {"desc": h.value};
+                        # fall down to next case
+                    case NT_HASH:
+                        break;
+                    default:
+                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); expecting "
+                            "\"hash\"", h.key, h.value.type(), h.value);
                 }
                 foreach string k in (keys h.value) {
                     if (!OutputKeys{k}) {
