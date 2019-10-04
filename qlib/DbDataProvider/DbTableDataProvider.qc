@@ -132,8 +132,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     *AbstractDataProvider getChildProviders() {
     }
 
-    #! Returns @ref True if the data provider supports the record search API
-    bool supportsSearch() {
+    #! Returns @ref True if the data provider supports reading
+    bool supportsRead() {
         return True;
     }
 
@@ -164,6 +164,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Returns True if the data provider supports bulk upserts
     bool supportsBulkUpsert() {
+        return True;
+    }
+
+    #! Returns @ref True if the data provider supports the record search API natively
+    bool supportsNativeSearch() {
         return True;
     }
 
@@ -233,9 +238,18 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Returns a single record matching the search options
     /** @param search_options the search options after processing by validateSearchOptions()
+
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
     */
     private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
-        return table.selectRow({"where": where_cond});
+        try {
+            return table.selectRow({"where": where_cond});
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "DBI-SELECT-ROW-ERROR") {
+                throw "MULTIPLE-RECORDS-ERROR", ex.desc, ex.arg;
+            }
+            rethrow;
+        }
     }
 
     #! Returns an iterator for zero or more records matching the search options

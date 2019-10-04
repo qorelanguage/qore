@@ -70,8 +70,8 @@ public hashdecl DataProviderInfo {
     #! Data provider name
     string name;
 
-    #! Does the data provider support record searching?
-    bool supports_search;
+    #! Does the data provider support reading
+    bool supports_read;
 
     #! Does the data provider support record creation?
     bool supports_create;
@@ -85,13 +85,16 @@ public hashdecl DataProviderInfo {
     #! Does the data provider support record deletion?
     bool supports_delete;
 
-    #! Does the data provider support optimized bulk creation?
+    #! Does the data provider support native record searching?
+    bool supports_native_search;
+
+    #! Does the data provider support native / optimized bulk creation?
     /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
         APIs but without any performance improvements for bulk data
     */
     bool supports_bulk_create;
 
-    #! Does the data provider support optimized bulk upserts?
+    #! Does the data provider support native / optimized bulk upserts?
     /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
         APIs but without any performance improvements for bulk data
     */
@@ -106,7 +109,7 @@ public hashdecl DataProviderInfo {
     #! Search options supported by the data provider
     *hash<string, hash<DataProviderOptionInfo>> search_options;
 
-    #! Does the data provide require transaction management?
+    #! Does the data provider require transaction management?
     bool transaction_management;
 }
 
@@ -118,7 +121,7 @@ public class AbstractDataProvider {
 
         @return the data written to the data provider
 
-        @throw INVALID-OPERATION the data provide does not support record creation
+        @throw INVALID-OPERATION the data provider does not support record creation
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         checkCreate();
@@ -132,7 +135,7 @@ public class AbstractDataProvider {
 
         @return see @ref db_provider_upsert_results for possible values
 
-        @throw INVALID-OPERATION the data provide does not support upsert operations
+        @throw INVALID-OPERATION the data provider does not support upsert operations
     */
     string upsertRecord(hash<auto> rec, *hash<auto> upsert_options) {
         checkUpsert();
@@ -140,25 +143,46 @@ public class AbstractDataProvider {
         return upsertRecordImpl(rec, upsert_options);
     }
 
+    #! Returns the first record matching the search options
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    *hash<auto> searchFirstRecord(hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
+        search_options = validateSearchOptions(search_options);
+        return searchFirstRecordImpl(processFieldValues(where_cond), search_options);
+    }
+
     #! Returns a single record matching the search options
     /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
-        @throw INVALID-OPERATION the data provide does not support record searching
+        @throw INVALID-OPERATION the data provider does not support reading
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
     */
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
-        checkSearch();
+        checkRead();
         search_options = validateSearchOptions(search_options);
         return searchSingleRecordImpl(processFieldValues(where_cond), search_options);
+    }
+
+    #! Returns an iterator iterating all records
+    /**
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    AbstractDataProviderRecordIterator getRecordIterator() {
+        return searchRecords();
     }
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
-        @throw INVALID-OPERATION the data provide does not support record searching
+        @throw INVALID-OPERATION the data provider does not support reading
     */
-    AbstractIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
+    AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         search_options = validateSearchOptions(search_options);
         return searchRecordsImpl(processFieldValues(where_cond), search_options);
     }
@@ -170,7 +194,7 @@ public class AbstractDataProvider {
 
         @returns @ref True if the record was updated, @ref False if not (no record found)
 
-        @throw INVALID-OPERATION the data provide does not support record updating
+        @throw INVALID-OPERATION the data provider does not support record updating
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
@@ -182,11 +206,12 @@ public class AbstractDataProvider {
     hash<DataProviderInfo> getInfo() {
         return <DataProviderInfo>{
             "name": getName(),
-            "supports_search": supportsSearch(),
+            "supports_read": supportsRead(),
             "supports_create": supportsCreate(),
             "supports_update": supportsUpdate(),
             "supports_upsert": supportsUpsert(),
             "supports_delete": supportsDelete(),
+            "supports_native_search": supportsNativeSearch(),
             "supports_bulk_create": supportsBulkCreate(),
             "supports_bulk_upsert": supportsBulkUpsert(),
             "search_options": getSearchOptions(),
@@ -237,7 +262,7 @@ public class AbstractDataProvider {
     #! Returns a bulk insert operation object for the data provider
     /** @return a bulk insert operation object for the data provider
 
-        @throw INVALID-OPERATION the data provide does not support create operations
+        @throw INVALID-OPERATION the data provider does not support create operations
     */
     AbstractDataProviderBulkOperation getBulkInserter() {
         checkCreate();
@@ -247,26 +272,26 @@ public class AbstractDataProvider {
     #! Returns a bulk upsert operation object for the data provider
     /** @return a bulk upsert operation object for the data provider
 
-        @throw INVALID-OPERATION the data provide does not support upsert operations
+        @throw INVALID-OPERATION the data provider does not support upsert operations
     */
     AbstractDataProviderBulkOperation getBulkUpserter() {
         checkUpsert();
         return new DefaultBulkUpserter(self);
     }
 
-    #! Ensures that the data provider supports record searching
+    #! Ensures that the data provider supports read operations
     /**
-        @throw INVALID-OPERATION the data provide does not support record searching
+        @throw INVALID-OPERATION the data provider does not support read operations
     */
-    private checkSearch() {
-        if (!supportsSearch()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support record searching", getName());
+    private checkRead() {
+        if (!supportsRead()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y does not support reading", getName());
         }
     }
 
     #! Ensures that the data provider supports record creation
     /**
-        @throw INVALID-OPERATION the data provide does not support record creation
+        @throw INVALID-OPERATION the data provider does not support record creation
     */
     private checkCreate() {
         if (!supportsCreate()) {
@@ -276,7 +301,7 @@ public class AbstractDataProvider {
 
     #! Ensures that the data provider supports record upserts
     /**
-        @throw INVALID-OPERATION the data provide does not support upsert operations
+        @throw INVALID-OPERATION the data provider does not support upsert operations
     */
     private checkUpsert() {
         if (!supportsUpsert()) {
@@ -286,7 +311,7 @@ public class AbstractDataProvider {
 
     #! Ensures that the data provider supports record upserts
     /**
-        @throw INVALID-OPERATION the data provide does not support record updating
+        @throw INVALID-OPERATION the data provider does not support record updating
     */
     private checkUpdate() {
         if (!supportsUpdate()) {
@@ -384,6 +409,37 @@ public class AbstractDataProvider {
         throw err, sprintf("data provider %y: %s", self.className(), vsprintf(fmt, argv));
     }
 
+    #! Returns the first record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @note This default method returns immediately as soon as the first matching record is found
+    */
+    private *hash<auto> searchFirstRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
+        if (i.next()) {
+            return i.getValue();
+        }
+    }
+
+    #! Returns a single record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
+
+        @note This default methods searches the entire data set for a matching record
+    */
+    private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
+        if (records.lsize() > 1) {
+            error("MULTIPLE-RECORDS-ERROR", "%d records found for search: %y", records.size(), where_cond);
+        }
+        return records[0];
+    }
+
     #! Returns the type name
     abstract string getName();
 
@@ -411,8 +467,8 @@ public class AbstractDataProvider {
     #! Returns child providers; return @ref nothing if there are no child providers
     abstract *AbstractDataProvider getChildProviders();
 
-    #! Returns @ref True if the data provider supports the record search API
-    abstract bool supportsSearch();
+    #! Returns @ref True if the data provider supports reading
+    abstract bool supportsRead();
 
     #! Returns @ref True if the data provider supports the record creation API
     abstract bool supportsCreate();
@@ -426,13 +482,22 @@ public class AbstractDataProvider {
     #! Returns @ref True if the data provider supports the record deletion API
     abstract bool supportsDelete();
 
+    #! Returns @ref True if the data provider supports the record search API natively
+    abstract bool supportsNativeSearch();
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private abstract AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options);
+
     #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
         @param create_options the create options after processing by validateCreateOptions()
 
         @return the data written to the data provider
     */
-    abstract *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options);
+    private abstract *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options);
 
     #! Upserts the given record to the data provider
     /** @param rec a hash representing a single input record
@@ -440,19 +505,7 @@ public class AbstractDataProvider {
 
         @return see @ref db_provider_upsert_results for possible values
     */
-    abstract string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options);
-
-    #! Returns a single record matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-    */
-    private abstract *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options);
-
-    #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-    */
-    private abstract AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options);
+    private abstract string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options);
 
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
