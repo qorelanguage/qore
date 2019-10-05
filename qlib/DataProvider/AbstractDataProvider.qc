@@ -111,10 +111,16 @@ public hashdecl DataProviderInfo {
 
     #! Does the data provider require transaction management?
     bool transaction_management;
+
+    #! A list of child data providers in this data provider
+    *list<string> children;
 }
 
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
+    public {
+    }
+
     #! Creates the given record in the data provider
     /** @param rec a hash representing a single input record
         @param create_options the create options; will be processed by validateCreateOptions()
@@ -219,7 +225,7 @@ public class AbstractDataProvider {
 
         @return the number of records deleted
 
-        @throw INVALID-OPERATION the data provider does not support record updating
+        @throw INVALID-OPERATION the data provider does not support record deletion
     */
     int deleteRecords(hash<auto> where_cond, *hash<auto> search_options) {
         checkDelete();
@@ -242,7 +248,42 @@ public class AbstractDataProvider {
             "create_options": getCreateOptions(),
             "upsert_options": getUpsertOptions(),
             "transaction_management": requiresTransactionManagement(),
+            "children": getChildProviderNames(),
         };
+    }
+
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+    */
+    *list<string> getChildProviderNames() {
+        return getChildProviderNamesImpl();
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+
+        @throw INVALID-CHILD-PROVIDER unknown child provider
+
+        @see getChildProviderEx()
+    */
+    *AbstractDataProvider getChildProvider(string name) {
+        return getChildProviderImpl(name);
+    }
+
+    #! Returns the given child provider or throws an exception if the given child is unknown
+    /** @return the given child provider or throws an exception if the given child is unknown
+
+        @throw INVALID-CHILD-PROVIDER unknown child provider
+
+        @see getChildProvider()
+    */
+    AbstractDataProvider getChildProviderEx(string name) {
+        *AbstractDataProvider provider = getChildProviderImpl(name);
+        if (!provider) {
+            throw "INVALID-CHILD-PROVIDER", sprintf("provider %y is unknown; known children of %y: %y", name,
+                getName(), getChildProviderNames());
+        }
+        return provider;
     }
 
     #! Returns @ref True if the data provider supports transaction management
@@ -474,56 +515,103 @@ public class AbstractDataProvider {
         return records[0];
     }
 
-    #! Returns the type name
-    abstract string getName();
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+
+        This base class method returns @ref nothing
+    */
+    private *list<string> getChildProviderNamesImpl() {
+        # this method intentionally left empty
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+    */
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        # this method intentionally left empty
+    }
 
     #! Returns the description of the record type, if any
-    abstract *hash<string, AbstractDataField> getRecordType();
+    *hash<string, AbstractDataField> getRecordType() {
+        # this method intentionally left blank
+    }
 
     #! Returns options that can be used for searching
     /** @return a hash of options that can be used for searching; keys are search option names, values describe the
         search option; if @ref nothing is returned, then the provider does not support any search options
     */
-    abstract *hash<string, hash<DataProviderOptionInfo>> getSearchOptions();
+    *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
+        # this method intentionally left blank
+    }
 
     #! Returns options that can be used for creating records
     /** @return a hash of options that can be used for creating records; keys are option names, values describe the
         option; if @ref nothing is returned, then the provider does not support any creation options
     */
-    abstract *hash<string, hash<DataProviderOptionInfo>> getCreateOptions();
+    *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
+        # this method intentionally left blank
+    }
 
     #! Returns options that can be used for upserting records
     /** @return a hash of options that can be used for upserting records; keys are option names, values describe the
         option; if @ref nothing is returned, then the provider does not support any upsert options
     */
-    abstract *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions();
-
-    #! Returns child providers; return @ref nothing if there are no child providers
-    abstract *AbstractDataProvider getChildProviders();
+    *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions() {
+        # this method intentionally left blank
+    }
 
     #! Returns @ref True if the data provider supports reading
-    abstract bool supportsRead();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsRead() {
+        return False;
+    }
 
     #! Returns @ref True if the data provider supports the record creation API
-    abstract bool supportsCreate();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsCreate() {
+        return False;
+    }
 
     #! Returns @ref True if the data provider supports the record update API
-    abstract bool supportsUpdate();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsUpdate() {
+        return False;
+    }
 
     #! Returns @ref True if the data provider supports the record upsert API
-    abstract bool supportsUpsert();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsUpsert() {
+        return False;
+    }
 
     #! Returns @ref True if the data provider supports the record deletion API
-    abstract bool supportsDelete();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsDelete() {
+        return False;
+    }
 
     #! Returns @ref True if the data provider supports the record search API natively
-    abstract bool supportsNativeSearch();
+    /** This base class method returns @ref False; override in child classes if necessary
+    */
+    bool supportsNativeSearch() {
+        return False;
+    }
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options);
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
 
     #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
@@ -531,7 +619,12 @@ public class AbstractDataProvider {
 
         @return the data written to the data provider
     */
-    private abstract *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options);
+    private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
 
     #! Upserts the given record to the data provider
     /** @param rec a hash representing a single input record
@@ -539,14 +632,24 @@ public class AbstractDataProvider {
 
         @return see @ref db_provider_upsert_results for possible values
     */
-    private abstract string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options);
+    private string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
 
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
         @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
-    private abstract bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options);
+    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
 
     #! Updates zero or more records matching the search options
     /** @param set the hash of field data to set
@@ -555,7 +658,12 @@ public class AbstractDataProvider {
 
         @return the number of records updated
     */
-    private abstract int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options);
+    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
 
     #! Deletes zero or more records
     /**
@@ -563,9 +671,15 @@ public class AbstractDataProvider {
         @param search_options the update options after processing by validateSearchOptions()
 
         @return the number of records deleted
-
-        @throw INVALID-OPERATION the data provider does not support record updating
     */
-    private abstract int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options);
+    private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Returns the data provider name
+    abstract string getName();
 }
 }

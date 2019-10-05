@@ -958,7 +958,7 @@ any v = c.name;
         }
 
         #! returns a list of string table names in the database
-        private softlist listTablesImpl() {
+        private softlist<string> listTablesImpl() {
             return ds.select("select name from sysobjects where type = %v", "U").name;
             #return ds.select("select table_name from information_schema.tables").table_name;
         }
@@ -968,22 +968,22 @@ any v = c.name;
 
             @return a list of string function names in the database
         */
-        private list listFunctionsImpl() {
+        private list<string> listFunctionsImpl() {
             return ds.select("select routine_name from information_schema.routines").routine_name;
         }
 
         #! since FreeTDS only supports functions, this method is identical to listFunctionsImpl()
         /** @see listFunctionsImpl()
         */
-        private list listProceduresImpl() {
+        private list<string> listProceduresImpl() {
             return listFunctionsImpl();
         }
 
-        private list listSequencesImpl() {
+        private list<string> listSequencesImpl() {
             throw "UNIMPLEMENTED", "unimplemented";
         }
 
-        private list listViewsImpl() {
+        private list<string> listViewsImpl() {
             return ds.select("select name from sysobjects where type = %v", "V").name;
             #return ds.select("select table_name from information_schema.views").table_name;
         }

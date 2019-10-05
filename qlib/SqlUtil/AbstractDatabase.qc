@@ -1147,7 +1147,7 @@ string sql = t.getSqlFromList(list);
     }
 
     #! returns a list of string table names in the database
-    list listTables() {
+    list<string> listTables() {
         return listTablesImpl();
     }
 
@@ -1157,7 +1157,7 @@ string sql = t.getSqlFromList(list);
     }
 
     #! returns a list of string function names in the database
-    list listFunctions() {
+    list<string> listFunctions() {
         return listFunctionsImpl();
     }
 
@@ -1167,7 +1167,7 @@ string sql = t.getSqlFromList(list);
     }
 
     #! returns a list of string procedure names in the database
-    list listProcedures() {
+    list<string> listProcedures() {
         return listProceduresImpl();
     }
 
@@ -1177,7 +1177,7 @@ string sql = t.getSqlFromList(list);
     }
 
     #! returns a list of string sequence names in the database
-    list listSequences() {
+    list<string> listSequences() {
         return listSequencesImpl();
     }
 
@@ -1187,7 +1187,7 @@ string sql = t.getSqlFromList(list);
     }
 
     #! returns a list of string view names in the database
-    list listViews() {
+    list<string> listViews() {
         return listViewsImpl();
     }
 
@@ -1394,12 +1394,12 @@ string sql = t.getSqlFromList(list);
     private abstract AbstractFunction makeFunctionImpl(string name, string src, *hash<auto> opts);
     private abstract AbstractFunction makeProcedureImpl(string name, string src, *hash<auto> opts);
 
-    private abstract list featuresImpl();
-    private abstract list listTablesImpl();
-    private abstract list listFunctionsImpl();
-    private abstract list listProceduresImpl();
-    private abstract list listSequencesImpl();
-    private abstract list listViewsImpl();
+    private abstract list<string> featuresImpl();
+    private abstract list<string> listTablesImpl();
+    private abstract list<string> listFunctionsImpl();
+    private abstract list<string> listProceduresImpl();
+    private abstract list<string> listSequencesImpl();
+    private abstract list<string> listViewsImpl();
 
     #! returns the next value in the given sequence
     private abstract int getNextSequenceValueImpl(string name);

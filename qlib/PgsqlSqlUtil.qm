@@ -1003,7 +1003,7 @@ auto v = c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        private list featuresImpl() {
+        private list<string> featuresImpl() {
             return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
                     DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
@@ -1020,7 +1020,7 @@ auto v = c.name;
             string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
 
             # replace common type names with verbose type names as stored in PostgreSQL
-            foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+            foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                 src = replace(src, h.key, h.value);
             }
             # remove invalid "(1)" strings
@@ -1085,7 +1085,7 @@ auto v = c.name;
                 args =~ s/ in / /ig;
 
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     args = replace(args, h.key, h.value);
                 }
 
@@ -1119,7 +1119,7 @@ auto v = c.name;
                 nc = name.substr(0, name.find('('));
                 # replace common type names with verbose type names as stored in PostgreSQL
                 if (args) {
-                    foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                    foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                         args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
                     }
                     # remove " in " in argument list since it's the default and not returned by pg_get_function_identity_arguments()
@@ -1166,7 +1166,7 @@ auto v = c.name;
 
             if (args) {
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     args = replace(args, h.key, h.value);
                 }
             }
@@ -1176,7 +1176,7 @@ auto v = c.name;
             if (rt) {
                 string ort;
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     rt = replace(rt, h.key, h.value);
                 }
                 if (ort != rt)
@@ -1218,7 +1218,7 @@ auto v = c.name;
 
                 # rename any types
                 AbstractDatabase::checkDriverOptions(\schema_hash.type_map, drv);
-                foreach hash th in (schema_hash.type_map.pairIterator()) {
+                foreach hash<auto> th in (schema_hash.type_map.pairIterator()) {
                     if (th.value.typeCode() != NT_STRING)
                         throw "SCHEMA-DESCRIPTION-ERROR", sprintf("type_map %y value is not a string in the schema description hash; got type %y instead (%y)", th.key, th.value.type(), th.value);
 
@@ -1262,7 +1262,7 @@ auto v = c.name;
         }
 
         #! returns a list of string table names in the database
-        private list listTablesImpl() {
+        private list<string> listTablesImpl() {
             string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
                                " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
                           " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
@@ -1275,7 +1275,7 @@ auto v = c.name;
 
             @return a list of string function names in the database
         */
-        private list listFunctionsImpl() {
+        private list<string> listFunctionsImpl() {
             string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
                                " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
                           " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
@@ -1288,20 +1288,20 @@ auto v = c.name;
         #! since PostgreSQL only supports functions, this method is identical to listFunctionsImpl()
         /** @see listFunctionsImpl()
         */
-        private list listProceduresImpl() {
+        private list<string> listProceduresImpl() {
             return listFunctionsImpl();
         }
 
-        private list listSequencesImpl() {
+        private list<string> listSequencesImpl() {
             return ds.select("select relname from pg_class where relkind = 'S' order by 1").relname;
         }
 
-        private list listViewsImpl() {
+        private list<string> listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
         }
 
         #! returns a list of string materialized view names in the database
-        list listMaterializedViews() {
+        list<string> listMaterializedViews() {
             string sql = "select relname from pg_class"
                          " where relkind = 'r' and relnamespace in"
                                " (select oid from pg_namespace"
@@ -1316,7 +1316,7 @@ auto v = c.name;
         }
 
         #! returns a list of string type names in the database
-        list listTypes() {
+        list<string> listTypes() {
             return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
         }
 

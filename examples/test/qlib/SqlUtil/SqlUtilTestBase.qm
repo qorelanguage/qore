@@ -128,11 +128,8 @@ public class SqlTestBase inherits QUnit::Test {
     dbTableProviderTest() {
         if (!table) testSkip("no DB connection");
 
-        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({}); });
-        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({"error": 1}); });
-        assertThrows("CONSTRUCTOR-OPTION-ERROR", sub () { new DbTableDataProvider({"table": 1}); });
         {
-            DbTableDataProvider dp({"table": table});
+            DbTableDataProvider dp(table);
 
             assertTrue(dp.requiresTransactionManagement());
 
@@ -159,7 +156,7 @@ public class SqlTestBase inherits QUnit::Test {
         assertFalse(table.empty());
 
         {
-            DbTableDataProvider dp({"table": table});
+            DbTableDataProvider dp(table);
 
             {
                 list<hash<auto>> rows = map $1, dp.searchRecords();

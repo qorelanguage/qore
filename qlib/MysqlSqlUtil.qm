@@ -975,7 +975,7 @@ end";
             seqds = new Datasource(ds.getConfigString());
         }
 
-        private list featuresImpl() {
+        private list<string> featuresImpl() {
             return list(DB_FUNCTIONS, DB_PROCEDURES,
                         DB_TABLES, DB_VIEWS);
         }
@@ -1101,7 +1101,7 @@ end";
         }
 
         #! returns a list of string table names in the database
-        private list listTablesImpl() {
+        private list<string> listTablesImpl() {
             return ds.select("select table_name from information_schema.tables where table_schema = %v", schema).table_name;
         }
 
@@ -1110,7 +1110,7 @@ end";
 
             @return a list of string function names in the database
         */
-        private list listFunctionsImpl() {
+        private list<string> listFunctionsImpl() {
             *hash qh = ds.select("select routine_name from information_schema.routines where routine_schema = %v and routine_type = 'FUNCTION'");
             return qh.routine_name;
         }
@@ -1120,19 +1120,19 @@ end";
 
             @return a list of string procedure names in the database
         */
-        private list listProceduresImpl() {
+        private list<string> listProceduresImpl() {
             *hash qh = ds.select("select routine_name from information_schema.routines where routine_schema = %v and routine_type = 'PROCEDURE'");
             return qh.routine_name;
         }
 
-        private list listSequencesImpl() {
+        private list<string> listSequencesImpl() {
             *AbstractTable t = getTable(sequence_table);
             if (!t)
                 return ();
             return ds.select("select name from %s", sequence_table).name;
         }
 
-        private list listViewsImpl() {
+        private list<string> listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = %v", schema).table_name;
         }
 

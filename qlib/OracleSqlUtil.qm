@@ -1229,9 +1229,18 @@ auto v = c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        private list featuresImpl() {
-            return list(DB_FUNCTIONS, DB_MVIEWS, DB_PACKAGES, DB_PROCEDURES,
-                        DB_SEQUENCES, DB_TABLES, DB_TYPES, DB_VIEWS, DB_SYNONYMS);
+        private list<string> featuresImpl() {
+            return (
+                DB_FUNCTIONS,
+                DB_MVIEWS,
+                DB_PACKAGES,
+                DB_PROCEDURES,
+                DB_SEQUENCES,
+                DB_TABLES,
+                DB_TYPES,
+                DB_VIEWS,
+                DB_SYNONYMS,
+            );
         }
 
         private OracleSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash opts) {
@@ -1445,7 +1454,7 @@ auto v = c.name;
         }
 
         #! returns a list of string synonym names in the database
-        list listSynonyms() {
+        list<string> listSynonyms() {
             return getListIntern("SYNONYM");
         }
 
@@ -1455,7 +1464,7 @@ auto v = c.name;
         }
 
         #! returns a list of string type names in the database
-        list listTypes() {
+        list<string> listTypes() {
             return getListIntern("TYPE");
         }
 
@@ -1465,7 +1474,7 @@ auto v = c.name;
         }
 
         #! returns a list of string package names in the database
-        list listPackages() {
+        list<string> listPackages() {
             return getListIntern("PACKAGE");
         }
 
@@ -1475,7 +1484,7 @@ auto v = c.name;
         }
 
         #! returns a list of string materialized view names in the database
-        list listMaterializedViews() {
+        list<string> listMaterializedViews() {
             return getListIntern("MATERIALIZED VIEW");
         }
 
@@ -1484,38 +1493,38 @@ auto v = c.name;
             return listMaterializedViews().iterator();
         }
 
-        private list listTablesImpl() {
-            list l = getListIntern(ds.select("select table_name from user_tables order by 1").table_name);
+        private list<string> listTablesImpl() {
+            list<string> l = getListIntern(ds.select("select table_name from user_tables order by 1").table_name);
 
             # add all tables accessible with synonyms
-            *list tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name order by 1").synonym_name;
+            *list<string> tl = ds.select("select synonym_name from user_synonyms s, all_tables t where s.table_owner = t.owner and s.table_name = t.table_name order by 1").synonym_name;
             if (tl)
                 l += native_case ? tl : (map $1.lwr(), tl);
 
             return l;
         }
 
-        private list listFunctionsImpl() {
+        private list<string> listFunctionsImpl() {
             return getListIntern("FUNCTION");
         }
 
-        private list listProceduresImpl() {
+        private list<string> listProceduresImpl() {
             return getListIntern("PROCEDURE");
         }
 
-        private list listSequencesImpl() {
+        private list<string> listSequencesImpl() {
             return getListIntern("SEQUENCE");
         }
 
-        private list listViewsImpl() {
+        private list<string> listViewsImpl() {
             return getListIntern("VIEW");
         }
 
-        private list getListIntern(string type) {
+        private list<string> getListIntern(string type) {
             return getListIntern(ds.select("select object_name from user_objects where object_type = %v order by 1", type).object_name);
         }
 
-        private list getListIntern(list l) {
+        private list<string> getListIntern(list<string> l) {
             return native_case ? l : (map $1.lwr(), l);
         }
 
@@ -2723,7 +2732,7 @@ auto v = c.name;
                     c.target.columns.(row.target_column) = True;
                 }
 
-                foreach hash c in (rv.pairIterator()) {
+                foreach hash<auto> c in (rv.pairIterator()) {
                     # get a description of the target table's columns
                     Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
                     ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
@@ -2780,10 +2789,10 @@ auto v = c.name;
             if (!tablespace)
                 setTableInfoIntern();
 
-            hash rv;
+            hash<string, OracleTrigger> rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from " + systemView("dba_triggers") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash<auto> qh = ds.select("select * from " + systemView("dba_triggers") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             foreach hash<auto> row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");

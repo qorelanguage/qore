@@ -66,15 +66,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             },
         };
 
-        #! Constructor options
-        const ConstructorOptions = {
-            "table": <DataProviderOptionInfo>{
-                "type": new Type("AbstractTable"),
-                "required": True,
-                "desc": "the table the object is based on",
-            },
-        };
-
         #! Maps SqlUtil @ref upsert_results to @ref db_provider_upsert_results
         const DbUpsertMap = {
             AbstractTable::UR_Inserted: UpsertResultInserted,
@@ -91,8 +82,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object
-    constructor(hash<auto> options) {
-        processConstructorOptions(ConstructorOptions, options);
+    constructor(AbstractTable table) {
+        self.table = table;
     }
 
     #! Returns the data provider name
@@ -206,11 +197,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     AbstractDataProviderBulkOperation getBulkUpserter() {
         return new DbTableBulkUpserter(self, table);
-    }
-
-    #! returns constructor options
-    static hash<string, hash<DataProviderOptionInfo>> getConstructorOptions() {
-        return ConstructorOptions;
     }
 
     #! Writes the given record to the data provider
