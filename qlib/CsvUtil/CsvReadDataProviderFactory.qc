@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DataProvider.qm module for performing bulk DML operations with SqlUtil
+#! Qore CsvReadDataProviderFactory class definition
 
-/** DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/** CsvReadDataProviderFactory.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,32 +33,29 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires(reexport) reflection
-%requires(reexport) Util
+#! Contains all public definitions in the CsvUtil module
+public namespace CsvUtil {
+#! The DB data provider factory
+public class CsvReadDataProviderFactory inherits AbstractDataProviderFactory {
+    private {
+        static Class cls = new Class("CsvReadDataProvider");
+    }
 
-module DataProvider {
-    version = "1.0";
-    desc = "user module for generic data providers";
-    author = "David Nichols <david@qore.org>";
-    url = "http://qore.org";
-    license = "MIT";
+    #! Returns the name of the data provider factory
+    string getName() {
+        return "csvread";
+    }
+
+    #! Returns static provider information
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    hash<DataProviderInfo> getInfo() {
+        return CsvReadDataProvider::ProviderInfo;
+    }
+
+    #! Returns the class for the data provider object
+    Class getClass() {
+        return cls;
+    }
 }
-
-/** @mainpage DataProvider Module
-
-    @tableofcontents
-
-    @section dataproviderintro Introduction to the DataProvider Module
-
-    The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
-    queried, introspected, and updated.
-
-    @section dataprovider_relnotes Release Notes
-
-    @subsection dataprovider_v1_0 DataProvider v1.0
-    - initial release of the module
-*/
-
-#! contains all public definitions in the DataProvider module
-public namespace DataProvider {
 }

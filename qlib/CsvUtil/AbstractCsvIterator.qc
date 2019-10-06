@@ -112,7 +112,7 @@ public namespace CsvUtil {
     public class AbstractCsvIterator inherits Qore::AbstractIterator, private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
-            const Options = (
+            const Options = {
                 "compat_force_empty_string": C_OPT1|C_OPT2,
                 "date_format": C_OPT1|C_OPT2,
                 "date-format": C_OPT1|C_OPT2,
@@ -137,7 +137,7 @@ public namespace CsvUtil {
                 "tolwr": C_OPT1|C_OPT2,
                 "verify-columns": C_OPT1|C_OPT2,
                 "verify_columns": C_OPT1|C_OPT2,
-                );
+            };
 
             # field separator
             string separator = ",";
@@ -168,6 +168,9 @@ public namespace CsvUtil {
 
             # force "*string" fields with no value to return an empty string rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
             bool compat_force_empty_string = False;
+
+            # read ahead flag
+            bool read_ahead;
 
             # column count for verifying column counts
             int cc;
@@ -413,7 +416,13 @@ public namespace CsvUtil {
                     }
                 }
             }
-            bool b = lineIterator.next();
+            bool b;
+            if (read_ahead) {
+                read_ahead = False;
+                return True;
+            } else {
+                b = lineIterator.next();
+            }
             if (b) {
                 # skip empty lines
                 if (ignoreEmptyLines) {
@@ -438,6 +447,15 @@ public namespace CsvUtil {
                 rc = 0;
 
             return b;
+        }
+
+        #! Reads a single row without moving the index position
+        /** this method can be used to read headers for example without reading any data
+        */
+        peek() {
+            if (!read_ahead) {
+                read_ahead = next();
+            }
         }
 
         #! Returns the given column value for the current row
@@ -468,7 +486,7 @@ hash h = i.getValue();
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
          */
-        hash getValue() {
+        hash<auto> getValue() {
             return getRecord();
         }
 
@@ -486,8 +504,8 @@ hash h = i.getRecord();
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns @ref True before calling this method
          */
-        hash getRecord(bool extended) {
-            hash h = parseLine();
+        hash<auto> getRecord(bool extended) {
+            hash<auto> h = parseLine();
             if (extended) {
                 return ("type": h.type, "record": h.spec_fields);
             } else {
@@ -507,7 +525,7 @@ hash h = i.getRecord();
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns @ref True before calling this method
          */
-        hash getRecord() {
+        hash<auto> getRecord() {
             return getRecord(extendedRecord);
         }
 
@@ -525,7 +543,7 @@ list l = i.getRecordList();
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
          */
         auto getRecordList() {
-            hash h = parseLine();
+            hash<auto> h = parseLine();
             if (extendedRecord) {
                 return ("type": h.type, "record": h.all_fields);
             } else {
@@ -557,6 +575,15 @@ string quote = i.getQuote();
             return quote;
         }
 
+        #! Returns the description of the record type, if any
+        *hash<string, AbstractDataField> getRecordType() {
+            return map {
+                $1.key: new QoreDataField($1.key, NOTHING, AbstractDataProviderType::get(
+                        new Type(OptimalQoreSoftDataTypeMap{$1.value.type} ?? "string"
+                    ).getOrNothingType())),
+            }, m_specs.firstValue().pairIterator();
+        }
+
         #! Returns the current record headers or @ref nothing if no headers have been detected or saved yet
         /** @par Example:
             @code{.py}
@@ -565,7 +592,7 @@ string quote = i.getQuote();
 
             @note if headers are not saved against the object in the @ref constructor(), then they are written to the object after the first call to @ref next()
          */
-        *list getHeaders() {
+        *list<string> getHeaders() {
             return getHeaders(m_specs.firstKey());  # single-type
         }
 
@@ -575,7 +602,7 @@ string quote = i.getQuote();
 *list l = i.getHeaders(my_type);
             @endcode
          */
-        *list getHeaders(string type) {
+        *list<string> getHeaders(string type) {
             return map ($1.value.header), m_specs{type}.pairIterator();
         }
 
@@ -630,7 +657,7 @@ while (i.next()) {
         #! Returns the list of raw string values of the current line
         /** @par Example:
             @code{.py}
-                list l = i.getRawLineValues();
+                list<*string> l = i.getRawLineValues();
             @endcode
 
             @return the list of raw string values of the current line. Parsing is done only
@@ -638,11 +665,11 @@ while (i.next()) {
 
             @since %CsvUtil 1.6.3
         */
-        list getRawLineValues() {
+        list<*string> getRawLineValues() {
             return getRawLine().split(separator, quote, ignoreWhitespace);
         }
 
-        private auto handleType(hash fh, *string val) {
+        private auto handleType(hash<auto> fh, *string val) {
             auto rv;
             string type = fh.type;
             # if it's an "or nothing" type and there is no value, then return nothing
@@ -738,7 +765,7 @@ while (i.next()) {
         }
 
         #! Read line split by separator/quote into list
-        private list getLineAndSplit() {
+        private list<*string> getLineAndSplit() {
             string s = lineIterator.getValue();
             if (s) {
                 return s.split(separator, quote, ignoreWhitespace);
@@ -755,7 +782,7 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR input line cannot be matched to a known record
         */
-        string identifyType(list rec) {
+        string identifyType(list<auto> rec) {
             *string type = identifyTypeImpl(rec);
             if (type != CSV_TYPE_UNKNOWN) {
                 if (!type)
@@ -774,7 +801,7 @@ while (i.next()) {
 
             @throw ABSTRACTCSVITERATOR-ERROR input line cannot be matched to a known record
         */
-        private *string identifyTypeImpl(list rec) {
+        private *string identifyTypeImpl(list<auto> rec) {
             *string rv;
             int cnt = rec.size();
             if (!m_resolve_by_rule{cnt} && !m_resolve_by_count{cnt} && checkElementCounts)
@@ -831,19 +858,19 @@ while (i.next()) {
         }
 
         #! Parses a line in the file and returns a processed list of the fields
-        private hash parseLine() {
-            list values = getLineAndSplit();
+        private hash<auto> parseLine() {
+            list<*string> values = getLineAndSplit();
             string type = identifyType(values);
-            hash r;
-            list l;
+            hash<auto> r;
+            list<auto> l;
             if (type == CSV_TYPE_UNKNOWN) {
-                r = map {$#: $1}, values;
+                r += map {$#: $1}, values;
                 l = values;
             } else {
                 foreach string f in (m_resolve_by_idx{type}) {
                     # cherry-pick well-known fields
-                    hash fh = m_specs{type}{f};
-                    reference val = \values[fh.idx];
+                    hash<auto> fh = m_specs{type}{f};
+                    auto val = values[fh.idx];
 
                     # first apply type transformations
                     val = handleType(fh, val);

@@ -38,6 +38,39 @@ public namespace DbDataProvider {
 #! Defines a data provider based on a single SQL table
 public class DbTableDataProvider inherits AbstractDataProvider {
     public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "DbTableDataProvider",
+            "supports_read": True,
+            "supports_create": True,
+            "supports_update": True,
+            "supports_upsert": True,
+            "supports_delete": True,
+            "supports_native_search": True,
+            "supports_bulk_create": True,
+            "supports_bulk_upsert": True,
+            "constructor_options": ConstructorOptions,
+            "search_options": NOTHING,
+            "create_options": CreateOptions,
+            "upsert_options": UpsertOptions,
+            "transaction_management": True,
+        };
+
+        #! Constructor options
+        const ConstructorOptions = {
+            "datasource": <DataProviderOptionInfo>{
+                "type": (StringType, new Type("AbstractDatasource")),
+                "desc": "the datasource connection string or an abstract datasource object; in case a connection "
+                    "string is given, then the \"table\" option also needs to be given as a string",
+            },
+            "table": <DataProviderOptionInfo>{
+                "type": (StringType, new Type("AbstractTable")),
+                "required": True,
+                "desc": "the table name or table object; if a table string is provided, then the \"datasource\" "
+                    "option must also be provided",
+            },
+        };
+
         #! Create options
         const CreateOptions = {
             "returning": <DataProviderOptionInfo>{
@@ -86,6 +119,30 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         self.table = table;
     }
 
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        if (copts.table instanceof AbstractTable) {
+            if (copts.datasource instanceof AbstractDatasource && copts.datasource != copts.table.getDatasource()) {
+                error("CONSTRUCTOR-ERROR", "option \"table\" is based on a different datasource than the one "
+                    "supplied in the \"datasource\" option");
+            }
+            self.table = copts.table;
+            return;
+        }
+        if (!copts.datasource) {
+            error("CONSTRUCTOR-ERROR", "option \"datasource\" is required if no \"table\" option providing "
+                "an AbstractTable object is provided");
+        }
+        AbstractDatasource ds;
+        if (copts.datasource instanceof AbstractDatasource) {
+            ds = copts.datasource;
+        } else {
+            ds = new Datasource(copts.datasource);
+        }
+        table = AbstractTable::getTable(ds, copts.table);
+    }
+
     #! Returns the data provider name
     string getName() {
         return table.getName();
@@ -96,71 +153,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return table.getRecordType();
     }
 
-    #! Returns options that can be used for searching
-    /** @return a hash of options that can be used for searching; keys are search option names, values describe the
-        search option; if @ref nothing is returned, then the provider does not support any search options
-    */
-    *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
-    }
-
-    #! Returns options that can be used for creating records
-    /** @return a hash of options that can be used for creating records; keys are option names, values describe the
-        option; if @ref nothing is returned, then the provider does not support any creation options
-    */
-    *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
-        return CreateOptions;
-    }
-
-    #! Returns options that can be used for upserting records
-    /** @return a hash of options that can be used for upserting records; keys are option names, values describe the
-        option; if @ref nothing is returned, then the provider does not support any upsert options
-    */
-    *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions() {
-        return UpsertOptions;
-    }
-
     #! Returns child providers; return @ref nothing if there are no child providers
     *AbstractDataProvider getChildProviders() {
-    }
-
-    #! Returns @ref True if the data provider supports reading
-    bool supportsRead() {
-        return True;
-    }
-
-    #! Returns @ref True if the data provider supports the record creation API
-    bool supportsCreate() {
-        return True;
-    }
-
-    #! Returns @ref True if the data provider supports the record update API
-    bool supportsUpdate() {
-        return True;
-    }
-
-    #! Returns @ref True if the data provider supports the record upsert API
-    bool supportsUpsert() {
-        return True;
-    }
-
-    #! Returns @ref True if the data provider supports the record deletion API
-    bool supportsDelete() {
-        return True;
-    }
-
-    #! Returns True if the data provider supports bulk creation output
-    bool supportsBulkCreate() {
-        return True;
-    }
-
-    #! Returns True if the data provider supports bulk upserts
-    bool supportsBulkUpsert() {
-        return True;
-    }
-
-    #! Returns @ref True if the data provider supports the record search API natively
-    bool supportsNativeSearch() {
-        return True;
     }
 
     #! Returns @ref True if the data provider supports transaction management
@@ -308,6 +302,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
         DbTableTransactionHelper db(table);
         return db.del(where_cond);
+    }
+
+    #! Returns data provider static info
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
     }
 }
 }

@@ -902,7 +902,7 @@ any v = c.name;
             }
         }
 
-        private list featuresImpl() {
+        private list<string> featuresImpl() {
             return (DB_TABLES, DB_VIEWS, DB_SEQUENCES,
                     DB_FUNCTIONS, DB_PROCEDURES);
         }

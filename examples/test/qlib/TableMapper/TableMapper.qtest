@@ -486,7 +486,7 @@ public class TableMapperTest inherits QUnit::Test {
                     InboundTableMapper mapper(table, Map2NoSequence);
                     # assuming insert_block > size of Input3
                     # a bulk inserted
-                    *hash ret = mapper.queueData(Input3);
+                    *hash<auto> ret = mapper.queueData(Input3);
                     assertEq(NOTHING, ret);
                     # single row inserted
                     try {
@@ -499,12 +499,10 @@ public class TableMapperTest inherits QUnit::Test {
                         ret = mapper.flush();
                         assertEq(4, mapper.getCount());
                         assertEq(OutputHash7, ret);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         assertEq("DBI:ORACLE:OCI-ERROR", ex.err);
                     }
-                }
-                catch (hash<ExceptionInfo> ex1) {
+                } catch (hash<ExceptionInfo> ex1) {
                     # NOTE: must accept exceptions from the TableMapper destructor
                     # that there are still rows to process
                     assertEq("BLOCK-ERROR", ex1.err);

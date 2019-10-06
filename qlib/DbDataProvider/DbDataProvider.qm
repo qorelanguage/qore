@@ -48,6 +48,10 @@ module DbDataProvider {
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::register(new DbDataProviderFactory());
+    };
 }
 
 /** @mainpage DbDataProvider Module

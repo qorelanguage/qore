@@ -70,8 +70,15 @@ class QdpCmd {
 
         AbstractDataProvider provider;
         {
-            list<string> path = (shift ARGV).split("/");
-            provider = getDataProvider(shift path);
+            # first extract any data provider options
+            string name = shift ARGV;
+            # get expression in curly brackets, if any, respecting balanced brackets
+            *string opts = (name =~ x/({(?:(?>[^{}]*)|(?0))*})/)[0];
+            if (opts) {
+                name = replace(name, opts, "");
+            }
+            list<string> path = name.split("/");
+            provider = getDataProvider((shift path) + opts);
             map provider = provider.getChildProvider($1), path;
         }
 
@@ -162,6 +169,15 @@ class QdpCmd {
     }
 
     private AbstractDataProvider getDataProvider(string name) {
+        # see if there are options in the name
+        {
+            if (name =~ /{([^}]*)}/) {
+                # load known data provider factories
+                DataProvider::registerKnownFactories();
+                return DataProvider::getObjectFromString(name);
+            }
+        }
+
         # try to get a provider from a connection
         AbstractConnection conn;
         try {

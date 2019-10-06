@@ -56,6 +56,7 @@ public const TypeCodeMap = {
 /** additionally, \c "all" is mapped to \c "any"
 */
 public const OptimalQoreDataTypeMap = {
+    "int": "int",
     Type::Int: "int",
     Type::String: "string",
     Type::Boolean: "bool",
@@ -75,6 +76,7 @@ public const OptimalQoreDataTypeMap = {
 /** additionally, \c "all" is mapped to \c "any"
 */
 public const OptimalQoreSoftDataTypeMap = OptimalQoreDataTypeMap + {
+    "int": "softint",
     Type::Int: "softint",
     Type::String: "softstring",
     Type::Boolean: "softbool",

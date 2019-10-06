@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DataProvider.qm module for performing bulk DML operations with SqlUtil
+#! @file AbstractDataProviderFactory.qc module for performing bulk DML operations with SqlUtil
 
-/** DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractDataProviderFactory.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,32 +33,37 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires(reexport) reflection
-%requires(reexport) Util
-
-module DataProvider {
-    version = "1.0";
-    desc = "user module for generic data providers";
-    author = "David Nichols <david@qore.org>";
-    url = "http://qore.org";
-    license = "MIT";
-}
-
-/** @mainpage DataProvider Module
-
-    @tableofcontents
-
-    @section dataproviderintro Introduction to the DataProvider Module
-
-    The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
-    queried, introspected, and updated.
-
-    @section dataprovider_relnotes Release Notes
-
-    @subsection dataprovider_v1_0 DataProvider v1.0
-    - initial release of the module
-*/
-
-#! contains all public definitions in the DataProvider module
+#! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! Data provider factory class
+public class AbstractDataProviderFactory {
+    public {}
+
+    #! Creates an object from the given constructor options
+    AbstractDataProvider create(*hash<auto> options) {
+        ConstructorMethodVariant con;
+        try {
+            con = getClass().getConstructorVariant(AutoHashOrNothingType);
+        } catch (hash<ExceptionInfo> ex) {
+            error("DATA-PROVIDER-ERROR", "data provider does not support a constructor from an option hash");
+        }
+        return con.call(options);
+    }
+
+    #! thrown an exception
+    private error(string err, string fmt) {
+        throw err, sprintf("data provider factory %y (%y): %s", getName(), self.className(), vsprintf(fmt, argv));
+    }
+
+    #! Returns the name of the data provider factory
+    abstract string getName();
+
+    #! Returns static provider information
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    abstract hash<DataProviderInfo> getInfo();
+
+    #! Returns the class for the data provider object
+    abstract Class getClass();
+}
 }

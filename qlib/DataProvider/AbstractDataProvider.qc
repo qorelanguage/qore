@@ -55,11 +55,11 @@ public const UpsertResultDeleted = "deleted";
 
 #! Data provider search option info
 public hashdecl DataProviderOptionInfo {
-    #! The option value type
-    Type type;
+    #! The option value type or types
+    softlist<Type> type;
 
     #! Required flag
-    bool required;
+    bool required = False;
 
     #! The option description
     string desc;
@@ -68,57 +68,106 @@ public hashdecl DataProviderOptionInfo {
 #! Data provider info
 public hashdecl DataProviderInfo {
     #! Data provider name
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
     string name;
 
+    #! The name of the provider type
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    string type;
+
     #! Does the data provider support reading
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_read;
 
     #! Does the data provider support record creation?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_create;
 
     #! Does the data provider support record updates?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_update;
 
     #! Does the data provider support record upserts (create or update)?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_upsert;
 
     #! Does the data provider support record deletion?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_delete;
 
     #! Does the data provider support native record searching?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool supports_native_search;
 
     #! Does the data provider support native / optimized bulk creation?
     /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
         APIs but without any performance improvements for bulk data
+
+        @note this is a static attribute; it is the same for all data providers of the same type
     */
     bool supports_bulk_create;
 
     #! Does the data provider support native / optimized bulk upserts?
     /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
         APIs but without any performance improvements for bulk data
+
+        @note this is a static attribute; it is the same for all data providers of the same type
     */
     bool supports_bulk_upsert;
 
+    #! Constructor options supported by the data provider for the constructor variant taking a hash
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    *hash<string, hash<DataProviderOptionInfo>> constructor_options;
+
     #! Create options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     *hash<string, hash<DataProviderOptionInfo>> create_options;
 
     #! Upsert options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     *hash<string, hash<DataProviderOptionInfo>> upsert_options;
 
     #! Search options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     *hash<string, hash<DataProviderOptionInfo>> search_options;
 
     #! Does the data provider require transaction management?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
     bool transaction_management;
 
     #! A list of child data providers in this data provider
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
     *list<string> children;
 }
 
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
     public {
+    }
+
+    #! Returns data provider info
+    hash<DataProviderInfo> getInfo() {
+        hash<DataProviderInfo> rv({
+            "name": getName(),
+        });
+        rv += getStaticInfoImpl() + {
+            "children": getChildProviderNames(),
+        };
+        return rv;
     }
 
     #! Creates the given record in the data provider
@@ -232,26 +281,6 @@ public class AbstractDataProvider {
         return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
-    #! Returns info about the data provider
-    hash<DataProviderInfo> getInfo() {
-        return <DataProviderInfo>{
-            "name": getName(),
-            "supports_read": supportsRead(),
-            "supports_create": supportsCreate(),
-            "supports_update": supportsUpdate(),
-            "supports_upsert": supportsUpsert(),
-            "supports_delete": supportsDelete(),
-            "supports_native_search": supportsNativeSearch(),
-            "supports_bulk_create": supportsBulkCreate(),
-            "supports_bulk_upsert": supportsBulkUpsert(),
-            "search_options": getSearchOptions(),
-            "create_options": getCreateOptions(),
-            "upsert_options": getUpsertOptions(),
-            "transaction_management": requiresTransactionManagement(),
-            "children": getChildProviderNames(),
-        };
-    }
-
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
@@ -312,16 +341,6 @@ public class AbstractDataProvider {
     /** Has no effect if the data provider does not support transaction management
     */
     rollback() {
-    }
-
-    #! Returns True if the data provider supports bulk creation output
-    bool supportsBulkCreate() {
-        return False;
-    }
-
-    #! Returns True if the data provider supports bulk upserts
-    bool supportsBulkUpsert() {
-        return False;
     }
 
     #! Returns a bulk insert operation object for the data provider
@@ -444,14 +463,27 @@ public class AbstractDataProvider {
                 continue;
             }
             # process value
-            try {
-                options{i.key} = i.value.type.acceptsValue(options{i.key});
-            } catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "RUNTIME-TYPE-ERROR") {
-                    error(err, "option %y of type %y cannot be assigned a value of type %y: %s: %s", i.key,
-                        i.value.type.getName(), options{i.key}.type(), ex.err, ex.desc);
+            bool ok;
+            string err;
+            foreach Type type in (i.value.type) {
+                try {
+                    options{i.key} = type.acceptsValue(options{i.key});
+                    ok = True;
+                    break;
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err == "RUNTIME-TYPE-ERROR") {
+                        err = sprintf("option %y of type %y cannot be assigned a value of type %y: %s: %s", i.key,
+                            type.getName(), options{i.key}.type(), ex.err, ex.desc);
+                        continue;
+                    }
+                    rethrow;
                 }
-                rethrow;
+            }
+            if (!ok) {
+                if (err) {
+                    error("RUNTIME-TYPE-ERROR", err);
+                }
+                error("RUNTIME-TYPE-ERROR", "no type information available for option %y", i.key);
             }
         }
         return options;
@@ -472,8 +504,7 @@ public class AbstractDataProvider {
         hash<auto> rv;
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
-                throw "INVALID-FIELD", sprintf("field %y is not a defined field in records of type %y; valid "
-                    "fields: %y", i.key, getName(), keys rec);
+                error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", i.key, keys rec);
             }
             # we assume a hash is a provider-specific search option
             if (i.value.typeCode() == NT_HASH) {
@@ -486,7 +517,17 @@ public class AbstractDataProvider {
 
     #! thrown an exception
     private error(string err, string fmt) {
-        throw err, sprintf("data provider %y: %s", self.className(), vsprintf(fmt, argv));
+        string desc_name;
+        # the getName() method cannot be run in the constructor before the object has been created and the name set
+        try {
+            desc_name = sprintf("%y (%y)", getName(), self.className());
+        } catch (hash<ExceptionInfo> ex) {
+            # this block interntioanlly left blank
+        }
+        if (!desc_name) {
+            desc_name = sprintf("class %y", self.className());
+        }
+        throw err, sprintf("data provider %s: %s", desc_name, vsprintf(fmt, argv));
     }
 
     #! Returns the first record matching the search options
@@ -546,7 +587,7 @@ public class AbstractDataProvider {
         search option; if @ref nothing is returned, then the provider does not support any search options
     */
     *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
-        # this method intentionally left blank
+        return getStaticInfoImpl().search_options;
     }
 
     #! Returns options that can be used for creating records
@@ -554,7 +595,7 @@ public class AbstractDataProvider {
         option; if @ref nothing is returned, then the provider does not support any creation options
     */
     *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
-        # this method intentionally left blank
+        return getStaticInfoImpl().create_options;
     }
 
     #! Returns options that can be used for upserting records
@@ -562,49 +603,63 @@ public class AbstractDataProvider {
         option; if @ref nothing is returned, then the provider does not support any upsert options
     */
     *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions() {
-        # this method intentionally left blank
+        return getStaticInfoImpl().upsert_options;
     }
 
     #! Returns @ref True if the data provider supports reading
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsRead() {
-        return False;
+        return getStaticInfoImpl().supports_read;
     }
 
     #! Returns @ref True if the data provider supports the record creation API
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsCreate() {
-        return False;
+        return getStaticInfoImpl().supports_create;
     }
 
     #! Returns @ref True if the data provider supports the record update API
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsUpdate() {
-        return False;
+        return getStaticInfoImpl().supports_update;
     }
 
     #! Returns @ref True if the data provider supports the record upsert API
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsUpsert() {
-        return False;
+        return getStaticInfoImpl().supports_upsert;
     }
 
     #! Returns @ref True if the data provider supports the record deletion API
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsDelete() {
-        return False;
+        return getStaticInfoImpl().supports_delete;
     }
 
     #! Returns @ref True if the data provider supports the record search API natively
-    /** This base class method returns @ref False; override in child classes if necessary
+    /**
     */
     bool supportsNativeSearch() {
-        return False;
+        return getStaticInfoImpl().supports_native_search;
+    }
+
+    #! Returns True if the data provider supports bulk creation output
+    /**
+    */
+    bool supportsBulkCreate() {
+        return getStaticInfoImpl().supports_bulk_create;
+    }
+
+    #! Returns True if the data provider supports bulk upserts
+    /**
+    */
+    bool supportsBulkUpsert() {
+        return getStaticInfoImpl().supports_bulk_upsert;
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -686,5 +741,8 @@ public class AbstractDataProvider {
 
     #! Returns the data provider name
     abstract string getName();
+
+    #! Returns data provider static info
+    private abstract hash<DataProviderInfo> getStaticInfoImpl();
 }
 }

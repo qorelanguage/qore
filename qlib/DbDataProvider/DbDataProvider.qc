@@ -38,9 +38,39 @@ public namespace DbDataProvider {
 #! The database data provider class, provides tables as children
 public class DbDataProvider inherits AbstractDataProvider {
     public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "DbDataProvider",
+            "supports_read": False,
+            "supports_create": False,
+            "supports_update": False,
+            "supports_upsert": False,
+            "supports_delete": False,
+            "supports_native_search": False,
+            "supports_bulk_create": False,
+            "supports_bulk_upsert": False,
+            "constructor_options": ConstructorOptions,
+            "search_options": NOTHING,
+            "create_options": NOTHING,
+            "upsert_options": NOTHING,
+            "transaction_management": False,
+        };
+
+        #! Constructor options
+        const ConstructorOptions = {
+            "datasource": <DataProviderOptionInfo>{
+                "type": (StringType, new Type("AbstractDatasource")),
+                "desc": "the datasource connection string or an abstract datasource object",
+            },
+            "database": <DataProviderOptionInfo>{
+                "type": new Type("AbstractDatabase"),
+                "desc": "the database for the object",
+            },
+        };
     }
 
     private {
+        #! The database object
         AbstractDatabase db;
     }
 
@@ -52,6 +82,29 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! creates the object
     constructor(AbstractDatabase db) {
         self.db = db;
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        if (copts.database instanceof AbstractDatabase) {
+            if (copts.datasource instanceof AbstractDatasource && copts.datasource != copts.database.getDatasource()) {
+                error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
+                    "supplied in the \"datasource\" option");
+            }
+            self.db = copts.db;
+            return;
+        }
+        if (!copts.datasource) {
+            error("CONSTRUCTOR-ERROR", "option \"datasource\" is required if no \"database\" option is provided");
+        }
+        AbstractDatasource ds;
+        if (copts.datasource instanceof AbstractDatasource) {
+            ds = copts.datasource;
+        } else {
+            ds = new Datasource(copts.datasource);
+        }
+        db = AbstractDatabase::getDatabase(ds);
     }
 
     #! Returns the data provider name
@@ -81,6 +134,11 @@ public class DbDataProvider inherits AbstractDataProvider {
             throw "INVALID-CHILD-PROVIDER", sprintf("table %y does not exist in %y: %s", name, getName(), ex.desc), ex.arg;
         }
         return new DbTableDataProvider(table);
+    }
+
+    #! Returns data provider static info
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
     }
 }
 }
