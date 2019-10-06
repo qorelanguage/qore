@@ -142,6 +142,7 @@ This package contains tool for working with:
 
 %files misc-tools
 %defattr(-,root,root,-)
+%{_bindir}/qdp
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/sfrest
@@ -168,11 +169,6 @@ make check
 
 %files
 %{_bindir}/qore
-%{_bindir}/qget
-%{_bindir}/rest
-%{_bindir}/schema-reverse
-%{_bindir}/sfrest
-%{_bindir}/sqlutil
 %{_bindir}/qdbg
 %{_bindir}/qdbg-server
 %{_bindir}/qdbg-remote

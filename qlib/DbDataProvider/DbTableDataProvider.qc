@@ -204,9 +204,13 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @param create_options the create options after processing by validateCreateOptions()
 
         @return the data written to the data provider plus any output (returning) variables
+
+        @note this API will commit the row to the database unless the datasource was already in a transaction before
+        this call
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
-        *hash<auto> returning = table.insert(rec, create_options);
+        DbTableTransactionHelper db(table);
+        *hash<auto> returning = db.insert(rec, create_options);
         return rec + returning;
     }
 
@@ -215,9 +219,13 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @param upsert_options the create options after processing by validateUpsertOptions()
 
         @return see @ref db_provider_upsert_results for possible values
+
+        @note this API will commit the row to the database unless the datasource was already in a transaction before
+        this call
     */
     string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options) {
-        return DbUpsertMap{table.upsert(rec,
+        DbTableTransactionHelper db(table);
+        return DbUpsertMap{db.upsert(rec,
             AbstractTable::UpsertStrategyDescriptionMap{remove upsert_options.upsert_strategy}
             ?? AbstractTable::UpsertAuto, upsert_options)};
     }
@@ -300,39 +308,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
         DbTableTransactionHelper db(table);
         return db.del(where_cond);
-    }
-}
-}
-
-# private namespace
-namespace Priv {
-# private class; helps manage transactions in DbTableDataProvider methods
-class DbTableTransactionHelper {
-    private {
-        AbstractTable table;
-    }
-
-    constructor(AbstractTable table) {
-        self.table = table;
-    }
-
-    auto methodGate(string method) {
-        AbstractDatasource ds = table.getDatasource();
-
-        # commit transaction on success if we are not already in a transaction
-        bool in_trans = ds.currentThreadInTransaction();
-        on_error {
-            if (!in_trans) {
-                ds.rollback();
-            }
-        }
-        on_success {
-            if (!in_trans) {
-                ds.commit();
-            }
-        }
-
-        return call_object_method_args(table, method, argv);
     }
 }
 }

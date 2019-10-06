@@ -36,7 +36,7 @@
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! The database data provider class, provides tables as children
-public class DbDataProvider {
+public class DbDataProvider inherits AbstractDataProvider {
     public {
     }
 

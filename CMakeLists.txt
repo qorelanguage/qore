@@ -211,6 +211,7 @@ set(PSEUDO_QPP_SRC
 
 set(QORE_BIN_FILES
     doxygen/qdx
+    bin/qdp
     bin/qget
     bin/rest
     bin/schema-reverse

@@ -148,6 +148,7 @@ This package contains tool for working with:
 
 %files misc-tools
 %defattr(-,root,root,-)
+%{_bindir}/qdp
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/sfrest

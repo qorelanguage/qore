@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DatasourceProvider.qm Qore user module providing an API for returning datasource connection strings from identifiers
 
-/*  DatasourceProvider.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
+/*  DatasourceProvider.qm Copyright 2016 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9.4
 
 %require-types
 %enable-all-warnings
@@ -31,7 +31,7 @@
 %strict-args
 
 module DatasourceProvider {
-    version = "1.0";
+    version = "1.1";
     desc    = "API for providing datasource connection strings";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -53,18 +53,25 @@ module DatasourceProvider {
 
     Functions:
     - @ref DatasourceProvider::get_ds_string() "get_ds_string()"
+    - @ref DatasourceProvider::get_ds_list() "get_ds_list()"
 
     @subsection datasourceprovider_modules Datasource Provider Modules
 
     This module uses the \c "QORE_DATASOURCE_PROVIDERS" environment variable to load datasource provider
-    modules.  Each datasource provider module must provide a single public function called
+    modules.  Each datasource provider module must provide two public functions; one called
     \c get_mod_ds_string() with the following signature:
     @code{.py}
 public string sub get_mod_ds_string(string str) {}
     @endcode
 
-    If the string is not a valid identifier for a datasource, the function should throw an
-    exception (any exception; the exception is not displayed by default).
+    And one called \c get_mod_ds_hash() returning a hash keyed by datasource name where values are datasource strings
+    with the following signature:
+    @code{.py}
+public *hash<string, string> sub get_mod_ds_hash() {}
+    @endcode
+
+    For \c get_mod_ds_string(), if the string argument is not a valid identifier for a datasource, the function should
+    throw an exception (any exception; the exception is not displayed by default).
 
     Datasource provider modules declared in the \c "QORE_DATASOURCE_PROVIDERS" environment variable must
     be separated by the platform-specific @ref Qore::PathSep "PathSep" character as in the following
@@ -87,13 +94,16 @@ $env:QORE_DATASOURCE_PROVIDERS="MyDatasourceProvider;OtherDatasourceProvider"
 
     @section datasourceproviderrelnotes Release Notes
 
+    @subsection datasourceprovider_1_1 DatasourceProvider 1.1
+    - added support for the \c get_ds_hash() function
+
     @subsection datasourceprovider_1_0 DatasourceProvider 1.0
     - the initial version of the DatasourceProvider module
 */
 
-#! the DatasourceProvider namespace contains all the objects in the DatasourceProvider module
+#! The DatasourceProvider namespace contains all the objects in the DatasourceProvider module
 public namespace DatasourceProvider {
-    #! returns a datasource connection string
+    #! Returns a datasource connection string
     /** @par Example:
         @code{.py}
 string connstr = get_ds_string(str);
@@ -118,12 +128,11 @@ string connstr = get_ds_string(str);
 
         # process datasource provider modules in declaration order
         if (ENV.QORE_DATASOURCE_PROVIDERS) {
-            list pl = ENV.QORE_DATASOURCE_PROVIDERS.split(PathSep);
+            list<string> pl = ENV.QORE_DATASOURCE_PROVIDERS.split(PathSep);
             foreach string mod in (pl) {
                 try {
                     return try_get_ds_string(mod, str);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (verbose)
                         printf("%s: %s\n", ex.err, ex.desc);
                     # otherwise ignore exceptions
@@ -137,6 +146,28 @@ string connstr = get_ds_string(str);
             throw "DATASOURCE-ERROR", sprintf("datasource identifier %y could not be matched to a known datasource; there is no driver specification in the string (ex: \"driver:...\") and no datasource provider modules are set in the QORE_DATASOURCE_PROVIDERS environment variable", str);
         return str;
     }
+
+    #! Returns all datasource supported with their connection strings prefixed by \c "db://"
+    public *hash<string, string> sub get_ds_hash(*bool verbose) {
+        hash<string, string> rv;
+
+        # process datasource provider modules in declaration order
+        if (ENV.QORE_DATASOURCE_PROVIDERS) {
+            list<string> pl = ENV.QORE_DATASOURCE_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
+                try {
+                    rv += try_get_ds_hash(mod);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (verbose) {
+                        printf("%s: %s\n", ex.err, ex.desc);
+                    }
+                    # otherwise ignore exceptions
+                }
+            }
+        }
+
+        return rv;
+    }
 }
 
 # private, non-exported namespace
@@ -147,5 +178,13 @@ namespace Priv {
         # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
         p.setScriptPath(sprintf("Qore::DatasourceProvider(%s,%s)", mod, str));
         return p.callFunction("get_mod_ds_string", str);
+    }
+
+    *hash<string, string> sub try_get_ds_hash(string mod) {
+        Program p();
+        p.loadModule(mod);
+        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+        p.setScriptPath(sprintf("Qore::DatasourceProvider(%s)", mod));
+        return p.callFunction("get_mod_ds_hash");
     }
 }

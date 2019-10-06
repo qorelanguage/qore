@@ -350,7 +350,8 @@ public class AbstractDataProvider {
     */
     private checkRead() {
         if (!supportsRead()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support reading", getName());
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support reading",
+                getName(), self.className());
         }
     }
 
@@ -360,7 +361,8 @@ public class AbstractDataProvider {
     */
     private checkCreate() {
         if (!supportsCreate()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support record creation", getName());
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record creation",
+                getName(), self.className());
         }
     }
 
@@ -370,7 +372,8 @@ public class AbstractDataProvider {
     */
     private checkUpsert() {
         if (!supportsUpsert()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support record upserts", getName());
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record upserts",
+                getName(), self.className());
         }
     }
 
@@ -380,7 +383,8 @@ public class AbstractDataProvider {
     */
     private checkUpdate() {
         if (!supportsUpdate()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support record updating", getName());
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record updating",
+                getName(), self.className());
         }
     }
 
@@ -390,7 +394,8 @@ public class AbstractDataProvider {
     */
     private checkDelete() {
         if (!supportsDelete()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y does not support record deletion", getName());
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record deletion",
+                getName(), self.className());
         }
     }
 

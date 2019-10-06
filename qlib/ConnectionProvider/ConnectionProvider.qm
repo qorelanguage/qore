@@ -31,9 +31,10 @@
 %strict-args
 
 %requires Util
+%requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.2.1";
+    version = "1.3";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -99,6 +100,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_3 ConnectionProvider 1.3
+    - implemented support for the data provider API
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection connectionprovider_1_2_1 ConnectionProvider 1.2.1
     - implemented support for connection tags as the attribute \c "tags"
