@@ -174,7 +174,7 @@ class QdpCmd {
             if (name =~ /{([^}]*)}/) {
                 # load known data provider factories
                 DataProvider::registerKnownFactories();
-                return DataProvider::getObjectFromString(name);
+                return DataProvider::getFactoryObjectFromString(name);
             }
         }
 

@@ -43,7 +43,7 @@ module CsvUtil {
     license = "MIT";
     init = sub () {
         # register the data provider factory
-        DataProvider::register(new CsvReadDataProviderFactory());
+        DataProvider::registerFactory(new CsvReadDataProviderFactory());
     };
 }
 

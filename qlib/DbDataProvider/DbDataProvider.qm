@@ -50,7 +50,7 @@ module DbDataProvider {
     license = "MIT";
     init = sub () {
         # register the data provider factory
-        DataProvider::register(new DbDataProviderFactory());
+        DataProvider::registerFactory(new DbDataProviderFactory());
     };
 }
 

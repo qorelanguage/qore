@@ -47,10 +47,16 @@ public class DataProvider {
 
     private {
         #! data provider factory cache
-        static hash<string, AbstractDataProviderFactory> cache;
+        static hash<string, AbstractDataProviderFactory> factory_cache;
 
         #! data provider factory cache lock
-        static Mutex cache_lock();
+        static Mutex factory_cache_lock();
+
+        #! data provider data type cache
+        static hash<string, AbstractDataProviderType> type_cache;
+
+        #! data provider type cache lock
+        static Mutex type_cache_lock();
     }
 
     #! Register a new data provider factory
@@ -58,35 +64,35 @@ public class DataProvider {
 
         @throw PROVIDER-ERROR the given provider has already been registered
     */
-    static register(AbstractDataProviderFactory factory) {
-        cache_lock.lock();
-        on_exit cache_lock.unlock();
+    static registerFactory(AbstractDataProviderFactory factory) {
+        factory_cache_lock.lock();
+        on_exit factory_cache_lock.unlock();
 
         string name = factory.getName();
-        if (cache{name}) {
+        if (factory_cache{name}) {
             throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
         }
 
-        cache{name} = factory;
+        factory_cache{name} = factory;
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
-    static *AbstractDataProviderFactory get(string name) {
-        return cache{name};
+    static *AbstractDataProviderFactory getFactory(string name) {
+        return factory_cache{name};
     }
 
     #! Returns the given data provider factory or throws an exception if not present
-    /** @param the name of the data provider to retrieve
+    /** @param name the name of the data provider to retrieve
 
         @return the given data provider; an exception is thrown if the data provide is unknown
 
         @throw PROVIDER-ERROR the given provider is unknown
     */
-    static AbstractDataProviderFactory getEx(string name) {
-        *AbstractDataProviderFactory factory = cache{name};
+    static AbstractDataProviderFactory getFactoryEx(string name) {
+        *AbstractDataProviderFactory factory = factory_cache{name};
         if (!factory) {
             throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y", name,
-                keys cache);
+                keys factory_cache);
         }
         return factory;
     }
@@ -95,11 +101,11 @@ public class DataProvider {
     /**
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
     */
-    static AbstractDataProvider getObject(string name, *hash<auto> options) {
+    static AbstractDataProvider getFactoryObject(string name, *hash<auto> options) {
         AbstractDataProvider provider;
         {
             list<string> path = name.split("/");
-            provider = DataProvider::getEx(shift path).create(options);
+            provider = DataProvider::getFactoryEx(shift path).create(options);
             map provider = provider.getChildProvider($1), path;
         }
 
@@ -114,7 +120,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
 
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
     */
-    static AbstractDataProvider getObjectFromString(string name) {
+    static AbstractDataProvider getFactoryObjectFromString(string name) {
         # get options, respecting balanced curly brackets
         *string opts = (name =~ x/{((?:(?>[^{}]*)|(?0))*)}/)[0];
         # remove empty options; the above regex does not catch them :(
@@ -131,12 +137,70 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             }
         }
 
-        return DataProvider::getObject(name, options);
+        return DataProvider::getFactoryObject(name, options);
     }
 
     #! Returns a list of registered data provider factories
+    static *list<string> listFactories() {
+        return keys factory_cache;
+    }
+
+    #! Register a new data provider type
+    /** @param label the label for the type; this is the lookup index
+        @param type the new data provider type
+
+        @throw PROVIDER-ERROR the given provider has already been registered
+
+        @note types are stored based on labels which may differ from their type names (which may be generic and
+        therefore not suitable for indexing)
+    */
+    static registerType(string label, AbstractDataProviderType type) {
+        type_cache_lock.lock();
+        on_exit type_cache_lock.unlock();
+
+        if (type_cache{label}) {
+            throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+        }
+
+        type_cache{label} = type;
+    }
+
+    #! Returns the given data provider type or @ref nothing if not present
+    /** @param label the label of the data provider type to retrieve
+
+        @note types are stored based on labels which may differ from their type names (which may be generic and
+        therefore not suitable for indexing)
+    */
+    static *AbstractDataProviderType getType(string label) {
+        return type_cache{label};
+    }
+
+    #! Returns the given data provider type or throws an exception if not present
+    /** @param label the label of the data provider type to retrieve
+
+        @return the given data provider; an exception is thrown if the data provide is unknown
+
+        @throw PROVIDER-ERROR the given data provider type label is unknown
+
+        @note types are stored based on labels which may differ from their type names (which may be generic and
+        therefore not suitable for indexing)
+    */
+    static AbstractDataProviderType getTypeEx(string label) {
+        *AbstractDataProviderType type = type_cache{label};
+        if (!type) {
+            throw "PROVIDER-ERROR", sprintf("data provider type label %y is unknown; known data provider type "
+                "labels: %y", label, keys type_cache);
+        }
+        return type;
+    }
+
+    #! Returns a list of registered data provider type labels
+    /**
+        @note types are stored based on labels which may differ from their type names (which may be generic and
+        therefore not suitable for indexing)
+    */
     static *list<string> listTypes() {
-        return keys cache;
+        return keys type_cache;
     }
 
     #! Registers known data provider factories
