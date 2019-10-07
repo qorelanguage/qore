@@ -53,7 +53,7 @@ public const UpsertResultUnchanged = "unchanged";
 public const UpsertResultDeleted = "deleted";
 #@}
 
-#! Data provider search option info
+#! Data provider option info
 public hashdecl DataProviderOptionInfo {
     #! The option value type or types
     softlist<Type> type;

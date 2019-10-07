@@ -40,7 +40,9 @@ class QdpCmd {
     public {
         #! program options
         const Opts = {
-            "list": "l,list",
+            "listconnections": "c,list-connections",
+            "listfactories": "f,list-factories",
+            "listtypes": "t,list-types",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -61,8 +63,14 @@ class QdpCmd {
     constructor() {
         GetOpt g(Opts);
         our hash<auto> opts = g.parse3(\ARGV);
-        if (opts."list") {
+        if (opts.listconnections) {
             listConnections();
+        }
+        if (opts.listfactories) {
+            listFactories();
+        }
+        if (opts.listtypes) {
+            listTypes();
         }
         if (opts.help || !ARGV[0]) {
             usage();
@@ -221,6 +229,40 @@ class QdpCmd {
         exit(0);
     }
 
+    static listFactories() {
+        *list<string> flist = DataProvider::listFactories();
+        if (opts.verbose) {
+            foreach string factory in (flist) {
+                # strip types to convert types
+                hash info = DataProvider::getFactory(factory).getInfo();
+                foreach hash<auto> i0 in (info.pairIterator()) {
+                    if (i0.value.typeCode() == NT_HASH && i0.key =~ /_options/) {
+                        foreach hash<auto> i1 in (i0.value.pairIterator()) {
+                            if (i1.value.type) {
+                                info{i0.key}{i1.key}.type = map $1.getName(), i1.value.type;
+                            }
+                        }
+                    }
+                }
+
+                printf("%s: %N\n", factory, info);
+            }
+        } else {
+            printf("%y\n", flist);
+        }
+        exit(0);
+    }
+
+    static listTypes() {
+        *list<string> tlist = DataProvider::listTypes();
+        if (opts.verbose) {
+            map printf("%s: %N\n", $1, DataProvider::getType($1).getInfo()), tlist;
+        } else {
+            printf("%y\n", tlist);
+        }
+        exit(0);
+    }
+
     static usage() {
         printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
   <cmd> = info|list|record|search|update
@@ -241,7 +283,9 @@ class QdpCmd {
     delete <match criteria>
         deletes record matching the given criteria
 
- -l,--list                 list known connections and exit
+ -c,--list-connections     list known connections and exit
+ -f,--list-factories       list known data provider factories and exit
+ -t,--list-types           list known data provider types and exit
  -v,--verbose[=ARG]        show more output
  -h,--help                 this help text
 ", get_script_name());

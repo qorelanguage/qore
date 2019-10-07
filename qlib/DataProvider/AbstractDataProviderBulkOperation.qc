@@ -33,7 +33,7 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! Absrtact bulk data operation class
+#! Abstract bulk data operation class
 public class AbstractDataProviderBulkOperation {
     private {
         #! The data provider

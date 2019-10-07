@@ -111,6 +111,9 @@ public hashdecl DataTypeInfo {
 
     #! input: list of types returned
     list<string> types_returned;
+
+    #! any fields supported by the type
+    hash<string, hash<DataFieldInfo>> fields;
 }
 
 #! describes a data type
@@ -152,6 +155,7 @@ public class AbstractDataProviderType {
         return <DataTypeInfo>{
             "name": getName(),
             "types_returned": keys getReturnTypeHash(),
+            "fields": getFieldInfo(),
         };
     }
 
@@ -167,7 +171,13 @@ public class AbstractDataProviderType {
                 : NOTHING,
             "types_accepted": keys getAcceptTypeHash(),
             "types_returned": keys getReturnTypeHash(),
+            "fields": getFieldInfo(),
         };
+    }
+
+    #! Returns information on fields supported
+    *hash<string, hash<DataFieldInfo>> getFieldInfo() {
+        return cast<hash<string, hash<DataFieldInfo>>>(map {$1.key: $1.value.getInfo()}, getFields().pairIterator());
     }
 
     #! returns True if this type can be assigned from values of the argument type
