@@ -508,6 +508,7 @@ public class AbstractDataProvider {
             }
             # we assume a hash is a provider-specific search option
             if (i.value.typeCode() == NT_HASH) {
+                rv{i.key} = i.value;
                 continue;
             }
             rv{i.key} = rec{i.key}.acceptsValue(i.value);

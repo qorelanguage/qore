@@ -53,7 +53,6 @@ public class DbTableRecordIterator inherits AbstractDataProviderRecordIterator {
         # release the transaction with a rollback in the destructor by default if we do not already have a transaction
         # lock
         release_transaction = !table.getDatasource().currentThreadInTransaction();
-
         stmt = table.getStatement({"where": where_cond});
     }
 
