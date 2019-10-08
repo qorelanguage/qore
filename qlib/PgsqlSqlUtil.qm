@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -153,6 +153,8 @@ $function$
     @section pgsql_relnotes Release Notes
 
     @subsection pgsqlsqlutilv131 PgsqlSqlUtil v1.3.1
+    - fixed compatibility with PostgreSQL 12
+      (<a href="https://github.com/qorelanguage/qore/issues/3589">issue 3589</a>)
     - fixed comparison of triggers with column restrictions with table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3466">issue 3466</a>)
     - fixed quoting of reserved words in column names in table alignment
@@ -1886,7 +1888,40 @@ auto v = c.name;
 
         private Constraints getConstraintsImpl() {
             # get check constraints
-            *hash qh = ds.select("select c.conname as constraint_name, case when c.condeferrable = 'f' then 0 else 1 end as is_deferrable, case when c.condeferred = 'f' then 0 else 1 end as is_deferred, t.relname as table_name, array_to_string(c.conkey, ' ') as constraint_key, case confupdtype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_update, case confdeltype when 'a' then 'NO ACTION' when 'r' then 'RESTRICT' when 'c' then 'CASCADE' when 'n' then 'SET NULL' when 'd' then 'SET DEFAULT' end as on_delete, case confmatchtype when 'u' then 'UNSPECIFIED' when 'f' then 'FULL' when 'p' then 'PARTIAL' end as match_type, t2.relname as references_table, array_to_string(c.confkey, ' ') as fk_constraint_key, consrc from pg_constraint c left join pg_class t on c.conrelid  = t.oid left join pg_class t2 on c.confrelid = t2.oid join pg_catalog.pg_namespace n on n.oid = t.relnamespace where c.contype = 'c' and n.nspname = %v and t.relname = %v", schema, name);
+            *hash qh = ds.select("select
+                c.conname as constraint_name,
+                case when c.condeferrable = 'f' then 0 else 1 end as is_deferrable,
+                case when c.condeferred = 'f' then 0 else 1 end as is_deferred,
+                t.relname as table_name,
+                array_to_string(c.conkey, ' ') as constraint_key,
+                case confupdtype
+                    when 'a' then 'NO ACTION'
+                    when 'r' then 'RESTRICT'
+                    when 'c' then 'CASCADE'
+                    when 'n' then 'SET NULL'
+                    when 'd' then 'SET DEFAULT'
+                end as on_update,
+                case confdeltype
+                    when 'a' then 'NO ACTION'
+                    when 'r' then 'RESTRICT'
+                    when 'c' then 'CASCADE'
+                    when 'n' then 'SET NULL'
+                    when 'd' then 'SET DEFAULT'
+                end as on_delete,
+                case confmatchtype
+                    when 'u' then 'UNSPECIFIED'
+                    when 'f' then 'FULL'
+                    when 'p' then 'PARTIAL'
+                end as match_type,
+                t2.relname as references_table,
+                array_to_string(c.confkey, ' ') as fk_constraint_key,
+                pg_get_constraintdef(c.oid) as consrc
+            from pg_constraint c
+                left join pg_class t on c.conrelid = t.oid
+                left join pg_class t2 on c.confrelid = t2.oid
+                join pg_catalog.pg_namespace n on n.oid = t.relnamespace
+            where
+                c.contype = 'c' and n.nspname = %v and t.relname = %v", schema, name);
             hash rv;
             foreach hash row in (qh.contextIterator())
                 rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
