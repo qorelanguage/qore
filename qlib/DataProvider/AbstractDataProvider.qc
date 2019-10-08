@@ -164,6 +164,13 @@ public class AbstractDataProvider {
     public {
     }
 
+    #! Returns static provider information as data; no objects are returned
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    hash<auto> getInfoAsData() {
+        return DataProvider::getInfoAsData(getInfo());
+    }
+
     #! Returns data provider info
     hash<DataProviderInfo> getInfo() {
         hash<DataProviderInfo> rv({
@@ -326,14 +333,6 @@ public class AbstractDataProvider {
     */
     bool requiresTransactionManagement() {
         return False;
-    }
-
-    #! flushes any remaining queued data to the data provider; has no effect if the data provider does not support bulk writes
-    *hash<auto> flush() {
-    }
-
-    #! discards any remaining queued data; has no effect if the data provider does not support bulk writes
-    discard() {
     }
 
     #! Commits data written to the data provider

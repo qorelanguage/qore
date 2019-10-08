@@ -50,6 +50,13 @@ public class AbstractDataProviderFactory {
         return con.call(options);
     }
 
+    #! Returns static provider information as data; no objects are returned
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    hash<auto> getInfoAsData() {
+        return DataProvider::getInfoAsData(getInfo());
+    }
+
     #! thrown an exception
     private error(string err, string fmt) {
         throw err, sprintf("data provider factory %y (%y): %s", getName(), self.className(), vsprintf(fmt, argv));

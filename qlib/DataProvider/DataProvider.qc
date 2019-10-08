@@ -214,5 +214,21 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             }
         }
     }
+
+    #! Converts an info hash with objects to a hash with string descriptions instead of the objects
+    static hash<auto> getInfoAsData(hash<auto> info0) {
+        # strip types
+        hash info = info0;
+        foreach hash<auto> i0 in (info.pairIterator()) {
+            if (i0.value.typeCode() == NT_HASH && i0.key =~ /_options/) {
+                foreach hash<auto> i1 in (i0.value.pairIterator()) {
+                    if (i1.value.type) {
+                        info{i0.key}{i1.key}.type = map $1.getName(), i1.value.type;
+                    }
+                }
+            }
+        }
+        return info;
+    }
 }
 }

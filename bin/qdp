@@ -232,21 +232,7 @@ class QdpCmd {
     static listFactories() {
         *list<string> flist = DataProvider::listFactories();
         if (opts.verbose) {
-            foreach string factory in (flist) {
-                # strip types to convert types
-                hash info = DataProvider::getFactory(factory).getInfo();
-                foreach hash<auto> i0 in (info.pairIterator()) {
-                    if (i0.value.typeCode() == NT_HASH && i0.key =~ /_options/) {
-                        foreach hash<auto> i1 in (i0.value.pairIterator()) {
-                            if (i1.value.type) {
-                                info{i0.key}{i1.key}.type = map $1.getName(), i1.value.type;
-                            }
-                        }
-                    }
-                }
-
-                printf("%s: %N\n", factory, info);
-            }
+            map printf("%s: %N\n", $1, DataProvider::getFactory($1).getInfoAsData()), flist;
         } else {
             printf("%y\n", flist);
         }
