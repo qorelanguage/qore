@@ -49,6 +49,7 @@ public class DbDataProvider inherits AbstractDataProvider {
             "supports_native_search": False,
             "supports_bulk_create": False,
             "supports_bulk_upsert": False,
+            "supports_children": True,
             "constructor_options": ConstructorOptions,
             "search_options": NOTHING,
             "create_options": NOTHING,
@@ -72,6 +73,12 @@ public class DbDataProvider inherits AbstractDataProvider {
     private {
         #! The database object
         AbstractDatabase db;
+
+        #! Lookup to get an abstract datasource from a name
+        static *code datasource_lookup;
+
+        #! Lookup to get an abstract table from a datasource and a name
+        static *code table_lookup;
     }
 
     #! creates the object
@@ -102,7 +109,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         if (copts.datasource instanceof AbstractDatasource) {
             ds = copts.datasource;
         } else {
-            ds = new Datasource(copts.datasource);
+            ds = getDatasource(copts.datasource);
         }
         db = AbstractDatabase::getDatabase(ds);
     }
@@ -139,6 +146,45 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Sets the datasource lookup
+    static setDatasourceLookup(code datasource_lookup) {
+        DbDataProvider::datasource_lookup = datasource_lookup;
+    }
+
+    #! Sets the table lookup
+    static setTableLookup(code table_lookup) {
+        DbDataProvider::table_lookup = table_lookup;
+    }
+
+    #! Returns the given AbstractDatasource object
+    static AbstractDatasource getDatasource(AbstractDatasource ds) {
+        return ds;
+    }
+
+    #! Returns an AbstractDatasource object from the given string
+    static AbstractDatasource getDatasource(string ds_string) {
+        return datasource_lookup && (ds_string !~ /:/)
+            ? DbDataProvider::datasource_lookup(ds_string)
+            : new Datasource(ds_string);
+    }
+
+    #! Returns an AbstractTable object from the given datasource and table strings
+    static AbstractTable getTable(string ds_string, string table_string) {
+        if (table_lookup && (ds_string !~ /:/)) {
+            return DbDataProvider::table_lookup(ds_string, table_string);
+        }
+        AbstractDatasource ds = DbDataProvider::getDatasource(ds_string);
+        return AbstractTable::getTable(ds, table_string);
+    }
+
+    #! Returns an AbstractTable object from the given datasource and table arguments
+    static AbstractTable getTable(AbstractDatasource ds, string table_string) {
+        if (table_lookup) {
+            return DbDataProvider::table_lookup(ds, table_string);
+        }
+        return AbstractTable::getTable(ds, table_string);
     }
 }
 }

@@ -44,6 +44,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "supports_native_search": False,
             "supports_bulk_create": False,
             "supports_bulk_upsert": False,
+            "supports_children": False,
             "constructor_options": ConstructorOptions,
             "search_options": NOTHING,
             "create_options": NOTHING,

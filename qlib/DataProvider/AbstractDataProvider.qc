@@ -123,6 +123,11 @@ public hashdecl DataProviderInfo {
     */
     bool supports_bulk_upsert;
 
+    #! Does the data provider support children?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_children;
+
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */

@@ -49,6 +49,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "supports_native_search": True,
             "supports_bulk_create": True,
             "supports_bulk_upsert": True,
+            "supports_children": False,
             "constructor_options": ConstructorOptions,
             "search_options": NOTHING,
             "create_options": CreateOptions,
@@ -134,13 +135,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             error("CONSTRUCTOR-ERROR", "option \"datasource\" is required if no \"table\" option providing "
                 "an AbstractTable object is provided");
         }
-        AbstractDatasource ds;
-        if (copts.datasource instanceof AbstractDatasource) {
-            ds = copts.datasource;
-        } else {
-            ds = new Datasource(copts.datasource);
-        }
-        table = AbstractTable::getTable(ds, copts.table);
+        table = DbDataProvider::getTable(copts.datasource, copts.table);
     }
 
     #! Returns the data provider name
