@@ -1956,7 +1956,7 @@ auto v = c.name;
             # map trigger function name -> trigger name
             hash<string, string> tfh;
             foreach hash<auto> row in (qh.contextIterator()) {
-                *string f = (row.action_statement =~ x/EXECUTE PROCEDURE (\w+)\(\)$/)[0];
+                *string f = (row.action_statement =~ x/EXECUTE (?:PROCEDURE|FUNCTION) (\w+)\(\)$/)[0];
                 if (f) {
                     fl += f;
                     tfh{f} = row.trigger_name;
@@ -2031,7 +2031,7 @@ auto v = c.name;
             return l;
         }
 
-        private *list getAlignSqlImpl(AbstractTable table, *hash opt) {
+        private *list getAlignSqlImpl(AbstractTable table, *hash<auto> opt) {
             PgsqlTable t = cast<PgsqlTable>(table);
 
             list l = ();
@@ -2040,8 +2040,7 @@ auto v = c.name;
                 if (!triggerFunctions.hasKey(f.name)) {
                     # create trigger function
                     l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt), AbstractDatabase::AC_Create, "trigger function", f.name, name);
-                }
-                else if (!f.equal(triggerFunctions{f.name})) {
+                } else if (!f.equal(triggerFunctions{f.name})) {
                     # replace current trigger function
                     l += AbstractDatabase::doCallback(opt, f.getCreateSql(opt + ("replace": True)), AbstractDatabase::AC_Recreate, "trigger function", f.name, name);
                 }
@@ -2164,11 +2163,11 @@ auto v = c.name;
             return l;
         }
 
-        private setupTableImpl(hash desc, *hash opt) {
+        private setupTableImpl(hash<auto> desc, *hash<auto> opt) {
             # add trigger functions to table
             AbstractDatabase::checkDriverOptions(\desc.functions, ds.getDriverName());
 
-            foreach string fn in (desc.functions.keyIterator()) {
+            foreach string fn in (keys desc.functions) {
                 if (desc.functions{fn}.typeCode() != NT_STRING)
                     throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to function key %y is not a string giving the function source code, got type %y instead (%y)", name, fn, desc.functions{fn}.type(), desc.functions{fn});
 
