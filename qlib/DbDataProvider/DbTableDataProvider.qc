@@ -277,7 +277,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @note this API will commit the row to the database unless the datasource was already in a transaction before
         this call
     */
-    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+    private int updateRecordsImpl(hash<auto> set, *hash<auto> where_cond, *hash<auto> search_options) {
         DbTableTransactionHelper db(table);
         return db.update(set, where_cond);
     }
@@ -294,7 +294,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @note this API will commit the row to the database unless the datasource was already in a transaction before
         this call
     */
-    private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
+    private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         DbTableTransactionHelper db(table);
         return db.del(where_cond);
     }

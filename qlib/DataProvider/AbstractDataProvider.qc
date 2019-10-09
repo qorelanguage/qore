@@ -273,7 +273,7 @@ public class AbstractDataProvider {
 
         @throw INVALID-OPERATION the data provider does not support record updating
     */
-    int updateRecords(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+    int updateRecords(hash<auto> set, *hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
         return updateRecordsImpl(processFieldValues(set), processFieldValues(where_cond),
             validateSearchOptions(search_options));
@@ -288,7 +288,7 @@ public class AbstractDataProvider {
 
         @throw INVALID-OPERATION the data provider does not support record deletion
     */
-    int deleteRecords(hash<auto> where_cond, *hash<auto> search_options) {
+    int deleteRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkDelete();
         return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
@@ -737,7 +737,7 @@ public class AbstractDataProvider {
 
         @return the number of records deleted
     */
-    private int deleteRecordsImpl(hash<auto> where_cond, *hash<auto> search_options) {
+    private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         # this should never be called; if the data provider supports the operation, then this method must be
         # overridden in the child class
         throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
