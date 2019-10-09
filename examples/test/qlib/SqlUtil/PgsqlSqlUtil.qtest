@@ -88,7 +88,6 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     }
 }
 
-
 # A minimal schema just to create simple table to test bug #2963
 #  = to drop triggers and functions during the schema alignment
 class Bug2963Schema inherits SqlUtilTestSchema {
@@ -146,8 +145,6 @@ class PgsqlTest inherits SqlTestBase {
             "oid": 1234, # should not be used
 
             "date": 2016-01-11,
-            "abstime": 2016-01-11T09:26:14,
-            "reltime": ("value": 5M + 71D + 19h + 245m + 51s, "expect": NOTHING), # TODO: would fail selectTest()
             "interval": 6M + 3D + 2h + 45m + 15s,
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
