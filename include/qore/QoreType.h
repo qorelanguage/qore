@@ -167,6 +167,9 @@ DLLEXPORT int testObjectClassAccess(const QoreObject* obj, const QoreClass* clas
 DLLEXPORT const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo);
 DLLEXPORT bool typeInfoHasType(const QoreTypeInfo* typeInfo);
 DLLEXPORT const char* typeInfoGetName(const QoreTypeInfo* typeInfo);
+DLLEXPORT const QoreTypeInfo* typeInfoGetElementType(const QoreTypeInfo* typeInfo);
+DLLEXPORT const TypedHashDecl* typeInfoGetTypedHash(const QoreTypeInfo* typeInfo);
+
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 

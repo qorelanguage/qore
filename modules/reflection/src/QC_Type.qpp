@@ -600,7 +600,7 @@ Type Type::getBaseType() [flags=CONSTANT] {
         return self->refSelf();
     }
     // get type string
-    QoreString typestr(QoreTypeInfo::getName(t->typeInfo));
+    QoreString typestr(typeInfoGetName(t->typeInfo));
     if (typestr[0] != '*') {
         return self->refSelf();
     }
@@ -641,7 +641,7 @@ Type Type::getOrNothingType() [flags=CONSTANT] {
     @since %Qore 0.9.4
 */
 *Type Type::getElementType() [flags=CONSTANT] {
-    const QoreTypeInfo* element_type = QoreTypeInfo::getElementType(t->typeInfo);
+    const QoreTypeInfo* element_type = typeInfoGetElementType(t->typeInfo);
     if (!element_type) {
         return QoreValue();
     }
@@ -659,7 +659,7 @@ Type Type::getOrNothingType() [flags=CONSTANT] {
     @since %Qore 0.9.4
 */
 *TypedHash Type::getTypedHash() [flags=CONSTANT] {
-    const TypedHashDecl* hashdecl = QoreTypeInfo::getTypedHash(t->typeInfo);
+    const TypedHashDecl* hashdecl = typeInfoGetTypedHash(t->typeInfo);
     if (!hashdecl) {
         return QoreValue();
     }
@@ -677,7 +677,7 @@ bool b = type.isTypedHash();
     @since %Qore 0.9.4
 */
 bool Type::isTypedHash() [flags=CONSTANT] {
-    return QoreTypeInfo::getTypedHash(t->typeInfo) ? true : false;
+    return typeInfoGetTypedHash(t->typeInfo) ? true : false;
 }
 
 //! Returns @ref Qore::True "True" if the type is not a wildcard type; i.e. has type restrictions
@@ -691,7 +691,7 @@ bool b = type.hasType();
     @since %Qore 0.9.4
 */
 bool Type::hasType() [flags=CONSTANT] {
-    return QoreTypeInfo::hasType(t->typeInfo);
+    return typeInfoHasType(t->typeInfo);
 }
 
 //! Returns the type object for the value
