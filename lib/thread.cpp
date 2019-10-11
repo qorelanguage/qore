@@ -270,7 +270,6 @@ public:
     void* parseState = nullptr;
     VNode* vstack = nullptr;  // used during parsing (local variable stack)
     CVNode* cvarstack = nullptr;
-    QoreClass* parseClass = nullptr; // current class being parsed
     QoreException* catchException = nullptr;
 
     std::list<block_list_t::iterator> on_block_exit_list;
@@ -1458,14 +1457,6 @@ void end_signal_thread(ExceptionSink* xsink) {
    thread_data.get()->tpd->del(xsink);
 }
 
-qore_ns_private* parse_set_ns(qore_ns_private* ns) {
-   return thread_data.get()->set_ns(ns);
-}
-
-qore_ns_private* parse_get_ns() {
-   return thread_data.get()->current_ns;
-}
-
 void set_module_context(QoreModuleContext* qmc) {
    thread_data.get()->qmc = qmc;
 }
@@ -2050,18 +2041,43 @@ VNode* get_global_vnode() {
    return (thread_data.get())->global_vnode;
 }
 
-void setParseClass(QoreClass* c) {
-   ThreadData* td = thread_data.get();
-   td->parseClass = c;
-}
-
 QoreClass* parse_get_class() {
-   return (thread_data.get())->parseClass;
+    const qore_class_private* cls = (thread_data.get())->current_class;
+    return cls ? const_cast<qore_class_private*>(cls)->cls : nullptr;
 }
 
 qore_class_private* parse_get_class_priv() {
-   QoreClass* qc = parse_get_class();
-   return qc ? qore_class_private::get(*qc) : 0;
+    return const_cast<qore_class_private*>((thread_data.get())->current_class);
+}
+
+void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns,
+    const qore_class_private*& old_cls, qore_ns_private*& old_ns) {
+    ThreadData* td = thread_data.get();
+    old_cls = td->current_class;
+    old_ns = td->current_ns;
+    td->current_class = new_cls;
+     td->current_ns = new_ns;
+}
+
+void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns) {
+    ThreadData* td = thread_data.get();
+    td->current_class = new_cls;
+    td->current_ns = new_ns;
+}
+
+void thread_set_ns(qore_ns_private* new_ns, qore_ns_private*& old_ns) {
+    ThreadData* td = thread_data.get();
+    old_ns = td->current_ns;
+    td->current_ns = new_ns;
+}
+
+void thread_set_ns(qore_ns_private* new_ns) {
+    ThreadData* td = thread_data.get();
+    td->current_ns = new_ns;
+}
+
+qore_ns_private* parse_get_ns() {
+   return thread_data.get()->current_ns;
 }
 
 // to save the exception for "rethrow"
@@ -2085,7 +2101,7 @@ void qore_exit_process(int rc) {
     if (thread_list.getNumThreads() <= 1)
         exit(rc);
     // do not call exit here since it will try to execute cleanup, which will cause crashes
-    // in multithreaded programs; call quick_exit() instead (issue
+    // in multithreaded programs; call _Exit() instead
     _Exit(rc);
 }
 
