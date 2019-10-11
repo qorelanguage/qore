@@ -1187,6 +1187,7 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const QoreProgramLocation*
     return qore_class_private::addUserMethod(*oc, scname.getIdentifier(), v.release(), static_flag);
 }
 
+static void breakit() {}
 // returns 0 for success, non-zero for error
 QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation* loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
     assert(!found);
@@ -1248,11 +1249,11 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
     QoreValue rv;
 
     qore_ns_private* nscx = parse_get_ns();
-    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a");
+    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p ('%s' root: %d)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", nscx ? nscx->root : false);
     if (nscx) {
         rv = nscx->getConstantValue(bword, typeInfo, found);
         if (found) {
-            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv, get_type_name(rv));
+            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %s\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv.getTypeName());
             return rv.refSelf();
         }
     }

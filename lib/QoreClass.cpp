@@ -2616,7 +2616,6 @@ const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLo
 
 const QoreMethod* qore_class_private::parseFindSelfMethod(const char* nme) {
     initialize();
-
     return parseFindAnyMethod(nme, this);
 }
 
@@ -3905,6 +3904,8 @@ void qore_class_private::parseInit() {
         NamespaceParseContextHelper nspch(cls->priv->ns);
         QoreParseClassHelper qpch(cls);
 
+        //printd(5, "qore_class_private::parseInit() this: %p '%s' set cls ctx\n", this, name.c_str());
+
         if (!parse_init_partial_called)
             parseInitPartialIntern();
 
@@ -5034,18 +5035,23 @@ void QoreVarInfo::parseInit(const char* name) {
     }
 }
 
-QoreParseClassHelper::QoreParseClassHelper(QoreClass* cls) : old(parse_get_class()), oldns(cls ? parse_get_ns() : 0), rn(cls) {
-    setParseClass(cls);
-    if (cls) {
-        parse_set_ns(qore_class_private::get(*cls)->ns);
+QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* new_ns) {
+    assert(!(new_ns && new_cls));
+    qore_class_private* new_cls_priv = new_cls ? qore_class_private::get(*new_cls) : nullptr;
+    if (!new_ns) {
+        assert(new_cls_priv);
+        new_ns = new_cls_priv->ns;
     }
+    thread_set_class_and_ns(new_cls_priv, new_ns, cls, ns);
+    restore = (cls != new_cls_priv || ns != new_ns);
+    //printd(5, "QoreParseClassHelper() this: %p '%s' nc: %p nn: %p oc: %p on: %p\n", this, new_cls ? new_cls->getName() : "n/a", new_cls_priv, new_ns, cls, ns);
 }
 
 QoreParseClassHelper::~QoreParseClassHelper() {
-    if (rn) {
-        parse_set_ns(oldns);
+    if (restore) {
+        thread_set_class_and_ns(cls, ns);
+        //printd(5, "~QoreParseClassHelper() this: %p restoring c: %p n: %p\n", this, cls, ns);
     }
-    setParseClass(old);
 }
 
 void QoreMemberMap::parseInit(LocalVar& selfid) {

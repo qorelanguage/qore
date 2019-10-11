@@ -61,12 +61,19 @@ typedef std::vector<AbstractStatement*> stmt_vec_t;
 class QoreParseLocationHelper {
 public:
     DLLLOCAL QoreParseLocationHelper(const char* file, const char* src, int offset) {
+        thread_set_class_and_ns(nullptr, nullptr, cls, ns);
         beginParsing(file, nullptr, src, offset);
     }
 
     DLLLOCAL ~QoreParseLocationHelper() {
         endParsing();
+        thread_set_class_and_ns(cls, ns);
     }
+
+private:
+    // issue #3596: clear & restore class and ns ctx
+    const qore_class_private* cls;
+    qore_ns_private* ns;
 };
 
 class CharPtrList : public safe_dslist<std::string> {
