@@ -216,6 +216,7 @@ set(QORE_BIN_FILES
     bin/rest
     bin/schema-reverse
     bin/sfrest
+    bin/saprest
     bin/sqlutil
 	bin/qdbg
 	bin/qdbg-server

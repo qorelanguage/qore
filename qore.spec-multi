@@ -222,6 +222,7 @@ This package contains tool for working with:
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/sfrest
+%{_bindir}/saprest
 %{_bindir}/sqlutil
 %{_bindir}/schema-reverse
 
