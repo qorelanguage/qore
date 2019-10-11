@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,11 @@ const char* ClassNs::getName() const {
 }
 #endif
 
+static void breakit2() {}
+
 ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
-   : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
-     init(n_init), builtin(n_builtin), access(n_access) {
+    : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
+      init(n_init), builtin(n_builtin), access(n_access) {
     QoreProgram* pgm = getProgram();
     if (pgm)
         pwo = qore_program_private::getParseWarnOptions(pgm);
@@ -157,7 +159,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     if (!builtin) {
         // push parse class context
         qore_class_private* p = ptr.getClass();
-        QoreParseClassHelper qpch(p ? p->cls : nullptr);
+        QoreParseClassHelper qpch(p ? p->cls : nullptr, ptr.getNs());
 
         // ensure that there is no accessible local variable state
         VariableBlockHelper vbh;

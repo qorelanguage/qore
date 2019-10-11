@@ -284,16 +284,14 @@ void SelfFunctionCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                 is_copy = true;
                 if (args)
                     parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
-            }
-            else {
-                assert(!qc);
+            } else {
+                assert(!qc || qore_class_private::get(*qc) == class_ctx);
                 // raises a parse exception if it fails
                 method = const_cast<qore_class_private*>(class_ctx)->parseResolveSelfMethod(loc, ns.ostr, class_ctx);
                 if (!method)
                     return;
             }
-        }
-        else {
+        } else {
             assert(!qc);
             // possible only if old-style is in effect
             qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, ns, true);
@@ -568,6 +566,15 @@ void ScopedObjectCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
 
 QoreValue ScopedObjectCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_class_private::execConstructor(*oc, variant, args, xsink);
+}
+
+QoreValue MethodCallNode::exec(QoreObject* o, ExceptionSink* xsink) const {
+    // issue #3596: do not use the context class if it's not compatible with "o"
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*o->getClass(), class_ctx)) {
+        class_ctx = nullptr;
+    }
+    return AbstractMethodCallNode::exec(o, c_str, class_ctx, xsink);
 }
 
 QoreValue MethodCallNode::execPseudo(const QoreValue n, ExceptionSink* xsink) const {

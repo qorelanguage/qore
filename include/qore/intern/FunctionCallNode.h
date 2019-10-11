@@ -313,9 +313,7 @@ public:
     }
 
     using AbstractMethodCallNode::exec;
-    DLLLOCAL QoreValue exec(QoreObject* o, ExceptionSink* xsink) const {
-        return AbstractMethodCallNode::exec(o, c_str, runtime_get_class(), xsink);
-    }
+    DLLLOCAL QoreValue exec(QoreObject* o, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreValue execPseudo(const QoreValue n, ExceptionSink* xsink) const;
 
