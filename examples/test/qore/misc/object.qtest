@@ -71,6 +71,34 @@ sub et(Test t) {
     t.a = "123";
 }
 
+class Issue3596Base {
+    public {
+        Issue3596_1 obj();
+    }
+}
+
+class Issue3596_1 {
+    int method() {
+        return 1;
+    }
+}
+
+class Issue3596_2 {
+    private {
+
+    }
+
+    int test() {
+        return method(1);
+    }
+
+    private:internal int method(int i) {
+        return issue_3596.method();
+    }
+}
+
+our auto issue_3596;
+
 const Methods = ('p2', 'getData', 'hello', 'destructor', 'getType', 'p1', 'constructor');
 
 %exec-class ObjectTest
@@ -88,12 +116,20 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
     }
 
     constructor() : QUnit::Test("Object test", "1.0") {
+        issue_3596 = new Issue3596_1();
+
+        addTestCase("issue 3596", \issue3596Test());
         addTestCase("instanceof Test", \instanceofTest());
         addTestCase("Test", \testObj());
         addTestCase("create_object", \testCreateObject());
         addTestCase("inheritance", \inheritance());
         addTestCase("weak refs", \weakRefTest());
         set_return_value(main());
+    }
+
+    issue3596Test() {
+        Issue3596_2 i();
+        assertEq(1, i.test());
     }
 
     instanceofTest() {
