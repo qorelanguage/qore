@@ -1108,7 +1108,7 @@ protected:
 
         found = true;
         NamespaceParseContextHelper nspch(ns);
-        return ce->get(loc, typeInfo, this);
+        return ce->get(loc, typeInfo, ns);
     }
 
     DLLLOCAL QoreValue parseFindConstantValueIntern(const QoreProgramLocation* loc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found, bool error) {

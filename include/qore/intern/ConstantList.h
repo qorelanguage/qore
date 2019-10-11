@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     constants can only be defined when parsing
     constants values will be substituted during the 2nd parse phase
@@ -191,21 +191,21 @@ protected:
 
 class ConstantEntryInitHelper {
 protected:
-   ConstantEntry &ce;
+    ConstantEntry &ce;
 
 public:
-   DLLLOCAL ConstantEntryInitHelper(ConstantEntry& n_ce) : ce(n_ce) {
-      assert(!ce.in_init);
-      assert(!ce.init);
-      ce.in_init = true;
-      //printd(5, "ConstantEntryInitHelper::ConstantEntryInitHelper() '%s'\n", ce.getName());
-   }
+    DLLLOCAL ConstantEntryInitHelper(ConstantEntry& n_ce) : ce(n_ce) {
+        assert(!ce.in_init);
+        assert(!ce.init);
+        ce.in_init = true;
+        //printd(5, "ConstantEntryInitHelper::ConstantEntryInitHelper() '%s'\n", ce.getName());
+    }
 
-   DLLLOCAL ~ConstantEntryInitHelper() {
-      ce.in_init = false;
-      ce.init = true;
-      //printd(5, "ConstantEntryInitHelper::~ConstantEntryInitHelper() '%s'\n", ce.getName());
-   }
+    DLLLOCAL ~ConstantEntryInitHelper() {
+        ce.in_init = false;
+        ce.init = true;
+        //printd(5, "ConstantEntryInitHelper::~ConstantEntryInitHelper() '%s'\n", ce.getName());
+    }
 };
 
 // we use a vector map as the number of constants is generally relatively small

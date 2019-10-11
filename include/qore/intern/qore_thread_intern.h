@@ -999,7 +999,7 @@ protected:
     bool restore;
 
 public:
-    DLLLOCAL QoreParseClassHelper(QoreClass* new_cls);
+    DLLLOCAL QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* new_ns = nullptr);
 
     DLLLOCAL ~QoreParseClassHelper();
 };
