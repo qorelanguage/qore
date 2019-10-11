@@ -5035,9 +5035,13 @@ void QoreVarInfo::parseInit(const char* name) {
     }
 }
 
-QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls) {
+QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* new_ns) {
+    assert(!(new_ns && new_cls));
     qore_class_private* new_cls_priv = new_cls ? qore_class_private::get(*new_cls) : nullptr;
-    qore_ns_private* new_ns = new_cls_priv ? new_cls_priv->ns : nullptr;
+    if (!new_ns) {
+        assert(new_cls_priv);
+        new_ns = new_cls_priv->ns;
+    }
     thread_set_class_and_ns(new_cls_priv, new_ns, cls, ns);
     restore = (cls != new_cls_priv || ns != new_ns);
     //printd(5, "QoreParseClassHelper() this: %p '%s' nc: %p nn: %p oc: %p on: %p\n", this, new_cls ? new_cls->getName() : "n/a", new_cls_priv, new_ns, cls, ns);

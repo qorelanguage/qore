@@ -284,16 +284,14 @@ void SelfFunctionCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                 is_copy = true;
                 if (args)
                     parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
-            }
-            else {
-                assert(!qc);
+            } else {
+                assert(!qc || qore_class_private::get(*qc) == class_ctx);
                 // raises a parse exception if it fails
                 method = const_cast<qore_class_private*>(class_ctx)->parseResolveSelfMethod(loc, ns.ostr, class_ctx);
                 if (!method)
                     return;
             }
-        }
-        else {
+        } else {
             assert(!qc);
             // possible only if old-style is in effect
             qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, ns, true);
