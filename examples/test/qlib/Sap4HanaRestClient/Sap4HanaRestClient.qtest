@@ -1,0 +1,150 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/Sap4HanaRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class Main
+
+class FakeSap4HanaRestHandler inherits AbstractHttpRequestHandler {
+    private {
+        string m_data;
+        string m_mime;
+    }
+
+    constructor(string mime, string str) {
+        m_mime = mime;
+        m_data = str;
+    }
+
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        if (!hdr."apikey")
+            return makeResponse(400, "missing api key");
+        if (hdr.method == "GET") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
+        } else if (hdr.method == "PUT") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
+        }
+    }
+}
+
+sub log(string str) {
+    delete argv;
+}
+
+const VALUE_JSON = (
+    "input": "{\"foo\":{\"bar\":1}}",
+    "output": ("foo": ("bar": 1)),
+);
+
+public class Main inherits QUnit::Test {
+    private {
+        HttpServer m_http;
+        int port;
+    }
+
+    constructor() : Test("Sap4HanaRestClientTest", "1.0") {
+        addTestCase("GET tests", \methodGetTest());
+        addTestCase("PUT tests", \methodPutTest());
+        addTestCase("neg tests", \negTest());
+        addTestCase("connection tests", \connectionTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    setUp() {
+        m_http = new HttpServer(\log(), \log());
+        m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new FakeSap4HanaRestHandler(MimeTypeJson, VALUE_JSON.input));
+        port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+    }
+
+    tearDown() {
+        delete m_http;
+    }
+
+    checkModule() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+    }
+
+    methodGetTest() {
+        checkModule();
+        Sap4HanaRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
+        auto ret;
+
+        ret = rest.get("/api_json");
+        testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
+    }
+
+    methodPutTest() {
+        checkModule();
+        Sap4HanaRestClient rest(("url": "http://localhost:" + port, "apikey": "key"));
+        auto ret;
+
+        rest.setSerialization("json");
+        ret = rest.put("/api_json", VALUE_JSON.output);
+        testAssertionValue("/api_json", ret.body, VALUE_JSON.output);
+    }
+
+    negTest() {
+        checkModule();
+        assertThrows("SAP4HANARESTCLIENT-ERROR", sub () {new Sap4HanaRestClient(("url": "http://localhost:" + port));});
+        RestClient rest(("url": "http://localhost:" + port, "apikey": ""));
+        assertThrows("REST-RESPONSE-ERROR", \rest.get(), "/api_json");
+    }
+
+    connectionTest() {
+        checkModule();
+        string url = "http://localhost:8080";
+        Sap4HanaRestConnection swsc("test", "test", url, {}, ("apikey": "x"));
+        assertEq(True, swsc instanceof Sap4HanaRestConnection);
+
+        assertThrows("SAP4HANARESTCONNECTION-ERROR", sub () { Sap4HanaRestConnection swsc1("test", "test", url);});
+
+        Sap4HanaRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
+
+        hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
+        assertEq("Sap4HanaRestClient", info.module);
+        assertEq("Sap4HanaRestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        if (info.module)
+            p.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
+    }
+} # class Main

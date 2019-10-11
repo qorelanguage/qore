@@ -54,6 +54,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/SalesforceRestClient.qm \
 	qlib/SewioRestClient.qm \
 	qlib/SewioWebSocketClient.qm \
+	qlib/Sap4HanaRestClient.qm \
 	qlib/Schema.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
