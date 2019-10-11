@@ -274,9 +274,16 @@ DLLLOCAL void updateCVarStack(CVNode* ncvs);
 DLLLOCAL CVNode* getCVarStack();
 DLLLOCAL void updateVStack(VNode* nvs);
 DLLLOCAL VNode* getVStack();
-DLLLOCAL void setParseClass(QoreClass* c);
+
+//DLLLOCAL void setParseClass(QoreClass* c);
 DLLLOCAL QoreClass* parse_get_class();
 DLLLOCAL qore_class_private* parse_get_class_priv();
+DLLLOCAL void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns, const qore_class_private*& old_cls, qore_ns_private*& old_ns);
+DLLLOCAL void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns);
+DLLLOCAL void thread_set_ns(qore_ns_private* new_ns, qore_ns_private*& old_ns);
+DLLLOCAL void thread_set_ns(qore_ns_private* new_ns);
+DLLLOCAL qore_ns_private* parse_get_ns();
+
 DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
 DLLLOCAL QoreObject* substituteObject(QoreObject* o);
 DLLLOCAL QoreException* catchSwapException(QoreException* e);
@@ -297,8 +304,6 @@ DLLLOCAL void parse_try_module_set(unsigned c);
 DLLLOCAL void parse_push_name(const char* name);
 DLLLOCAL std::string parse_pop_name();
 
-DLLLOCAL qore_ns_private* parse_set_ns(qore_ns_private* ns);
-DLLLOCAL qore_ns_private* parse_get_ns();
 DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
@@ -407,18 +412,6 @@ public:
    DLLLOCAL ~QoreParseCountContextHelper() {
       parse_try_module_set(count);
    }
-};
-
-class QoreParseClassHelper {
-protected:
-   QoreClass* old;
-   qore_ns_private* oldns;
-   bool rn; // restore namespace
-
-public:
-   DLLLOCAL QoreParseClassHelper(QoreClass* cls);
-
-   DLLLOCAL ~QoreParseClassHelper();
 };
 
 class QoreProgramStackLocationHelper {
@@ -946,50 +939,69 @@ DLLLOCAL int check_stack(ExceptionSink* xsink);
 
 class ParseCodeInfoHelper {
 private:
-   const char* parse_code;
-   const QoreTypeInfo* returnTypeInfo;
+    const char* parse_code;
+    const QoreTypeInfo* returnTypeInfo;
 
 public:
-   DLLLOCAL ParseCodeInfoHelper(const char* n_parse_code, const QoreTypeInfo* n_returnTypeInfo) {
-      parseSetCodeInfo(n_parse_code, n_returnTypeInfo, parse_code, returnTypeInfo);
-   }
-   DLLLOCAL ~ParseCodeInfoHelper() {
-      parseRestoreCodeInfo(parse_code, returnTypeInfo);
-   }
+    DLLLOCAL ParseCodeInfoHelper(const char* n_parse_code, const QoreTypeInfo* n_returnTypeInfo) {
+        parseSetCodeInfo(n_parse_code, n_returnTypeInfo, parse_code, returnTypeInfo);
+    }
+
+    DLLLOCAL ~ParseCodeInfoHelper() {
+        parseRestoreCodeInfo(parse_code, returnTypeInfo);
+    }
 };
 
 class NamespaceParseContextHelper {
 private:
-   qore_ns_private* ns;
-   bool restore;
+    qore_ns_private* ns;
+    bool restore;
 
 public:
-   DLLLOCAL NamespaceParseContextHelper(qore_ns_private* n_ns) : ns(parse_set_ns(n_ns)), restore(ns != n_ns) {
-   }
-   DLLLOCAL ~NamespaceParseContextHelper() {
-      if (restore)
-         parse_set_ns(ns);
-   }
+    DLLLOCAL NamespaceParseContextHelper(qore_ns_private* n_ns) {
+        thread_set_ns(n_ns, ns);
+        restore = (ns != n_ns);
+    }
+
+    DLLLOCAL ~NamespaceParseContextHelper() {
+        if (restore) {
+            thread_set_ns(ns);
+        }
+    }
 };
 
 class OptionalNamespaceParseContextHelper {
 private:
-   qore_ns_private* ns;
-   bool restore;
+    qore_ns_private* ns;
+    bool restore;
 
 public:
-   DLLLOCAL OptionalNamespaceParseContextHelper(qore_ns_private* n_ns) {
-      if (n_ns) {
-         ns = parse_set_ns(n_ns);
-         restore = (ns != n_ns);
-      }
-      else
-         restore = false;
-   }
-   DLLLOCAL ~OptionalNamespaceParseContextHelper() {
-      if (restore)
-         parse_set_ns(ns);
-   }
+    DLLLOCAL OptionalNamespaceParseContextHelper(qore_ns_private* n_ns) {
+        if (n_ns) {
+            thread_set_ns(n_ns, ns);
+            restore = (ns != n_ns);
+        } else {
+            restore = false;
+        }
+    }
+
+    DLLLOCAL ~OptionalNamespaceParseContextHelper() {
+        if (restore) {
+            thread_set_ns(ns);
+        }
+    }
+};
+
+class QoreParseClassHelper {
+protected:
+    const qore_class_private* cls;
+    qore_ns_private* ns;
+    bool restore;
+
+public:
+    DLLLOCAL QoreParseClassHelper(QoreClass* new_cls);
+
+    DLLLOCAL ~QoreParseClassHelper();
 };
 
 class ThreadData;

@@ -570,6 +570,15 @@ QoreValue ScopedObjectCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     return qore_class_private::execConstructor(*oc, variant, args, xsink);
 }
 
+QoreValue MethodCallNode::exec(QoreObject* o, ExceptionSink* xsink) const {
+    // issue #3596: do not use the context class if it's not compatible with "o"
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*o->getClass(), class_ctx)) {
+        class_ctx = nullptr;
+    }
+    return AbstractMethodCallNode::exec(o, c_str, class_ctx, xsink);
+}
+
 QoreValue MethodCallNode::execPseudo(const QoreValue n, ExceptionSink* xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
    // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
