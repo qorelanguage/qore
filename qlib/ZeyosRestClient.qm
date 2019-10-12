@@ -203,6 +203,8 @@ ZeyosRestClient zeyos(
             # remove username and password from URL
             hash<UrlInfo> url_info = parse_url(options.url);
             url_info -= ("username", "password");
+            # strip leading slash from path if present
+            url_info.path =~ s/^\///;
             new_options.url = sprintf("%s://%s%s%s",
                 url_info.protocol ?? "https",
                 url_info.host,
@@ -273,9 +275,8 @@ ZeyosRestClient zeyos(
 
             @throws ZEYOSRESTCONNECTION-ERROR missing needed option for Zeyos authentication
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, ZeyosRestConnection::getConstructorOptions(options)) {
-
             foreach string key in (keys ZeyosOptions) {
                 auto value = opts{key};
                 if (!exists value || value == "") {
@@ -296,7 +297,7 @@ ZeyosRestClient zeyos(
 
             @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
         */
-        private ZeyosRestClient getImpl(bool connect = True, *hash rtopts) {
+        private ZeyosRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
             return new ZeyosRestClient(real_opts, !connect);
         }
 
