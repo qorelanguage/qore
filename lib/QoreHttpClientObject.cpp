@@ -467,6 +467,7 @@ struct qore_httpclient_priv {
 
     DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink);
 
+    // called locked
     DLLLOCAL const char* getMsgPath(const char* mpath, QoreString &pstr) {
         pstr.clear();
 
@@ -578,7 +579,17 @@ const char* QoreHttpClientObject::getDefaultPath() const {
 }
 
 const char* QoreHttpClientObject::getConnectionPath() const {
+    SafeLocker sl(priv->m);
     return http_priv->connection.path.empty() ? getDefaultPath() : http_priv->connection.path.c_str();
+}
+
+void QoreHttpClientObject::setConnectionPath(const char* path) {
+    SafeLocker sl(priv->m);
+    if (path && path[0]) {
+        http_priv->connection.path = path;
+    } else {
+        http_priv->connection.path.clear();
+    }
 }
 
 void QoreHttpClientObject::setDefaultPath(const char* def_path) {
