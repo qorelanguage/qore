@@ -65,6 +65,8 @@ class SapRestClient {
 
             "conn":           "c,connection=s",
             "apikey":         "k,apikey=s",
+            "client_id":      "i,client-id=s",
+            "client_secret":  "s,client_secret=s",
 
             "help":           "h,help",
         };
@@ -88,6 +90,23 @@ class SapRestClient {
 
         Sap4HanaRestClient rc;
 
+        *string meth = shift ARGV;
+        if (!exists meth)
+            usage();
+
+        *string url = shift ARGV;
+        auto body;
+        if (!Methods{meth.upr()}) {
+            body = url;
+            url = meth;
+            meth = "GET";
+        } else {
+            meth = meth.upr();
+            body = shift ARGV;
+        }
+
+        *string path;
+
         if (opt.conn) {
             try {
                 AbstractConnection conn = get_connection(opt.conn);
@@ -96,16 +115,43 @@ class SapRestClient {
                     exit(1);
                 }
                 rc = conn.get();
+                path = url;
+                body = shift ARGV;
             } catch (hash<ExceptionInfo> ex) {
                 stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
                 exit(1);
             }
         } else {
-            opt.apikey = opt.apikey ?? ENV.SAP_APIKEY;
-            if (!opt.apikey)
-                error("missing --apikey option or SAP_APIKEY environment variable");
+            if (!url) {
+                printf("ERROR: missing URL for SAP server\n");
+                usage();
+            }
+            opt.url = url;
 
-            rc = new Sap4HanaRestClient(opt - ("conn", "lit", "reformat", "fullex", "header", "show"), True);
+            if ((opt.client_id || ENV.SAP_CLIENT_ID) && (opt.client_secret || ENV.SAP_CLIENT_SECRET)) {
+                if (!opt.client_id) {
+                    opt.client_id = ENV.SAP_CLIENT_ID;
+                }
+                if (!opt.client_secret) {
+                    opt.client_secret = ENV.SAP_CLIENT_SECRET;
+                }
+            } else {
+                opt.apikey = opt.apikey ?? ENV.SAP_APIKEY;
+                if (!opt.apikey) {
+                    error("missing --apikey / SAP_APIKEY env var or --client-id and --client-secret / SAP_CLIENT_ID "
+                        "and SAP_CLIENT_SECRET env vars; cannot connect to SAP without authentication");
+                }
+            }
+            hash<auto> sap_opts = opt - ("conn", "lit", "reformat", "fullex", "header", "show");
+            rc = new Sap4HanaRestClient(sap_opts, True);
+        }
+
+        # set path
+        if (path) {
+            if (path =~ /^\//)
+                path = path.substr(1);
+            #printf("BASE URL: %y\n", rc.getURL());
+            rc.setURL(rc.getURL() + "/" + path);
         }
 
         if (opt.show) {
@@ -114,26 +160,6 @@ class SapRestClient {
             else
                 printf("%s\n", rc.getURL());
             thread_exit;
-        }
-
-        *string meth = shift ARGV;
-        if (!exists meth)
-            usage();
-
-        *string path = shift ARGV;
-        auto body;
-        if (!Methods{meth.upr()}) {
-            body = path;
-            path = meth;
-            meth = "GET";
-        } else {
-            meth = meth.upr();
-            body = shift ARGV;
-        }
-
-        if (!path) {
-            printf("ERROR: missing path for REST call\n");
-            usage();
         }
 
         foreach string h in (opt.header) {
@@ -166,14 +192,6 @@ class SapRestClient {
 
         if (opt.verbose)
             printf("SAP URL: %y\n", rc.getURL());
-
-        # set path
-        if (path) {
-            if (path =~ /^\//)
-                path = path.substr(1);
-            printf("URL: %y\n", rc.getURL());
-            rc.setURL(rc.getURL() + "/" + path);
-        }
 
         hash<auto> hdr;
         hash<auto> info;
@@ -306,6 +324,8 @@ class SapRestClient {
 ** Required Options (can be set with environment variables as well)
  -c,--connection=ARG           the SAP S/4HANA connection name to use
  -k,--apikey=ARG               the API key (or from $SAP_APIKEY)
+ -i,--client-id=ARG            the SAP OAuth2 client ID (or from $SAP_CLIENT_ID)
+ -s,--client-secret=ARG        the API OAuth2 client secret (or from $SAP_CLIENT_SECRET)
 
 ** Other Options
  -e,--send-encoding[=ARG]      set compression in outgoing request

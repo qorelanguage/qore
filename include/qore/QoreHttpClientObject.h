@@ -92,27 +92,32 @@ public:
 
     //! sets the default port
     /** useful for c++ derived classes
-        */
+    */
     DLLEXPORT void setDefaultPort(int prt);
 
     //! sets the default path
     /** useful for c++ derived classes
-        */
+    */
     DLLEXPORT void setDefaultPath(const char* pth);
 
     //! returns the default path or 0 if none is set
     /** @since Qore 0.8.8
-        */
+    */
     DLLEXPORT const char* getDefaultPath() const;
 
     //! returns the current connection path or 0 if none is set
     /** @since Qore 0.8.8
-        */
+    */
     DLLEXPORT const char* getConnectionPath() const;
+
+    //! sets or clears the connection path
+    /** @since Qore 0.9.3.2
+    */
+    DLLEXPORT void setConnectionPath(const char* path);
 
     //! adds a protocol
     /** useful for c++ derived classes
-        */
+    */
     DLLEXPORT void addProtocol(const char* prot, int port, bool ssl = false);
 
     //! sets the connection and response packet timeout value in milliseconds
