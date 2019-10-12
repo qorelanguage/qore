@@ -604,6 +604,16 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
             assertEq(True, info.ssl_accept_all_certs);
             assertEq(("SSL_VERIFY_NONE",), info.ssl_verify_flags);
         }
+
+        {
+            HTTPClient hc(("url": "http://localhost"));
+            string rpath = get_random_string();
+            hc.setConnectionPath(rpath);
+            assertEq(rpath, hc.getConnectionPath());
+
+            hc.setConnectionPath();
+            assertNothing(hc.getConnectionPath());
+        }
     }
 
     sslReadTest() {

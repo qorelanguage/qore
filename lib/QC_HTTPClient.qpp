@@ -1077,12 +1077,12 @@ httpclient.post("/path", body);
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::post(string path, *binary body, *hash<auto> headers, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, *ohrh, xsink), xsink);
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, *ohrh, xsink), xsink);
 #ifdef DEBUG
-   assert(!rv || rv->getType() == NT_STRING);
+    assert(!rv || rv->getType() == NT_STRING);
 #endif
-   return *xsink ? 0 : rv.release();
+    return *xsink ? 0 : rv.release();
 }
 
 //! Sets the default I/O timeout value in milliseconds
@@ -1151,7 +1151,11 @@ httpclient.setURL("https://user:password@hostname:8080/path");
     @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 HTTPClient::setURL(string url) {
-   client->setURL(url->getBuffer(), xsink);
+    TempEncodingHelper nurl(url, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    client->setURL(nurl->c_str(), xsink);
 }
 
 //! Returns the current URL
@@ -1192,7 +1196,11 @@ httpclient.setProxyURL("http://user:password@proxy_host:8080/path");
     @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
  */
 nothing HTTPClient::setProxyURL(string url) {
-   client->setProxyURL(url->getBuffer(), xsink);
+    TempEncodingHelper nurl(url, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    client->setProxyURL(nurl->c_str(), xsink);
 }
 
 //! Returns the current proxy URL as a string or @ref nothing if no proxy URL is set
@@ -1383,7 +1391,16 @@ httpclient.setUserPassword(user, pass);
     @endcode
  */
 nothing HTTPClient::setUserPassword(string user, string pass) {
-   client->setUserPassword(user->getBuffer(), pass->getBuffer());
+    TempEncodingHelper nuser(user, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper npass(pass, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    client->setUserPassword(nuser->c_str(), npass->c_str());
 }
 
 //! Clears the username and password for the connection
@@ -1426,7 +1443,16 @@ httpclient.setProxyUserPassword(user, pass);
     @param pass the password to use for proxy authentication in the next HTTP connection
  */
 nothing HTTPClient::setProxyUserPassword(string user, string pass) {
-   client->setProxyUserPassword(user->getBuffer(), pass->getBuffer());
+    TempEncodingHelper nuser(user, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper npass(pass, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    client->setProxyUserPassword(nuser->c_str(), npass->c_str());
 }
 
 //! Clears the username and password for the next proxy connection
@@ -1466,7 +1492,11 @@ httpclient.setDefaultPath();
     @endcode
  */
 nothing HTTPClient::setDefaultPath(*string path) {
-   client->setDefaultPath(path ? path->getBuffer() : 0);
+    TempEncodingHelper npath;
+    if (path && !npath.set(path, QCS_DEFAULT, xsink)) {
+        return QoreValue();
+    }
+    client->setDefaultPath(path ? npath->c_str() : nullptr);
 }
 
 //! Returns the default path used by the object if no path is set in the URL
@@ -1479,7 +1509,7 @@ nothing HTTPClient::setDefaultPath(*string path) {
  */
 string HTTPClient::getDefaultPath() [flags=CONSTANT] {
    const char* dp = client->getDefaultPath();
-   return dp ? new QoreStringNode(dp) : 0;
+   return dp ? new QoreStringNode(dp) : nullptr;
 }
 
 //! Returns the current connection path set in the URL
@@ -1489,10 +1519,30 @@ string HTTPClient::getDefaultPath() [flags=CONSTANT] {
     @code{.py}
 *string path = httpclient.getConnectionPath();
     @endcode
- */
+
+    @see setConnectionPath()
+*/
 *string HTTPClient::getConnectionPath() [flags=CONSTANT] {
    const char* p = client->getConnectionPath();
-   return p ? new QoreStringNode(p) : 0;
+   return p ? new QoreStringNode(p) : nullptr;
+}
+
+//! Overrides any connection path set in the URL
+/** @par Example:
+    @code{.py}
+httpclient.setConnectionPath(new_path);
+    @endcode
+
+    @see getConnectionPath()
+
+    @since %Qore 0.9.3.2
+*/
+HTTPClient::setConnectionPath(*string uri_path) {
+    TempEncodingHelper path;
+    if (uri_path && !path.set(uri_path, QCS_DEFAULT, xsink)) {
+        return QoreValue();
+    }
+    client->setConnectionPath(uri_path ? path->c_str() : nullptr);
 }
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket

@@ -103,15 +103,18 @@ public namespace Sap4HanaRestClient {
             #! default send encoding
             const DefaultSendEncoding = "gzip";
 
-            #! required options
-            const RequiredOptions = (
-                # the <a href="https://sap.com">SAP S/4Hana</a> API key
-                "apikey",
-            );
+            #! OAuth2 URI path
+            const OAuth2UriPath = "oauth2/apitoken/v1?grant_type=client_credentials";
         }
 
         private:internal {
+            # for access based on a simple API key
             string apikey;
+
+            # for OAuth2-based access
+            string client_id;
+            string client_secret;
+            string token;
         }
 
         #! creates the object with the given options (which include the mandatory \c apikey option for <a href="https://sap.com">SAP S/4Hana</a> server authentication)
@@ -149,33 +152,94 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
             @throw SAP4HANARESTCLIENT-ERROR missing or invalid required option for <a href="https://sap.com">SAP S/4Hana</a> REST authentication or communication
         */
         constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(Sap4HanaRestClient::getOptions(opts), do_not_connect) {
-            # check required options
-            foreach string key in (RequiredOptions) {
-                auto v = opts{key};
-                if (!exists v || v == "")
-                    throw "SAP4HANARESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
-                if (v.typeCode() != NT_STRING)
-                    throw "SAP4HANARESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            # check for either the apikey or client id/secret options
+            if (opts.client_id && opts.client_secret) {
+                client_id = getString(opts, "client_id");
+                client_secret = getString(opts, "client_secret");
+            } else if (opts.apikey) {
+                apikey = getString(opts, "apikey");
+            } else {
+                error("missing either the \"apikey\" or both \"client_id\" and \"client_secret\" options");
+            }
 
-                self{key} = v;
+            # ensure that if json serialization is set, that we do not claim to understand XML responses (which SAP
+            # will prefer otherwise)
+            if (ds == "json") {
+                addDefaultHeaders({"Accept": MimeTypeJson});
+            } else {
+                delete headers.Accept;
+            }
+
+            if (client_id && !do_not_connect) {
+                loginIntern();
             }
         }
 
-        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        static hash getOptions(hash<auto> opts) {
+        hash<auto> doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash<auto> hdr) {
+            if (client_id && !token) {
+                loginIntern(\info);
+            }
+            return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+        }
+
+        #! performs authentication and authorization with SAP using the OAuth2 authorization URL
+        private loginIntern(*reference<hash<auto>> info) {
+            setUserPassword(client_id, client_secret);
+            on_exit setUserPassword();
+
+            # clear connection path for login call
+            *string path = getConnectionPath();
+            on_exit setConnectionPath(path);
+            setConnectionPath();
+
+            # make the authorization call
+            hash<auto> h = RestClient::doRequest("POST", OAuth2UriPath, NOTHING, \info).body;
+
+            # set the token
+            token = h.access_token;
+            addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
+            #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
+        }
+
+        #! gets a string option
+        static string getString(hash<auto> opts, string key) {
+            auto v = opts{key};
+            if (!exists v || v == "") {
+                Sap4HanaRestClient::error("missing required option %y in option argument", key);
+            }
+            if (v.typeCode() != NT_STRING) {
+                Sap4HanaRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            }
+            return v;
+        }
+
+        #! throws an exception due to an error
+        static error(string fmt) {
+            throw "SAP4HANARESTCLIENT-ERROR", vsprintf(fmt, argv);
+        }
+
+        #! returns options for the @ref Sap4HanaRestClient::Sap4HanaRestClient::constructor() "Sap4HanaRestClient::constructor()"
+        static hash<auto> getOptions(hash<auto> opts) {
+            hash<auto> hdr;
+            if (!opts.client_id || !opts.client_secret) {
+                hdr = {
+                    "ApiKey": opts.apikey,
+                };
+            }
+            hdr += opts.headers;
             return opts + {
                 "data": "json",
-                "headers": {
-                    "ApiKey": opts.apikey,
-                    "Accept": MimeTypeJson,
-                } + opts.headers,
+                "headers": hdr,
             };
         }
     }
 
     #! class for <a href="https://sap.com">SAP S/4Hana</a> REST connections; returns @ref Sap4HanaRestClient::Sap4HanaRestClient objects
     /** supports the following options:
-        - \c "apikey": (required) the <a href="https://sap.com">SAP S/4Hana</a> api key
+        - \c "apikey": (required if \c "client_id" and \c "client_secret" are not supplied) the
+          <a href="https://sap.com">SAP S/4Hana</a> api key
+        - \c "client_id": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a> OAuth2 client ID
+        - \c "client_secret": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a> OAuth2 client secret
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
@@ -198,6 +262,8 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
             #! Sap4HanaRestConnection object connection options
             const Options = RestConnection::Options + {
                 "apikey": True,
+                "client_id": True,
+                "client_secret": True,
             };
 
             const OptionList = Options.keys();
@@ -238,8 +304,9 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
         }
 
         private:internal constructorInit() {
-            if (!opts.apikey.val())
-                throw "SAP4HANARESTCONNECTION-ERROR", sprintf("missing 'apikey' option for connection %y with url %y (%s)", name, url, desc);
+            if (!opts.apikey.val() && (!opts.client_id.val() || !opts.client_secret.val()))
+                throw "SAP4HANARESTCONNECTION-ERROR", sprintf("missing 'apikey' or 'client_id' and 'client_secret' "
+                    "options for connection %y with url %y (%s)", name, url, desc);
             real_opts = {
                 "url": real_url,
             } + urlh.("username", "password") + self.opts;
