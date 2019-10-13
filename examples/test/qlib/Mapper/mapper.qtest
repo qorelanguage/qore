@@ -47,7 +47,7 @@ public class MapperTest inherits QUnit::Test {
 
         const DataMap2 = (
             "int_field": ("type": "int", "name": "count"),
-            );
+        );
 
         const MapInput = ((
             "^attributes^": ("Id": 1),
@@ -57,10 +57,11 @@ public class MapperTest inherits QUnit::Test {
             "UnitPrice": "1.543,50",
             "StoreInfo": ("StoreName": "Store1"),
             "EmptyString" : "",
-            "Products": ((
-                "ProductName": "Widget 1",
-                "Quantity": 1,
-                 ),
+            "Products": (
+                {
+                    "ProductName": "Widget 1",
+                    "Quantity": 1,
+                },
             ),
             "length_test": NOTHING,
             ), (
@@ -176,33 +177,33 @@ public class MapperTest inherits QUnit::Test {
             "output.1": "input.2",
             "output.2": "input.1",
             "output.3": ("struct": ("a", "b")),
-            );
+        );
 
         const DotInput = (
             ("input.1": "abc", "input.2": 123, "a": ("b": 1)),
             ("input.1": "xyz", "input.2": 456, "a": ("b": 2)),
-            );
+        );
 
         const DotOutput = (
             ("output.1": 123, "output.2": "abc", "output.3": 1),
             ("output.1": 456, "output.2": "xyz", "output.3": 2),
-            );
+        );
 
         const OStructMap = (
             "a.id": "input.2",
             "a.other": "input.1",
             "a.something": ("struct": ("a", "b")),
-            );
+        );
 
         const OStructInput = (
             ("input.1": "abc", "input.2": 123, "a": ("b": 1)),
             ("input.1": "xyz", "input.2": 456, "a": ("b": 2)),
-            );
+        );
 
         const OStructOutput = (
             ("a": ("id": 123, "other": "abc", "something": 1)),
             ("a": ("id": 456, "other": "xyz", "something": 2)),
-            );
+        );
 
         const TypeMap0 = {
             "output_0": {
@@ -400,6 +401,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("list test", \listTest());
         addTestCase("runtime keys", \runtimeKeys());
         addTestCase("hash output", \hashOutputTest());
         addTestCase("test types", \testTypes());
@@ -422,6 +424,12 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    listTest() {
+        Mapper m(TypeMap0, TypeOpts0);
+        assertEq((1, 2), m.mapData({"input_1": (1, 2)}).output_1);
+
     }
 
     runtimeKeys() {
