@@ -225,6 +225,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_4_1 Mapper v1.4.1
+    - fixed a bug where list values could not be passed as a value in non-bulk mode
+      (<a href="https://github.com/qorelanguage/qore/issues/3611">issue 3611</a>)
     - added support for types "any" and "hash"
       (<a href="https://github.com/qorelanguage/qore/issues/3453">issue 3453</a>)
     - added support for dot notation in output fields for the "hash" output type
@@ -1177,11 +1179,12 @@ Mapper mapv(DataMap);
             bool v_is_list = v.typeCode() == NT_LIST;
             if (v_is_list) {
                 if (do_list) {
-                    if (list_size != v.size())
-                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the input batch length expected is %d", key, v, v.size(), list_size);
-                }
-                else {
-                    error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y in non-list mode", key, v);
+                    if (list_size != v.size()) {
+                        error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the "
+                            "input batch length expected is %d", key, v, v.size(), list_size);
+                    }
+                } else {
+                    v_is_list = False;
                 }
             }
 
