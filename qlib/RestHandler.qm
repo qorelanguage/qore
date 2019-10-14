@@ -346,6 +346,10 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_3_1 RestHandler v1.3.1
+    - renamed \c RestHandler::getPossibleSubClasses() to
+      @ref RestHandler::RestHandler::doGetPossibleSubClasses() "RestHandler::doGetPossibleSubClasses()" in order to
+      avoid a collision with a REST method name
+      (<a href="https://github.com/qorelanguage/qore/issues/3614">issue 3614</a>)
     - fixed RestHandler losing internal exception info when response was considered invalid by schema validator
       (<a href="https://github.com/qorelanguage/qore/issues/3435">issue 3435</a>)
     - fixed RestHandler incorrectly handling Accept header of incoming requests
@@ -854,7 +858,7 @@ public namespace RestHandler {
         */
         private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string cls_name, hash<auto> cx) {
             # return possible subclasses, if any are known
-            *hash<string, bool> name_set = getPossibleSubClasses(cx);
+            *hash<string, bool> name_set = doGetPossibleSubClasses(cx);
             string msg;
             if (name_set) {
                 msg = sprintf("; known subclasses: %s", (foldl $1 + ", " + $2, (map sprintf("%y", $1), keys name_set)));
@@ -874,7 +878,7 @@ public namespace RestHandler {
 
             @since RestHandler 1.3
         */
-        private *hash<string, bool> getPossibleSubClasses(hash<auto> cx) {
+        private *hash<string, bool> doGetPossibleSubClasses(hash<auto> cx) {
             # set of subclass names
             *hash<string, bool> name_set = map {$1 : True}, keys class_hash;
 
@@ -1105,7 +1109,7 @@ public namespace RestHandler {
                     }
 
                     if (!c) {
-                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys getPossibleSubClasses(cx))), 404;
+                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys doGetPossibleSubClasses(cx))), 404;
                     }
                 }
                 rcls = c;
