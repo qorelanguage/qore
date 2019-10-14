@@ -7,6 +7,12 @@
     @par Release Summary
     TDB
 
+    @subsection qore_094_compatibility Fixes That Can Affect Backwards-Compatibility
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module: renamed
+      \c RestHandler::getPossibleSubClasses() to \c RestHandler::doGetPossibleSubClasses() in order to avoid a
+      collision with a REST method name
+      (<a href="https://github.com/qorelanguage/qore/issues/3614">issue 3614</a>)
+
     @subsection qore_094_new_features New Features in Qore
     - added the <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
