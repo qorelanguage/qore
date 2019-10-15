@@ -15,7 +15,7 @@ class FtpServer {
         hash broken;
         bool get_empty;
 
-        string pwd = "/tmp";
+        *string pwd;
 
         const PollInterval = 500ms;
     }
@@ -226,10 +226,17 @@ class FtpServer {
                     break;
 
                 #printf("get: empty %y\n", get_empty);
-                if (!get_empty) {
+                if (!get_empty && !pwd) {
                     # write a bunch of data and then exit
                     for (int i = 0; i < 200; ++i)
                         data.send(sprintf("drwxr-xr-x    2 0        0            4096 Jul 08  2016 pub_%s\n", get_random_string(5)));
+                } else if (pwd) {
+                    Dir dir();
+                    dir.chdir(pwd);
+                    auto files = dir.list(".*", 0, True);
+                    string result;
+                    map result += $1.name + "\r\n", files;
+                    data.send(result);
                 }
 
                 data.close();
@@ -248,18 +255,28 @@ class FtpServer {
                 ftpSend(ns, 250, "Okay.");
                 continue;
             }
+
             if (cmd =~ /^MDTM/i) {
+                string file_name = (cmd =~ x/^MDTM (.+)$/i)[0];
+                # printf("FILE_NAME: %y\n", file_name);
+
                 Dir dir();
                 dir.chdir(pwd);
-                auto files = dir.list(".*", 0, True);
-                # printf("PWD: %y, FILES: %y\n", pwd, files);
-                string result;
-                map result += $1.perm + " " + $1.nlink + " 0 0 " + $1.size + " " +
-                              format_date("Mon DD YYYY", dir.list(".*gra.*pipe", 0, True)[0].mtime) + " " + $1.name +
-                              "\n",
-                    files;
+                auto file = dir.list(file_name, 0, True)[0];
 
-                ftpSend(ns, 250, result);
+                ftpSend(ns, 250, file.mtime.toString());
+                continue;
+            }
+
+            if (cmd =~ /^SIZE/i) {
+                string file_name = (cmd =~ x/^SIZE (.+)$/i)[0];
+                # printf("FILE_NAME: %y\n", file_name);
+
+                Dir dir();
+                dir.chdir(pwd);
+                auto file = dir.list(file_name, 0, True)[0];
+
+                ftpSend(ns, 250, file.size.toString());
                 continue;
             }
 
@@ -365,5 +382,9 @@ class FtpServer {
 
     setGetEmpty(bool v = True) {
         get_empty = v;
+    }
+
+    setPwd(string pwd) {
+        self.pwd = pwd;
     }
 }

@@ -18,7 +18,7 @@
 
 class MyFtpPoller inherits FtpPoller {
     public {
-        hash files;
+        list files;
     }
     private {
         hash opts;
@@ -42,9 +42,10 @@ public class FtpPollerTest inherits QUnit::Test {
 
     private {
         const Files = (
-            "file_1",
-            "file_2",
-            "file_3",
+            "file_1_",
+            "file_2_",
+            "file_3_",
+            "file_4_",
         );
     }
 
@@ -86,16 +87,24 @@ public class FtpPollerTest inherits QUnit::Test {
 
         TmpDir tmp_dir();
         string dir = tmp_dir.path;
+        # printf("DIR: %y\n", dir);
+        serv.setPwd(dir);
 
-        map new TmpFile("ftp_test_" + $1, NOTHING, dir), Files;
+        list files;
+        map files += new TmpFile("ftp_test_" + $1, NOTHING, dir), Files;
+
+        hash file_paths;
+        map file_paths{$1.path} = True, files;
+
+        # printf("files: %y\n", file_paths);
 
         MyFtpPoller poller(ftp_client, {"path": dir});
         assertTrue(poller.runOnce());
 
-        int i = 0;
         foreach auto file in (poller.files) {
-            assertEq(file.name, Files[i]);
-            i++;
+            printf("check file: %y\n", file.name);
+            assertTrue(file.name != NOTHING);
+            assertTrue(file_paths.hasKey(file.filepath));
         }
     }
 }

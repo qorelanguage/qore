@@ -696,8 +696,7 @@ public namespace FtpPoller {
                     ftp.cwd(subdir);
                 }
                 string pwd = ftp.pwd();
-                # logInfo("polling %y", pwd);
-                printf("polling %y", pwd);
+                logInfo("polling %y", pwd);
 
                 list files = getFiles(subdir);
 
