@@ -41,6 +41,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/FixedLengthUtil.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
+	qlib/FtpPoller.qm \
 	qlib/Logger.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
