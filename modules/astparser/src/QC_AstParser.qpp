@@ -31,6 +31,7 @@
 #include "AstParserHolder.h"
 #include "AstTreeHolder.h"
 #include "ast/ASTParseError.h"
+#include "ast/ASTTree.h"
 
 #include "QC_AstTree.h"
 
