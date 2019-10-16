@@ -528,7 +528,8 @@ public namespace FtpPoller {
         }
 
         #! returns a list of regular file hashes matching any file name mask set for the object
-        /** @param the directory to check
+        /**
+        @param subdir the directory to check
         @param sort the sort option for the list returned
         @param order the ordering of sorted data returned
 
