@@ -35,6 +35,74 @@ module FtpPoller {
     license = "MIT";
 }
 
+/*  Version History
+    * 2019-10-16 v1.0: Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>
+*/
+
+/** @mainpage FtpPoller Module
+
+    @section ftppollerintro Introduction to the FtpPoller Module
+
+    The FtpPoller module implements an abstract class that will poll a remote directory with the FTP protocol and return
+    matching files.
+
+    To use this class, subclass the @ref FtpPoller::FtpPoller "FtpPoller" class and implement the @ref FtpPoller::FtpPoller::singleFileEvent() and
+    @ref FtpPoller::FtpPoller::postSingleFileEvent() methods.
+
+    @section ftppollerexamples FtpPoller Module Examples
+
+    The following simple example will poll for files and then print out information for the files polled (as well as all info, detail, and debug messages) and exit immediately:
+    @code
+%requires FtpPoller
+
+class MyFtpPoller inherits FtpPoller {
+    constructor(FtpClient ftp_client, hash<auto> opts) : FtpPoller(ftp_client, opts) {
+    }
+
+    singleFileEvent(hash file_info) {
+        printf("GOT FILE: %y\n", file_info);
+        # in this case, the polling stop operation will take effect after all the singleFileEvent() calls are made for the polling operation
+        stopNoWait();
+    }
+
+    postSingleFileEvent(hash file_info) {
+    }
+}
+
+code info = sub (string msg) { printf("INFO: %s\n", msg); };
+code detail = sub (string msg) { printf("DETAIL: %s\n", msg); };
+code debug = sub (string msg) { printf("DEBUG: %s\n", msg); };
+
+hash opts = {
+    "path": "/tmp"
+    "log_info": info,
+    "log_detail": detail,
+    "log_debug": debug,
+};
+
+FtpClient ftp_client("ftp://user@pass:localhost");
+FtpPoller poller(ftp_client, opts);
+poller.waitStop();
+    @endcode
+
+    Note that @ref FtpPoller::FtpPoller::stopNoWait() "FtpPoller::stopNoWait()" was called in the event thread because calling
+    @ref FtpPoller::FtpPoller::stop() "FtpPoller::stop()" in the event thread would cause an exception to be thrown.
+
+    A useful poller class would implement the @ref FtpPoller::FtpPoller::singleFileEvent() "FtpPoller::singleFileEvent()" method which process already-transferred
+    files and the @ref FtpPoller::FtpPoller::postSingleFileEvent() "FtpPoller::postSingleFileEvent()" by deleting / moving / renaming the files so that they would not be acquired on the next poll.
+
+    @section ftpollersandbox FtpPoller Module in Sandboxed Programs
+
+    The @ref FtpPoller::FtpPoller "FtpPoller" class includes support for running in sandboxed Program objects with the following parse options set:
+    - \c PO_NO_THREAD_CONTROL: in this case the \c "start_thread" option is required in @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
+    - \c PO_NO_PROCESS_CONTROL: in this case the \c "sleep" option is required in @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
+
+    @section ftppollerrelnotes FtpPoller Module Release Notes
+
+    @section ftppollerv1_0 Version 1.0
+    - initial release
+*/
+
 #! main FtpPoller namespace
 public namespace FtpPoller {
 #! FtpPoller client class implementation
