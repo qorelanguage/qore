@@ -133,6 +133,7 @@ qoretests =  examples/test/TestTemplateInjected.qtest \
   examples/test/qlib/Util/tmp_location.qtest \
   examples/test/qlib/Util/ordinal.qtest \
   examples/test/qlib/FilePoller/FilePoller.qtest \
+  examples/test/qlib/FtpPoller/FtpPoller.qtest \
   examples/test/qlib/Qorize/qorize.qtest \
   examples/test/qlib/Qorize/realWorldCase.qtest \
   examples/test/qlib/MailMessage/MailMessage.qtest \
