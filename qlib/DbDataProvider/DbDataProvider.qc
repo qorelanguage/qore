@@ -130,15 +130,19 @@ public class DbDataProvider inherits AbstractDataProvider {
     /** @return the given child provider or @ref nothing if the given child is unknown
 
         @throw INVALID-CHILD-PROVIDER unknown child provider
+        @throw CHILD-PROVIDER-ERROR error acquiring child provider
 
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        AbstractTable table;
+        *AbstractTable table;
         try {
             table = db.getTable(name);
+            if (!table) {
+                return;
+            }
         } catch (hash<ExceptionInfo> ex) {
-            throw "INVALID-CHILD-PROVIDER", sprintf("table %y does not exist in %y: %s", name, getName(), ex.desc), ex.arg;
+            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(), ex.err, ex.desc), ex.arg;
         }
         return new DbTableDataProvider(table);
     }

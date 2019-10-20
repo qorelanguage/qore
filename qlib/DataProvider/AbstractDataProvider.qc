@@ -461,7 +461,7 @@ public class AbstractDataProvider {
         foreach hash<auto> i in (option_desc.pairIterator()) {
             bool present = options.hasKey(i.key);
             if (i.value.required && !present) {
-                error(err, "missing required search option %y", i.key);
+                error(err, "missing required option %y", i.key);
             }
             if (!present) {
                 continue;
