@@ -1,0 +1,110 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%include  ../../qore/classes/FtpServer.qc
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FtpPoller.qm
+
+
+%exec-class FtpPollerTest
+
+class MyFtpPoller inherits FtpPoller {
+    public {
+        list files;
+    }
+    private {
+        hash opts;
+    }
+
+    constructor(FtpClient ftp, hash opts) : FtpPoller(ftp, opts) {
+        self.opts = opts;
+    }
+
+    singleFileEvent(hash fih) {
+        files += fih;
+    }
+
+    postSingleFileEvent(hash fih) {
+    }
+}
+
+public class FtpPollerTest inherits QUnit::Test {
+    public {
+    }
+
+    private {
+        const Files = (
+            "file_1_",
+            "file_2_",
+            "file_3_",
+            "file_4_",
+        );
+    }
+
+    constructor() : Test("FtpPollerTest", "1.0") {
+        addTestCase("main test", \main_test());
+
+        # Return for compatibility with test harness that checks return value
+        set_return_value(main());
+    }
+
+    int getPort() {
+        int port;
+        if (m_options.port) {
+            port = m_options.port;
+        } else if (ENV.FTPCLIENT_TEST_PORT) {
+            port = ENV.FTPCLIENT_TEST_PORT.toInt();
+        }
+        else {
+            port = 0;
+        }
+
+        return port;
+    }
+
+    private main_test() {
+        int port = getPort();
+
+        # PORT only supports IPv4, so we can't use "localhost", which may resolve
+        # to an IPv6 address
+        FtpServer serv(port, m_options.verbose, "127.0.0.1");
+        on_exit serv.shutdown();
+
+        port = serv.getPort();
+
+        FtpClient ftp_client("ftp://user:pass@127.0.0.1:" + port);
+        Queue queue();
+        ftp_client.setWarningQueue(20000, 20000, queue, "test");
+        assertNothing(ftp_client.connect());
+
+        TmpDir tmp_dir();
+        string dir = tmp_dir.path;
+        # printf("DIR: %y\n", dir);
+        serv.setPwd(dir);
+
+        list files;
+        map files += new TmpFile("ftp_test_" + $1, NOTHING, dir), Files;
+
+        hash file_paths;
+        map file_paths{$1.path} = True, files;
+
+        # printf("files: %y\n", file_paths);
+
+        MyFtpPoller poller(ftp_client, {"path": dir});
+        assertTrue(poller.runOnce());
+
+        foreach auto file in (poller.files) {
+            printf("check file: %y\n", file.name);
+            assertTrue(file.name != NOTHING);
+            assertTrue(file_paths.hasKey(file.filepath));
+        }
+    }
+}
