@@ -239,10 +239,10 @@ public class SqlTestBase inherits QUnit::Test {
                     list<hash<auto>> recs;
                     {
                         on_error {
-                            m.outputRollback();
+                            m.rollback();
                         }
                         on_success {
-                            m.outputCommit();
+                            m.commit();
                         }
                         recs = m.mapAll(row_id_2);
                     }
@@ -269,12 +269,12 @@ public class SqlTestBase inherits QUnit::Test {
                     list<hash<auto>> recs;
                     {
                         on_error {
-                            m.outputDiscard();
-                            m.outputRollback();
+                            m.discard();
+                            m.rollback();
                         }
                         on_success {
-                            m.outputFlush();
-                            m.outputCommit();
+                            m.flush();
+                            m.commit();
                         }
                         recs = m.mapAll(row_id_2);
                     }

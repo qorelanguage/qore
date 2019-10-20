@@ -18,6 +18,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/Util.qm \
 	qlib/HttpServerUtil.qm \
 	qlib/HttpServer.qm \
+	qlib/MapperUtil.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
@@ -995,8 +996,11 @@ doxygen/qlib/Doxyfile.DbDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@
 
+doxygen/qlib/Doxyfile.MapperUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/MapperUtil.qm:doxygen/qlib/MapperUtil.qm $< $@
+
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm -tDataProvider.tag=../../DataProvider/html $< $@
+	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm -tMapperUtil.tag=../../MapperUtil/html -tDataProvider.tag=../../DataProvider/html $< $@
 
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ConnectionProvider:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@

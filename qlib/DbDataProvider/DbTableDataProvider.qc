@@ -113,6 +113,9 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     private {
         #! the table
         AbstractTable table;
+
+        #! the database object, if required
+        AbstractDatabase db;
     }
 
     #! Creates the object
@@ -186,6 +189,39 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     AbstractDataProviderBulkOperation getBulkUpserter() {
         return new DbTableBulkUpserter(self, table);
+    }
+
+    #! Returns custom data mapper runtime keys
+    /** @return custom data mapper runtime keys
+    */
+    *hash<string, hash<MapperRuntimeKeyInfo>> getMapperRuntimeKeys() {
+        if (!db) {
+            db = AbstractDatabase::getDatabase(table.getDatasource());
+        }
+        return {
+            "sequence": <MapperRuntimeKeyInfo>{
+                "value_type": "string",
+                "conflicting_keys": {
+                    "template": True,
+                    "name": True,
+                    "struct": True,
+                    "constant": True,
+                    "sequence_currval": True,
+                },
+                "handler": \doSequenceKey(),
+            },
+            "sequence_currval": <MapperRuntimeKeyInfo>{
+                "value_type": "string",
+                "conflicting_keys": {
+                    "template": True,
+                    "name": True,
+                    "struct": True,
+                    "constant": True,
+                    "sequence": True,
+                },
+                "handler": \doSequenceCurrvalKey(),
+            },
+        };
     }
 
     #! Writes the given record to the data provider
@@ -302,6 +338,26 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Processes the \c sequence runtime key in mappers
+    int doSequenceKey(string sequence_name) {
+        try {
+            return db.getNextSequenceValue(sequence_name);
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow exception adding the sequence name to the description
+            throw ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+        }
+    }
+
+    #! Processes the \c sequence_currval runtime key in mappers
+    int doSequenceCurrvalKey(string sequence_name) {
+        try {
+            return db.getCurrentSequenceValue(sequence_name);
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow exception adding the sequence name to the description
+            throw ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+        }
     }
 }
 }

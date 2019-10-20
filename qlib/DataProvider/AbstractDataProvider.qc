@@ -367,6 +367,15 @@ public class AbstractDataProvider {
         return new DefaultBulkUpserter(self);
     }
 
+    #! Returns custom data mapper runtime keys
+    /** @return custom data mapper runtime keys
+
+        This base method returns @ref nothing; reimplment in child classes to return a value
+    */
+    *hash<string, hash<MapperRuntimeKeyInfo>> getMapperRuntimeKeys() {
+        # this method intentionally left empty
+    }
+
     #! Ensures that the data provider supports read operations
     /**
         @throw INVALID-OPERATION the data provider does not support read operations

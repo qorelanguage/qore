@@ -35,6 +35,7 @@
 
 %requires(reexport) reflection
 %requires(reexport) Util
+%requires(reexport) MapperUtil
 
 module DataProvider {
     version = "1.0";

@@ -799,10 +799,10 @@ qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
 qore_user_module("qlib/Util.qm" "")
 qore_user_module("qlib/WebSocketUtil.qm" "")
-qore_user_module("qlib/DataProvider" "")
+qore_user_module("qlib/MapperUtil.qm" "")
 
 # base 2 modules
-qore_user_module("qlib/Mapper.qm" "DataProvider")
+qore_user_module("qlib/DataProvider" "MapperUtil")
 qore_user_module("qlib/ConnectionProvider" "Util")
 qore_user_module("qlib/CsvUtil" "Util")
 qore_user_module("qlib/Diff.qm" "Util")
@@ -816,6 +816,7 @@ qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
+qore_user_module("qlib/Mapper.qm" "MapperUtil;DataProvider")
 qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider")
@@ -825,11 +826,11 @@ qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util;DataProvider")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
-qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil;DataProvider")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/TableMapper.qm" "MapperUtil;Mapper;SqlUtil;DataProvider")
 qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")

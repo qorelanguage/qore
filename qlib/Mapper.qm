@@ -34,6 +34,9 @@
 # do not use "$" for vars
 %new-style
 
+# common definitions
+%requires(reexport) MapperUtil
+
 # supports using the DataProvider module to describe input and output records
 %requires(reexport) DataProvider
 
@@ -44,9 +47,6 @@ module Mapper {
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-*/
 
 /** @mainpage Mapper Module
 
@@ -205,13 +205,13 @@ list: (2 elements)
       @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
       also location where the output data will be written.  If this option is set, then every mapped record will be
       written to the output data provider automatically.  If the output provider supports transaction management,
-      @ref Mapper::Mapper::outputCommit() "Mapper::outputCommit()" and
-      @ref pper::Mapper::outputRollback() "Mapper::outputRollback()" can be used.  This option is mutually exclusive
+      @ref Mapper::Mapper::commit() "Mapper::commit()" and
+      @ref pper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
       with the \a output option.
     - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
-      @ref Mapper::Mapper::outputFlush() "Mapper::outputFlush()" method must be called after all mapping is done to
+      @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called after all mapping is done to
       flush the output buffer to the output provider at the end or
-      @ref Mapper::Mapper::outputDiscard() "Mapper::outputDiscard()" must be called to discard any data left in the
+      @ref Mapper::Mapper::discard() "Mapper::discard()" must be called to discard any data left in the
       bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
       and an error occurs causing the transaction to be rolled back)
     - \c "output_provider_upsert": if upsert instead of creation APIs should be used with the output provider, if
@@ -337,32 +337,6 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
 #! the Mapper namespace contains all the definitions in the Mapper module
 public namespace Mapper {
-    #! describes a runtime type
-    public hashdecl MapperRuntimeKeyInfo {
-        #! the type of value that must be assigned to this key
-        string value_type = "string";
-
-        #! hash of conflicting keys, if any
-        *hash<string, bool> conflicting_keys;
-
-        #! if the key requires in input field for the mapping
-        bool requires_input = False;
-
-        #! the code to handle the key at runtime
-        /** the signature of this closure or call reference depends on \a requires_input:
-            - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
-              - parameters:
-                - \c arg: the argument to the runtime key in the mapping
-                - \c val: the current value of the mapping, if any
-            - \a requires_input == False: <tt>auto sub (auto arg) {}</tt>
-              - parameters:
-                - \c arg: the argument to the runtime key in the mapping
-
-            In both cases the return value is the value to use for the field
-        */
-        code handler;
-    }
-
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
         public {
@@ -723,8 +697,8 @@ Mapper mapv(DataMap);
                     case NT_HASH:
                         break;
                     default:
-                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); expecting "
-                            "\"hash\"", h.key, h.value.type(), h.value);
+                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); "
+                            "expecting \"hash\"", h.key, h.value.type(), h.value);
                 }
                 foreach string k in (keys h.value) {
                     if (!OutputKeys{k}) {
@@ -739,6 +713,104 @@ Mapper mapv(DataMap);
                     h.value.default_value));
             }
             return output_data.getFields();
+        }
+
+        private checkInputOutputOption(hash<auto> opts, string var, *hash<auto> mapv) {
+            string structured = "structured_" + var;
+            if (recordType.isAssignableFrom(opts{var})) {
+                self{var} = opts{var};
+                self{structured} = True;
+                return;
+            }
+
+            if (opts{var}.typeCode() != NT_HASH) {
+                error("%y option passed to %s::constructor() is not type \"hash\"; got type %y instead", var,
+                    self.className(), opts.input.type());
+            }
+
+            try {
+                if (var == "input") {
+                    input = getInputFromHashIntern(opts.input, \structured_input);
+                } else {
+                    output = getOutputFromHashIntern(opts.output, mapv, global_transform_opts, \structured_output);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                error("%s: %s", ex.err, ex.desc);
+            }
+        }
+
+        private setInputProvider(hash<auto> opts) {
+            if (!(opts.input_provider instanceof AbstractDataProvider)) {
+                error("\"input_provider\" option passed to %s::constructor() is not an instance of class "
+                    "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                    opts.input_provider.type());
+            }
+
+            if (opts.input) {
+                if (info_log) {
+                    info_log("both \"input\" and \"input_provider\" options passed to %s::constructor(), the \"input\" "
+                        "option will be ignored", self.className());
+                }
+            }
+
+            if (!opts.input_provider.supportsRead()) {
+                error("\"input_provider\" %y passed to %s::constructor() does not support reading",
+                    input_provider.getName(), self.className());
+            }
+            input_provider = opts.input_provider;
+            input = input_provider.getRecordType();
+            if (!input) {
+                error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
+                    input_provider.getName(), self.className());
+            }
+
+            if (opts.input_provider_search) {
+                if (opts.input_provider_search.typeCode() != NT_HASH) {
+                    error("\"input_provider_search\" option passed to %s::constructor() is not type \"hash\"; "
+                        "got type %y instead", self.className(), opts.input_provider_search.type());
+                }
+                input_provider_search = opts.input_provider_search;
+            }
+        }
+
+        private setOutputProvider(hash<auto> opts) {
+            if (!(opts.output_provider instanceof AbstractDataProvider)) {
+                error("\"output_provider\" option passed to %s::constructor() is not an instance of class "
+                    "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                    opts.output_provider.type());
+            }
+
+            if (opts.output) {
+                if (info_log) {
+                    info_log("both \"output\" and \"output_provider\" options passed to %s::constructor(), the \"output\" "
+                        "option will be ignored", self.className());
+                }
+            }
+
+            if (!opts.output_provider.supportsCreate()) {
+                error("\"output_provider\" %y passed to %s::constructor() does not support writing",
+                    output_provider.getName(), self.className());
+            }
+            output_provider = opts.output_provider;
+            output = output_provider.getRecordType();
+            if (!output) {
+                error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
+                    output_provider.getName(), self.className());
+            }
+            if (opts.output_provider_upsert) {
+                if (!opts.output_provider.supportsUpsert()) {
+                    error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
+                        output_provider.getName(), self.className());
+                }
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkUpserter();
+                }
+                output_provider_upsert = True;
+            } else {
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkInserter();
+                }
+            }
         }
 
         #! sets up the mapper object before checking the mapper hash
@@ -759,101 +831,19 @@ Mapper mapv(DataMap);
             }
 
             # validate input record definition
-            if (opts.input) {
-                if (opts.input_provider) {
-                    error("both \"input\" and \"input_provider\" options passed to %s::constructor(); only one may "
-                        "be used", self.className());
-                }
-                if (recordType.isAssignableFrom(opts.input)) {
-                    input = opts.input;
-                    structured_input = True;
-                } else {
-                    if (opts.input.typeCode() != NT_HASH) {
-                        error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y "
-                            "instead", self.className(), opts.input.type());
-                    }
-                    try {
-                        input = getInputFromHashIntern(opts.input, \structured_input);
-                    } catch (hash<ExceptionInfo> ex) {
-                        error("%s: %s", ex.err, ex.desc);
-                    }
-                }
-            } else if (opts.input_provider) {
-                if (!(opts.input_provider instanceof AbstractDataProvider)) {
-                    error("\"input_provider\" option passed to %s::constructor() is not an instance of class "
-                        "\"AbstractDataProvider\"; got type %y instead", self.className(),
-                        opts.input_provider.type());
-                }
-                if (!opts.input_provider.supportsRead()) {
-                    error("\"input_provider\" %y passed to %s::constructor() does not support reading",
-                        input_provider.getName(), self.className());
-                }
-                input_provider = opts.input_provider;
-                input = input_provider.getRecordType();
-                if (!input) {
-                    error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
-                        input_provider.getName(), self.className());
-                }
-
-                if (opts.input_provider_search) {
-                    if (opts.input_provider_search.typeCode() != NT_HASH) {
-                        error("\"input_provider_search\" option passed to %s::constructor() is not type \"hash\"; "
-                            "got type %y instead", self.className(), opts.input_provider_search.type());
-                    }
-                    input_provider_search = opts.input_provider_search;
-                }
+            if (opts.input_provider) {
+                setInputProvider(opts);
+            } else if (opts.input) {
+                checkInputOutputOption(opts, "input");
             }
 
             # validate output record definition
-            if (opts.output) {
-                if (opts.output_provider) {
-                    error("both \"output\" and \"output_provider\" options passed to %s::constructor(); only one may "
-                        "be used", self.className());
-                }
-                if (recordType.isAssignableFrom(opts.output)) {
-                    output = opts.output;
-                    structured_output = True;
-                } else {
-                    if (opts.output.typeCode() != NT_HASH) {
-                        error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y "
-                            "instead", self.className(), opts.output.type());
-                    }
-                    try {
-                        output = getOutputFromHashIntern(opts.output, mapv, global_transform_opts, \structured_output);
-                    } catch (hash<ExceptionInfo> ex) {
-                        error("%s: %s", ex.err, ex.desc);
-                    }
-                }
-            } else if (opts.output_provider) {
-                if (!(opts.output_provider instanceof AbstractDataProvider)) {
-                    error("\"output_provider\" option passed to %s::constructor() is not an instance of class "
-                        "\"AbstractDataProvider\"; got type %y instead", self.className(),
-                        opts.output_provider.type());
-                }
-                if (!opts.output_provider.supportsCreate()) {
-                    error("\"output_provider\" %y passed to %s::constructor() does not support writing",
-                        output_provider.getName(), self.className());
-                }
-                output_provider = opts.output_provider;
-                output = output_provider.getRecordType();
-                if (!output) {
-                    error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
-                        output_provider.getName(), self.className());
-                }
-                if (opts.output_provider_upsert) {
-                    if (!opts.output_provider.supportsUpsert()) {
-                        error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
-                            output_provider.getName(), self.className());
-                    }
-                    if (opts.output_provider_bulk) {
-                        output_provider_bulk_operation = output_provider.getBulkUpserter();
-                    }
-                    output_provider_upsert = True;
-                } else {
-                    if (opts.output_provider_bulk) {
-                        output_provider_bulk_operation = output_provider.getBulkInserter();
-                    }
-                }
+            if (opts.output_provider) {
+                setOutputProvider(opts);
+
+                opts.runtime_keys += output_provider.getMapperRuntimeKeys();
+            } else if (opts.output) {
+                checkInputOutputOption(opts, "output", mapv);
             }
 
             if (opts.trunc_all)
@@ -1335,6 +1325,16 @@ Mapper mapv(DataMap);
             return OptionKeys;
         }
 
+        #! returns the input provider
+        *AbstractDataProvider getInputProvider() {
+            return input_provider;
+        }
+
+        #! returns the output provider
+        *AbstractDataProvider getOutputProvider() {
+            return output_provider;
+        }
+
         #! returns the value of the \c "input" option
         *hash<string, AbstractDataField> getInputRecord() {
             return input;
@@ -1360,7 +1360,7 @@ Mapper mapv(DataMap);
 
             @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
         */
-        outputCommit() {
+        commit() {
             checkOutputProvider();
             output_provider.commit();
         }
@@ -1370,7 +1370,7 @@ Mapper mapv(DataMap);
 
             @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
         */
-        outputRollback() {
+        rollback() {
             checkOutputProvider();
             output_provider.rollback();
         }
@@ -1380,9 +1380,11 @@ Mapper mapv(DataMap);
 
             @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
         */
-        outputFlush() {
+        flush() {
             checkOutputBulkOperation();
-            output_provider_bulk_operation.flush();
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.flush();
+            }
         }
 
         #! Discards any buffered data
@@ -1390,9 +1392,11 @@ Mapper mapv(DataMap);
 
             @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
         */
-        outputDiscard() {
+        discard() {
             checkOutputBulkOperation();
-            output_provider_bulk_operation.discard();
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.discard();
+            }
         }
 
         #! maps all input records and returns the mapped data as a list of output records
