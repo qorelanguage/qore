@@ -21,6 +21,7 @@ module SqlUtilTestBase {
 %requires(reexport) ../../../../qlib/BulkSqlUtil
 %requires(reexport) ../../../../qlib/Schema.qm
 %requires(reexport) ../../../../qlib/DbDataProvider
+%requires(reexport) ../../../../qlib/Mapper.qm
 
 public class SqlUtilTestSchema inherits AbstractSchema {
     private {
@@ -44,7 +45,6 @@ public class SqlUtilTestSchema inherits AbstractSchema {
                 string type = h.value.type ?? h.key;
                 hash<GenericColumnInfo> ch({
                     "native_type": type,
-                    "notnull": True,
                 });
                 if (h.value.typeCode() == NT_HASH)
                     ch += (h.value - ("value", "bind", "expect", "type"));
@@ -158,9 +158,10 @@ public class SqlTestBase inherits QUnit::Test {
         {
             DbTableDataProvider dp(table);
 
+            list<hash<auto>> table_rows;
             {
-                list<hash<auto>> rows = map $1, dp.searchRecords();
-                assertEq(2, rows.size());
+                table_rows = map $1, dp.searchRecords();
+                assertEq(2, table_rows.size());
 
                 hash<auto> row = dp.searchSingleRecord({"id": 1});
                 assertEq(Type::Int, row.id.type());
@@ -196,13 +197,99 @@ public class SqlTestBase inherits QUnit::Test {
                 on_success ds.commit();
                 assertTrue(ds.currentThreadInTransaction());
 
-                AbstractSavepointHelper sph = table.getSavepointHelper();
-                on_exit {
-                    sph.rollback();
-                    assertTrue(ds.currentThreadInTransaction());
+                {
+                    AbstractSavepointHelper sph = table.getSavepointHelper();
+                    on_exit {
+                        sph.rollback();
+                        assertTrue(ds.currentThreadInTransaction());
+                    }
+                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
+                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
                 }
-                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
-                assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
+
+                # get not null columns for upsert output
+                hash<auto> not_null_map = map {$1.name: $1.name}, table.describe().iterator(), !$1.nullable;
+
+                # test mappers with data providers
+                {
+                    Mapper m({"new_id": "id"}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                }
+
+                # NOTE: we cannot use the same datasource for input and output data providers
+                # get row with id = 2
+                hash<auto> row_id_2;
+                foreach hash<auto> table_row in (table_rows) {
+                    if (table_row.id == 2) {
+                        row_id_2 = table_row;
+                        break;
+                    }
+                }
+                assertEq(2, row_id_2.id);
+
+                {
+                    Mapper m(not_null_map + {fname: {"code": string sub (*string fname, hash<auto> rec) { return fname + "-x"; }}}, {
+                        "input": dp.getRecordType(),
+                        "output_provider": dp,
+                        "output_provider_upsert": True,
+                    });
+                    list<hash<auto>> recs;
+                    {
+                        on_error {
+                            m.outputRollback();
+                        }
+                        on_success {
+                            m.outputCommit();
+                        }
+                        recs = m.mapAll(row_id_2);
+                    }
+                    assertEq(1, recs.size());
+                    assertEq(row_id_2{fname} + "-x", recs[0]{fname});
+                }
+
+                {
+                    Mapper m({"new_id": "id", fname: fname}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                    assertEq(row_id_2{fname} + "-x", recs[0]{fname});
+                }
+
+                {
+                    Mapper m(not_null_map + {fname: {"code": string sub (*string fname, hash<auto> rec) { return fname + "-x-y"; }}}, {
+                        "input": dp.getRecordType(),
+                        "output_provider": dp,
+                        "output_provider_upsert": True,
+                        "output_provider_bulk": True,
+                    });
+                    list<hash<auto>> recs;
+                    {
+                        on_error {
+                            m.outputDiscard();
+                            m.outputRollback();
+                        }
+                        on_success {
+                            m.outputFlush();
+                            m.outputCommit();
+                        }
+                        recs = m.mapAll(row_id_2);
+                    }
+                    assertEq(1, recs.size());
+                    assertEq(row_id_2{fname} + "-x-y", recs[0]{fname});
+                }
+
+                {
+                    Mapper m({"new_id": "id", fname: fname}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                    assertEq(row_id_2{fname} + "-x-y", recs[0]{fname});
+                }
             }
         }
     }

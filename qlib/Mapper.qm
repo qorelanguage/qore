@@ -168,7 +168,17 @@ list: (2 elements)
       accepts a hash describing the input fields where each key is a possible input field name (and where dot notation
       indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
       - \c "desc": this gives the description of the input field
+      .
+      This option is mutually exclusive with the \a input_provider option
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
+    - \c "input_provider": gives the input provider with an
+      @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of input data and
+      also the data itself.  The use of this option enables the use of the
+      @ref Mapper::Mapper::getOutputIterator() "Mapper::getOutputIterator()" API.  This option is mutually exclusive
+      with the \a input option.
+    - \c "input_provider_search": the search options for the input provider; see the \a where_cond option of
+      @ref DataProvider::AbstractDataProvider::searchRecords() "AbstractDataProvider::searchRecords()" for more
+      information on this option
     - \c "name": the name of the mapper for use in logging and error strings
     - \c "output": this should be a description of the output fields with type
       <tt>hash&lt;string, DataProvider::AbstractDataField&gt;</tt>, for backwards compatibility, this option also
@@ -191,6 +201,23 @@ list: (2 elements)
         - \c "hash": field accepts hash values
         - \c "any": field accepts any value
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+    - \c "output_provider": gives the output provider with an
+      @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
+      also location where the output data will be written.  If this option is set, then every mapped record will be
+      written to the output data provider automatically.  If the output provider supports transaction management,
+      @ref Mapper::Mapper::outputCommit() "Mapper::outputCommit()" and
+      @ref pper::Mapper::outputRollback() "Mapper::outputRollback()" can be used.  This option is mutually exclusive
+      with the \a output option.
+    - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
+      @ref Mapper::Mapper::outputFlush() "Mapper::outputFlush()" method must be called after all mapping is done to
+      flush the output buffer to the output provider at the end or
+      @ref Mapper::Mapper::outputDiscard() "Mapper::outputDiscard()" must be called to discard any data left in the
+      bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
+      and an error occurs causing the transaction to be rolled back)
+    - \c "output_provider_upsert": if upsert instead of creation APIs should be used with the output provider, if
+      \a output_provider_bulk is set, this indicates if the
+      @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will be a create
+      or upsert object
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
       any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated
@@ -344,19 +371,30 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = {
-                "allow_dot": "DEPRECATED: allows input fields to have a dot in their name without implying a structured format",
-                "allow_output_dot": "DEPRECATED: allows output fields to have a dot in their name without implying a structured format",
-                "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
+                "allow_dot": "DEPRECATED: allows input fields to have a dot in their name without implying a "
+                    "structured format",
+                "allow_output_dot": "DEPRECATED: allows output fields to have a dot in their name without implying a "
+                    "structured format",
+                "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: "
+                    "\"MM/DD/YYYY HH:mm:SS\"",
                 "encoding": "DEPRECATED: gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
-                "input": "a hash describing the input record",
+                "input": "the input record description (mutually exclusive with input_provider)",
                 "input_log": "a call reference / closure for input record logging",
+                "input_provider": "the input provider (mutually exclusive with input)",
+                "input_provider_search": "the input provider search options",
                 "input_timezone": "DEPRECATED: the default timezone to assume when parsing input dates",
                 "name": "the name of the Mapper object",
-                "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: \".,\"",
-                "output": "a hash describing the output record",
+                "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: "
+                    "\".,\"",
+                "output": "the output record description (mutually exclusive with output_provider)",
                 "output_log": "a call reference / closure for input record logging",
-                "runtime_keys": "field key support provided as a Mapper option; format: hash<string, hash<MapperRuntimeKeyInfo>>",
+                "output_provider": "the output data provider (mutually exclusive with output)",
+                "output_provider_bulk": "a flag to enable bulk operations with an output provider",
+                "output_provider_upsert": "a flag to enable upserting instead of creating records with an output "
+                    "data provider",
+                "runtime_keys": "field key support provided as a Mapper option; format: "
+                    "hash<string, hash<MapperRuntimeKeyInfo>>",
                 "timezone": "DEPRECATED: the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
                 "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
@@ -445,8 +483,23 @@ public namespace Mapper {
             #! an optional description of possible input hash keys
             *hash<string, AbstractDataField> input;
 
+            #! the optional input data provider
+            *AbstractDataProvider input_provider;
+
+            #! search options for the input provider
+            *hash<auto> input_provider_search;
+
             #! an optional description of the output data structure
             *hash<string, AbstractDataField> output;
+
+            #! the optional output data provider
+            *AbstractDataProvider output_provider;
+
+            #! bulk output object for an output data provider
+            *AbstractDataProviderBulkOperation output_provider_bulk_operation;
+
+            #! if the upsert operations should be used on the output provider
+            bool output_provider_upsert;
 
             #! flag if the field descriptions were provided to the constructor
             /** if so then allow_dot cannot be set
@@ -707,6 +760,10 @@ Mapper mapv(DataMap);
 
             # validate input record definition
             if (opts.input) {
+                if (opts.input_provider) {
+                    error("both \"input\" and \"input_provider\" options passed to %s::constructor(); only one may "
+                        "be used", self.className());
+                }
                 if (recordType.isAssignableFrom(opts.input)) {
                     input = opts.input;
                     structured_input = True;
@@ -721,10 +778,38 @@ Mapper mapv(DataMap);
                         error("%s: %s", ex.err, ex.desc);
                     }
                 }
+            } else if (opts.input_provider) {
+                if (!(opts.input_provider instanceof AbstractDataProvider)) {
+                    error("\"input_provider\" option passed to %s::constructor() is not an instance of class "
+                        "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                        opts.input_provider.type());
+                }
+                if (!opts.input_provider.supportsRead()) {
+                    error("\"input_provider\" %y passed to %s::constructor() does not support reading",
+                        input_provider.getName(), self.className());
+                }
+                input_provider = opts.input_provider;
+                input = input_provider.getRecordType();
+                if (!input) {
+                    error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
+                        input_provider.getName(), self.className());
+                }
+
+                if (opts.input_provider_search) {
+                    if (opts.input_provider_search.typeCode() != NT_HASH) {
+                        error("\"input_provider_search\" option passed to %s::constructor() is not type \"hash\"; "
+                            "got type %y instead", self.className(), opts.input_provider_search.type());
+                    }
+                    input_provider_search = opts.input_provider_search;
+                }
             }
 
             # validate output record definition
             if (opts.output) {
+                if (opts.output_provider) {
+                    error("both \"output\" and \"output_provider\" options passed to %s::constructor(); only one may "
+                        "be used", self.className());
+                }
                 if (recordType.isAssignableFrom(opts.output)) {
                     output = opts.output;
                     structured_output = True;
@@ -737,6 +822,36 @@ Mapper mapv(DataMap);
                         output = getOutputFromHashIntern(opts.output, mapv, global_transform_opts, \structured_output);
                     } catch (hash<ExceptionInfo> ex) {
                         error("%s: %s", ex.err, ex.desc);
+                    }
+                }
+            } else if (opts.output_provider) {
+                if (!(opts.output_provider instanceof AbstractDataProvider)) {
+                    error("\"output_provider\" option passed to %s::constructor() is not an instance of class "
+                        "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                        opts.output_provider.type());
+                }
+                if (!opts.output_provider.supportsCreate()) {
+                    error("\"output_provider\" %y passed to %s::constructor() does not support writing",
+                        output_provider.getName(), self.className());
+                }
+                output_provider = opts.output_provider;
+                output = output_provider.getRecordType();
+                if (!output) {
+                    error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
+                        output_provider.getName(), self.className());
+                }
+                if (opts.output_provider_upsert) {
+                    if (!opts.output_provider.supportsUpsert()) {
+                        error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
+                            output_provider.getName(), self.className());
+                    }
+                    if (opts.output_provider_bulk) {
+                        output_provider_bulk_operation = output_provider.getBulkUpserter();
+                    }
+                    output_provider_upsert = True;
+                } else {
+                    if (opts.output_provider_bulk) {
+                        output_provider_bulk_operation = output_provider.getBulkInserter();
                     }
                 }
             }
@@ -1230,6 +1345,56 @@ Mapper mapv(DataMap);
             return output;
         }
 
+        #! returns an output record iterator that produces mapped data from the input data provider
+        /** @return an output record iterator that produces mapped data from the input data provider
+
+            @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor
+        */
+        MapperOutputRecordIterator getOutputIterator() {
+            checkInputProvider();
+            return new MapperOutputRecordIterator(self, input_provider, input_provider_search);
+        }
+
+        #! Commits data written to the output data provider if the output data provider supports transaction management
+        /** Has no effect if the output data provider does not support transaction management
+
+            @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        outputCommit() {
+            checkOutputProvider();
+            output_provider.commit();
+        }
+
+        #! Rolls back data written to the output data provider
+        /** Has no effect if the output data provider does not support transaction management
+
+            @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        outputRollback() {
+            checkOutputProvider();
+            output_provider.rollback();
+        }
+
+        #! Flushes any remaining data to the data provider
+        /** This method should always be called for successful bulk output operations with an output provider
+
+            @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        outputFlush() {
+            checkOutputBulkOperation();
+            output_provider_bulk_operation.flush();
+        }
+
+        #! Discards any buffered data
+        /** This method should always be called if an error occurs in a bulk output operation
+
+            @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        outputDiscard() {
+            checkOutputBulkOperation();
+            output_provider_bulk_operation.discard();
+        }
+
         #! maps all input records and returns the mapped data as a list of output records
         /** this method applies the @ref mapData() method to all input records and returns the resulting list
             @param recs the list of input records
@@ -1537,6 +1702,25 @@ Mapper mapv(DataMap);
             } else {
                 h{key} = v;
             }
+
+            # write to putput provider, if any
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.queueData(h);
+            } else if (output_provider) {
+                if (output_provider_upsert) {
+                    if (do_list) {
+                        map output_provider.upsertRecord($1), h.contextIterator();
+                    } else {
+                        output_provider.upsertRecord(h);
+                    }
+                } else {
+                    if (do_list) {
+                        map output_provider.createRecord($1), h.contextIterator();
+                    } else {
+                        output_provider.createRecord(h);
+                    }
+                }
+            }
         }
 
         # recursively write output hash
@@ -1588,6 +1772,31 @@ Mapper mapv(DataMap);
                 return type.acceptsValue(value);
             } catch (hash<ExceptionInfo> ex) {
                 throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y", get_ex_pos(ex), key, value, ex.desc, rec), ex.arg;
+            }
+        }
+
+        #! raises an error if no input provider is present
+        private checkInputProvider() {
+            if (!input_provider) {
+                error2("MAPPER-INPUT-PROVIDER-ERROR", "no input provider available in this mapper");
+            }
+        }
+
+        #! raises an error if no output provider is present
+        /** @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        private checkOutputProvider() {
+            if (!output_provider) {
+                error2("MAPPER-OUTPUT-PROVIDER-ERROR", "no output provider available in this mapper");
+            }
+        }
+
+        #! raises an error if no output provider is present
+        /** @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        private checkOutputBulkOperation() {
+            if (!output_provider) {
+                error2("MAPPER-OUTPUT-BULK-ERROR", "no output bulk operation is in progress");
             }
         }
 
@@ -1844,6 +2053,38 @@ Mapper mapv(DataMap);
                 throw "RUNTIME-TYPE-ERROR", sprintf("type %y cannot accept \"nothing\"", getName());
             }
             return value;
+        }
+    }
+
+    #! Output record iterator for Mapper objects with an input data provider
+    public class MapperOutputRecordIterator inherits AbstractDataProviderRecordIterator {
+        private {
+            #! the mapper
+            Mapper mapper;
+
+            #! the input data provider
+            AbstractDataProviderRecordIterator i;
+        }
+
+        #! Creates the object from the arguments
+        constructor(Mapper mapper, AbstractDataProvider input, *hash<auto> where_cond) {
+            self.mapper = mapper;
+            i = input.searchRecords(where_cond);
+        }
+
+        #! Moves the current position to the next element; returns @ref False if there are no more elements
+        bool next() {
+            return i.next();
+        }
+
+        #! Returns the mapped value of the current input record
+        hash<auto> getValue() {
+            return mapper.mapData(i.getValue());
+        }
+
+        #! Returns @ref True if the iterator is currently pointing at a valid element, @ref False if not
+        bool valid() {
+            return i.valid();
         }
     }
 }

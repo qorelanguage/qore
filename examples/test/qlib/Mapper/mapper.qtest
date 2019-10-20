@@ -536,7 +536,8 @@ public class MapperTest inherits QUnit::Test {
     testMapperOptionInput() {
         hash my_opts = m_opts + ("input": map {$1: $1}, MapInput[0].keys());
         Mapper m(DataMap, my_opts);
-        m.mapData(MapInput[0]);
+        hash<auto> h = m.mapData(MapInput[0]);
+        assertEq(1, h.id);
     }
 
     testMapperBulk() {
