@@ -651,12 +651,6 @@ static void check_module_version(QoreAbstractModule* mi, mod_op_e op, version_li
 
 static void qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, version_list_t* version, QoreProgram* pgm, ExceptionSink& xsink) {
     if (xsink) {
-        // XXX DEBUG
-        if (mi) {
-            printd(0, "mi: %s (%s)\n", mi->getName(), mi->getFileName());
-            ExceptionSink x0;
-            x0.assimilate(xsink);
-        }
         assert(!mi);
         return;
     }
