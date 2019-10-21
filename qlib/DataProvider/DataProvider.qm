@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DataProvider.qm module for performing bulk DML operations with SqlUtil
+#! @file DataProvider.qm module for data access and introspection
 
 /** DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
@@ -39,7 +39,7 @@
 
 module DataProvider {
     version = "1.0";
-    desc = "user module for generic data providers";
+    desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";

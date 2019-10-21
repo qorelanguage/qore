@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DataProvider.qc module for performing bulk DML operations with SqlUtil
+#! @file DataProvider.qc module for data access and introspection
 
 /** DataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
 

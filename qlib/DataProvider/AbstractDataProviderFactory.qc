@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file AbstractDataProviderFactory.qc module for performing bulk DML operations with SqlUtil
+#! @file AbstractDataProviderFactory.qc provides the abstract definition for a data provider factory
 
 /** AbstractDataProviderFactory.qc Copyright 2019 Qore Technologies, s.r.o.
 
