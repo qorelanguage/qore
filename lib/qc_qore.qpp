@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,11 @@ DLLEXPORT extern QoreClass* QC_FILEOUTPUTSTREAM;
     Type code constants as returned by <value>::typeCode()
 */
 //@{
+//! type code for wildcard types (both with - \c "all" and without - \c "auto" type stripping)
+/** @since %Qore 0.9.4
+*/
+const NT_ALL = NT_ALL;
+
 //! type code for @ref nothing "no value" (@ref nothing)
 const NT_NOTHING = NT_NOTHING;
 

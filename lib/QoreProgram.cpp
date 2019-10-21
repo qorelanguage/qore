@@ -1795,7 +1795,7 @@ bool QoreProgram::checkFeature(const char* f) const {
 }
 
 void QoreProgram::addFeature(const char* f) {
-   priv->featureList.push_back(f);
+    priv->addFeature(f);
 }
 
 QoreListNode* QoreProgram::getFeatureList() const {

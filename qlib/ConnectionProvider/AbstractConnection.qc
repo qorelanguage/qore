@@ -272,26 +272,26 @@ schema://user:pass@hostname:port/path
         }
 
         #! returns static / initialization options
-        *hash getOptions() {
+        *hash<auto> getOptions() {
         }
 
         #! returns runtime options
-        *hash getRuntimeOptions() {
+        *hash<auto> getRuntimeOptions() {
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
         }
 
         #! returns options for saving the connection's configuration information
-        *hash getRealOptions() {
+        *hash<auto> getRealOptions() {
             return orig_opts;
         }
 
         #! returns the underlying connection object
         /** calls @ref getImpl() to actually acquire the connection object
          */
-        object get(bool connect = True, *hash rtopts) {
+        object get(bool connect = True, *hash<auto> rtopts) {
             if (!connect) {
                 object o = getImpl(False, rtopts);
                 if (post_processing)
@@ -350,6 +350,18 @@ schema://user:pass@hostname:port/path
                 throw "TAG-ERROR", sprintf("tag %y is not set on connection %y", tag, name);
             }
             return rv;
+        }
+
+        #! returns a data provider object for this connection, if supported
+        /** @return a data provider object for this connection, if supported
+
+            @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+
+            This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the dasta provider
+            API, override this method in child classes
+        */
+        AbstractDataProvider getDataProvider() {
+            throw "DATA-PROVIDER-ERROR", sprintf("%y connections do not support the data provider API", getType());
         }
 
         #! this method must return the connection object corresponding to the object's configuration

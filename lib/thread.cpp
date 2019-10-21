@@ -1981,9 +1981,8 @@ ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
 }
 
 QoreProgram* getProgram() {
-   printd(5, "getProgram(): %p\n", (thread_data.get())->current_pgm);
-   return (thread_data.get())->current_pgm;
-   //return (thread_data.get())->pgmStack->getProgram();
+    printd(5, "getProgram(): (td: %p) %p\n", &thread_data, (thread_data.get())->current_pgm);
+    return (thread_data.get())->current_pgm;
 }
 
 RootQoreNamespace* getRootNS() {

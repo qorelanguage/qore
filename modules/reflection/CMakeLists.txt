@@ -119,9 +119,9 @@ add_custom_target(REFLECTION_QPP_GENERATED_FILES DEPENDS qpp ${REFLECTION_QPP_SO
 set(reflection_module_name "reflection")
 
 if (SINGLE_COMPILATION_UNIT)
-    add_library(${reflection_module_name} SHARED src/reflection_scu.cpp)
+    add_library(${reflection_module_name} MODULE src/reflection_scu.cpp)
 else (SINGLE_COMPILATION_UNIT)
-    add_library(${reflection_module_name} SHARED ${REFLECTION_CPP_SRC} ${REFLECTION_QPP_SOURCES})
+    add_library(${reflection_module_name} MODULE ${REFLECTION_CPP_SRC} ${REFLECTION_QPP_SOURCES})
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(${reflection_module_name} libqore REFLECTION_QPP_GENERATED_FILES)

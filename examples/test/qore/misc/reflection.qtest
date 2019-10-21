@@ -111,7 +111,119 @@ class ReflectionTest inherits QUnit::Test {
     }
 
     typeTests() {
+        assertTrue(StringType.isAssignableFrom(StringOrNothingType));
+        bool may_not_match;
+        assertTrue(StringType.isAssignableFrom(StringOrNothingType, \may_not_match));
+        assertTrue(may_not_match);
+        assertEq(QTI_WILDCARD, AutoType.isAssignableFrom(1));
+        assertEq(QTI_IDENT, StringType.isAssignableFrom("str"));
+        assertEq(QTI_AMBIGUOUS, StringOrNothingType.isAssignableFrom(NOTHING));
+        assertEq(QTI_NOT_EQUAL, StringOrNothingType.isAssignableFrom({}));
+        assertFalse(StringType.isTypedHash());
+        assertNothing(StringType.getTypedHash());
+        assertNothing(StringType.getElementType());
+
+        {
+            Type t("hash<StatInfo>");
+            assertEq("hash<StatInfo>", t.getName());
+            assertTrue(t.isTypedHash());
+            assertEq("StatInfo", t.getTypedHash().getName());
+            assertNothing(StringType.getElementType());
+            assertThrows("UNKNOWN-TYPE", sub () { new Type("xx"); });
+            assertThrows("UNKNOWN-TYPE", sub () { new Type("hash<string"); });
+            assertThrows("UNKNOWN-TYPE", sub () { new Type("hash<1>"); });
+
+            t = new Type("hash<string,  bool>");
+            assertTrue(BoolType.isEqual(t.getElementType()));
+            assertFalse(IntType.isEqual(t.getElementType()));
+            assertFalse(t.isTypedHash());
+            assertNothing(StringType.getTypedHash());
+        }
+
         assertFalse(AutoListType.isOutputCompatible(IntType));
+        assertFalse(IntType.isOutputCompatible(AutoListType));
+        assertTrue((new Type("nothing")).isOutputCompatible(new Type("*hash")));
+        assertTrue((new Type("*hash")).isOutputCompatible(new Type("nothing")));
+        assertTrue((new Type("*hash")).isOutputCompatible(new Type("*string")));
+        assertTrue((new Type("*string")).isOutputCompatible(new Type("*hash")));
+
+        assertFalse(AutoListType.isCompatible(IntType));
+        assertFalse(IntType.isCompatible(AutoListType));
+        assertFalse((new Type("nothing")).isCompatible(new Type("*hash")));
+        assertFalse((new Type("*hash")).isCompatible(new Type("nothing")));
+        assertFalse((new Type("*hash")).isCompatible(new Type("*string")));
+        assertFalse((new Type("*string")).isCompatible(new Type("*hash")));
+
+        assertTrue(IntType.isEqual(IntOrNothingType.getBaseType()));
+        assertTrue(IntOrNothingType.isEqual(IntType.getOrNothingType()));
+
+        assertEq(NT_INT, IntOrNothingType.getBaseTypeCode());
+        assertEq(NT_INT, IntType.getBaseTypeCode());
+
+        {
+            Type t("hash<StatInfo>");
+            assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
+            Type t1 = t.getOrNothingType();
+            assertEq("hash<StatInfo>", t1.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t1.getReturnTypeHash().firstKey());
+        }
+        {
+            Type t("Mutex");
+            assertEq("Mutex", t.getAcceptTypeHash().firstKey());
+            assertEq("Mutex", t.getReturnTypeHash().firstKey());
+            Type t1 = t.getOrNothingType();
+            assertEq("Mutex", t1.getAcceptTypeHash().firstKey());
+            assertEq("Mutex", t1.getReturnTypeHash().firstKey());
+        }
+        assertEq(("string", "binary"), keys (new Type("data")).getAcceptTypeHash());
+        assertEq(("string", "binary"), keys (new Type("data")).getReturnTypeHash());
+        assertEq(("int",), keys (new Type("int")).getAcceptTypeHash());
+        assertEq(("int",), keys (new Type("int")).getReturnTypeHash());
+        {
+            Type t("hash<string, bool>");
+            assertEq(("hash<string, bool>",), keys t.getAcceptTypeHash());
+            assertEq(("hash<string, bool>",), keys t.getReturnTypeHash());
+            Type t1 = t.getOrNothingType();
+            assertEq("hash<string, bool>", t1.getAcceptTypeHash().firstKey());
+            assertEq("hash<string, bool>", t1.getReturnTypeHash().firstKey());
+        }
+        assertEq(("list<string>",), keys (new Type("list<string>")).getAcceptTypeHash());
+        assertEq(("list<string>",), keys (new Type("list<string>")).getReturnTypeHash());
+        {
+            Type t("reference<string>");
+            assertEq(("reference<string>",), keys t.getAcceptTypeHash());
+            assertEq(("reference<string>",), keys t.getReturnTypeHash());
+            Type t1 = t.getOrNothingType();
+            assertEq("reference<string>", t1.getAcceptTypeHash().firstKey());
+            assertEq("reference<string>", t1.getReturnTypeHash().firstKey());
+        }
+        {
+            Type t("*hash<StatInfo>");
+            assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
+            Type t1 = t.getBaseType();
+            assertEq("hash<StatInfo>", t1.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t1.getReturnTypeHash().firstKey());
+        }
+        {
+            Type t("*Mutex");
+            assertEq("Mutex", (new Type("*Mutex")).getAcceptTypeHash().firstKey());
+            assertEq("Mutex", (new Type("*Mutex")).getReturnTypeHash().firstKey());
+            Type t1 = t.getBaseType();
+            assertEq("Mutex", t1.getAcceptTypeHash().firstKey());
+            assertEq("Mutex", t1.getReturnTypeHash().firstKey());
+        }
+        assertEq(("string", "binary", "nothing", "null"), keys (new Type("*data")).getAcceptTypeHash());
+        assertEq(("string", "binary", "nothing"), keys (new Type("*data")).getReturnTypeHash());
+        assertEq(("int", "nothing", "null"), keys (new Type("*int")).getAcceptTypeHash());
+        assertEq(("int", "nothing"), keys (new Type("*int")).getReturnTypeHash());
+        assertEq(("hash<string, bool>", "nothing", "null"), keys (new Type("*hash<string, bool>")).getAcceptTypeHash());
+        assertEq(("hash<string, bool>", "nothing"), keys (new Type("*hash<string, bool>")).getReturnTypeHash());
+        assertEq(("list<string>", "nothing", "null"), keys (new Type("*list<string>")).getAcceptTypeHash());
+        assertEq(("list<string>", "nothing"), keys (new Type("*list<string>")).getReturnTypeHash());
+        assertEq(("reference<string>", "nothing", "null"), keys (new Type("*reference<string>")).getAcceptTypeHash());
+        assertEq(("reference<string>", "nothing"), keys (new Type("*reference<string>")).getReturnTypeHash());
     }
 
     pgmTests() {

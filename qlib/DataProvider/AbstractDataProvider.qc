@@ -1,0 +1,762 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore AbstractDataProvider class definition
+
+/** AbstractDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+#! strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+#! contains all public definitions in the DataProvider module
+public namespace DataProvider {
+/** @defgroup db_provider_upsert_results DB Provider Upsert Result Codes
+    These are the results codes returned with single-record upsert actions
+*/
+#@{
+#! Indicates that the record was inserted
+public const UpsertResultInserted = "inserted";
+
+#! Indicates that the record was updated
+public const UpsertResultUpdated = "updated";
+
+#! Indicates that the record was verified as already in the target state
+public const UpsertResultVerified = "verified";
+
+#! Indicates that the record was left unchanged
+public const UpsertResultUnchanged = "unchanged";
+
+#! Indicates that the record was deleted
+public const UpsertResultDeleted = "deleted";
+#@}
+
+#! Data provider option info
+public hashdecl DataProviderOptionInfo {
+    #! The option value type or types
+    softlist<Type> type;
+
+    #! Required flag
+    bool required = False;
+
+    #! The option description
+    string desc;
+}
+
+#! Data provider info
+public hashdecl DataProviderInfo {
+    #! Data provider name
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
+    string name;
+
+    #! The name of the provider type
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    string type;
+
+    #! Does the data provider support reading
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_read;
+
+    #! Does the data provider support record creation?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_create;
+
+    #! Does the data provider support record updates?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_update;
+
+    #! Does the data provider support record upserts (create or update)?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_upsert;
+
+    #! Does the data provider support record deletion?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_delete;
+
+    #! Does the data provider support native record searching?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_native_search;
+
+    #! Does the data provider support native / optimized bulk creation?
+    /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
+        APIs but without any performance improvements for bulk data
+
+        @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_bulk_create;
+
+    #! Does the data provider support native / optimized bulk upserts?
+    /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
+        APIs but without any performance improvements for bulk data
+
+        @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_bulk_upsert;
+
+    #! Does the data provider support children?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_children;
+
+    #! Constructor options supported by the data provider for the constructor variant taking a hash
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    *hash<string, hash<DataProviderOptionInfo>> constructor_options;
+
+    #! Create options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    *hash<string, hash<DataProviderOptionInfo>> create_options;
+
+    #! Upsert options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    *hash<string, hash<DataProviderOptionInfo>> upsert_options;
+
+    #! Search options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    *hash<string, hash<DataProviderOptionInfo>> search_options;
+
+    #! Does the data provider require transaction management?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool transaction_management;
+
+    #! A list of child data providers in this data provider
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
+    *list<string> children;
+}
+
+#! The AbstractDataProvider class
+public class AbstractDataProvider {
+    public {
+    }
+
+    #! Returns static provider information as data; no objects are returned
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    hash<auto> getInfoAsData() {
+        return DataProvider::getInfoAsData(getInfo());
+    }
+
+    #! Returns data provider info
+    hash<DataProviderInfo> getInfo() {
+        hash<DataProviderInfo> rv({
+            "name": getName(),
+        });
+        rv += getStaticInfoImpl() + {
+            "children": getChildProviderNames(),
+        };
+        return rv;
+    }
+
+    #! Creates the given record in the data provider
+    /** @param rec a hash representing a single input record
+        @param create_options the create options; will be processed by validateCreateOptions()
+
+        @return the data written to the data provider
+
+        @throw INVALID-OPERATION the data provider does not support record creation
+    */
+    *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
+        checkCreate();
+        return createRecordImpl(rec, validateCreateOptions(create_options));
+    }
+
+    #! Upserts the given record in the data provider
+    /** @param rec a hash representing a single input record
+        @param upsert_options the upsert options; will be processed by validateUpsertOptions()
+
+        @return see @ref db_provider_upsert_results for possible values
+
+        @throw INVALID-OPERATION the data provider does not support upsert operations
+    */
+    string upsertRecord(hash<auto> rec, *hash<auto> upsert_options) {
+        checkUpsert();
+        return upsertRecordImpl(rec, validateUpsertOptions(upsert_options));
+    }
+
+    #! Returns the first record matching the search options
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    *hash<auto> searchFirstRecord(hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
+        return searchFirstRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Returns a single record matching the search options
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provider does not support reading
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
+    */
+    *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
+        return searchSingleRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Returns an iterator iterating all records
+    /**
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    AbstractDataProviderRecordIterator getRecordIterator() {
+        return searchRecords();
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
+        return searchRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set; will be processed by processFieldValues()
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @returns @ref True if the record was updated, @ref False if not (no record found)
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        checkUpdate();
+        return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond),
+            validateSearchOptions(search_options));
+    }
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be updated
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records updated
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    int updateRecords(hash<auto> set, *hash<auto> where_cond, *hash<auto> search_options) {
+        checkUpdate();
+        return updateRecordsImpl(processFieldValues(set), processFieldValues(where_cond),
+            validateSearchOptions(search_options));
+    }
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records deleted
+
+        @throw INVALID-OPERATION the data provider does not support record deletion
+    */
+    int deleteRecords(*hash<auto> where_cond, *hash<auto> search_options) {
+        checkDelete();
+        return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+    */
+    *list<string> getChildProviderNames() {
+        return getChildProviderNamesImpl();
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+
+        @throw INVALID-CHILD-PROVIDER unknown child provider
+
+        @see getChildProviderEx()
+    */
+    *AbstractDataProvider getChildProvider(string name) {
+        return getChildProviderImpl(name);
+    }
+
+    #! Returns the given child provider or throws an exception if the given child is unknown
+    /** @return the given child provider or throws an exception if the given child is unknown
+
+        @throw INVALID-CHILD-PROVIDER unknown child provider
+
+        @see getChildProvider()
+    */
+    AbstractDataProvider getChildProviderEx(string name) {
+        *AbstractDataProvider provider = getChildProviderImpl(name);
+        if (!provider) {
+            throw "INVALID-CHILD-PROVIDER", sprintf("provider %y is unknown; known children of %y: %y", name,
+                getName(), getChildProviderNames());
+        }
+        return provider;
+    }
+
+    #! Returns @ref True if the data provider supports transaction management
+    /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
+        must be called to flush or discard data written to the data provider
+    */
+    bool requiresTransactionManagement() {
+        return False;
+    }
+
+    #! Commits data written to the data provider
+    /** Has no effect if the data provider does not support transaction management
+    */
+    commit() {
+    }
+
+    #! Rolls back data written to the data provider
+    /** Has no effect if the data provider does not support transaction management
+    */
+    rollback() {
+    }
+
+    #! Returns a bulk insert operation object for the data provider
+    /** @return a bulk insert operation object for the data provider
+
+        @throw INVALID-OPERATION the data provider does not support create operations
+    */
+    AbstractDataProviderBulkOperation getBulkInserter() {
+        checkCreate();
+        return new DefaultBulkInserter(self);
+    }
+
+    #! Returns a bulk upsert operation object for the data provider
+    /** @return a bulk upsert operation object for the data provider
+
+        @throw INVALID-OPERATION the data provider does not support upsert operations
+    */
+    AbstractDataProviderBulkOperation getBulkUpserter() {
+        checkUpsert();
+        return new DefaultBulkUpserter(self);
+    }
+
+    #! Returns custom data mapper runtime keys
+    /** @return custom data mapper runtime keys
+
+        This base method returns @ref nothing; reimplment in child classes to return a value
+    */
+    *hash<string, hash<MapperRuntimeKeyInfo>> getMapperRuntimeKeys() {
+        # this method intentionally left empty
+    }
+
+    #! Ensures that the data provider supports read operations
+    /**
+        @throw INVALID-OPERATION the data provider does not support read operations
+    */
+    private checkRead() {
+        if (!supportsRead()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support reading",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports record creation
+    /**
+        @throw INVALID-OPERATION the data provider does not support record creation
+    */
+    private checkCreate() {
+        if (!supportsCreate()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record creation",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports record upserts
+    /**
+        @throw INVALID-OPERATION the data provider does not support upsert operations
+    */
+    private checkUpsert() {
+        if (!supportsUpsert()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record upserts",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports record upserts
+    /**
+        @throw INVALID-OPERATION the data provider does not support record updating
+    */
+    private checkUpdate() {
+        if (!supportsUpdate()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record updating",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports record deletion
+    /**
+        @throw INVALID-OPERATION the data provider does not support record deletion
+    */
+    private checkDelete() {
+        if (!supportsDelete()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record deletion",
+                getName(), self.className());
+        }
+    }
+
+    #! validates create options
+    /** @throw CREATE-OPTION-ERROR invalid or unsupported create option
+    */
+    private *hash<auto> validateCreateOptions(*hash<auto> create_options) {
+        return checkOptions("CREATE-OPTION-ERROR", getCreateOptions(), create_options);
+    }
+
+    #! validates upsert options
+    /** @throw UPSERT-OPTION-ERROR invalid or unsupported upsert option
+    */
+    private *hash<auto> validateUpsertOptions(*hash<auto> upsert_options) {
+        return checkOptions("UPSERT-OPTION-ERROR", getUpsertOptions(), upsert_options);
+    }
+
+    #! validates search options
+    /** @throw SEARCH-OPTION-ERROR invalid or unsupported search option
+    */
+    private *hash<auto> validateSearchOptions(*hash<auto> search_options) {
+        return checkOptions("SEARCH-OPTION-ERROR", getSearchOptions(), search_options);
+    }
+
+    #! processes options passed to the constructor
+    private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
+        self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options);
+    }
+
+    #! verifies options according to the option
+    private *hash<auto> checkOptions(string err, *hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
+        if (!option_desc && options) {
+            error(err, "invalid options: %y; no options are supported",
+                keys options);
+        }
+        if (*list<string> invalid_keys = keys (options - (keys option_desc))) {
+            error(err, "invalid options: %y; supported options: %y", invalid_keys, keys option_desc);
+        }
+        # check types and required keys
+        foreach hash<auto> i in (option_desc.pairIterator()) {
+            bool present = options.hasKey(i.key);
+            if (i.value.required && !present) {
+                error(err, "missing required option %y", i.key);
+            }
+            if (!present) {
+                continue;
+            }
+            # process value
+            bool ok;
+            string err;
+            foreach Type type in (i.value.type) {
+                try {
+                    options{i.key} = type.acceptsValue(options{i.key});
+                    ok = True;
+                    break;
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err == "RUNTIME-TYPE-ERROR") {
+                        err = sprintf("option %y of type %y cannot be assigned a value of type %y: %s: %s", i.key,
+                            type.getName(), options{i.key}.type(), ex.err, ex.desc);
+                        continue;
+                    }
+                    rethrow;
+                }
+            }
+            if (!ok) {
+                if (err) {
+                    error("RUNTIME-TYPE-ERROR", err);
+                }
+                error("RUNTIME-TYPE-ERROR", "no type information available for option %y", i.key);
+            }
+        }
+        return options;
+    }
+
+    #! processes search or set values to convert types if necessary
+    /** @param h the hash of field values to process
+
+        @return processed field values, all non-hash values of \a h are processed with the field's type to ensure
+        that the values are valid for the comparison or set operation; hash values are assumed to be provider-
+        specific comparison or set operations and should be processed by the provider-specific method
+    */
+    private *hash<auto> processFieldValues(*hash<auto> h) {
+        if (!h) {
+            return;
+        }
+        *hash<string, AbstractDataField> rec = getRecordType();
+        hash<auto> rv;
+        foreach hash<auto> i in (h.pairIterator()) {
+            if (!rec{i.key}) {
+                error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", i.key, keys rec);
+            }
+            # we assume a hash is a provider-specific search option
+            if (i.value.typeCode() == NT_HASH) {
+                rv{i.key} = i.value;
+                continue;
+            }
+            rv{i.key} = rec{i.key}.acceptsValue(i.value);
+        }
+        return rv;
+    }
+
+    #! thrown an exception
+    private error(string err, string fmt) {
+        string desc_name;
+        # the getName() method cannot be run in the constructor before the object has been created and the name set
+        try {
+            desc_name = sprintf("%y (%y)", getName(), self.className());
+        } catch (hash<ExceptionInfo> ex) {
+            # this block interntioanlly left blank
+        }
+        if (!desc_name) {
+            desc_name = sprintf("class %y", self.className());
+        }
+        throw err, sprintf("data provider %s: %s", desc_name, vsprintf(fmt, argv));
+    }
+
+    #! Returns the first record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @note This default method returns immediately as soon as the first matching record is found
+    */
+    private *hash<auto> searchFirstRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
+        if (i.next()) {
+            return i.getValue();
+        }
+    }
+
+    #! Returns a single record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
+
+        @note This default methods searches the entire data set for a matching record
+    */
+    private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
+        if (records.lsize() > 1) {
+            error("MULTIPLE-RECORDS-ERROR", "%d records found for search: %y", records.size(), where_cond);
+        }
+        return records[0];
+    }
+
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+
+        This base class method returns @ref nothing
+    */
+    private *list<string> getChildProviderNamesImpl() {
+        # this method intentionally left empty
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+    */
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        # this method intentionally left empty
+    }
+
+    #! Returns the description of the record type, if any
+    *hash<string, AbstractDataField> getRecordType() {
+        # this method intentionally left blank
+    }
+
+    #! Returns options that can be used for searching
+    /** @return a hash of options that can be used for searching; keys are search option names, values describe the
+        search option; if @ref nothing is returned, then the provider does not support any search options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getSearchOptions() {
+        return getStaticInfoImpl().search_options;
+    }
+
+    #! Returns options that can be used for creating records
+    /** @return a hash of options that can be used for creating records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any creation options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getCreateOptions() {
+        return getStaticInfoImpl().create_options;
+    }
+
+    #! Returns options that can be used for upserting records
+    /** @return a hash of options that can be used for upserting records; keys are option names, values describe the
+        option; if @ref nothing is returned, then the provider does not support any upsert options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getUpsertOptions() {
+        return getStaticInfoImpl().upsert_options;
+    }
+
+    #! Returns @ref True if the data provider supports reading
+    /**
+    */
+    bool supportsRead() {
+        return getStaticInfoImpl().supports_read;
+    }
+
+    #! Returns @ref True if the data provider supports the record creation API
+    /**
+    */
+    bool supportsCreate() {
+        return getStaticInfoImpl().supports_create;
+    }
+
+    #! Returns @ref True if the data provider supports the record update API
+    /**
+    */
+    bool supportsUpdate() {
+        return getStaticInfoImpl().supports_update;
+    }
+
+    #! Returns @ref True if the data provider supports the record upsert API
+    /**
+    */
+    bool supportsUpsert() {
+        return getStaticInfoImpl().supports_upsert;
+    }
+
+    #! Returns @ref True if the data provider supports the record deletion API
+    /**
+    */
+    bool supportsDelete() {
+        return getStaticInfoImpl().supports_delete;
+    }
+
+    #! Returns @ref True if the data provider supports the record search API natively
+    /**
+    */
+    bool supportsNativeSearch() {
+        return getStaticInfoImpl().supports_native_search;
+    }
+
+    #! Returns True if the data provider supports bulk creation output
+    /**
+    */
+    bool supportsBulkCreate() {
+        return getStaticInfoImpl().supports_bulk_create;
+    }
+
+    #! Returns True if the data provider supports bulk upserts
+    /**
+    */
+    bool supportsBulkUpsert() {
+        return getStaticInfoImpl().supports_bulk_upsert;
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Creates the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param create_options the create options after processing by validateCreateOptions()
+
+        @return the data written to the data provider
+    */
+    private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Upserts the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param upsert_options the create options after processing by validateUpsertOptions()
+
+        @return see @ref db_provider_upsert_results for possible values
+    */
+    private string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be update
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records updated
+    */
+    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records deleted
+    */
+    private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        # this should never be called; if the data provider supports the operation, then this method must be
+        # overridden in the child class
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+            getName(), self.className());
+    }
+
+    #! Returns the data provider name
+    abstract string getName();
+
+    #! Returns data provider static info
+    private abstract hash<DataProviderInfo> getStaticInfoImpl();
+}
+}

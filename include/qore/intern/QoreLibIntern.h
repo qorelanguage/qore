@@ -963,4 +963,6 @@ DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
 
 DLLLOCAL void qore_delete_module_options();
 
+DLLLOCAL const QoreTypeInfo* qore_get_type_from_string_intern(const char* str);
+
 #endif

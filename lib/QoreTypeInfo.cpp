@@ -356,6 +356,13 @@ const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
     }
 
     {
+        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+        if (qc) {
+            return qc->getOrNothingTypeInfo();
+        }
+    }
+
+    {
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
         if (ti)
             return qore_get_complex_hash_or_nothing_type(ti);
@@ -600,6 +607,22 @@ static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTy
         res = QTI_AMBIGUOUS;
     }
     return res;
+}
+
+const char* QoreTypeSpec::getName() const {
+    return QoreTypeInfo::getName(getTypeInfo());
+}
+
+const char* QoreTypeSpec::getSimpleName() const {
+    switch (typespec) {
+        case QTS_CLASS:
+            return u.qc->getName();
+
+        default:
+            return QoreTypeInfo::getName(getTypeInfo());
+    }
+    assert(false);
+    return nullptr;
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {

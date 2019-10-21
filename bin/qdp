@@ -1,0 +1,285 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# @file qdp example program for the DataProvider module
+
+/*  Copyright 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ConnectionProvider
+%requires DatasourceProvider
+%requires DbDataProvider
+%requires Util
+
+%exec-class QdpCmd
+
+class QdpCmd {
+    public {
+        #! program options
+        const Opts = {
+            "listconnections": "c,list-connections",
+            "listfactories": "f,list-factories",
+            "listtypes": "t,list-types",
+            "verbose": "v,verbose:i+",
+            "help": "h,help",
+        };
+
+        #! commands
+        const Cmds = {
+            "info": \QdpCmd::getInfo(),
+            "list": \QdpCmd::listChildren(),
+            "record": \QdpCmd::getRecord(),
+            "search": \QdpCmd::search(),
+            "update": \QdpCmd::update(),
+            "create": \QdpCmd::create(),
+            "upsert": \QdpCmd::upsert(),
+            "delete": \QdpCmd::del(),
+        };
+    }
+
+    constructor() {
+        GetOpt g(Opts);
+        our hash<auto> opts = g.parse3(\ARGV);
+        if (opts.listconnections) {
+            listConnections();
+        }
+        if (opts.listfactories) {
+            listFactories();
+        }
+        if (opts.listtypes) {
+            listTypes();
+        }
+        if (opts.help || !ARGV[0]) {
+            usage();
+        }
+
+        AbstractDataProvider provider;
+        {
+            # first extract any data provider options
+            string name = shift ARGV;
+            # get expression in curly brackets, if any, respecting balanced brackets
+            *string opts = (name =~ x/({(?:(?>[^{}]*)|(?0))*})/)[0];
+            if (opts) {
+                name = replace(name, opts, "");
+            }
+            list<string> path = name.split("/");
+            provider = getDataProvider((shift path) + opts);
+            map provider = provider.getChildProvider($1), path;
+        }
+
+        string cmd = shift ARGV ?? "list";
+        *code action = Cmds{cmd};
+        if (!action) {
+            error("unknown action %y; known actions: %y", cmd, keys Cmds);
+        }
+        try {
+            action(provider);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "INVALID-OPERATION") {
+                error("%s: %s", ex.err, ex.desc);
+            } else {
+                rethrow;
+            }
+        }
+    }
+
+    static getInfo(AbstractDataProvider provider) {
+        printf("%N\n", provider.getInfo());
+    }
+
+    static listChildren(AbstractDataProvider provider) {
+        printf("%y\n", provider.getChildProviderNames());
+    }
+
+    static getRecord(AbstractDataProvider provider) {
+        *hash<string, AbstractDataField> rec = provider.getRecordType();
+        if (opts.verbose > 2) {
+            printf("%N\n", rec);
+        } else if (opts.verbose > 1) {
+            map printf("%y:\n\ttype=%y\n\tdesc=%y\n%s", $1.key, $1.value.getTypeName(),
+                $1.value.getDescription() ?? "n/a",
+                (auto val = $1.value.getDefaultValue()) ? sprintf("\tdefault_value=%y\n", val) : NOTHING),
+                rec.pairIterator();
+        } else if (opts.verbose) {
+            map printf("%y: type=%y desc=%y%s\n", $1.key, $1.value.getTypeName(), $1.value.getDescription() ?? "n/a",
+                (auto val = $1.value.getDefaultValue()) ? sprintf(" default_value=%y", val) : NOTHING), rec.pairIterator();
+        } else {
+            printf("%s\n", (foldl $1 + " " + $2, (map sprintf("%y", $1), keys rec)));
+        }
+    }
+
+    static search(AbstractDataProvider provider) {
+        *hash<auto> where_cond = QdpCmd::getHash("search");
+        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond);
+        map printf("%y\n", $1), i;
+    }
+
+    static update(AbstractDataProvider provider) {
+        hash<auto> set = QdpCmd::getHash("update 'set'", True);
+        hash<auto> where_cond = QdpCmd::getHash("update 'where'", True);
+        int rec_count = provider.updateRecords(set, where_cond);
+        printf("%d record%s updated\n", rec_count, rec_count == 1 ? "" : "s");
+    }
+
+    static create(AbstractDataProvider provider) {
+        *hash<auto> rec = QdpCmd::getHash("create");
+        provider.createRecord(rec);
+        printf("record successfully created\n");
+    }
+
+    static upsert(AbstractDataProvider provider) {
+        *hash<auto> rec = QdpCmd::getHash("upsert");
+        string result = provider.upsertRecord(rec);
+        printf("upsert result: %y\n", result);
+    }
+
+    static del(AbstractDataProvider provider) {
+        *hash<auto> where_cond = QdpCmd::getHash("delete");
+        int rec_count = provider.deleteRecords(where_cond);
+        printf("%d record%s deleted\n", rec_count, rec_count == 1 ? "" : "s");
+    }
+
+    static *hash<auto> getHash(string action, *bool required) {
+        auto arg = shift ARGV;
+        if (exists arg) {
+            arg = parse_to_qore_value(arg);
+            if (exists arg && arg.typeCode() != NT_HASH) {
+                QdpCmd::error("invalid %s argument %y; expecting type \"hash\"; got type %y instead", action, arg, arg.type());
+            }
+        }
+        if (required && !arg) {
+            QdpCmd::error("missing required %s argument; expecting type \"hash\"", action);
+        }
+        return arg;
+    }
+
+    private AbstractDataProvider getDataProvider(string name) {
+        # see if there are options in the name
+        {
+            if (name =~ /{([^}]*)}/) {
+                # load known data provider factories
+                DataProvider::registerKnownFactories();
+                return DataProvider::getFactoryObjectFromString(name);
+            }
+        }
+
+        # try to get a provider from a connection
+        AbstractConnection conn;
+        try {
+            conn = get_connection(name);
+            return conn.getDataProvider();
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "CONNECTION-ERROR" && ex.err != "DATA-PROVIDER-ERROR") {
+                rethrow;
+            }
+        }
+
+        # try to get a provider from a DB connection
+        try {
+            return new DbDataProvider(new Datasource(get_ds_string(name)));
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "DATASOURCE-ERROR") {
+                rethrow;
+            }
+        }
+
+        if (conn) {
+            error("connection %y (%s) exists but does not support the data provider API", name, conn.getInfo().url);
+        }
+        error("no connection or datasource connection %y exists", name);
+    }
+
+    static listConnections() {
+        # get connections
+        *hash<string, string> h = map {$1.key: $1.value.url}, get_connection_hash(True).pairIterator();
+        # add datasource connections
+        h += get_ds_hash(True);
+        if (!h) {
+            printf("no connections are present\n");
+        } else {
+            if (opts.verbose) {
+                map printf("%s: %s\n", $1.key, $1.value), h.pairIterator();
+            } else {
+                map printf("%s\n", $1), keys h;
+            }
+        }
+        exit(0);
+    }
+
+    static listFactories() {
+        *list<string> flist = DataProvider::listFactories();
+        if (opts.verbose) {
+            map printf("%s: %N\n", $1, DataProvider::getFactory($1).getInfoAsData()), flist;
+        } else {
+            printf("%y\n", flist);
+        }
+        exit(0);
+    }
+
+    static listTypes() {
+        *list<string> tlist = DataProvider::listTypes();
+        if (opts.verbose) {
+            map printf("%s: %N\n", $1, DataProvider::getType($1).getInfo()), tlist;
+        } else {
+            printf("%y\n", tlist);
+        }
+        exit(0);
+    }
+
+    static usage() {
+        printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
+  <cmd> = info|list|record|search|update
+    info
+       show information about the data provider
+    list
+       list child data providers
+    record
+        show the record format (more -v's = more info)
+    search [search criteria] (ex: search name=\"my name\")
+        search for record(s) matching the given criteria
+    update <set criteria> <match criteria> (ex update name=other id=123)
+        update the given records with the given information
+    create <new record> (ex create id=123,name=\"my name\")
+        create a new record
+    upsert <record> (ex update id=123,name=\"my name\")
+        upserts the given record
+    delete <match criteria>
+        deletes record matching the given criteria
+
+ -c,--list-connections     list known connections and exit
+ -f,--list-factories       list known data provider factories and exit
+ -t,--list-types           list known data provider types and exit
+ -v,--verbose[=ARG]        show more output
+ -h,--help                 this help text
+", get_script_name());
+        exit(1);
+    }
+
+    static error(string fmt) {
+        stderr.printf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+        exit(1);
+    }
+}

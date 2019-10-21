@@ -23,9 +23,11 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.4
 
 %requires Util
+
+%requires(reexport) DataProvider
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -34,11 +36,15 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.6.2";
+    version = "1.7";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new CsvReadDataProviderFactory());
+    };
 }
 
 /* see release notes below for version history
@@ -243,6 +249,10 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_7 Version 1.7
+    - added data provider API support
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection csvutil_v1_6_2 Version 1.6.2
     - implemented the \c number_format option to allow numbers with alternative decimal separators to be parsed

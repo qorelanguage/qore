@@ -8,7 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
@@ -18,7 +18,7 @@
 const SELECT_HASH = (
     "columns": ("a", "b"),
     "where": ("a": 1),
-    );
+);
 
 const MAPV = (
     "mapped_a": "a",
@@ -26,17 +26,17 @@ const MAPV = (
     "created_c": ("code": *string sub (*any v, hash<auto> rec) { return sprintf("%n - %n", rec.a, rec.b); }),
     "constant_d": ("constant" : 1),
     "runtime": ("runtime": "rt"),
-    );
+);
 
 const INPUT = (
     ("a": 1, "b": 1),
     ("a": 1, "b": 2),
-    );
+);
 
 const OUTPUT = (
     ("mapped_a": 1, "mapped_b": 1, "created_c": "1 - 1", "constant_d": 1, "runtime": "rtv"),
     ("mapped_a": 1, "mapped_b": 2, "created_c": "1 - 2", "constant_d": 1, "runtime": "rtv"),
-    );
+);
 
 # just return INPUTs as it would be returned by SQLStatement
 class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
@@ -50,7 +50,7 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
 
     bool valid() { return True; }
 
-    any getValue() {
+    hash<auto> getValue() {
         hash<auto> ret = INPUT[m_ix];
         m_ix++;
         return ret;
@@ -90,7 +90,8 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
     hash<auto> getOutput() {}
     getSQL() {}
 
-    *hash<auto> describe() {
+    hash<auto> describe() {
+        return {};
     }
 
     nothing execArgs(softlist<auto> vargs) { throw "X"; }
@@ -185,8 +186,9 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh) {}
     nothing copyImpl(AbstractTable old) {}
     nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
+    AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options) {}
+    AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {}
 }
-
 
 class Main inherits QUnit::DependencyInjectedTest {
     constructor() : DependencyInjectedTest("SqlStatementOutboundMapper", "1.0") {

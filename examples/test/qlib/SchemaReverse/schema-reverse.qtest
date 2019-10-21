@@ -8,7 +8,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Qorize.qm
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/Schema.qm
 %requires ../../../../qlib/SchemaReverse.qm
 

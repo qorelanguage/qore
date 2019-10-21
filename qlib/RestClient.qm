@@ -204,16 +204,16 @@ public namespace RestClient {
                 "url": MimeTypeFormUrlEncoded,
                 "text": MimeTypeText,
                 "bin": MimeTypeOctetStream,
-                };
+            };
 
 %ifndef NoYaml
-            const DeserializeYaml = (
+            const DeserializeYaml = {
                 "code": "yaml",
                 "in": \parse_yaml(),
-                );
+            };
 %endif
 %ifndef NoXml
-            const DeserializeXml = (
+            const DeserializeXml = {
                 "code": "xml",
                 "arg": True,
                 "in": hash<auto> sub (string xml, reference<string> type) {
@@ -225,11 +225,11 @@ public namespace RestClient {
                             on_success type = "rawxml";
                             return parse_xml(xml);
                         } catch () {
+                            rethrow;
                         }
-                        rethrow;
                     }
                 },
-                );
+            };
 %endif
 
             #! Accept header list
@@ -246,7 +246,7 @@ public namespace RestClient {
                 MimeTypeFormUrlEncoded,
                 MimeTypeText,
                 MimeTypeOctetStream,
-                );
+            );
 
             #! Accept header value
             const Accept = AcceptList.join(",");

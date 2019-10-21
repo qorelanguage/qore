@@ -7,14 +7,12 @@
 %strict-args
 
 %requires ../../../../qlib/Util.qm
-%requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/OracleSqlUtil.qm
-%requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module oracle
 %define NoOracle
 %endtry
@@ -30,13 +28,13 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     private {
         const GenericOptions = (
             "replace": True,
-            );
+        );
 
         const IndexOptions = {};
 
         const ColumnOptions = (
             "character_semantics": True,
-            );
+        );
 
         const T_OracleTest = (
             "columns": (
@@ -58,9 +56,6 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 # SqlUtil: schema alignment: default values can be complex statement instead of simple value only #1428
                 "def_test1" : c_date(C_NOT_NULL) + ("driver" : ("oracle" : ("default_value" : "to_date('1.1.2000', 'dd.mm.yyyy')", "default_value_native" : True))),
                 "def_test2" : c_number(C_NOT_NULL) + ( "default_value" : 0 ),
-                # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
-                # actually it tests it for any named type
-                "location" : ( "native_type" : "sdo_geometry", ),
                 # issue #1684: sqlutil: schema alignment skips column with name "driver"
                 "driver" : c_number(),
                 # issue #3400: column names with reserved words are not quoted
@@ -78,29 +73,29 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         # BYTE semantics is forced here because global character_semantics = True
         const T_OracleTestSemantics = (
             "columns" : (
-                    "c_char" : c_varchar(1) + ( "character_semantics" : True ),
-                    "c_byte" : c_varchar(1) + ( "character_semantics" : False ),
-                ),
-            );
+                "c_char" : c_varchar(1) + ( "character_semantics" : True ),
+                "c_byte" : c_varchar(1) + ( "character_semantics" : False ),
+            ),
+        );
 
         const Tables = (
             "oracle_test": T_OracleTest,
             # these tables are real tables without CustomColumns, so these should not be enhanced
             #"oracle_test_semantics" : T_OracleTestSemantics,
-            );
+        );
 
         const Sequences = (
             "oracle_test_seq": {},
-            );
+        );
 
         const Functions = (
             "oracle_test_func" : "oracle_test_func(in_foo in number) return number is begin return in_foo; end;",
-            );
+        );
 
         const Types = (
             "oracle_test_object" : "object ( id number )",
             "oracle_test_coll" : "table of oracle_test_object",
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -115,10 +110,18 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash getTablesImpl() {
-        return doTables(Tables, OracleTest::CustomColumns) + (
-                    "oracle_test_semantics" : T_OracleTestSemantics,
-                    "test_analytic_functions" : T_TestAnalyticFunctions,
-                );
+        hash<auto> tables = Tables;
+
+        if (hasSdoGeometry(ds)) {
+            # SDO_GEOMETRY test: OracleSqlUtil does not support spatial data types #1465
+            # actually it tests it for any named type
+            tables.oracle_test.columns.location = {"native_type": "sdo_geometry"};
+        }
+
+        return doTables(tables, OracleTest::CustomColumns) + (
+            "oracle_test_semantics" : T_OracleTestSemantics,
+            "test_analytic_functions" : T_TestAnalyticFunctions,
+        );
     }
 
     private *hash getSequencesImpl() {
@@ -143,6 +146,11 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
     private *hash getTypesImpl() {
         return Types;
+    }
+
+    static bool hasSdoGeometry(AbstractDatasource ds) {
+        return ds.select("select object_name from all_objects where object_type = %v and object_name = %v",
+            "TYPE", "SDO_GEOMETRY").object_name[0].val();
     }
 }
 
@@ -355,7 +363,10 @@ class OracleTest inherits SqlTestBase {
             testSkip("no DB connection");
 
         AbstractDatasource ds = table.getDatasource();
-        hash c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "LOCATION");
+        if (!OracleTestSchema::hasSdoGeometry(ds)) {
+            testSkip("no spacial types in DB");
+        }
+        hash<auto> c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "LOCATION");
         assertEq("SDO_GEOMETRY", c.data_type);
     }
 
@@ -440,20 +451,16 @@ class OracleTest inherits SqlTestBase {
         on_exit {
             try {
                 ds.exec("drop synonym oracle_test_syn3");
-            }
-            catch (hash<auto> ex) {}
+            } catch (hash<auto> ex) {}
             try {
                 ds.exec("drop synonym oracle_test_syn2");
-            }
-            catch (hash<auto> ex) {}
+            } catch (hash<auto> ex) {}
             try {
                 ds.exec("drop synonym oracle_test_syn1");
-            }
-            catch (hash<auto> ex) {}
+            } catch (hash<auto> ex) {}
             try {
                 ds.exec("drop table test_oracle_syn");
-            }
-            catch (hash<auto> ex) {}
+            } catch (hash<auto> ex) {}
         }
 
         ds.exec("create table test_oracle_syn (dummy varchar2(1))");

@@ -6,11 +6,10 @@
 %require-types
 %strict-args
 
-%requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/MysqlSqlUtil.qm
-%requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
 
@@ -225,7 +224,7 @@ class MysqlTest inherits SqlTestBase {
 
     private testCreateTableWithAutoIncrementNegative() {
         MysqlTestAutoIncrementNegativeSchema schema(table.getDatasource());
-        assertThrows("MYSQL-COLUMN-ERROR", 
+        assertThrows("MYSQL-COLUMN-ERROR",
                      "AUTO_INCREMENT can be used only with a subset of types",
                      sub() { schema.align(False, m_options.verbose); });
     }

@@ -1,0 +1,160 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore QoreDataType class definition
+
+/** QoreDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+#! strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires reflection
+
+#! contains all public definitions in the DataProvider module
+public namespace DataProvider {
+#! describes a data type based on a %Qore data type
+/** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
+    inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
+*/
+public class QoreDataType inherits AbstractDataProviderType {
+    private {
+        #! the Qore type
+        Type type;
+
+        #! flag for soft types
+        bool soft_type;
+
+        #! flag for "or nothing" types
+        bool or_nothing_type;
+
+        #! hash of base types where no translations are performed; keys are type codes, not names
+        /** @note
+            - this hash wil not contain the primary type code for the type if such values might undergo translation in
+              acceptsValue()
+            - keys are %Qore type codes converted to integers, not type names
+        */
+        hash<string, bool> base_type_hash;
+
+        #! hash of base types accepted by this type; keys are type names
+        *hash<string, bool> accept_type_hash;
+
+        #! hash of base types returned by this type; keys are type names
+        *hash<string, bool> return_type_hash;
+
+        #! hash of type codes accepted by the base type but not accepted by this type: code -> True
+        hash<string, bool> blacklist_type_hash;
+
+        #! supported options
+        const SupportedOptions = {
+            "qore.no_null": <DataProviderTypeOptionInfo>{
+                "type": Type::Boolean,
+                "desc": "if True then NULL is not supported on input if NOTHING is also not accepted",
+            },
+        };
+    }
+
+    #! creates the type
+    constructor(Type type, *hash<auto> options) {
+        self.type = type;
+        base_type_hash{type.getBaseTypeCode()} = True;
+        if (type.isOrNothingType()) {
+            base_type_hash{NT_NOTHING} = True;
+        }
+        accept_type_hash = type.getAcceptTypeHash();
+        return_type_hash = type.getReturnTypeHash();
+
+        soft_type = (type.getName() =~ /^.?soft/);
+        or_nothing_type = type.isOrNothingType();
+
+        # set options after setting base type info
+        if (options) {
+            setOptions(options);
+        }
+
+        if (self.options."qore.no_null") {
+            accept_type_hash -= Type::NullType;
+            blacklist_type_hash{NT_NULL} = True;
+        }
+    }
+
+    #! returns the type name
+    string getName() {
+        return type.getName();
+    }
+
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        return or_nothing_type ? NOTHING : SupportedOptions;
+    }
+
+    #! returns the base type for the type, if any
+    *Type getValueType() {
+        return type;
+    }
+
+    #! returns a hash of native base type code where no translations are performed; keys are type codes, not names
+    *hash<string, bool> getDirectTypeHash() {
+        return base_type_hash;
+    }
+
+    #! returns the subtype (for lists or hashes) if there is only one
+    *AbstractDataProviderType getElementType() {
+        if (*Type elementType = type.getElementType()) {
+            return AbstractDataProviderType::get(elementType);
+        }
+    }
+
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        if (blacklist_type_hash && blacklist_type_hash{value.typeCode()}) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
+                value.type());
+        }
+        return type.acceptsValue(value);
+    }
+
+    #! returns the fields of the data structure; if any
+    *hash<string, AbstractDataField> getFields() {
+        # this method intentionally left blank
+    }
+
+    #! returns a hash of base types accepted by this type; keys are type names
+    hash<string, bool> getAcceptTypeHash() {
+        return accept_type_hash;
+    }
+
+    #! returns a hash of base types returned by this type; keys are type names
+    hash<string, bool> getReturnTypeHash() {
+        return return_type_hash;
+    }
+}
+}

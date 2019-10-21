@@ -14,8 +14,27 @@
       (<a href="https://github.com/qorelanguage/qore/issues/3614">issue 3614</a>)
 
     @subsection qore_094_new_features New Features in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module:
+      - supports arbitrary data inputs and outputs with introspection and strong type support
+    - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module"
+      - adds a data provider API for databases
     - <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module:
       - added this new module to support polling files from a remote directory with the FTP protocol
+    - new constants:
+      - @ref Qore::NT_ALL "NT_ALL"
+    - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
+      - added \c Type::isAssignableFrom() methods
+      - added a working \c Type::constructor() method
+      - added \c Type::getAcceptTypeHash()
+      - added \c Type::getBaseType()
+      - added \c Type::getBaseTypeCode()
+      - added \c Type::getElementType()
+      - added \c Type::getReturnTypeHash()
+      - added \c Type::getTypedHash()
+      - added \c Type::hasType()
+      - added \c Type::isCompatible()
+      - added \c Type::isOrNothingType()
+      - added \c Type::isTypedHash()
 
     @section qore_0932 Qore 0.9.3.2
 

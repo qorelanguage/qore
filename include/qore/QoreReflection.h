@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -323,7 +323,67 @@ DLLEXPORT const char* qore_type_get_name(const QoreTypeInfo* ti);
 DLLEXPORT bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
 
 //! returns true if ti2's return type is compatible with ti1's; either argument may be nullptr meaning no type restrictions
-DLLEXPORT bool qore_type_is_output_compatiblee(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+DLLEXPORT bool qore_type_is_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+/** @param ti1 the type to check assignability to
+    @param ti2 the type to see if it can be assigned to \a ti1
+
+    @returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+
+    either argument may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+/** @param ti1 the type to check assignability to
+    @param ti2 the type to see if it can be assigned to \a ti1
+    @param may_not_match an output variable, if true then the assignment is not guaranteed to succeed and may fail at
+    runtime
+
+    @returns true if ti2's return type is compatible with ti1 input (i.e. ti1 is assignable from ti2)
+
+    either argument may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match);
+
+//! returns true if the given type can be assigned from the given value
+/** @param t the type to check assignability to
+    @param value the value to check if it can be assigned to \a t
+
+    @returns a type match code for the assignability
+
+    The type argument \a t may be nullptr meaning no type restrictions
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT int qore_type_is_assignable_from(const QoreTypeInfo* t, QoreValue value);
+
+//! processes the given value by the given type and returns the result; a Qore-language exception is thrown if the value is not assignable to the type
+/**
+    @since %Qore 0.9.4
+*/
+DLLEXPORT QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, ExceptionSink* xsink);
+
+//! returns the base type code for the type or NT_ALL for those that don't have types
+/**
+    @since %Qore 0.9.4
+*/
+DLLEXPORT qore_type_t qore_type_get_base_type(const QoreTypeInfo* t);
+
+//! returns a hash of base types accepted by the type
+/** @since %Qore 0.9.4
+*/
+DLLEXPORT QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t);
+
+//! returns a hash of base types returned by the type
+/** @since %Qore 0.9.4
+*/
+DLLEXPORT QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t);
 
 //! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);
@@ -333,5 +393,8 @@ DLLEXPORT bool qore_type_has_default_value(const QoreTypeInfo* ti);
 
 //! returns the default value of the type (if any); the caller owns any reference returned; the argument may be nullptr meaning no type restrictions
 DLLEXPORT QoreValue qore_type_get_default_value(const QoreTypeInfo* ti);
+
+//! returns true if the types are compatible with inputs and outputs
+DLLEXPORT bool qore_type_is_input_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
 
 #endif

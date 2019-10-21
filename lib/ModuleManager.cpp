@@ -60,7 +60,7 @@
 #include <sys/types.h>
 #include <vector>
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 22}};
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 23}, {0, 22}};
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols
@@ -311,7 +311,9 @@ static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
 }
 
 void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const {
-    QoreModuleContextHelper qmc(name.getBuffer(), pgm, xsink);
+    QoreModuleContextHelper qmc(name.c_str(), pgm, xsink);
+    // issue #3592: must add feature first
+    pgm->addFeature(name.c_str());
 
     // make sure getProgram() returns this Program when module_ns_init() is called
     QoreProgramContextHelper pch(pgm);
@@ -324,12 +326,12 @@ void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink)
     if (qmc.hasError()) {
         // rollback all module changes
         qmc.rollback();
+        qore_program_private::get(*pgm)->removeFeature(name.c_str());
         return;
     }
 
     // commit all module changes
     qmc.commit();
-    pgm->addFeature(name.getBuffer());
 }
 
 QoreHashNode* QoreBuiltinModule::getHash(bool with_filename) const {
@@ -361,19 +363,22 @@ QoreUserModule::~QoreUserModule() {
 }
 
 void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) const {
-    //printd(5, "QoreUserModule::addToProgram() mod '%s': tpgm %p po: %llx pgm dom: %llx\n", name.c_str(), tpgm, tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
+    //printd(5, "QoreUserModule::addToProgramImpl() mod '%s': tpgm %p po: %llx pgm dom: %llx\n", name.c_str(), tpgm, tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
     // first check the module's functional domain
     int64 dom = qore_program_private::getDomain(*pgm);
     if (tpgm->getParseOptions64() & dom) {
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s' implements functionality restricted in the Program object trying to import the module (%xd)", name.getBuffer(), tpgm->getParseOptions64() & dom);
         return;
     }
+    // issue #3592: must add feature first
+    qore_program_private::addUserFeature(*tpgm, name.c_str());
 
-    QoreModuleContextHelper qmc(name.getBuffer(), tpgm, xsink);
+    QoreModuleContextHelper qmc(name.c_str(), tpgm, xsink);
     ProgramThreadCountContextHelper ptcch(&xsink, tpgm, false);
     if (xsink) {
         // rollback all module changes
         qmc.rollback();
+        qore_program_private::get(*tpgm)->removeUserFeature(name.c_str());
         return;
     }
 
@@ -383,12 +388,12 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
     if (qmc.hasError()) {
         // rollback all module changes
         qmc.rollback();
+        qore_program_private::get(*tpgm)->removeUserFeature(name.c_str());
         return;
     }
 
     // commit all module changes
     qore_root_ns_private::copyMergeCommittedNamespace(*rns, *(pgm->getRootNS()));
-    qore_program_private::addUserFeature(*tpgm, name.getBuffer());
 
     // add domain to current Program's domain
     qore_program_private::runtimeAddDomain(*tpgm, dom);
@@ -958,6 +963,9 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     } else {
         mpgm = new QoreProgram(parseOptions);
     }
+    // issue #3592: must add feature first
+    qore_program_private::addUserFeature(*mpgm, feature);
+
     std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(td, modulePath.c_str(), feature, mpgm,
         load_opt, warning_mask));
 
@@ -1202,6 +1210,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
     } else {
         pgm = new QoreProgram(po);
     }
+    // issue #3592: add feature to module container program immediately
+    qore_program_private::get(*pgm)->addUserFeature(feature);
 
     //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
 
@@ -1250,6 +1260,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
     } else {
         pgm = new QoreProgram(po);
     }
+    // issue #3592: add feature to module container program immediately
+    qore_program_private::get(*pgm)->addUserFeature(feature);
 
     std::unique_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
 

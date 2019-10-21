@@ -34,16 +34,19 @@
 # do not use "$" for vars
 %new-style
 
+# common definitions
+%requires(reexport) MapperUtil
+
+# supports using the DataProvider module to describe input and output records
+%requires(reexport) DataProvider
+
 module Mapper {
-    version = "1.4.1";
+    version = "1.5";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
-
-/*  Version History
-*/
 
 /** @mainpage Mapper Module
 
@@ -158,36 +161,94 @@ list: (2 elements)
     @section mapperoptions Mapper Options
 
     Mapper objects accept the following options in the option hash:
-    - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then field names with \c "." characters do not imply a structured internal element lookup; in this case input field names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups (see @ref mapperkeys \c "struct" docs for more info)
-    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then output field names with \c "." characters do not imply a structured/hash output element; in this case output field names may have \c "." characters in them
-    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format" value that overrides this global setting
-    - \c "encoding": the output character encoding; if not present then \c "UTF-8" is assumed
-    - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style arguments
-    - \c "input": an optional hash describing the input records where each key is a possible input field name (where dot notation indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
+    - \c "info_log": an optional info logging callback; must accept a string format specifier and sprintf()-style
+      arguments
+    - \c "input": this should be a description of the input fields with type
+      <tt>hash&lt;string, DataProvider::AbstractDataField&gt;</tt>, for backwards compatibility, this option also
+      accepts a hash describing the input fields where each key is a possible input field name (and where dot notation
+      indicates a multi-level hash) and each value is a hash describing the field with the following optional keys:
       - \c "desc": this gives the description of the input field
+      .
+      This option is mutually exclusive with the \a input_provider option
     - \c "input_log": an optional input data logging callback; must accept a hash giving the input data hash
-    - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
+    - \c "input_provider": gives the input provider with an
+      @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of input data and
+      also the data itself.  The use of this option enables the use of the
+      @ref Mapper::Mapper::getOutputIterator() "Mapper::getOutputIterator()" API.  This option is mutually exclusive
+      with the \a input option.
+    - \c "input_provider_search": the search options for the input provider; see the \a where_cond option of
+      @ref DataProvider::AbstractDataProvider::searchRecords() "AbstractDataProvider::searchRecords()" for more
+      information on this option
     - \c "name": the name of the mapper for use in logging and error strings
-    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number() for the format of this string; this is applied to all fields of type \c "number" unless the field has a \c "number_format" value that overrides this global setting
-    - \c "output": an optional hash describing the output data structure; each hash key is a output field name (where dot notation indicates a multi-level hash) and each value is an optional hash describing the output field taking an optional \c "desc" key and a subset of @ref mapperkeys "mapper field hash keys" as follows:
+    - \c "output": this should be a description of the output fields with type
+      <tt>hash&lt;string, DataProvider::AbstractDataField&gt;</tt>, for backwards compatibility, this option also
+      accepts a hash describing the output data structure where each hash key is a output field name (and where dot
+      notation indicates a multi-level hash) and each value is an optional hash describing the output field taking a
+      subset of @ref mapperkeys "mapper field hash keys" as follows:
       - \c "desc": a description of the output field
-      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data
+        is supplied
       - \c "maxlen": an integer giving the maximum length of a string field in bytes
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
-        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
-        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to be thrown when mapping); numeric values are left in their original types, any other type is converted to a @ref number_type "arbitrary-precision numeric" value
-        - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
+        - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be
+          thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
+        - \c "number": field accepts only numeric values (any non-numeric values on input will cause an exception to
+          be thrown when mapping); numeric values are left in their original types, any other type is converted to a
+          @ref number_type "arbitrary-precision numeric" value
+        - \c "string": field accepts string values; in this case any other value will be converted to a string in the
+          output
         - \c "hash": field accepts hash values
         - \c "any": field accepts any value
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+    - \c "output_provider": gives the output provider with an
+      @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
+      also location where the output data will be written.  If this option is set, then every mapped record will be
+      written to the output data provider automatically.  If the output provider supports transaction management,
+      @ref Mapper::Mapper::commit() "Mapper::commit()" and
+      @ref pper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
+      with the \a output option.
+    - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
+      @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called after all mapping is done to
+      flush the output buffer to the output provider at the end or
+      @ref Mapper::Mapper::discard() "Mapper::discard()" must be called to discard any data left in the
+      bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
+      and an error occurs causing the transaction to be rolled back)
+    - \c "output_provider_upsert": if upsert instead of creation APIs should be used with the output provider, if
+      \a output_provider_bulk is set, this indicates if the
+      @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will be a create
+      or upsert object
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
-    - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated if a \c "maxlen" attribute is set for the field
+    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+      any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated
+      if a \c "maxlen" attribute is set for the field
+
+    The following deprecated options are also accepted:
+    - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+      field names with \c "." characters do not imply a structured internal element lookup; in this case input field
+      names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups
+      (see @ref mapperkeys \c "struct" docs for more info)
+    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()")
+      then output field names with \c "." characters do not imply a structured/hash output element; in this case
+      output field names may have \c "." characters in them
+    - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the
+      format of this string; this is applied to all fields of type \c "date" unless the field has a \c "date_format"
+      value that overrides this global setting
+    - \c "encoding": the output character encoding; if not present then \c "UTF-8" is assumed
+    - \c "input_timezone": an optional string or integer (giving seconds east of UTC) giving the time zone for parsing
+      input data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
+    - \c "number_format": gives the global format for converting a string to a number; see @ref Qore::parse_number()
+      for the format of this string; this is applied to all fields of type \c "number" unless the field has a
+      \c "number_format" value that overrides this global setting
+    - \c "timezone": an optional string or integer (giving seconds east of UTC) giving the time zone definition for
+      output data (ex: \c "Europe/Prague"), if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
 
     @note
-    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
-    - if the \c "output" option is given, then only those defined fields can be referenced as output fields, additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash"; all possible output fields should be defined here if this option is used
+    - if the \c "input" option is given, then only those defined fields can be referenced as input fields in the
+      @ref mapperkeys "mapper hash"; all possible input fields should be defined here if this option is used
+    - if the \c "output" option is given, then only those defined fields can be referenced as output fields,
+      additionally the types given in the output definition cannot be overridden in the @ref mapperkeys "mapper hash";
+      all possible output fields should be defined here if this option is used
 
     @section mapper_runtime_handling Mapper Runtime Options
 
@@ -223,6 +284,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5 Mapper v1.5
+    - added support for the DataProvider module to describe input and output records
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection mapperv1_4_1 Mapper v1.4.1
     - fixed a bug where list values could not be passed as a value in non-bulk mode
@@ -272,32 +337,6 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
 #! the Mapper namespace contains all the definitions in the Mapper module
 public namespace Mapper {
-    #! describes a runtime type
-    public hashdecl MapperRuntimeKeyInfo {
-        #! the type of value that must be assigned to this key
-        string value_type = "string";
-
-        #! hash of conflicting keys, if any
-        *hash<string, bool> conflicting_keys;
-
-        #! if the key requires in input field for the mapping
-        bool requires_input = False;
-
-        #! the code to handle the key at runtime
-        /** the signature of this closure or call reference depends on \a requires_input:
-            - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
-              - parameters:
-                - \c arg: the argument to the runtime key in the mapping
-                - \c val: the current value of the mapping, if any
-            - \a requires_input == False: <tt>auto sub (auto arg) {}</tt>
-              - parameters:
-                - \c arg: the argument to the runtime key in the mapping
-
-            In both cases the return value is the value to use for the field
-        */
-        code handler;
-    }
-
     #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
     public class Mapper {
         public {
@@ -306,22 +345,33 @@ public namespace Mapper {
 
             #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
             const OptionKeys = {
-                "allow_dot": "allows input fields to have a dot in their name without implying a structured format",
-                "allow_output_dot": "allows output fields to have a dot in their name without implying a structured format",
-                "date_format": "gives the default format for parsing dates from strings; ex: \"MM/DD/YYYY HH:mm:SS\"",
-                "encoding": "gives the default output character encoding for string fields",
+                "allow_dot": "DEPRECATED: allows input fields to have a dot in their name without implying a "
+                    "structured format",
+                "allow_output_dot": "DEPRECATED: allows output fields to have a dot in their name without implying a "
+                    "structured format",
+                "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: "
+                    "\"MM/DD/YYYY HH:mm:SS\"",
+                "encoding": "DEPRECATED: gives the default output character encoding for string fields",
                 "info_log": "a call reference / closure for informational logging",
-                "input": "a hash describing the input record",
+                "input": "the input record description (mutually exclusive with input_provider)",
                 "input_log": "a call reference / closure for input record logging",
-                "input_timezone": "the default timezone to assume when parsing input dates",
+                "input_provider": "the input provider (mutually exclusive with input)",
+                "input_provider_search": "the input provider search options",
+                "input_timezone": "DEPRECATED: the default timezone to assume when parsing input dates",
                 "name": "the name of the Mapper object",
-                "number_format": "the default number format when parsing number fields from strings; ex: \".,\"",
-                "output": "a hash describing the output record",
+                "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: "
+                    "\".,\"",
+                "output": "the output record description (mutually exclusive with output_provider)",
                 "output_log": "a call reference / closure for input record logging",
-                "runtime_keys": "field key support provided as a Mapper option; format: hash<string, hash<MapperRuntimeKeyInfo>>",
-                "timezone": "the default output timezone for date/time values",
+                "output_provider": "the output data provider (mutually exclusive with output)",
+                "output_provider_bulk": "a flag to enable bulk operations with an output provider",
+                "output_provider_upsert": "a flag to enable upserting instead of creating records with an output "
+                    "data provider",
+                "runtime_keys": "field key support provided as a Mapper option; format: "
+                    "hash<string, hash<MapperRuntimeKeyInfo>>",
+                "timezone": "DEPRECATED: the default output timezone for date/time values",
                 "runtime": "runtime options as a hash (see also setRuntime(), replaceRuntime())",
-                "empty_strings_to_nothing": "converts out record's empty strings and into NOTHING - actually the value is deleted",
+                "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
             };
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -336,23 +386,14 @@ public namespace Mapper {
                 "trunc": True,
                 "mand": True,
                 "number": True,
-                "type": True,
-                "date_format": True,
-                "number_format": True,
-                "runtime" : True,
-                "empty_strings_to_nothing" : True,
+                "runtime": True,
                 "output_key_path": True,
-            };
 
-            #! default known field types (can be extended by subclassing and reimplementing validTypes() and mapFieldType())
-            const ValidTypes = {
-                "number": True,
-                "integer": True,
-                "int": True, # is an alias for "integer"
-                "date": True,
-                "string": True,
-                "hash": True,
-                "any": True,
+                # DEPRECATED keys
+                "type": True,                     # type must be specified in the output record
+                "date_format": True,              # should be set as a transformation option
+                "number_format": True,            # should be set as a transformation option
+                "empty_strings_to_nothing": True, # should be set as a transformation option
             };
 
             #! output option keys
@@ -362,6 +403,9 @@ public namespace Mapper {
                 "maxlen": True,
                 "type": True,
             };
+
+            #! the input and output record type
+            static Type recordType("hash<string, AbstractDataField>");
         }
 
         private {
@@ -376,9 +420,6 @@ public namespace Mapper {
             #! the hash of output records for key order
             hash<auto> mapo;
 
-            #! the output character encoding; if not given then the output encoding is assumed to be UTF-8
-            string encoding = "utf-8";
-
             #! the optional name for the object (for example a table name); will be prepended to field names in error messages
             *string name;
 
@@ -391,45 +432,66 @@ public namespace Mapper {
             #! an optional output data logging callback; must accept a hash giving the output data hash
             *code output_log;
 
-            #! an optional timezone for output date fields
-            *Qore::TimeZone timezone;
+            #! global transformation options; can be overridden on a per-field basis
+            hash<auto> global_transform_opts = {} + {
+                "date.input_timezone": TimeZone::get(),
+            };
 
-            #! the timezone for input fields in case of parsing text values; if not set defaults to the current TimeZone (see @ref Qore::TimeZone::get())
-            Qore::TimeZone input_timezone = TimeZone::get();
-
-            #! truncate all option
+            #! truncate all strings quietly / automatically to their maximum length
             bool trunc_all = False;
 
-            #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
+            #! DEPRECATED: do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
+            /** only used when a plain hash is provided for input
+
+                @deprecated use a field description for input instead
+            */
             bool allow_dot = False;
 
-            #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            #! DEPRECATED: do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+            /** only used when a plain hash is provided for output
+
+                @deprecated use a field description for output instead
+            */
             bool allow_output_dot = False;
 
-            #! the global date format for parsing dates
-            *string date_format;
-
-            #! the global number format for parsing numbers
-            *string number_format;
-
             #! an optional description of possible input hash keys
-            *hash<auto> input;
+            *hash<string, AbstractDataField> input;
+
+            #! the optional input data provider
+            *AbstractDataProvider input_provider;
+
+            #! search options for the input provider
+            *hash<auto> input_provider_search;
 
             #! an optional description of the output data structure
-            *hash<auto> output;
+            *hash<string, AbstractDataField> output;
+
+            #! the optional output data provider
+            *AbstractDataProvider output_provider;
+
+            #! bulk output object for an output data provider
+            *AbstractDataProviderBulkOperation output_provider_bulk_operation;
+
+            #! if the upsert operations should be used on the output provider
+            bool output_provider_upsert;
+
+            #! flag if the field descriptions were provided to the constructor
+            /** if so then allow_dot cannot be set
+            */
+            bool structured_input;
+
+            #! flag if the field descriptions were provided to the constructor
+            /** if so then allow_output_dot cannot be set
+            */
+            bool structured_output;
 
             #! count of records mapped
             int count = 0;
 
             #! current runtime values
             /** @since Mapper 1.1
-             */
+            */
             *hash<auto> m_runtime;
-
-            #! flag to enforce deletion of the empty string in the output record
-            /** @since Mapper 1.1
-             */
-            bool m_empty_strings_to_nothing = False;
 
             #! map of fields to be mapped 1:1 input -> output
             hash<auto> identh;
@@ -452,8 +514,25 @@ public namespace Mapper {
             #! hash of valid keys
             hash<string, bool> valid_keys;
 
-            #! hash of valid types
-            hash<string, bool> valid_types;
+            #! maps standard types to auto types to avoid type stripping
+            const TypeMap = {
+                "hash": "hash<auto>",
+                "*hash": "*hash<auto>",
+                "list": "list<auto>",
+                "*list": "*list<auto>",
+                "softlist": "softlist<auto>",
+                "*softlist": "*softlist<auto>",
+            };
+
+            #! maps deprecated transform options to global tranform options
+            const DeprecatedGlobalTransformOptionMap = {
+                "encoding": "string.encoding",
+                "empty_strings_to_nothing": "string.empty_to_nothing",
+                "date_format": "date.format",
+                "timezone": "date.output_timezone",
+                "input_timezone": "date.input_timezone",
+                "number_format": "number.format",
+            };
         }
 
         #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -491,6 +570,249 @@ Mapper mapv(DataMap);
         private constructor() {
         }
 
+        static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
+            if (recordType.isAssignableFrom(input)) {
+                return cast<hash<string, AbstractDataField>>(input);
+            }
+            return Mapper::getInputFromHashIntern(input);
+        }
+
+        static hash<string, AbstractDataField> getOutputFromHash(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options) {
+            if (recordType.isAssignableFrom(output)) {
+                return cast<hash<string, AbstractDataField>>(output);
+            }
+            return Mapper::getOutputFromHashIntern(output, mapv, global_options);
+        }
+
+        private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
+            return Mapper::getOutputType(hdesc, mapdesc, global_transform_opts);
+        }
+
+        private static AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc, *hash<auto> global_options, *bool has_default_value) {
+            *string fieldtype = hdesc.type ?? mapdesc.type;
+            hash<auto> field_options;
+            # use += here to ensure that field_options stays "hash<auto>"
+            field_options += {
+                "string.max_size_chars": hdesc.maxlen ?? mapdesc.maxlen,
+                "number.format": hdesc.number_format ?? global_options."number.format",
+                "date.format": hdesc.date_format ?? global_options."date.format",
+                "date.input_timezone": global_options."date.input_timezone",
+                "date.output_timezone": global_options."date.output_timezone",
+                "string.encoding": global_options."string.encoding",
+            };
+
+            if (!fieldtype.val() || fieldtype == "any" || fieldtype == "auto") {
+                # return types that support string.max_size_chars
+                return hdesc.mand
+                    ? new SomethingDataType(field_options)
+                    : new AnythingDataType(field_options);
+            }
+
+            if (hdesc.mand && !exists field_options."qore.no_null" && !has_default_value) {
+                field_options += {"qore.no_null": True};
+            }
+
+            switch (fieldtype) {
+                case "number":
+                    return hdesc.mand
+                        ? new QoreSoftNumberDataType(field_options)
+                        : new QoreSoftNumberOrNothingDataType(field_options);
+
+                case "int":
+                case "integer":
+                    return hdesc.mand
+                        ? new QoreSoftIntDataType(field_options)
+                        : new QoreSoftIntOrNothingDataType();
+
+                case "date": {
+                    return hdesc.mand
+                        ? new QoreSoftDateDataType(field_options)
+                        : new QoreSoftDateOrNothingDataType(field_options);
+                }
+
+                case "string": {
+                    return hdesc.mand
+                        ? new QoreSoftStringDataType(field_options)
+                        : new QoreSoftStringOrNothingDataType(field_options);
+                }
+            }
+
+            Type type;
+            if (fieldtype =~ /^\*/) {
+                string base_field_type = fieldtype[1..];
+                type = new Type(OptimalQoreDataTypeMap{base_field_type} ?? base_field_type);
+            } else {
+                type = new Type(OptimalQoreDataTypeMap{fieldtype} ?? fieldtype);
+            }
+            if (hdesc.mand && !has_default_value) {
+                type = type.getBaseType();
+            } else {
+                type = type.getOrNothingType();
+            }
+            return AbstractDataProviderType::get(type, field_options);
+        }
+
+        private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input, *reference<bool> structured_input) {
+            HashDataType input_data();
+            foreach hash<auto> h in (input.pairIterator()) {
+                switch (h.value.typeCode()) {
+                    case NT_STRING:
+                        input_data.addField(new QoreDataField(h.key, h.value, AbstractDataProviderType::get(AutoType)));
+                        break;
+                    case NT_NOTHING:
+                    case NT_HASH:
+                        input_data.addField(new QoreDataField(h.key, h.value.desc, Mapper::getInputType(h.value.type),
+                            h.value.default_value));
+                        break;
+                    case NT_OBJECT:
+                        if (h.value instanceof AbstractDataField) {
+                            input_data.addField(h.value);
+                            structured_input = True;
+                            continue;
+                        }
+                        # continue to default and throw an exception
+                    default: throw "INPUT-OPTION-ERROR", sprintf("\"input\" key %y value has type %y (value %y); "
+                        "expecting \"hash\"", h.key, h.value.type(), h.value);
+                }
+            }
+            return input_data.getFields();
+        }
+
+        private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options, *reference<bool> structured_output) {
+            HashDataType output_data();
+            foreach hash<auto> h in (output.pairIterator()) {
+                if (h.value === True || !exists h.value) {
+                    output_data.addField(new QoreDataField(h.key, NOTHING, AutoType));
+                    continue;
+                }
+                if (h.value instanceof AbstractDataField) {
+                    output_data.addField(h.value);
+                    structured_output = True;
+                    continue;
+                }
+                switch (h.value.typeCode()) {
+                    case NT_STRING:
+                        h.value = {"desc": h.value};
+                        # fall down to next case
+                    case NT_HASH:
+                        break;
+                    default:
+                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y value has type %y (value %y); "
+                            "expecting \"hash\"", h.key, h.value.type(), h.value);
+                }
+                foreach string k in (keys h.value) {
+                    if (!OutputKeys{k}) {
+                        throw "OUTPUT-OPTION-ERROR", sprintf("\"output\" key %y hash has unknown key %y (valid keys: "
+                            "%y)", h.key, k, keys OutputKeys);
+                    }
+                }
+
+                output_data.addField(new QoreDataField(h.key, h.value.desc,
+                    Mapper::getOutputType(h.value, mapv{h.key}.typeCode() == NT_HASH ? mapv{h.key} : NOTHING,
+                        global_options, exists h.value.default_value),
+                    h.value.default_value));
+            }
+            return output_data.getFields();
+        }
+
+        private checkInputOutputOption(hash<auto> opts, string var, *hash<auto> mapv) {
+            string structured = "structured_" + var;
+            if (recordType.isAssignableFrom(opts{var})) {
+                self{var} = opts{var};
+                self{structured} = True;
+                return;
+            }
+
+            if (opts{var}.typeCode() != NT_HASH) {
+                error("%y option passed to %s::constructor() is not type \"hash\"; got type %y instead", var,
+                    self.className(), opts.input.type());
+            }
+
+            try {
+                if (var == "input") {
+                    input = getInputFromHashIntern(opts.input, \structured_input);
+                } else {
+                    output = getOutputFromHashIntern(opts.output, mapv, global_transform_opts, \structured_output);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                error("%s: %s", ex.err, ex.desc);
+            }
+        }
+
+        private setInputProvider(hash<auto> opts) {
+            if (!(opts.input_provider instanceof AbstractDataProvider)) {
+                error("\"input_provider\" option passed to %s::constructor() is not an instance of class "
+                    "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                    opts.input_provider.type());
+            }
+
+            if (opts.input) {
+                if (info_log) {
+                    info_log("both \"input\" and \"input_provider\" options passed to %s::constructor(), the \"input\" "
+                        "option will be ignored", self.className());
+                }
+            }
+
+            if (!opts.input_provider.supportsRead()) {
+                error("\"input_provider\" %y passed to %s::constructor() does not support reading",
+                    input_provider.getName(), self.className());
+            }
+            input_provider = opts.input_provider;
+            input = input_provider.getRecordType();
+            if (!input) {
+                error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
+                    input_provider.getName(), self.className());
+            }
+
+            if (opts.input_provider_search) {
+                if (opts.input_provider_search.typeCode() != NT_HASH) {
+                    error("\"input_provider_search\" option passed to %s::constructor() is not type \"hash\"; "
+                        "got type %y instead", self.className(), opts.input_provider_search.type());
+                }
+                input_provider_search = opts.input_provider_search;
+            }
+        }
+
+        private setOutputProvider(hash<auto> opts) {
+            if (!(opts.output_provider instanceof AbstractDataProvider)) {
+                error("\"output_provider\" option passed to %s::constructor() is not an instance of class "
+                    "\"AbstractDataProvider\"; got type %y instead", self.className(),
+                    opts.output_provider.type());
+            }
+
+            if (opts.output) {
+                if (info_log) {
+                    info_log("both \"output\" and \"output_provider\" options passed to %s::constructor(), the \"output\" "
+                        "option will be ignored", self.className());
+                }
+            }
+
+            if (!opts.output_provider.supportsCreate()) {
+                error("\"output_provider\" %y passed to %s::constructor() does not support writing",
+                    output_provider.getName(), self.className());
+            }
+            output_provider = opts.output_provider;
+            output = output_provider.getRecordType();
+            if (!output) {
+                error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
+                    output_provider.getName(), self.className());
+            }
+            if (opts.output_provider_upsert) {
+                if (!opts.output_provider.supportsUpsert()) {
+                    error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
+                        output_provider.getName(), self.className());
+                }
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkUpserter();
+                }
+                output_provider_upsert = True;
+            } else {
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkInserter();
+                }
+            }
+        }
+
         #! sets up the mapper object before checking the mapper hash
         private setup(hash<auto> mapv, *hash<auto> opts) {
             name = opts.name;
@@ -498,37 +820,30 @@ Mapper mapv(DataMap);
             input_log = opts.input_log;
             output_log = opts.output_log;
 
+            # set global transform options
+            global_transform_opts += (map {
+                DeprecatedGlobalTransformOptionMap{$1.key}: $1.value,
+            }, opts{keys DeprecatedGlobalTransformOptionMap}.pairIterator());
+
+            if (opts) {
+                checkTimezoneOption("input_timezone");
+                checkTimezoneOption("output_timezone");
+            }
+
             # validate input record definition
-            if (opts.input) {
-                if (opts.input.typeCode() != NT_HASH)
-                    error("\"input\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.input.type());
-                input = opts.input;
-                foreach hash<auto> h in (input.pairIterator()) {
-                    switch (h.value.typeCode()) {
-                        case NT_STRING: input{h.key} = ("desc": h.value); break;
-                        case NT_HASH: break;
-                        default: error("\"input\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    }
-                }
+            if (opts.input_provider) {
+                setInputProvider(opts);
+            } else if (opts.input) {
+                checkInputOutputOption(opts, "input");
             }
 
             # validate output record definition
-            if (opts.output) {
-                if (opts.output.typeCode() != NT_HASH)
-                    error("\"output\" option passed to %s::constructor() is not type \"hash\"; got type %y instead", self.className(), opts.output.type());
-                output = opts.output;
-                foreach hash<auto> h in (output.pairIterator()) {
-                    if (h.value === True || !exists h.value) {
-                        output{h.key} = {};
-                        continue;
-                    }
-                    if (h.value.typeCode() != NT_HASH)
-                        error("\"output\" key %y passed to %s::constructor() assigned to type %y (value %y); expecting \"hash\"", h.key, self.className(), h.value.type(), h.value);
-                    foreach string k in (keys h.value) {
-                        if (!OutputKeys{k})
-                            error("\"output\" key %y passed to %s::constructor() has unknown key %y (valid keys: %y)", h.key, self.className(), k, OutputKeys.keys());
-                    }
-                }
+            if (opts.output_provider) {
+                setOutputProvider(opts);
+
+                opts.runtime_keys += output_provider.getMapperRuntimeKeys();
+            } else if (opts.output) {
+                checkInputOutputOption(opts, "output", mapv);
             }
 
             if (opts.trunc_all)
@@ -549,25 +864,19 @@ Mapper mapv(DataMap);
                 }
             }
 
-            if (opts.encoding)
-                encoding = opts.encoding;
-
-            if (opts.allow_dot)
+            if (opts.allow_dot) {
                 allow_dot = parse_boolean(opts.allow_dot);
-
-            if (opts.allow_output_dot)
-                allow_output_dot = parse_boolean(opts.allow_output_dot);
-
-            if (opts) {
-                checkTimezoneOption(opts, "timezone");
-                checkTimezoneOption(opts, "input_timezone");
+                if (allow_dot && structured_input) {
+                    error("the deprecated 'allow_dot' option cannot be used with an input field description");
+                }
             }
 
-            if (opts.date_format)
-                date_format = opts.date_format;
-
-            if (opts.number_format)
-                number_format = opts.number_format;
+            if (opts.allow_output_dot) {
+                allow_output_dot = parse_boolean(opts.allow_output_dot);
+                if (allow_output_dot && structured_output) {
+                    error("the deprecated 'allow_output_dot' option cannot be used with an output field description");
+                }
+            }
 
             # runtime options
             if (opts.runtime) {
@@ -577,10 +886,6 @@ Mapper mapv(DataMap);
                 }
                 # the "{} + " construction is there to make sure m_runtime has type hash<auto>
                 m_runtime = {} + opts.runtime;
-            }
-
-            if (opts.empty_strings_to_nothing) {
-                m_empty_strings_to_nothing = parse_boolean(opts.empty_strings_to_nothing);
             }
 
             # validate and set runtime types
@@ -617,9 +922,6 @@ Mapper mapv(DataMap);
 
             # set valid keys
             valid_keys = validKeys();
-
-            # set valid types
-            valid_types = validTypes();
         }
 
         #! verifies the input map in the constructor
@@ -660,8 +962,9 @@ Mapper mapv(DataMap);
         #! raises an error if an invalid input field name is declared; only call this if "input" is defined
         private checkInputField(string k, string name) {
             string n = allow_dot ? name : name.split('.')[0];
-            if (!input.hasKey(n))
-                error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k), name, input.keys());
+            if (!input{n})
+                error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k),
+                    name, keys input);
         }
 
         #! perform per-field pre-processing on the passed map in the constructor
@@ -669,23 +972,25 @@ Mapper mapv(DataMap);
             @param fh a reference to the field's value in the map; will be converted to a hash
         */
         private checkMapField(string k, reference<auto> fh) {
-            *hash<auto> outf;
+            *AbstractDataField field;
 
             # check output name
             if (output) {
                 if (!output.hasKey(k)) {
                     # see if field has a "." in it
                     *string basename = (k =~ x/([^\.]+)/)[0];
-                    if (exists basename && output.hasKey(basename) && output{basename}.type == "hash") {
+                    if (exists basename && (field = output{basename}) && field.isAssignableFrom(HashType)) {
                         # set key path for hash output fields
                         fh.output_key_path = k.split(".");
                         k = basename;
                     } else {
-                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), output.keys());
+                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), keys output);
                     }
                 }
-                # get output definition, if any
-                outf = output{k};
+                if (!field) {
+                    # get output definition, if any
+                    field = output{k};
+                }
             }
 
             # check field description
@@ -731,10 +1036,12 @@ Mapper mapv(DataMap);
                         error("output field %y has an empty 'struct' key", getFieldName(k));
                     if (fh.struct.size() == 1) {
                         fh.name = (remove fh.struct)[0];
-                        if (input)
+                        if (input) {
                             checkInputField(k, fh.name);
-                    } else if (input && !exists fh.constant && !fh.code && !exists fh.index)
+                        }
+                    } else if (input && !exists fh.constant && !fh.code && !exists fh.index) {
                         checkInputField(k, (foldl $1 + "." + $2, fh.struct));
+                    }
                     break;
                 }
                 default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
@@ -761,22 +1068,58 @@ Mapper mapv(DataMap);
             }
 
             # check for contradictory definitions and assign values according to the output definition
-            if (outf) {
-                foreach string ok in (keys outf) {
-                    # ignore the "desc" key
-                    if (ok == "desc")
-                        continue;
-                    if (exists fh{ok} && outf{ok} != fh{ok})
-                        error("field %y has the %y key set to %y but the output definition has %y set to %y", getFieldName(k), ok, fh{ok}, ok, outf{ok});
-                    fh{ok} = outf{ok};
+            if (field) {
+                if (exists fh.mand && fh.mand != field.isMandatory()) {
+                    error("field %y has the \"mand\" key set to %y but the output definition has mandatory flag: %y",
+                        getFieldName(k), fh.mand, field.isMandatory());
                 }
+                if (exists fh.maxlen && fh.maxlen != field.getOptionValue("string.max_size_chars")) {
+                    error("field %y has the \"maxlen\" key set to %y but the output definition has a maximum size of "
+                        "%y", getFieldName(k), fh.maxlen, field.getOptionValue("string.max_size_chars"));
+                }
+                # check type compatibility
+                if (exists fh.type && !field.isAssignableFrom(new Type(fh.type))) {
+                    error("field %y has the \"type\" key set to %y but the output definition has a type of "
+                        "to %y, and the types are not compatible; remove or correct the type in the mapper "
+                        "definition to correct this error", getFieldName(k), fh.type, field.getTypeName());
+                }
+                # check number_format
+                if (fh.number_format) {
+                    if (!(field.getType() instanceof QoreNumberDataTypeBase)) {
+                        error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k),
+                            field.getTypeName());
+                    }
+                    # override any existing number format
+                    cast<QoreNumberDataTypeBase>(field.getType()).setOption("number.format", fh.number_format);
+                }
+                # check date format
+                if (fh.date_format) {
+                    if (!(field.getType() instanceof QoreDateDataTypeBase)) {
+                        error("field %y has a 'date_format' key but the field's type is '%s'", getFieldName(k),
+                            field.getTypeName());
+                    }
+                    # override any existing date format
+                    cast<QoreDateDataTypeBase>(field.getType()).setOption("date.format", fh.date_format);
+                }
+
+                # allow the field hash to override any output default value
+                if (exists fh."default") {
+                    field.setDefaultValue(fh."default");
+                }
+
+                fh.field = field;
+            } else {
+                # create field object based on mapper hash
+                field = fh.field = new QoreDataField(k, fh.desc, getOutputType(fh), fh."default");
             }
 
-            if (fh.trunc && !fh.maxlen)
+            if (fh.trunc && field.getOptionValue("string.max_size_chars") < 0) {
                 error("output field %y has the 'trunc' key set to True but has no 'maxlen' key", getFieldName(k));
+            }
 
-            if (fh.maxlen && !exists fh.trunc && trunc_all)
+            if (field.getOptionValue("string.max_size_chars") >= 0 && !exists fh.trunc && trunc_all) {
                 fh.trunc = True;
+            }
 
             # check valid keys
             {
@@ -784,7 +1127,7 @@ Mapper mapv(DataMap);
                 if (runtime_keys) {
                     map all_valid_keys{$1} = True, keys runtime_keys;
                 }
-                *hash<auto> invalid_keys = fh - (keys all_valid_keys);
+                *hash<auto> invalid_keys = fh - (keys all_valid_keys) - "field";
                 if (invalid_keys) {
                     error("output field %y in map hash contains unknown key%s %y (valid keys: %y)",
                         getFieldName(k), invalid_keys.size() == 1 ? "" : "s", keys invalid_keys, keys all_valid_keys);
@@ -819,43 +1162,15 @@ Mapper mapv(DataMap);
             if (fh.number) {
                 if (exists fh.type)
                     error("output field %y has both 'type' and deprecated 'number' tags", getFieldName(k));
-                fh.type = "number";
-                delete fh.number;
-            } else if (exists fh.type) {
-                if (!valid_types.(fh.type))
-                    error("output field %y contains an invalid type value '%s' (valid types: %y)", getFieldName(k), fh.type, valid_types.keys());
-                switch (fh.type) {
-                    case "date": {
-                        if (!timezone)
-                            fh.typeCode = NT_DATE;
-                        break;
-                    }
-                    case "string": {
-                        fh.typeCode = NT_STRING;
-                        break;
-                    }
-                    case "integer":
-                    case "int": {
-                        fh.typeCode = NT_INT;
-                        break;
-                    }
-                    case "hash": {
-                        fh.typeCode = NT_HASH;
-                        break;
-                    }
+                if (!field.getType().isEqual(NumberType)) {
+                    error("output field %y type %y cannot be converted to \"number\" by the deprecated 'number' tag",
+                        getFieldName(k), field.getTypeName());
                 }
+                delete fh.number;
             }
 
-            if (exists fh.code && !fh.code.callp())
+            if (exists fh.code && !fh.code.callp()) {
                 error("output field %y has a code argument assigned to type '%s'", getFieldName(k), fh.code.type());
-
-            if (exists fh."default" && fh.type) {
-                hash<auto> rec{k} = fh."default";
-                try {
-                    mapFieldType(k, fh, \rec{k}, rec);
-                } catch (hash<ExceptionInfo> ex) {
-                    error("output field %y has default value %y that is not acceptable for the field's type (%y): %s: %s", getFieldName(k), fh."default", fh.type, ex.err, ex.desc);
-                }
             }
 
             # check if the output field should be a hash
@@ -874,18 +1189,18 @@ Mapper mapv(DataMap);
         }
 
         #! verifies a timezone constructor option
-        private checkTimezoneOption(hash<auto> opts, string rn) {
-            auto val = opts{rn};
+        private checkTimezoneOption(string rn) {
+            auto val = global_transform_opts{rn};
             if (!exists val)
                 return;
             if (val instanceof TimeZone) {
-                self{rn} = val;
+                global_transform_opts{rn} = val;
                 return;
             }
 
             switch (val.typeCode()) {
                 case NT_STRING:
-                case NT_INT: self{rn} = new TimeZone(val); break;
+                case NT_INT: global_transform_opts{rn} = new TimeZone(val); break;
                 default: error("type %y assigned to the %s option (expecting TimeZone, string, or int)", val.type(), rn);
             }
         }
@@ -1003,13 +1318,6 @@ Mapper mapv(DataMap);
             return ValidKeys;
         }
 
-        #! returns a list of valid field types for this class (can be overridden in subclasses)
-        /** @return a list of valid types for this class (can be overridden in subclasses)
-        */
-        hash<string, bool> validTypes() {
-            return ValidTypes;
-        }
-
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
@@ -1017,14 +1325,78 @@ Mapper mapv(DataMap);
             return OptionKeys;
         }
 
+        #! returns the input provider
+        *AbstractDataProvider getInputProvider() {
+            return input_provider;
+        }
+
+        #! returns the output provider
+        *AbstractDataProvider getOutputProvider() {
+            return output_provider;
+        }
+
         #! returns the value of the \c "input" option
-        *hash<auto> getInputRecord() {
+        *hash<string, AbstractDataField> getInputRecord() {
             return input;
         }
 
         #! returns the value of the \c "output" option
-        *hash<auto> getOutputRecord() {
+        *hash<string, AbstractDataField> getOutputRecord() {
             return output;
+        }
+
+        #! returns an output record iterator that produces mapped data from the input data provider
+        /** @return an output record iterator that produces mapped data from the input data provider
+
+            @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor
+        */
+        MapperOutputRecordIterator getOutputIterator() {
+            checkInputProvider();
+            return new MapperOutputRecordIterator(self, input_provider, input_provider_search);
+        }
+
+        #! Commits data written to the output data provider if the output data provider supports transaction management
+        /** Has no effect if the output data provider does not support transaction management
+
+            @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        commit() {
+            checkOutputProvider();
+            output_provider.commit();
+        }
+
+        #! Rolls back data written to the output data provider
+        /** Has no effect if the output data provider does not support transaction management
+
+            @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        rollback() {
+            checkOutputProvider();
+            output_provider.rollback();
+        }
+
+        #! Flushes any remaining data to the data provider
+        /** This method should always be called for successful bulk output operations with an output provider
+
+            @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        flush() {
+            checkOutputBulkOperation();
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.flush();
+            }
+        }
+
+        #! Discards any buffered data
+        /** This method should always be called if an error occurs in a bulk output operation
+
+            @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        discard() {
+            checkOutputBulkOperation();
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.discard();
+            }
         }
 
         #! maps all input records and returns the mapped data as a list of output records
@@ -1037,7 +1409,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(list<auto> recs) {
+        list<hash<auto>> mapAll(list<auto> recs) {
             return map mapData($1), recs;
         }
 
@@ -1051,7 +1423,7 @@ Mapper mapv(DataMap);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        list<hash> mapAll(hash<auto> recs) {
+        list<hash<auto>> mapAll(hash<auto> recs) {
             return map mapData($1), recs.contextIterator();
         }
 
@@ -1144,6 +1516,8 @@ Mapper mapv(DataMap);
             # FIXME can add the assert for equal length of the lists --PQ 22-Mar-2017
             hash<auto> m = mapc{key};
 
+            #printf("mapFieldIntern() key: %y type: %y rec: %y\n", key, m.field.getTypeName(), rec);
+
             # closure to get the current record hash from a hash of lists;
             # rec is not bound here for performance reasons (so it will remain unlocked);
             # NOTE that we still need the NT_LIST check here since even with do_list
@@ -1162,9 +1536,11 @@ Mapper mapv(DataMap);
             if (exists m.constant)
                 v = m.constant;
             else if (exists m.index) {
-                v = do_list ?
-                    (map m.index + count + $#, xrange(0, list_size - 1)) :
-                    m.index + count;
+                if (do_list) {
+                    v = map m.index + count + $#, xrange(0, list_size - 1);
+                } else {
+                    v = m.index + count;
+                }
             } else if (exists m.runtime) {
                 # actually runtime should not happen with do_list since
                 # do_list = True is only used from TableMapper that is handling
@@ -1173,8 +1549,14 @@ Mapper mapv(DataMap);
             } else if (m.struct) {
                 v = rec;
                 map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
-            } else
-                v = rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
+            } else {
+                if (do_list && rec{name}.typeCode() == NT_LIST) {
+                    # must make sure that v does not take a complex list restriction here
+                    v = () + rec{name};
+                } else {
+                    v += rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
+                }
+            }
 
             bool v_is_list = v.typeCode() == NT_LIST;
             if (v_is_list) {
@@ -1189,7 +1571,6 @@ Mapper mapv(DataMap);
             }
 
             # move any XML CDATA into the field value
-            # FIXME review cdata, 'v' can be list here! --PQ 22-Mar-2017
             # do not access "^cdata^" directly in case it's a hashdecl
             if (v.typeCode() == NT_HASH && v.hasKey("^cdata^") && v."^cdata^".val())
                 v = v."^cdata^";
@@ -1215,8 +1596,7 @@ Mapper mapv(DataMap);
                         # here we make a list from 'v' either way, since we simply
                         # cannot predict what 'code' could do with 'v' and 'rec'
                         v_is_list = True;
-                    }
-                    else {
+                    } else {
                         v = m.code(v, rec);
                     }
                 } catch (hash<ExceptionInfo> ex) {
@@ -1225,55 +1605,75 @@ Mapper mapv(DataMap);
                 }
             }
 
+            *bool empty_strings_to_nothing = m.field.getOptionValue("string.empty_to_nothing")
+                ?? global_transform_opts."string.empty_to_nothing";
             if (v_is_list) {
-                map delete v[$#], v, (m_empty_strings_to_nothing && $1 === "" || $1 === NULL);
+                map delete v[$#], v, (empty_strings_to_nothing && $1 === "" || $1 === NULL);
             } else {
-                if ((m_empty_strings_to_nothing && v === "") || v === NULL)
+                if ((empty_strings_to_nothing && v === "") || v === NULL)
                     delete v;
             }
 
-            if (m.type) {
-                # note: v_is_list implies do_list
-                if (v_is_list)
-                    map mapFieldType(key, m, \v[$#], getrec(rec, $#)), v, $1.typeCode() != m.typeCode;
-                else
-                    mapFieldType(key, m, \v, rec);
+            if (m.field.hasType()) {
+                *AbstractDataProviderType type = m.field.getType();
+                if (m.output_key_path) {
+                    foreach string elem in (m.output_key_path) {
+                        type = type.getFieldType(elem);
+                        if (!type) {
+                            break;
+                        }
+                    }
+                }
+                if (type) {
+                    *hash<string, bool> direct_types = type.getDirectTypeHash();
+
+                    # note: v_is_list implies do_list
+                    if (v_is_list) {
+                        map
+                            v[$#] = mapFieldType(key, m, type, v[$#], getrec(rec, $#)),
+                            v,
+                            !direct_types{$1.typeCode()};
+                    } else if (!direct_types{v.typeCode()}) {
+                        v = mapFieldType(key, m, type, v, rec);
+                    }
+                }
             }
 
-            if (exists m."default") {
+            if (exists (auto default_value = m.field.getDefaultValue())) {
                 if (v_is_list) {
-                    map v[$#] = m."default", v, !exists $1;
-                }
-                else if (!exists v)
-                    v = m."default";
+                    map v[$#] = default_value, v, !exists $1;
+                } else if (!exists v)
+                    v = default_value;
             }
+
+            #printf("k: %y type: %y maxlen: %y\n", key, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"));
 
             # check maximum length
-            if (m.maxlen) {
+            if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {
                 if (v_is_list) {
                     if (m.trunc)
-                        map v[$1] = truncateField(key, $1, $#, v.size(), m.maxlen), v, $1.size() > m.maxlen;
+                        map v[$1] = truncateField(key, $1, $#, v.size(), maxlen), v, $1.size() > maxlen;
                     else
-                        map fieldLengthError(key, $1, $#, v.size(), m.maxlen, getrec(rec, $#)), v, $1.size() > m.maxlen;
-                }
-                else {
-                    if (v.size() > m.maxlen) {
+                        map fieldLengthError(key, $1, $#, v.size(), maxlen, getrec(rec, $#)), v, $1.size() > maxlen;
+                } else {
+                    if (v.size() > maxlen) {
                         # truncate the string if necessary
                         if (m.trunc) {
-                            v = truncateField(key, v, 0, 0, m.maxlen);
+                            v = truncateField(key, v, 0, 0, maxlen);
+                        } else {
+                            fieldLengthError(key, v, 0, 0, maxlen, rec);
                         }
-                        else
-                            fieldLengthError(key, v, 0, 0, m.maxlen, rec);
                     }
                 }
             }
 
             if (m.mand) {
                 if (v_is_list) {
-                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
-                }
-                else if (!exists v)
-                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y", getFieldName(key), rec);
+                    map error2("MISSING-INPUT", "field %y element %d/%d is marked as mandatory but is missing in the "
+                        "input row: %y", getFieldName(key), $# + 1, v.size(), getrec(rec, $#)), v, !exists $1;
+                } else if (!exists v)
+                    error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y",
+                        getFieldName(key), rec);
             }
 
             # add value to row list
@@ -1306,6 +1706,25 @@ Mapper mapv(DataMap);
             } else {
                 h{key} = v;
             }
+
+            # write to putput provider, if any
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.queueData(h);
+            } else if (output_provider) {
+                if (output_provider_upsert) {
+                    if (do_list) {
+                        map output_provider.upsertRecord($1), h.contextIterator();
+                    } else {
+                        output_provider.upsertRecord(h);
+                    }
+                } else {
+                    if (do_list) {
+                        map output_provider.createRecord($1), h.contextIterator();
+                    } else {
+                        output_provider.createRecord(h);
+                    }
+                }
+            }
         }
 
         # recursively write output hash
@@ -1322,7 +1741,7 @@ Mapper mapv(DataMap);
             if (info_log)
                 info_log("field %y = %y%s input length %d truncating to %d bytes",
                         getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
-            return trunc_str(val, maxlen, encoding);
+            return trunc_str(val, maxlen, global_transform_opts."string.encoding");
         }
 
         #! called when a field exceeds its maximum length when processing hashes of lists
@@ -1352,85 +1771,36 @@ Mapper mapv(DataMap);
         }
 
         #! performs type handling
-        private mapFieldType(string key, hash<auto> m, reference<auto> v, hash<auto> rec) {
-            if (v === NULL) {
-                delete v;
-                return;
+        private auto mapFieldType(string key, hash<auto> mapping, AbstractDataProviderType type, auto value, hash<auto> rec) {
+            try {
+                return type.acceptsValue(value);
+            } catch (hash<ExceptionInfo> ex) {
+                throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y", get_ex_pos(ex), key, value, ex.desc, rec), ex.arg;
             }
-            if (!exists v)
-                return;
+        }
 
-            # valid types are checked in the map initialization
-            switch (m.type) {
-                case "number": {
-                    switch (v.typeCode()) {
-                        case NT_NUMBER:
-                        case NT_FLOAT:
-                        case NT_INT:
-                            return;
-                        case NT_STRING: {
-                            *string nf = m.number_format ? m.number_format : number_format;
-                            if (nf) {
-                                v = parse_number(v, nf);
-                                return;
-                            }
-                            if (v !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                                error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains non-numeric text in input row: %y", getFieldName(key), v, rec);
-                            else
-                                v = number(v);
-                            return;
-                        }
-                        default: {
-                            error2("INVALID-NUMBER", "field %y = %y is marked as a numeric field, but the input data contains is type %y (value %y) in input row: %y", getFieldName(key), v.type(), v, rec);
-                            return;
-                        }
-                    }
-                }
-                case "int":
-                case "integer": {
-                    switch (v.typeCode()) {
-                        case NT_INT:
-                            break;
-                        case NT_STRING: {
-                            # check for valid integer values
-                            if (v !~ /^([-+])?[0-9]+$/)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer text in input row: %y", getFieldName(key), v, rec);
-                            v = int(v);
-                            break;
-                        }
-                        default: {
-                            int rc = int(v);
-                            if (rc != v)
-                                error2("INVALID-INTEGER", "field %y = %y is marked as an integer field, but the input data contains non-integer data in input row: %y", getFieldName(key), v, rec);
-                            v = rc;
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case "date": {
-                    # if there is no date_format below, then the default conversion is made
-                    if (v.typeCode() != NT_DATE)
-                        v = input_timezone.date(v, m.date_format ? m.date_format : date_format);
-                    # convert to the output TimeZone if necessary
-                    if (timezone)
-                        v = timezone.date(v);
-                    break;
-                }
-                case "string": {
-                    if (v.typeCode() != NT_STRING)
-                        v = string(v, encoding);
-                    break;
-                }
-                case "hash": {
-                    if (v.typeCode() != NT_HASH) {
-                        if (!m.output_key_path) {
-                            error2("INVALID-HASH", "field %y = %y is marked as a hash field, but the input data is of type %y",
-                                getFieldName(key), v, v.type());
-                        }
-                    }
-                    break;
-                }
+        #! raises an error if no input provider is present
+        private checkInputProvider() {
+            if (!input_provider) {
+                error2("MAPPER-INPUT-PROVIDER-ERROR", "no input provider available in this mapper");
+            }
+        }
+
+        #! raises an error if no output provider is present
+        /** @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        private checkOutputProvider() {
+            if (!output_provider) {
+                error2("MAPPER-OUTPUT-PROVIDER-ERROR", "no output provider available in this mapper");
+            }
+        }
+
+        #! raises an error if no output provider is present
+        /** @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+        */
+        private checkOutputBulkOperation() {
+            if (!output_provider) {
+                error2("MAPPER-OUTPUT-BULK-ERROR", "no output bulk operation is in progress");
             }
         }
 
@@ -1455,6 +1825,13 @@ Mapper mapv(DataMap);
         #! to be overridden as necessary in subclasses
         private auto mapSubclass(hash<auto> m, auto v) {
             return v;
+        }
+
+        static private AbstractDataProviderType getInputType(*string type) {
+            if (!type.val() || type == "any") {
+                return AbstractDataProviderType::get(AutoType);
+            }
+            return AbstractDataProviderType::get(new Type(TypeMap{type} ?? type));
         }
     }
 
@@ -1552,6 +1929,166 @@ Mapper mapv(DataMap);
         */
         resetCount() {
             mapc.resetCount();
+        }
+    }
+
+    #! describes a data type that accepts any value; stores "string.max_size_chars" as a type attribute for external enforcement
+    public class AnythingDataType inherits AbstractDataProviderType {
+        private {
+            #! supports a max_size_chars option for strings; to be enforced externally
+            const SupportedOptions = {
+                "string.max_size_chars": <DataProviderTypeOptionInfo>{
+                    "type": Type::Int,
+                    "desc": "the maximum size of strings in chars",
+                },
+                "string.empty_to_nothing": <DataProviderTypeOptionInfo>{
+                    "type": Type::Boolean,
+                    "desc": "if an empty string should be converted to no value",
+                },
+            };
+        }
+
+        #! creates the object
+        constructor(*hash<auto> options) : AbstractDataProviderType(options) {
+        }
+
+        #! returns the type name
+        string getName() {
+            return "anything";
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(AbstractDataProviderType t) {
+            return True;
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(Type t) {
+            return True;
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            return AutoType;
+        }
+
+        #! returns the subtype (for lists or hashes) if there is only one
+        *AbstractDataProviderType getElementType() {
+            # this method intentionally left blank
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+
+            @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
+        */
+        auto acceptsValue(auto value) {
+            if (value === "" && options."string.empty_to_nothing") {
+                return;
+            }
+            return value;
+        }
+
+        #! returns the fields of the data structure; if any
+        *hash<string, AbstractDataField> getFields() {
+            # this method intentionally left blank
+        }
+
+        #! returns supported options
+        *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+            return SupportedOptions;
+        }
+
+        #! returns a hash of base types accepted by this type
+        hash<string, bool> getAcceptTypeHash() {
+            return {"all": True};
+        }
+
+        #! returns a hash of base types returned by this type
+        hash<string, bool> getReturnTypeHash() {
+            return {"all": True};
+        }
+    }
+
+    #! describes a data type that accepts any value except NOTHING; stores "string.max_size_chars" as a type attribute for external enforcement
+    public class SomethingDataType inherits AnythingDataType {
+        #! creates the object
+        constructor(*hash<auto> options) : AnythingDataType(options) {
+        }
+
+        #! returns the type name
+        string getName() {
+            return "something";
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(AbstractDataProviderType t) {
+            if (t instanceof SomethingDataType) {
+                return True;
+            }
+            *Type othertype = t.getValueType();
+            if (!othertype) {
+                return True;
+            }
+            return !othertype.isEqual(nothingType);
+        }
+
+        #! returns True if this type can be assigned from values of the argument type
+        bool isAssignableFrom(Type t) {
+            return !t.isEqual(nothingType);
+        }
+
+        #! returns the base type for the type, if any
+        *Type getValueType() {
+            # this method intentionally left blank
+        }
+
+        #! returns the value if the value can be assigned to the type
+        /** @param value the value to assign to the type
+
+            @return the value to be assigned; can be converted by the type
+
+            @throw RUNTIME-TYPE-ERROR value cannot be assigned to the type
+        */
+        auto acceptsValue(auto value) {
+            if (!exists value) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("type %y cannot accept \"nothing\"", getName());
+            }
+            return value;
+        }
+    }
+
+    #! Output record iterator for Mapper objects with an input data provider
+    public class MapperOutputRecordIterator inherits AbstractDataProviderRecordIterator {
+        private {
+            #! the mapper
+            Mapper mapper;
+
+            #! the input data provider
+            AbstractDataProviderRecordIterator i;
+        }
+
+        #! Creates the object from the arguments
+        constructor(Mapper mapper, AbstractDataProvider input, *hash<auto> where_cond) {
+            self.mapper = mapper;
+            i = input.searchRecords(where_cond);
+        }
+
+        #! Moves the current position to the next element; returns @ref False if there are no more elements
+        bool next() {
+            return i.next();
+        }
+
+        #! Returns the mapped value of the current input record
+        hash<auto> getValue() {
+            return mapper.mapData(i.getValue());
+        }
+
+        #! Returns @ref True if the iterator is currently pointing at a valid element, @ref False if not
+        bool valid() {
+            return i.valid();
         }
     }
 }

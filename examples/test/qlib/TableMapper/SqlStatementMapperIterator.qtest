@@ -9,7 +9,7 @@
 %enable-all-warnings
 %strict-args
 
-%requires ../../../../qlib/SqlUtil.qm
+%requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
 
@@ -50,7 +50,7 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
 
     bool valid() { return True; }
 
-    auto getValue() {
+    hash<auto> getValue() {
         hash<auto> ret = INPUT[m_ix];
         m_ix++;
         return ret;
@@ -156,6 +156,8 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh) {}
     nothing copyImpl(AbstractTable old) {}
     nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
+    AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options) {}
+    AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {}
 }
 
 class Main inherits QUnit::Test {

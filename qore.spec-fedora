@@ -20,6 +20,9 @@ BuildRequires: mpfr-devel
 BuildRequires: doxygen
 BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
+%if 0%{?redhat} >= 8 || 0%{?centos} >= 8
+BuildRequires: gdb-headless
+%endif
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -30,6 +33,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
+Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: libqore6 = %{version}
 Obsoletes: libqore6 < 0.9.4
 
@@ -54,7 +58,7 @@ functionality.
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: libqore = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.22
+Requires: qore-module(abi)%{?_isa} = 0.23
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -138,6 +142,7 @@ This package contains tool for working with:
 
 %files misc-tools
 %defattr(-,root,root,-)
+%{_bindir}/qdp
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/sfrest
@@ -165,11 +170,6 @@ make check
 
 %files
 %{_bindir}/qore
-%{_bindir}/qget
-%{_bindir}/rest
-%{_bindir}/schema-reverse
-%{_bindir}/sfrest
-%{_bindir}/sqlutil
 %{_bindir}/qdbg
 %{_bindir}/qdbg-server
 %{_bindir}/qdbg-remote

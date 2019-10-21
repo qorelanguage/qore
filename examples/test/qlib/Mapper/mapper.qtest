@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/Mapper.qm
 
 %exec-class MapperTest
@@ -468,6 +469,12 @@ public class MapperTest inherits QUnit::Test {
 
     testTypes() {
         {
+            SomethingDataType something();
+            assertEq(1, something.acceptsValue(1));
+            assertTrue(something.isAssignableFrom(IntType));
+            assertFalse(something.isAssignableFrom(new Type("nothing")));
+        }
+        {
             Mapper m(TypeMap0, TypeOpts0);
             assertEq("x", m.mapData({"input_1": "x"}).output_1);
             assertEq(1n, m.mapData({"input_1": 1n}).output_1);
@@ -480,9 +487,8 @@ public class MapperTest inherits QUnit::Test {
             v = m.mapData({"input_0": <StatInfo>{}}).output_0;
             assertEq(<StatInfo>{}, v);
             assertEq("hash<StatInfo>", v.fullType());
-            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+            assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"input_0": 1});
         }
-
         {
             Mapper m(TypeMap1, TypeOpts1);
             assertEq("x", m.mapData({"input_1": "x"}).output_1);
@@ -496,7 +502,7 @@ public class MapperTest inherits QUnit::Test {
             v = m.mapData({"input_0": <StatInfo>{}}).output_0;
             assertEq(<StatInfo>{}, v);
             assertEq("hash<StatInfo>", v.fullType());
-            assertThrows("INVALID-HASH", \m.mapData(), {"input_0": 1});
+            assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"input_0": 1});
         }
     }
 
@@ -530,7 +536,8 @@ public class MapperTest inherits QUnit::Test {
     testMapperOptionInput() {
         hash my_opts = m_opts + ("input": map {$1: $1}, MapInput[0].keys());
         Mapper m(DataMap, my_opts);
-        m.mapData(MapInput[0]);
+        hash<auto> h = m.mapData(MapInput[0]);
+        assertEq(1, h.id);
     }
 
     testMapperBulk() {

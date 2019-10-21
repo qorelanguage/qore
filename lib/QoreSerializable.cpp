@@ -868,7 +868,7 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
 
             // get element type
             const char* value_type = v.get<QoreStringNode>()->c_str();
-            const QoreTypeInfo* vti = qore_get_type_from_string(value_type);
+            const QoreTypeInfo* vti = qore_get_type_from_string_intern(value_type);
             if (!vti) {
                 xsink->raiseException("DESERIALIZATION-ERROR", "'list has value type '%s' which cannot be matched to a " \
                     "known type", value_type);
@@ -935,7 +935,7 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
         // make sure we can still deserialize v1.0 data where the type value is '^hash^'
         if (type != "^hash^") {
             const char* value_type = type.c_str() + 1;
-            const QoreTypeInfo* vti = qore_get_type_from_string(value_type);
+            const QoreTypeInfo* vti = qore_get_type_from_string_intern(value_type);
             //printd(5, "QoreSerializable::deserializeHashData() vti: '%s'\n", value_type);
             if (!vti) {
                 xsink->raiseException("DESERIALIZATION-ERROR", "'hash has value type '%s' which cannot be matched to a " \

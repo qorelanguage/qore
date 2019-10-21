@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,10 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.4
+    - added support for the DataProvider module
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+
     @subsection pgsqlsqlutilv131 PgsqlSqlUtil v1.3.1
     - fixed compatibility with PostgreSQL 12
       (<a href="https://github.com/qorelanguage/qore/issues/3589">issue 3589</a>)
@@ -196,13 +200,22 @@ $function$
 #! the PgsqlSqlUtil namespace contains all the objects in the PgsqlSqlUtil module
 public namespace PgsqlSqlUtil {
     #! returns a PgsqlTable object corresponding to the arguments
-    public PgsqlTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
+    public PgsqlTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
         return new PgsqlTable(nds, nname, opts);
     }
 
     #! returns a PgsqlDatabase object corresponding to the arguments
-    public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash opts) {
+    public PgsqlDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
         return new PgsqlDatabase(nds, opts);
+    }
+
+    #! the data type for PostgreSQL NUMBER columns
+    public class PgsqlNumberDataType inherits SqlUtil::AbstractNumericDataType {
+        #! creates the object
+        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
+            # cannot bind a string to a numeric column
+            base_type_hash -= NT_STRING.toString();
+        }
     }
 
     sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
@@ -211,10 +224,31 @@ public namespace PgsqlSqlUtil {
             schema = sstr;
             splice nname, 0, schema.size() + 1;
             name = nname;
-        }
-        else {
+        } else {
             schema = "public";
             name = nname;
+        }
+    }
+
+    #! PostgreSQL savepoint helper
+    public class PgsqlSavepointHelper inherits AbstractSavepointHelper {
+        #! Creates the object
+        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        }
+
+        #! Creates the savepoint
+        private createSavepointImpl() {
+            ds.exec("savepoint " + savepoint);
+        }
+
+        #! Rolls back to the savepoint
+        private rollbackImpl() {
+            ds.exec("rollback to savepoint " + savepoint);
+        }
+
+        #! Deletes the savepoint
+        private deleteSavepointImpl() {
+            ds.exec("release savepoint " + savepoint);
         }
     }
 
@@ -971,7 +1005,7 @@ auto v = c.name;
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
         }
 
-        private list featuresImpl() {
+        private list<string> featuresImpl() {
             return (DB_FUNCTIONS, DB_PROCEDURES, DB_SEQUENCES,
                     DB_TABLES, DB_TYPES, DB_VIEWS, DB_MVIEWS);
         }
@@ -988,7 +1022,7 @@ auto v = c.name;
             string src = foldl $1 + ", " + $2, (map sprintf("%s %s", $1.attname, $1.typedef), qh.contextIterator());
 
             # replace common type names with verbose type names as stored in PostgreSQL
-            foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+            foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                 src = replace(src, h.key, h.value);
             }
             # remove invalid "(1)" strings
@@ -1002,7 +1036,7 @@ auto v = c.name;
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
-            *hash row = ds.selectRow("select relname from pg_class where relkind = 'S' and relname = %v", name);
+            *hash<auto> row = ds.selectRow("select relname from pg_class where relkind = 'S' and relname = %v", name);
             if (!row)
                 return;
 
@@ -1014,7 +1048,7 @@ auto v = c.name;
             string schema;
             parse_schema_name(name, \schema, \name);
 
-            *hash row = ds.selectRow("select * from pg_views where schemaname = %v and viewname = %v", schema, name);
+            *hash<auto> row = ds.selectRow("select * from pg_views where schemaname = %v and viewname = %v", schema, name);
             if (!row)
                 return;
 
@@ -1053,7 +1087,7 @@ auto v = c.name;
                 args =~ s/ in / /ig;
 
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     args = replace(args, h.key, h.value);
                 }
 
@@ -1087,7 +1121,7 @@ auto v = c.name;
                 nc = name.substr(0, name.find('('));
                 # replace common type names with verbose type names as stored in PostgreSQL
                 if (args) {
-                    foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                    foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                         args = regex_subst(args, " " + h.value + "(,|$)", " " + h.key + "$1", RE_Caseless|RE_Global);
                     }
                     # remove " in " in argument list since it's the default and not returned by pg_get_function_identity_arguments()
@@ -1120,7 +1154,7 @@ auto v = c.name;
             return extract tmp, i + 1, e - i - 1;
         }
 
-        static PgsqlFunction processFunction(hash row, bool native_case) {
+        static PgsqlFunction processFunction(hash<auto> row, bool native_case) {
             if (!native_case)
                 map row.$1 = row.$1.lwr(), ("stability");
 
@@ -1134,7 +1168,7 @@ auto v = c.name;
 
             if (args) {
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     args = replace(args, h.key, h.value);
                 }
             }
@@ -1144,7 +1178,7 @@ auto v = c.name;
             if (rt) {
                 string ort;
                 # replace verbose type names with short type names
-                foreach hash h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
+                foreach hash<auto> h in (PgsqlTable::PgsqlNameMap.pairIterator()) {
                     rt = replace(rt, h.key, h.value);
                 }
                 if (ort != rt)
@@ -1186,7 +1220,7 @@ auto v = c.name;
 
                 # rename any types
                 AbstractDatabase::checkDriverOptions(\schema_hash.type_map, drv);
-                foreach hash th in (schema_hash.type_map.pairIterator()) {
+                foreach hash<auto> th in (schema_hash.type_map.pairIterator()) {
                     if (th.value.typeCode() != NT_STRING)
                         throw "SCHEMA-DESCRIPTION-ERROR", sprintf("type_map %y value is not a string in the schema description hash; got type %y instead (%y)", th.key, th.value.type(), th.value);
 
@@ -1230,7 +1264,7 @@ auto v = c.name;
         }
 
         #! returns a list of string table names in the database
-        private list listTablesImpl() {
+        private list<string> listTablesImpl() {
             string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
                                " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
                           " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
@@ -1243,7 +1277,7 @@ auto v = c.name;
 
             @return a list of string function names in the database
         */
-        private list listFunctionsImpl() {
+        private list<string> listFunctionsImpl() {
             string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
                                " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
                           " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
@@ -1256,20 +1290,20 @@ auto v = c.name;
         #! since PostgreSQL only supports functions, this method is identical to listFunctionsImpl()
         /** @see listFunctionsImpl()
         */
-        private list listProceduresImpl() {
+        private list<string> listProceduresImpl() {
             return listFunctionsImpl();
         }
 
-        private list listSequencesImpl() {
+        private list<string> listSequencesImpl() {
             return ds.select("select relname from pg_class where relkind = 'S' order by 1").relname;
         }
 
-        private list listViewsImpl() {
+        private list<string> listViewsImpl() {
             return ds.select("select table_name from information_schema.views where table_schema = any (current_schemas(false)) order by 1").table_name;
         }
 
         #! returns a list of string materialized view names in the database
-        list listMaterializedViews() {
+        list<string> listMaterializedViews() {
             string sql = "select relname from pg_class"
                          " where relkind = 'r' and relnamespace in"
                                " (select oid from pg_namespace"
@@ -1284,7 +1318,7 @@ auto v = c.name;
         }
 
         #! returns a list of string type names in the database
-        list listTypes() {
+        list<string> listTypes() {
             return ds.select("select user_defined_type_name as name from information_schema.user_defined_types order by 1").name;
         }
 
@@ -1381,17 +1415,17 @@ auto v = c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist<auto> args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist<auto> args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist<auto> args) {
             ds.exec("savepoint " + PGSQL_TempSavepoint);
 
             auto rv;
@@ -1519,7 +1553,7 @@ auto v = c.name;
             #! column operator specializations for PostgreSQL
             const PgsqlCopMap = (
                 COP_CAST: (
-                    "code": string sub (string cve, list args) {
+                    "code": string sub (string cve, list<auto> args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
                         hash desc = PgsqlTypeMap{name};
                         string sql = sprintf ("cast (%s as %s", cve, name);
@@ -1652,7 +1686,7 @@ auto v = c.name;
             parse_schema_name(nname, \schema, \name);
 
             # get table info
-            *hash row = ds.selectRow("select * from pg_tables where schemaname = %v and tablename = %v", schema, name);
+            *hash<auto> row = ds.selectRow("select * from pg_tables where schemaname = %v and tablename = %v", schema, name);
             tablespace = row.tablespace ? row.tablespace : NOTHING;
         }
 
@@ -1765,7 +1799,7 @@ auto v = c.name;
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
             hash rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 *hash th = PgsqlTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
                 if (!size)
@@ -1821,8 +1855,8 @@ auto v = c.name;
             *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (%v)) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", schema, name);
 
             if (qh.index_name) {
-                hash ih;
-                foreach hash row in (qh.contextIterator()) {
+                hash<auto> ih;
+                foreach hash<auto> row in (qh.contextIterator()) {
                     if (!ih.(row.index_name)) {
                         ih.(row.index_name) = (
                             "unique": row.indisunique,
@@ -1837,7 +1871,7 @@ auto v = c.name;
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
-                foreach hash i in (ih.pairIterator()) {
+                foreach hash<auto> i in (ih.pairIterator()) {
                     # check primary key index and add tablespace to primary key definition
                     if (i.primary && !primaryKey.empty()) {
                         PgsqlPrimaryKey pk = cast<PgsqlPrimaryKey>(primaryKey);
@@ -1868,7 +1902,7 @@ auto v = c.name;
             *hash qh = ds.select("select constraint_name, att2.attname source_column, cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v and con1.contype = 'f' order by conname, rn) con join pg_attribute att on att.attrelid = con.confrelid and att.attnum = con.child join pg_class cl on cl.oid = con.confrelid join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = con.parent order by att.attnum", name, schema);
             if (qh.constraint_name) {
                 hash ch;
-                foreach hash row in (qh.contextIterator()) {
+                foreach hash<auto> row in (qh.contextIterator()) {
                     reference<hash> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
@@ -1923,7 +1957,7 @@ auto v = c.name;
             where
                 c.contype = 'c' and n.nspname = %v and t.relname = %v", schema, name);
             hash rv;
-            foreach hash row in (qh.contextIterator())
+            foreach hash<auto> row in (qh.contextIterator())
                 rv.(row.constraint_name) = new PgsqlCheckConstraint(row.constraint_name, row.consrc);
 
             Constraints c = new Constraints(rv);
@@ -1931,7 +1965,7 @@ auto v = c.name;
             # get unique constraints
             qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
             delete rv;
-            foreach hash row in (qh.contextIterator()) {
+            foreach hash<auto> row in (qh.contextIterator()) {
                 reference<PgsqlUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
@@ -2100,15 +2134,14 @@ auto v = c.name;
             return new PgsqlTrigger(tname, src);
         }
 
-        private bool tryInsertImpl(string sql, hash row) {
+        private bool tryInsertImpl(string sql, hash<auto> row) {
             ds.exec("begin");
             ds.exec("savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
 
             try {
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /duplicate key value/) {
                     ds.exec("rollback to savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
                     return False;
@@ -2212,12 +2245,12 @@ auto v = c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist<auto> args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private auto tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist<auto> args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
@@ -2227,7 +2260,7 @@ auto v = c.name;
                 triggerFunctions = triggerFunctions.copy();
         }
 
-        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list<auto> args) {
             list l = ();
             foreach auto v in (opt.returning) {
                 hash rh;
@@ -2277,6 +2310,20 @@ auto v = c.name;
                 }
             }
             return ce;
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled properly
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
+            return new PgsqlNumberDataType(native_type, nullable, options);
+        }
+
+        #! get DB-specific savepoint helper
+        /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+            @since SqlUtil 1.6
+        */
+        private AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {
+            return new PgsqlSavepointHelper(ds, savepoint);
         }
     }
 }

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,8 +54,45 @@ bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
     return QoreTypeInfo::equal(ti1, ti2);
 }
 
-bool qore_type_is_output_compatiblee(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+bool qore_type_is_input_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+    return QoreTypeInfo::runtimeTypeMatch(ti1, ti2) > 0;
+}
+
+bool qore_type_is_output_compatible(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
     return QoreTypeInfo::isOutputCompatible(ti1, ti2);
+}
+
+bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+    return QoreTypeInfo::parseAccepts(ti1, ti2);
+}
+
+QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValue value, ExceptionSink* xsink) {
+    ValueHolder rv(value.refSelf(), xsink);
+    QoreTypeInfo::acceptAssignment(t, "<type assignment>", *rv, xsink);
+    return *xsink ? QoreValue() : rv.release();
+}
+
+qore_type_t qore_type_get_base_type(const QoreTypeInfo* t) {
+    return QoreTypeInfo::getBaseType(t);
+}
+
+QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t) {
+    return QoreTypeInfo::getAcceptTypes(t);
+}
+
+QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t) {
+    return QoreTypeInfo::getReturnTypes(t);
+}
+
+bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match) {
+    if (may_not_match) {
+        may_not_match = false;
+    }
+    return QoreTypeInfo::parseAccepts(ti1, ti2, may_not_match);
+}
+
+int qore_type_is_assignable_from(const QoreTypeInfo* t, QoreValue value) {
+    return QoreTypeInfo::runtimeAcceptsValue(t, value);
 }
 
 bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti) {

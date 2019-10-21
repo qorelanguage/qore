@@ -1,0 +1,90 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file MapperUtil.qm data mapping module common definitions
+
+/*  Mapper.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.9.4
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# do not use "$" for vars
+%new-style
+
+module MapperUtil {
+    version = "1.0";
+    desc = "user module providing definitions for basic data mapping infrastructure";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage MapperUtil Module
+
+    @tableofcontents
+
+    @section mapperutilintro MapperUtil Module Introduction
+
+    This module provides common definitions for the Mapper module.
+
+    Declarations provided by this module:
+    - @ref Mapper::MapperRuntimeKeyInfo "MapperRuntimeKeyInfo": runtime key definition
+
+    @section mapperutilrelnotes Release Notes
+
+    @subsection mapperutil_v1_0 MapperUtil v1.0
+    - initial release
+*/
+
+#! the Mapper namespace contains all the definitions in the MapperUtil module
+public namespace Mapper {
+    #! describes a runtime type
+    public hashdecl MapperRuntimeKeyInfo {
+        #! the type of value that must be assigned to this key
+        string value_type = "string";
+
+        #! hash of conflicting keys, if any
+        *hash<string, bool> conflicting_keys;
+
+        #! if the key requires in input field for the mapping
+        bool requires_input = False;
+
+        #! the code to handle the key at runtime
+        /** the signature of this closure or call reference depends on \a requires_input:
+            - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
+              - parameters:
+                - \c arg: the argument to the runtime key in the mapping
+                - \c val: the current value of the mapping, if any
+            - \a requires_input == False: <tt>auto sub (auto arg) {}</tt>
+              - parameters:
+                - \c arg: the argument to the runtime key in the mapping
+
+            In both cases the return value is the value to use for the field
+        */
+        code handler;
+    }
+}
+

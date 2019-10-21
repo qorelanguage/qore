@@ -63,6 +63,9 @@ BuildRequires: libbz2-devel
 %else
 BuildRequires: pkgconfig
 BuildRequires: bzip2-devel
+%if 0%{?redhat} >= 8 || 0%{?centos} >= 8
+BuildRequires: gdb-headless
+%endif
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -91,6 +94,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
+Provides: qore-module(abi)%{?_isa} = 0.23
 %if %{libname} == "libqore"
 Provides: libqore6 = %{version}
 Obsoletes: libqore6 < 0.9.4
@@ -123,7 +127,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.22
+Requires: qore-module(abi)%{?_isa} = 0.23
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -214,6 +218,7 @@ This package contains tool for working with:
 
 %files misc-tools
 %defattr(-,root,root,-)
+%{_bindir}/qdp
 %{_bindir}/qget
 %{_bindir}/rest
 %{_bindir}/sfrest
@@ -254,15 +259,19 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/qdbg-server
 /usr/bin/qdbg-remote
 /usr/bin/qdbg-vsc-adapter
+%if 0%{?_mandir:1}
+%{_mandir}/man1/qore.1.*
+%else
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
-%endif
 %else
 /usr/share/man/man1/qore.1.*
+%endif
 %else
 %if 0%{?mdkversion}
 /usr/share/man/man1/qore.1.*
+%endif
 %endif
 %endif
 

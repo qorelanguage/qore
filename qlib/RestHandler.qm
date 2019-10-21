@@ -966,8 +966,8 @@ public namespace RestHandler {
                             try {
                                 return parse_xml(xml);
                             } catch () {
+                                rethrow;
                             }
-                            rethrow;
                         }
                     },
                 ),
@@ -1311,8 +1311,6 @@ public namespace RestHandler {
                 logError(desc);
                 rv = returnRestException(ex);
             }
-
-            #logDebug("DBG: rv: %y", rv);
 
             if (!rv.reply_sent) {
                 # verify response with the REST schema

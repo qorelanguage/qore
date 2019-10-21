@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -167,6 +167,9 @@ DLLEXPORT int testObjectClassAccess(const QoreObject* obj, const QoreClass* clas
 DLLEXPORT const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo);
 DLLEXPORT bool typeInfoHasType(const QoreTypeInfo* typeInfo);
 DLLEXPORT const char* typeInfoGetName(const QoreTypeInfo* typeInfo);
+DLLEXPORT const QoreTypeInfo* typeInfoGetElementType(const QoreTypeInfo* typeInfo);
+DLLEXPORT const TypedHashDecl* typeInfoGetTypedHash(const QoreTypeInfo* typeInfo);
+
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 
@@ -189,7 +192,7 @@ DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_type(const QoreTypeInfo
 // @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
 
-// @since %Qore 0.8.13.1
-DLLEXPORT const QoreTypeInfo* qore_get_type_from_string(const char* str);
+// @since %Qore 0.9.4
+DLLEXPORT const QoreTypeInfo* qore_get_type_from_string(const char* str, ExceptionSink& xsink);
 
 #endif // _QORE_QORETYPE_H

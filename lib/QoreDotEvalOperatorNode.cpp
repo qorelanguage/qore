@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -106,8 +106,7 @@ void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
                 expTypeInfo = returnTypeInfo;
 
                 return;
-            }
-            else if (!possible_match && !QoreTypeInfo::parseAccepts(hashTypeInfo, typeInfo)) {
+            } else if (!possible_match && !QoreTypeInfo::parseAccepts(hashTypeInfo, typeInfo)) {
                 // issue an error if there was no match and it's not a hash
                 QoreStringNode* edesc = new QoreStringNode;
                 edesc->sprintf("no pseudo-method <%s>.%s() can be found", QoreTypeInfo::getName(typeInfo), mname);
@@ -125,8 +124,7 @@ void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     // make sure method arguments and return types are resolved
     qore_class_private::parseInitPartial(*qc);
 
-    if (!m)
-        return;
+    assert(m);
 
     qore_class_private* class_ctx = parse_get_class_priv();
     if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))

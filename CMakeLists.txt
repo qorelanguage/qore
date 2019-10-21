@@ -211,6 +211,7 @@ set(PSEUDO_QPP_SRC
 
 set(QORE_BIN_FILES
     doxygen/qdx
+    bin/qdp
     bin/qget
     bin/rest
     bin/schema-reverse
@@ -794,13 +795,14 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 qore_user_module("qlib/DatasourceProvider.qm" "")
 qore_user_module("qlib/DebugUtil.qm" "")
 qore_user_module("qlib/FsUtil.qm" "")
-qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
 qore_user_module("qlib/Util.qm" "")
 qore_user_module("qlib/WebSocketUtil.qm" "")
+qore_user_module("qlib/MapperUtil.qm" "")
 
 # base 2 modules
+qore_user_module("qlib/DataProvider" "MapperUtil")
 qore_user_module("qlib/ConnectionProvider" "Util")
 qore_user_module("qlib/CsvUtil" "Util")
 qore_user_module("qlib/Diff.qm" "Util")
@@ -810,24 +812,25 @@ qore_user_module("qlib/FtpPoller.qm" "Util")
 qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
-qore_user_module("qlib/SqlUtil.qm" "Util")
+qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
+qore_user_module("qlib/Mapper.qm" "MapperUtil;DataProvider")
 qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
-qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
-qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
-qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util;DataProvider")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
-qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/TableMapper.qm" "MapperUtil;Mapper;SqlUtil;DataProvider")
 qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
@@ -837,6 +840,7 @@ qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSock
 qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/DbDataProvider" "DataProvider;SqlUtil;BulkSqlUtil")
 
 # base 5 modules
 qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServer;HttpServerUtil;WebSocketHandler;WebSocketUtil")

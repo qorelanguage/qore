@@ -14,35 +14,38 @@ module SqlUtilTestBase {
     license = "MIT";
 }
 
-%requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/SqlUtil.qm
-%requires ../../../../qlib/BulkSqlUtil
-%requires ../../../../qlib/Schema.qm
+%requires(reexport) ../../../../qlib/Util.qm
+%requires(reexport) ../../../../qlib/QUnit.qm
+%requires(reexport) ../../../../qlib/DataProvider
+%requires(reexport) ../../../../qlib/SqlUtil
+%requires(reexport) ../../../../qlib/BulkSqlUtil
+%requires(reexport) ../../../../qlib/Schema.qm
+%requires(reexport) ../../../../qlib/DbDataProvider
+%requires(reexport) ../../../../qlib/Mapper.qm
 
 public class SqlUtilTestSchema inherits AbstractSchema {
     private {
         # see testAnalyticFunctions() for more info.
         # the table is the same everywhere
-        const T_TestAnalyticFunctions = (
-            "columns" : (
-                    "id" : c_number(),
-                    "row_type" : c_varchar(10),
-                    "row_value" : c_number(),
-                ),
-        );
+        const T_TestAnalyticFunctions = {
+            "columns": {
+                "id": c_number(),
+                "row_type": c_varchar(10),
+                "row_value": c_number(),
+            },
+        };
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
     }
 
-    private *hash doTables(hash tables, hash columns) {
+    private *hash<auto> doTables(hash<auto> tables, hash<auto> columns) {
         foreach string table in (tables.keyIterator()) {
-            foreach hash h in (columns.pairIterator()) {
+            foreach hash<auto> h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
-                hash ch = (
+                hash<GenericColumnInfo> ch({
                     "native_type": type,
-                    "notnull": True,
-                    );
+                });
                 if (h.value.typeCode() == NT_HASH)
                     ch += (h.value - ("value", "bind", "expect", "type"));
                 tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
@@ -71,7 +74,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
-            );
+        );
 
         const OptionColumn = 22;
 
@@ -82,6 +85,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
         addTestCase("Column Operators", \columnOperatorTest());
@@ -92,7 +96,6 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Offset / Limit", \offsetLimitTest());
         addTestCase("Update", \updateTest());
         addTestCase("Upsert", \upsertTest());
-
         # Cannot delete because additional tests in the module-specific .qtest files
         # are too inter-connected (tightly coupled) to these tests' DB modifications.
         addTestCase("BulkInsert", \bulkInsertTest());
@@ -101,9 +104,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("Delete", \deleteTest());
         addTestCase("result set placeholder", \resultSetPlaceholderTest());
         addTestCase("Serialization", \serializationTest());
-
         addTestCase("wrong schema", \test2358SqlutilSchema());
-
         addTestCase("get DB size #3385", \testGetPhysicalSize());
     }
 
@@ -124,13 +125,183 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(Type::String, sql.type());
     }
 
+    dbTableProviderTest() {
+        if (!table) testSkip("no DB connection");
+
+        {
+            DbTableDataProvider dp(table);
+
+            assertTrue(dp.requiresTransactionManagement());
+
+            AbstractDataProviderBulkOperation inserter = dp.getBulkInserter();
+            on_error {
+                inserter.discard();
+                inserter.rollback();
+            }
+            on_success {
+                inserter.flush();
+                inserter.commit();
+            }
+
+            map inserter.queueData($1), insert_data;
+        }
+
+        on_exit {
+            on_error table.rollback();
+            on_success table.commit();
+
+            table.truncate();
+        }
+
+        assertFalse(table.empty());
+
+        {
+            DbTableDataProvider dp(table);
+
+            list<hash<auto>> table_rows;
+            {
+                table_rows = map $1, dp.searchRecords();
+                assertEq(2, table_rows.size());
+
+                hash<auto> row = dp.searchSingleRecord({"id": 1});
+                assertEq(Type::Int, row.id.type());
+            }
+
+            assertThrows("RUNTIME-TYPE-ERROR", \dp.searchSingleRecord(), {"id": <00>});
+
+            # get first string column
+            string fname;
+            foreach QoreDataField field in (dp.getRecordType().iterator()) {
+                if (field.getType().getReturnTypeHash().string) {
+                    fname = field.getName();
+                    break;
+                }
+            }
+
+            if (fname) {
+                # test update API
+                string rstr = get_random_string();
+                assertTrue(dp.updateSingleRecord({fname: rstr}, {"id": 1}));
+                AbstractDatasource ds = table.getDatasource();
+                assertFalse(ds.currentThreadInTransaction());
+
+                hash<auto> row = dp.searchSingleRecord({"id": 1});
+                assertEq(rstr, row{fname});
+
+                list<hash<auto>> rows = map $1, dp.searchRecords();
+                assertEq(2, rows.size());
+
+                assertEq(1, dp.deleteRecords({"id": 1}));
+                ds.beginTransaction();
+                on_error ds.rollback();
+                on_success ds.commit();
+                assertTrue(ds.currentThreadInTransaction());
+
+                {
+                    AbstractSavepointHelper sph = table.getSavepointHelper();
+                    on_exit {
+                        sph.rollback();
+                        assertTrue(ds.currentThreadInTransaction());
+                    }
+                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
+                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
+                }
+
+                # get not null columns for upsert output
+                hash<auto> not_null_map = map {$1.name: $1.name}, table.describe().iterator(), !$1.nullable;
+
+                # test mappers with data providers
+                {
+                    Mapper m({"new_id": "id"}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                }
+
+                # NOTE: we cannot use the same datasource for input and output data providers
+                # get row with id = 2
+                hash<auto> row_id_2;
+                foreach hash<auto> table_row in (table_rows) {
+                    if (table_row.id == 2) {
+                        row_id_2 = table_row;
+                        break;
+                    }
+                }
+                assertEq(2, row_id_2.id);
+
+                {
+                    Mapper m(not_null_map + {fname: {"code": string sub (*string fname, hash<auto> rec) { return fname + "-x"; }}}, {
+                        "input": dp.getRecordType(),
+                        "output_provider": dp,
+                        "output_provider_upsert": True,
+                    });
+                    list<hash<auto>> recs;
+                    {
+                        on_error {
+                            m.rollback();
+                        }
+                        on_success {
+                            m.commit();
+                        }
+                        recs = m.mapAll(row_id_2);
+                    }
+                    assertEq(1, recs.size());
+                    assertEq(row_id_2{fname} + "-x", recs[0]{fname});
+                }
+
+                {
+                    Mapper m({"new_id": "id", fname: fname}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                    assertEq(row_id_2{fname} + "-x", recs[0]{fname});
+                }
+
+                {
+                    Mapper m(not_null_map + {fname: {"code": string sub (*string fname, hash<auto> rec) { return fname + "-x-y"; }}}, {
+                        "input": dp.getRecordType(),
+                        "output_provider": dp,
+                        "output_provider_upsert": True,
+                        "output_provider_bulk": True,
+                    });
+                    list<hash<auto>> recs;
+                    {
+                        on_error {
+                            m.discard();
+                            m.rollback();
+                        }
+                        on_success {
+                            m.flush();
+                            m.commit();
+                        }
+                        recs = m.mapAll(row_id_2);
+                    }
+                    assertEq(1, recs.size());
+                    assertEq(row_id_2{fname} + "-x-y", recs[0]{fname});
+                }
+
+                {
+                    Mapper m({"new_id": "id", fname: fname}, {"input_provider": dp, "input_provider_search": {"id": 2}});
+                    MapperOutputRecordIterator i = m.getOutputIterator();
+                    list<hash<auto>> recs = map $1, i;
+                    assertEq(1, recs.size());
+                    assertEq(2, recs[0].new_id);
+                    assertEq(row_id_2{fname} + "-x-y", recs[0]{fname});
+                }
+            }
+        }
+    }
+
     insertTest() {
         if (!table) testSkip("no DB connection");
 
         on_success table.commit();
         on_error table.rollback();
 
-        string sql; on_error printf ("SQL: %s\n", sql);
+        string sql;
+        on_error printf("SQL: %s\n", sql);
 
         foreach hash data in (insert_data)
             assertEq(NOTHING, table.insert(data, \sql));
@@ -142,19 +313,20 @@ public class SqlTestBase inherits QUnit::Test {
         on_success table.commit();
         on_error table.rollback();
 
-        string sql; on_error printf ("SQL: %s\n", sql);
+        string sql;
+        on_error printf ("SQL: %s\n", sql);
 
-        *list rows = table.selectRows();
-        assertEq (2, rows.size());
+        *list rows = table.selectRows({}, \sql);
+        assertEq(2, rows.size());
 
         foreach hash e in (expect_data.pairIterator()) {
             # printf("* %s\n", e.key);
             # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
             # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
             if (e.value === NOTHING)
-                assertSkip ("checking data in column " + e.key);
+                assertSkip("checking data in column " + e.key);
             else
-                assertEq (e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
         }
 
         # select a single column and then asterisk
@@ -164,13 +336,13 @@ public class SqlTestBase inherits QUnit::Test {
             # issue #2163: make sure we can reference aliases that are keywords
             "where": ("table": op_ceq(col)),
             "limit": 1,
-            );
+        );
 
         assertEq(Type::Hash, table.selectRow(sh, \sql).type());
         sh = (
             "join": join_inner(table, "t", ("id": "id")),
             "limit": 1,
-            );
+        );
 
         assertEq(("id", "id_1"), table.select(sh).("id", "id_1").keys());
         assertEq(("id", "id_1"), table.selectRows(sh)[0].("id", "id_1").keys());
@@ -352,7 +524,7 @@ public class SqlTestBase inherits QUnit::Test {
                 cop_as(cop_value(1), "from"), # cop_as with reserved word
             ),
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
-            );
+        );
 
         *hash row = table.selectRow (soh, \sql);
 
@@ -377,22 +549,23 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_multiply_value": 20,
             "cop_as_ok": 1,
             "from": 1,
-            );
+        );
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
 
-        soh = ("columns": (
-                   cop_as("char_f", "pivo"),
-                   cop_as(cop_min("id"), "cop_min"),
-                   cop_as(cop_max("id"), "cop_max"),
-                   cop_as(cop_avg("id"), "cop_avg"),
-                   cop_as(cop_sum("id"), "cop_sum"),
-                   cop_as(cop_count("char_f"), "cop_count"),
-                   cop_as(cop_count(cop_distinct("char_f")), "cop_distinct"),
-                ),
-                "groupby": ("char_f")
-                );
+        soh = (
+            "columns": (
+                cop_as("char_f", "pivo"),
+                cop_as(cop_min("id"), "cop_min"),
+                cop_as(cop_max("id"), "cop_max"),
+                cop_as(cop_avg("id"), "cop_avg"),
+                cop_as(cop_sum("id"), "cop_sum"),
+                cop_as(cop_count("char_f"), "cop_count"),
+                cop_as(cop_count(cop_distinct("char_f")), "cop_distinct"),
+            ),
+            "groupby": ("char_f")
+        );
 
         row = table.selectRow (soh, \sql);
 
@@ -403,39 +576,37 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_sum": 3,
             "cop_count": 2,
             "cop_distinct": 1,
-            );
+        );
 
         foreach hash e in (expect.pairIterator())
             assertEq (e.value, row{e.key}, "checking column operator " + e.key);
-
 
         # feature #2032: sqlutil: new operator to allow transparent datetime truncation across various DBMS
         # negative args first
         try {
             cop_trunc_date("dt", "foobar");
             assertEq(False, True, "The call above must throw and exception");
-        }
-        catch (hash ex) {
+        } catch (hash ex) {
             assertEq("COP-TRUNC-DATE-ERROR", ex.err, "Excaption COP-TRUNC-DATE-ERROR is expected here");
             assertEq(True, ex.desc =~ /Not allowed format argument: "foobar"/, "Expected ex description must be received");
         }
 
         # real data test - using timestamp (timestamp_f) from driver's test
         hash test_cases = (
-                DT_YEAR     : 2016-01-01T00:00:00,
-                DT_MONTH    : 2016-02-01T00:00:00,
-                DT_DAY      : 2016-02-11T00:00:00,
-                DT_HOUR     : 2016-02-11T09:00:00,
-                DT_MINUTE   : 2016-02-11T09:26:00,
-                DT_SECOND   : 2016-02-11T09:26:14,
-            );
+            DT_YEAR     : 2016-01-01T00:00:00,
+            DT_MONTH    : 2016-02-01T00:00:00,
+            DT_DAY      : 2016-02-11T00:00:00,
+            DT_HOUR     : 2016-02-11T09:00:00,
+            DT_MINUTE   : 2016-02-11T09:26:00,
+            DT_SECOND   : 2016-02-11T09:26:14,
+        );
 
         HashIterator it(test_cases);
         while (it.next()) {
             hash sh = (
                     "columns" : cop_as(cop_trunc_date("timestamp_f", it.getKey()), "ret"),
                     "where" : ( "id" : 1),
-                );
+            );
             date r = table.selectRow(sh, \sql).ret;
             assertEq(it.getValue(), r, sprintf("cop_trunc_date for mask: '%s'", it.getKey()));
         }
@@ -452,51 +623,51 @@ public class SqlTestBase inherits QUnit::Test {
         string sql; on_error printf ("SQL: %s\n", sql);
 
         hash test_set = (
-                "uop_prepend": (
-                    "set": ("null_f": uop_prepend ("123")),
-                    "out": ("null_f": "123abc"),
-                    ),
-                "uop_append": (
-                    "set": ("null_f": uop_append ("123")),
-                    "out": ("null_f": "123abc123"),
-                    ),
-                "uop_upper": (
-                    "set": ("null_f": uop_upper()),
-                    "out": ("null_f": "123ABC123"),
-                    ),
-                "uop_lower": (
-                    "set": ("null_f": uop_lower()),
-                    "out": ("null_f": "123abc123"),
-                    ),
-                "uop_append(uop_upper)": (
-                    "set": ("null_f": uop_append ("abc", uop_upper())),
-                    "out": ("null_f": "123ABC123abc"),
-                    ),
-                "uop_lower(uop_append)": (
-                    "set": ("null_f": uop_lower (uop_append ("DEF"))),
-                    "out": ("null_f": "123abc123abcdef"),
-                    ),
-                "uop_substr": (
-                    "set": ("null_f": uop_substr (4, 6)),
-                    "out": ("null_f": "abc123"),
-                    ),
-                "uop_plus": (
-                    "set": ("id_": uop_plus(3)),
-                    "out": ("id_": 2+3),
-                    ),
-                "uop_minus": (
-                    "set": ("id_": uop_minus(3)),
-                    "out": ("id_": 5-3),
-                    ),
-                "uop_multiply": (
-                    "set": ("id_": uop_multiply(3)),
-                    "out": ("id_": 2*3),
-                    ),
-                "uop_divide": (
-                    "set": ("id_": uop_divide(3)),
-                    "out": ("id_": 6/3),
-                    ),
-                );
+            "uop_prepend": (
+                "set": ("null_f": uop_prepend ("123")),
+                "out": ("null_f": "123abc"),
+                ),
+            "uop_append": (
+                "set": ("null_f": uop_append ("123")),
+                "out": ("null_f": "123abc123"),
+                ),
+            "uop_upper": (
+                "set": ("null_f": uop_upper()),
+                "out": ("null_f": "123ABC123"),
+                ),
+            "uop_lower": (
+                "set": ("null_f": uop_lower()),
+                "out": ("null_f": "123abc123"),
+                ),
+            "uop_append(uop_upper)": (
+                "set": ("null_f": uop_append ("abc", uop_upper())),
+                "out": ("null_f": "123ABC123abc"),
+                ),
+            "uop_lower(uop_append)": (
+                "set": ("null_f": uop_lower (uop_append ("DEF"))),
+                "out": ("null_f": "123abc123abcdef"),
+                ),
+            "uop_substr": (
+                "set": ("null_f": uop_substr (4, 6)),
+                "out": ("null_f": "abc123"),
+                ),
+            "uop_plus": (
+                "set": ("id_": uop_plus(3)),
+                "out": ("id_": 2+3),
+                ),
+            "uop_minus": (
+                "set": ("id_": uop_minus(3)),
+                "out": ("id_": 5-3),
+                ),
+            "uop_multiply": (
+                "set": ("id_": uop_multiply(3)),
+                "out": ("id_": 2*3),
+                ),
+            "uop_divide": (
+                "set": ("id_": uop_divide(3)),
+                "out": ("id_": 6/3),
+                ),
+        );
 
         hash cond = ("id": 1);
 
@@ -521,212 +692,212 @@ public class SqlTestBase inherits QUnit::Test {
         string sql; on_error printf ("SQL: %s\n", sql);
 
         hash test_set = (
-                "op_lt": (
-                    "in": (
-                        "where": ("id": op_lt(2)),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+            "op_lt": (
+                "in": (
+                    "where": ("id": op_lt(2)),
                     ),
-                "op_le": (
-                    "in": (
-                        "where": ("id": op_le(2)),
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
                     ),
-                "op_gt": (
-                    "in": (
-                        "where": ("id": op_gt(1)),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2),),
-                        ),
+                ),
+            "op_le": (
+                "in": (
+                    "where": ("id": op_le(2)),
+                    "orderby": ("id",)
                     ),
-                "op_ge": (
-                    "in": (
-                        "where": ("id": op_ge(1)),
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
                     ),
-                "op_eq": (
-                    "in": (
-                        "where": ("id": op_eq(2)),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2),),
-                        ),
+                ),
+            "op_gt": (
+                "in": (
+                    "where": ("id": op_gt(1)),
                     ),
-                "op_ne": (
-                    "in": (
-                        "where": ("id": op_ne(1)),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2),),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2),),
                     ),
-                "op_ne_null": (
-                    "in": (
-                        "where": ("null_f": op_ne("abc")),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2, "null_f": NULL),),
-                        ),
+                ),
+            "op_ge": (
+                "in": (
+                    "where": ("id": op_ge(1)),
+                    "orderby": ("id",)
                     ),
-                "op_between": (
-                    "in": (
-                        "where": ("id": op_between(0,1)),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
                     ),
-                "op_in": (
-                    "in": (
-                        "where": ("id": op_in((0,1,3))),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+                ),
+            "op_eq": (
+                "in": (
+                    "where": ("id": op_eq(2)),
                     ),
-                "op_in_empty": (
-                    "in": (
-                        "where": ("id": op_in(list())),
-                        ),
-                    "out": (
-                        "count": 0,
-                        "data": (),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2),),
                     ),
-                "op_in_large": (
-                    "in": (
-                        "where": ("id": op_in(range(32767))), # value 32767 is enough to trigger Oracle's ORA-22165
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
-                    "skip_for": ("FreetdsTest"), # TODO: remove once support is implemented in FreetdsSqlUtil
+                ),
+            "op_ne": (
+                "in": (
+                    "where": ("id": op_ne(1)),
                     ),
-                "op_not": (
-                    "in": (
-                        "where": ("id": op_not (op_in((0,1,3)))),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2),),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2),),
                     ),
-                "op_like": (
-                    "in": (
-                        "where": ("char_f": op_like (insert_data[0].char_f + "%")),
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
-                        ),
+                ),
+            "op_ne_null": (
+                "in": (
+                    "where": ("null_f": op_ne("abc")),
                     ),
-                "op_substr_1": (
-                    "in": (
-                        "where": ("char_f": op_substr (2, expect_data.char_f.substr(1))),
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2, "null_f": NULL),),
                     ),
-                "op_substr_2": (
-                    "in": (
-                        "where": ("char_f": op_substr (1, 4, expect_data.char_f.substr(0,4))),
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
-                        ),
+                ),
+            "op_between": (
+                "in": (
+                    "where": ("id": op_between(0,1)),
                     ),
-                "op_clt": (
-                    "in": (
-                        "where": ("id": op_clt("id_")),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
                     ),
-                "op_cle": (
-                    "in": (
-                        "where": ("id": op_cle("id_")),
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
+                ),
+            "op_in": (
+                "in": (
+                    "where": ("id": op_in((0,1,3))),
                     ),
-                "op_cgt": (
-                    "in": (
-                        "where": ("id_": op_cgt("id")),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
                     ),
-                "op_cge": (
-                    "in": (
-                        "where": ("id_": op_cge("id")),
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
+                ),
+            "op_in_empty": (
+                "in": (
+                    "where": ("id": op_in(list())),
                     ),
-                "op_cne": (
-                    "in": (
-                        "where": ("id": op_cne("id_")),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 1),),
-                        ),
+                "out": (
+                    "count": 0,
+                    "data": (),
                     ),
-                "op_ceq": (
-                    "in": (
-                        "where": ("id": op_ceq("id_")),
-                        ),
-                    "out": (
-                        "count": 1,
-                        "data": (("id": 2),),
-                        ),
+                ),
+            "op_in_large": (
+                "in": (
+                    "where": ("id": op_in(range(32767))), # value 32767 is enough to trigger Oracle's ORA-22165
+                    "orderby": ("id",)
                     ),
-                "wop_or": (
-                    "in": (
-                        "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
-                        "orderby": ("id",)
-                        ),
-                    "out": (
-                        "count": 2,
-                        "data": (("id": 1), ("id": 2)),
-                        ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
                     ),
-                );
+                "skip_for": ("FreetdsTest"), # TODO: remove once support is implemented in FreetdsSqlUtil.qm
+                ),
+            "op_not": (
+                "in": (
+                    "where": ("id": op_not (op_in((0,1,3)))),
+                    ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2),),
+                    ),
+                ),
+            "op_like": (
+                "in": (
+                    "where": ("char_f": op_like (insert_data[0].char_f + "%")),
+                    ),
+                "out": (
+                    "count": 2,
+                    "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
+                    ),
+                ),
+            "op_substr_1": (
+                "in": (
+                    "where": ("char_f": op_substr (2, expect_data.char_f.substr(1))),
+                    ),
+                "out": (
+                    "count": 2,
+                    "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
+                    ),
+                ),
+            "op_substr_2": (
+                "in": (
+                    "where": ("char_f": op_substr (1, 4, expect_data.char_f.substr(0,4))),
+                    ),
+                "out": (
+                    "count": 2,
+                    "data": (("char_f": expect_data.char_f), ("char_f": expect_data.char_f)),
+                    ),
+                ),
+            "op_clt": (
+                "in": (
+                    "where": ("id": op_clt("id_")),
+                    ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
+                    ),
+                ),
+            "op_cle": (
+                "in": (
+                    "where": ("id": op_cle("id_")),
+                    "orderby": ("id",)
+                    ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
+                    ),
+                ),
+            "op_cgt": (
+                "in": (
+                    "where": ("id_": op_cgt("id")),
+                ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
+                ),
+            ),
+            "op_cge": (
+                "in": (
+                    "where": ("id_": op_cge("id")),
+                    "orderby": ("id",)
+                ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
+                ),
+            ),
+            "op_cne": (
+                "in": (
+                    "where": ("id": op_cne("id_")),
+                ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 1),),
+                ),
+            ),
+            "op_ceq": (
+                "in": (
+                    "where": ("id": op_ceq("id_")),
+                ),
+                "out": (
+                    "count": 1,
+                    "data": (("id": 2),),
+                ),
+            ),
+            "wop_or": (
+                "in": (
+                    "where": wop_or (("id": op_eq(1)), ("id": op_eq(2))),
+                    "orderby": ("id",)
+                ),
+                "out": (
+                    "count": 2,
+                    "data": (("id": 1), ("id": 2)),
+                ),
+            ),
+        );
 
         foreach hash t in (test_set.pairIterator()) {
             if (inlist (self.className(), t.value.skip_for)) {
@@ -796,7 +967,7 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         if (!table) testSkip("no DB connection");
 
-        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil
+        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil.qm
         if (self.className() == "FreetdsTest")
             testSkip("FreetdsSqlUtil does not support offset (yet)");
 
