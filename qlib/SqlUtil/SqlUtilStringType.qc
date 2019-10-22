@@ -49,7 +49,7 @@ public class SqlUtilStringType inherits DataProvider::QoreStringDataTypeBase {
     /** we let the DB drive do any encoding conversions
     */
     constructor(string native_type, bool nullable, *hash<auto> options)
-        : QoreStringDataTypeBase(nullable ? SoftStringOrNothingType : SoftStringType, options) {
+        : QoreStringDataTypeBase(nullable ? SoftStringOrNothingType : SoftStringType, options + {"qore.no_null": True}) {
         name = native_type;
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;

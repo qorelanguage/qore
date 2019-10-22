@@ -51,7 +51,7 @@ public class SqlUtilDbSpecificDataType inherits DataProvider::AbstractDataProvid
     }
 
     #! creates the object from the given parameters
-    constructor(string native_type, bool nullable, *hash<auto> options) : DataProvider::AbstractDataProviderType(options) {
+    constructor(string native_type, bool nullable, *hash<auto> options) : DataProvider::AbstractDataProviderType(options + {"qore.no_null": True}) {
         name = native_type;
         self.nullable = nullable;
     }
