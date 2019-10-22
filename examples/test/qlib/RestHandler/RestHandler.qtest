@@ -79,7 +79,7 @@ class TestRestClass inherits AbstractRestClass {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Max-Age": 9999999,
         };
-        return RestHandler::makeResponse(200, "", hdr);
+        return RestHandler::makeResponse(200, NOTHING, hdr);
     }
 }
 
@@ -346,7 +346,7 @@ public class RestHandlerTest inherits QUnit::Test {
         val = mHandler.handleExternalRequest("GET", "test?action=action");
         assertEq(False, val);
         val = mHandler.handleExternalRequest("OPTIONS", "test");
-        assertEq("", val);
+        assertNothing(val);
 
         # issue #2994: test URI path access to actions
         val = mHandler.handleExternalRequest("GET", "test/echo", LargerHashValue);
@@ -411,7 +411,9 @@ public class RestHandlerTest inherits QUnit::Test {
             assertEq(ListValue, h.body);
 
             h = mClient.doRequest("OPTIONS", "test", NOTHING, \info);
-            assertEq("", h.body);
+            assertEq(200, h.status_code);
+            assertNothing(h.body);
+            assertEq("0", h."content-length");
         }
     }
 
