@@ -81,6 +81,7 @@ class RestCmd {
             "POST": True,
             "DELETE": True,
             "PATCH": True,
+            "OPTIONS": True,
         };
     }
 
