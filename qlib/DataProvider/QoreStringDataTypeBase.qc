@@ -40,7 +40,7 @@ public namespace DataProvider {
 public class QoreStringDataTypeBase inherits QoreDataType {
     private {
         #! supported options
-        const SupportedOptions = {
+        const SupportedOptions = QoreDataType::SupportedOptions + {
             "string.encoding": <DataProviderTypeOptionInfo>{
                 "type": Type::String,
                 "desc": "the output encoding when writing to the type",

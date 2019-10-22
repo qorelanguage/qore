@@ -95,7 +95,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         }
 
         if (self.options."qore.no_null") {
-            accept_type_hash -= Type::NullType;
+            accept_type_hash -= "null";
             blacklist_type_hash{NT_NULL} = True;
         }
     }

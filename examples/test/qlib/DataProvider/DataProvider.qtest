@@ -291,5 +291,15 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq("key1", fields.getFields().key1.getInfo().name);
             assertEq("string", fields.getFields().key1.getInfo().type.name);
         }
+
+        {
+            QoreDataType t(SoftStringType);
+            assertEq("", t.acceptsValue(NULL));
+        }
+
+        {
+            QoreDataType t(SoftStringType, {"qore.no_null": True});
+            assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*NULL", \t.acceptsValue(), (NULL,));
+        }
     }
 }
