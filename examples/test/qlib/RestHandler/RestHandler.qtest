@@ -72,6 +72,15 @@ class TestRestClass inherits AbstractRestClass {
     hash put(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
+
+    hash<auto> options(hash<auto> cx, *hash<auto> ah) {
+        hash<auto> hdr = {
+            "Access-Control-Allow-Origin": cx.hdr.origin ?? "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Max-Age": 9999999,
+        };
+        return RestHandler::makeResponse(200, NOTHING, hdr);
+    }
 }
 
 class B2893RestClass inherits AbstractRestClass {
@@ -336,6 +345,8 @@ public class RestHandlerTest inherits QUnit::Test {
         assertEq(HashValue, val);
         val = mHandler.handleExternalRequest("GET", "test?action=action");
         assertEq(False, val);
+        val = mHandler.handleExternalRequest("OPTIONS", "test");
+        assertNothing(val);
 
         # issue #2994: test URI path access to actions
         val = mHandler.handleExternalRequest("GET", "test/echo", LargerHashValue);
@@ -398,6 +409,11 @@ public class RestHandlerTest inherits QUnit::Test {
             assertEq("1", h.body);
             h = mClient.put("test?action=echo", ListValue, \info);
             assertEq(ListValue, h.body);
+
+            h = mClient.doRequest("OPTIONS", "test", NOTHING, \info);
+            assertEq(200, h.status_code);
+            assertNothing(h.body);
+            assertEq("0", h."content-length");
         }
     }
 
