@@ -116,18 +116,46 @@ class QdpCmd {
 
     static getRecord(AbstractDataProvider provider) {
         *hash<string, AbstractDataField> rec = provider.getRecordType();
-        if (opts.verbose > 2) {
+        if (opts.verbose > 1) {
             printf("%N\n", rec);
-        } else if (opts.verbose > 1) {
-            map printf("%y:\n\ttype=%y\n\tdesc=%y\n%s", $1.key, $1.value.getTypeName(),
-                $1.value.getDescription() ?? "n/a",
-                (auto val = $1.value.getDefaultValue()) ? sprintf("\tdefault_value=%y\n", val) : NOTHING),
-                rec.pairIterator();
-        } else if (opts.verbose) {
-            map printf("%y: type=%y desc=%y%s\n", $1.key, $1.value.getTypeName(), $1.value.getDescription() ?? "n/a",
-                (auto val = $1.value.getDefaultValue()) ? sprintf(" default_value=%y", val) : NOTHING), rec.pairIterator();
         } else {
-            printf("%s\n", (foldl $1 + " " + $2, (map sprintf("%y", $1), keys rec)));
+            QdpCmd::showRecord(rec);
+        }
+    }
+
+    static showRecord(*hash<string, AbstractDataField> rec, string offset = "") {
+        foreach hash<auto> i in (rec.pairIterator()) {
+            AbstractDataProviderType type = i.value.getType();
+            if (opts.verbose) {
+                string txt = sprintf("%s%s %s", offset, type.getName(), i.key);
+                string info;
+                if (*string desc = i.value.getDescription()) {
+                    info = sprintf("desc: %y", desc);
+                }
+                if (auto val = i.value.getDefaultValue()) {
+                    if (info) {
+                        info += " ";
+                    }
+                    info += sprintf(" default_value: %y", val);
+                }
+                if (info) {
+                    txt += " (" + info + ")";
+                }
+                print(txt);
+            } else {
+                printf("%s%s %s", offset, type.getName(), i.key);
+            }
+            if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
+                && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
+                printf(": elements ->\n");
+                QdpCmd::showRecord(element_rec, offset + "  ");
+            } else {
+                print("\n");
+            }
+            *hash<string, AbstractDataField> fields = type.getFields();
+            if (fields) {
+                QdpCmd::showRecord(fields, offset + "  ");
+            }
         }
     }
 

@@ -327,6 +327,19 @@ public class AbstractDataProvider {
         return provider;
     }
 
+    #! Returns the given child provider from a \c "/" separated path string; throws an exception if any element in the path is unknown
+    /** @param path a string giving a path to the target provider where child elements are separated by \c "/" characters
+
+        @return the target child provider; throws an exception if any element in the path is unknown
+
+        @throw INVALID-CHILD-PROVIDER unknown child provider
+    */
+    AbstractDataProvider getChildProviderPath(string path) {
+        AbstractDataProvider provider = self;
+        map provider = provider.getChildProviderEx($1), path.split("/");
+        return provider;
+    }
+
     #! Returns @ref True if the data provider supports transaction management
     /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
         must be called to flush or discard data written to the data provider

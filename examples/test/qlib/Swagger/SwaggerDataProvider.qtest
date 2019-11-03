@@ -48,5 +48,25 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
             "schema": "PetStore.swagger.yaml",
         };
         SwaggerDataProvider provider(opts);
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET/response/200");
+            assertEq(("body",), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET/request");
+            assertEq(("query",), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/GET/response/200");
+            assertEq(("body",), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/POST/request");
+            assertEq(("formData",), keys p0.getRecordType());
+        }
     }
 }

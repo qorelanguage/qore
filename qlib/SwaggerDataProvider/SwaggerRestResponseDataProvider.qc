@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore SwaggerRequestDataProvider module definition
+#! Qore SwaggerRestResponseDataProvider module definition
 
-/** SwaggerRequestDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SwaggerRestResponseDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,35 +33,39 @@
 # enable all warnings
 %enable-all-warnings
 
-#! contains all public definitions in the SwaggerRequestDataProvider module
-public namespace SwaggerRequestDataProvider {
+#! contains all public definitions in the SwaggerResponseDataProvider module
+public namespace SwaggerResponseDataProvider {
 #! The Swagger data provider class
-public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
+public class SwaggerRestResponseDataProvider inherits SwaggerDataProviderBase {
     public {
         #! The Swagger schema
         SwaggerSchema schema;
 
-        #! The REST client object for API calls
-        *RestClient rest;
-
-        #! current URI path
+        #! The current URI path
         string uri_path;
 
         #! The operation object
         OperationObject op;
+
+        #! The HTTP status code for the response
+        int http_code;
+
+        #! The response object itself
+        ResponseObject response;
     }
 
     #! Creates the object from the arguments
-    constructor(SwaggerSchema schema, *RestClient rest, string uri_path, OperationObject op) {
+    constructor(SwaggerSchema schema, string uri_path, OperationObject op, int http_code, ResponseObject response) {
         self.schema = schema;
-        self.rest = rest;
         self.uri_path = uri_path;
         self.op = op;
+        self.http_code = http_code;
+        self.response = response;
     }
 
     #! Returns the data provider name
     string getName() {
-        return schema.info.title + uri_path + "/" + op.method.upr() + "/" + "request";
+        return schema.info.title + uri_path + "/" + op.method.upr() + "/" + "response" + "/" + http_code;
     }
 
     #! Returns data provider info
@@ -70,52 +74,19 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "name": getName(),
         });
         rv += getStaticInfoImpl();
-        rv += getOperationInfo(op.method);
         return rv;
     }
 
     #! Returns the description of the record type, if any
     *hash<string, AbstractDataField> getRecordType() {
-        *hash<string, AbstractDataField> rv;
-        if (op.parameters) {
-            rv = getRequestRecordFromParameters("parameters", op.parameters);
+        hash<string, AbstractDataField> rv;
+        if (response.schema) {
+            rv.body = getFieldFromSchema("body", "REST response body argument", response.schema);
         }
-        if (op.body) {
-            rv.body = getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema);
-        }
-        if (op.formData) {
-            OtherParameter param = cast<OtherParameter>(op.formData);
-            rv.formData = getFieldFromParameter("formData", param.type, param.items, param.desc, param.required);
+        if (response.headers) {
+            rv.headers = getFieldForHeaders("headers", response.headers);
         }
         return rv;
-    }
-
-    #! Returns flags for the operation supported by this object
-    private static hash<auto> getOperationInfo(string method) {
-        switch (method) {
-            case "GET":
-                return {
-                    "supports_read": True,
-                };
-                break;
-            case "POST": {
-                return {
-                    "supports_create": True,
-                };
-                break;
-            }
-            case "DELETE": {
-                return {
-                    "supports_delete": True,
-                };
-                break;
-            }
-        }
-
-        # assume all other methods are updates
-        return {
-            "supports_update": True,
-        };
     }
 }
 }

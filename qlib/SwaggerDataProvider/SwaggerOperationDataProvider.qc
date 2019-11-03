@@ -36,7 +36,7 @@
 #! contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider class
-public class SwaggerOperationDataProvider inherits AbstractDataProvider {
+public class SwaggerOperationDataProvider inherits SwaggerDataProviderBase {
     public {
         #! The Swagger schema
         SwaggerSchema schema;
@@ -81,11 +81,6 @@ public class SwaggerOperationDataProvider inherits AbstractDataProvider {
             case "request": return new SwaggerRequestDataProvider(schema, rest, uri_path, op);
             case "response": return new SwaggerResponseDataProvider(schema, uri_path, op);
         }
-    }
-
-    #! Returns data provider static info
-    private hash<DataProviderInfo> getStaticInfoImpl() {
-        return SwaggerDataProvider::ProviderInfo;
     }
 
     private RestClient getRestClient() {

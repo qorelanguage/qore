@@ -36,13 +36,13 @@
 #! contains all public definitions in the SwaggerResponseDataProvider module
 public namespace SwaggerResponseDataProvider {
 #! The Swagger data provider class
-public class SwaggerResponseDataProvider inherits AbstractDataProvider {
+public class SwaggerResponseDataProvider inherits SwaggerDataProviderBase {
     public {
         #! The Swagger schema
         SwaggerSchema schema;
 
         #! current URI path
-        string uri_path = "/";
+        string uri_path;
 
         #! The operation object
         OperationObject op;
@@ -60,18 +60,22 @@ public class SwaggerResponseDataProvider inherits AbstractDataProvider {
         return schema.info.title + uri_path + "/" + op.method.upr() + "/" + "response";
     }
 
-    #! Returns data provider info
-    hash<DataProviderInfo> getInfo() {
-        hash<DataProviderInfo> rv({
-            "name": getName(),
-        });
-        rv += getStaticInfoImpl();
-        return rv;
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+    */
+    private *list<string> getChildProviderNamesImpl() {
+        return keys op.responses.responses;
     }
 
-    #! Returns data provider static info
-    private hash<DataProviderInfo> getStaticInfoImpl() {
-        return SwaggerDataProvider::ProviderInfo;
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+
+        @see getChildProviderEx()
+    */
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        if (*ResponseObject response = op.responses.responses{name}) {
+            return new SwaggerRestResponseDataProvider(schema, uri_path, op, name.toInt(), response);
+        }
     }
 }
 }
