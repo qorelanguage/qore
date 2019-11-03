@@ -99,7 +99,7 @@ public class DbDataProvider inherits AbstractDataProvider {
                 error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
                     "supplied in the \"datasource\" option");
             }
-            self.db = copts.db;
+            self.db = copts.database;
             return;
         }
         if (!copts.datasource) {
@@ -129,7 +129,6 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns the given child provider or @ref nothing if the given child is unknown
     /** @return the given child provider or @ref nothing if the given child is unknown
 
-        @throw INVALID-CHILD-PROVIDER unknown child provider
         @throw CHILD-PROVIDER-ERROR error acquiring child provider
 
         @see getChildProviderEx()

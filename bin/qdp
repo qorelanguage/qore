@@ -87,7 +87,7 @@ class QdpCmd {
             }
             list<string> path = name.split("/");
             provider = getDataProvider((shift path) + opts);
-            map provider = provider.getChildProvider($1), path;
+            map provider = provider.getChildProviderEx($1), path;
         }
 
         string cmd = shift ARGV ?? "list";
@@ -230,6 +230,8 @@ class QdpCmd {
     }
 
     static listFactories() {
+        # load known data provider factories
+        DataProvider::registerKnownFactories();
         *list<string> flist = DataProvider::listFactories();
         if (opts.verbose) {
             map printf("%s: %N\n", $1, DataProvider::getFactory($1).getInfoAsData()), flist;

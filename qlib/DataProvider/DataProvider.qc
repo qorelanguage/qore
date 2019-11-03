@@ -41,6 +41,7 @@ public class DataProvider {
         #! List of standard data provider factory modules
         const FactoryList = (
             "DbDataProvider",
+            "SwaggerDataProvider",
             "CsvUtil",
         );
     }
@@ -210,7 +211,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
                 load_module(factory);
             } catch (hash<ExceptionInfo> ex) {
                 # DEBUG
-                #stderr.printf("%s: %s\n", ex.err, ex.desc);
+                #stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
     }

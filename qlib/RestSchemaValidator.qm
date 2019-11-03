@@ -36,6 +36,9 @@
 # need mime definitions
 %requires(reexport) Mime >= 1.4
 
+# supports using the DataProvider module to describe input and output records
+%requires(reexport) DataProvider
+
 %try-module yaml >= 0.5
 %define NoYaml
 %endtry
@@ -49,7 +52,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.1.2";
+    version = "2.0";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -69,6 +72,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_0 RestSchemaValidator v2.0
+    - implemented support for the DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
     @subsection restschemavalidator_1_1_2 RestSchemaValidator v1.1.2
     - fixed \c NullRestSchemaValidator to report serialization errors instead of ignoring them and returning about
@@ -765,8 +772,8 @@ public namespace RestSchemaValidator {
         #! overrides the basePath value
         /** @param basePath the new base path value; use an empty string here to clear the basePath
         */
-        setBasePathImpl(string basePath) {
-            throw "UNSUPPORT-OPERATION", sprintf("the basePath cannot be overridden in the NullRestSchemaValidator class");
+        private setBasePathImpl(string basePath) {
+            throw "UNSUPPORTED-OPERATION", sprintf("the basePath cannot be overridden in the NullRestSchemaValidator class");
         }
 
         #! returns a hash of example Qore code for the given request

@@ -416,7 +416,6 @@ public namespace FsUtil {
 
     #! Class implementing a user friendly temporary directory creation - users don't need to care about removing it
     public class TmpDir {
-
         public {
             string path;
         }
@@ -438,7 +437,6 @@ public namespace FsUtil {
 
     #! Class implementing a user friendly temporary file creation - users don't need to care about removing it
     public class TmpFile {
-
         public {
             string path;
             File file;
