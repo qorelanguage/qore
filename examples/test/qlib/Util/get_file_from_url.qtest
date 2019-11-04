@@ -27,6 +27,7 @@ public class GetFileFromUrlTest inherits QUnit::Test {
     }
 
     testGetFileFromUrlFile() {
+        chdir(normalize_dir(get_script_dir()));
         data file_data = get_file_from_url("../Swagger/Multipart.swagger.yaml");
         assertEq(NT_STRING, file_data.typeCode());
         assertEq(992, file_data.size());
@@ -35,7 +36,7 @@ public class GetFileFromUrlTest inherits QUnit::Test {
         assertEq(NT_STRING, file_data.typeCode());
         assertEq(992, file_data.size());
 
-        string default_path = normalize_dir(get_script_dir() + "../Swagger");
+        string default_path = normalize_dir("../Swagger");
 
         file_data = get_file_from_url("Multipart.swagger.yaml",
             <UrlRetrievalOptions>{"default_path": default_path});

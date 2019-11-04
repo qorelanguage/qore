@@ -45,7 +45,7 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
         checkModules();
 
         hash<auto> opts = {
-            "schema": "PetStore.swagger.yaml",
+            "schema": get_script_dir() + "/PetStore.swagger.yaml",
         };
         SwaggerDataProvider provider(opts);
 
