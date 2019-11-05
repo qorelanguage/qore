@@ -65,7 +65,7 @@ typedef void (*q_thread_t)(ExceptionSink* xsink, void* arg);
 DLLEXPORT bool is_valid_qore_thread();
 
 //! returns the current TID number
-DLLEXPORT int gettid();
+DLLEXPORT int gettid() noexcept;
 
 //! returns the current QoreProgram
 DLLEXPORT QoreProgram* getProgram();
