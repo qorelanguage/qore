@@ -834,6 +834,9 @@ auto v = c.name;
             src =~ s/\s+/ /g;
             # make everything lower case
             src =~ tr/A-Z/a-z/;
+            # issue #3589: PostgreSQL 12+ compatibility
+            # make sure text always says "execute function" and not "execute procedure"
+            src =~ s/execute function/execute procedure/;
             return src;
         }
     }
@@ -1432,8 +1435,7 @@ auto v = c.name;
             try {
                 rv = ds.vexec(sql, args);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
@@ -1448,8 +1450,7 @@ auto v = c.name;
             try {
                 rv = ds.execRaw(sql);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
