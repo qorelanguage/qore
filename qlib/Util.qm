@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.4";
+    version = "1.5";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -86,6 +86,9 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_5 Util 1.5
+    - added the get_file_from_url() function
 
     @subsection util_1_4_1 Util 1.4.1
     - fixed a bug in @ref Util::get_exception_string() "get_exception_string()" with Java exceptions
@@ -1522,5 +1525,154 @@ check_ip_address(str, True);
         }
 
         return str_len >= substr_len && str.rfind(substr) == str_len - substr_len;
+    }
+
+    #! URL retrieval options for get_file_from_url()
+    public hashdecl UrlRetrievalOptions {
+        #! Return the file data as binary data; if False (the default), a string will be returned
+        bool as_binary = False;
+
+        #! The default path for files with relative paths
+        *string default_path;
+
+        #! HTTP headers to add to any HTTP GET request
+        *hash<auto> http_headers;
+
+        #! SSH2 private key path
+        *string ssh2_private_key;
+
+        #! SSH2 public key path
+        *string ssh2_public_key;
+    }
+
+    #! Retrieves file data from an SFTP URL and a path
+    /** @param url the SFTP URL
+        @param path the path to the file on the SFTP server
+        @param options connection options
+
+        @throw GET-FILE-FROM-URL-ERROR empty path string
+
+        @since Util 1.5
+    */
+    public data sub get_file_from_sftp(string url, string path, *hash<UrlRetrievalOptions> options) {
+        string file = basename(path);
+        if (!file) {
+            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", url);
+        }
+        # dynamically load the ssh2 module
+        try {
+            load_module("ssh2");
+        } catch (hash<ExceptionInfo> ex) {
+            throw ex.err, sprintf("cannot retrieve %y with SFTP; the ssh2 module cannot be "
+                "loaded: %s", ex.desc), ex.arg;
+        }
+        object sftp = create_object("SFTPClient", url);
+        if (options.ssh2_private_key) {
+            sftp.setKeys(options.ssh2_private_key, options.ssh2_public_key);
+        }
+        string dir = dirname(path);
+        if (dir) {
+            sftp.chdir(dir);
+        }
+        return options.as_binary ? sftp.getFile(file) : sftp.getTextFile(file);
+    }
+
+    #! Retrieves file data from an FTP URL and a path
+    /** @param url the FTP URL
+        @param path the path to the file on the FTP server
+        @param options connection options
+
+        @throw GET-FILE-FROM-URL-ERROR empty path string
+
+        @since Util 1.5
+    */
+    public data sub get_file_from_ftp(string url, string path, *hash<UrlRetrievalOptions> options) {
+        string file = basename(path);
+        if (!file) {
+            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", url);
+        }
+        FtpClient f(url);
+        f.connect();
+        string dir = dirname(path);
+        if (dir) {
+            f.cwd(dir);
+        }
+        return options.as_binary ? f.getAsBinary(file) : f.getAsString(file);
+    }
+
+    #! Retrieves file data from an HTTP URL
+    /** @param url the HTTP URL including the path to the resource to retrieve
+        @param options connection options
+
+        @since Util 1.5
+    */
+    public data sub get_file_from_http(string url, *string path, *hash<UrlRetrievalOptions> options) {
+        HTTPClient http({"url": url});
+        string body = http.get(path ? path : "/", options.http_headers);
+        return options.as_binary ? binary(body) : body;
+    }
+
+    #! Retrieves file data from a local file path
+    /** @param path the path to the file data on the local filesystem
+        @param options connection options
+
+        @since Util 1.5
+    */
+    public data sub get_local_file(string path, *hash<UrlRetrievalOptions> options) {
+        return options.as_binary ? File::readBinaryFile(path) : File::readTextFile(path);
+    }
+
+    #! Retrieves file data from the given URL
+    /** @param url the URL for the file
+        @param opts retrieval options
+
+        @throw GET-FILE-FROM-URL-ERROR unknown or unsupported scheme in URL or other error retrieving the file
+
+        @since Util 1.5
+    */
+    public data sub get_file_from_url(string url, *hash<UrlRetrievalOptions> options) {
+        hash<UrlInfo> url_info = parse_url(url);
+
+        switch (url_info.protocol ?? "file") {
+            case "file": {
+                string path;
+                if (url_info.host)
+                    path = url_info.host;
+                if (url_info.path) {
+                    if (path)
+                        path += DirSep;
+                    path += url_info.path;
+                }
+                # do environment variable substitution
+                map path = replace(path, "\$" + $1, ENV.$1), (path =~ x/\$(\w+)/g);
+
+                if (exists options.default_path && !absolute_path(path)) {
+                    path = options.default_path + DirSep + path;
+                }
+                return get_local_file(path, options);
+            }
+
+            case /^http(s)?$/: {
+                return get_file_from_http(url, url_info.path, options);
+            }
+
+            case /^ftp(s)?$/: {
+                if (!url_info.path.val()) {
+                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", url);
+                }
+                return get_file_from_ftp(url, url_info.path, options);
+            }
+
+            case "sftp": {
+                if (!url_info.path.val()) {
+                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", url);
+                }
+                return get_file_from_sftp(url, url_info.path, options);
+            }
+
+            default:
+                throw "GET-FILE-FROM-URL-ERROR", sprintf("do not know how to retrieve data with scheme %y given in "
+                    "URL %y", url_info.protocol, url);
+        }
     }
 }

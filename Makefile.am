@@ -71,7 +71,8 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 
 DOX_SPLIT_MODULES = \
     qlib/BulkSqlUtil \
-	qlib/CsvUtil
+	qlib/CsvUtil \
+    qlib/SwaggerDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -79,6 +80,7 @@ DataProvider_modverdir = $(modverdir)/DataProvider
 DbDataProvider_modverdir = $(modverdir)/DbDataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
+SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -86,6 +88,7 @@ dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
 dist_DbDataProvider_modver_DATA = $(wildcard qlib/DbDataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
+dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)

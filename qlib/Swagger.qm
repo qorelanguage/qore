@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Swagger.qm Swagger: https://swagger.io/, OpenAPI: https://github.com/OAI/OpenAPI-Specification
 
-/*  Swagger.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+/*  Swagger.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.4
 
 # try importing JSON and YAML modules
 %try-module json
@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "1.1.0";
+    version = "2.0";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -115,13 +115,13 @@ RestClient rc(opts);
 # afterwards all REST calls made with the RestClient objects with automatic Swagger 2.0
 # schema validation; do not include the Swagger schema's basePath in the URI path in the
 # requests
-hash h = rc.get("get", "/some_api");
+hash<auto> h = rc.get("get", "/some_api");
     @endcode
 
     @par Override Base Path Client Example
     @code{.py}
 # create the RestClient options with a Swagger schema
-hash opts = (
+hash<auto> opts = (
     "swagger": ENV.SCHEMA_DIR + DirSep + "MySchema.yaml",
 );
 RestClient rc(opts);
@@ -152,12 +152,19 @@ RestHandler handler(NOTHING, swagger);
 
     @section swagger_relnotes Swagger Module Release Notes
 
+    @subsection swagger_2_0 Swagger v2.0
+    - implemented support for the DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+
     @subsection swagger_1_1_0 Swagger v1.1.0
-    - fixed accepting multipart/form-data content-type and also working with list and hash parameters (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
+    - fixed accepting multipart/form-data content-type and also working with list and hash parameters
+      (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
 
     @subsection swagger_1_0_2 Swagger v1.0.2
-    - fixed sending of simple string responses to use text/plain Content-Type if possible (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
-    - fixed checking of response body in case response schema is not present (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
+    - fixed sending of simple string responses to use text/plain Content-Type if possible
+      (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
+    - fixed checking of response body in case response schema is not present
+      (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
 
     @subsection swagger_1_0_1 Swagger v1.0.1
     - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
@@ -257,7 +264,7 @@ class ObjectBase {
             The field name MUST begin with \c x-, for example, \c x-internal-id.
             The value can be \c null, a primitive, an array or an object.
          */
-        hash vendorExtensions;
+        hash<auto> vendorExtensions;
     }
 
     #! Constructor.
@@ -268,7 +275,7 @@ class ObjectBase {
     /**
         @param oh deserialized hash from the source schema description describing the object
      */
-    public constructor(hash oh) {
+    public constructor(hash<auto> oh) {
         initialize(oh);
     }
 
@@ -280,8 +287,8 @@ class ObjectBase {
     #! Initialize.
     /**
         @param oh deserialized hash from the source schema description
-     */
-    public initialize(hash oh) {
+    */
+    public initialize(hash<auto> oh) {
         vendorExtensions = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^x-/;
     }
 }
@@ -462,8 +469,7 @@ class SchemaBase {
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %d)",
                             name, path, method, maximum, value);
-            }
-            else {
+            } else {
                 if (value > maximum)
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %d)",
@@ -477,8 +483,7 @@ class SchemaBase {
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %d)",
                             name, path, method, maximum, value);
-            }
-            else {
+            } else {
                 if (value < minimum)
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %d)",
@@ -502,8 +507,7 @@ class SchemaBase {
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %f)",
                             name, path, method, maximum, value);
-            }
-            else {
+            } else {
                 if (value > maximum)
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too big (maximum: %f, actual: %f)",
@@ -517,8 +521,7 @@ class SchemaBase {
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %f)",
                             name, path, method, maximum, value);
-            }
-            else {
+            } else {
                 if (value < minimum)
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("Parameter %y for path %y and method %y is too small (minimum: %f, actual: %f)",
@@ -569,8 +572,7 @@ class SchemaBase {
                 case "date-time":
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a string value to a string value with format %y; a date/time value is required", method.upr(), path, name, format);
             }
-        }
-        else {
+        } else {
             switch (format) {
                 # NOTE: deserializes to a binary object
                 case "byte":
@@ -657,7 +659,7 @@ class SchemaBase {
         if (!uniqueItems || items.type != "array") {
             # hash for checking uniqueness if uniqueItems is true
             #printf("v: %y self: %N\n", value, self);
-            hash h;
+            hash<string, bool> h;
             foreach auto v in (\value) {
                 items.check(serialize, request, path, method, name, \v);
                 if (uniqueItems) {
@@ -666,10 +668,9 @@ class SchemaBase {
                     h{v} = True;
                 }
             }
-        }
-        else {
+        } else {
             # perform slow array uniqueness check
-            list uniqueItems = ();
+            list<auto> uniqueItems = ();
             foreach auto val in (\value) {
                 items.check(serialize, request, path, method, name, \val);
                 if (uniqueItems.contains(val))
@@ -693,28 +694,20 @@ public class SwaggerLoader {
     #! Load %Swagger definition from a string.
     /**
         @param swaggerSpecification <a href="https://swagger.io/">Swagger</a> API specification
-        @param json whether the specification is in JSON or YAML format
+        @param json whether the specification is in JSON or YAML format; if not given the source encoding will be
+        detected automatically
 
         @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with JSON module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with YAML module unavailable
-     */
-    static SwaggerSchema fromString(string swaggerSpecification, bool json = True) {
-        hash val;
-        if (json) {
-%ifdef NoJson
-            throw "JSON-MODULE-MISSING", "Trying to parse a JSON Swagger specification, but the json module is unavailable";
-%else
-            val = parse_json(swaggerSpecification);
-%endif
+    */
+    static SwaggerSchema fromString(string swaggerSpecification, *bool json) {
+        string ser;
+        if (!exists json) {
+            ser = SwaggerLoader::detectSourceEncoding(swaggerSpecification);
+        } else {
+            ser = json ? "json" : "yaml";
         }
-        else {
-%ifdef NoYaml
-            throw "YAML-MODULE-MISSING", "Trying to parse a YAML Swagger specification, but the yaml module is unavailable";
-%else
-            val = parse_yaml(swaggerSpecification);
-%endif
-        }
-        return new SwaggerSchema(val);
+        return new SwaggerSchema(SwaggerLoader::parseSchemaSource(swaggerSpecification, ser));
     }
 
     #! Load <a href="https://swagger.io/">Swagger</a> definition from a file.
@@ -725,9 +718,24 @@ public class SwaggerLoader {
         @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with the json module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with the yaml module unavailable
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
-     */
+    */
     static SwaggerSchema fromFile(string filepath) {
         return new SwaggerSchema(SwaggerLoader::parseSchemaContent(filepath, ReadOnlyFile::readTextFile(filepath)));
+    }
+
+    #! Load <a href="https://swagger.io/">Swagger</a> definition from a URL or file path.
+    /**
+        @param url URL to the <a href="https://swagger.io/">Swagger</a> file
+        @param json whether the specification is in JSON or YAML format; if not given the source encoding will be
+        detected automatically
+
+        @throws EMPTY-SCHEMA-FILE %Swagger file is empty
+        @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with the json module unavailable
+        @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with the yaml module unavailable
+        @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
+    */
+    static SwaggerSchema fromUrl(string url, *bool json) {
+        return SwaggerLoader::fromString(get_file_from_url(url), json);
     }
 
     #! Load a schema definition from a file
@@ -739,39 +747,29 @@ public class SwaggerLoader {
         @throws JSON-MODULE-MISSING trying to parse a JSON schema with the json module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML schema specification with the yaml module unavailable
         @throws XML-MODULE-MISSING trying to parse an XML schema specification with the xml module unavailable
-     */
-    static hash parseSchemaContent(string filepath, string str) {
+    */
+    static hash<auto> parseSchemaContent(string filepath, string str) {
         if (!str)
             throw "EMPTY-SCHEMA-FILE", sprintf("%y: file is empty", filepath);
 
-        string ser = "json";
+        string ser;
         string filename = basename(filepath);
         if (filename =~ /.*\.json$/i) {
             ser = "json";
-        }
-        else if (filename =~ /.*\.yaml$/i) {
+        } else if (filename =~ /.*\.yaml$/i) {
             ser = "yaml";
-        }
-        else if (filename =~ /.*\.xml$/i) {
+        } else if (filename =~ /.*\.xml$/i) {
             ser = "xml";
-        }
-        else {
-            DataLineIterator it(str);
-            while (it.next()) {
-                string line = trim(it.getValue());
-                if (line.size()) {
-                    if (line =~ /^<\?xml/)
-                        ser = "xml";
-                    else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/)
-                        ser = "yaml";
-                    else
-                        ser = "json";
-                    break;
-                }
-            }
+        } else {
+            ser = SwaggerLoader::detectSourceEncoding(str);
         }
 
-        hash rv;
+        return SwaggerLoader::parseSchemaSource(str, ser);
+    }
+
+    #! parses the source encoding from the given string
+    static hash<auto> parseSchemaSource(string str, string ser) {
+        hash<auto> rv;
         switch (ser) {
             case "json": {
 %ifdef NoJson
@@ -799,6 +797,23 @@ public class SwaggerLoader {
             }
         }
         return rv;
+    }
+
+    #! tries to determine the Swagger schema source encoding automatically
+    static string detectSourceEncoding(string str) {
+        DataLineIterator it(str);
+        while (it.next()) {
+            string line = trim(it.getValue());
+            if (line.size()) {
+                if (line =~ /^<\?xml/) {
+                    return "xml";
+                } else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/) {
+                    return "yaml";
+                }
+                return "json";
+            }
+        }
+        return "json";
     }
 }
 
@@ -945,7 +960,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
      */
-    public constructor(hash oh, *hash opts) : ObjectBase(oh) {
+    public constructor(hash<auto> oh, *hash<auto> opts) : ObjectBase(oh) {
         # process options
         compact_serialization = remove opts.compact_serialization ?? True;
         def_path = remove opts.def_path;
@@ -993,13 +1008,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         {
-            hash infoObj;
+            hash<auto> infoObj;
             required_field(objType, oh, "info", NT_HASH, \infoObj);
             info = new InfoObject(infoObj);
         }
 
         {
-            hash pathsObj;
+            hash<auto> pathsObj;
             required_field(objType, oh, "paths", NT_HASH, \pathsObj);
             paths = new PathsObject(pathsObj, self);
         }
@@ -1022,7 +1037,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces);
 
         {
-            hash obj;
+            hash<auto> obj;
             optional_field(objType, oh, "securityDefinitions", NT_HASH, \obj);
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
@@ -1035,13 +1050,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         # verify security consistency
         if (security) {
-            hash h = security - securityDefinitions.keys();
+            hash<auto> h = security - securityDefinitions.keys();
             if (h)
                 throw "SECURITY-ERROR", sprintf("the following security schemes are not defined: %y", keys h);
         }
 
         {
-            list lobj = ();
+            list<auto> lobj = ();
             optional_field(objType, oh, "tags", NT_LIST, \lobj);
             foreach auto val in (lobj) {
                 if (val.typeCode() != NT_HASH)
@@ -1051,7 +1066,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         {
-            *hash extDocsObj;
+            *hash<auto> extDocsObj;
             if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
                 externalDocs = new ExternalDocumentationObject(extDocsObj);
         }
@@ -1060,7 +1075,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! resolves a reference to a schema object
     /** @throw INVALID-REFERENCE invalid reference
     */
-    SchemaObject resolveSchemaObject(string name, string refstr, hash oh) {
+    SchemaObject resolveSchemaObject(string name, string refstr, hash<auto> oh) {
         # resolve external reference
         if (refstr !~ /^#\//)
             return SchemaObject::newSchemaObject(name, getExternalReference(refstr), self);
@@ -1079,7 +1094,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! resolves a reference to a parameter items schema object
     /** @throw INVALID-REFERENCE invalid reference
     */
-    ParameterItemsSchemaObject resolveParameterItemsSchemaObject(string name, string refstr, hash oh) {
+    ParameterItemsSchemaObject resolveParameterItemsSchemaObject(string name, string refstr, hash<auto> oh) {
         # resolve external reference
         if (refstr !~ /^#\//)
             return ParameterItemsSchemaObject::newSchemaObject(name, getExternalReference(refstr), self);
@@ -1098,7 +1113,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! resolves a reference to a parameter
     /** @throw INVALID-REFERENCE invalid reference
     */
-    AbstractParameterObject resolveParameter(string name, string refstr, hash oh) {
+    AbstractParameterObject resolveParameter(string name, string refstr, hash<auto> oh) {
         # resolve external reference
         if (refstr !~ /^#\//)
             return AbstractParameterObject::newParameter(name, getExternalReference(refstr), self);
@@ -1176,13 +1191,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (headers."content-type" =~ /^multipart\/form-data/) {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
-            }
-            else {
+            } else {
                 *code ds = MimeDataTypes.(headers."content-type").deserialize;
                 if (!ds) {
                     body = http_body;
-                }
-                else {
+                } else {
                     auto any_body = ds(http_body);
                     if (exists any_body)
                         body = any_body;
@@ -1204,11 +1217,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         OperationObject op = pio.getOperation(method, h.method);
 
         op.parseRequest(pio, \h, \body, \headers);
-        return new hash<RestRequestServerInfo>((
+        return <RestRequestServerInfo>{
             "path": h.method,
             "query": h.params,
             "body": body,
-        ));
+        };
     }
 
     #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
@@ -1227,7 +1240,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
         an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
-    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
+    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
         return processResponseIntern(method, path, code, response_body, headers, content_types, compact_serialization);
     }
 
@@ -1242,7 +1255,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @throw DESERIALIZATION-ERROR the response body could not be deserialized or had an invalid \c Content-Type
     */
-    private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+    private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr) {
         # remove basePath if present
         if (basePath.val() && regex(path, "^" + basePath))
             splice path, 0, basePath.length();
@@ -1264,8 +1277,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
                 rv.body = map {$1.key: $1.value.body}, h.pairIterator();
                 content = MimeTypeMultipartFormData;
-            }
-            else {
+            } else {
                 *code ds = MimeDataTypes{content}.deserialize;
                 # if the content-type is unknown, then assume it is a type that cannot be deserialized
                 # the validity of the type is checked below in any case
@@ -1399,7 +1411,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! retrieves external references
     /** @throw INVALID-REFERENCE invalid reference
     */
-    private hash getExternalReference(string refstr) {
+    private hash<auto> getExternalReference(string refstr) {
         (string ext_ref, *string int_ref) = (refstr =~ x/([^#]+)(?:#\/(.*))/);
 
         #! get file content
@@ -1416,7 +1428,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             content = ReadOnlyFile::readTextFile(ext_ref);
         }
 
-        hash h = SwaggerLoader::parseSchemaContent(ext_ref, content);
+        hash<auto> h = SwaggerLoader::parseSchemaContent(ext_ref, content);
         if (int_ref) {
             if (!h.hasKey(int_ref))
                 throw "INVALID-REFERENCE", sprintf("%y: external reference %y loaded (%d bytes) and parsed, but internal reference %y is not available; known internal references: %y", refstr, ext_ref, content.size(), int_ref, keys h);
@@ -1586,8 +1598,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     *list mt = map $1, mimeTypeKeys, $1.regex(ctRegex);
                     if (!mt)
                         continue;
-                }
-                else if (!mime_types{content})
+                } else if (!mime_types{content})
                     continue;
 
                 # check for multipart-form-data case
@@ -1618,8 +1629,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                             "hdr": rv.hdr + ("Content-Type": mimeType),
                         );
                     }
-                }
-                else if (MimeDataTypes{content}) {
+                } else if (MimeDataTypes{content}) {
                     return rv += (
                         "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
                         "hdr": rv.hdr + ("Content-Type": content),
@@ -1656,7 +1666,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             return False;
 
         # try to find \c Content-Type header
-        *list ct = map $1, keys headers, $1 =~ /content-type/i;
+        *list<string> ct = map $1, keys headers, $1 =~ /content-type/i;
 
         # if found and it's not one of the default ones, use it
         if (ct && ct.size() == 1 && !MimeDataTypes{headers{ct[0]}}) {
@@ -1682,7 +1692,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             return False;
 
         # try to find \c Content-Type header
-        *list ct = map $1, keys headers, $1 =~ /content-type/i;
+        *list<string> ct = map $1, keys headers, $1 =~ /content-type/i;
 
         # if found, use it and don't serialize the body
         if (ct && ct.size() == 1) {
@@ -1756,18 +1766,18 @@ public class InfoObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) : ObjectBase(oh) {
+    public constructor(hash<auto> oh) : ObjectBase(oh) {
         string objType = "Info";
         required_field(objType, oh, "title", NT_STRING, \title);
         required_field(objType, oh, "version", NT_STRING, \version);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
         optional_field(objType, oh, "termsOfService", NT_STRING, \termsOfService);
 
-        *hash contactObj;
+        *hash<auto> contactObj;
         if (optional_field(objType, oh, "contact", NT_HASH, \contactObj))
             contact = new ContactObject(contactObj);
 
-        *hash licenseObj;
+        *hash<auto> licenseObj;
         if (optional_field(objType, oh, "license", NT_HASH, \licenseObj))
             license = new LicenseObject(licenseObj);
     }
@@ -1792,7 +1802,7 @@ public class ContactObject inherits ObjectBase {
 
         @throws INVALID-FIELD-TYPE field has invalid type
      */
-    public constructor(hash oh) : ObjectBase(oh) {
+    public constructor(hash<auto> oh) : ObjectBase(oh) {
         string objType = "Contact";
         optional_field(objType, oh, "name", NT_STRING, \name);
         optional_field(objType, oh, "url", NT_STRING, \url);
@@ -1817,7 +1827,7 @@ public class LicenseObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash oh) : ObjectBase(oh) {
+    public constructor(hash<auto> oh) : ObjectBase(oh) {
         string objType = "License";
         required_field(objType, oh, "name", NT_STRING, \name);
         optional_field(objType, oh, "url", NT_STRING, \url);
@@ -1850,21 +1860,21 @@ public class PathComponent {
     }
 
     #! creates the object
-    constructor(hash oh, string pfx, SwaggerSchema swagger) {
+    constructor(hash<auto> oh, string pfx, SwaggerSchema swagger) {
         self.pfx = pfx;
         name = "/";
-        foreach hash h in (oh.pairIterator()) {
+        foreach hash<auto> h in (oh.pairIterator()) {
             if (!pfx.val() && h.key !~ /^\//)
                 throw "INVALID-FIELD-FORMAT", sprintf("Paths Object: root path %y does not begin with a slash", h.key);
-            list l = h.key.split("/");
+            list<string> l = h.key.split("/");
             shift l;
             add(h.key, l, 0, h.value, swagger);
         }
     }
 
     #! private constructor
-    private constructor(string full_path, list l, int offset, hash oh) {
-        list l0 = l;
+    private constructor(string full_path, list<auto> l, int offset, hash oh) {
+        list<auto> l0 = l;
         splice l0, offset + 1;
         pfx = l0.join("/");
         name = l[offset - 1];
@@ -1872,7 +1882,7 @@ public class PathComponent {
     }
 
     #! adds a component or a Path Item Object to the tree
-    private add(string full_path, list l, int offset, hash oh, SwaggerSchema swagger) {
+    private add(string full_path, list<auto> l, int offset, hash<auto> oh, SwaggerSchema swagger) {
         #printf("PathComponent::add(): pfx: %y name: %y: %y l: %y offset: %y\n", pfx, name, full_path, l, offset);
         if (offset == l.size()) {
             if (pio)
@@ -1894,7 +1904,17 @@ public class PathComponent {
     #! returns either a PathItemObject for the path
     /** @throw SCHEMA-VALIDATION-ERROR the path could not be matched or has no API definition
     */
-    PathItemObject match(list path) {
+    PathItemObject match(list<auto> path) {
+        *PathItemObject rv = tryMatch(path);
+        if (!rv)
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("path %y is valid but has no API definition", path.join("/"));
+        return rv;
+    }
+
+    #! returns either a PathItemObject for the path
+    /** @throw SCHEMA-VALIDATION-ERROR the path could not be matched or has no API definition
+    */
+    *PathItemObject tryMatch(list<auto> path) {
         PathComponent w = self;
         for (int i = 1; i < path.size(); ++i) {
             *PathComponent next = w.paths{path[i]} ?? w.wildcard;
@@ -1902,8 +1922,6 @@ public class PathComponent {
                 throw "SCHEMA-VALIDATION-ERROR", sprintf("path component %y cannot be matched in %y", path[i], path.join("/"));
             w = next;
         }
-        if (!w.pio)
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("path %y is valid but has no API definition", path.join("/"));
         return w.pio;
     }
 
@@ -1935,7 +1953,7 @@ public class PathsObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
      */
-    public constructor(hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
+    public constructor(hash<auto> oh, SwaggerSchema swagger) : ObjectBase(oh) {
         paths = new PathComponent(oh, "", swagger);
     }
 
@@ -1947,6 +1965,16 @@ public class PathsObject inherits ObjectBase {
             path = "/" + path;
         }
         return paths.match(path.split("/"));
+    }
+
+    #! matches a URI path with a PathItemObject
+    /** @throw INVALID-PATH the path could not be matched
+    */
+    *PathItemObject tryMatch(string path) {
+        if (!path.equalPartial("/")) {
+            path = "/" + path;
+        }
+        return paths.tryMatch(path.split("/"));
     }
 
     #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
@@ -2016,7 +2044,7 @@ public class PathItemObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string path, hash oh, SwaggerSchema swagger) : ObjectBase(oh) {
+    public constructor(string path, hash<auto> oh, SwaggerSchema swagger) : ObjectBase(oh) {
         string objType = "Path Item";
         optional_field(objType, oh, "$ref", NT_STRING, \ref);
 
@@ -2078,7 +2106,8 @@ public class PathItemObject inherits ObjectBase {
     OperationObject getOperation(string method, string path) {
         *OperationObject op = operations{method};
         if (!op)
-            throw "INVALID-METHOD", sprintf("%s %s: no operation defined for this path; known methods: %y", method.upr(), path, keys operations), keys operations;
+            throw "INVALID-METHOD", sprintf("%s %s: no operation defined for this path; known methods: %y",
+                method.upr(), path, keys operations), keys operations;
         return op;
     }
 
@@ -3510,8 +3539,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 str += ",\n";
             }
             str += "})";
-        }
-        else if (additionalProperties instanceof SchemaObject) {
+        } else if (additionalProperties instanceof SchemaObject) {
             string ptype = get_qore_type(additionalProperties.name, additionalProperties.type, additionalProperties.format, additionalProperties.items);
             if (decl)
                 str = sprintf("hash<string, %s> %s()", ptype, name);
@@ -3828,28 +3856,23 @@ public class SecuritySchemeObject inherits ObjectBase {
             required_field(objType, oh, "in", NT_STRING, \inLoc);
             if (inLoc != "query" && inLoc != "header")
                 throw "INVALID-APIKEY-LOCATION", "Security Scheme Object: invalid 'in' (location) value passed: " + inLoc;
-        }
-        else if (type == "oauth2") {
+        } else if (type == "oauth2") {
             required_field(objType, oh, "flow", NT_STRING, \flow);
             if (flow == "accessCode") {
                 required_field(objType, oh, "authorizationUrl", NT_STRING, \authorizationUrl);
                 required_field(objType, oh, "tokenUrl", NT_STRING, \tokenUrl);
-            }
-            else if (flow == "application" || flow == "password") {
+            } else if (flow == "application" || flow == "password") {
                 required_field(objType, oh, "tokenUrl", NT_STRING, \tokenUrl);
-            }
-            else if (flow == "implicit") {
+            } else if (flow == "implicit") {
                 required_field(objType, oh, "authorizationUrl", NT_STRING, \authorizationUrl);
-            }
-            else {
+            } else {
                 throw "INVALID-FLOW", "Security Scheme Object: invalid OAuth2 flow value passed: " + flow;
             }
 
             hash scopesObj;
             required_field(objType, oh, "scopes", NT_HASH, \scopesObj);
             scopes = new ScopesObject(scopesObj);
-        }
-        else if (type != "basic") {
+        } else if (type != "basic") {
             throw "INVALID-SCHEME-TYPE", "Security Scheme Object: invalid security scheme type passed: " + type;
         }
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
@@ -3884,8 +3907,7 @@ public class ScopesObject inherits ObjectBase {
         }
     }
 }
-
-} # end public namespace swagger
+}
 
 # private namespace for internal definitions
 namespace Priv {
@@ -4007,15 +4029,13 @@ namespace Priv {
                     throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y; expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
                 target{v} = True;
             }
-        }
-        else if (typeCode == SwaggerListToAnySet) {
+        } else if (typeCode == SwaggerListToAnySet) {
             foreach auto v in (val) {
                 if (!v.strp())
                     throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y which cannot be converted to a string; the Swagger module only supports types that can be converted to a string for this field", objType, name, $# + 1, val.size(), v.type());
                 target{v} = True;
             }
-        }
-        else if (typeCode == SwaggerListToHashOfStrings) {
+        } else if (typeCode == SwaggerListToHashOfStrings) {
             foreach auto v in (val) {
                 int pos = $# + 1;
                 if (v.typeCode() != NT_HASH)
@@ -4031,8 +4051,7 @@ namespace Priv {
                 }
                 target += v;
             }
-        }
-        else
+        } else
             target = val;
     }
 

@@ -1,0 +1,149 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/FsUtil.qm
+
+%include ../../qore/classes/FtpServer.qc
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class GetFileFromUrlTest
+
+public class GetFileFromUrlTest inherits QUnit::Test {
+    constructor() : Test ("GetFileFromUrlTest", "1.0") {
+        addTestCase("file tests for get_file_from_url", \testGetFileFromUrlFile());
+        addTestCase("HTTP tests for get_file_from_url", \testGetFileFromUrlHttp());
+        addTestCase("FTP tests for get_file_from_url", \testGetFileFromUrlFtp());
+        addTestCase("SFTP tests for get_file_from_url", \testGetFileFromUrlSftp());
+        set_return_value(main());
+    }
+
+    testGetFileFromUrlFile() {
+        chdir(normalize_dir(get_script_dir()));
+        data file_data = get_file_from_url("../Swagger/Multipart.swagger.yaml");
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("file://../Swagger/Multipart.swagger.yaml");
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        string default_path = normalize_dir("../Swagger");
+
+        file_data = get_file_from_url("Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"default_path": default_path});
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("file://Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"default_path": default_path});
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("../Swagger/Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"as_binary": True});
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("file://../Swagger/Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"as_binary": True});
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"as_binary": True, "default_path": default_path});
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(992, file_data.size());
+
+        file_data = get_file_from_url("file://Multipart.swagger.yaml",
+            <UrlRetrievalOptions>{"as_binary": True, "default_path": default_path});
+    }
+
+    testGetFileFromUrlHttp() {
+        HttpServer http(\log(), \log());
+        on_exit delete http;
+        http.setHandler("text", "/text", MimeTypeText, new SimpleStringHandler());
+        int http_port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+
+        string url = sprintf("http://localhost:%d/text", http_port);
+        data file_data = get_file_from_url(url);
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(4, file_data.size());
+
+        file_data = get_file_from_url(url, <UrlRetrievalOptions>{"as_binary": True});
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(4, file_data.size());
+    }
+
+    testGetFileFromUrlFtp() {
+        FtpServer ftp(0, m_options.verbose);
+        on_exit ftp.shutdown();
+
+        int ftp_port = ftp.getPort();
+
+        string url = sprintf("ftp://localhost:%d/text", ftp_port);
+        data file_data = get_file_from_url(url);
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(9200, file_data.size());
+
+        file_data = get_file_from_url(url, <UrlRetrievalOptions>{"as_binary": True});
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(9200, file_data.size());
+    }
+
+    testGetFileFromUrlSftp() {
+        TmpFile tmp();
+        tmp.file.write("test");
+
+        string url = sprintf("sftp://%s@localhost" + tmp.path, getusername());
+
+        hash<UrlRetrievalOptions> options();
+        if (m_options.privkey) {
+            options.ssh2_private_key = m_options.privkey;
+        } else {
+            string sshdir = ENV.HOME + DirSep + ".ssh";
+            if (is_file(sshdir + "/id_rsa.old")) {
+                options.ssh2_private_key = sshdir + "/id_rsa.old";
+            } else if (is_file(sshdir + "/id_rsa")) {
+                options.ssh2_private_key = sshdir + "/id_rsa";
+            } else if (is_file(sshdir + "/id_dsa")) {
+                options.ssh2_private_key = sshdir + "/id_dsa";
+            }
+        }
+
+        data file_data;
+        try {
+            file_data = get_file_from_url(url, options);
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("cannot sun SFTP retrieval tests with URL %y: %s: %s", url, ex.err, ex.desc);
+        }
+
+        assertEq(NT_STRING, file_data.typeCode());
+        assertEq(4, file_data.size());
+
+        options.as_binary = True;
+        file_data = get_file_from_url(url, options);
+        assertEq(NT_BINARY, file_data.typeCode());
+        assertEq(4, file_data.size());
+    }
+
+    log(string str) {
+        if (m_options.verbose > 2) {
+            vprintf(str, argv);
+        }
+    }
+}
+
+class SimpleStringHandler inherits AbstractHttpRequestHandler {
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+        return makeResponse(200, "test", {"Content-Type": MimeTypeText});
+    }
+}

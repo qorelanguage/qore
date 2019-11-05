@@ -50,6 +50,11 @@ public class HashDataType inherits QoreDataType {
         self.name = name;
     }
 
+    #! creates the object and assigns the name as the given name or the base type's name
+    constructor(Type base_type, *string name) : QoreDataType(base_type) {
+        self.name = name ?? base_type.getName();
+    }
+
     #! adds a field to the type
     addField(AbstractDataField field) {
         fields{field.getName()} = field;

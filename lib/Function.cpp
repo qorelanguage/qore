@@ -892,14 +892,14 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
                 if (args)
                     n = args->retrieveEntry(pi);
 
-                //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.getTypeName());
+                //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.getFullTypeName());
 
                 int rc;
                 if (n.isNothing() && sig->hasDefaultArg(pi))
                     rc = QTI_IGNORE;
                 else {
                     rc = QoreTypeInfo::runtimeAcceptsValue(t, n);
-                    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s rc: %d\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.getTypeName(), rc);
+                    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) i: %d param: %s arg: %s rc: %d\n", this, getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), n.getFullTypeName(), rc);
                     if (rc == QTI_NOT_EQUAL) {
                         ok = false;
                         break;

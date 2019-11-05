@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore DbDataProvider module definition
+#! Qore SwaggerDataProviderFactory class definition
 
-/** DbDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/** SwaggerDataProviderFactory.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,41 +33,29 @@
 # enable all warnings
 %enable-all-warnings
 
-# supports using the DataProvider module
-%requires(reexport) DataProvider
+#! Contains all public definitions in the SwaggerDataProvider module
+public namespace SwaggerDataProvider {
+#! The DB data provider factory
+public class SwaggerDataProviderFactory inherits AbstractDataProviderFactory {
+    private {
+        static Class cls = new Class("SwaggerDataProvider");
+    }
 
-# supports using the SqlUtil module
-%requires(reexport) SqlUtil
+    #! Returns the name of the data provider factory
+    string getName() {
+        return "swagger";
+    }
 
-# supports using the BulkSqlUtil module
-%requires(reexport) BulkSqlUtil
+    #! Returns static provider information
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    hash<DataProviderInfo> getInfo() {
+        return SwaggerDataProvider::ProviderInfo;
+    }
 
-module DbDataProvider {
-    version = "1.0";
-    desc = "user module providing a data provider API for databases";
-    author = "David Nichols <david@qore.org>";
-    url = "http://qore.org";
-    license = "MIT";
-    init = sub () {
-        # register the data provider factory
-        DataProvider::registerFactory(new DbDataProviderFactory());
-    };
+    #! Returns the class for the data provider object
+    Class getClass() {
+        return cls;
+    }
 }
-
-/** @mainpage DbDataProvider Module
-
-    @tableofcontents
-
-    @section dbdataproviderintro Introduction to the DbTableDataProvider Module
-
-    The %DbDataProvider module provides a data provider API for databases.
-
-    @section dbdataprovider_relnotes Release Notes
-
-    @subsection dbdataprovider_v1_0 DbDataProvider v1.0
-    - initial release of the module
-*/
-
-#! contains all public definitions in the DbDataProvider module
-public namespace DbDataProvider {
 }

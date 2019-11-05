@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore DbDataProvider module definition
+#! Qore SwaggerDataProvider module definition
 
-/** DbDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/** SwaggerDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,41 +33,36 @@
 # enable all warnings
 %enable-all-warnings
 
-# supports using the DataProvider module
 %requires(reexport) DataProvider
+%requires(reexport) Swagger
+%requires(reexport) RestClient
 
-# supports using the SqlUtil module
-%requires(reexport) SqlUtil
-
-# supports using the BulkSqlUtil module
-%requires(reexport) BulkSqlUtil
-
-module DbDataProvider {
+module SwaggerDataProvider {
     version = "1.0";
-    desc = "user module providing a data provider API for databases";
+    desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
         # register the data provider factory
-        DataProvider::registerFactory(new DbDataProviderFactory());
+        DataProvider::registerFactory(new SwaggerDataProviderFactory());
     };
 }
 
-/** @mainpage DbDataProvider Module
+/** @mainpage SwaggerDataProvider Module
 
     @tableofcontents
 
-    @section dbdataproviderintro Introduction to the DbTableDataProvider Module
+    @section swaggerdataproviderintro Introduction to the DbTableDataProvider Module
 
-    The %DbDataProvider module provides a data provider API for databases.
+    The %SwaggerDataProvider module provides a data provider API for databases.
 
-    @section dbdataprovider_relnotes Release Notes
+    @section swaggerdataprovider_relnotes Release Notes
 
-    @subsection dbdataprovider_v1_0 DbDataProvider v1.0
+    @subsection swaggerdataprovider_v1_0 SwaggerDataProvider v1.0
     - initial release of the module
 */
 
-#! contains all public definitions in the DbDataProvider module
-public namespace DbDataProvider {
+#! contains all public definitions in the SwaggerDataProvider module
+public namespace SwaggerDataProvider {
 }

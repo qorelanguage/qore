@@ -57,6 +57,7 @@ class QdpCmd {
             "create": \QdpCmd::create(),
             "upsert": \QdpCmd::upsert(),
             "delete": \QdpCmd::del(),
+            "request": \QdpCmd::request(),
         };
     }
 
@@ -87,13 +88,22 @@ class QdpCmd {
             }
             list<string> path = name.split("/");
             provider = getDataProvider((shift path) + opts);
-            map provider = provider.getChildProvider($1), path;
+            map provider = provider.getChildProviderEx($1), path;
         }
 
         string cmd = shift ARGV ?? "list";
         *code action = Cmds{cmd};
         if (!action) {
-            error("unknown action %y; known actions: %y", cmd, keys Cmds);
+            # see if an abbreviation matches
+            hash<string, bool> match = map {$1: True}, keys Cmds, $1.equalPartial(cmd);
+            if (match.size() == 1) {
+                action = Cmds{match.firstKey()};
+            } else if (match) {
+                error("unknown action %y; matches %y; please provide additional character(s) to ensure a unique "
+                    "match", cmd, keys match);
+            } else {
+                error("unknown action %y; known actions: %y", cmd, keys Cmds);
+            }
         }
         try {
             action(provider);
@@ -116,18 +126,46 @@ class QdpCmd {
 
     static getRecord(AbstractDataProvider provider) {
         *hash<string, AbstractDataField> rec = provider.getRecordType();
-        if (opts.verbose > 2) {
+        if (opts.verbose > 1) {
             printf("%N\n", rec);
-        } else if (opts.verbose > 1) {
-            map printf("%y:\n\ttype=%y\n\tdesc=%y\n%s", $1.key, $1.value.getTypeName(),
-                $1.value.getDescription() ?? "n/a",
-                (auto val = $1.value.getDefaultValue()) ? sprintf("\tdefault_value=%y\n", val) : NOTHING),
-                rec.pairIterator();
-        } else if (opts.verbose) {
-            map printf("%y: type=%y desc=%y%s\n", $1.key, $1.value.getTypeName(), $1.value.getDescription() ?? "n/a",
-                (auto val = $1.value.getDefaultValue()) ? sprintf(" default_value=%y", val) : NOTHING), rec.pairIterator();
         } else {
-            printf("%s\n", (foldl $1 + " " + $2, (map sprintf("%y", $1), keys rec)));
+            QdpCmd::showRecord(rec);
+        }
+    }
+
+    static showRecord(*hash<string, AbstractDataField> rec, string offset = "") {
+        foreach hash<auto> i in (rec.pairIterator()) {
+            AbstractDataProviderType type = i.value.getType();
+            if (opts.verbose) {
+                string txt = sprintf("%s%s %s", offset, type.getName(), i.key);
+                string info;
+                if (*string desc = i.value.getDescription()) {
+                    info = sprintf("desc: %y", desc);
+                }
+                if (auto val = i.value.getDefaultValue()) {
+                    if (info) {
+                        info += " ";
+                    }
+                    info += sprintf(" default_value: %y", val);
+                }
+                if (info) {
+                    txt += " (" + info + ")";
+                }
+                print(txt);
+            } else {
+                printf("%s%s %s", offset, type.getName(), i.key);
+            }
+            if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
+                && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
+                printf(": elements ->\n");
+                QdpCmd::showRecord(element_rec, offset + "  ");
+            } else {
+                print("\n");
+            }
+            *hash<string, AbstractDataField> fields = type.getFields();
+            if (fields) {
+                QdpCmd::showRecord(fields, offset + "  ");
+            }
         }
     }
 
@@ -160,6 +198,16 @@ class QdpCmd {
         *hash<auto> where_cond = QdpCmd::getHash("delete");
         int rec_count = provider.deleteRecords(where_cond);
         printf("%d record%s deleted\n", rec_count, rec_count == 1 ? "" : "s");
+    }
+
+    static request(AbstractDataProvider provider) {
+        *hash<auto> options = QdpCmd::getHash("request");
+        hash<auto> resp = provider.doRequest(options);
+        if (!opts.verbose && resp.info."response-uri" && resp.body) {
+            printf("%s: %N\n", resp.info."response-uri", resp.body);
+        } else {
+            printf("%N\n", resp);
+        }
     }
 
     static *hash<auto> getHash(string action, *bool required) {
@@ -230,6 +278,8 @@ class QdpCmd {
     }
 
     static listFactories() {
+        # load known data provider factories
+        DataProvider::registerKnownFactories();
         *list<string> flist = DataProvider::listFactories();
         if (opts.verbose) {
             map printf("%s: %N\n", $1, DataProvider::getFactory($1).getInfoAsData()), flist;

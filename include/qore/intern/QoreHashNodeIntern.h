@@ -493,7 +493,7 @@ public:
     }
 
     DLLLOCAL const QoreTypeInfo* getValueTypeInfo() const {
-        return complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo) : nullptr;
+        return complexTypeInfo ? QoreTypeInfo::getComplexHashValueType(complexTypeInfo) : nullptr;
     }
 
     DLLLOCAL const QoreTypeInfo* getTypeInfo() const {

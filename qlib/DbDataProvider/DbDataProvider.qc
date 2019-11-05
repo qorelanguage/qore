@@ -60,11 +60,14 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "datasource": <DataProviderOptionInfo>{
-                "type": (StringType, new Type("AbstractDatasource")),
+                "type": (
+                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(new Type("AbstractDatasource")),
+                ),
                 "desc": "the datasource connection string or an abstract datasource object",
             },
             "database": <DataProviderOptionInfo>{
-                "type": new Type("AbstractDatabase"),
+                "type": AbstractDataProviderType::get(new Type("AbstractDatabase")),
                 "desc": "the database for the object",
             },
         };
@@ -99,7 +102,7 @@ public class DbDataProvider inherits AbstractDataProvider {
                 error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
                     "supplied in the \"datasource\" option");
             }
-            self.db = copts.db;
+            self.db = copts.database;
             return;
         }
         if (!copts.datasource) {
@@ -129,7 +132,6 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns the given child provider or @ref nothing if the given child is unknown
     /** @return the given child provider or @ref nothing if the given child is unknown
 
-        @throw INVALID-CHILD-PROVIDER unknown child provider
         @throw CHILD-PROVIDER-ERROR error acquiring child provider
 
         @see getChildProviderEx()

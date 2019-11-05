@@ -1,0 +1,73 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+# try importing JSON and YAML modules
+%try-module json
+%define NoJson
+%endtry
+%try-module yaml
+%define NoYaml
+%endtry
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/SwaggerDataProvider
+
+%exec-class SwaggerDataProviderTest
+
+public class SwaggerDataProviderTest inherits QUnit::Test {
+    constructor() : Test("SwaggerDataProviderTest", "1.0") {
+        addTestCase("swagger data provider test", \testSwaggerDataProvider());
+        set_return_value(main());
+    }
+
+    checkModules() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+%ifdef NoYaml
+        testSkip("no yaml module");
+%endif
+    }
+
+    testSwaggerDataProvider() {
+        checkModules();
+
+        hash<auto> opts = {
+            "schema": get_script_dir() + "/PetStore.swagger.yaml",
+        };
+        SwaggerDataProvider provider(opts);
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET/response/200");
+            assertEq(("body",), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET/request");
+            assertEq(("id", "category", "name", "photoUrls", "tags", "status"), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/GET/response/200");
+            assertEq(("body",), keys p0.getRecordType());
+        }
+
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/POST/request");
+            assertNothing(p0.getRecordType());
+            assertTrue(p0.getInfo().search_options.hasKey("formData"));
+        }
+    }
+}
