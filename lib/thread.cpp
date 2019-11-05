@@ -1201,7 +1201,7 @@ bool is_valid_qore_thread() {
    return (bool)thread_data.get();
 }
 
-int gettid() {
+int gettid() noexcept {
     // when destroying objects in the static namespace, this function is called after thread data is destroyed
     // to grab locks; therefore in such cases we return TID 0
     ThreadData* td = thread_data.get();
