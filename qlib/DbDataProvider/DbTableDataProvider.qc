@@ -60,12 +60,18 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "datasource": <DataProviderOptionInfo>{
-                "type": (StringType, new Type("AbstractDatasource")),
+                "type": (
+                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(new Type("AbstractDatasource")),
+                ),
                 "desc": "the datasource connection string or an abstract datasource object; in case a connection "
                     "string is given, then the \"table\" option also needs to be given as a string",
             },
             "table": <DataProviderOptionInfo>{
-                "type": (StringType, new Type("AbstractTable")),
+                "type": (
+                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(new Type("AbstractTable")),
+                ),
                 "required": True,
                 "desc": "the table name or table object; if a table string is provided, then the \"datasource\" "
                     "option must also be provided",
@@ -75,7 +81,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         #! Create options
         const CreateOptions = {
             "returning": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::anyType,
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
                 "desc": "a string (giving the output name) or a hash describing the return parameters for an insert; "
                     "a hash will have the following keys: 'key': (required) the column name to return, and 'type' "
                     "(optional) the data type for the output placeholder buffer (ex: 'number')",
@@ -85,7 +91,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         #! Upsert options
         const UpsertOptions = {
             "upsert_strategy": <DataProviderOptionInfo>{
-                "type": StringType,
+                "type": AbstractDataProviderType::get(StringType),
                 "desc": "providers the upsert strategy; 'UpsertInsertFirst': try to insert first, if it fails, try "
                     "updating; 'UpsertUpdateFirst': try to update first, if it fails, try inserting; "
                     "'UpsertSelectFirst': try to select first, if it fails, insert, if it succeeds, update if "
@@ -93,7 +99,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                     "never insert; 'UpsertAuto' (the default) use the most efficient upsert for the underlying DB",
             },
             "omit_update": <DataProviderOptionInfo>{
-                "type": new Type("softlist<string>"),
+                "type": AbstractDataProviderType::get(new Type("softlist<string>")),
                 "desc": "allows for an asymmetrical upsert where a set of column values is inserted, but a smaller "
                     "set is updated in case the unique key values are present in the target table; the value of this "
                     "option should be set to the columns to omit in the update clause",

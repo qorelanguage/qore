@@ -59,7 +59,7 @@ struct qore_list_private {
     }
 
     DLLLOCAL const QoreTypeInfo* getValueTypeInfo() const {
-        return complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo) : nullptr;
+        return complexTypeInfo ? QoreTypeInfo::getComplexListValueType(complexTypeInfo) : nullptr;
     }
 
     DLLLOCAL const QoreTypeInfo* getTypeInfo() const {

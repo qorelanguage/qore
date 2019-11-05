@@ -39,35 +39,60 @@ public namespace SwaggerDataProvider {
 public class SwaggerDataProviderBase inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return SwaggerDataProvider::ProviderInfo;
+        return SwaggerDataProvider::ProviderInfo - "constructor_options";
     }
 
     #! Returns a field definition from Swagger parameters
-    private *hash<string, AbstractDataField> getRequestRecordFromParameters(string name, hash<string, AbstractParameterObject> parameters) {
-        hash<string, AbstractDataField> rv;
+    private *hash<string, hash<DataProviderOptionInfo>> getOptionInfoFromParameters(string name, hash<string, AbstractParameterObject> parameters) {
+        hash<string, hash<DataProviderOptionInfo>> rv;
         # temporary hash for types
         hash<string, HashDataType> params;
         foreach hash<auto> i in (parameters.pairIterator()) {
             switch (i.value.inLoc) {
                 case "body": {
-                    rv.body = getFieldFromSchema("body", "REST request body argument", i.value.schema, i.value.required);
+                    rv.body = <DataProviderOptionInfo>{
+                        "type": getSchemaDataType(i.value.schema),
+                        "required": i.value.required,
+                        "desc": "REST request body argument",
+                    };
+                    #rv.body = getFieldFromSchema("body", "REST request body argument", i.value.schema, i.value.required);
                     break;
                 }
                 case "formData":
                 case "query": {
                     if (!rv{i.value.inLoc}) {
                         params{i.value.inLoc} = new HashDataType();
-                        rv{i.value.inLoc} = new QoreDataField("query", "REST request query arguments", params{i.value.inLoc});
+                        # create the query hash argument, by default "required" is set to False
+                        rv{i.value.inLoc} = <DataProviderOptionInfo>{
+                            "type": params{i.value.inLoc},
+                            "required": False,
+                            "desc": "REST request query arguments",
+                        };
+                        #rv{i.value.inLoc} = new QoreDataField("query", "REST request query arguments", params{i.value.inLoc});
+                    }
+                    # if at least one query argument is required, then we set "required" to True for the hash
+                    if (i.value.required && !rv{i.value.inLoc}.required) {
+                        rv{i.value.inLoc}.required = True;
                     }
                     params{i.value.inLoc}.addField(getFieldFromParameter(i.value.name, i.value.type, i.value.items, i.value.desc, i.value.required));
                     break;
                 }
                 case "header": {
                     if (!rv.header) {
-                        params.header = new HashDataType();
-                        rv.header = new QoreDataField("query", "REST request query arguments", params.header);
+                        # create the header hash argument, by default "required" is set to False
+                        rv.header = <DataProviderOptionInfo>{
+                            "type": new HashDataType(),
+                            "required": False,
+                            "desc": "REST request query arguments",
+                        };
+                        #rv.header = new QoreDataField("query", "REST request query arguments", params.header);
                     }
-                    params.header.addField(getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc, i.value.required));
+                    # if at least one header is required, then we set "required" to True for the hash
+                    if (i.value.required && !rv.header.required) {
+                        rv.header.required = True;
+                    }
+                    rv.header.type[0].addField(getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc,
+                        i.value.required));
                     break;
                 }
                 # ignore path

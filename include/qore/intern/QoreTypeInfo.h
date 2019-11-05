@@ -875,6 +875,30 @@ public:
         return ti->return_vec[0].spec.getClass();
     }
 
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getComplexHashValueType(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return nullptr;
+        }
+        assert(!ti->return_vec.empty());
+        if (ti == autoHashTypeInfo || ti == autoHashOrNothingTypeInfo) {
+            return autoTypeInfo;
+        }
+        return ti->return_vec[0].spec.getComplexHash();
+    }
+
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getComplexListValueType(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return nullptr;
+        }
+        assert(!ti->return_vec.empty());
+        if (ti == autoListTypeInfo || ti == autoListOrNothingTypeInfo) {
+            return autoTypeInfo;
+        }
+        return ti->return_vec[0].spec.getComplexList();
+    }
+
     DLLLOCAL void getAcceptTypes(ReferenceHolder<QoreHashNode>& h) const {
         for (auto& i : accept_vec) {
             h->setKeyValue(i.spec.getSimpleName(), true, nullptr);

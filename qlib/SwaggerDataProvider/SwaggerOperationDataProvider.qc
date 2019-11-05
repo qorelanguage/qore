@@ -82,12 +82,5 @@ public class SwaggerOperationDataProvider inherits SwaggerDataProviderBase {
             case "response": return new SwaggerResponseDataProvider(schema, uri_path, op);
         }
     }
-
-    private RestClient getRestClient() {
-        if (!rest) {
-            rest = new RestClient({"url": schema.getTargetUrl()});
-        }
-        return rest;
-    }
 }
 }

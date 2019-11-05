@@ -60,11 +60,14 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "datasource": <DataProviderOptionInfo>{
-                "type": (StringType, new Type("AbstractDatasource")),
+                "type": (
+                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(new Type("AbstractDatasource")),
+                ),
                 "desc": "the datasource connection string or an abstract datasource object",
             },
             "database": <DataProviderOptionInfo>{
-                "type": new Type("AbstractDatabase"),
+                "type": AbstractDataProviderType::get(new Type("AbstractDatabase")),
                 "desc": "the database for the object",
             },
         };

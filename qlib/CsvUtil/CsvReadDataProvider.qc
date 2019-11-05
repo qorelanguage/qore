@@ -37,33 +37,21 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         const ProviderInfo = <DataProviderInfo>{
             "type": "CsvReadDataProvider",
             "supports_read": True,
-            "supports_create": False,
-            "supports_update": False,
-            "supports_upsert": False,
-            "supports_delete": False,
-            "supports_native_search": False,
-            "supports_bulk_create": False,
-            "supports_bulk_upsert": False,
-            "supports_children": False,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
-            "create_options": NOTHING,
-            "upsert_options": NOTHING,
-            "transaction_management": False,
         };
 
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
-                "type": (StringType),
+                "type": AbstractDataProviderType::get(StringType),
                 "desc": "the path to the CSV data; mutually exclusive with \"stream\"",
             },
             "stream": <DataProviderOptionInfo>{
-                "type": new Type("InputStream"),
+                "type": AbstractDataProviderType::get(new Type("InputStream")),
                 "desc": "an input stream for CSV data; mutually exclusive with \"path\"",
             },
             "opts": <DataProviderOptionInfo>{
-                "type": AutoHashType,
+                "type": AbstractDataProviderType::get(AutoHashType),
                 "desc": "CSV parsing options",
             },
         };

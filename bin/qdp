@@ -57,6 +57,7 @@ class QdpCmd {
             "create": \QdpCmd::create(),
             "upsert": \QdpCmd::upsert(),
             "delete": \QdpCmd::del(),
+            "request": \QdpCmd::request(),
         };
     }
 
@@ -93,7 +94,16 @@ class QdpCmd {
         string cmd = shift ARGV ?? "list";
         *code action = Cmds{cmd};
         if (!action) {
-            error("unknown action %y; known actions: %y", cmd, keys Cmds);
+            # see if an abbreviation matches
+            hash<string, bool> match = map {$1: True}, keys Cmds, $1.equalPartial(cmd);
+            if (match.size() == 1) {
+                action = Cmds{match.firstKey()};
+            } else if (match) {
+                error("unknown action %y; matches %y; please provide additional character(s) to ensure a unique "
+                    "match", cmd, keys match);
+            } else {
+                error("unknown action %y; known actions: %y", cmd, keys Cmds);
+            }
         }
         try {
             action(provider);
@@ -188,6 +198,16 @@ class QdpCmd {
         *hash<auto> where_cond = QdpCmd::getHash("delete");
         int rec_count = provider.deleteRecords(where_cond);
         printf("%d record%s deleted\n", rec_count, rec_count == 1 ? "" : "s");
+    }
+
+    static request(AbstractDataProvider provider) {
+        *hash<auto> options = QdpCmd::getHash("request");
+        hash<auto> resp = provider.doRequest(options);
+        if (!opts.verbose && resp.info."response-uri" && resp.body) {
+            printf("%s: %N\n", resp.info."response-uri", resp.body);
+        } else {
+            printf("%N\n", resp);
+        }
     }
 
     static *hash<auto> getHash(string action, *bool required) {

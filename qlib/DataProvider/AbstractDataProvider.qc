@@ -56,7 +56,7 @@ public const UpsertResultDeleted = "deleted";
 #! Data provider option info
 public hashdecl DataProviderOptionInfo {
     #! The option value type or types
-    softlist<Type> type;
+    softlist<AbstractDataProviderType> type;
 
     #! Required flag
     bool required = False;
@@ -80,32 +80,32 @@ public hashdecl DataProviderInfo {
     #! Does the data provider support reading
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_read;
+    bool supports_read = False;
 
     #! Does the data provider support record creation?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_create;
+    bool supports_create = False;
 
     #! Does the data provider support record updates?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_update;
+    bool supports_update = False;
 
     #! Does the data provider support record upserts (create or update)?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_upsert;
+    bool supports_upsert = False;
 
     #! Does the data provider support record deletion?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_delete;
+    bool supports_delete = False;
 
     #! Does the data provider support native record searching?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_native_search;
+    bool supports_native_search = False;
 
     #! Does the data provider support native / optimized bulk creation?
     /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
@@ -113,7 +113,7 @@ public hashdecl DataProviderInfo {
 
         @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_bulk_create;
+    bool supports_bulk_create = False;
 
     #! Does the data provider support native / optimized bulk upserts?
     /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
@@ -121,12 +121,22 @@ public hashdecl DataProviderInfo {
 
         @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_bulk_upsert;
+    bool supports_bulk_upsert = False;
+
+    #! Does the data provider support the request API?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_request = False;
 
     #! Does the data provider support children?
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool supports_children;
+    bool supports_children = False;
+
+    #! Does the data provider require transaction management?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool transaction_management = False;
 
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
@@ -148,10 +158,10 @@ public hashdecl DataProviderInfo {
     */
     *hash<string, hash<DataProviderOptionInfo>> search_options;
 
-    #! Does the data provider require transaction management?
+    #! Request options supported by the data provider
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
-    bool transaction_management;
+    *hash<string, hash<DataProviderOptionInfo>> request_options;
 
     #! A list of child data providers in this data provider
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
@@ -232,11 +242,12 @@ public class AbstractDataProvider {
     }
 
     #! Returns an iterator iterating all records
-    /**
+    /** @param search_options the search options; will be processed by validateSearchOptions()
+
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    AbstractDataProviderRecordIterator getRecordIterator() {
-        return searchRecords();
+    AbstractDataProviderRecordIterator getRecordIterator(*hash<auto> search_options) {
+        return searchRecords(NOTHING, validateSearchOptions(search_options));
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -291,6 +302,19 @@ public class AbstractDataProvider {
     int deleteRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkDelete();
         return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Makes a request and returned the response
+    /**
+        @param request_options the request options; will be processed by validateRequestOptions()
+
+        @return the response to the request
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    auto doRequest(*hash<auto> request_options) {
+        checkRequest();
+        return doRequestImpl(validateRequestOptions(request_options));
     }
 
     #! Returns a list of child data provider names, if any
@@ -444,6 +468,17 @@ public class AbstractDataProvider {
         }
     }
 
+    #! Ensures that the data provider supports the request API
+    /**
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    private checkRequest() {
+        if (!supportsRequest()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support the request API",
+                getName(), self.className());
+        }
+    }
+
     #! validates create options
     /** @throw CREATE-OPTION-ERROR invalid or unsupported create option
     */
@@ -465,6 +500,13 @@ public class AbstractDataProvider {
         return checkOptions("SEARCH-OPTION-ERROR", getSearchOptions(), search_options);
     }
 
+    #! validates request options
+    /** @throw REQUEST-OPTION-ERROR invalid or unsupported request option
+    */
+    private *hash<auto> validateRequestOptions(*hash<auto> request_options) {
+        return checkOptions("REQUEST-OPTION-ERROR", getRequestOptions(), request_options);
+    }
+
     #! processes options passed to the constructor
     private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
         self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options);
@@ -483,7 +525,7 @@ public class AbstractDataProvider {
         foreach hash<auto> i in (option_desc.pairIterator()) {
             bool present = options.hasKey(i.key);
             if (i.value.required && !present) {
-                error(err, "missing required option %y", i.key);
+                error(err, "missing required option %y%s", i.key, i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
             }
             if (!present) {
                 continue;
@@ -491,7 +533,7 @@ public class AbstractDataProvider {
             # process value
             bool ok;
             string err;
-            foreach Type type in (i.value.type) {
+            foreach AbstractDataProviderType type in (i.value.type) {
                 try {
                     options{i.key} = type.acceptsValue(options{i.key});
                     ok = True;
@@ -633,6 +675,14 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().upsert_options;
     }
 
+    #! Returns options that can be used for requests
+    /** @return a hash of options that can be used for requests; keys are request option names, values describe the
+        request option; if @ref nothing is returned, then the provider does not support any request options
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getRequestOptions() {
+        return getStaticInfoImpl().request_options;
+    }
+
     #! Returns @ref True if the data provider supports reading
     /**
     */
@@ -689,15 +739,19 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().supports_bulk_upsert;
     }
 
+    #! Returns True if the data provider supports requests
+    /**
+    */
+    bool supportsRequest() {
+        return getStaticInfoImpl().supports_request;
+    }
+
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
-            getName(), self.className());
+        throwUnimplementedException();
     }
 
     #! Creates the given record to the data provider
@@ -707,10 +761,7 @@ public class AbstractDataProvider {
         @return the data written to the data provider
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
-            getName(), self.className());
+        throwUnimplementedException();
     }
 
     #! Upserts the given record to the data provider
@@ -720,10 +771,7 @@ public class AbstractDataProvider {
         @return see @ref db_provider_upsert_results for possible values
     */
     private string upsertRecordImpl(hash<auto> rec, *hash<auto> upsert_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
-            getName(), self.className());
+        throwUnimplementedException();
     }
 
     #! Updates a single record matching the search options
@@ -732,24 +780,18 @@ public class AbstractDataProvider {
         @param search_options the search options after processing by validateSearchOptions()
     */
     private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
-            getName(), self.className());
+        throwUnimplementedException();
     }
 
     #! Updates zero or more records matching the search options
     /** @param set the hash of field data to set
-        @param where_cond a hash for identifying the record(s) to be update
+        @param where_cond a hash for identifying the record(s) to be updated
         @param search_options the update options after processing by validateSearchOptions()
 
         @return the number of records updated
     */
     private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
-            getName(), self.className());
+        throwUnimplementedException();
     }
 
     #! Deletes zero or more records
@@ -760,9 +802,29 @@ public class AbstractDataProvider {
         @return the number of records deleted
     */
     private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        # this should never be called; if the data provider supports the operation, then this method must be
-        # overridden in the child class
-        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported",
+        throwUnimplementedException();
+    }
+
+    #! Makes a request and returned the response
+    /**
+        @param request_options the request options; will be processed by validateRequestOptions()
+
+        @return the response to the request
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    private auto doRequestImpl(*hash<auto> request_options) {
+        throwUnimplementedException();
+    }
+
+    #! Throws an \c INVALID-OPERATION exception
+    /** @throw INVALID-OPERATION this exception is thrown unconditionally by this method
+    */
+    private throwUnimplementedException() {
+        # should never be called
+        throw "UNIMPLEMENTED", sprintf("data provider %y of class %y has an error; the operation is not supported; "
+            "this indicates a bug in the implementation of the data provider; please report this bug to the author "
+            "of the data provider",
             getName(), self.className());
     }
 

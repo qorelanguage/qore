@@ -69,13 +69,26 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "schema": <DataProviderOptionInfo>{
-                "type": (StringType, new Type("SwaggerSchema")),
+                "type": (
+                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(new Type("SwaggerSchema")),
+                ),
                 "desc": "the Swagger schema object or source URL",
                 "required": True,
             },
             "restclient": <DataProviderOptionInfo>{
-                "type": new Type("RestClient"),
+                "type": AbstractDataProviderType::get(new Type("RestClient")),
                 "desc": "the RestClient object",
+            },
+            "url": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the URL to the REST server; overrides any URL in the schema or in any RestClient object "
+                    "passed as an option",
+            },
+            "restclient_options": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
+                    "call",
             },
         };
 
@@ -99,6 +112,9 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         self.path_tree = path_tree;
         self.uri_path = uri_path;
         self.schema = schema;
+        if (rest) {
+            checkRestClient(rest);
+        }
         self.rest = rest;
     }
 
@@ -125,7 +141,23 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         }
 
         if (copts.restclient) {
+            checkRestClient(copts.restclient);
             rest = copts.restclient;
+        }
+
+        if (!rest) {
+            if (copts.url || copts.restclient_options) {
+                hash<auto> opts;
+                opts += copts.restclient_options + {
+                    "validator": schema,
+                };
+                if (copts.url) {
+                    opts.url = copts.url;
+                }
+                rest = new RestClient(opts);
+            }
+        } else if (copts.url) {
+            rest.setURL(copts.url);
         }
 
         setupTree();
@@ -134,6 +166,20 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return schema.info.title + uri_path;
+    }
+
+    #! Checks the REST client
+    private checkRestClient(RestClient rest) {
+        *AbstractRestSchemaValidator validator = rest.getValidator();
+        if (validator) {
+            if (validator != schema) {
+                throw "CONSTRUCTOR-ERROR", sprintf("RestClient provided in %s::constructor() is configured with a "
+                    "different REST validator schema than %y required by this data provider", self.className(),
+                    getName());
+            }
+        } else {
+            rest.setValidator(validator);
+        }
     }
 
     private setupTree() {
@@ -200,17 +246,17 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         }
 
         if (exists path_tree."*" && !HttpMethods{name.upr()}) {
-            return getChildIntern("*");
+            return getChildIntern("*", name);
         }
     }
 
     #! Returns the child provider for the given path component
-    AbstractDataProvider getChildIntern(string name) {
+    AbstractDataProvider getChildIntern(string name, *string real_name) {
         string new_uri_path = uri_path;
         if (new_uri_path !~ /\/$/) {
             new_uri_path += "/";
         }
-        new_uri_path += name;
+        new_uri_path += real_name ?? name;
         return new SwaggerDataProvider(path_tree{name}, new_uri_path, schema, rest);
     }
 

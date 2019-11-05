@@ -1103,12 +1103,12 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
 }
 
 qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
-   for (auto& t : accept_vec) {
-      qore_type_result_e rv = t.spec.runtimeAcceptsValue(n, t.exact);
-      if (rv != QTI_NOT_EQUAL)
-         return rv;
-   }
-   return QTI_NOT_EQUAL;
+    for (auto& t : accept_vec) {
+        qore_type_result_e rv = t.spec.runtimeAcceptsValue(n, t.exact);
+        if (rv != QTI_NOT_EQUAL)
+            return rv;
+    }
+    return QTI_NOT_EQUAL;
 }
 
 void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const {
