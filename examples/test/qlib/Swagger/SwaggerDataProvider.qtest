@@ -56,7 +56,7 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
 
         {
             AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET/request");
-            assertEq(("query",), keys p0.getRecordType());
+            assertEq(("id", "category", "name", "photoUrls", "tags", "status"), keys p0.getRecordType());
         }
 
         {
@@ -66,7 +66,8 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
 
         {
             AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/POST/request");
-            assertEq(("formData",), keys p0.getRecordType());
+            assertNothing(p0.getRecordType());
+            assertTrue(p0.getInfo().search_options.hasKey("formData"));
         }
     }
 }

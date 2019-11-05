@@ -187,14 +187,15 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         if (op.body) {
             rv.body = <DataProviderOptionInfo>{
                 "type": getSchemaDataType(cast<BodyParameter>(op.body).schema),
-                "required": rv.body.required,
+                "required": op.body.required,
                 "desc": "REST request body argument",
             };
         }
         if (op.formData) {
+            OtherParameter formData = cast<OtherParameter>(op.formData);
             rv.formData = <DataProviderOptionInfo>{
-                "type": getType(rv.formData.type, rv.formData.items),
-                "required": rv.formData.required,
+                "type": getType(formData.type, formData.items),
+                "required": formData.required,
                 "desc": "REST request query arguments",
             };
         }
