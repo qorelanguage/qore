@@ -1384,7 +1384,7 @@ nothing Program::importHashDecl(string name, *string new_name) {
 list<string> l = pgm.getUserFunctionList();
     @endcode
 
-    @note the @ref reflectionintro "reflection" module supercedes this functionality
+    @note the <a href="../../modules/reflection/html/index.html">reflection</a> module supercedes this functionality
  */
 softlist<string> Program::getUserFunctionList() [flags=CONSTANT] {
    return p->getUserFunctionList();
@@ -2227,7 +2227,7 @@ nothing Program::setGlobalVarValue(string name, auto value) {
 
     @since %Qore 0.8.13
 
-    @note the @ref reflectionintro "reflection" module supercedes this functionality
+    @note the <a href="../../modules/reflection/html/index.html">reflection</a> module supercedes this functionality
 */
 list<hash<auto>> Program::findFunctionVariants(string function) {
     ReferenceHolder<QoreListNode> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);

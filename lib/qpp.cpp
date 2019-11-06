@@ -52,6 +52,7 @@
 #include <sys/stat.h>
 #include <utility>
 #include <vector>
+#include <regex>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -2072,6 +2073,8 @@ protected:
     std::string doc,            // doc header for group
         ns;                     // namespace
 
+    unsigned ns_size = 0;
+
     bool valid;
     const char* fileName;
     unsigned startLineNumber;
@@ -2390,8 +2393,9 @@ public:
 
         if (ns.empty())
             fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
-        else
-            fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
+        else {
+            outputNamespaceStart(fp);
+        }
 
         // serialize group header doc
         serialize_dox_comment(fp, doc);
@@ -2404,7 +2408,7 @@ public:
         // serialize group trailer
         fputs("//@}\n", fp);
 
-        fputs("};\n", fp);
+        outputNamespaceEnd(fp);
 
         return 0;
     }
@@ -2416,8 +2420,9 @@ public:
         if (needs_prefix) {
             if (ns.empty())
                 fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
-            else
-                fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
+            else {
+                outputNamespaceStart(fp);
+            }
         }
         // serialize group header doc
         serialize_dox_comment(fp, doc);
@@ -2430,10 +2435,35 @@ public:
         // serialize group trailer
         fputs("//@}\n", fp);
 
-        if (needs_prefix)
-            fputs("};\n", fp);
+        if (needs_prefix) {
+            outputNamespaceEnd(fp);
+        }
 
         return 0;
+    }
+
+    void outputNamespaceStart(FILE* fp) {
+        ns_size = 0;
+        std::vector<std::string> ns_list;
+        // passing -1 as the submatch index parameter performs splitting
+        std::regex re("::");
+        std::sregex_token_iterator
+            first{ns.begin(), ns.end(), re, -1},
+            last;
+        ns_list = {first, last};
+        for (auto& i : ns_list) {
+            fprintf(fp, "//! %s namespace\nnamespace %s {\n", i.c_str(), i.c_str());
+            ++ns_size;
+        }
+    }
+
+    void outputNamespaceEnd(FILE* fp) {
+        if (!ns_size) {
+            ns_size = 1;
+        }
+        for (unsigned i = 0; i < ns_size; ++i) {
+            fprintf(fp, "}\n");
+        }
     }
 
     bool hasFunctions() const {
