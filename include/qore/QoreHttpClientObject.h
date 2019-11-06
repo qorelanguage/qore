@@ -72,7 +72,7 @@ public:
 
     //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
     /** options are:
-         - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port number or a hash having the following keys:
+        - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port number or a hash having the following keys:
         - port: giving the port number
         - ssl: giving a boolean true or false value
         - max_redirects: sets the max_redirects option

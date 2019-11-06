@@ -2917,7 +2917,7 @@ binary bin = digest("md2", "Hello There This is a Test - 1234567890");
 # returns <a9046c73e00331af68917d3804f70655>
     @endcode
 
-    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
+    @param digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
 
     @return the binary value of the digest
@@ -2950,7 +2950,7 @@ binary bin = hmac("ripemd160", "Hello There This is a Test - 1234567890", "a key
 # returns <4bca70bca1601aba57624eeb2606535cb12f2079>
     @endcode
 
-    @parm digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
+    @param digest the digest to use; for supported digests, see @ref Qore::DigestMap "DigestMap"
     @param data the data to process and produce a digest for; the trailing null character is not included in the digest when processing string arguments
     @param key a secret passphrase/key
 

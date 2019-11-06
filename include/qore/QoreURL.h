@@ -158,7 +158,7 @@ public:
 
     //! returns a hash of the parameters parsed, destructive: zeros out all elements, caller owns the reference count returned
     /** hash keys are:
-         - protocol
+        - protocol
         - path
         - username
         - password

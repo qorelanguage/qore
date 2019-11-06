@@ -188,8 +188,8 @@
     - fixed a bug where attempting to serialize a weak references to a serializable object would result in an
       exception
       (<a href="https://github.com/qorelanguage/qore/issues/3515">issue 3515</a>)
-    - fixed a bug where new @ref Qore::DatasourcePool "DatasourcePool" connections were left in place when calls to
-      @ref Qore::DatasourcePool::beginTransaction() "DatasourcePool::beginTransaction()" would fail with an exception
+    - fixed a bug where new @ref Qore::SQL::DatasourcePool "DatasourcePool" connections were left in place when calls to
+      @ref Qore::SQL::DatasourcePool::beginTransaction() "DatasourcePool::beginTransaction()" would fail with an exception
       (<a href="https://github.com/qorelanguage/qore/issues/3509">issue 3509</a>)
     - fixed bugs importing user modules with an injected API in an existing @ref Qore::Program "Program" container
       (<a href="https://github.com/qorelanguage/qore/issues/3504">issue 3504</a>)
@@ -631,7 +631,7 @@
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
     - Fixed bugs handling object scope in @ref background "background" expressions
       (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
-    - Fixed a bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns
+    - Fixed a bug: @ref Qore::hash(list<auto>) "hash(list<auto>)" where l has an odd number of elements never returns
       (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
     - Fixed a bug where no error is issued when an expression does not have meaning as a top-level statement
       (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
@@ -1257,7 +1257,7 @@
       - @ref Qore::set_local_var_value()
     - updated functions/methods:
       - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
-      - @ref Qore::Thread::thread_yield()
+      - @ref Qore::thread_yield()
     - updated functions:
       - @ref Qore::ceil() "ceil()": now allows the precision to be specified
       - @ref Qore::floor() "floor()": now allows the precision to be specified
@@ -1397,7 +1397,7 @@
     - fixed many bugs where parse-time errors could be reported at an incorrect source location; parse-time error location reporting has been completely overhauled and reimplemented for correctness (<a href="https://github.com/qorelanguage/qore/issues/1930">issue 1930</a>)
     - fixed a bug where code signatures would accept parameter variables without \c "$" signs even when @ref allow-bare-refs "%allow-bare-refs" was not in effect (<a href="https://github.com/qorelanguage/qore/issues/1941">issue 1941</a>)
     - fixed memory leaks in the scanner related to EOF conditions (<a href="https://github.com/qorelanguage/qore/issues/1976">issue 1976</a>)
-    - rewrote %Qore functions @ref gethostbyname(), @ref gethostbyname_long() and @ref gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
+    - rewrote %Qore functions @ref Qore::gethostbyname(), @ref Qore::gethostbyname_long() and @ref Qore::gethostbyaddr() to use standard C functions \c getaddrinfo(3) and \c getnameinfo(3) internally instead of the deprecated \c gethostbyname(3) and \c gethostbyaddr(3) (<a href="https://github.com/qorelanguage/qore/issues/1952">issue 1952</a>)
     - fixed cmake builds on Darwin (<a href="https://github.com/qorelanguage/qore/issues/1980">issue 1980</a>)
     - fixed a bug where immediate date-time values were not marked with their type at parse time (<a href="https://github.com/qorelanguage/qore/issues/2001">issue 2001</a>)
     - fixed a bug where the @ref data_or_nothing_type "*data" type restriction would allow all types to be assigned at runtime (<a href="https://github.com/qorelanguage/qore/issues/2002">issue 2002</a>)
@@ -1732,8 +1732,8 @@
         - @ref Qore::reload_module() "reload_module()"
     - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
       - @ref Qore::Thread::AbstractThreadResource
-      - @ref Qore::Thread::remove_thread_resource()
-      - @ref Qore::Thread::set_thread_resource()
+      - @ref Qore::remove_thread_resource()
+      - @ref Qore::set_thread_resource()
     - new constants:
       - @ref Qore::DirSep
       - @ref Qore::Platform
@@ -1780,8 +1780,8 @@
       - @ref Qore::rtrim()
       - @ref Qore::set_return_value()
       - @ref Qore::setgroups()
-      - @ref Qore::Thread::remove_thread_resource()
-      - @ref Qore::Thread::set_thread_resource()
+      - @ref Qore::remove_thread_resource()
+      - @ref Qore::set_thread_resource()
     - updated functions:
       - @ref Qore::parse_boolean()
       - @ref Qore::string()
@@ -1810,9 +1810,9 @@
       - @ref Qore::getDateFromISOWeek(): deprecated for @ref Qore::get_date_from_iso_week()
       - @ref Qore::getDayNumber(): deprecated for @ref Qore::get_day_number()
       - @ref Qore::getDayOfWeek(): deprecated for @ref Qore::get_day_of_week()
-      - @ref Qore::getDBIDriverCapabilities(): deprecated for @ref Qore::dbi_get_driver_capabilities()
-      - @ref Qore::getDBIDriverCapabilityList(): deprecated for @ref Qore::dbi_get_driver_capability_list()
-      - @ref Qore::getDBIDriverList(): deprecated for @ref Qore::dbi_get_driver_list()
+      - @ref Qore::SQL::getDBIDriverCapabilities(): deprecated for @ref Qore::SQL::dbi_get_driver_capabilities()
+      - @ref Qore::SQL::getDBIDriverCapabilityList(): deprecated for @ref Qore::SQL::dbi_get_driver_capability_list()
+      - @ref Qore::SQL::getDBIDriverList(): deprecated for @ref Qore::SQL::dbi_get_driver_list()
       - @ref Qore::getFeatureList(): deprecated for @ref Qore::get_feature_list()
       - @ref Qore::getISODayOfWeek(): deprecated for @ref Qore::get_iso_day_of_week()
       - @ref Qore::getISOWeekHash(): deprecated for @ref Qore::get_iso_week_hash()
@@ -1824,7 +1824,7 @@
       - @ref Qore::makeHexString(): deprecated for @ref Qore::make_hex_string()
       - @ref Qore::parseBase64String(): deprecated for @ref Qore::parse_base64_string()
       - @ref Qore::parseBase64StringToString(): deprecated for @ref Qore::parse_base64_string_to_string()
-      - @ref Qore::parseDatasource(): deprecated for @ref Qore::parse_datasource()
+      - @ref Qore::SQL::parseDatasource(): deprecated for @ref Qore::SQL::parse_datasource()
       - @ref Qore::parseHexString(): deprecated for @ref Qore::parse_hex_string()
       - @ref Qore::sortDescending(): deprecated for @ref Qore::sort_descending()
       - @ref Qore::sortDescendingStable(): deprecated for @ref Qore::sort_descending_stable()
@@ -2152,7 +2152,7 @@
     - fixed bugs in the documentation and return types of:
       - @ref Qore::ReadOnlyFile::readBinaryFile()
       - @ref Qore::ReadOnlyFile::readTextFile()
-    - fixed a bug in @ref Qore::GetOpt::parse(softlist), @ref Qore::GetOpt::parse2(softlist), and @ref Qore::GetOpt::parse3(softlist) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
+    - fixed a bug in @ref Qore::GetOpt::parse(softlist<auto>), @ref Qore::GetOpt::parse2(softlist<auto>), and @ref Qore::GetOpt::parse3(softlist<auto>) where call-by-value and copy-on-write semantics were not enforced and a shared list argument could be modified
     - fixed a bug in zoneinfo file parsing where invalid bands with no UTC offset changes against the previous band could cause invalid date/time values to be displayed by Qore for dates on the invalid transition
     - fixed a bug where imported global variables (@ref Qore::Program::importGlobalVariable()) were added to the pending global variable list and therefore were removed if a parse exception occurred, hwoever the namespace indexes remained, which could lead to unexpected problems at runtime including a crash.  Additionally the pending global variable list was not checked which could lead to a memory leak if the a single global variable name is pending, imported, and then committed to the @ref Qore::Program "Program" object.
     - fixed memory errors managing program feature lists in the CharPtrList class by copying string memory instead of using sometimes temporary values in the list
@@ -2200,7 +2200,7 @@
     - fixed a bug on Windows with @ref Qore::Dir::create() (<a href="https://github.com/qorelanguage/qore/issues/643">issue 643</a>)
     - fixed a bug where CRLF line endings were not handled correctly by the %exec-class parse directive (<a href="https://github.com/qorelanguage/qore/issues/653">issue 653</a>)
     - fixed a bug on Windows where @ref Qore::glob() would return paths beginning with \c "." by default (<a href="https://github.com/qorelanguage/qore/issues/660">issue 660</a>)
-    - fixed a bug on Windows where @ref Qore::glob() would fail on \c "\*" or \c "/*" (<a href="https://github.com/qorelanguage/qore/issues/664">issue 664</a>)
+    - fixed a bug on Windows where @ref Qore::glob() would fail on \c "\*" or \c xxx "/<i></i>*" (<a href="https://github.com/qorelanguage/qore/issues/664">issue 664</a>)
     - fixed a bug on Windows where @ref Qore::glob() would not return paths in sorted order by default (<a href="https://github.com/qorelanguage/qore/issues/665">issue 665</a>)
     - fixed a bug on Windows where the @ref Qore::Dir class would incorrectly normalize UNC paths by stripping the leading backslash (<a href="https://github.com/qorelanguage/qore/issues/666">issue 666</a>)
     - fixed a bug where the @ref int_type "int" type restriction would accept any data type at runtime instead of throwing a \c RUNTIME-TYPE-ERROR exception (<a href="https://github.com/qorelanguage/qore/issues/683">issue 683</a>)
@@ -2753,7 +2753,7 @@
     @par Fixes for Iterator Class Design Bugs
     Iterators, particular regarding the @ref map "map" and @ref select "select" operators, were implemented in a confusing and inconsistent way; even the %qore documentation was incorrect, and examples were given incorrectly.  The following changes will break functionality using the badly-implemented behavior of iterators before, but since the fix comes fairly soon after the introduction, hopefully this change will not cause too many problems with existing code.   All users polled about the iterator changes in this release saw them as positive and desired changes to the language.
     - the @ref map "map" and @ref select "select" operators' behavior was changed when used with an @ref Qore::AbstractIterator "AbstractIterator" object for the list operand; now the implied argument is the result of @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" instead of the iterator object itself.  This addresses a confusing design choice in the original iterator integration with the @ref map "map" and @ref select "select" operators
-    - the second boolean argument was removed from the @ref Qore::HashIterator::constructor(hash&lt;auto&gt;) "HashIterator::constructor(hash&lt;auto&gt;)" and @ref Qore::HashReverseIterator::constructor(hash) "HashReverseIterator::constructor(hash)" methods; use the new  @ref Qore::HashPairIterator "HashPairIterator" and @ref Qore::ObjectPairIterator "ObjectPairIterator" classes instead (<hash>::pairIterator() and <object>::pairIterator())
+    - the second boolean argument was removed from the @ref Qore::HashIterator::constructor(hash&lt;auto&gt;) "HashIterator::constructor(hash&lt;auto&gt;)" and @ref Qore::HashReverseIterator::constructor(hash&lt;auto&gt;) "HashReverseIterator::constructor(hash)" methods; use the new  @ref Qore::HashPairIterator "HashPairIterator" and @ref Qore::ObjectPairIterator "ObjectPairIterator" classes instead (<hash>::pairIterator() and <object>::pairIterator())
     - the single boolean argument was removed from <hash>::iterator() and <object>::iterator(); use <hash>::pairIterator() and <object>::pairIterator() instead to get the old behavior
 
     @subsection qore_0862_changes Changes in Qore
