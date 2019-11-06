@@ -569,7 +569,7 @@ list<int> int_list = auto_cast(tmp);
 
     @since %Qore 0.9.3
  */
-auto auto_cast(auto v) [flags=CONSTANT] {
-    return auto_cast(v);
+auto auto_cast(auto val) [flags=CONSTANT] {
+    return auto_cast(val);
 }
 //@}

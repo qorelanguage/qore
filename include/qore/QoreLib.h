@@ -688,7 +688,7 @@ DLLEXPORT QoreProgram* qore_get_call_program_context();
 //! sets a module option for the given module
 /** @param mod the module name
     @param opt the option name
-    @param value the option value; must be already referenced for the assignment
+    @param val the option value; must be already referenced for the assignment
 
     @since %Qore 0.9
 */

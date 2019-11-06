@@ -44,7 +44,7 @@
     @par Description:
     String values are specified with text between double or single quotes. Text between double quotes is subject to interpretation of escape characters; text between single quotes is not.\n\n
     Strings are assumed by default to have the encoding given by the \c QORE_CHARSET or the \c LANG environment variable (see @ref environment_variables). If neither of these variables is set, then all strings will be assumed to have \c UTF-8 encoding.\n\n
-    For detailed information on %Qore character encoding handling, please see @ref character_encoding.\n\n
+    For detailed information on %Qore character encoding handling, please see @ref character_encoding .\n\n
     It is legal to specify a string literal with newline characters like the following:\n
     @code{.py}
 str = "this string is
@@ -435,7 +435,7 @@ binary 3: cefaadbe
     @section nothing NOTHING
 
     @par Description:
-    This special data type represents no value and can only be accessed directly as an immediate value with the constant @ref Qore::NOTHING.  Note that @ref Qore::NOTHING is not equivalent to @ref null.\n
+    This special data type represents no value and can only be accessed directly as an immediate value with the constant @ref Qore::NOTHING.  Note that @ref Qore::NOTHING is not equivalent to @ref null .\n
     @note The exists operator will return @ref Qore::False "False" when given @ref Qore::NOTHING as an argument; for example: @verbatim prompt% qore -X 'exists NOTHING'
 False@endverbatim
 
