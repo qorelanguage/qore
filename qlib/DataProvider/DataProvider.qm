@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DataProvider.qm module for data access and introspection
 
-/** DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %new-style
 # require type definitions everywhere
 %require-types
-#! strict argument handling
+# strict argument handling
 %strict-args
 # enable all warnings
 %enable-all-warnings
@@ -52,7 +52,63 @@ module DataProvider {
     @section dataproviderintro Introduction to the DataProvider Module
 
     The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
-    queried, introspected, and updated.
+    queried, introspected, and updated.  It also supports data providers with request-reply semantics such as REST
+    schemas.
+
+    This module provides the following primary classes:
+    - @ref DataProvider::AbstractDataField "AbstractDataField"
+    - @ref DataProvider::AbstractDataProvider "AbstractDataProvider"
+    - @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation"
+    - @ref DataProvider::AbstractDataProviderFactory "AbstractDataProviderFactory"
+    - @ref DataProvider::AbstractDataProviderRecordIterator "AbstractDataProviderRecordIterator"
+    - @ref DataProvider::DataProvider "DataProvider"
+    - @ref DataProvider::DefaultBulkInserter "DefaultBulkInserter"
+    - @ref DataProvider::DefaultBulkUpserter "DefaultBulkUpserter"
+    - @ref DataProvider::DefaultRecordIterator "DefaultRecordIterator"
+    - @ref DataProvider::QoreDataField "QoreDataField"
+
+    The following supporting type classes are also provided:
+    - @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType"
+    - @ref DataProvider::HashDataType "HashDataType"
+    - @ref DataProvider::HashDeclDataType "HashDeclDataType"
+    - @ref DataProvider::ListDataType "ListDataType"
+    - @ref DataProvider::QoreBoolDataType "QoreBoolDataType"
+    - @ref DataProvider::QoreBoolDataTypeBase "QoreBoolDataTypeBase"
+    - @ref DataProvider::QoreBoolOrNothingDataType "QoreBoolOrNothingDataType"
+    - @ref DataProvider::QoreDataType "QoreDataType"
+    - @ref DataProvider::QoreDateDataType "QoreDateDataType"
+    - @ref DataProvider::QoreDateDataTypeBase "QoreDateDataTypeBase"
+    - @ref DataProvider::QoreDateOrNothingDataType "QoreDateOrNothingDataType"
+    - @ref DataProvider::QoreFloatDataType "QoreFloatDataType"
+    - @ref DataProvider::QoreFloatDataTypeBase "QoreFloatDataTypeBase"
+    - @ref DataProvider::QoreFloatOrNothingDataType "QoreFloatOrNothingDataType"
+    - @ref DataProvider::QoreHashDataType "QoreHashDataType"
+    - @ref DataProvider::QoreIntDataType "QoreIntDataType"
+    - @ref DataProvider::QoreIntDataTypeBase "QoreIntDataTypeBase"
+    - @ref DataProvider::QoreIntOrNothingDataType "QoreIntOrNothingDataType"
+    - @ref DataProvider::QoreNumberDataType "QoreNumberDataType"
+    - @ref DataProvider::QoreNumberDataTypeBase "QoreNumberDataTypeBase"
+    - @ref DataProvider::QoreNumberOrNothingDataType "QoreNumberOrNothingDataType"
+    - @ref DataProvider::QoreSoftBoolDataType "QoreSoftBoolDataType"
+    - @ref DataProvider::QoreSoftBoolNoNullDataType "QoreSoftBoolNoNullDataType"
+    - @ref DataProvider::QoreSoftBoolOrNothingDataType "QoreSoftBoolOrNothingDataType"
+    - @ref DataProvider::QoreSoftDateDataType "QoreSoftDateDataType"
+    - @ref DataProvider::QoreSoftDateNoNullDataType "QoreSoftDateNoNullDataType"
+    - @ref DataProvider::QoreSoftDateOrNothingDataType "QoreSoftDateOrNothingDataType"
+    - @ref DataProvider::QoreSoftFloatDataType "QoreSoftFloatDataType"
+    - @ref DataProvider::QoreSoftFloatNoNullDataType "QoreSoftFloatNoNullDataType"
+    - @ref DataProvider::QoreSoftFloatOrNothingDataType "QoreSoftFloatOrNothingDataType"
+    - @ref DataProvider::QoreSoftIntDataType "QoreSoftIntDataType"
+    - @ref DataProvider::QoreSoftIntNoNullDataType "QoreSoftIntNoNullDataType"
+    - @ref DataProvider::QoreSoftIntOrNothingDataType "QoreSoftIntOrNothingDataType"
+    - @ref DataProvider::QoreSoftNumberDataType "QoreSoftNumberDataType"
+    - @ref DataProvider::QoreSoftNumberNoNullDataType "QoreSoftNumberNoNullDataType"
+    - @ref DataProvider::QoreSoftNumberOrNothingDataType "QoreSoftNumberOrNothingDataType"
+    - @ref DataProvider::QoreSoftStringDataType "QoreSoftStringDataType"
+    - @ref DataProvider::QoreSoftStringOrNothingDataType "QoreSoftStringOrNothingDataType"
+    - @ref DataProvider::QoreStringDataType "QoreStringDataType"
+    - @ref DataProvider::QoreStringDataTypeBase "QoreStringDataTypeBase"
+    - @ref DataProvider::QoreStringOrNothingDataType "QoreStringOrNothingDataType"
 
     @section dataprovider_relnotes Release Notes
 
