@@ -58,6 +58,7 @@ class QdpCmd {
             "upsert": \QdpCmd::upsert(),
             "delete": \QdpCmd::del(),
             "request": \QdpCmd::request(),
+            "dorequest": \QdpCmd::doRequest(),
         };
     }
 
@@ -200,13 +201,33 @@ class QdpCmd {
         printf("%d record%s deleted\n", rec_count, rec_count == 1 ? "" : "s");
     }
 
-    static request(AbstractDataProvider provider) {
+    static doRequest(AbstractDataProvider provider) {
         *hash<auto> options = QdpCmd::getHash("request");
         hash<auto> resp = provider.doRequest(options);
         if (!opts.verbose && resp.info."response-uri" && resp.body) {
             printf("%s: %N\n", resp.info."response-uri", resp.body);
         } else {
             printf("%N\n", resp);
+        }
+    }
+
+    static request(AbstractDataProvider provider) {
+        QdpCmd::showRequest(provider.getRequestOptions());
+    }
+
+    static showRequest(*hash<auto> req, string offset = "") {
+        foreach hash<auto> i in (req.pairIterator()) {
+            foreach AbstractDataProviderType type in (i.value.type) {
+                if (i.value.type.lsize() > 1) {
+                    printf("%s[%d]: %s %s\n", offset, $#, type.getName(), i.key);
+                } else {
+                    printf("%s%s %s\n", offset, type.getName(), i.key);
+                }
+                *hash<string, AbstractDataField> fields = type.getFields();
+                if (fields) {
+                    QdpCmd::showRecord(fields, offset + "  ");
+                }
+            }
         }
     }
 
@@ -302,22 +323,26 @@ class QdpCmd {
     static usage() {
         printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
   <cmd> = info|list|record|search|update
+    create <new record> (ex create id=123,name=\"my name\")
+        create a new record
+    delete <match criteria>
+        deletes record matching the given criteria
+    dorequest <request info>
+        executes a request against the given provider (if supported)
     info
        show information about the data provider
     list
        list child data providers
     record
         show the record format (more -v's = more info)
+    request
+        show request information (if supported)
     search [search criteria] (ex: search name=\"my name\")
         search for record(s) matching the given criteria
     update <set criteria> <match criteria> (ex update name=other id=123)
         update the given records with the given information
-    create <new record> (ex create id=123,name=\"my name\")
-        create a new record
     upsert <record> (ex update id=123,name=\"my name\")
         upserts the given record
-    delete <match criteria>
-        deletes record matching the given criteria
 
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit

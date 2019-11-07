@@ -28,13 +28,13 @@
 %new-style
 # require type definitions everywhere
 %require-types
-#! strict argument handling
+# strict argument handling
 %strict-args
 # enable all warnings
 %enable-all-warnings
 
 #! contains all public definitions in the SwaggerResponseDataProvider module
-public namespace SwaggerResponseDataProvider {
+public namespace SwaggerDataProvider {
 #! The Swagger data provider class
 public class SwaggerResponseDataProvider inherits SwaggerDataProviderBase {
     public {

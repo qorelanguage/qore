@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbDataProvider module definition
 
-/** DbDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  DbDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %new-style
 # require type definitions everywhere
 %require-types
-#! strict argument handling
+# strict argument handling
 %strict-args
 # enable all warnings
 %enable-all-warnings
@@ -60,7 +60,18 @@ module DbDataProvider {
 
     @section dbdataproviderintro Introduction to the DbTableDataProvider Module
 
-    The %DbDataProvider module provides a data provider API for databases.
+    The %DbDataProvider module provides a data provider API for databases and supports creating, reading, updating,
+    and deleting DB records, as well as high-performance bulk operations as well as upserts through the
+    @ref dataproviderintro "DataProvider" API.
+
+    The following classes are provided by this module:
+    - @ref DbDataProvider::AbstractDbTableBulkOperation "AbstractDbTableBulkOperation"
+    - @ref DbDataProvider::DbDataProvider "DbDataProvider"
+    - @ref DbDataProvider::DbDataProviderFactory "DbDataProviderFactory"
+    - @ref DbDataProvider::DbTableBulkInserter "DbTableBulkInserter"
+    - @ref DbDataProvider::DbTableBulkUpserter "DbTableBulkUpserter"
+    - @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
+    - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"
 
     @section dbdataprovider_relnotes Release Notes
 

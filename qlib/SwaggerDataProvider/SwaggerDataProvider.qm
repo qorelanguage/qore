@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerDataProvider module definition
 
-/** SwaggerDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  SwaggerDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %new-style
 # require type definitions everywhere
 %require-types
-#! strict argument handling
+# strict argument handling
 %strict-args
 # enable all warnings
 %enable-all-warnings
@@ -55,7 +55,31 @@ module SwaggerDataProvider {
 
     @section swaggerdataproviderintro Introduction to the DbTableDataProvider Module
 
-    The %SwaggerDataProvider module provides a data provider API for databases.
+    The %SwaggerDataProvider module provides a @ref dataproviderintro "data provider" API for Swagger / Open API REST
+    APIs.  The @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider" class allows for introspecting a Swagger /
+    Open API schema, while the @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider" class
+    supports the @ref dataproviderintro "data provider" request-reply API for communication with REST servers.
+
+    Swagger / Open API schemas can be introspected with the following format:
+    - requests: <tt><i>uri_path</i>/<i>HTTP_method</i>/request</tt>
+      - ex: <tt><b>/pet/PUT/request</b></tt>
+      - results in a
+        @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider" object where a request can be sent
+        to the server
+    - responses: <tt><i>uri_path</i>/<i>HTTP_method</i>/response/<i>code</i></tt>
+      - ex: <tt><b>/pet/PUT/reply/404</b></tt>
+      - results in a
+        @ref SwaggerDataProvider::SwaggerRestResponseDataProvider "SwaggerRestResponseDataProvider" object where the response
+        definition can be introspected
+
+    The following classes are provided by this module:
+    - @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider"
+    - @ref SwaggerDataProvider::SwaggerDataProviderBase "SwaggerDataProviderBase"
+    - @ref SwaggerDataProvider::SwaggerDataProviderFactory "SwaggerDataProviderFactory"
+    - @ref SwaggerDataProvider::SwaggerOperationDataProvider "SwaggerOperationDataProvider"
+    - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
+    - @ref SwaggerDataProvider::SwaggerResponseDataProvider "SwaggerResponseDataProvider"
+    - @ref SwaggerDataProvider::SwaggerRestResponseDataProvider "SwaggerRestResponseDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
 
