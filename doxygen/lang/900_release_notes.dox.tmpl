@@ -50,6 +50,8 @@
 
     @subsection qore_0932_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug where in-object calls to implicit \c copy() methods would result in a core dump
+      (<a href="https://github.com/qorelanguage/qore/issues/3637">issue 3637</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module: fixed a bug where list values could not be
       passed as a value in non-bulk mode
       (<a href="https://github.com/qorelanguage/qore/issues/3611">issue 3611</a>)
