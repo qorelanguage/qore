@@ -45,7 +45,7 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, const q
         check and make sure that search would be quicker than the quick check
         implemented below on average
     */
-    if (qc && (o->getClass() == qc || o->getClass() == method->getClass())) {
+    if (qc && method && (o->getClass() == qc || o->getClass() == method->getClass())) {
         //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc: %s (o: %s)\n", method->getClassName(), method->getName(), qc->getName(), o->getClass()->getName());
         assert(method);
         if (!o->isValid()) {
@@ -251,7 +251,7 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
 
 void SelfFunctionCallNode::parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     assert(!returnTypeInfo);
-    assert(!qc || method);
+    // issue #3637: qc might be non-null while method is null in case of calls to implicit copy() methods, for example
     lvids += parseArgs(oflag, pflag, method ? qore_method_private::get(*method)->getFunction() : nullptr, nullptr, returnTypeInfo);
     // issue #2380 make sure to set the method correctly if resolved from a hierarchy
     if (variant)
