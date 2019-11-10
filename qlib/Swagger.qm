@@ -1439,6 +1439,18 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return h;
     }
 
+    #! returns a data provider object for this connection
+    /** @param rest the \c RestClient object to make the connection
+
+        @return a data provider object for this connection, if supported by any REST schema validator object
+    */
+    private AbstractDataProvider getDataProviderImpl(HTTPClient rest) {
+        # to avoid circular dependencies, this object loads the SwaggerDataProvider and creates the data provider
+        # object dynamically
+        load_module("SwaggerDataProvider");
+        return create_object("SwaggerDataProvider", self, rest);
+    }
+
     #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
