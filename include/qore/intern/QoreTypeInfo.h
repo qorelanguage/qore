@@ -473,7 +473,7 @@ public:
         if (!hasType(second)) {
             return !hasType(first) ? QTI_NEAR : QTI_AMBIGUOUS;
         }
-        return first->runtimeTypeMatch(second);
+        return QoreTypeInfo::hasType(first) ? first->runtimeTypeMatch(second) : QTI_AMBIGUOUS;
     }
 
     // static version of method, checking for null pointer
