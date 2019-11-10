@@ -1164,12 +1164,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                         opts.headers.type());
             }
             # prefer "validator" over "swagger"
-            if (opts.swagger) {
-                if (!opts.validator) {
-                    opts.validator = remove opts.swagger;
-                } else {
-                    throw "REST-CONNECTION-ERROR", "cannot include both \"validator\" and \"swagger\" options";
-                }
+            if (opts.swagger && opts.validator) {
+                throw "REST-CONNECTION-ERROR", "cannot include both \"validator\" and \"swagger\" options";
             }
             if (opts.validator && !(opts.validator instanceof AbstractRestSchemaValidator)) {
                 throw "REST-CONNECTION-ERROR", sprintf("\"validator\" is type %y; expecting an "
