@@ -104,7 +104,7 @@ public namespace ConnectionProvider {
             return fc;
         }
 
-        #! returns a hash that can be used to contruct the object dynamically
+        #! returns a hash that can be used to construct the object dynamically
         /** @since %ConnectionProvider 1.1
         */
         private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {

@@ -301,7 +301,7 @@ ZeyosRestClient zeyos(
             return new ZeyosRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to contruct the object dynamically
+        #! returns a hash that can be used to construct the object dynamically
         private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
             return new hash<ConnectionConstructorInfo>({
                 "module": "ZeyosRestClient",

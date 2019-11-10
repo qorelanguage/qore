@@ -988,7 +988,7 @@ telnet.clearStats();
             return sc;
         }
 
-        #! returns a hash that can be used to contruct the object dynamically
+        #! returns a hash that can be used to construct the object dynamically
         /** @since %TelnetClient 1.4
         */
         private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
