@@ -589,31 +589,41 @@ void UserSignature::resolve() {
     else assert(!parseReturnTypeInfo);
 #endif
 
+    // issue #3644: to fix recursive errors in signature resolution, first resolve types, then args
+    bool has_def_args = true;
     for (unsigned i = 0; i < parseTypeList.size(); ++i) {
         if (parseTypeList[i]) {
             assert(!typeList[i]);
             typeList[i] = QoreParseTypeInfo::resolveAndDelete(parseTypeList[i], loc);
         }
+        if (!has_def_args && defaultArgList[i]) {
+            has_def_args = true;
+        }
+    }
 
-        // initialize default arguments
-        if (defaultArgList[i]) {
-            int lvids = 0;
-            const QoreTypeInfo* argTypeInfo = nullptr;
-            parse_init_value(defaultArgList[i], selfid, 0, lvids, argTypeInfo);
-            if (lvids) {
-                parse_error(*loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
-                while (lvids--)
-                    pop_local_var();
-            }
-            // check type compatibility
-            if (!QoreTypeInfo::parseAccepts(typeList[i], argTypeInfo)) {
-                QoreStringNode* desc = new QoreStringNode;
-                desc->sprintf("parameter '%s' expects ", names[i].c_str());
-                QoreTypeInfo::getThisType(typeList[i], *desc);
-                desc->concat(", but the default value is ");
-                QoreTypeInfo::getThisType(argTypeInfo, *desc);
-                desc->concat(" instead");
-                qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+    // now resolve default args
+    if (has_def_args) {
+        for (unsigned i = 0; i < parseTypeList.size(); ++i) {
+            // initialize default arguments
+            if (defaultArgList[i]) {
+                int lvids = 0;
+                const QoreTypeInfo* argTypeInfo = nullptr;
+                parse_init_value(defaultArgList[i], selfid, 0, lvids, argTypeInfo);
+                if (lvids) {
+                    parse_error(*loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
+                    while (lvids--)
+                        pop_local_var();
+                }
+                // check type compatibility
+                if (!QoreTypeInfo::parseAccepts(typeList[i], argTypeInfo)) {
+                    QoreStringNode* desc = new QoreStringNode;
+                    desc->sprintf("parameter '%s' expects ", names[i].c_str());
+                    QoreTypeInfo::getThisType(typeList[i], *desc);
+                    desc->concat(", but the default value is ");
+                    QoreTypeInfo::getThisType(argTypeInfo, *desc);
+                    desc->concat(" instead");
+                    qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+                }
             }
         }
     }
