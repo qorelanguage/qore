@@ -53,8 +53,10 @@ public class HashDeclDataType inherits QoreDataType {
 
     #! returns the fields of the data structure; if any
     *hash<string, AbstractDataField> getFields() {
+        string name = getName();
         return map {
-            $1.getName(): new QoreDataField($1.getName(), NOTHING, $1.getType(), $1.getDefaultValue()),
+            $1.getName(): new QoreDataField($1.getName(), sprintf("hashdecl %y member %y", name, $1.getName()),
+                soft_type ? AbstractDataProviderType::get($1.getType()).getSoftType() : $1.getType(), $1.getDefaultValue()),
         }, hd.getMembers();
     }
 
@@ -75,6 +77,18 @@ public class HashDeclDataType inherits QoreDataType {
     #! returns the TypedHash backing the type
     TypedHash getTypedHash() {
         return hd;
+    }
+
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        HashDeclDataType rv(hd, options);
+        rv.soft_type = True;
+        return rv;
     }
 }
 }

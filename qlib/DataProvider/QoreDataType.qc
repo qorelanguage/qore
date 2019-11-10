@@ -74,6 +74,22 @@ public class QoreDataType inherits AbstractDataProviderType {
                 "desc": "if True then NULL is not supported on input if NOTHING is also not accepted",
             },
         };
+
+        #! map from normal types to soft types
+        const SoftTypeMap = {
+            "int": SoftIntType,
+            "bool": SoftBoolType,
+            "float": SoftFloatType,
+            "number": SoftNumberType,
+            "string": SoftStringType,
+            "date": SoftDateType,
+            "*int": SoftIntOrNothingType,
+            "*bool": SoftBoolOrNothingType,
+            "*float": SoftFloatOrNothingType,
+            "*number": SoftNumberOrNothingType,
+            "*string": SoftStringOrNothingType,
+            "*date": SoftDateOrNothingType,
+        };
     }
 
     #! creates the type
@@ -155,6 +171,19 @@ public class QoreDataType inherits AbstractDataProviderType {
     #! returns a hash of base types returned by this type; keys are type names
     hash<string, bool> getReturnTypeHash() {
         return return_type_hash;
+    }
+
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (!soft_type) {
+            # check if a soft type exists
+            *Type soft_type = SoftTypeMap{type.getName()};
+            if (soft_type) {
+                return new QoreDataType(soft_type, options);
+            }
+        }
+        return self;
     }
 }
 }

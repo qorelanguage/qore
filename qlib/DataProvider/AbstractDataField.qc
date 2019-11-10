@@ -156,6 +156,16 @@ public class AbstractDataField {
         };
     }
 
+    #! returns a field with a "soft" type equivalent to the current type
+    /** The base class method returns the same field; this method must be overridden in child classes to return a
+        field with a usable "soft" type
+
+        @return a field with a "soft" type equivalent to the current type
+    */
+    AbstractDataField getSoftType() {
+        return self;
+    }
+
     #! returns the name of the field
     abstract string getName();
 

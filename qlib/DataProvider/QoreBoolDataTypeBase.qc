@@ -56,7 +56,7 @@ public class QoreBoolDataTypeBase inherits QoreDataType {
     */
     auto acceptsValue(auto value) {
         # try to convert from a string
-        if (value.typeCode() == NT_STRING) {
+        if (soft_type && value.typeCode() == NT_STRING) {
             # check for valid integer values
             if (value !~ /^([-+])?[0-9]+$/) {
                 throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
@@ -66,6 +66,16 @@ public class QoreBoolDataTypeBase inherits QoreDataType {
         }
 
         return QoreDataType::acceptsValue(value);
+    }
+
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        return new QoreBoolDataTypeBase(base_type_hash{NT_NOTHING} ? SoftBoolOrNothingType : SoftBoolType, getOptions());
     }
 }
 }

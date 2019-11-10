@@ -109,6 +109,16 @@ public class QoreStringDataTypeBase inherits QoreDataType {
             + (or_nothing_type ? SupportedOrNothingOptions : NOTHING);
     }
 
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        return new QoreStringDataTypeBase(base_type_hash{NT_NOTHING} ? SoftStringOrNothingType : SoftStringType, getOptions());
+    }
+
     #! sets the given option without any validation of the option
     private setOptionInternal(string opt, auto value) {
         if (opt == "string.encoding") {

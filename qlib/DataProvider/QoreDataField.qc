@@ -103,5 +103,19 @@ public class QoreDataField inherits AbstractDataField {
             "type": type.getInfo(),
         };
     }
+
+    #! returns a field with a "soft" type equivalent to the current type
+    /** @return a field with a "soft" type equivalent to the current type
+    */
+    AbstractDataField getSoftType() {
+        AbstractDataProviderType type = getType();
+        AbstractDataProviderType softtype = type.getSoftType();
+        if (softtype == type) {
+            return self;
+        }
+        QoreDataField rv = copy();
+        rv.type = softtype;
+        return rv;
+    }
 }
 }

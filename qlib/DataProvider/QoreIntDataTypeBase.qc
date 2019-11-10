@@ -85,5 +85,15 @@ public class QoreIntDataTypeBase inherits QoreDataType {
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
         return QoreDataType::getSupportedOptions() + (soft_type ? SupportedSoftOptions : NOTHING);
     }
+
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        return new QoreIntDataTypeBase(base_type_hash{NT_NOTHING} ? SoftIntOrNothingType : SoftIntType, getOptions());
+    }
 }
 }

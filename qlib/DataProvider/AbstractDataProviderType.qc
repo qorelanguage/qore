@@ -305,6 +305,16 @@ public class AbstractDataProviderType {
         }
     }
 
+    #! returns a "soft" type equivalent to the current type
+    /** The base class method returns the same type; this method must be overridden in child classes to return a
+        usable "soft" type
+
+        @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        return self;
+    }
+
     #! returns the type name
     abstract string getName();
 
