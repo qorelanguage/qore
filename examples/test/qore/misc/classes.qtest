@@ -10,6 +10,15 @@
 
 %exec-class ClassesTest
 
+class Issue3644_B {
+    abstract t(bool c = True, *hash h);
+}
+
+class Issue3644_C inherits Issue3644_B {
+    t(bool c = True, *hash<auto> h) {
+    }
+}
+
 class Issue3637 {
     Issue3637 getCopy() {
         return copy();
@@ -597,6 +606,7 @@ class Issue3368 {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 3644", \issue3644());
         addTestCase("issue 3637", \issue3637());
         addTestCase("issue 3368", \issue3368());
         addTestCase("issues 3193 and 3240", \issues_3193_and_3240());
@@ -618,6 +628,11 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3644() {
+        Issue3644_C c();
+        assertTrue(c instanceof Issue3644_C);
     }
 
     issue3637() {
