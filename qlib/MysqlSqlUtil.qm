@@ -95,6 +95,11 @@ module MysqlSqlUtil {
     - added support for the DataProvider module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
+    @subsection mysqlsqlutilv131 MysqlSqlUtil v1.3.2
+    - fixed a bug where the sequence table name was not respected in
+      @ref MysqlSqlUtil::MysqlDatabase::getNextSequenceValueImpl() "MysqlDatabase::getNextSequenceValueImpl()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3641">issue 3641</a>)
+
     @subsection mysqlsqlutilv131 MysqlSqlUtil v1.3.1
     - fixed quoting of reserved words in column names in table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
@@ -673,7 +678,7 @@ auto v = c.name;
             const MysqlOptions = (
                 "sequence_table": Type::String,
                 "sequence_function": Type::String,
-                );
+            );
 
             #! MySQL-specific schema description keys
             const MysqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + MysqlOptions;
@@ -695,7 +700,7 @@ auto v = c.name;
                         "notnull": True,
                     ),
                 ),
-                );
+            );
 
             #! MySQL creation options
             const MyusqlCreationOptions = AbstractDatabase::CreationOptions;
@@ -710,12 +715,12 @@ end";
             #! Options for computeStatistics()
             const MysqlComputeStatisticsOptions = ComputeStatisticsOptions + (
                 "no-binlog"         : Type::Boolean,
-                );
+            );
 
             #! Options for reclaimSpace()
             const MysqlReclaimSpaceOptions = ReclaimSpaceOptions + (
                 "no-binlog"         : Type::Boolean,
-                );
+            );
 
             #! hash of reserved words
             const MysqlReservedWords = (
@@ -1167,7 +1172,7 @@ end";
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
             on_exit seqds.commit();
-            return seqds.selectRow("select sqlutil_nextval(%v) nextval", name).nextval;
+            return seqds.selectRow("select %s(%v) nextval", sequence_function, name).nextval;
         }
 
         #! returns the last value issued for the given sequence in the current session

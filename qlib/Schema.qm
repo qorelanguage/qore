@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.3";
+    version = "1.3.1";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,10 @@ module Schema {
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_3_1 Schema Module v1.3.1
+    - fixed a bug where too little information was passed to post schema alignment code
+      (<a href="https://github.com/qorelanguage/qore/issues/3640">issue 3640</a>)
 
     @subsection schema_v1_3 Schema Module v1.3
     - improved logging output when performing schema alignments
@@ -607,7 +611,7 @@ public namespace Schema {
 
             bool first_time_install = checkFirstTimeInstall();
 
-            *hash initial_schema_info;
+            *hash<auto> initial_schema_info;
 
             if (first_time_install)
                 logpf("creating %s schema %s", name, version);
@@ -630,18 +634,17 @@ public namespace Schema {
             if (al.size() != sch.sql_cache.size()) {
                 printf("callback had %d lines, getAlignSql() had %d lines\n", sch.sql_cache.size(), al.size());
 
+                hash<string, bool> schh;
+
                 # make a hash of the sqlcache
                 if (al.size() > sch.sql_cache.size()) {
-                    hash schh;
                     map schh.$1 = True, sch.sql_cache;
 
                     foreach string sql in (al) {
                         if (!schh{sql})
                             printf("MISSING IN CALLBACK %d: %s\n", $#, sql);
                     }
-                }
-                else {
-                    hash schh;
+                } else {
                     map schh.$1 = True, al;
 
                     foreach string sql in (sch.sql_cache) {
@@ -703,7 +706,7 @@ public namespace Schema {
                     map AbstractSchema::doTable(table_cache{$1.key}, $1.value, upsert_strategy, False, verbose, \sh), co_data.pairIterator();
                 }
 
-                postDataActions(first_time_install);
+                postDataActions(table_cache, first_time_install, initial_schema_info, verbose);
 
                 if (!verbose) {
                     logProgress("\n");
@@ -1031,18 +1034,19 @@ public namespace Schema {
         }
 
         #! this method returns @ref Qore::True "True" if the schema can be updated
-        private bool checkUpdateSchema(bool force, reference<hash> initial_schema_info) {
+        private bool checkUpdateSchema(bool force, reference<hash<auto>> initial_schema_info) {
             logpf("verifying/aligning schema version %s", version);
             return True;
         }
 
         #! this method is called after schema structural alignment has been executed but before schema reference data management
-        private doPostAlignment(Tables table_cache, bool first_time_install, *hash initial_schema_info, int verbose) {
+        private doPostAlignment(Tables table_cache, bool first_time_install, *hash<auto> initial_schema_info, int verbose) {
             doPostAlignment(table_cache, first_time_install, initial_schema_info);
         }
 
         #! this method is called after schema structural alignment has been executed but before schema reference data management
-        private doPostAlignment(Tables table_cache, bool first_time_install, *hash initial_schema_info) {
+        private doPostAlignment(Tables table_cache, bool first_time_install, *hash<auto> initial_schema_info) {
+            # this method intentionally left empty
         }
 
         #! this method is called to return the upsert strategy before schema reference data management
@@ -1051,7 +1055,13 @@ public namespace Schema {
         }
 
         #! this method is called after schema reference data has been managed
+        private postDataActions(Tables table_cache, bool first_time_install, *hash<auto> initial_schema_info, int verbose) {
+            postDataActions(first_time_install);
+        }
+
+        #! this method is called after schema reference data has been managed
         private postDataActions(bool first_time_install) {
+            # this method intentionally left empty
         }
 
         #! this method is called to perform schema reference data managment on the given table with the given data
@@ -1206,7 +1216,7 @@ public namespace Schema {
         }
 
         #! this method returns @ref Qore::True "True" if the schema can be updated
-        private bool checkUpdateSchema(bool force, reference<hash> initial_schema_info) {
+        private bool checkUpdateSchema(bool force, reference<hash<auto>> initial_schema_info) {
             *string current_version = getSchemaVersion();
             if (!current_version) {
                 logpf("schema is corrupt; aligning to schema template");
