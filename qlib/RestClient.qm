@@ -1069,7 +1069,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
         }
 
-        #! returns a hash that can be used to contruct the object dynamically
+        #! returns a hash that can be used to construct the object dynamically
         /** @since %RestClient 1.5
         */
         private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
