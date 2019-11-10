@@ -840,7 +840,7 @@ public class ClassesTest inherits QUnit::Test {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(429, ex.callstack[0].line);
+        assertEq(438, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
