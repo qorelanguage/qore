@@ -14,6 +14,12 @@
 
     @subsection qore_0932_bug_fixes Bug Fixes in Qore
 
+    - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: fixed a bug where the sequence table name
+      was not respected in \c MysqlDatabase::getNextSequenceValueImpl()
+      (<a href="https://github.com/qorelanguage/qore/issues/3641">issue 3641</a>)
+    - <a href="../../modules/Schema/html/index.html">Schema</a>: fixed a bug where too little information was passed
+      to post schema alignment code
+      (<a href="https://github.com/qorelanguage/qore/issues/3640">issue 3640</a>)
     - fixed a bug where in-object calls to implicit \c copy() methods would result in a core dump
       (<a href="https://github.com/qorelanguage/qore/issues/3637">issue 3637</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module: fixed a bug where list values could not be
