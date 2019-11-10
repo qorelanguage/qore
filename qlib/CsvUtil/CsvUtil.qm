@@ -150,7 +150,7 @@ while (i.next())
 
     The %CsvUtil module supports multi-type records, meaning that different input lines may have different structures, and input record type
     resolution is performed at run-time using predefined rules.
-    %CsvUtil classes have two contructors, a backwards-compatible constructor variant, which accepts field definition in options and supports only a single record type, and a new constructor avariant, which ccepts field specifications and options passed as separate parameters.
+    %CsvUtil classes have two constructors, a backwards-compatible constructor variant, which accepts field definition in options and supports only a single record type, and a new constructor avariant, which ccepts field specifications and options passed as separate parameters.
 
     When used with multi-type definitions, the @ref CsvUtil::AbstractCsvIterator::getValue() method returns
     records in an extended form.  In this case, the return value of @ref CsvUtil::AbstractCsvIterator::getValue()

@@ -112,7 +112,7 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @subsection connectionprovider_1_2 ConnectionProvider 1.2
     - the @ref ConnectionProvider::AbstractConnection::constructor() "AbstractConnection::constructor()" refactoring
     - all connection clases have unified constructor
-    - old contructors and static make() constructors are deprecated
+    - old constructors and static make() constructors are deprecated
     - ConnectionProvider::AbstractConnection::parseUrl() is introduced
     - ConnectionProvider::AbstractConnection::getSafeUrl() is not static anymore
     - it allows their reimplementation in the inherited class. It can be used
