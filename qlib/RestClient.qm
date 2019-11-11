@@ -1134,11 +1134,27 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             @throw DATA-PROVIDER-ERROR this object does not support the data provider API
         */
         DataProvider::AbstractDataProvider getDataProvider() {
-            if (opts.validator) {
-                return opts.validator.getDataProvider(get());
+            if (opts.validator || opts.swagger) {
+                # get a REST client object without connecting
+                RestClient rest = get(False);
+                # get any validator
+                *AbstractRestSchemaValidator validator = rest.getValidator();
+                if (validator) {
+                    # if there's a validator, return the provider
+                    return validator.getDataProvider(get());
+                }
             }
             throw "DATA-PROVIDER-ERROR", sprintf("there is no validator object in the %s object to use to return a "
                 "data provider", self.className());
+        }
+
+        #! returns @ref True if this connection returns a data provider with the @ref getDataProvider() method
+        /** @return @ref True if this connection returns a data provider with the @ref getDataProvider() method
+
+            @see @ref getDataProvider()
+        */
+        bool hasDataProvider() {
+            return exists opts.swagger || opts.validator;
         }
 
         #! processes options for the constructor; in particular parses any string as a value of the \c "headers" option to return a hash

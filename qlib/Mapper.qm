@@ -675,7 +675,7 @@ Mapper mapv(DataMap);
                         "expecting \"hash\"", h.key, h.value.type(), h.value);
                 }
             }
-            return input_data.getFields();
+            return input_data.getSoftType().getFields();
         }
 
         private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options, *reference<bool> structured_output) {
@@ -758,7 +758,7 @@ Mapper mapv(DataMap);
                     input_provider.getName(), self.className());
             }
             input_provider = opts.input_provider;
-            input = input_provider.getRecordType();
+            input = input_provider.getRecordType().getSoftType();
             if (!input) {
                 error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
                     input_provider.getName(), self.className());

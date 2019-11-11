@@ -58,7 +58,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
     ftpConnectionTestDeprecated() {
         string url = "ftp://user:pass@localhost:1234/some_path";
-        hash urlh = parse_url(url);
+        hash<auto> urlh = parse_url(url);
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(False, fc.locked, "connection is unlocked by default");
@@ -74,13 +74,13 @@ public class ConnectionProviderTest inherits QUnit::Test {
         if (info.module)
             p.loadModule(info.module);
         if (info.pre_processing) {
-            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash<auto> rtopts) { %s }", info.pre_processing);
             # ensure that the pre processing code can be parsed
             p.parse(pre_processing, "pre processing");
             assertTrue(True, "pre processing: " + info.class_name);
         }
         if (info.post_processing) {
-            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash<auto> rtopts) { %s }", info.class_name, info.post_processing);
             # ensure that the post processing code can be parsed
             p.parse(post_processing, "post processing");
             assertTrue(True, "post processing: " + info.class_name);
@@ -94,11 +94,12 @@ public class ConnectionProviderTest inherits QUnit::Test {
         # use IPv4 localhost to work around potential issues with localhost -> ::1 and IPv6 -> IPv4 mappings
         # (ex: Windows)
         string url = "https://127.0.0.1:" + server.getPort();
-        hash opts = (
+        # use += here to ensure that "opts" stays "hash<auto>" and not "hash<string, string>"
+        hash<auto> opts += {
             "ssl_cert_path": CertPath,
             "ssl_key_path": KeyPath,
             "ssl_key_password": KeyPassword,
-        );
+        };
         hash<auto> attributes = {
             "monitor": True,
             "tags": Tags,
@@ -126,6 +127,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
         server.acceptAllCertificates(False);
         assertEq(False, server.getAcceptAllCertificates());
         client.disconnect();
+        # set client to verify server certificate
+        client.setSslVerifyMode(SSL_VERIFY_PEER);
         # verify that exceptions are raised in the server & client when connecting
         assertThrows("SOCKET-SSL-ERROR", \client.connect());
         assertEq("SOCKET-SSL-ERROR", server.waitException().err);
@@ -149,10 +152,10 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
     fsConnectionTest() {
         string url = Util::tmp_location();
-        hash opts = (
+        hash<auto> opts = (
             "readonly": False,
         );
-        hash attributes = {
+        hash<auto> attributes = {
             "monitor": True,
         };
 
@@ -179,7 +182,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         InvalidConnection ic1("name", "desc", "url");
         assertEq("unknown error", ic1.error);
 
-        hash attributes = {
+        hash<auto> attributes = {
             "error": "lorem ipsum",
         };
         InvalidConnection ic2("name", "desc", "url", attributes);
@@ -206,13 +209,12 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     private customValidateOptions() {
-        hash opts = {"foo": "bar"};
+        hash<auto> opts = {"foo": "bar"};
 
         try {
             HttpConnection h("foo", "bar", "http://localhost", {}, opts);
             assertEq(False, exists h);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("CONNECTION-ERROR", ex.err);
             assertEq(True, ex.desc =~ /unknown option/);
         }
@@ -223,11 +225,11 @@ public class ConnectionProviderTest inherits QUnit::Test {
 }
 
 class IgnoreOptionsConnection inherits HttpConnection {
-    constructor(string name, string desc, string url, hash attrs, hash opts)
+    constructor(string name, string desc, string url, hash<auto> attrs, hash<auto> opts)
         : HttpConnection(name, desc, url, attrs, opts) {
     }
 
-    hash validateOptions(hash options) {
+    hash<auto> validateOptions(hash<auto> options) {
         return orig_opts;
     }
 }
@@ -241,12 +243,12 @@ class MyConnection inherits AbstractConnection {
     constructor() : AbstractConnection("name", "desc", URL, {"locked": True}) {
     }
 
-    private hash parseUrl(string url) {
+    private hash<auto> parseUrl(string url) {
         url = replace(url, "sql://", "");
         return parse_datasource(url);
     }
 
-    private string getSafeUrl(hash urlh) {
+    private string getSafeUrl(hash<auto> urlh) {
         string url = sprintf("%s:%s@%s", urlh.type, urlh.user, urlh.db);
         if (urlh.host.val()) {
             url += "%" + urlh.host;
@@ -264,7 +266,7 @@ class MyConnection inherits AbstractConnection {
     hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
         return hash<ConnectionConstructorInfo>{};
     }
-    object getImpl(bool _ = True, *hash __) {
+    object getImpl(bool _ = True, *hash<auto> __) {
         return new Dir(); # just a silence the missing abtsract method. No use for Dir at all
     }
 }
@@ -322,7 +324,7 @@ class TestSslServer {
         return q.get();
     }
 
-    *hash waitException() {
+    *hash<auto> waitException() {
         return q.get();
     }
 
