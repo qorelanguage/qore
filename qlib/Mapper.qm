@@ -206,7 +206,7 @@ list: (2 elements)
       also location where the output data will be written.  If this option is set, then every mapped record will be
       written to the output data provider automatically.  If the output provider supports transaction management,
       @ref Mapper::Mapper::commit() "Mapper::commit()" and
-      @ref pper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
+      @ref Mapper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
       with the \a output option.
     - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
       @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called after all mapping is done to
@@ -1478,6 +1478,17 @@ Mapper mapv(DataMap);
             # iterate through dynamic target fields
             map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
 
+            # write to putput provider, if any
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.queueData(h);
+            } else if (output_provider) {
+                if (output_provider_upsert) {
+                    output_provider.upsertRecord(h);
+                } else {
+                    output_provider.createRecord(h);
+                }
+            }
+
             # increment record count
             ++count;
 
@@ -1705,25 +1716,6 @@ Mapper mapv(DataMap);
                 writeHashOutput(\h, v, m.output_key_path, 0);
             } else {
                 h{key} = v;
-            }
-
-            # write to putput provider, if any
-            if (output_provider_bulk_operation) {
-                output_provider_bulk_operation.queueData(h);
-            } else if (output_provider) {
-                if (output_provider_upsert) {
-                    if (do_list) {
-                        map output_provider.upsertRecord($1), h.contextIterator();
-                    } else {
-                        output_provider.upsertRecord(h);
-                    }
-                } else {
-                    if (do_list) {
-                        map output_provider.createRecord($1), h.contextIterator();
-                    } else {
-                        output_provider.createRecord(h);
-                    }
-                }
             }
         }
 
