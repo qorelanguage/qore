@@ -192,7 +192,7 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        hash<RestRequestClientInfo> processRequest(string method, string path, auto body, *hash headers, *softlist<string> content_types) {
+        hash<RestRequestClientInfo> processRequest(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types) {
             return processRequestImpl(method, path, body, headers, content_types);
         }
 
@@ -228,7 +228,7 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        hash<HttpResponseInfo> processResponse(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
+        hash<HttpResponseInfo> processResponse(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
             return processResponseImpl(method, path, code, response_body, headers, content_types);
         }
 
@@ -241,7 +241,7 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash hdr) {
+        hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash<auto> hdr) {
             # strip any query arguments from the path when validating
             path =~ s/\?.*//;
             return parseResponseImpl(method, path, code, response_body, hdr);
@@ -315,6 +315,30 @@ public namespace RestSchemaValidator {
             setBasePathImpl(basePath);
         }
 
+        #! returns a data provider object for this connection, if supported by any REST schema validator object
+        /** @param rest the \c RestClient object to make the connection; this is declared with a base class to avoid
+            a circular dependency between modules
+
+            @return a data provider object for this connection, if supported by any REST schema validator object
+
+            @throw DATA-PROVIDER-ERROR this class does not support the data provider API
+        */
+        DataProvider::AbstractDataProvider getDataProvider(HTTPClient rest) {
+            return getDataProviderImpl(rest);
+        }
+
+        #! returns a data provider object for this connection, if supported by any REST schema validator object
+        /** @param rest the \c RestClient object to make the connection; this is declared with a base class to avoid
+            a circular dependency between modules
+
+            @return a data provider object for this connection, if supported by any REST schema validator object
+
+            @throw DATA-PROVIDER-ERROR this class does not support the data provider API
+        */
+        private DataProvider::AbstractDataProvider getDataProviderImpl(HTTPClient rest) {
+            throw "DATA-PROVIDER-ERROR", sprintf("the %s class does not support the data provider API", self.className());
+        }
+
         #! returns the target URL for the schema
         /** @return the target URL for the schema
 
@@ -333,7 +357,7 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash headers, *softlist<string> content_types);
+        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types);
 
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
@@ -365,7 +389,7 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash headers, *softlist<string> content_types);
+        private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash<auto> headers, *softlist<string> content_types);
 
         #! parses and validates the response from the server and returns a hash of the processed info
         /** @param method the HTTP method (case insensitive)
@@ -376,7 +400,7 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr);
+        private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr);
 
         #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
         /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
@@ -504,13 +528,11 @@ public namespace RestSchemaValidator {
                     try {
                         on_success type = "xml";
                         return parse_xmlrpc_value(xml);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         try {
                             on_success type = "rawxml";
                             return parse_xml(xml);
-                        }
-                        catch () {
+                        } catch () {
                         }
                         rethrow;
                     }
@@ -572,7 +594,7 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash headers, *softlist<string> content_types) {
+        private hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types) {
             string ct = content_types[0] ?? DataSerializationSupportList[0];
             return cast<hash<RestRequestClientInfo>>((
                 "uri_path": path,
@@ -602,7 +624,7 @@ public namespace RestSchemaValidator {
             ));
 
             if (exists http_body) {
-                *hash dh = DataDeserializationSupport.(headers."content-type");
+                *hash<auto> dh = DataDeserializationSupport.(headers."content-type");
                 if (!dh)
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", headers."content-type", keys DataDeserializationSupport, http_body);
 
@@ -636,7 +658,7 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
+        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
             hash<HttpResponseInfo> rv((
                 "code": code,
                 "hdr": headers,
@@ -687,14 +709,14 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
+        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr) {
             hash<RestResponseClientInfo> rv((
                 "code": code,
                 "hdr": hdr,
             ));
 
             if (response_body.val()) {
-                *hash dh = DataDeserializationSupport.(hdr."content-type");
+                *hash<auto> dh = DataDeserializationSupport.(hdr."content-type");
                 if (!dh) {
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; "
                         "types supported: %y; response body: %y", hdr."content-type",
@@ -727,7 +749,7 @@ public namespace RestSchemaValidator {
 
             @note if there are more \c Content-Type headers, then @ref False is returned and response is not modified
         */
-        private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash headers, *softlist<string> content_types) {
+        private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash<auto> headers, *softlist<string> content_types) {
             # quickly return if body is not in data format
             if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
                 return False;

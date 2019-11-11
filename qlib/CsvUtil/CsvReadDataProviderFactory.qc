@@ -35,7 +35,7 @@
 
 #! Contains all public definitions in the CsvUtil module
 public namespace CsvUtil {
-#! The DB data provider factory
+#! The read-only CSV data provider factory
 public class CsvReadDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         static Class cls = new Class("CsvReadDataProvider");

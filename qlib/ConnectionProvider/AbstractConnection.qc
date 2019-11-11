@@ -357,7 +357,7 @@ schema://user:pass@hostname:port/path
 
             @throw DATA-PROVIDER-ERROR this object does not support the data provider API
 
-            This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the dasta provider
+            This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
             API, override this method in child classes
         */
         AbstractDataProvider getDataProvider() {
@@ -370,7 +370,7 @@ schema://user:pass@hostname:port/path
 
             @return the connection object
         */
-        private abstract object getImpl(bool connect = True, *hash rtopts);
+        private abstract object getImpl(bool connect = True, *hash<auto> rtopts);
 
         #! this method must return a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically
         /** @return a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically

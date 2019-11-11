@@ -69,5 +69,18 @@ public class HashDataType inherits QoreDataType {
     *hash<string, AbstractDataField> getFields() {
         return fields;
     }
+
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        HashDataType rv(name);
+        map rv.addField($1.getSoftType()), getFields().iterator();
+        rv.soft_type = True;
+        return rv;
+    }
 }
 }

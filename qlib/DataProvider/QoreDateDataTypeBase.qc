@@ -112,5 +112,15 @@ public class QoreDateDataTypeBase inherits QoreDataType {
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
         return QoreDataType::getSupportedOptions() + SupportedOptions + (soft_type ? SupportedSoftOptions : NOTHING);
     }
+
+    #! returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        return new QoreDateDataTypeBase(base_type_hash{NT_NOTHING} ? SoftDateOrNothingType : SoftDateType, getOptions());
+    }
 }
 }

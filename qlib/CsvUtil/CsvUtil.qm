@@ -66,6 +66,8 @@ module CsvUtil {
     - @ref CsvUtil::AbstractCsvIterator "AbstractCsvIterator": base abstract iterator class for iterating line-based CSV data
     - @ref CsvUtil::AbstractCsvWriter "AbstractCsvWriter": a base class for new CSV writer implementations
     - @ref CsvUtil::CsvIterator "CsvIterator": iterator class allowing for generic CSV input data to be processed line by line on a record basis
+    - @ref CsvUtil::CsvReadDataProvider "CsvReadDataProvider": a data provider for reading and searching CSV files
+    - @ref CsvUtil::CsvReadDataProviderFactory "CsvReadDataProviderFactory": a data provider factory for reading and searching CSV files
     - @ref CsvUtil::CsvWriter "CsvWriter": generic stream-based CSV writer
 
     Furthermore, the following specialized classes are implemented based on the above and are provided for convenience and backwards-compatibility:

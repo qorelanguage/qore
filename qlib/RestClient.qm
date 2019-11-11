@@ -258,10 +258,10 @@ public namespace RestClient {
             const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
 
             #! default HTTP headers (Content-Type is added before sending)
-            const DefaultHeaders = (
+            const DefaultHeaders = {
                 "Accept": Accept,
                 "User-Agent": RestClient::VersionString,
-                );
+            };
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
@@ -275,7 +275,7 @@ public namespace RestClient {
                 - \c "bin": for binary message bodies without data serialization
                 - \c "url": for URL-encoded message bodies
              */
-            const DataSerializationOptions = (
+            const DataSerializationOptions = {
                 "auto": True,
 %ifndef NoJson
                 "json": True,
@@ -290,7 +290,7 @@ public namespace RestClient {
                 "url": True,
                 "text": True,
                 "bin": True,
-            );
+            };
 
             #! Send content encoding options
             /** Send content encoding options are as follows:
@@ -299,23 +299,23 @@ public namespace RestClient {
                 - \c "deflate": use deflate compression
                 - \c "identity": use no content encoding
              */
-            const EncodingSupport = (
-                "gzip": (
+            const EncodingSupport = {
+                "gzip": {
                     "ce": "gzip",
                     "func": \gzip(),
-                    ),
-                "bzip2": (
+                },
+                "bzip2": {
                     "ce": "bzip2",
                     "func": \bzip2(),
-                    ),
-                "deflate": (
+                },
+                "deflate": {
                     "ce": "deflate",
                     "func": \compress(),
-                    ),
-                "identity": (
+                },
+                "identity": {
                     "ce": NOTHING,
-                    ),
-                );
+                },
+            };
 
             #! default threadhold for data compressions; transfers smaller than this size will not be compressed
             const CompressionThreshold = 1024;
@@ -430,8 +430,7 @@ rest.setSerialization("yaml");
 
             if (data == "auto" && DataSerializationSupport) {
                 delete sct;
-            }
-            else {
+            } else {
                 if (!DataSerializationSupport{data})
                     throw "RESTCLIENT-ERROR", sprintf("data serialization option %y is not supported because the required module could not be loaded; currently supported options: %y", data, DataSerializationSupport.keys());
                 sct = DataSerializationSupport{data};
@@ -996,8 +995,10 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
           \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
           message bodies
         - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
-          validation (see the @ref swaggerintro "Swagger" module)
+          validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
         - \c "timeout": transfer timeout to use in milliseconds
+        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+          object to validate request and response messages; conflicts with \a swagger
 
         @note additionally supports the following runtime option in getImpl():
         - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
@@ -1015,11 +1016,12 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
             #! RestConnection object connection options
             const Options = HttpConnection::Options + {
-                "data": True,
-                "send_encoding": True,
                 "content_encoding": True,
-                "swagger": True,
+                "data": True,
                 "headers": True,
+                "send_encoding": True,
+                "swagger": True,
+                "validator": True,
             };
 
             const OptionList = Options.keys();
@@ -1065,7 +1067,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
             @return a @ref RestClient::RestClient "RestClient" object
         */
-        private RestClient getImpl(bool connect = True, *hash rtopts) {
+        private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
             return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
         }
 
@@ -1084,20 +1086,31 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible values when used with the null REST schema validator; the default is \c "auto"
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+              requested response encoding; for possible values, see
+              @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
+              null REST schema validator; the default is \c "auto"
             - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
-            - \c "headers": headers to send with each request
+            - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
+              request method calls; also a string giving headers can be given in the format:
+              <tt>header1=value, header2=value</tt>; the value will be parsed with
+              @ref Util::parse_to_qore_value() "parse_to_qore_value()"
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
             - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
               processed
-            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-            - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+              \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+              message bodies
+            - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
+              validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
             - \c "timeout": transfer timeout to use in milliseconds
+            - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+              object to validate request and response messages; conflicts with \a swagger
 
             @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
         */
@@ -1113,6 +1126,19 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         #! returns \c "rest"
         string getType() {
             return "rest";
+        }
+
+        #! returns a data provider object for this connection, if supported by any REST schema validator object
+        /** @return a data provider object for this connection, if supported by any REST schema validator object
+
+            @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+        */
+        DataProvider::AbstractDataProvider getDataProvider() {
+            if (opts.validator) {
+                return opts.validator.getDataProvider(get());
+            }
+            throw "DATA-PROVIDER-ERROR", sprintf("there is no validator object in the %s object to use to return a "
+                "data provider", self.className());
         }
 
         #! processes options for the constructor; in particular parses any string as a value of the \c "headers" option to return a hash
@@ -1136,6 +1162,14 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                 default:
                     throw "REST-CONNECTION-ERROR", sprintf("\"headers\" option is type %y; expecting \"hash\"",
                         opts.headers.type());
+            }
+            # prefer "validator" over "swagger"
+            if (opts.swagger && opts.validator) {
+                throw "REST-CONNECTION-ERROR", "cannot include both \"validator\" and \"swagger\" options";
+            }
+            if (opts.validator && !(opts.validator instanceof AbstractRestSchemaValidator)) {
+                throw "REST-CONNECTION-ERROR", sprintf("\"validator\" is type %y; expecting an "
+                    "AbstractRestSchemaValidator object", opts.validator.fullType());
             }
             return rv;
         }
