@@ -640,9 +640,9 @@ Mapper mapv(DataMap);
             Type type;
             if (fieldtype =~ /^\*/) {
                 string base_field_type = fieldtype[1..];
-                type = new Type(OptimalQoreDataTypeMap{base_field_type} ?? base_field_type);
+                type = new Type(OptimalQoreSoftDataTypeMap{base_field_type} ?? base_field_type);
             } else {
-                type = new Type(OptimalQoreDataTypeMap{fieldtype} ?? fieldtype);
+                type = new Type(OptimalQoreSoftDataTypeMap{fieldtype} ?? fieldtype);
             }
             if (hdesc.mand && !has_default_value) {
                 type = type.getBaseType();
@@ -675,7 +675,7 @@ Mapper mapv(DataMap);
                         "expecting \"hash\"", h.key, h.value.type(), h.value);
                 }
             }
-            return input_data.getSoftType().getFields();
+            return input_data.getFields();
         }
 
         private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options, *reference<bool> structured_output) {
@@ -758,7 +758,7 @@ Mapper mapv(DataMap);
                     input_provider.getName(), self.className());
             }
             input_provider = opts.input_provider;
-            input = input_provider.getRecordType().getSoftType();
+            input = input_provider.getRecordType();
             if (!input) {
                 error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
                     input_provider.getName(), self.className());

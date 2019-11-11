@@ -131,18 +131,23 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
     #! Returns the data type corresponding to the values
     private AbstractDataProviderType getType(string typestr, *SchemaObject arrayItems, bool required = True) {
+        hash<auto> type_options;
+        if (required) {
+            type_options += {"qore.no_null": True};
+        }
+
         switch (typestr) {
             case "boolean":
-                return required ? new QoreBoolDataType() : new QoreBoolOrNothingDataType();
+                return required ? new QoreSoftBoolDataType(type_options) : new QoreBoolOrNothingDataType(type_options);
 
             case "file":
-                return required ? new QoreStringDataType() : new QoreStringOrNothingDataType();
+                return required ? new QoreSoftStringDataType(type_options) : new QoreSoftStringOrNothingDataType(type_options);
 
             case "array":
                 return new ListDataType(getSchemaDataType(arrayItems), !required);
         }
 
-        return AbstractDataProviderType::get(new Type(OptimalQoreDataTypeMap{typestr} ?? typestr));
+        return AbstractDataProviderType::get(new Type(OptimalQoreSoftDataTypeMap{typestr} ?? typestr), type_options);
     }
 
     #! Returns a field of header fields
