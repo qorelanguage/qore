@@ -707,7 +707,7 @@ public class SwaggerLoader {
         } else {
             ser = json ? "json" : "yaml";
         }
-        return new SwaggerSchema(SwaggerLoader::parseSchemaSource(swaggerSpecification, ser));
+        return new SwaggerSchema(swaggerSpecification, SwaggerLoader::parseSchemaSource(swaggerSpecification, ser));
     }
 
     #! Load <a href="https://swagger.io/">Swagger</a> definition from a file.
@@ -720,7 +720,8 @@ public class SwaggerLoader {
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
     */
     static SwaggerSchema fromFile(string filepath) {
-        return new SwaggerSchema(SwaggerLoader::parseSchemaContent(filepath, ReadOnlyFile::readTextFile(filepath)));
+        string file_data = ReadOnlyFile::readTextFile(filepath);
+        return new SwaggerSchema(file_data, SwaggerLoader::parseSchemaContent(filepath, file_data));
     }
 
     #! Load <a href="https://swagger.io/">Swagger</a> definition from a URL or file path.
@@ -942,6 +943,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         #! a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
         *code try_import;
+
+        #! the hash for the schema
+        string hash_str;
     }
 
     #! Builds the schema representation from the deserialized schema hash describing the root document object
@@ -960,7 +964,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
      */
-    public constructor(hash<auto> oh, *hash<auto> opts) : ObjectBase(oh) {
+    public constructor(string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh) {
+        hash_str = digest("sha256", schema_source).toHex();
+
         # process options
         compact_serialization = remove opts.compact_serialization ?? True;
         def_path = remove opts.def_path;
@@ -982,7 +988,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
         {
-            hash obj;
+            hash<auto> obj;
             optional_field(objType, oh, "definitions", NT_HASH, \obj);
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
@@ -1146,6 +1152,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (size > 1)
             throw "INVALID-RESPONSE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
         return res;
+    }
+
+    #! returns a unique hash for the schema that can be used to compare schemas
+    /** @return a unique hash for the schema that can be used to compare schemas
+
+        @since Swagger 2.0
+    */
+    private string getHashImpl() {
+        return hash_str;
     }
 
     #! returns the target URL for the schema

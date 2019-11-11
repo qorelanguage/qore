@@ -439,22 +439,22 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
-            assertThrows("FILE-OPEN2-ERROR", "other.json", sub () {SwaggerSchema so(soh);});
+            assertThrows("FILE-OPEN2-ERROR", "other.json", sub () {SwaggerSchema so("", soh);});
 
             code try_import = string sub (string fn) { return OtherJsonErr; };
-            assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
+            assertThrows("INVALID-REFERENCE", "other.json.*info", sub () {SwaggerSchema so("", soh, ("try_import": try_import));});
             try_import = string sub (string fn) { return OtherJsonOk; };
             {
-                SwaggerSchema so(soh, ("try_import": try_import));
+                SwaggerSchema so("", soh, ("try_import": try_import));
             }
 
             soh.paths."/test".get.parameters[0].schema."$ref" = "other.yaml#/info";
-            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerSchema so(soh);});
+            assertThrows("FILE-OPEN2-ERROR", "other.yaml", sub () {SwaggerSchema so("", soh);});
 
             try_import = string sub (string fn) { return OtherYamlErr; };
-            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerSchema so(soh, ("try_import": try_import));});
+            assertThrows("INVALID-REFERENCE", "other.yaml.*info", sub () {SwaggerSchema so("", soh, ("try_import": try_import));});
             try_import = string sub (string fn) { return OtherYamlOk; };
-            SwaggerSchema so(soh, ("try_import": try_import));
+            SwaggerSchema so("", soh, ("try_import": try_import));
         }
     }
 
@@ -549,7 +549,7 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
-            SwaggerSchema so(soh);
+            SwaggerSchema so("", soh);
 
             {
                 string uri_path = "/test";
@@ -605,7 +605,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             {
-                SwaggerSchema so(soh);
+                SwaggerSchema so("", soh);
 
                 string uri_path = "/test?bin=YWJj";
                 hash<RestRequestClientInfo> h = so.processRequest("get", uri_path);
@@ -653,7 +653,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             {
-                SwaggerSchema so(soh);
+                SwaggerSchema so("", soh);
 
                 assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, "OK", NOTHING, MimeTypeJson));
 
@@ -723,7 +723,7 @@ public class SwaggerTest inherits QUnit::Test {
             );
 
             {
-                SwaggerSchema so(soh);
+                SwaggerSchema so("", soh);
                 hash<HttpResponseInfo> res;
                 hash<RestResponseClientInfo> cres;
                 hash hdr = {"Content-Type" : "application/json"};
@@ -1953,25 +1953,25 @@ public class SwaggerTest inherits QUnit::Test {
 
             remove b.parameters.a.type;
 
-            SwaggerSchema so(b);
+            SwaggerSchema so("", b);
 
             assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("post", "/api/smtg", ("a": "a")));
 
             b.definitions.a.properties.a.readOnly = False;
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
 
             # issue #2369
             assertThrows("SCHEMA-VALIDATION-ERROR", \so.processRequest(), ("post", "/api/smtg"));
 
             b.parameters.a.required = False;
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             hash<RestRequestClientInfo> h = so.processRequest("post", "/api/smtg");
             assertEq("/api/smtg", h.uri_path);
             assertNothing(h.body);
 
             # by default, parameters are optional
             remove b.parameters.a.required;
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             h = so.processRequest("post", "/api/smtg");
             assertEq("/api/smtg", h.uri_path);
             assertNothing(h.body);
@@ -2114,7 +2114,7 @@ public class SwaggerTest inherits QUnit::Test {
                 "format": "date",
             );
 
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
 
             {
                 hash hdr = ("content-type": h.content);
@@ -2129,7 +2129,7 @@ public class SwaggerTest inherits QUnit::Test {
             # issue #2397 400 Bad Request response to invalid binary params
             b.definitions.a.format = "binary";
 
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
 
             {
                 hash hdr = ("content-type": "image/png");
@@ -2142,7 +2142,7 @@ public class SwaggerTest inherits QUnit::Test {
             # issue #2397 400 Bad Request response to invalid byte params
             b.definitions.a.format = "byte";
 
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
 
             {
                 hash hdr = ("content-type": h.content);
@@ -2165,7 +2165,7 @@ public class SwaggerTest inherits QUnit::Test {
             }
 
             # issue #2497 test response
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             {
                 hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, NOTHING);
                 assertEq(200, res.code);
@@ -2290,7 +2290,7 @@ public class SwaggerTest inherits QUnit::Test {
             }
 
             # issue #2507
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             {
                 hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, NOTHING, (MimeTypeJson,));
                 assertEq("/api/b2507", res.uri_path);
@@ -2316,7 +2316,7 @@ public class SwaggerTest inherits QUnit::Test {
             }
 
             # issue #2517
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             {
                 hash hdr = {
                     "http_version": "1.1",
@@ -2333,7 +2333,7 @@ public class SwaggerTest inherits QUnit::Test {
             }
 
             # issue #2516
-            so = new SwaggerSchema(b);
+            so = new SwaggerSchema("", b);
             {
                 hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2517", <feedface>, {"Content-Type": "image/jpeg"});
                 assertEq("/api/b2517", res.uri_path);

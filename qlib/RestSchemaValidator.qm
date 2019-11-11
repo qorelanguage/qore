@@ -172,6 +172,15 @@ public namespace RestSchemaValidator {
 
     #! abstract REST schema validation classes
     public class AbstractRestSchemaValidator {
+        #! returns a unique hash for the schema that can be used to compare schemas
+        /** @return a unique hash for the schema that can be used to compare schemas
+
+            @since RestSchemaValidator 2.0
+        */
+        string getHash() {
+            return getHashImpl();
+        }
+
         #! returns the target URL for the schema
         /** @return the target URL for the schema
 
@@ -316,28 +325,39 @@ public namespace RestSchemaValidator {
         }
 
         #! returns a data provider object for this connection, if supported by any REST schema validator object
-        /** @param rest the \c RestClient object to make the connection; this is declared with a base class to avoid
-            a circular dependency between modules
+        /** @param rest the \c RestClient object to make the connection
 
             @return a data provider object for this connection, if supported by any REST schema validator object
 
             @throw DATA-PROVIDER-ERROR this class does not support the data provider API
+
+            @note \a rest must be a \c RestClient object; this parameter is declared with a base class to avoid a
+            circular dependency between modules
         */
         DataProvider::AbstractDataProvider getDataProvider(HTTPClient rest) {
             return getDataProviderImpl(rest);
         }
 
         #! returns a data provider object for this connection, if supported by any REST schema validator object
-        /** @param rest the \c RestClient object to make the connection; this is declared with a base class to avoid
-            a circular dependency between modules
+        /** @param rest the \c RestClient object to make the connection
 
             @return a data provider object for this connection, if supported by any REST schema validator object
 
             @throw DATA-PROVIDER-ERROR this class does not support the data provider API
+
+            @note \a rest must be a \c RestClient object; this parameter is declared with a base class to avoid a
+            circular dependency between modules
         */
         private DataProvider::AbstractDataProvider getDataProviderImpl(HTTPClient rest) {
             throw "DATA-PROVIDER-ERROR", sprintf("the %s class does not support the data provider API", self.className());
         }
+
+        #! returns a unique hash for the schema that can be used to compare schemas
+        /** @return a unique hash for the schema that can be used to compare schemas
+
+            @since RestSchemaValidator 2.0
+        */
+        private abstract string getHashImpl();
 
         #! returns the target URL for the schema
         /** @return the target URL for the schema
@@ -572,6 +592,20 @@ public namespace RestSchemaValidator {
                     },
                 },
             };
+
+            #! a unique hash for the null schema
+            /** @since RestSchemaValidator 2.0
+            */
+            const NullSchemaHashStr = "<null rest schema>";
+        }
+
+        #! returns a unique hash for the schema that can be used to compare schemas
+        /** @return a unique hash for the schema that can be used to compare schemas
+
+            @since RestSchemaValidator 2.0
+        */
+        private string getHashImpl() {
+            return NullSchemaHashStr;
         }
 
         #! returns the target URL for the schema

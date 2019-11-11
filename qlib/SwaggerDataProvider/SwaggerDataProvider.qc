@@ -172,7 +172,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     private checkRestClient(RestClient rest) {
         *AbstractRestSchemaValidator validator = rest.getValidator();
         if (validator) {
-            if (validator != schema) {
+            if (validator.getHash() != schema.getHash()) {
                 throw "CONSTRUCTOR-ERROR", sprintf("RestClient provided in %s::constructor() is configured with a "
                     "different REST validator schema than %y required by this data provider", self.className(),
                     getName());

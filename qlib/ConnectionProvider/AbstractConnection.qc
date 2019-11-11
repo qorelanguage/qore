@@ -47,13 +47,13 @@ public namespace ConnectionProvider {
             string safe_url;
 
             #! original connection options
-            *hash orig_opts;
+            *hash<auto> orig_opts;
 
             #! connection options
-            *hash opts;
+            *hash<auto> opts;
 
             #! broken down URL hash (as returned by @ref Qore::parse_url())
-            hash urlh;
+            hash<auto> urlh;
 
             #! date/time of last check/ping
             date last_check;
@@ -255,7 +255,9 @@ schema://user:pass@hostname:port/path
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked", "tags") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check",
+                "updated", "status", "up", "loopback", "enabled", "locked", "tags") + ("type": getType(),
+                "url_hash": urlh, "has_provider": hasDataProvider()));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
@@ -359,9 +361,27 @@ schema://user:pass@hostname:port/path
 
             This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
             API, override this method in child classes
+
+            @see hasDataProvider()
+
+            @since ConnectionProvider 1.3
         */
         AbstractDataProvider getDataProvider() {
             throw "DATA-PROVIDER-ERROR", sprintf("%y connections do not support the data provider API", getType());
+        }
+
+        #! returns @ref True if the connection returns a data provider with the @ref getDataProvider() method
+        /** @return @ref True if the connection returns a data provider with the @ref getDataProvider() method
+
+            This base class method returns @ref False; to support the data provider API, override this method in child
+            classes
+
+            @see @ref getDataProvider()
+
+            @since ConnectionProvider 1.3
+        */
+        bool hasDataProvider() {
+            return False;
         }
 
         #! this method must return the connection object corresponding to the object's configuration
