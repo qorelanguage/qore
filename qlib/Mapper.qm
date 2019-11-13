@@ -1446,6 +1446,100 @@ Mapper mapv(DataMap);
             return h;
         }
 
+        #! maps a set of records in hash of lists format; returns mapped data in a hash of lists format
+        /** @par Example:
+            @code{.py}
+            hash<auto> output = mapper.mapBulk(h);
+            @endcode
+
+            @param rec the input record or record set in case a hash of lists is passed
+            @param crec an optional simple hash of data to be added to each input row before mapping
+
+            @return returns a hash of lists of mapped data
+
+            @note
+            - using a hash of lists in \a rec; note that this provides very high performance when used with data
+              provider output that support bulk bulk write operations
+            - in case a hash of empty lists is passed, Qore::NOTHING is returned
+            - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of
+              a column \c C and 'crec = {"C": "mystring"}' then the output will be as if there was 'N' rows with
+              \c C = "mystring" on the input.
+
+            @see
+            - flush()
+            - discard()
+
+            @throw MISSING-INPUT a field marked mandatory is missing
+            @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+            @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        */
+        *hash<auto> mapBulk(hash<auto> rec, *hash<auto> crec) {
+            if (crec) {
+                if (exists getRecListSize(crec)) {
+                    throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not accept a batch as its 2nd "
+                        "argument, got %y", self.className(), crec);
+                }
+            }
+
+            # NOTE: we cannot add 'crec' into 'rec' here since it could affect the number
+            # of processed rows, actually, by overriding a column in 'rec' that
+            # contains a list.
+            *int rec_list_size = getRecListSize(rec);
+            if (!exists rec_list_size) {
+                return mapDataIntern(rec + crec);
+            }
+
+            if (rec_list_size > 0) {
+                hash<auto> dh;
+
+                if (crec) {
+                    # expand crec to have the same number of rows as rec in any key
+                    # that has already got a list value in crec. This is to avoid
+                    # situations that crec changes the number of rows really inserted.
+                    foreach hash<auto> i in (crec.pairIterator()) {
+                        if (i.value.typeCode() != NT_LIST &&
+                            (exists rec{i.key} &&
+                             rec{i.key}.typeCode() == NT_LIST)) {
+                            rec{i.key} = map i.value, xrange(0, rec_list_size - 1);
+                        } else {
+                            rec{i.key} = i.value;
+                        }
+                    }
+                }
+
+                # identl and rconsth entries are added to 'dh' and not in 'hbuf'
+                # directly since identl and rconsth may change at each call of
+                # mapBulk() (unlike consth).
+
+                # first copy all 1:1 mappings to the output hash
+                if (identl)
+                    dh += rec{identl};
+
+                # copy all runtime mappings to the output hash
+                map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
+
+                map mapFieldIntern(\dh, $1, rec, True, rec_list_size), keys mapd;
+
+                # add constant values to hash
+                dh += consth;
+
+                # write to putput provider, if any
+                if (output_provider_bulk_operation) {
+                    output_provider_bulk_operation.queueData(dh);
+                } else if (output_provider) {
+                    if (output_provider_upsert) {
+                        map output_provider.upsertRecord($1), dh.contextIterator();
+                    } else {
+                        map output_provider.createRecord($1), dh.contextIterator();
+                    }
+                }
+
+                count += rec_list_size;
+
+                return dh;
+            } # else no input, no work, not even for constant mappers
+        }
+
         #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
         /** @param rec the record to translate
 
@@ -1493,6 +1587,22 @@ Mapper mapv(DataMap);
             ++count;
 
             return h;
+        }
+
+        /** For a possible hash of lists (bulk data) returns the size of
+         * the first list found within the hash. If no list if found, returns
+         * NOTHING.
+         * @param rec a hash representing (possible) bulk data
+         * @return NOTHING if the hash represents single input record, or the number
+         *         of records represented (may also be 0)
+         */
+        private *int getRecListSize(hash<auto> rec) {
+            foreach auto v in (rec.iterator()) {
+                if (v.typeCode() == NT_LIST) {
+                    return v.size();
+                }
+            }
+            return NOTHING;
         }
 
         #! maps a single field to the target
