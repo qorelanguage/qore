@@ -138,6 +138,11 @@ public hashdecl DataProviderInfo {
     */
     bool transaction_management = False;
 
+    #! Does the data provider provide a record?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool has_record = False;
+
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -189,6 +194,7 @@ public class AbstractDataProvider {
         rv += getStaticInfoImpl() + {
             "children": getChildProviderNames(),
         };
+        rv.has_record = !rv.supports_children;
         return rv;
     }
 

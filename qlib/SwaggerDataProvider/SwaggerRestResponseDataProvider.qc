@@ -72,6 +72,7 @@ public class SwaggerRestResponseDataProvider inherits SwaggerDataProviderBase {
     hash<DataProviderInfo> getInfo() {
         hash<DataProviderInfo> rv({
             "name": getName(),
+            "has_record": True,
         });
         rv += getStaticInfoImpl();
         return rv;

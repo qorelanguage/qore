@@ -173,6 +173,15 @@ public class QoreDataType inherits AbstractDataProviderType {
         return return_type_hash;
     }
 
+    #! returns a description of the type as a hash
+    hash<DataTypeInfo> getInfo() {
+        hash<DataTypeInfo> rv = AbstractDataProviderType::getInfo();
+        if ((base_type_hash{NT_HASH} || base_type_hash{NT_ALL}) && !rv.fields) {
+            rv.can_manage_fields = True;
+        }
+        return rv;
+    }
+
     /** @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {

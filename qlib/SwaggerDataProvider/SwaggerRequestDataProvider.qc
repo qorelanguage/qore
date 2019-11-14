@@ -73,6 +73,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "name": getName(),
             "supports_read": True,
             "supports_request": True,
+            "has_record": True,
         });
         rv += getStaticInfoImpl();
         return rv;
@@ -173,6 +174,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         rv += {
             "supports_read": True,
             "supports_request": True,
+            "has_record": True,
         };
         rv.request_options = rv.search_options = getApiOptions();
         return rv;
