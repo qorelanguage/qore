@@ -59,11 +59,13 @@ module DataProvider {
     - @ref DataProvider::AbstractDataField "AbstractDataField"
     - @ref DataProvider::AbstractDataProvider "AbstractDataProvider"
     - @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation"
+    - @ref DataProvider::AbstractDataProviderBulkRecordInterface "AbstractDataProviderBulkRecordInterface"
     - @ref DataProvider::AbstractDataProviderFactory "AbstractDataProviderFactory"
     - @ref DataProvider::AbstractDataProviderRecordIterator "AbstractDataProviderRecordIterator"
     - @ref DataProvider::DataProvider "DataProvider"
     - @ref DataProvider::DefaultBulkInserter "DefaultBulkInserter"
     - @ref DataProvider::DefaultBulkUpserter "DefaultBulkUpserter"
+    - @ref DataProvider::DefaultBulkRecordIterface "DefaultBulkRecordIterface"
     - @ref DataProvider::DefaultRecordIterator "DefaultRecordIterator"
     - @ref DataProvider::QoreDataField "QoreDataField"
 

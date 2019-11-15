@@ -175,7 +175,9 @@ list: (2 elements)
       @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of input data and
       also the data itself.  The use of this option enables the use of the
       @ref Mapper::Mapper::getOutputIterator() "Mapper::getOutputIterator()" API.  This option is mutually exclusive
-      with the \a input option.
+      with the \a input option.  If an \c "output_provider" is also provided, the
+      @ref Mapper::Mapper::runAutonomous() "Mapper::runAutonomous()" method can be used to map from input to output
+      in a single call
     - \c "input_provider_search": the search options for the input provider; see the \a where_cond option of
       @ref DataProvider::AbstractDataProvider::searchRecords() "AbstractDataProvider::searchRecords()" for more
       information on this option
@@ -207,7 +209,9 @@ list: (2 elements)
       written to the output data provider automatically.  If the output provider supports transaction management,
       @ref Mapper::Mapper::commit() "Mapper::commit()" and
       @ref Mapper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
-      with the \a output option.
+      with the \a output option.  If an \c "input_provider" is also provided, the
+      @ref Mapper::Mapper::runAutonomous() "Mapper::runAutonomous()" method can be used to map from input to output
+      in a single call
     - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
       @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called after all mapping is done to
       flush the output buffer to the output provider at the end or
@@ -1396,6 +1400,48 @@ Mapper mapv(DataMap);
             checkOutputBulkOperation();
             if (output_provider_bulk_operation) {
                 output_provider_bulk_operation.discard();
+            }
+        }
+
+        #! Runs the input and output mappers with data providers on each end autonomously
+        /**
+            @throw MAPPER-INPUT-PROVIDER-ERROR no input provider available in this mapper
+            @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+        */
+        runAutonomous() {
+            checkInputProvider();
+            checkOutputProvider();
+
+            if (output_provider_bulk_operation) {
+                on_error {
+                    output_provider_bulk_operation.discard();
+                }
+                on_success {
+                    output_provider_bulk_operation.flush();
+                }
+                if (input_provider.supportsBulkRead()) {
+                    # bulk read + bulk write for high performance mapping
+                    AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
+                        input_provider_search);
+                    while (*hash<auto> records = i.getValue()) {
+                        mapBulk(records);
+                    }
+                } else {
+                    # bulk output with normal input
+                    map mapData($1), input_provider.searchRecords(input_provider_search);
+                }
+            } else {
+                if (input_provider.supportsBulkRead()) {
+                    # bulk read + bulk write for high performance mapping
+                    AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
+                        input_provider_search);
+                    while (*hash<auto> records = i.getValue()) {
+                        map mapData($1), records.contextIterator();
+                    }
+                } else {
+                    # bulk output with normal input
+                    map mapData($1), input_provider.searchRecords(input_provider_search);
+                }
             }
         }
 

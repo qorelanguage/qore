@@ -158,6 +158,12 @@ public class SqlTestBase inherits QUnit::Test {
         {
             DbTableDataProvider dp(table);
 
+            {
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertTrue(info.supports_bulk_read);
+            }
+
             list<hash<auto>> table_rows;
             {
                 table_rows = map $1, dp.searchRecords();
@@ -165,6 +171,13 @@ public class SqlTestBase inherits QUnit::Test {
 
                 hash<auto> row = dp.searchSingleRecord({"id": 1});
                 assertEq(Type::Int, row.id.type());
+            }
+
+            {
+                AbstractDataProviderBulkRecordInterface i = dp.getBulkRecordInterface();
+                hash<auto> q = i.getValue();
+                assertEq(Type::List, q.firstValue().type());
+                assertEq(2, q.firstValue().lsize());
             }
 
             assertThrows("RUNTIME-TYPE-ERROR", \dp.searchSingleRecord(), {"id": <00>});

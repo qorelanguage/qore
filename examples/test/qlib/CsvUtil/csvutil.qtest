@@ -19,6 +19,8 @@ UK,1234567891,\"Sony, Xperia S\",31052012
 UK,1234567892,\"Sony, Xperia S\",31052012
 UK,1234567893,\"Sony, Xperia S\",31052012";
 
+        const CsvInputWithHeader = "CC,serno,desc,received\n" + CsvInput;
+
         const CsvRecords = (
             ("cc": "UK", "serno": 1234567890, "desc": "Sony, Xperia S", "received": 2012-05-31),
             ("cc": "UK", "serno": 1234567891, "desc": "Sony, Xperia S", "received": 2012-05-31),
@@ -58,6 +60,7 @@ f2:3,00:5:25,34";
     }
 
     constructor() : Test("CsvUtilTest", "1.0") {
+        addTestCase("data provider", \dataProviderTest());
         addTestCase("issue 2806 test", \issue2806());
         addTestCase("issue 2746 test", \issue2746());
         addTestCase("Basic CSV tests", \csvTest());
@@ -78,8 +81,57 @@ f2:3,00:5:25,34";
         set_return_value(main());
     }
 
+    dataProviderTest() {
+        {
+            CsvReadDataProvider dp;
+
+            # the CSV data can only be iterated once and then the provide needs to be recreated
+            code reset = sub () {
+                dp = new CsvReadDataProvider(new StringInputStream(CsvInputWithHeader), {
+                    "header_lines": 1,
+                    "header_names": True,
+                    "date_format": "DDMMYYYY",
+                    "fields": {
+                        "received": {
+                            "type": "date",
+                        },
+                    },
+                });
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertFalse(info.supports_bulk_read);
+            }
+
+            list<hash<auto>> rows;
+            {
+                reset();
+                rows = map $1, dp.searchRecords();
+                assertEq(4, rows.size());
+
+                reset();
+                *hash<auto> row = dp.searchSingleRecord({"serno": "1234567892"});
+                assertEq(Type::Hash, row.type());
+                assertEq("1234567892", row.serno);
+                assertEq(Type::String, row.serno.type());
+            }
+
+            {
+                reset();
+                AbstractDataProviderBulkRecordInterface i = dp.getBulkRecordInterface();
+                hash<auto> q = i.getValue();
+                assertEq(Type::List, q.firstValue().type());
+                assertEq(4, q.firstValue().lsize());
+            }
+
+        }
+    }
+
     issue2806() {
-        hash opts = {
+        hash<auto> opts = {
             "fields": {
                 "label": "string",
                 "amount1": "float",
@@ -102,7 +154,7 @@ f2:3,00:5:25,34";
     }
 
     issue2746() {
-        hash opts = {
+        hash<auto> opts = {
             "header-names": False,
             "headers": ("CC", "serno", "desc", "received", "na1",),
         };
@@ -135,7 +187,17 @@ f2:3,00:5:25,34";
     }
 
     csvTest() {
-        hash opts = ("fields": ("cc": "string", "serno": "int", "desc": "string", "received": ("type": "date", "format": "DDMMYYYY")),);
+        hash<auto> opts = {
+            "fields": {
+                "cc": "string",
+                "serno": "int",
+                "desc": "string",
+                "received": {
+                    "type": "date",
+                    "format": "DDMMYYYY",
+                },
+            },
+        };
 
         # Iterate through source
         AbstractCsvIterator i = new CsvDataIterator(CsvInput, opts);
@@ -185,13 +247,13 @@ f2:3,00:5:25,34";
     }
 
     csvOptionalFieldTest() {
-        hash opts = ("fields": ("f1": "string", "f2": "int", "f3": ("type": "date", "format": "DDMMYYYY"), "f4": "*string", "f5": "*string"));
+        hash<auto> opts = ("fields": ("f1": "string", "f2": "int", "f3": ("type": "date", "format": "DDMMYYYY"), "f4": "*string", "f5": "*string"));
         string input = "UK,1234567890,31052012,O1-4
 UK,1234567891,30052012,,O2-5
 UK,1234567892,29052012,O3-4
 UK,1234567893,28052012";
 
-        list records = (
+        list<auto> records = (
             ("f1": "UK", "f2": 1234567890, "f3": 2012-05-31, "f4": "O1-4", "f5": NOTHING),
             ("f1": "UK", "f2": 1234567891, "f3": 2012-05-30, "f4": NOTHING, "f5": "O2-5"),
             ("f1": "UK", "f2": 1234567892, "f3": 2012-05-29, "f4": "O3-4", "f5": NOTHING),
@@ -205,7 +267,7 @@ UK,1234567893,28052012";
     }
 
     csvMultiTest() {
-        hash spec = (
+        hash<auto> spec = (
             "header": (
                 "type": ("type": "int", "value": 1, "default": 1),
                 "invoice_no": "string",
