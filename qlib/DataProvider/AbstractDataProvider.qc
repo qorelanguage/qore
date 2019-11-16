@@ -107,9 +107,17 @@ public hashdecl DataProviderInfo {
     */
     bool supports_native_search = False;
 
+    #! Does the data provider support native / optimized bulk reads?
+    /** if this is @ref False and \a supports_read is @ref True, the data provider will still support bulk read
+        APIs but without any performance improvements for bulk data (simulated bulk reads)
+
+        @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool supports_bulk_read = False;
+
     #! Does the data provider support native / optimized bulk creation?
     /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
-        APIs but without any performance improvements for bulk data
+        APIs but without any performance improvements for bulk data (simulated bulk creates)
 
         @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -117,7 +125,7 @@ public hashdecl DataProviderInfo {
 
     #! Does the data provider support native / optimized bulk upserts?
     /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
-        APIs but without any performance improvements for bulk data
+        APIs but without any performance improvements for bulk data (simulated bulk upserts)
 
         @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -137,6 +145,11 @@ public hashdecl DataProviderInfo {
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
     bool transaction_management = False;
+
+    #! Does the data provider provide a record?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool has_record = False;
 
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
@@ -189,6 +202,7 @@ public class AbstractDataProvider {
         rv += getStaticInfoImpl() + {
             "children": getChildProviderNames(),
         };
+        rv.has_record = !rv.supports_children;
         return rv;
     }
 
@@ -248,6 +262,37 @@ public class AbstractDataProvider {
     */
     AbstractDataProviderRecordIterator getRecordIterator(*hash<auto> search_options) {
         return searchRecords(NOTHING, validateSearchOptions(search_options));
+    }
+
+    #! Returns an iterator iterating all records with the bulk read API
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return a bulk record interface object that will return the records in bulk format
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    AbstractDataProviderBulkRecordInterface getBulkRecordInterface(int block_size = 1000, *hash<auto> search_options) {
+        return searchRecordsBulk(block_size, NOTHING, validateSearchOptions(search_options));
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return a bulk record interface object that will return the records in bulk format
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    AbstractDataProviderBulkRecordInterface searchRecordsBulk(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+        if (block_size <= 0) {
+            throw "INVALID-BLOCK-SIZE", sprintf("block_size %d is invalid; the block size mst be a positive number",
+                block_size);
+        }
+        return searchRecordsBulkImpl(block_size, processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -690,6 +735,13 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().supports_read;
     }
 
+    #! Returns @ref True if the data provider supports native bulk reading
+    /**
+    */
+    bool supportsBulkRead() {
+        return getStaticInfoImpl().supports_bulk_read;
+    }
+
     #! Returns @ref True if the data provider supports the record creation API
     /**
     */
@@ -744,6 +796,18 @@ public class AbstractDataProvider {
     */
     bool supportsRequest() {
         return getStaticInfoImpl().supports_request;
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+        return new DefaultBulkRecordIterface(block_size, searchRecordsImpl(where_cond, search_options));
     }
 
     #! Returns an iterator for zero or more records matching the search options

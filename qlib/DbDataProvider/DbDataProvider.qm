@@ -69,6 +69,7 @@ module DbDataProvider {
     - @ref DbDataProvider::DbDataProvider "DbDataProvider"
     - @ref DbDataProvider::DbDataProviderFactory "DbDataProviderFactory"
     - @ref DbDataProvider::DbTableBulkInserter "DbTableBulkInserter"
+    - @ref DbDataProvider::DbTableBulkRecordInterface "DbTableBulkRecordInterface"
     - @ref DbDataProvider::DbTableBulkUpserter "DbTableBulkUpserter"
     - @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
     - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"

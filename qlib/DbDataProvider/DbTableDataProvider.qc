@@ -47,6 +47,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "supports_upsert": True,
             "supports_delete": True,
             "supports_native_search": True,
+            "supports_bulk_read": True,
             "supports_bulk_create": True,
             "supports_bulk_upsert": True,
             "supports_children": False,
@@ -55,6 +56,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "create_options": CreateOptions,
             "upsert_options": UpsertOptions,
             "transaction_management": True,
+            "has_record": True,
         };
 
         #! Constructor options
@@ -275,6 +277,18 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             }
             rethrow;
         }
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+        return new DbTableBulkRecordInterface(block_size, table, where_cond, search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options

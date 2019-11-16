@@ -286,19 +286,19 @@ public namespace TableMapper {
     public class InboundTableMapper inherits Mapper::Mapper {
         public {
             #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + (
+            const OptionKeys = Mapper::OptionKeys + {
                 "unstable_input": sprintf("if this is set to True then a slower insert/upsert method will be used that verifies each input row; if False an optimized insert/upsert method is used (additionally bulk inserts/upserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
                 "insert_block": sprintf("the row block size used when bulk DML / batch inserts/upserts are used; default: %y", OptionDefaults.insert_block),
                 "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted/upserted plus any output values generated in inserts (such as sequence values, for example)",
                 "upsert": "if True then data will be upserted instead of inserted",
                 "upsert_strategy": "the upsert strategy code to use; implies 'upsert'",
-                );
+            };
 
             #! default option values
-            const OptionDefaults = (
+            const OptionDefaults = {
                 "unstable_input": False,
                 "insert_block": 1000,
-                );
+            };
         }
 
         private {
@@ -803,8 +803,7 @@ table_mapper.setRowCode(rowcode);
             }
 
             if (rec_list_size > 0) {
-                # cannot use "hash<auto>" here
-                hash dh;
+                hash<auto> dh;
 
                 if (crec) {
                     # expand crec to have the same number of rows as rec in any key
@@ -827,7 +826,7 @@ table_mapper.setRowCode(rowcode);
 
                 # first copy all 1:1 mappings to the output hash
                 if (identl)
-                    dh = rec{identl};
+                    dh += rec{identl};
 
                 # copy all runtime mappings to the output hash
                 map dh{$1.key} = m_runtime{$1.value}, rconsth.pairIterator();
@@ -997,22 +996,6 @@ on_error table_mapper.rollback();
             hbuf_size += 1;
 
             return flushIntern(False);
-        }
-
-        /** For a possible hash of lists (bulk data) returns the size of
-         * the first list found within the hash. If no list if found, returns
-         * NOTHING.
-         * @param rec a hash representing (possible) bulk data
-         * @return NOTHING if the hash represents single input record, or the number
-         *         of records represented (may also be 0)
-         */
-        private *int getRecListSize(hash<auto> rec) {
-            foreach auto v in (rec.iterator()) {
-                if (v.typeCode() == NT_LIST) {
-                    return v.size();
-                }
-            }
-            return NOTHING;
         }
 
         /**
