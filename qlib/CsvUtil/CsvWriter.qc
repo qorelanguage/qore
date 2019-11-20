@@ -42,7 +42,7 @@ public namespace CsvUtil {
             @param output the @ref Qore::OutputStream "OutputStream" for the CSV data generated
             @param opts @ref csvwriter_options
 
-            @throw CSVFILEITER-ERROR in the case of incorrect options
+            @throw CSVSTREAMWRITER-ERROR in the case of incorrect options
         */
         constructor(Qore::OutputStream output, *hash opts) : AbstractCsvWriter("STREAM", opts) {
             # we do not use the encoding option with the StreamWriter constructor() here, because we always generate output data
@@ -57,7 +57,7 @@ public namespace CsvUtil {
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts @ref csvwriter_options
 
-            @throw CSVFILEITER-ERROR in the case of incorrect options
+            @throw CSVSTREAMWRITER-ERROR in the case of incorrect options
         */
         constructor(Qore::OutputStream output, hash spec, hash opts) : AbstractCsvWriter("STREAM", spec, opts) {
             # we do not use the encoding option with the StreamWriter constructor() here, because we always generate output data

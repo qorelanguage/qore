@@ -17,7 +17,7 @@ public class CsvUtilTest inherits QUnit::Test {
         const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
 UK,1234567891,\"Sony, Xperia S\",31052012
 UK,1234567892,\"Sony, Xperia S\",31052012
-UK,1234567893,\"Sony, Xperia S\",31052012";
+UK,1234567893,\"Sony, Xperia S\",31052012\n";
 
         const CsvInputWithHeader = "CC,serno,desc,received\n" + CsvInput;
 
@@ -82,6 +82,7 @@ f2:3,00:5:25,34";
     }
 
     dataProviderTest() {
+        list<hash<auto>> rows;
         {
             CsvReadDataProvider dp;
 
@@ -106,7 +107,6 @@ f2:3,00:5:25,34";
                 assertFalse(info.supports_bulk_read);
             }
 
-            list<hash<auto>> rows;
             {
                 reset();
                 rows = map $1, dp.searchRecords();
@@ -127,6 +127,46 @@ f2:3,00:5:25,34";
                 assertEq(4, q.firstValue().lsize());
             }
 
+        }
+
+        {
+            CsvWriteDataProvider dp;
+            StringOutputStream stream;
+
+            # the CSV data can only be iterated once and then the provide needs to be recreated
+            code reset = sub () {
+                stream = new StringOutputStream();
+                dp = new CsvWriteDataProvider(stream, {
+                    "write_headers": False,
+                    "date_format": "DDMMYYYY",
+                    "fields": {
+                        "CC": {
+                            "type": "string",
+                        },
+                        "serno": {
+                            "type": "int",
+                        },
+                        "desc": {
+                            "type": "string",
+                        },
+                        "received": {
+                            "type": "date",
+                        },
+                    },
+                });
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertTrue(info.supports_create);
+                assertFalse(info.supports_bulk_read);
+
+                map dp.createRecord($1), rows;
+
+                assertEq(CsvInput, stream.getData());
+            }
         }
     }
 
@@ -206,7 +246,7 @@ f2:3,00:5:25,34";
 
         CsvStringWriter w(("write-headers": False, "optimal-quotes" : True, "quote_escape" : '"') + opts);
         string outstr = w.write(CsvRecords);
-        testAssertion("CsvDataWriter writer", \equals(), (CsvInput+"\n", outstr));  # ending CR is assymetrical when empty lines are not ignored
+        testAssertion("CsvDataWriter writer", \equals(), (CsvInput, outstr));  # ending CR is assymetrical when empty lines are not ignored
 
         # test with empty data and header lines
         i = new CsvDataIterator("", ("header-lines": 1));
@@ -380,7 +420,7 @@ UK,1234567893,28052012";
         hash dmh = ("cc": "XX");
         w = new CsvStringWriter(("headers": ("XX", "serno", "desc", "received"), "fields": ("received": ("type": "date", "format": "DDMMYYYY")), "datamap": dmh));
         outstr = w.write(CsvRecords.iterator());
-        assertEq("XX,serno,desc,received\n" + CsvInput + "\n", outstr);
+        assertEq("XX,serno,desc,received\n" + CsvInput, outstr);
     }
 
     csvData() {

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Qore CsvReadDataProvider class definition
+# Qore CsvWriteDataProvider class definition
 
-/*  CsvReadDataProvider.qc Copyright 2012 - 2019 Qore Technologies, s.r.o.
+/*  CsvWriteDataProvider.qc Copyright 2012 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,12 +31,12 @@
 #! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
 #! Provides a data provider for reading CSV files
-public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
+public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "CsvReadDataProvider",
-            "supports_read": True,
+            "type": "CsvWriteDataProvider",
+            "supports_create": True,
             "constructor_options": ConstructorOptions,
         };
 
@@ -47,45 +47,45 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "desc": "the path to the CSV data; mutually exclusive with \"stream\"",
             },
             "stream": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("InputStream")),
-                "desc": "an input stream for CSV data; mutually exclusive with \"path\"",
+                "type": AbstractDataProviderType::get(new Type("OutputStream")),
+                "desc": "an output stream for CSV data; mutually exclusive with \"path\"",
             },
             "opts": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "CSV parsing options",
+                "desc": "CSV generation options",
             },
         };
     }
 
     private {
-        #! the iterator object
-        AbstractCsvIterator i;
+        #! the writer object
+        AbstractCsvWriter writer;
     }
 
-    #! Creates the CsvReadDataProvider with the input data path and optionally an option hash
-    /** @param path the input file to iterate
-        @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
+    #! Creates the CsvWriteDataProvider with the output path and optionally an option hash
+    /** @param path the output file to write
+        @param opts a hash of options; see @ref csvwriter_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw CSVFILEWRITER-ERROR option error
     */
     constructor(string path, *hash<auto> opts) {
-        i = new CsvFileIterator(path, opts);
+        writer = new CsvFileWriter(path, opts);
     }
 
-    #! Creates the CsvReadDataProvider with the input data stream and optionally an option hash
-    /** @param stream the input stream to iterate
-        @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
+    #! Creates the CsvWriteDataProvider with the output data stream where data will be writeen and an option hash
+    /** @param stream the output stream for writing the data
+        @param opts a hash of optional options; see @ref csvwriter_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw CSVSTREAMWRITER-ERROR option error
     */
-    constructor(InputStream stream, *hash<auto> opts) {
-        i = new CsvIterator(stream, opts.encoding, opts);
+    constructor(OutputStream stream, *hash<auto> opts) {
+        writer = new CsvWriter(stream, opts);
     }
 
     #! Returns the object name
     string getName() {
-        return i instanceof CsvFileIterator
-            ? i.getFileName()
+        return writer instanceof CsvFileWriter
+            ? (writer.getFileName() ?? sprintf("stream %s", self.uniqueHash()))
             : sprintf("stream %s", self.uniqueHash());
     }
 
@@ -96,31 +96,30 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new CsvFileIterator(copts.path, copts.opts);
+            writer = new CsvFileWriter(copts.path, copts.opts);
             return;
         }
         if (copts.stream) {
-            i = new CsvIterator(copts.stream, copts.opts.encoding, copts.opts);
+            writer = new CsvWriter(copts.stream, copts.opts);
             return;
         }
-        # create a dummy interator with no input
-        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts.opts);
-    }
-
-    #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-    */
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        return new DefaultRecordIterator(i, where_cond, search_options);
+        # create a dummy stream output object
+        writer = new CsvWriter(new StringOutputStream(), copts.opts);
     }
 
     #! Returns the description of the record type, if any
     *hash<string, AbstractDataField> getRecordType() {
-        if (!i.valid()) {
-            i.peek();
-        }
-        return i.getRecordType();
+        return writer.getRecordType();
+    }
+
+    #! Creates the given record to the data provider
+    /** @param rec a hash representing a single input record
+        @param create_options the create options after processing by validateCreateOptions()
+
+        @return the data written to the data provider
+    */
+    private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        writer.writeLine(rec);
     }
 
     #! Returns data provider static info

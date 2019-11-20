@@ -50,7 +50,7 @@ public namespace CsvUtil {
 
             @throw CSVFILEITER-ERROR in the case of incorrect options
         */
-        constructor(string path, *hash opts) : AbstractCsvWriter("FILE", opts) {
+        constructor(string path, *hash<auto> opts) : AbstractCsvWriter("FILE", opts) {
             openFile(path);
         }
 
@@ -64,8 +64,17 @@ public namespace CsvUtil {
 
             @throw CSVFILEITER-ERROR in the case of incorrect options
         */
-        constructor(string path, hash spec, hash opts) : AbstractCsvWriter("FILE", spec, opts) {
+        constructor(string path, hash<auto> spec, hash<auto> opts) : AbstractCsvWriter("FILE", spec, opts) {
             openFile(path);
+        }
+
+        #! returns the output file path
+        /** @return the output file path
+
+            @since %CsvUtil 1.7
+        */
+        string getFileName() {
+            return file.getFileName();
         }
 
         private openFile(string path) {
@@ -76,7 +85,7 @@ public namespace CsvUtil {
             writeHeaders();
         }
 
-        private writeRawLine(list values) {
+        private writeRawLine(list<auto> values) {
             file.write(prepareRawLine(values));
         }
     } # CsvFileWriter class

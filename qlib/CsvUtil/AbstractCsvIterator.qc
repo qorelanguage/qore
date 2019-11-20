@@ -577,11 +577,7 @@ string quote = i.getQuote();
 
         #! Returns the description of the record type, if any
         *hash<string, AbstractDataField> getRecordType() {
-            return map {
-                $1.key: new QoreDataField($1.key, NOTHING, AbstractDataProviderType::get(
-                        new Type(OptimalQoreSoftDataTypeMap{$1.value.type} ?? "string"
-                    ).getOrNothingType())),
-            }, m_specs.firstValue().pairIterator();
+            return CsvHelper::getRecordType();
         }
 
         #! Returns the current record headers or @ref nothing if no headers have been detected or saved yet
