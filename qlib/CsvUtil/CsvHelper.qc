@@ -73,6 +73,15 @@ class CsvHelper {
         errname = n_errname;
     }
 
+    #! Returns the description of the record type, if any
+    *hash<string, AbstractDataField> getRecordType() {
+        return map {
+            $1.key: new QoreDataField($1.key, NOTHING, AbstractDataProviderType::get(
+                    new Type(OptimalQoreSoftDataTypeMap{$1.value.type} ?? "string"
+                ).getOrNothingType())),
+        }, m_specs.firstValue().pairIterator();
+    }
+
     #! returns True if specification hash defines more types
     private bool isMultiType() {
         return m_specs && m_specs.size() > 1;

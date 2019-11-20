@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore AbstractCsvWriter class definition
 
-/*  AbstractCsvWriter.qc Copyright 2012 - 2018 Qore Technologies, s.r.o.
+/*  AbstractCsvWriter.qc Copyright 2012 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -141,10 +141,9 @@ public namespace CsvUtil {
             @param n_errname a string to construct child class error message. For example: value 'FOO' will result in exception names 'CSVFOOWRITER-ERROR'
             @param n_opts @ref csvwriter_options
 
-            @throw CSV<errname>ITER-ERROR in the case of incorrect options
+            @throw CSV<errname>WRITER-ERROR in the case of incorrect options
          */
-        constructor(string n_errname, *hash n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
-
+        constructor(string n_errname, *hash<auto> n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
             processCommonOptions(n_opts, C_OPT1);
 
             # set headers automatically from field names if not set
@@ -157,13 +156,13 @@ public namespace CsvUtil {
                 if (n_opts.datamap.typeCode() != NT_HASH)
                     throw errname, sprintf("expecting a hash value to option %y; got %y (type %s) instead", n_opts.datamap.key, n_opts.datamap, n_opts.datamap.type());
                 # ensure that all the values are strings
-                foreach hash h in (n_opts.datamap.pairIterator()) {
+                foreach hash<auto> h in (n_opts.datamap.pairIterator()) {
                     if (h.value.typeCode() != NT_STRING)
                         throw errname, sprintf("\"datamap\" key %y has a non-string value; got type %y", h.key, h.value.type());
                 }
 
                 string k = m_specs.firstKey();
-                foreach hash h in (n_opts.datamap.pairIterator()) {
+                foreach hash<auto> h in (n_opts.datamap.pairIterator()) {
                     if (!exists m_specs{k}{h.key}) {
                         m_specs{k}{h.key} = ("type": "*string", "idx": m_specs{k}.size());
                     }
@@ -185,14 +184,19 @@ public namespace CsvUtil {
 
             @throw CSV<errname>WRITER-ERROR in the case of incorrect options
          */
-        constructor(string n_errname, hash spec, hash n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
+        constructor(string n_errname, hash<auto> spec, hash<auto> n_opts): CsvHelper(sprintf("CSV%sWRITER-ERROR", n_errname)) {
             m_specs = getSpec2(spec);
             processCommonOptions(n_opts, C_OPT2);
             processSpec();
         }
 
+        #! Returns the description of the record type, if any
+        *hash<string, AbstractDataField> getRecordType() {
+            return CsvHelper::getRecordType();
+        }
+
         #! Process options and set internal variables
-        private processCommonOptions(*hash n_opts, int C_OPTx) {
+        private processCommonOptions(*hash<auto> n_opts, int C_OPTx) {
             date_format = 'DD/MM/YYYY hh:mm:SS';  # different default value in writer
             if (n_opts.encoding.typeCode() == NT_STRING) {
                 encoding = n_opts.encoding;
@@ -204,7 +208,7 @@ public namespace CsvUtil {
             else
                 encoding = get_default_encoding();
 
-            foreach hash i in (n_opts.pairIterator()) {
+            foreach hash<auto> i in (n_opts.pairIterator()) {
                 if (!exists Options.(i.key) && (Options.(i.key) & C_OPTx) == 0)
                     throw errname, sprintf("unknown option %y passed to %s::constructor() (valid options: %y)", i.key, self.className(), (select Options.keys(), (Options.$1 & C_OPTx) != 0));
 
@@ -298,15 +302,15 @@ public namespace CsvUtil {
             if (write_headers && isMultiType()) {
                 throw errname, sprintf("\"write_headers\" is True but \"headers\" defined as multi-type (%y)", m_specs);
             }
-            foreach string k in (m_specs.keyIterator()) {
+            foreach string k in (keys m_specs) {
                 list ll;
                 if (m_specs{k}) {
                     int i = 0;
-                    foreach hash f in (m_specs{k}.pairIterator()) {
+                    foreach hash<auto> f in (m_specs{k}.pairIterator()) {
                         ll += ("out_idx": f.value.idx ?? 0, "field": f.key, "idx": i);
                         i++;
                     }
-                    code sort_func = int sub (hash l, hash r) { return l.out_idx <=> r.out_idx; };
+                    code sort_func = int sub (hash<auto> l, hash<auto> r) { return l.out_idx <=> r.out_idx; };
                     ll = sort(ll, sort_func);
                     m_out_by_name{k} = map ($1.field), ll;
                     m_out_by_idx{k} = map ($1.idx), ll;
@@ -318,7 +322,7 @@ public namespace CsvUtil {
         private writeHeaders() {
             if (write_headers && m_specs.size() == 1 && m_specs.firstValue().size() > 0) {
                 string type = m_specs.firstKey();
-                list values = map (m_specs{type}{$1}.header ?? $1), m_out_by_name{type};
+                list<auto> values = map (m_specs{type}{$1}.header ?? $1), m_out_by_name{type};
                 writeRawLine(values);
             }
         }
@@ -329,7 +333,7 @@ public namespace CsvUtil {
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
-        writeLine(list values) {
+        writeLine(list<auto> values) {
             writeLine(CSV_TYPE_SINGLE, values);
         }
 
@@ -339,7 +343,7 @@ public namespace CsvUtil {
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
-        writeLine(hash values) {
+        writeLine(hash<auto> values) {
             if (exists values.type && exists values.record) {
                 writeLine(values.type, values.record);
             } else {
@@ -354,12 +358,12 @@ public namespace CsvUtil {
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
-        writeLine(string type, list values) {
+        writeLine(string type, list<auto> values) {
             lineNo++;
             if (checkElementCounts && m_specs{type} && values.size() != m_specs{type}.size())
                 throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, m_specs{type}.size(), values.size());
 
-            list rawValues = ();
+            list<auto> rawValues = ();
             for(int j = 0; j < values.size(); j++) {
                 int i = j;
                 #! format date to string by options. Priority: 1) column definition 2) standard format
@@ -368,7 +372,7 @@ public namespace CsvUtil {
                 if (m_out_by_idx{type} && j < m_out_by_idx{type}.size()) {
                     # get correct input value
                     i = m_out_by_idx{type}[j];
-                    hash spec = m_specs{type}{m_out_by_name{type}[j]};
+                    hash<auto> spec = m_specs{type}{m_out_by_name{type}[j]};
                     switch (spec.type) {
                         case "int": {
                             if (int(values[i]) != values[i])
@@ -445,10 +449,10 @@ public namespace CsvUtil {
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
-        writeLine(string type, hash values) {
+        writeLine(string type, hash<auto> values) {
             if (!m_specs{type})
                 throw errname, sprintf("Type '%s' not defined header in AbstractCsvWriter instance to bind the hash key", type);
-            list line;
+            list<auto> line;
             foreach string i in (m_specs{type}.keyIterator()) { # (m_out_by_name{type}) {
                 if (!values.hasKey(i))
                     if (exists m_specs{type}{i}.default) {
@@ -496,7 +500,7 @@ public namespace CsvUtil {
             @note if any \c "info_log" option is set in the constructor; it is used here to log each block of SQL data used to generate the corresponding number of lines; log messages look like: \c "query input generated bulk output lines: 1000"
          */
         write(Qore::SQL::SQLStatement iterator) {
-            while (*hash h = iterator.fetchColumns(block)) {
+            while (*hash<auto> h = iterator.fetchColumns(block)) {
                 int n = h.firstValue().lsize();
                 if (!n)
                     break;
@@ -514,12 +518,12 @@ public namespace CsvUtil {
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when the list elements have the wrong type or values
          */
-        write(list l) {
+        write(list<auto> l) {
             write(l.iterator());
         }
 
         #! This method must be overridden in child classes to provide the output implementation
-        abstract private writeRawLine(list values);
+        abstract private writeRawLine(list<auto> values);
 
         #! Prepare a string (line with EOF) with formatting and escaping.
         /**
@@ -527,22 +531,22 @@ public namespace CsvUtil {
 
             @return string a formatted and escaped line with a trailing EOL string; if an \c encoding option was given to the constructor; the return value always has the given encoding
         */
-        private string prepareRawLine(list values) {
+        private string prepareRawLine(list<auto> values) {
             string rv = prepareRawLineIntern(values);
             return encoding && rv.encoding() != encoding ? convert_encoding(rv, encoding) : rv;
         }
 
-        private string prepareRawLineIntern(list values) {
+        private string prepareRawLineIntern(list<auto> values) {
             if (!optimal_quotes) {
                 # make full line template
                 string template = strmul(baseTemplate, elements values, 1) + eol;
                 # escape separators in strings
-                list row = map replace(string($1), quote, m_quoteEscapeChar + quote), values;
+                list<auto> row = map replace(string($1), quote, m_quoteEscapeChar + quote), values;
 
                 return vsprintf(template, row);
             }
 
-            list l = ();
+            list<auto> l = ();
             foreach auto v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {

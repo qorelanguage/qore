@@ -42,8 +42,9 @@ module CsvUtil {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
-        # register the data provider factory
+        # register the data provider factories
         DataProvider::registerFactory(new CsvReadDataProviderFactory());
+        DataProvider::registerFactory(new CsvWriteDataProviderFactory());
     };
 }
 
