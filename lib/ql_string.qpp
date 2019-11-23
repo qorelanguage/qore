@@ -285,7 +285,8 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
 
             // or a separator string comes next
             if (len && (len < pl || memcmp(tpattern, ststr, pl))) {
-                xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD " (starting with 1) (len " QSD " f: '%s')", tpattern, l->size() + 1, len, field->c_str());
+                xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "
+                    QSD " (starting with 1)", tpattern, l->size() + 1);
                 return nullptr;
             }
 
