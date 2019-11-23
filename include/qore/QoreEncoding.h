@@ -152,7 +152,7 @@ public:
    */
    DLLEXPORT qore_size_t getCharPos(const char* p, const char* end, ExceptionSink* xsink) const;
 
-   //! gives the number of total bytes for the character given one or more characters
+   //! gives the number of total bytes for the next character at the given pointer
    /** always returns 1 for single-byte encodings
        @param p a pointer to the character data to check
        @param valid_len the number of valid bytes at the start of the character pointer
