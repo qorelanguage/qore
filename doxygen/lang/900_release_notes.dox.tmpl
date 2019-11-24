@@ -40,6 +40,11 @@
       - added \c Type::isOrNothingType()
       - added \c Type::isTypedHash()
 
+    @subsection qore_094_bug_fixes Bug Fixes in Qore
+    - <string>::split(string, string, bool) and Qore::split(string, string, string, bool) now properly handle double
+      quote characters as an alternative way to include quotes in fields
+      (<a href="https://github.com/qorelanguage/qore/issues/3550">issue 3550</a>)
+
     @section qore_0932 Qore 0.9.3.2
 
     @par Release Summary

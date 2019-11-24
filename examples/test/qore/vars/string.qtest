@@ -307,6 +307,15 @@ class StringTest inherits QUnit::Test {
         assertEq(("a", "b,c,d", "e"), split(convert_encoding(",", "UTF16BE"), lstr, convert_encoding("'", "UTF16BE")));
         assertEq(("a", "b,c,d", "e"), lstr.split(convert_encoding(",", "UTF16BE"), convert_encoding("'", "UTF16BE")));
 
+        # test strings with double quotes and escaped quotes as part of the field
+        lstr = "a,'',b,'c','''d''',e,'f''1'''";
+        assertEq(("a", "", "b", "c","'d'","e","f'1'"), lstr.split(",", "'"));
+        lstr = "a,b'c','\\'d','e''1',f";
+        assertEq(("a", "b'c'","'d","e'1","f"), lstr.split(",", "'"));
+        assertThrows("SPLIT-ERROR", \split(), (",", "a,'asdsad", "'"));
+        assertThrows("SPLIT-ERROR", \split(), (",", "a,''ad", "'"));
+        assertThrows("SPLIT-ERROR", \split(), (",", "a,'ad'x,b", "'"));
+
         # test currently unsupported operations
         assertThrows("UNSUPPORTED-ENCODING", \html_encode(), a);
         assertThrows("UNSUPPORTED-ENCODING", \html_decode(), a);

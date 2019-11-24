@@ -54,178 +54,289 @@
 #endif
 
 static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink) {
-   assert(xsink);
-   qore_offset_t off = fmt.getByteOffset(1, xsink);
-   //printd(5, "fix_num tmp: '%s' fmt: '%s' off: %lld\n", tmp.getBuffer(), fmt.getBuffer(), off);
-   if (*xsink)
-      return -1;
-   if (off < 0)
-      return 0;
+    assert(xsink);
+    qore_offset_t off = fmt.getByteOffset(1, xsink);
+    //printd(5, "fix_num tmp: '%s' fmt: '%s' off: %lld\n", tmp.getBuffer(), fmt.getBuffer(), off);
+    if (*xsink)
+        return -1;
+    if (off < 0)
+        return 0;
 
-   // replace all thousands separators with nothing
-   QoreString t(fmt.getBuffer(), off, fmt.getEncoding());
-   tmp.replaceAll(t.getBuffer(), "");
+    // replace all thousands separators with nothing
+    QoreString t(fmt.getBuffer(), off, fmt.getEncoding());
+    tmp.replaceAll(t.getBuffer(), "");
 
-   if (fmt.size() <= (qore_size_t)off)
-      return 0;
+    if (fmt.size() <= (qore_size_t)off)
+        return 0;
 
-   t.clear();
-   if (t.concat(fmt, 1, 1, xsink))
-      return -1;
+    t.clear();
+    if (t.concat(fmt, 1, 1, xsink))
+        return -1;
 
-   if (t.size() == 1 && t[0] == '.')
-      return 0;
+    if (t.size() == 1 && t[0] == '.')
+        return 0;
 
-   off = tmp.bindex(t.getBuffer(), 0);
-   if (off < 0)
-      return 0;
+    off = tmp.bindex(t.getBuffer(), 0);
+    if (off < 0)
+        return 0;
 
-   tmp.replace(off, t.size(), ".");
-   return 0;
+    tmp.replace(off, t.size(), ".");
+    return 0;
 }
 
 static const char* memstr(const char* str, const char* pattern, qore_size_t pl, qore_size_t len) {
-   while (true) {
-      const char* p = (const char* )memchr(str, pattern[0], len);
-      if (!p)
-         return 0;
+    while (true) {
+        const char* p = (const char*)memchr(str, pattern[0], len);
+        if (!p)
+            return nullptr;
 
-      //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+        //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
 
-      // if there is not enough string left for the pattern, then return
-      if ((len - (p - str)) < pl)
-         return 0;
+        // if there is not enough string left for the pattern, then return
+        if ((len - (p - str)) < pl)
+            return nullptr;
 
-      bool found = true;
-      for (qore_size_t i = 1; i < pl; ++i) {
-         if (pattern[i] != p[i]) {
-            len -= (p - str + 1);
-            str = p + 1;
-            found = false;
-            break;
-         }
-      }
-      if (!found)
-         continue;
+        bool found = true;
+        for (qore_size_t i = 1; i < pl; ++i) {
+            if (pattern[i] != p[i]) {
+                len -= (p - str + 1);
+                str = p + 1;
+                found = false;
+                break;
+            }
+        }
+        if (!found)
+            continue;
 
-      // found
-      //printd(5, "memstr() got it! p: %p\n", p);
-      return p;
-   }
-   return 0;
+        // found
+        //printd(5, "memstr() got it! p: %p\n", p);
+        return p;
+    }
+    return nullptr;
 }
 
 static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
-   if (enc)
-      l->push(new QoreStringNode(str, len, enc), nullptr);
-   else {
-      BinaryNode* b = new BinaryNode;
-      b->append(str, len);
-      l->push(b, nullptr);
-   }
+    if (enc)
+        l->push(new QoreStringNode(str, len, enc), nullptr);
+    else {
+        BinaryNode* b = new BinaryNode;
+        b->append(str, len);
+        l->push(b, nullptr);
+    }
 }
 
 QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
-   QoreListNode* l = new QoreListNode(enc ? stringTypeInfo : binaryTypeInfo);
-   const char* ostr = str;
-   while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
-      split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
-      str = p + pl;
-   }
-   // add last field if there is data remaining
-   if (sl - (str - ostr))
-      split_add_element(l, str, sl - (str - ostr), enc);
+    QoreListNode* l = new QoreListNode(enc ? stringTypeInfo : binaryTypeInfo);
+    const char* ostr = str;
+    while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
+        split_add_element(l, str, p - str + (with_separator ? pl : 0), enc);
+        str = p + pl;
+    }
+    // add last field if there is data remaining
+    if (sl - (str - ostr))
+        split_add_element(l, str, sl - (str - ostr), enc);
 
-   return l;
+    return l;
+}
+
+// count how many consecutive quotes
+static size_t count_quotes(const char*& str, size_t& len, const QoreString& quote) {
+    size_t rv = 0;
+    while (len && len >= quote.size()) {
+        if (!memcmp(quote.c_str(), str, quote.size())) {
+            str += quote.size();
+            len -= quote.size();
+            ++rv;
+            continue;
+        }
+        break;
+    }
+    return rv;
 }
 
 QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink) {
-   // convert pattern encoding to string if necessary
-   TempEncodingHelper pat(sep, str->getEncoding(), xsink);
-   if (*xsink)
-      return 0;
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper pat(sep, str->getEncoding(), xsink);
+    if (*xsink)
+        return nullptr;
 
-   // convert quote to string if necessary
-   TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
-   if (*xsink)
-      return 0;
+    // convert quote to string if necessary
+    TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
+    if (*xsink)
+        return nullptr;
 
-   //printd(5, "split_with_quote() sep: %s str: %s quote: %s trim_unquoted: %d\n", pat->getBuffer(), str->getBuffer(), tquote->getBuffer(), trim_unquoted);
+    //printd(5, "split_with_quote() sep: %s str: %s quote: %s trim_unquoted: %d\n", pat->c_str(), str->c_str(), tquote->c_str(), trim_unquoted);
 
-   if (!tquote->strlen() || tquote->strlen() > sep->strlen())
-      return split_intern(pat->getBuffer(), pat->strlen(), str->getBuffer(), str->strlen(), str->getEncoding());
+    if (!tquote->strlen() || tquote->strlen() > sep->strlen())
+        return split_intern(pat->c_str(), pat->strlen(), str->c_str(), str->strlen(), str->getEncoding());
 
-   ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
-   const char* ostr = str->getBuffer();
-   qore_size_t sl = str->strlen();
-   const char* tpattern = pat->getBuffer();
-   qore_size_t pl = pat->strlen();
+    ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
+    const char* ostr = str->c_str();
+    qore_size_t sl = str->strlen();
+    const char* tpattern = pat->c_str();
+    qore_size_t pl = pat->strlen();
 
-   const char* ststr = ostr;
+    const char* ststr = ostr;
 
-   // remaining byte length
-   qore_size_t len = sl;
+    // remaining byte length
+    qore_size_t len = sl;
 
-   while (len > 0) {
-      // see if the field begins with the quote string
-      // and if the remaining string length is at least big enough for two quote strings
-      if ((tquote->strlen() * 2) <= len
-          && !memcmp(tquote->getBuffer(), ststr, tquote->strlen())) {
-         // advance pointer past quote
-         ststr += tquote->strlen();
-         // find next quote character, ignore escaped quotes
-         const char* tstr = ststr;
-         const char* p;
-         while (true) {
-            p = memstr(tstr, tquote->getBuffer(), tquote->strlen(), len);
-            if (!p) {
-               xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD, tquote->getBuffer(), l->size() + 1);
-               return nullptr;
+    //printd(5, "split_with_quote() '%s' len: " QSD "\n", ststr, len);
+
+    while (len) {
+        // make sure len is always calculated correctly
+        assert(len == (str->size() - (ststr - ostr)));
+
+        size_t num_quotes = count_quotes(ststr, len, **tquote);
+        if (num_quotes) {
+            // see if we have empty quotes & we're at the end of the field
+            if (num_quotes == 2 && (!len || (len >= pl && !memcmp(tpattern, ststr, pl)))) {
+                // add an empty string to the list
+                l->push(new QoreStringNode(str->getEncoding()), nullptr);
+
+                if (!len) {
+                    break;
+                }
+
+                ststr += pl;
+                len -= pl;
+                continue;
+            } else if (!(num_quotes & 1)) {
+                xsink->raiseException("SPLIT-ERROR", "field with text must begin with an add number of quotes (got "
+                    QSD " quotes at the beginning of the field)", num_quotes);
+                return nullptr;
             }
-            if (p == tstr)
-               break;
-            if (*(p - 1) != '\\')
-               break;
-            tstr = p + 1;
-         }
-         // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()), nullptr);
 
-         ststr = p + tquote->strlen();
-         // see if we are at the end of the string
-         len = sl + (ostr - ststr);
+            // create the field string
+            QoreStringNodeHolder field(new QoreStringNode(str->getEncoding()));
 
-         if (!len)
+            // process double quotes to single quote
+            while (num_quotes >= 2) {
+                field->concat(*tquote, xsink);
+                assert(!*xsink);
+                num_quotes -= 2;
+            }
+
+            assert(num_quotes == 1);
+
+            // find next quote character, ignore escaped and doubled quotes
+            const char* p;
+            while (len) {
+                // make sure len is always calculated correctly
+                assert(len == (str->size() - (ststr - ostr)));
+
+                p = memstr(ststr, tquote->c_str(), tquote->strlen(), len);
+                if (!p) {
+                    xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD " (starting with 1)", tquote->c_str(), l->size() + 1);
+                    return nullptr;
+                }
+                //printd(5, "f " QSD " found closing quote in pos " QSD " (len " QSD ") str: '%s' ('%s')\n", l->size() + 1, p - ststr, len, ststr, field->c_str());
+
+                assert(p != ststr);
+
+                // add text up to the quote to the field
+                size_t text_len = p - ststr;
+                // if we have an escaped quote, do not copy the escaped quote to the string
+                if (*(p - 1) == '\\') {
+                    --text_len;
+                }
+
+                field->concat(ststr, text_len);
+                {
+                    QoreString fstr(ststr, text_len);
+                    //printd(5, "f " QSD " adding text: '%s' (len " QSD ") ('%s')\n", l->size() + 1, fstr.c_str(), fstr.size(), field->c_str());
+                }
+
+                // skip the quote in the source string
+                text_len += tquote->size();
+                ststr += text_len;
+                len -= text_len;
+
+                // add escaped quote to field and keep searching
+                if (*(p - 1) == '\\') {
+                    field->concat(*tquote, xsink);
+                    //printd(5, "f " QSD " adding escaped quote: %s ('%s')\n", l->size() + 1, tquote->c_str(), field->c_str());
+
+                    assert(!*xsink);
+                    // increment text pointer by escape char
+                    ststr += 1;
+                    len -= 1;
+                    continue;
+                }
+
+                // if we have an odd number of quotes, then we have found the end of the field
+                num_quotes = count_quotes(ststr, len, **tquote) + 1;
+
+                //printd(5, "f " QSD " found " QSD " quote(s) ('%s')\n", l->size() + 1, num_quotes, field->c_str());
+
+                // process double quotes to single quote
+                while (num_quotes >= 2) {
+                    field->concat(*tquote, xsink);
+                    //printd(5, "f " QSD " adding quote: %s ('%s')\n", l->size() + 1, tquote->c_str(), field->c_str());
+                    assert(!*xsink);
+                    num_quotes -= 2;
+                }
+
+                if (num_quotes) {
+                    assert(num_quotes == 1);
+                    break;
+                }
+            }
+
+            // or a separator string comes next
+            if (len && (len < pl || memcmp(tpattern, ststr, pl))) {
+                xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "
+                    QSD " (starting with 1)", tpattern, l->size() + 1);
+                return nullptr;
+            }
+
+            // add the field to the list
+            l->push(field.release(), nullptr);
+
+            if (!len) {
+                break;
+            }
+            ststr += pl;
+            len -= pl;
+            continue;
+        }
+
+        // no quotes
+        assert(!num_quotes);
+
+        // create the field string
+        QoreStringNodeHolder field(new QoreStringNode(str->getEncoding()));
+
+        const char* p = memstr(ststr, tpattern, pl, len);
+        if (!p) {
+            field->concat(ststr, len);
+            QoreString fstr(ststr, len);
+            //printd(5, "f " QSD " adding whole unquoted text: '%s' (len " QSD ") ('%s')\n", l->size() + 1, fstr.c_str(), fstr.size(), field->c_str());
+        } else {
+            field->concat(ststr, p - ststr);
+            QoreString fstr(ststr, p - ststr);
+            //printd(5, "f " QSD " adding unquoted text: '%s' (len " QSD ") ('%s')\n", l->size() + 1, fstr.c_str(), fstr.size(), field->c_str());
+        }
+
+        if (trim_unquoted && field->trim(xsink)) {
+            return nullptr;
+        }
+
+        // add the new field
+        l->push(field.release(), nullptr);
+        if (!p) {
             break;
+        }
 
-         // or a separator string comes next
-         if (len < pl || memcmp(tpattern, ststr, pl)) {
-            xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field " QSD, tpattern, l->size());
-            return nullptr;
-         }
-         ststr += pl;
-         len -= pl;
-         continue;
-      }
+        // advance the pointer
+        size_t text_len = (p - ststr) + pl;
+        ststr += text_len;
+        len -= text_len;
 
-      const char* p = memstr(ststr, tpattern, pl, sl - (ststr - ostr));
-      if (!p) {
-         QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
-         if (trim_unquoted && se->trim(xsink))
-            return nullptr;
-         l->push(se, nullptr);
-         break;
-      }
+        //printd(5, "f " QSD " now setting ststr: '%s' len: " QSD "\n", l->size() + 1, ststr, len);
+    }
 
-      QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
-      if (trim_unquoted && se->trim(xsink))
-         return nullptr;
-      l->push(se, nullptr);
-      len -= (p - ststr);
-      ststr = p + pl;
-   }
-
-   return l.release();
+    return l.release();
 }
 
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
@@ -866,26 +977,37 @@ list<string> split(string sep, string str, bool with_separator = False) [flags=R
 }
 
 //! Splits a string into a list of components based on a separator string and a quote character
-/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters
+/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
+    field. If instances of the quote character are found in the field doubled or preceded by a backquote character
+    (\c "\"), then these quote characters are included as part of the field's text and not treated as quote
+    characters (in quoted fields only).
 
-    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with
+    only one element containing the entire string argument is returned'; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
     @param str the string to split
-    @param quote the quote character
+    @param quote the quote character; quotes may be escaped (in quoted fields only) by doubling the quote character or
+    by preceding it with a backslash (\c "\")
     @param trim_unquoted remove leading and trailing whitespace from unquoted fields
 
-    @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
+    @return a list of each component of a string separated by a separator string, with the separator and any enclosing
+    quote characters removed
 
     @par Example:
     @code{.py}
 list<string> l = split(",", "some,'text with spaces',here", "'"); # returns ("some", "text with spaces", "here")
     @endcode
 
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different
+    @ref character_encoding "character encodings" and an error occurs during encoding conversion
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
 
     @note equivalent to <string>::split(string, string)
 
-    @since %Qore 0.8.6 the \c trim_unquoted parameter was added
+    @since
+    - %Qore 0.8.6 the \c trim_unquoted parameter was added
+    - %Qore 0.9.4 processes doubled quote characters as an escaped quote within a quoted field
  */
 list<string> split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
    return split_with_quote(sep, str, quote, trim_unquoted, xsink);
