@@ -41,7 +41,7 @@ hashdecl Issue3654 {
     bool b = False;
 }
 
-const B = <B>{};
+const B = <Issue3654>{};
 
 *string sub str_test() {}
 
