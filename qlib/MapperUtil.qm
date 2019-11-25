@@ -59,20 +59,78 @@ module MapperUtil {
     - initial release
 */
 
-#! the Mapper namespace contains all the definitions in the MapperUtil module
+#! All the definitions in the MapperUtil module are contained in the Mapper namespace
 public namespace Mapper {
-    #! describes a runtime type
+    #! Mapper standard field key info hash
+    public const MapperKeyInfo = {
+        "name": <MapperRuntimeKeyInfo>{
+            "desc": "the name of the input field; dot notation accepted",
+            "value_type": "string",
+            "conflicting_keys": {
+                "constant": True,
+                "index": True,
+            },
+        },
+        "constant": <MapperRuntimeKeyInfo>{
+            "desc": "a constant value for the output field",
+            "value_type": "any",
+            "conflicting_keys": {
+                "name": True,
+                "code": True,
+                "default": True,
+            },
+        },
+        "index": <MapperRuntimeKeyInfo>{
+            "desc": "the index number of the row",
+            "value_type": "nothing",
+            "conflicting_keys": {
+                "name": True,
+                "code": True,
+                "default": True,
+            },
+        },
+        "code": <MapperRuntimeKeyInfo>{
+            "desc": "a code block for generating the field output programmatically",
+            "value_type": "code",
+            "conflicting_keys": {
+                "constant": True,
+                "index": True,
+            },
+        },
+        "default": <MapperRuntimeKeyInfo>{
+            "desc": "the default value for the field if no input is provided",
+            "value_type": "any",
+            "conflicting_keys": {
+                "constant": True,
+                "index": True,
+            },
+        },
+        "trunc": <MapperRuntimeKeyInfo>{
+            "desc": "if True and the input is longer than the output field permits, the input will be "
+                "silently truncated",
+            "value_type": "bool",
+        },
+        "runtime": <MapperRuntimeKeyInfo>{
+            "desc": "the name of the field in the runtime hash where to take the value from",
+            "value_type": "string",
+        },
+    };
+
+    #! Describes a runtime mapper field key
     public hashdecl MapperRuntimeKeyInfo {
-        #! the type of value that must be assigned to this key
+        #! A description of the key
+        string desc;
+
+        #! The type of value that must be assigned to this key
         string value_type = "string";
 
-        #! hash of conflicting keys, if any
+        #! Hash of conflicting keys, if any
         *hash<string, bool> conflicting_keys;
 
-        #! if the key requires in input field for the mapping
+        #! If the key requires in input field for the mapping
         bool requires_input = False;
 
-        #! the code to handle the key at runtime
+        #! The code to handle the key at runtime
         /** the signature of this closure or call reference depends on \a requires_input:
             - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
               - parameters:

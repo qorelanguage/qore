@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
     const QoreTypeInfo* expTypeInfo = nullptr;
     parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
+    //printd(5, "QoreParseCastOperatorNode::parseInitImp() this: %p exp: %s\n", this, exp.getFullTypeName());
 
     // check special cases
     if (pti->cscope->size() == 1 && pti->subtypes.empty()) {
@@ -120,6 +121,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
     {
         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
         if (hd) {
+            const_cast<typed_hash_decl_private*>(typed_hash_decl_private::get(*hd))->parseInit();
             qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_HASH);
             if (r == QTI_NOT_EQUAL)
                 parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to (hashdecl) %s", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));

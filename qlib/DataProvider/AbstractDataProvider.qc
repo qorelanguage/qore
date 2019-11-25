@@ -176,6 +176,13 @@ public hashdecl DataProviderInfo {
     */
     *hash<string, hash<DataProviderOptionInfo>> request_options;
 
+    #! A hash of mapper key information
+    /** @note
+        - this is a static attribute; it is the same for all data providers of the same type
+        - the \a handler keys are not returned as they are only valid at runtime
+    */
+    hash<string, hash<MapperRuntimeKeyInfo>> mapper_keys = Mapper::MapperKeyInfo;
+
     #! A list of child data providers in this data provider
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
     */

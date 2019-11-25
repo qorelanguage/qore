@@ -379,21 +379,15 @@ public namespace Mapper {
             };
 
             #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
-            const ValidKeys = {
-                "name": True,
+            const ValidKeys = (map {$1: True}, keys MapperKeyInfo) + {
+                # internal structures
                 "struct": True,
-                "constant": True,
-                "index" : True,
-                "code": True,
-                "default": True,
-                "maxlen": True,
-                "trunc": True,
-                "mand": True,
-                "number": True,
-                "runtime": True,
                 "output_key_path": True,
 
                 # DEPRECATED keys
+                "maxlen": True,                   # should be provided in the output record field
+                "mand": True,                     # should be provided in the output record field type
+                "number": True,                   # should be provided in the output record field
                 "type": True,                     # type must be specified in the output record
                 "date_format": True,              # should be set as a transformation option
                 "number_format": True,            # should be set as a transformation option
