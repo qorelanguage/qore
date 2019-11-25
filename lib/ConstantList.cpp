@@ -127,8 +127,7 @@ void ConstantEntry::del(ExceptionSink* xsink) {
         val.clear();
         saved_node = nullptr;
 #endif
-    }
-    else {
+    } else {
         // note that objects may be present here when discarding with xsink == nullptr if there is a builtin object in a class constant
         // in this case the destructor cannot throw an exception
         val.discard(xsink);

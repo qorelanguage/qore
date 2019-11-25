@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
     const QoreTypeInfo* expTypeInfo = nullptr;
     parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
+    //printd(5, "QoreParseCastOperatorNode::parseInitImp() this: %p exp: %s\n", this, exp.getFullTypeName());
 
     // check special cases
     if (pti->cscope->size() == 1 && pti->subtypes.empty()) {

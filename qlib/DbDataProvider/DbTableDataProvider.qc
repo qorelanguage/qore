@@ -57,6 +57,30 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "upsert_options": UpsertOptions,
             "transaction_management": True,
             "has_record": True,
+            "mapper_keys": MapperKeyInfo,
+        };
+
+        #! Mapper runtime key info
+        const MapperKeyInfo = Mapper::MapperKeyInfo + {
+            "sequence": <MapperRuntimeKeyInfo>{
+                "desc": "names the DB sequence that will be used to populate the field",
+                "value_type": "string",
+                "conflicting_keys": {
+                    "name": True,
+                    "constant": True,
+                    "sequence_currval": True,
+                },
+            },
+            "sequence_currval": <MapperRuntimeKeyInfo>{
+                "desc": "names the DB sequence that will be used to populate the field; the current value of the "
+                    "sequence is used; will not increment the sequence",
+                "value_type": "string",
+                "conflicting_keys": {
+                    "name": True,
+                    "constant": True,
+                    "sequence": True,
+                },
+            },
         };
 
         #! Constructor options
@@ -124,6 +148,9 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
         #! the database object, if required
         AbstractDatabase db;
+
+        #! lock for "db"
+        Mutex db_lock();
     }
 
     #! Creates the object
@@ -203,33 +230,19 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     /** @return custom data mapper runtime keys
     */
     *hash<string, hash<MapperRuntimeKeyInfo>> getMapperRuntimeKeys() {
+        # make sure the database object is in place
         if (!db) {
-            db = AbstractDatabase::getDatabase(table.getDatasource());
+            db_lock.lock();
+            on_exit db_lock.unlock();
+
+            if (!db) {
+                db = AbstractDatabase::getDatabase(table.getDatasource());
+            }
         }
-        return {
-            "sequence": <MapperRuntimeKeyInfo>{
-                "value_type": "string",
-                "conflicting_keys": {
-                    "template": True,
-                    "name": True,
-                    "struct": True,
-                    "constant": True,
-                    "sequence_currval": True,
-                },
-                "handler": \doSequenceKey(),
-            },
-            "sequence_currval": <MapperRuntimeKeyInfo>{
-                "value_type": "string",
-                "conflicting_keys": {
-                    "template": True,
-                    "name": True,
-                    "struct": True,
-                    "constant": True,
-                    "sequence": True,
-                },
-                "handler": \doSequenceCurrvalKey(),
-            },
-        };
+        hash<string, hash<MapperRuntimeKeyInfo>> rv(MapperKeyInfo);
+        rv.sequence.handler = \doSequenceKey();
+        rv.sequence_currval.handler = \doSequenceCurrvalKey();
+        return rv;
     }
 
     #! Writes the given record to the data provider

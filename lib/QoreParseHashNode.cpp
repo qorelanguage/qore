@@ -57,15 +57,14 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     bool vcommon = false;
 
     for (size_t i = 0; i < keys.size(); ++i) {
-        const QoreTypeInfo* argTypeInfo = 0;
+        const QoreTypeInfo* argTypeInfo = nullptr;
         QoreValue p = keys[i];
         parse_init_value(keys[i], oflag, pflag, lvids, argTypeInfo);
 
         if (!p.isEqualValue(keys[i]) && (!keys[i] || keys[i].isValue())) {
             QoreStringValueHelper key(keys[i]);
             checkDup(lvec[i], key->c_str());
-        }
-        else if (!needs_eval && keys[i] && keys[i].needsEval())
+        } else if (!needs_eval && keys[i] && keys[i].needsEval())
             needs_eval = true;
 
         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
@@ -76,13 +75,14 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
         argTypeInfo = nullptr;
         parse_init_value(values[i], oflag, pflag, lvids, vtypes[i]);
 
+        //printd(5, "QoreParseHashNode::parseInitImpl() this: %p i: %d '%s'\n", this, i, values[i].getFullTypeName());
+
         if (!i) {
             if (vtypes[0] && vtypes[0] != anyTypeInfo) {
                 vtype = vtypes[0];
                 vcommon = true;
             }
-        }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
             vcommon = false;
 
         if (!needs_eval && values[i].needsEval())
