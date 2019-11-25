@@ -37,14 +37,25 @@ hashdecl Issue3518 {
     int i;
 }
 
+hashdecl Issue3654 {
+    bool b = False;
+}
+
+const B = <Issue3654>{};
+
 *string sub str_test() {}
 
 class HashDeclTest inherits QUnit::Test {
     constructor() : QUnit::Test("HashDecl test", "1.0") {
+        addTestCase("issue 3654", \issue3654());
         addTestCase("serialize imported", \serializeImportedTest());
         addTestCase("issue 3167", \issue3167());
         addTestCase("Test HashDecl", \testHashDecl());
         set_return_value(main());
+    }
+
+    issue3654() {
+        assertEq(False, B.b);
     }
 
     serializeImportedTest() {
