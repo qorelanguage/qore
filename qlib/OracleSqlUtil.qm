@@ -1524,7 +1524,7 @@ auto v = c.name;
             return getListIntern(ds.select("select object_name from user_objects where object_type = %v order by 1", type).object_name);
         }
 
-        private list<string> getListIntern(list<string> l) {
+        private list<string> getListIntern(list<auto> l) {
             return native_case ? l : (map $1.lwr(), l);
         }
 
