@@ -120,7 +120,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
     {
         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
         if (hd) {
-            const_cast<qore_typed_hash_private*>(qore_typed_hash_private::get(*hd))->parseInit();
+            const_cast<typed_hash_decl_private*>(typed_hash_decl_private::get(*hd))->parseInit();
             qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_HASH);
             if (r == QTI_NOT_EQUAL)
                 parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to (hashdecl) %s", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
