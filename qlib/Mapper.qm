@@ -1143,15 +1143,19 @@ Mapper mapv(DataMap);
                 # check type
                 if (i.value.value_type != "any") {
                     string type = i.value.value_type;
-                    if (i.value.value_type[0] == "*") {
+                    if (type[0] == "*") {
                         if (!exists fh{i.key}) {
                             continue;
                         }
                         type = type[1..];
                     }
-                    if (type != fh{i.key}.type()) {
-                        error("output field %y key %y has value %y with type %y which is not compatible with the "
-                            "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), i.value.value_type);
+                    string vtype = fh{i.key}.type();
+                    if (type != vtype) {
+                        # code == "closure" and "call reference"
+                        if (type != "code" || (vtype != "closure" && vtype != "call reference")) {
+                            error("output field %y key %y has value %y with type %y which is not compatible with the "
+                                "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), type);
+                        }
                     }
                 }
             }
@@ -1745,7 +1749,8 @@ Mapper mapv(DataMap);
                 map v = $1.value.requires_input
                     ? $1.value.handler(m{$1.key}, v)
                     : $1.value.handler(m{$1.key}),
-                    current_runtime_keys.pairIterator();
+                    current_runtime_keys.pairIterator(),
+                    $1.value.handler;
             }
 
             # execute any field filter if necessary
