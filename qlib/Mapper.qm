@@ -1106,11 +1106,9 @@ Mapper mapv(DataMap);
                 if (exists fh."default") {
                     field.setDefaultValue(fh."default");
                 }
-
-                fh.field = field;
             } else {
                 # create field object based on mapper hash
-                field = fh.field = new QoreDataField(k, fh.desc, getOutputType(fh), fh."default");
+                field = new QoreDataField(k, fh.desc, getOutputType(fh), fh."default");
             }
 
             if (fh.trunc && field.getOptionValue("string.max_size_chars") < 0) {
@@ -1212,6 +1210,8 @@ Mapper mapv(DataMap);
                     rconsth{k} = fh.runtime;
                 mapo{k} = NOTHING;
             }
+
+            fh.field = field;
         }
 
         #! verifies a timezone constructor option
