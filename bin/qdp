@@ -128,7 +128,7 @@ class QdpCmd {
     static getRecord(AbstractDataProvider provider) {
         *hash<string, AbstractDataField> rec = provider.getRecordType();
         if (opts.verbose > 1) {
-            printf("%N\n", rec);
+            printf("%N\n", (map {$1.key: $1.value.getInfo()}, rec.pairIterator()));
         } else {
             QdpCmd::showRecord(rec);
         }

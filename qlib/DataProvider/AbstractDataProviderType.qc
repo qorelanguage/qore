@@ -106,6 +106,12 @@ public hashdecl DataTypeInfo {
     #! output: current transformation option values
     *hash<auto> options;
 
+    #! output: base type
+    string base_type;
+
+    #! output: can be null / missing?
+    bool mandatory;
+
     #! output: list of types accepted
     list<string> types_accepted;
 
@@ -172,6 +178,8 @@ public class AbstractDataProviderType {
                     $1.key: $1.value.typeCode() == NT_OBJECT || $1.value.callp() ? "<" + $1.value.fullType() + ">" : $1.value,
                 }, options.pairIterator())
                 : NOTHING,
+            "base_type": getBaseTypeName(),
+            "mandatory": getDirectTypeHash(){NT_NOTHING} ? False : True,
             "types_accepted": keys getAcceptTypeHash(),
             "types_returned": keys getReturnTypeHash(),
             "fields": getFieldInfo(),
@@ -222,6 +230,17 @@ public class AbstractDataProviderType {
     bool hasType() {
         *Type thistype = getValueType();
         return !thistype || thistype.hasType();
+    }
+
+    #! returns the base type name for the type; must be a standard Qore base type name
+    string getBaseTypeName() {
+        *Type thistype = getValueType();
+        if (thistype) {
+            string name = thistype.getName();
+            name =~ s/\*?(soft)?//;
+            return name;
+        }
+        return "all";
     }
 
     #! returns the base type code for the type
