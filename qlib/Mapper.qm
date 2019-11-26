@@ -1169,6 +1169,8 @@ Mapper mapv(DataMap);
                         }
                         if (type == "int") {
                             type = Type::Int;
+                        } else if (type == "option_hash") {
+                            type = Type::Hash;
                         }
                         string vtype = fh{i.key}.type();
                         if (type != vtype) {
