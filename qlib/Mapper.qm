@@ -1173,7 +1173,7 @@ Mapper mapv(DataMap);
                         string vtype = fh{i.key}.type();
                         if (type != vtype) {
                             # code == "closure" and "call reference"
-                            if (type != "code" || (vtype != "closure" && vtype != "call reference")) {
+                            if (type != "mapper-code" || (vtype != "closure" && vtype != "call reference")) {
                                 error("output field %y key %y has value %y with type %y which is not compatible with the "
                                     "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), type);
                             }

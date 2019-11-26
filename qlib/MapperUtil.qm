@@ -82,7 +82,7 @@ public namespace Mapper {
         },
         "code": <MapperRuntimeKeyInfo>{
             "desc": "a code block for generating the field output programmatically",
-            "value_type": "code",
+            "value_type": "mapper-code",
         },
         "default": <MapperRuntimeKeyInfo>{
             "desc": "the default value for the field if no input is provided",
