@@ -157,6 +157,7 @@ list: (2 elements)
         - \c "string": field accepts string values; in this case any other value will be converted to a string in the output
         - \c "hash": field accepts hash values
         - \c "any": field accepts any value
+      - \c "type_options": a hash of type options to set or override type options for the output field
 
     @section mapperoptions Mapper Options
 
@@ -998,6 +999,7 @@ Mapper mapv(DataMap);
             else if (fh.fullType() != "hash<auto>") {
                 fh = {} + fh;
             }
+
             if (fh.name) {
                 if (fh.struct)
                     error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
@@ -1119,6 +1121,11 @@ Mapper mapv(DataMap);
                 fh.trunc = True;
             }
 
+            # set field options
+            if (fh.type_options) {
+                field.setOptions(fh.type_options);
+            }
+
             # check valid keys
             {
                 hash<string, bool> all_valid_keys = valid_keys;
@@ -1133,28 +1140,43 @@ Mapper mapv(DataMap);
             }
 
             # check runtime keys
-            foreach hash<auto> i in (runtime_keys{keys fh}.pairIterator()) {
-                # check for conflicts
-                if (*hash<auto> conflicts = fh{keys i.value.conflicting_keys}) {
-                    error("output field %y contains key %y which conflicts with the following keys: %y",
-                        getFieldName(k), i.key, keys conflicts);
-                }
-
-                # check type
-                if (i.value.value_type != "any") {
-                    string type = i.value.value_type;
-                    if (type[0] == "*") {
-                        if (!exists fh{i.key}) {
-                            continue;
+            {
+                hash<string, string> conflicts;
+                foreach hash<auto> i in (runtime_keys{keys fh}.pairIterator()) {
+                    # check for conflicts
+                    foreach string role in (i.value.unique_roles) {
+                        if (role == "*" && fh.size() > 1) {
+                            error("output field %y key %y must be the only field in the output field mapping hash, "
+                                "however the following keys are present: %y", getFieldName(k), i.key, keys fh);
                         }
-                        type = type[1..];
+                        if (conflicts{role}) {
+                            error("output field %y has key %y with unique role %y, but key %y with the same unique "
+                                "role has already been provided for this field.  Only one key with the same role can "
+                                "be provided in the output field mapping hash: %y", getFieldName(k), i.key, role,
+                                getFieldName(conflicts{role}));
+                        }
+                        conflicts{role} = i.key;
                     }
-                    string vtype = fh{i.key}.type();
-                    if (type != vtype) {
-                        # code == "closure" and "call reference"
-                        if (type != "code" || (vtype != "closure" && vtype != "call reference")) {
-                            error("output field %y key %y has value %y with type %y which is not compatible with the "
-                                "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), type);
+
+                    # check type
+                    if (i.value.value_type != "any") {
+                        string type = i.value.value_type;
+                        if (type[0] == "*") {
+                            if (!exists fh{i.key}) {
+                                continue;
+                            }
+                            type = type[1..];
+                        }
+                        if (type == "int") {
+                            type = Type::Int;
+                        }
+                        string vtype = fh{i.key}.type();
+                        if (type != vtype) {
+                            # code == "closure" and "call reference"
+                            if (type != "code" || (vtype != "closure" && vtype != "call reference")) {
+                                error("output field %y key %y has value %y with type %y which is not compatible with the "
+                                    "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), type);
+                            }
                         }
                     }
                 }
@@ -1812,7 +1834,7 @@ Mapper mapv(DataMap);
                     v = default_value;
             }
 
-            #printf("k: %y type: %y maxlen: %y\n", key, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"));
+            #printf("k: %y type: %y maxlen: %y size: %y\n", key, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"), v.size());
 
             # check maximum length
             if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {

@@ -66,51 +66,28 @@ public namespace Mapper {
         "name": <MapperRuntimeKeyInfo>{
             "desc": "the name of the input field; dot notation accepted",
             "value_type": "string",
-            "conflicting_keys": {
-                "constant": True,
-                "index": True,
-                "runtime": True,
-            },
+            "unique_roles": "value",
         },
         "constant": <MapperRuntimeKeyInfo>{
             "desc": "a constant value for the output field",
             "value_type": "any",
             "requires_field_type": True,
-            "conflicting_keys": {
-                "name": True,
-                "code": True,
-                "default": True,
-                "runtime": True,
-            },
+            "unique_roles": "*",
         },
         "index": <MapperRuntimeKeyInfo>{
             "desc": "the index number of the row",
-            "value_type": "nothing",
-            "conflicting_keys": {
-                "name": True,
-                "code": True,
-                "default": True,
-                "runtime": True,
-            },
+            "value_type": "int",
+            "unique_roles": "*",
+            "returns_type": "int",
         },
         "code": <MapperRuntimeKeyInfo>{
             "desc": "a code block for generating the field output programmatically",
             "value_type": "code",
-            "conflicting_keys": {
-                "constant": True,
-                "index": True,
-                "runtime": True,
-            },
         },
         "default": <MapperRuntimeKeyInfo>{
             "desc": "the default value for the field if no input is provided",
             "value_type": "any",
             "requires_field_type": True,
-            "conflicting_keys": {
-                "constant": True,
-                "index": True,
-                "runtime": True,
-            },
         },
         "trunc": <MapperRuntimeKeyInfo>{
             "desc": "if True and the input is longer than the output field permits, the input will be "
@@ -120,13 +97,11 @@ public namespace Mapper {
         "runtime": <MapperRuntimeKeyInfo>{
             "desc": "the name of the field in the runtime hash where to take the value from",
             "value_type": "string",
-            "conflicting_keys": {
-                "name": True,
-                "constant": True,
-                "code": True,
-                "index": True,
-                "default": True,
-            },
+            "unique_roles": "*",
+        },
+        "type_options": <MapperRuntimeKeyInfo>{
+            "desc": "a hash of type options; this must correspond to option values for the output data type",
+            "value_type": "hash",
         },
     };
 
@@ -146,6 +121,15 @@ public namespace Mapper {
 
         #! If the type of the value for the key must be the same as the field type
         bool requires_field_type = False;
+
+        #! If the key provides some unique functionality
+        /** only one key providing the given functionality can be included in an output field; this is a list so that
+            keys can provide more than one unique function
+        */
+        *softlist<string> unique_roles;
+
+        #! If the key provides a value that returns a specific type
+        *string returns_type;
 
         #! The code to handle the key at runtime
         /** the signature of this closure or call reference depends on \a requires_input:

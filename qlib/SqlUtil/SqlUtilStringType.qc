@@ -61,6 +61,12 @@ public class SqlUtilStringType inherits DataProvider::QoreStringDataTypeBase {
         return name;
     }
 
+    #! returns supported options
+    *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
+        # do not allow the string.encoding value to be overridden
+        return QoreStringDataTypeBase::getSupportedOptions() - "string.encoding";
+    }
+
     #! returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 

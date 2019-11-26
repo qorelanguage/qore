@@ -65,21 +65,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "sequence": <MapperRuntimeKeyInfo>{
                 "desc": "names the DB sequence that will be used to populate the field",
                 "value_type": "string",
-                "conflicting_keys": {
-                    "name": True,
-                    "constant": True,
-                    "sequence_currval": True,
-                },
+                "unique_roles": "*",
+                "returns_type": "int",
             },
             "sequence_currval": <MapperRuntimeKeyInfo>{
                 "desc": "names the DB sequence that will be used to populate the field; the current value of the "
                     "sequence is used; will not increment the sequence",
                 "value_type": "string",
-                "conflicting_keys": {
-                    "name": True,
-                    "constant": True,
-                    "sequence": True,
-                },
+                "unique_roles": "*",
+                "returns_type": "int",
             },
         };
 
