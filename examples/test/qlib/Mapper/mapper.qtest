@@ -379,17 +379,13 @@ public class MapperTest inherits QUnit::Test {
             "runtime_keys": {
                 # test auto cast from hash
                 "context0": {
-                    "conflicting_keys": {
-                        "context1": True,
-                    },
+                    "unique_roles": "context",
                     "handler": auto sub (auto arg) {
                         return arg + "-ctx";
                     },
                 },
                 "context1": <MapperRuntimeKeyInfo>{
-                    "conflicting_keys": {
-                        "context0": True,
-                    },
+                    "unique_roles": "context",
                     "requires_input": True,
                     "value_type": Type::Int,
                     "handler": auto sub (int arg, auto val) {
@@ -397,6 +393,24 @@ public class MapperTest inherits QUnit::Test {
                     },
                 },
             },
+        };
+
+        const TypeMap4 = TypeMap1 + {
+            "output_2": {
+                "name": "input_1",
+                "type_options": {
+                    "string.max_size_chars": 5,
+                },
+            },
+        };
+
+        const TypeOpts4 = TypeOpts1 + {
+            "output": TypeOpts1.output + {
+                "output_2": {
+                    "desc": "output field 2",
+                    "type": "string",
+                },
+            }
         };
     }
 
@@ -443,7 +457,7 @@ public class MapperTest inherits QUnit::Test {
             }, h);
         }
         assertThrows("MAP-ERROR", "context1.*expected type", sub () { Mapper m(TypeMap3, TypeOpts3_1); });
-        assertThrows("MAP-ERROR", "context.*conflict.*key", sub () { Mapper m(TypeMap3_1, TypeOpts3_1); });
+        assertThrows("MAP-ERROR", "key.*role", sub () { Mapper m(TypeMap3_1, TypeOpts3_1); });
         {
             Mapper m(TypeMap3_2, TypeOpts3_1);
             hash<auto> h = m.mapData({"inp0": "input-0", "inp1": "input-1"});
@@ -503,6 +517,12 @@ public class MapperTest inherits QUnit::Test {
             assertEq(<StatInfo>{}, v);
             assertEq("hash<StatInfo>", v.fullType());
             assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"input_0": 1});
+        }
+
+        {
+            Mapper m(TypeMap4, TypeOpts4);
+            assertEq("x", m.mapData({"input_1": "x"}).output_2);
+            assertThrows("STRING-TOO-LONG", \m.mapData(), {"input_1": "123456"});
         }
     }
 

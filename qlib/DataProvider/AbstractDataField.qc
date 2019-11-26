@@ -102,6 +102,15 @@ public class AbstractDataField {
         getType().setOption(opt, value);
     }
 
+    #! sets the given options on the field's type
+    /** @param options a hash of options, if any options match supported options for this type, they are set
+
+        @throw TYPE-OPTION-ERROR option value has an invalid type
+    */
+    setOptions(hash<auto> options) {
+        getType().setOptions(options);
+    }
+
     #! returns the type name
     string getTypeName() {
         return getType().getName();

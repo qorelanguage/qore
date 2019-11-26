@@ -144,6 +144,10 @@ public class SqlTestBase inherits QUnit::Test {
             }
 
             map inserter.queueData($1), insert_data;
+
+            hash<string, hash<MapperRuntimeKeyInfo>> mapper_keys = dp.getInfo().mapper_keys;
+            assertEq(("value",), mapper_keys.name.unique_roles);
+            assertEq(("*",), mapper_keys.constant.unique_roles);
         }
 
         on_exit {

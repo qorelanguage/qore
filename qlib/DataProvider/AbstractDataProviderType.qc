@@ -291,8 +291,12 @@ public class AbstractDataProviderType {
         setOptionIntern(opt, value);
     }
 
-    #! sets options on the type; called in the constructor
-    private setOptions(hash<auto> options) {
+    #! sets options on the type
+    /** @param options the options to set; unsupported options are ignored
+
+        @throw TYPE-OPTION-ERROR invalid option type
+    */
+    setOptions(hash<auto> options) {
         foreach hash<auto> i in (getSupportedOptions().pairIterator()) {
             if (exists (auto value = options{i.key})) {
                 string value_type = value.type();
