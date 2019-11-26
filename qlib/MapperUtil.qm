@@ -101,7 +101,7 @@ public namespace Mapper {
         },
         "type_options": <MapperRuntimeKeyInfo>{
             "desc": "a hash of type options; this must correspond to option values for the output data type",
-            "value_type": "hash",
+            "value_type": "option_hash",
         },
     };
 
