@@ -507,7 +507,10 @@ public namespace Mapper {
             #! map of field keys provided by the "runtime_keys" option
             hash<string, hash<MapperRuntimeKeyInfo>> runtime_keys;
 
-            #! hash of runtime keys that provide independent mappings (where their "requires_input" values are False)
+            #! subset of runtime_keys with handlers
+            hash<string, hash<auto>> runtime_keys_with_handler;
+
+            #! hash of runtime keys that provide independent mappings (where there is no "requires_role" = "value")
             hash<string, hash<MapperRuntimeKeyInfo>> runtime_independent_keys;
 
             #! hash of valid keys
@@ -913,8 +916,15 @@ Mapper mapv(DataMap);
                         }
                     }
                     runtime_keys{i.key} = i.value;
-                    if (!i.value.requires_input) {
+                    # check required roles
+                    *hash<string, bool> role_hash = map {$1: True}, i.value.requires_roles;
+                    if (!role_hash.value) {
                         runtime_independent_keys{i.key} = i.value;
+                    }
+                    if (i.value.handler) {
+                        runtime_keys_with_handler{i.key} = i.value + {
+                            "requires_roles": role_hash,
+                        };
                     }
                 }
             }
@@ -1127,10 +1137,9 @@ Mapper mapv(DataMap);
             # check valid keys
             {
                 hash<string, bool> all_valid_keys = valid_keys;
-                if (runtime_keys) {
-                    map all_valid_keys{$1} = True, keys runtime_keys;
-                }
-                *hash<auto> invalid_keys = fh - (keys all_valid_keys) - "field";
+                # add runtime keys, if any
+                map all_valid_keys{$1} = True, keys runtime_keys;
+                *hash<auto> invalid_keys = fh - (keys all_valid_keys);
                 if (invalid_keys) {
                     error("output field %y in map hash contains unknown key%s %y (valid keys: %y)",
                         getFieldName(k), invalid_keys.size() == 1 ? "" : "s", keys invalid_keys, keys all_valid_keys);
@@ -1769,12 +1778,11 @@ Mapper mapv(DataMap);
                 v = v_is_list ? (map mapSubclass(m, $1), v) : mapSubclass(m, v);
 
             # process any runtime keys if present in the current field mapping
-            if (*hash<string, hash<MapperRuntimeKeyInfo>> current_runtime_keys = runtime_keys{keys m}) {
-                map v = $1.value.requires_input
+            if (*hash<string, hash<auto>> current_runtime_keys = runtime_keys_with_handler{keys m}) {
+                map v = $1.value.requires_roles.value
                     ? $1.value.handler(m{$1.key}, v)
                     : $1.value.handler(m{$1.key}),
-                    current_runtime_keys.pairIterator(),
-                    $1.value.handler;
+                    current_runtime_keys.pairIterator();
             }
 
             # execute any field filter if necessary

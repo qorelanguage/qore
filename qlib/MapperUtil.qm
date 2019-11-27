@@ -116,9 +116,6 @@ public namespace Mapper {
         #! Hash of conflicting keys, if any
         *hash<string, bool> conflicting_keys;
 
-        #! If the key requires in input field for the mapping
-        bool requires_input = False;
-
         #! If the type of the value for the key must be the same as the field type
         bool requires_field_type = False;
 
@@ -128,16 +125,19 @@ public namespace Mapper {
         */
         *softlist<string> unique_roles;
 
+        #! If the key can only be used if one or more other keys supplying the given roles are also present
+        *softlist<string> requires_roles;
+
         #! If the key provides a value that returns a specific type
         *string returns_type;
 
         #! The code to handle the key at runtime
         /** the signature of this closure or call reference depends on \a requires_input:
-            - \a requires_input == True: <tt>auto sub (auto arg, auto val) {}</tt>
+            - \a requires_roles contains \a value: <tt>auto sub (auto arg, auto val) {}</tt>
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
                 - \c val: the current value of the mapping, if any
-            - \a requires_input == False: <tt>auto sub (auto arg) {}</tt>
+            - \a requires_roles does not contain \a value: <tt>auto sub (auto arg) {}</tt>
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
 
