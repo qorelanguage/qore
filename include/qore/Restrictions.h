@@ -93,6 +93,7 @@
 #define PO_NO_REFLECTION                    (1LL << 53)  //!< disallow the use of reflection
 #define PO_NO_TRANSIENT                     (1LL << 54)  //!< disables the transient keyword
 #define PO_BROKEN_SPRINTF                   (1LL << 55)  //!< enables pre-0.9 broken sprintf handling
+#define PO_BROKEN_CAST                      (1LL << 56)  //!< enables pre-0.9.4 broken cast<> operator handling
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
