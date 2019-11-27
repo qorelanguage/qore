@@ -346,7 +346,7 @@ public class MapperTest inherits QUnit::Test {
                     },
                 },
                 "context1": <MapperRuntimeKeyInfo>{
-                    "requires_input": True,
+                    "requires_roles": "value",
                     "handler": auto sub (auto arg, auto val) {
                         return val + "-" + arg + "-ctx";
                     },
@@ -386,7 +386,7 @@ public class MapperTest inherits QUnit::Test {
                 },
                 "context1": <MapperRuntimeKeyInfo>{
                     "unique_roles": "context",
-                    "requires_input": True,
+                    "requires_roles": "value",
                     "value_type": Type::Int,
                     "handler": auto sub (int arg, auto val) {
                         return val + "-" + arg + "-ctx";
