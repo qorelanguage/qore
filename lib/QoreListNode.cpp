@@ -130,8 +130,7 @@ void qore_list_private::parseCheckComplexListInitialization(const QoreProgramLoc
         if (!QoreTypeInfo::parseAccepts(typeInfo, vti2))
             parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'", context_action, QoreTypeInfo::getName(typeInfo),
             QoreTypeInfo::getName(vti2));
-    }
-    else
+    } else
         parseCheckTypedAssignment(loc, exp, typeInfo, context_action, strict_check);
 }
 
@@ -216,8 +215,8 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
                 }
             }
         }
-    }
-    else if (init.getType() == NT_NOTHING) {
+    } else if (init.getType() == NT_NOTHING) {
+        // throw an exception if the type
         holder = init = l = new QoreListNode(autoTypeInfo);
     } else {
         const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);

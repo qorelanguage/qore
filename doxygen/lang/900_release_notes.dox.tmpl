@@ -12,6 +12,9 @@
       \c RestHandler::getPossibleSubClasses() to \c RestHandler::doGetPossibleSubClasses() in order to avoid a
       collision with a REST method name
       (<a href="https://github.com/qorelanguage/qore/issues/3614">issue 3614</a>)
+    - fixed broken @ref cast "cast<>" operator handling; in previous releases, @ref cast "cast<>" would accept and
+      return @ref nothing without raising an error.  To get the old behavior, use the @ref broken-cast "%broken-cast"
+      parse directive.
 
     @subsection qore_094_new_features New Features in Qore
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module"

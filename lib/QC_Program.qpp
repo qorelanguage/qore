@@ -719,6 +719,13 @@ const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
     @since %Qore 0.9
 */
 const PO_BROKEN_SPRINTF = PO_BROKEN_SPRINTF;
+
+//! allows for old pre-%Qore 0.9.4 broken @ref cast "cast<>" operator behavior where @ref nothing was silently accepted
+/** @see @ref broken-cast "%broken-cast"
+
+    @since %Qore 0.9.4
+*/
+const PO_BROKEN_CAST = PO_BROKEN_CAST;
 //@}
 
 /** @defgroup warning_constants Warning Constants

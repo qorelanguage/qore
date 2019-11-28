@@ -2322,7 +2322,9 @@ public class OperationObject inherits ObjectBase {
                 if (!ValidSchemesHash{val})
                     error("INVALID-FIELD-VALUE", "invalid operation transfer protocol scheme value %y; expecting one of: %y", val, keys ValidSchemesHash);
             }
-            schemes = cast<list<string>>(schemesList);
+            if (schemesList) {
+                schemes = cast<list<string>>(schemesList);
+            }
         }
 
         {
@@ -2343,7 +2345,9 @@ public class OperationObject inherits ObjectBase {
                                 val.type());
                 }
             }
-            security = cast<list<hash<string, list<string>>>>(securityList);
+            if (securityList) {
+                security = cast<list<hash<string, list<string>>>>(securityList);
+            }
         }
     }
 
