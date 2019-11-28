@@ -62,6 +62,36 @@ public class ListTest inherits QUnit::Test {
             assertEq(("b", "c"), p.callFunction("t"));
         }
         {
+            list l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            list<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            list<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
             *list l;
             l += 1;
             assertEq((1,), l);
