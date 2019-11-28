@@ -55,9 +55,9 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
     parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
     //printd(5, "QoreParseCastOperatorNode::parseInitImp() this: %p exp: %s\n", this, exp.getFullTypeName());
 
-    // issue #3331: ignore nothing if broken-cast is in effect
-    bool broken_cast = getProgram()->getParseOptions64() & PO_BROKEN_CAST;
-    if (!exp && broken_cast) {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    bool or_nothing = (pti->or_nothing || (getProgram()->getParseOptions64() & PO_BROKEN_CAST));
+    if (!exp && or_nothing) {
         ReferenceHolder<> holder(this, nullptr);
         val = QoreValue();
         return;
@@ -65,52 +65,54 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
     // check special cases
     if (pti->cscope->size() == 1 && pti->subtypes.empty()) {
+        const char* type_str = pti->cscope->ostr;
         // check special case of cast<object>(...)
-        if (!strcmp(pti->cscope->ostr, "object")) {
-            // if the class is "object", then set qc = 0 to use as a catch-all and generic "cast to object"
+        if (!strcmp(type_str, "object")) {
+            // if the class is "object", then set qc = nullptr to use as a catch-all and generic "cast to object"
             if (QoreTypeInfo::parseReturns(typeInfo, NT_OBJECT) == QTI_NOT_EQUAL) {
-                // issue #3331: ignore nothing if broken-cast is in effect
-                if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
-                    parse_error(*loc, "cast<object>(%s) is invalid; cannot cast from %s to object", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                    parse_error(*loc, "cast<object>(%s) is invalid; cannot cast from %s to object",
+                        QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(typeInfo));
                 }
             }
             typeInfo = objectTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp(), or_nothing);
             }
             // parse exception already raised; current expression invalid
             return;
         }
         // check special case of cast<hash>(...)
-        if (!strcmp(pti->cscope->ostr, "hash")) {
+        if (!strcmp(type_str, "hash")) {
             if (QoreTypeInfo::parseReturns(expTypeInfo, NT_HASH) == QTI_NOT_EQUAL) {
-                // issue #3331: ignore nothing if broken-cast is in effect
-                if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
                     parse_error(*loc, "cast<hash>(%s) is invalid; cannot cast from %s to hash", QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo));
                 }
             }
             typeInfo = hashTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreHashDeclCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreHashDeclCastOperatorNode(loc, nullptr, takeExp(), or_nothing);
             }
             // parse exception already raised; current expression invalid
             return;
         }
         // check special case of cast<list>(...)
-        if (!strcmp(pti->cscope->ostr, "list")) {
+        if (!strcmp(type_str, "list")) {
             // check if expression can return a list
             if (QoreTypeInfo::parseReturns(expTypeInfo, NT_LIST) == QTI_NOT_EQUAL) {
-                // issue #3331: ignore nothing if broken-cast is in effect
-                if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
                     parse_error(*loc, "cast<list>(%s) is invalid; cannot cast from %s to list", QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo));
                 }
             }
             typeInfo = listTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreComplexListCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreComplexListCastOperatorNode(loc, nullptr, takeExp(), or_nothing);
             }
             // parse exception already raised; current expression invalid
             return;
@@ -121,25 +123,29 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
     pti = nullptr;
 
     {
-        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+        const QoreClass* qc = or_nothing
+            ? QoreTypeInfo::getReturnClass(typeInfo)
+            : QoreTypeInfo::getUniqueReturnClass(typeInfo);
         if (qc) {
-            // issue #3331: ignore nothing if broken-cast is in effect
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
             if ((QoreTypeInfo::parseReturns(expTypeInfo, qc) == QTI_NOT_EQUAL) &&
-                (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL)) {
+                (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL)) {
                 parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s",
                     QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo),
                     QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
             } else {
                 assert(exp);
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp(), or_nothing);
             }
             return;
         }
     }
 
     {
-        const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+        const TypedHashDecl* hd = or_nothing
+            ? QoreTypeInfo::getTypedHash(typeInfo)
+            : QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
         if (hd) {
             const_cast<typed_hash_decl_private*>(typed_hash_decl_private::get(*hd))->parseInit();
 
@@ -148,8 +154,8 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
             qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_HASH);
             if (r == QTI_NOT_EQUAL) {
-                // issue #3331: ignore nothing if broken-cast is in effect
-                if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
                     parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to (hashdecl) %s", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
                     return;
                 }
@@ -158,22 +164,24 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
             typeInfo = hd->getTypeInfo();
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreHashDeclCastOperatorNode(loc, hd, takeExp());
+                val = new QoreHashDeclCastOperatorNode(loc, hd, takeExp(), or_nothing);
                 return;
             }
         }
     }
 
     {
-        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+        const QoreTypeInfo* ti = or_nothing
+            ? QoreTypeInfo::getComplexHashValueType(typeInfo)
+            : QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
         if (ti) {
             // check for cast<> compatibility
             qore_hash_private::parseCheckComplexHashInitialization(loc, ti, expTypeInfo, exp, "cast to", false);
 
             qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_HASH);
             if (r == QTI_NOT_EQUAL) {
-                // issue #3331: ignore nothing if broken-cast is in effect
-                if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
                     parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to hash<string, %s>", QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(ti));
                     return;
                 }
@@ -181,14 +189,16 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreComplexHashCastOperatorNode(loc, typeInfo, takeExp());
+                val = new QoreComplexHashCastOperatorNode(loc, typeInfo, takeExp(), or_nothing);
                 return;
             }
         }
     }
 
     {
-        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+        const QoreTypeInfo* ti = or_nothing
+            ? QoreTypeInfo::getComplexListValueType(typeInfo)
+            : QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
         if (ti) {
             // check for cast<> compatibility
             qore_list_private::parseCheckComplexListInitialization(loc, ti, expTypeInfo, exp, "cast to", false);
@@ -197,8 +207,8 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
             if (!QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo)) {
                 qore_type_result_e r = QoreTypeInfo::parseReturns(expTypeInfo, NT_LIST);
                 if (r == QTI_NOT_EQUAL) {
-                    // issue #3331: ignore nothing if broken-cast is in effect
-                    if (!broken_cast || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
+                    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+                    if (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL) {
                         parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s",
                             QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo),
                             QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
@@ -209,7 +219,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
 
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreComplexListCastOperatorNode(loc, typeInfo, takeExp());
+                val = new QoreComplexListCastOperatorNode(loc, typeInfo, takeExp(), or_nothing);
                 return;
             }
         }
@@ -223,8 +233,8 @@ QoreValue QoreClassCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* 
     if (*xsink)
         return QoreValue();
 
-    // issue #3331: ignore nothing if broken-cast is in effect
-    if (rv->isNothing() && (getProgram()->getParseOptions64() & PO_BROKEN_CAST)) {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing() && or_nothing) {
         return QoreValue();
     }
 
@@ -257,8 +267,8 @@ QoreValue QoreHashDeclCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSin
     if (*xsink)
         return QoreValue();
 
-    // issue #3331: ignore nothing if broken-cast is in effect
-    if (rv->isNothing() && (getProgram()->getParseOptions64() & PO_BROKEN_CAST)) {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing() && or_nothing) {
         return QoreValue();
     }
 
@@ -295,8 +305,8 @@ QoreValue QoreComplexHashCastOperatorNode::evalImpl(bool& needs_deref, Exception
     if (*xsink)
         return QoreValue();
 
-    // issue #3331: ignore nothing if broken-cast is in effect
-    if (rv->isNothing() && (getProgram()->getParseOptions64() & PO_BROKEN_CAST)) {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing() && or_nothing) {
         return QoreValue();
     }
 
@@ -315,8 +325,8 @@ QoreValue QoreComplexListCastOperatorNode::evalImpl(bool& needs_deref, Exception
     if (*xsink)
         return QoreValue();
 
-    // issue #3331: ignore nothing if broken-cast is in effect
-    if (rv->isNothing() && (getProgram()->getParseOptions64() & PO_BROKEN_CAST)) {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing() && or_nothing) {
         return QoreValue();
     }
 

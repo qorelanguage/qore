@@ -33,6 +33,7 @@ class CastingTest inherits QUnit::Test {
         }
 
         assertEq("hash<StatInfo>", cast<hash<StatInfo>>({}).fullType());
+        assertEq("nothing", cast<*hash<StatInfo>>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -42,7 +43,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *hash h; auto x = cast<*hash<StatInfo>>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<hash<StatInfo>>(*hash h); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash<StatInfo>>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -51,8 +64,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash<StatInfo>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *hash h; auto x = cast<hash<StatInfo>>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *hash h; auto x = cast<*hash<StatInfo>>(h); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -64,11 +89,24 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash<StatInfo>>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<hash<StatInfo>>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash<StatInfo>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
         assertEq("hash<string, int>", cast<hash<string, int>>({}).fullType());
+        assertEq("nothing", cast<*hash<string, int>>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -78,7 +116,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *hash h; auto x = cast<*hash<string, int>>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<hash<string, int>>(*hash h); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash<string, int>>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -87,8 +137,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash<string, int>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *hash h; auto x = cast<hash<string, int>>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *hash h; auto x = cast<*hash<string, int>>(h); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -100,11 +162,24 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash<string, int>>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<hash<string, int>>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash<string, int>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
         assertEq("hash", cast<hash>({}).fullType());
+        assertEq("nothing", cast<*hash>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -114,7 +189,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *hash h; auto x = cast<*hash>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<hash>(*hash h); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -123,8 +210,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*hash>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *hash h; auto x = cast<hash>(h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *hash h; auto x = cast<*hash>(h); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -136,11 +235,24 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash>(*hash h); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<hash>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*hash>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
         assertEq("object<Mutex>", cast<Mutex>(new Mutex()).fullType());
+        assertEq("nothing", cast<*Mutex>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -150,7 +262,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *Mutex m; auto x = cast<*Mutex>(m); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<Mutex>(*Mutex m); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*Mutex>(*Mutex m); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -159,8 +283,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*Mutex>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *Mutex m; auto x = cast<Mutex>(m); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *Mutex m; auto x = cast<*Mutex>(m); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -172,11 +308,24 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*Mutex>(*Mutex m); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<Mutex>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*Mutex>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
         assertEq("list<int>", cast<list<int>>(()).fullType());
+        assertEq("nothing", cast<*list<int>>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -186,7 +335,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *list l; auto x = cast<*list<int>>(l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<list<int>>(*list l); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*list<int>>(*list l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -195,8 +356,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*list<int>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *list l; auto x = cast<list<int>>(l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *list l; auto x = cast<*list<int>>(l); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -208,11 +381,24 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*list<int>>(*list l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<list<int>>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*list<int>>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
         assertEq("list", cast<list>(()).fullType());
+        assertEq("nothing", cast<*list>(NOTHING).fullType());
 
         {
             Program p(PO_NEW_STYLE);
@@ -222,7 +408,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { *list l; auto x = cast<*list>(l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("sub t() { auto x = cast<list>(*list l); remove x; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*list>(*list l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
         }
 
         {
@@ -231,8 +429,20 @@ class CastingTest inherits QUnit::Test {
         }
 
         {
+            Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<*list>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { *list l; auto x = cast<list>(l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { *list l; auto x = cast<*list>(l); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
 
@@ -244,7 +454,19 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*list>(*list l); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
             p.parse("sub t() { auto x = cast<list>(NOTHING); remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_CAST);
+            p.parse("sub t() { auto x = cast<*list>(NOTHING); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }
     }
