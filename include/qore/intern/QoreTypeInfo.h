@@ -831,7 +831,7 @@ public:
         return false;
     }
 
-    // returns true if ti could return a complex type
+    //! returns true if ti could return a complex type
     DLLLOCAL static bool isComplex(const QoreTypeInfo* ti) {
         if (!ti)
             return false;
@@ -840,6 +840,14 @@ public:
                 return true;
         }
         return false;
+    }
+
+    //! returns true if the type is an explicit list type
+    DLLLOCAL static bool isListType(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return false;
+        }
+        return ti->return_vec[0].spec.getType() == NT_LIST;
     }
 
     //! returns the element type, if any (nullptr if not applicable)
