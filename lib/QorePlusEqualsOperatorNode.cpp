@@ -51,8 +51,7 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
                 QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
             }
         }
-    }
-    else if (!QoreTypeInfo::isType(ti, NT_LIST)
+    } else if (!QoreTypeInfo::isType(ti, NT_LIST)
         && !QoreTypeInfo::isType(ti, NT_HASH)
         && !QoreTypeInfo::isType(ti, NT_OBJECT)
         && !QoreTypeInfo::isType(ti, NT_STRING)
@@ -104,6 +103,12 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo), "<lvalue for += operator>"))
                 return QoreValue();
             vtype = v.getType();
+        } else if (QoreTypeInfo::isListType(typeInfo)) {
+            // issue #3586: automatically promote lvalue to correctly-typed empty list for "*list..." types
+            if (v.assign(new QoreListNode(QoreTypeInfo::getReturnComplexListOrNothing(typeInfo)), "<lvalue for += operator>")) {
+                return QoreValue();
+            }
+            vtype = v.getType();
         } else {
             if (!new_right->isNothing()) {
                 // assign rhs to lhs (take reference for plusequals)
@@ -123,24 +128,21 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
         else
             l->push(new_right.takeReferencedValue(), xsink);
-    } // do hash plus-equals if left side is a hash
-    else if (vtype == NT_HASH) {
+    } else if (vtype == NT_HASH) {
+        // do hash plus-equals if left side is a hash
         if (new_right->getType() == NT_HASH) {
             v.ensureUnique();
             v.getValue().get<QoreHashNode>()->merge(new_right->get<const QoreHashNode>(), xsink);
-        }
-        else if (new_right->getType() == NT_OBJECT) {
+        } else if (new_right->getType() == NT_OBJECT) {
             v.ensureUnique();
             qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), xsink);
         }
-    }
-    // do hash/object plus-equals if left side is an object
-    else if (vtype == NT_OBJECT) {
+    } else if (vtype == NT_OBJECT) {
+        // do hash/object plus-equals if left side is an object
         QoreObject* o = v.getValue().get<QoreObject>();
         qore_object_private::plusEquals(o, new_right->getInternalNode(), v.getAutoVLock(), xsink);
-    }
-    // do string plus-equals if left-hand side is a string
-    else if (vtype == NT_STRING) {
+    } else if (vtype == NT_STRING) {
+        // do string plus-equals if left-hand side is a string
         if (!new_right->isNullOrNothing()) {
             QoreStringValueHelper str(*new_right);
 

@@ -61,6 +61,66 @@ public class ListTest inherits QUnit::Test {
             p.parse("list sub t() {string line = 'a+b,c'; any x; x = (line =~ x/(.)\\+(.*)/); x[1] = split(',', x[1]); return x[1];}", "");
             assertEq(("b", "c"), p.callFunction("t"));
         }
+        {
+            list l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            list<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            list<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            softlist<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *list l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *list<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *list<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *softlist l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *softlist<auto> l;
+            l += 1;
+            assertEq((1,), l);
+        }
+        {
+            *softlist<int> l;
+            l += 1;
+            assertEq((1,), l);
+        }
     }
 
     int test(list<int> l1, list<string> l2) {
