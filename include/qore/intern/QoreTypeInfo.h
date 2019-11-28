@@ -1275,174 +1275,174 @@ typedef std::vector<QoreParseTypeInfo*> parse_type_vec_t;
 // this is basically just a wrapper around NamedScope
 class QoreParseTypeInfo {
 protected:
-   bool or_nothing;
-   std::string tname;
+    std::string tname;
 
-   DLLLOCAL QoreParseTypeInfo(const NamedScope* n_cscope) : or_nothing(false), cscope(n_cscope->copy()) {
-      setName();
-   }
+    DLLLOCAL QoreParseTypeInfo(const NamedScope* n_cscope) : cscope(n_cscope->copy()), or_nothing(false) {
+        setName();
+    }
 
-   DLLLOCAL void setName() {
-      if (or_nothing)
-         tname = "*";
-      tname += cscope->getIdentifier();
-      if (!subtypes.empty()) {
-         tname += '<';
-         tname += subtypes[0]->getName();
-         for (unsigned i = 1; i < subtypes.size(); ++i) {
-            tname += ", ";
-            tname += subtypes[i]->getName();
-         }
-         tname += '>';
-      }
-   }
+    DLLLOCAL void setName() {
+        if (or_nothing)
+            tname = "*";
+        tname += cscope->getIdentifier();
+        if (!subtypes.empty()) {
+            tname += '<';
+            tname += subtypes[0]->getName();
+            for (unsigned i = 1; i < subtypes.size(); ++i) {
+                tname += ", ";
+                tname += subtypes[i]->getName();
+            }
+            tname += '>';
+        }
+    }
 
 public:
-   NamedScope* cscope; // namespace scope for class
-   parse_type_vec_t subtypes;
+    NamedScope* cscope; // namespace scope for class
+    parse_type_vec_t subtypes;
+    bool or_nothing;
 
-   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)) {
-      setName();
-      //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
-   }
+    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : cscope(new NamedScope(n_cscope)), or_nothing(n_or_nothing) {
+        setName();
+        //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
+    }
 
-   DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing, parse_type_vec_t&& subtypes) : or_nothing(n_or_nothing), cscope(new NamedScope(n_cscope)), subtypes(subtypes) {
-      setName();
+    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing, parse_type_vec_t&& subtypes) : cscope(new NamedScope(n_cscope)), subtypes(subtypes), or_nothing(n_or_nothing) {
+        setName();
 
-      //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
-   }
+        //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
+    }
 
-   DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : or_nothing(old.or_nothing), tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr) {
-      // copy subtypes
-      for (const auto& i : old.subtypes)
-         subtypes.push_back(new QoreParseTypeInfo(*i));
-   }
+    DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr), or_nothing(old.or_nothing) {
+        // copy subtypes
+        for (const auto& i : old.subtypes)
+            subtypes.push_back(new QoreParseTypeInfo(*i));
+    }
 
-   DLLLOCAL ~QoreParseTypeInfo() {
-      delete cscope;
-      for (auto& i : subtypes)
-         delete i;
-   }
+    DLLLOCAL ~QoreParseTypeInfo() {
+        delete cscope;
+        for (auto& i : subtypes)
+            delete i;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool parseStageOneIdenticalWithParsed(const QoreParseTypeInfo* pti, const QoreTypeInfo* typeInfo, bool& recheck) {
-      if (pti && typeInfo)
-         return pti->parseStageOneIdenticalWithParsed(typeInfo, recheck);
-      else if (pti)
-         return false;
-      else if (typeInfo)
-         return false;
-      else
-         return true;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool parseStageOneIdenticalWithParsed(const QoreParseTypeInfo* pti, const QoreTypeInfo* typeInfo, bool& recheck) {
+        if (pti && typeInfo)
+            return pti->parseStageOneIdenticalWithParsed(typeInfo, recheck);
+        else if (pti)
+            return false;
+        else if (typeInfo)
+            return false;
+        else
+            return true;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo) {
-      if (pti && typeInfo)
-         return pti->parseStageOneIdentical(typeInfo);
-      else
-         return !(pti || typeInfo);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo) {
+        if (pti && typeInfo)
+            return pti->parseStageOneIdentical(typeInfo);
+        else
+            return !(pti || typeInfo);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-      return pti ? pti->resolveAndDelete(loc) : nullptr;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
+        return pti ? pti->resolveAndDelete(loc) : nullptr;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-      return pti ? pti->resolve(loc) : nullptr;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
+        return pti ? pti->resolve(loc) : nullptr;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-      return pti ? pti->resolveAny(loc) : nullptr;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
+        return pti ? pti->resolveAny(loc) : nullptr;
+    }
 
-   DLLLOCAL static const QoreTypeInfo* resolveRuntime(QoreParseTypeInfo* pti) {
-      return pti ? pti->resolveRuntime() : nullptr;
-   }
+    DLLLOCAL static const QoreTypeInfo* resolveRuntime(QoreParseTypeInfo* pti) {
+        return pti ? pti->resolveRuntime() : nullptr;
+    }
 
 #ifdef DEBUG
-   DLLLOCAL const char* getCID() const { return cscope ? cscope->getIdentifier() : "n/a"; }
+    DLLLOCAL const char* getCID() const { return cscope ? cscope->getIdentifier() : "n/a"; }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const char* getCID(const QoreParseTypeInfo* pti) { return pti ? pti->getCID() : "n/a"; }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const char* getCID(const QoreParseTypeInfo* pti) { return pti ? pti->getCID() : "n/a"; }
 #endif
 
-   DLLLOCAL QoreParseTypeInfo* copy() const {
-      return new QoreParseTypeInfo(cscope);
-   }
+    DLLLOCAL QoreParseTypeInfo* copy() const {
+        return new QoreParseTypeInfo(cscope);
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static const char* getName(const QoreParseTypeInfo* pti) {
-      return pti ? pti->getName() : NO_TYPE_INFO;
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static const char* getName(const QoreParseTypeInfo* pti) {
+        return pti ? pti->getName() : NO_TYPE_INFO;
+    }
 
-   // static version of method, checking for null pointer
-   DLLLOCAL static void concatName(const QoreParseTypeInfo* pti, std::string& str) {
-      if (pti)
-         pti->concatName(str);
-      else
-         str.append(NO_TYPE_INFO);
-   }
+    // static version of method, checking for null pointer
+    DLLLOCAL static void concatName(const QoreParseTypeInfo* pti, std::string& str) {
+        if (pti)
+            pti->concatName(str);
+        else
+            str.append(NO_TYPE_INFO);
+    }
 
 private:
-   // used when parsing user code to find duplicate signatures
-   DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo* typeInfo, bool& recheck) const {
-      if (!typeInfo)
-         return false;
-
-      const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
-      if (!qc) {
-         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
-         if (!hd) {
-            const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
-            if (!ti) {
-               return false;
-            }
-            if (subtypes.size() == 2 && !strcmp(cscope->getIdentifier(), "hash"))
-               return recheck = true;
+    // used when parsing user code to find duplicate signatures
+    DLLLOCAL bool parseStageOneIdenticalWithParsed(const QoreTypeInfo* typeInfo, bool& recheck) const {
+        if (!typeInfo)
             return false;
-         }
-         if (subtypes.size() == 1 && !strcmp(cscope->getIdentifier(), "hash"))
+
+        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+        if (!qc) {
+            const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+            if (!hd) {
+                const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+                if (!ti) {
+                    return false;
+                }
+                if (subtypes.size() == 2 && !strcmp(cscope->getIdentifier(), "hash"))
+                    return recheck = true;
+                return false;
+            }
+            if (subtypes.size() == 1 && !strcmp(cscope->getIdentifier(), "hash"))
+                return recheck = true;
+            return false;
+        }
+
+        // both have class info
+        if (!strcmp(cscope->getIdentifier(), qc->getName()))
             return recheck = true;
-         return false;
-      }
+        return false;
+    }
 
-      // both have class info
-      if (!strcmp(cscope->getIdentifier(), qc->getName()))
-         return recheck = true;
-      return false;
-   }
+    // used when parsing user code to find duplicate signatures
+    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
+        return tname == typeInfo->tname;
+    }
 
-   // used when parsing user code to find duplicate signatures
-   DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
-      return tname == typeInfo->tname;
-   }
+    // resolves complex types (classes, hashdecls, etc)
+    DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc) const;
+    // also resolves base types
+    DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc) const;
+    // resolves the current type to an QoreTypeInfo pointer and deletes itself
+    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc);
+    DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc) const;
 
-   // resolves complex types (classes, hashdecls, etc)
-   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc) const;
-   // also resolves base types
-   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc) const;
-   // resolves the current type to an QoreTypeInfo pointer and deletes itself
-   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc);
-   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc) const;
+    DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
+    DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
+    DLLLOCAL static const QoreTypeInfo* resolveRuntimeClass(const NamedScope& cscope, bool or_nothing);
 
-   DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
-   DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
-   DLLLOCAL static const QoreTypeInfo* resolveRuntimeClass(const NamedScope& cscope, bool or_nothing);
+    DLLLOCAL const char* getName() const {
+        return tname.c_str();
+    }
 
-   DLLLOCAL const char* getName() const {
-      return tname.c_str();
-   }
+    DLLLOCAL void concatName(std::string& str) const {
+        assert(!tname.empty());
+        str.append(tname);
+    }
 
-   DLLLOCAL void concatName(std::string& str) const {
-      assert(!tname.empty());
-      str.append(tname);
-   }
-
-   DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing);
+    DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing);
 };
 
 class QoreAnyTypeInfo : public QoreTypeInfo {

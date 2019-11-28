@@ -50,6 +50,9 @@
     - <string>::split(string, string, bool) and Qore::split(string, string, string, bool) now properly handle double
       quote characters as an alternative way to include quotes in fields
       (<a href="https://github.com/qorelanguage/qore/issues/3550">issue 3550</a>)
+    - the @ref cast "cast<>" operator can now cast directly to "or nothing" types: ex:
+      @code{.py} *list<int> l = cast<*list<int>>(getList()); @endcode
+      (<a href="https://github.com/qorelanguage/qore/issues/3331">issue 3331</a>)
 
     @section qore_0932 Qore 0.9.3.2
 

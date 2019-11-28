@@ -1705,6 +1705,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
 %token <string> QORE_CAST "cast operator"
+%token <string> QORE_OR_NOTHING_CAST "cast operator"
 %token <string> CLASS_STRING "simple class declaration"
 %token <datetime> DATETIME "date/time value"
 %token <String> QUOTED_WORD "quoted string"
@@ -1746,7 +1747,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left UPLUS           // unary plus, defined for precedence
 %right '~' '\\'               // binary not, reference operator
 %left '!'                     // logical not
-%right TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST
+%right TOK_BACKGROUND TOK_DELETE TOK_REMOVE QORE_CAST QORE_OR_NOTHING_CAST
 %nonassoc TOK_NEW
 %nonassoc P_INCREMENT P_DECREMENT
 %left '{' '[' '.' '(' DOT_KW_IDENTIFIER  // list and object references, etc, defined for precedence
@@ -1818,7 +1819,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
  // destructor actions for elements that need deleting when parse errors occur
 %destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 transient_member transient_member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { qore_class_private::get(*$$)->deref(true, true); } class_attributes
-%destructor { free($$); } IDENTIFIER ANGLE_IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen HASHDECL_IDENTIFIER_OPENCURLY
+%destructor { free($$); } IDENTIFIER ANGLE_IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST QORE_OR_NOTHING_CAST CLASS_STRING optname ident_openparen HASHDECL_IDENTIFIER_OPENCURLY
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER hashdecl_attrs list list_n
 %destructor { if ($$) $$->deref(nullptr); } immediate_typed_hash
 %destructor { $$.discard(nullptr); } scalar exp exp_n exp_c myexp
@@ -3839,6 +3840,10 @@ exp_c:
         | QORE_CAST '(' exp ')' {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @4.last_line);
             $$.set(new QoreParseCastOperatorNode(loc, ParserTypeStruct::getParseType(loc, $1, false), $3));
+        }
+        | QORE_OR_NOTHING_CAST '(' exp ')' {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @4.last_line);
+            $$.set(new QoreParseCastOperatorNode(loc, ParserTypeStruct::getParseType(loc, $1, true), $3));
         }
         ;
 
