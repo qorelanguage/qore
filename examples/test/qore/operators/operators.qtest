@@ -123,7 +123,7 @@ class Test inherits QUnit::Test {
         {
             *list l0;
             *list l1;
-            assertThrows("RUNTIME-TYPE-ERROR", sub () { l0 += 1; });
+            assertEq((1,), l0 += 1);
             # issue #3317: push always operates on lists, so if the lvalue is not assigned and can accept a list, then
             # a list is created
             push l1, 1;
