@@ -346,6 +346,8 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_3_1 RestHandler v1.3.1
+    - fixed a bug handling exceptions in REST methods with unserializable exception data
+      (<a href="https://github.com/qorelanguage/qore/issues/3667">issue 3667</a>)
     - renamed \c RestHandler::getPossibleSubClasses() to
       @ref RestHandler::RestHandler::doGetPossibleSubClasses() "RestHandler::doGetPossibleSubClasses()" in order to
       avoid a collision with a REST method name
@@ -1352,10 +1354,33 @@ public namespace RestHandler {
         */
         private hash<HttpHandlerResponseInfo> returnRestException(hash<ExceptionInfo> ex) {
             # if there is an exception, by default return a 409 Conflict error to the client with the exception information
+            # issue #3667: ensure that the exception argument is serializable
+            checkExceptionSerializable(\ex);
             return <HttpHandlerResponseInfo>{
                 "code": 409,
                 "body": ex,
             };
+        }
+
+        #! Recursively ensure that exception arguments are serializable
+        private checkExceptionSerializable(reference<hash<ExceptionInfo>> ex) {
+            if (ex.arg.typeCode() == NT_OBJECT && !(ex.arg instanceof Serializable)) {
+                string new_arg;
+                if (ex.arg.hasCallableMethod("toString")) {
+                    try {
+                        new_arg = sprintf("unserializable arg.toString(): %s", ex.arg.toString());
+                    } catch (hash<ExceptionInfo> ex1) {
+                    }
+                }
+                if (!exists new_arg) {
+                    new_arg = sprintf("unserializable arg: %y", ex.arg);
+                }
+                ex.arg = new_arg;
+            } else {
+                if (ex.arg.ex instanceof hash<ExceptionInfo>) {
+                    checkExceptionSerializable(\ex.arg.ex);
+                }
+            }
         }
 
         #! default get handler for the base handler class
