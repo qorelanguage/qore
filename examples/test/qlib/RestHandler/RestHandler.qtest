@@ -39,7 +39,7 @@ class MyStaticRestClass inherits AbstractRestClass {
         return "static";
     }
 
-    hash get(hash<auto> cx, *hash<auto> ah) {
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, "static");
     }
 }
@@ -53,24 +53,29 @@ class TestRestClass inherits AbstractRestClass {
         return "test";
     }
 
-    hash getAction(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> getAction(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, exists ah.action);
     }
 
-    hash getEcho(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> getEcho(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
 
-    hash getEchoArgs(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> getEchoArgs(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, ah);
     }
 
-    hash putEcho(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> putEcho(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
 
-    hash put(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> put(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, cx.body);
+    }
+
+    hash<HttpHandlerResponseInfo> putEx(hash<auto> cx, *hash<auto> ah) {
+        # throw an exception with unserializable content
+        throw "EXCEPTION-TEST-ERROR", "exception test error", new Mutex();
     }
 
     hash<auto> options(hash<auto> cx, *hash<auto> ah) {
@@ -88,7 +93,7 @@ class B2893RestClass inherits AbstractRestClass {
         return "b2893";
     }
 
-    hash get(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
         if (ah.a)
             return RestHandler::makeResponse(200, "blabla");
         else
@@ -101,7 +106,7 @@ class B3426RestClass inherits AbstractRestClass {
         return "b3426";
     }
 
-    hash get(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, "plain", {"Content-Type": "text/plain"});
     }
 }
@@ -111,7 +116,7 @@ class B3427RestClass inherits AbstractRestClass {
         return "b3427";
     }
 
-    hash get(hash cx, *hash ah) {
+    hash get(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, "openmetrics", {"Content-Type": "application/openmetrics-text"});
     }
 }
@@ -123,11 +128,11 @@ class MyRestHandler inherits RestHandler {
         addClass(new B3427RestClass());
     }
 
-    hash putEcho(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> putEcho(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
 
-    hash getAction(hash cx, *hash ah) {
+    hash<HttpHandlerResponseInfo> getAction(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, exists ah.action);
     }
 }
@@ -374,10 +379,13 @@ public class RestHandlerTest inherits QUnit::Test {
             mHandler.handleExternalRequest("PUT", "test/echo1");
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
-            assertRegex("known subclasses: \"static\", \"echo\"", ex.desc);
+            assertRegex("known subclasses: \"static\", \"ex\", \"echo\"", ex.desc);
         }
 
         assertEq("static", mHandler.handleExternalRequest("GET", "test/static"));
+
+        # issue #3373 exception test
+        assertThrows("EXCEPTION-TEST-ERROR", "exception test error", \mHandler.handleExternalRequest(), ("PUT", "test/ex"));
     }
 
     serializationTest() {
@@ -414,6 +422,9 @@ public class RestHandlerTest inherits QUnit::Test {
             assertEq(200, h.status_code);
             assertNothing(h.body);
             assertEq("0", h."content-length");
+
+            # issue #3373 exception test
+            assertThrows("EXCEPTION-TEST-ERROR", "exception test error", \mClient.doRequest(), ("PUT", "test/ex", NOTHING, \info));
         }
     }
 
