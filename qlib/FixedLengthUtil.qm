@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
+/*  FixedLengthUtil.qm Copyright 2015 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,14 +23,17 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.4
+
 %requires Util
+%requires(reexport) DataProvider
+
 %require-types
 %enable-all-warnings
 %new-style
 
 module FixedLengthUtil {
-    version = "1.1";
+    version = "1.2";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -281,30 +284,88 @@ w.write(data);
 
 #! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
 public namespace FixedLengthUtil {
-    #! Unix end of line character sequence (for new OS X too)
-    public const EOL_UNIX = "\n";
-    #! MS DOS/Windows end of line character sequence
-    public const EOL_WIN = "\r\n";
-    #! Old (pre-OSX) Macintosh end of line character sequence
-    public const EOL_MACINTOSH = "\r";
+#! Unix end of line character sequence (for new OS X too)
+public const EOL_UNIX = "\n";
+#! MS DOS/Windows end of line character sequence
+public const EOL_WIN = "\r\n";
+#! Old (pre-OSX) Macintosh end of line character sequence
+public const EOL_MACINTOSH = "\r";
 
-    # helper hash (for O(ln(n)) lookups in the worst case) of end of line values
-    const EOLS = (
-        EOL_UNIX: True,
-        EOL_WIN: True,
-        EOL_MACINTOSH: True,
-        );
+# helper hash (for O(ln(n)) lookups in the worst case) of end of line values
+const EOLS = {
+    EOL_UNIX: True,
+    EOL_WIN: True,
+    EOL_MACINTOSH: True,
+};
+
+#! Base class for fixed-length readers and writers
+public class FixedLengthBase {
+    private {
+        #! The record specifications
+        hash<auto> m_specs;
+
+        #! Global input or output options
+        *hash<auto> m_opts; # encoding, eol, ignore_empty, timezone, etc
+
+        #! Translates from global options to data provider options
+        const GlobalOptionMap = {
+            "date_format": "date.format",
+            "number_format": "number.format",
+            "timezone": "date.input_timezone",
+            "encoding": "string.encoding",
+        };
+    }
+
+    #! Creates the object from the record specifications
+    constructor(hash<auto> m_specs, *hash<auto> m_opts) {
+        self.m_specs = m_specs;
+        self.m_opts = m_opts;
+    }
+
+    #! Returns the description of the record type, if any
+    *hash<string, AbstractDataField> getRecordType() {
+        *hash<string, AbstractDataField> rv;
+        # global options
+        *hash<auto> global_options = map {$1.value: m_opts{$1.key}}, GlobalOptionMap.pairIterator(),
+            exists m_opts{$1.key};
+        foreach hash<auto> i in (m_specs.pairIterator()) {
+            HashDataType field();
+            foreach hash<auto> ki in (i.value.pairIterator()) {
+                *hash<auto> type_options = global_options;
+                if (ki.value.format) {
+                    switch (ki.type) {
+                        case "float":
+                        case "int":
+                        case "number":
+                            type_options."number.format" = ki.value.format;
+                            break;
+                        case "date":
+                            type_options."date.format" = ki.value.format;
+                            break;
+                    }
+                }
+                if (ki.value.timezone) {
+                    type_options."date.input_timezone" = ki.value.timezone;
+                }
+                Type base_type(OptimalQoreSoftDataTypeMap{$1.value.type} ?? "string", type_options);
+                QoreDataField record_field(ki.key, NOTHING,
+                    AbstractDataProviderType::get(base_type.getOrNothingType()));
+                field.addField(record_field);
+            }
+            map field.addField(new QoreDataField($1.key, NOTHING, )), i.value.pairIterator();
+            rv{i.key} = new QoreDataField(i.key, NOTHING, field);
+        }
+        return rv;
+    }
 }
 
 #! Structured line iterator for abstract data allowing efficient "pipelined" processing
-public class FixedLengthUtil::FixedLengthAbstractIterator inherits Qore::AbstractIterator {
+public class FixedLengthAbstractIterator inherits FixedLengthBase, Qore::AbstractIterator {
     private {
-        hash m_specs;
         hash m_resolve_by_rule;
         string m_state;
         #! hash of type without rule, i.e.potentially conflicting records; key = record length, value = list of no-rule type names
         hash m_resolve_by_length;
-        *hash m_opts; # encoding, eol, ignore_empty, timezone, etc
         AbstractLineIterator lineIterator;
     }
 
@@ -316,19 +377,18 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits Qore::Abstrac
 
         @throw FIXED-LENGTH-UTIL-INVALID-SPEC invalid record specification; invalid type or missing field length
     */
-    constructor(AbstractLineIterator li, hash spec, *hash opts) {
+    constructor(AbstractLineIterator li, hash<auto> spec, *hash<auto> opts)
+        : FixedLengthBase(spec, FixedLengthAbstractIterator::checkOptions(opts)) {
         lineIterator = li;
-        m_specs = spec;
-        m_opts += checkOptions(opts);
 
         # Determine line lengths of each record, for use by the default identifyType() method. We do this by building a reverse length -> type table.
-        m_resolve_by_rule = hash();
-        foreach string k in (m_specs.keyIterator()) {
+        m_resolve_by_rule = {};
+        foreach string k in (keys m_specs) {
             if (m_specs{k}.typeCode() != NT_HASH)
                 throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("expecting a record description hash assigned to record key %y; got type %y instead (value: %y)", k, m_specs{k}.type(), m_specs{k});
             int len = 0;
             list rec_rule = ();
-            foreach string c in (m_specs{k}.keyIterator()) {
+            foreach string c in (keys m_specs{k}) {
                 if (!m_specs{k}{c}.length)
                     throw "FIXED-LENGTH-UTIL-INVALID-SPEC", sprintf("Length missing for field %y", c);
                 hash fld_rule;
@@ -358,7 +418,6 @@ public class FixedLengthUtil::FixedLengthAbstractIterator inherits Qore::Abstrac
                 m_resolve_by_length{len} += (k);
             }
         }
-
     }
 
     bool valid() {
@@ -395,13 +454,13 @@ my hash $h = $i.getValue();
         - \c "type": a string giving the record type name
         - \c "record": a hash giving the parsed record data
     */
-    *hash getValue() {
+    *hash<auto> getValue() {
         *string line = lineIterator.getValue();
 
         if (!line)
             return;
 
-        hash result = hash();
+        hash<auto> result = {};
 
         string type = identifyType(line);
         result.type = type;
@@ -410,7 +469,7 @@ my hash $h = $i.getValue();
         }
         m_state = type;
         int pos = 0;
-        foreach string col in (m_specs{type}.keyIterator()) {
+        foreach string col in (keys m_specs{type}) {
             hash field = m_specs{type}{col};
             if (!field.timezone) {
                 field.timezone = m_opts.timezone;
@@ -426,7 +485,7 @@ my hash $h = $i.getValue();
     }
 
     #! parses the input value based on global configuration and the current field definition
-    auto transform(auto value, hash type) {
+    auto transform(auto value, hash<auto> type) {
         switch (type.type) {
             case "int": {
                 return int(value);
@@ -483,8 +542,7 @@ my hash $h = $i.getValue();
 
                     try {
                         return tz ? tz.date(value, fmt) : date(value, fmt);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         throw ex.err, ex.desc, ("value": value, "fmt": fmt);
                     }
                 }
@@ -492,8 +550,7 @@ my hash $h = $i.getValue();
                     if (t != NT_DATE && tz)
                         value = date(value);
                     return tz ? tz.date(value) : date(value);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     throw ex.err, ex.desc, ("value": value);
                 }
             }
@@ -507,10 +564,10 @@ my hash $h = $i.getValue();
     /**
         @param opts Options passed during class instantiation.
     */
-    private *hash checkOptions(*hash opts) {
+    private static *hash<auto> checkOptions(*hash opts) {
         string errname = 'RECORD-ITERATOR-ERROR';
 
-        foreach hash i in (opts.pairIterator()) {
+        foreach hash<auto> i in (opts.pairIterator()) {
             switch (i.key) {
                 case "eol": {
                     if (i.value.typeCode() != NT_STRING) {
@@ -597,7 +654,7 @@ my hash $h = $i.getValue();
 
         if (m_resolve_by_rule{len}) {
             # try match type by filter spec
-            foreach string k in (m_resolve_by_rule{len}.keyIterator()) {
+            foreach string k in (keys m_resolve_by_rule{len}) {
                 list rec_rule = m_resolve_by_rule{len}{k};
                 bool found = True;  # flt has always at least one item
                 foreach hash fld_rule in (rec_rule) {
@@ -650,13 +707,14 @@ my hash $h = $i.getValue();
 }
 
 #! The FixedLengthIterator class allows CSV sources to be iterated on a record basis.  The source of the input data is an @ref Qore::AbstractLineIterator "AbstractLineIterator" object or an @ref Qore::InputStream "InputStream"
-public class FixedLengthUtil::FixedLengthIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     #! Creates the FixedLengthIterator in single-type mode with general line iterator to read and an option hash
     /** @param li line iterator of CSV file to read
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
      */
-    constructor(Qore::AbstractLineIterator li, hash spec, *hash opts) : FixedLengthAbstractIterator(li, spec, opts) {
+    constructor(Qore::AbstractLineIterator li, hash<auto> spec, *hash<auto> opts)
+        : FixedLengthAbstractIterator(li, spec, opts) {
     }
 
     #! Instantiates the FixedLengthIterator object from an @ref Qore::InputStream "InputStream"
@@ -696,7 +754,7 @@ while (i.next()) {
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(Qore::InputStream input, string encoding = "UTF-8", hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(input, encoding, opts.eol, opts.trim), spec, opts) {
+    constructor(Qore::InputStream input, string encoding = "UTF-8", hash<auto> spec, *hash<auto> opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(input, encoding, opts.eol, opts.trim), spec, opts) {
     }
 }
 
@@ -742,7 +800,7 @@ map printf("%y\n", $1), i;
     @see
     - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator" for a stream-based class providing the same functionality as this class in a more generic way
 */
-public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
+public class FixedLengthFileIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     private {
         #! the path of the file being iterated
         string m_file_path;
@@ -754,7 +812,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for more information
     */
-    constructor(string path, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
+    constructor(string path, hash<auto> spec, *hash<auto> opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), spec, opts) {
         m_file_path = path;
         # do not convert every string to the same encoding
         m_opts.input_encoding = remove m_opts.encoding;
@@ -776,7 +834,7 @@ public class FixedLengthUtil::FixedLengthFileIterator inherits FixedLengthUtil::
     }
 
     #! Returns a @ref stat_list "stat list" of the underlying file
-    list stat() {
+    list<auto> stat() {
         return Qore::stat(m_file_path);
     }
 }
@@ -817,8 +875,7 @@ while (i.next()) {
     @see
     - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator" for a stream-based class providing the same functionality as this class in a more generic way
 */
-public class FixedLengthUtil::FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
-
+public class FixedLengthDataIterator inherits FixedLengthUtil::FixedLengthAbstractIterator {
     #! Instantiates the FixedLengthDataIterator object
     /** @par Example:
         @code{.py}
@@ -853,17 +910,15 @@ while (i.next()) {
         @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string data, hash spec, *hash opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new StringInputStream(data), data.encoding(), opts.eol, opts.trim), spec, opts) {
+    constructor(string data, hash<auto> spec, *hash<auto> opts) : FixedLengthAbstractIterator(new InputStreamLineIterator(new StringInputStream(data), data.encoding(), opts.eol, opts.trim), spec, opts) {
     }
 }
 
 #! Structured abstract writer for fixed-length lines
-public class FixedLengthUtil::FixedLengthAbstractWriter {
+public class FixedLengthAbstractWriter inherits FixedLengthBase {
     private {
-        hash m_specs;
         string m_state;
         int m_linescount = 0;
-        *hash m_opts;
     }
 
     #! creates the FixedLengthAbstractWriter object
@@ -871,10 +926,8 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(hash specs, *hash opts) {
-        m_specs = specs;
-        m_opts = checkOptions(opts);
-
+    constructor(hash<auto> specs, *hash<auto> opts)
+        : FixedLengthBase(specs, FixedLengthAbstractWriter::checkOptions(opts)) {
         # validate padding options
         HashIterator hit(specs);
         while (hit.next()) {
@@ -893,7 +946,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         }
     }
 
-    private *hash checkOptions(*hash opts) {
+    private static *hash<auto> checkOptions(*hash opts) {
         string errname = 'RECORD-WRITER-ERROR';
 
         if (exists opts.eol) {
@@ -901,8 +954,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
                 throw errname, sprintf("expecting a string value to option \"eol\"; got %y (type %s) instead", opts.eol, opts.eol.type());
             if (!EOLS{opts.eol})
                 throw errname, sprintf("expecting a known end of line value to option \"eol\"; got %y instead", opts.eol);
-        }
-        else
+        } else
             opts.eol = "\n";
 
         if (exists opts.tab2space && (opts.tab2space.typeCode() != NT_INT || opts.tab2space < 0))
@@ -927,7 +979,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    string formatLine(hash line) {
+    string formatLine(hash<auto> line) {
         if (!line.type)
             throw "INVALID-LINE-DATA", sprintf("invalid line data; missing \"type\" key; got keys: %y", line.keys());
         if (!line.record)
@@ -937,9 +989,9 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
             throw "INVALID-RECORD", sprintf("unknown record type %y; valid records: %y", type, m_specs.keys());
 
         string result = "";
-        foreach string field in (m_specs{type}.keyIterator()) {
+        foreach string field in (keys m_specs{type}) {
             # field description
-            hash fh = m_specs{type}{field};
+            hash<auto> fh = m_specs{type}{field};
 
             auto value = line.record{field} ?? fh.default;  # default value from specification
             # format output
@@ -1001,8 +1053,7 @@ public class FixedLengthUtil::FixedLengthAbstractWriter {
                         result += spacing + value;
                 else
                     result += value + spacing;
-            }
-            else
+            } else
                 result += value;
         }
 
@@ -1064,7 +1115,7 @@ FixedLengthWriter w(output, specs, global_options);
 w.write(data);
     @endcode
 */
-public class FixedLengthUtil::FixedLengthWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
+public class FixedLengthWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         #! the output stream for the fixed-length data
         StreamWriter output;
@@ -1076,7 +1127,7 @@ public class FixedLengthUtil::FixedLengthWriter inherits FixedLengthUtil::FixedL
         @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(Qore::OutputStream output, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+    constructor(Qore::OutputStream output, hash<auto> specs, *hash<auto> opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
         self.output = new StreamWriter(output, opts.encoding);
     }
 
@@ -1110,7 +1161,7 @@ w.write(hh);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    write(hash line) {
+    write(hash<auto> line) {
         output.print(formatLine(line) + m_opts.eol);
     }
 
@@ -1129,7 +1180,7 @@ w.write(i);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    write(list lines) {
+    write(list<auto> lines) {
         map output.print(formatLine($1) + m_opts.eol), lines;
     }
 
@@ -1194,7 +1245,7 @@ w.write(data);
     @see
     - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter" for a stream-based class providing the same functionality as this class in a more generic way
 */
-public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
+public class FixedLengthFileWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     private {
         #! file name
         string file;
@@ -1208,7 +1259,7 @@ public class FixedLengthUtil::FixedLengthFileWriter inherits FixedLengthUtil::Fi
         @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global options; see @ref fixedlengthglobals for valid values
     */
-    constructor(string file_name, hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
+    constructor(string file_name, hash<auto> specs, *hash<auto> opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts)  {
         file = file_name;
         m_file.open2(file_name, O_WRONLY | O_CREAT | m_opts.file_flags, NOTHING, opts.encoding);
     }
@@ -1248,7 +1299,7 @@ w.write(hh);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    write(hash line) {
+    write(hash<auto> line) {
         m_file.write(formatLine(line) + m_opts.eol);
     }
 
@@ -1267,7 +1318,7 @@ w.write(i);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    write(list lines) {
+    write(list<auto> lines) {
         map m_file.write(formatLine($1) + m_opts.eol), lines;
     }
 
@@ -1321,13 +1372,13 @@ string data = w.write(i);
     @see
     - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter" for a stream-based class providing the same functionality as this class in a more generic way
 */
-public class FixedLengthUtil::FixedLengthDataWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
+public class FixedLengthDataWriter inherits FixedLengthUtil::FixedLengthAbstractWriter {
     #! Instantiates the FixedLengthDataWriter object.
     /**
         @param specs Fixed-length line specification; see @ref fixedlengthspec for more information
         @param opts Global formatting options; see @ref fixedlengthglobals for valid values
     */
-    constructor(hash specs, *hash opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts) {
+    constructor(hash<auto> specs, *hash<auto> opts) : FixedLengthUtil::FixedLengthAbstractWriter(specs, opts) {
     }
 
     #! iterates the input records and returns a string corresponding to the rendered versions of all input records
@@ -1347,7 +1398,7 @@ string file = w.write(input_list);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    string write(list lines) {
+    string write(list<auto> lines) {
         string result = "";
         string eol = m_opts.eol;
         map result += formatLine($1) + eol, lines;
@@ -1386,7 +1437,7 @@ string line = w.write(hh);
         @throw FIELD-INPUT-ERROR the input value is too large to render into the output field
         @throw RECORD-TRANSITION-ERROR a record transition error occurred; an invalid record sequence was given in the input data
     */
-    string write(hash line) {
+    string write(hash<auto> line) {
         return formatLine(line) + m_opts.eol;
     }
 
@@ -1413,4 +1464,102 @@ string file = w.write(i);
         map result += formatLine($1) + eol, lines;
         return result;
     }
+}
+
+#! Provides a data provider for reading CSV files
+public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProvider {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FixedLengthReadDataProvider",
+            "supports_read": True,
+            "constructor_options": ConstructorOptions,
+        };
+
+        #! Constructor options
+        const ConstructorOptions = {
+            "path": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"",
+            },
+            "stream": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("InputStream")),
+                "desc": "the input stream for fixed-length data; mutually exclusive with \"path\"",
+            },
+            "spec": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "the fixed-length record specification hash",
+            },
+            "opts": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "fixed-length parsing options",
+            },
+        };
+    }
+
+    private {
+        #! The iterator object
+        FixedLengthAbstractIterator i;
+    }
+
+    #! Creates the FixedLengthReadDataProvider with the input data path, the record specifications, and optionally an option hash
+    /** @param path the input file to iterate
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts a hash of options; see @ref fixedlengthglobals for more information
+
+        @throw FIXED-LENGTH-UTIL-INVALID-SPEC invalid record specification; invalid type or missing field length
+    */
+    constructor(string path, hash<auto> spec, *hash<auto> opts) {
+        i = new FixedLengthFileIterator(path, spec, opts);
+    }
+
+    #! Creates the FixedLengthReadDataProvider with the input data stream, the record specifications, and optionally an option hash
+    /** @param stream the input stream to iterate
+        @param spec Fixed-length line specification; see @ref fixedlengthspec for more information
+        @param opts a hash of options; see @ref fixedlengthglobals for more information
+
+        @throw FIXED-LENGTH-UTIL-INVALID-SPEC invalid record specification; invalid type or missing field length
+    */
+    constructor(InputStream stream, *string encoding, hash<auto> spec, *hash<auto> opts) {
+        i = new FixedLengthIterator(stream, encoding, spec, opts);
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        if (copts.path) {
+            if (copts.stream) {
+                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
+            }
+            i = new FixedLengthFileIterator(copts.path, copts.spec, copts.opts);
+            return;
+        }
+        if (copts.stream) {
+            i = new FixedLengthIterator(copts.stream, copts.spec, copts.opts);
+            return;
+        }
+        # create a dummy interator with no input
+        i = new FixedLengthIterator(new StringInputStream(""), copts.spec, copts.opts);
+    }
+
+    #! Returns the object name
+    string getName() {
+        return i instanceof FixedLengthFileIterator
+            ? cast<FixedLengthFileIterator>(i).getFileName()
+            : sprintf("stream %s", self.uniqueHash());
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        return new DefaultRecordIterator(i, where_cond, search_options);
+    }
+
+    #! Returns the description of the record type, if any
+    *hash<string, AbstractDataField> getRecordType() {
+        return i.getRecordType();
+    }
+}
 }
