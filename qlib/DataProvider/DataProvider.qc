@@ -58,11 +58,17 @@ public class DataProvider {
         #! data provider factory cache
         static hash<string, AbstractDataProviderFactory> factory_cache;
 
+        #! data provider factory module map
+        static hash<string, string> factory_module_map;
+
         #! data provider factory cache lock
         static Mutex factory_cache_lock();
 
         #! data provider data type cache
         static hash<string, AbstractDataProviderType> type_cache;
+
+        #! data provider type module map
+        static hash<string, string> type_module_map;
 
         #! data provider type cache lock
         static Mutex type_cache_lock();
@@ -80,11 +86,11 @@ public class DataProvider {
         string name = factory.getName();
         if (factory_cache{name}) {
             # check if factory is being re-registered after module injection
-            if (!DataProvider::checkInjection(factory)) {
+            if (!DataProvider::checkInjection(factory, factory_module_map)) {
                 throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
             }
         }
-
+        factory_module_map{factory.className()} = Class::getClass(factory).getModuleName();
         factory_cache{name} = factory;
     }
 
@@ -181,10 +187,11 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
 
         if (type_cache{label}) {
             # check if type is being re-registered after module injection
-            if (!DataProvider::checkInjection(type)) {
+            if (!DataProvider::checkInjection(type, type_module_map)) {
                 throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
             }
         }
+        type_module_map{type.className()} = Class::getClass(type).getModuleName();
 
         type_cache{label} = type;
     }
@@ -261,9 +268,9 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     }
 
     #! Check if the object is from a module that has been subject to dependency injections
-    static private bool checkInjection(object obj) {
-        *string module_name = Class::getClass(factory).getModuleName();
-        return module_name && get_module_hash(){module_name}.injected);
+    static private bool checkInjection(object obj, hash<string, string> module_map) {
+        *string module_name = Class::getClass(obj).getModuleName();
+        return module_name && module_map{obj.className()} == module_name;
     }
 }
 }
