@@ -33,6 +33,8 @@
 # enable all warnings
 %enable-all-warnings
 
+%requires reflection
+
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Data provider class
@@ -77,20 +79,13 @@ public class DataProvider {
 
         string name = factory.getName();
         if (factory_cache{name}) {
-            throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+            # check if factory is being re-registered after module injection
+            if (!DataProvider::checkInjection(factory)) {
+                throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+            }
         }
 
         factory_cache{name} = factory;
-    }
-
-    #! Deregister a data provider factory
-    /** @param factory the data provider factory name to be deregistered
-    */
-    static deregisterFactory(string name) {
-        factory_cache_lock.lock();
-        on_exit factory_cache_lock.unlock();
-
-        remove factory_cache{name};
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
@@ -185,7 +180,10 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         on_exit type_cache_lock.unlock();
 
         if (type_cache{label}) {
-            throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+            # check if type is being re-registered after module injection
+            if (!DataProvider::checkInjection(type)) {
+                throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+            }
         }
 
         type_cache{label} = type;
@@ -260,6 +258,12 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             }
         }
         return info;
+    }
+
+    #! Check if the object is from a module that has been subject to dependency injections
+    static private bool checkInjection(object obj) {
+        *string module_name = Class::getClass(factory).getModuleName();
+        return module_name && get_module_hash(){module_name}.injected);
     }
 }
 }

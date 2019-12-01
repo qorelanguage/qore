@@ -89,8 +89,6 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
         # do builtin module injections here
         injectClass("MyClass", "Class");
 
-        DataProvider::deregisterFactory("fixedlengthread");
-        DataProvider::deregisterFactory("fixedlengthwrite");
         injectUserModule("../../../../qlib/FixedLengthUtil");
     }
 
