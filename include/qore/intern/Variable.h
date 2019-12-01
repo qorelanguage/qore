@@ -37,13 +37,15 @@ enum qore_var_t {
     VT_LOCAL      = 2,
     VT_GLOBAL     = 3,
     VT_CLOSURE    = 4,
-    VT_LOCAL_TS   = 5,  // thread-safe variables, not closure-bound
-    VT_IMMEDIATE  = 6   // used in references with immediate variable storage
+    VT_LOCAL_TS   = 5,         // thread-safe variables, not closure-bound
+    VT_IMMEDIATE  = 6,         // used in references with immediate variable storage
+    VT_GLOBAL_THREAD_LOCAL = 7
 };
 
 #include "qore/intern/RSet.h"
 #include "qore/intern/VRMutex.h"
 #include "qore/intern/QoreLValue.h"
+#include "qore/intern/GlobalThreadLocalVar.h"
 #include "qore/intern/qore_var_rwlock_priv.h"
 #include "qore/vector_set"
 

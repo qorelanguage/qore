@@ -102,16 +102,34 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     }
 
     #! Checks if the current record matches the search criteria
-    /**
+    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
+        performed
     */
     private bool match() {
         hash<auto> record = i.getValue();
         foreach hash<auto> elem in (where_cond.pairIterator()) {
-            if (record{elem.key} != elem.value) {
+            if (!matchValue(record{elem.key}, elem.value)) {
                 return False;
             }
         }
         return True;
+    }
+
+    #! Match a single value
+    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
+        performed
+    */
+    private bool matchValue(auto expects, auto val) {
+        if (val.typeCode() == NT_HASH) {
+            # in case of a hash, do a recursive partial match with only the given keys
+            foreach hash<auto> i in (val.pairIterator()) {
+                if (!matchValue(expects{i.key}, i.value)) {
+                    return False;
+                }
+            }
+            return True;
+        }
+        return expects == val;
     }
 }
 }

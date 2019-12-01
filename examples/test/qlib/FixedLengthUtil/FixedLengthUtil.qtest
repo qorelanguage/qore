@@ -7,7 +7,7 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/FixedLengthUtil.qm
+%requires ../../../../qlib/FixedLengthUtil
 
 %exec-class Test
 
@@ -43,7 +43,30 @@ class Test inherits QUnit::Test {
                     # "timezone" : "UTC", # use global if omitted
                 ),
             ),
-            );
+        );
+
+        const AmbiguousData = "AABC\nBXYZ\nA123\nB789\n";
+
+        const AmbiguousSpecs = (
+            "type1" : (
+                "col1" : (
+                    "length": 1,
+                    "value": "A"
+                ),
+                "col2": (
+                    "length": 3,
+                ),
+            ),
+            "type2" : (
+                "col1" : (
+                    "length": 1,
+                    "value": "B"
+                ),
+                "col2": (
+                    "length": 3,
+                ),
+            ),
+        );
 
         # Incorrect use
         const RedundantSpecs = (
@@ -67,7 +90,7 @@ class Test inherits QUnit::Test {
                     "type"   : "string",
                 ),
             ),
-            );
+        );
 
         # test default value
         const SpecsWithDefault = (
@@ -99,14 +122,14 @@ class Test inherits QUnit::Test {
             ("type": "type1", "record": ("col1": 11111, "col2": "bb")),
             ("type": "type2", "record": ("col3": "c", "col4": "ddd", "col5": 2014-12-31Z)),
             ("type": "type1", "record": ("col1": 22222, "col2": "gggg")),
-            );
+        );
 
         const HashData2 = (
             ("type": "type1", "record": ("col2": "aaaa")),
             ("type": "type2", "record": ("col2": "bbbb")),
             ("type": "type1", "record": ("col2": "cccc")),
             ("type": "type1", "record": ("col1": "99999", "col2": "dddd")),
-            );
+        );
 
         const HashDataTS = (("type": "type1", "record": ("col1": 11111, "col2": "b\tb")),);
 
@@ -115,33 +138,33 @@ class Test inherits QUnit::Test {
             "eol"          : "\n",
             "ignore_empty" : True,
             "timezone"     : "UTC", # used if not in some date column specification
-            );
+        );
 
         # Writer
         const GlobalWriterOptions = (
             "eol" : "\n",
-            );
+        );
 
         # padding tests
         const PADDING_SPEC = (
-            "r1" : (
+            "r1": (
                 "c1": ( "length": 5, "type": "string", "padding_char": "X"),
                 "c2": ( "length": 5, "type": "string", "padding": "left", "padding_char": "0"),
                 "c3": ( "length": 5, "type": "string", "padding": "right", "padding_char": "0"),
                 "c4": ( "length": 5, "type": "string", "padding": "left", "padding_char": " "),
-                ),
-            "r2" : (
+            ),
+            "r2": (
                 "c1": ( "length": 5, "type": "int"),
                 "c2": ( "length": 5, "type": "int", "padding_char": "0"),
                 "c3": ( "length": 5, "type": "int", "padding_char": "0"),
-                ),
-            "r3" : (
+            ),
+            "r3": (
                 "c1": ( "length": 6, "type": "float"),
                 "c2": ( "length": 6, "type": "float", "padding_char": "0"),
                 "c3": ( "length": 6, "type": "float", "padding_char": "0"),
                 "c4": ( "length": 8, "type": "float", "padding_char": "0"),
-                ),
-            );
+            ),
+        );
 
         const PADDING_DATA1 = (
             ("type": "r1", "record": ("c1": "a", "c2": "a", "c3": "a", "c4": "a")));
@@ -156,6 +179,7 @@ class Test inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("FixedLengthUtil", "1.0", \ARGV) {
+        addTestCase("data provider", \dataProviderTest());
         addTestCase("FixedLengthUtil basic tests", \basicTests());
         addTestCase("FixedLengthUtil padding test #1", \test_padding_1());
         addTestCase("FixedLengthUtil padding test #2", \test_padding_2());
@@ -165,6 +189,88 @@ class Test inherits QUnit::Test {
         addTestCase("FixedLengthUtil tabs-to-spaces reader tests", \test_reading_data_with_tabs());
         addTestCase("FixedLengthUtil tabs-to-spaces writer tests", \test_writing_data_with_tabs());
         set_return_value(main());
+    }
+
+    dataProviderTest() {
+        list<hash<auto>> rows;
+        list<hash<auto>> rows2;
+        {
+            FixedLengthReadDataProvider dp;
+
+            # the fixed-length data can only be iterated once and then the provide needs to be recreated
+            code reset = sub (string strdata = StrData, hash<auto> specs = Specs) {
+                dp = new FixedLengthReadDataProvider(new StringInputStream(strdata), specs, GlobalOptions);
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertFalse(info.supports_bulk_read);
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords();
+                assertEq(3, rows.size());
+
+                reset();
+                *hash<auto> row = dp.searchSingleRecord({"type": "type1", "record": {"col1": 11111}});
+                assertEq(Type::Hash, row.type());
+                assertEq("bb", row.record.col2);
+                assertEq(Type::String, row.record.col2.type());
+            }
+
+            {
+                reset();
+                AbstractDataProviderBulkRecordInterface i = dp.getBulkRecordInterface();
+                hash<auto> q = i.getValue();
+                assertEq(Type::List, q.firstValue().type());
+                assertEq(3, q.firstValue().lsize());
+            }
+
+            {
+                reset(AmbiguousData, AmbiguousSpecs);
+                rows2 = map $1, dp.searchRecords();
+                assertEq(4, rows2.size());
+
+                reset(AmbiguousData, AmbiguousSpecs);
+                *hash<auto> row = dp.searchSingleRecord({"type": "type2", "record": {"col2": "XYZ"}});
+                assertEq(Type::Hash, row.type());
+                assertEq("B", row.record.col1);
+                assertEq(Type::String, row.record.col2.type());
+            }
+
+        }
+
+        {
+            FixedLengthWriteDataProvider dp;
+            StringOutputStream stream;
+
+            # the fixed-length data can only be iterated once and then the provide needs to be recreated
+            code reset = sub (hash<auto> specs = Specs) {
+                stream = new StringOutputStream();
+                dp = new FixedLengthWriteDataProvider(stream, specs, GlobalWriterOptions);
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertTrue(info.supports_create);
+                assertFalse(info.supports_bulk_read);
+
+                map dp.createRecord($1), rows;
+
+                assertEq(StrData, stream.getData());
+            }
+
+            {
+                reset(AmbiguousSpecs);
+                map dp.createRecord($1), rows2;
+                assertEq(AmbiguousData, stream.getData());
+            }
+        }
     }
 
     basicTests() {

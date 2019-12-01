@@ -8,7 +8,7 @@
 
 %disable-warning module-only
 
-%requires ../../../../qlib/FixedLengthUtil.qm
+%requires ../../../../qlib/FixedLengthUtil
 
 %requires reflection
 
@@ -89,7 +89,7 @@ public class DIJClass inherits QUnit::DependencyInjectedTest {
         # do builtin module injections here
         injectClass("MyClass", "Class");
 
-        injectUserModule("../../../../qlib/FixedLengthUtil.qm");
+        injectUserModule("../../../../qlib/FixedLengthUtil");
     }
 
     private performCommonInjections(Program p) {

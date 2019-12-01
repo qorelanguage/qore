@@ -7,7 +7,7 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/FixedLengthUtil.qm
+%requires ../../../../qlib/FixedLengthUtil
 
 %exec-class Test
 

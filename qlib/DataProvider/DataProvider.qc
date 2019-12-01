@@ -33,28 +33,42 @@
 # enable all warnings
 %enable-all-warnings
 
+%requires reflection
+
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Data provider class
 public class DataProvider {
     public {
-        #! List of standard data provider factory modules
-        const FactoryList = (
-            "DbDataProvider",
-            "SwaggerDataProvider",
-            "CsvUtil",
-        );
+        #! Map of known data provider factory names to modules
+        const FactoryMap = {
+            "db": "DbDataProvider",
+            "swagger": "SwaggerDataProvider",
+            "csvread": "CsvUtil",
+            "csvwrite": "CsvUtil",
+            "fixedlengthread": "FixedLengthUtil",
+            "fixedlengthwrite": "FixedLengthUtil",
+        };
+
+        #! List of data provider factory modules
+        const FactoryModuleList = keys (map {$1: True}, FactoryMap.iterator());
     }
 
     private {
         #! data provider factory cache
         static hash<string, AbstractDataProviderFactory> factory_cache;
 
+        #! data provider factory module map
+        static hash<string, string> factory_module_map;
+
         #! data provider factory cache lock
         static Mutex factory_cache_lock();
 
         #! data provider data type cache
         static hash<string, AbstractDataProviderType> type_cache;
+
+        #! data provider type module map
+        static hash<string, string> type_module_map;
 
         #! data provider type cache lock
         static Mutex type_cache_lock();
@@ -71,14 +85,26 @@ public class DataProvider {
 
         string name = factory.getName();
         if (factory_cache{name}) {
-            throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+            # check if factory is being re-registered after module injection
+            if (!DataProvider::checkInjection(factory, factory_module_map)) {
+                throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
+            }
         }
-
+        factory_module_map{factory.className()} = Class::getClass(factory).getModuleName();
         factory_cache{name} = factory;
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
+        if (!factory_cache{name}) {
+            *string module_name = FactoryMap{name};
+            if (!module_name) {
+                return;
+            }
+            if (!DataProvider::tryLoad(module_name)) {
+                return;
+            }
+        }
         return factory_cache{name};
     }
 
@@ -90,7 +116,7 @@ public class DataProvider {
         @throw PROVIDER-ERROR the given provider is unknown
     */
     static AbstractDataProviderFactory getFactoryEx(string name) {
-        *AbstractDataProviderFactory factory = factory_cache{name};
+        *AbstractDataProviderFactory factory = DataProvider::getFactory(name);
         if (!factory) {
             throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y", name,
                 keys factory_cache);
@@ -160,8 +186,12 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         on_exit type_cache_lock.unlock();
 
         if (type_cache{label}) {
-            throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+            # check if type is being re-registered after module injection
+            if (!DataProvider::checkInjection(type, type_module_map)) {
+                throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+            }
         }
+        type_module_map{type.className()} = Class::getClass(type).getModuleName();
 
         type_cache{label} = type;
     }
@@ -187,7 +217,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         therefore not suitable for indexing)
     */
     static AbstractDataProviderType getTypeEx(string label) {
-        *AbstractDataProviderType type = type_cache{label};
+        *AbstractDataProviderType type = DataProvider::getType(label);
         if (!type) {
             throw "PROVIDER-ERROR", sprintf("data provider type label %y is unknown; known data provider type "
                 "labels: %y", label, keys type_cache);
@@ -204,16 +234,21 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         return keys type_cache;
     }
 
-    #! Registers known data provider factories
+    #! Registers all known data provider factories
     static registerKnownFactories() {
-        foreach string factory in (FactoryList) {
-            try {
-                load_module(factory);
-            } catch (hash<ExceptionInfo> ex) {
-                # DEBUG
-                #stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
+        map DataProvider::tryLoad($1), FactoryModuleList;
+    }
+
+    static bool tryLoad(string module_str, *bool verbose) {
+        try {
+            load_module(module_str);
+            return True;
+        } catch (hash<ExceptionInfo> ex) {
+            if (verbose || True) {
+                stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
+        return False;
     }
 
     #! Converts an info hash with objects to a hash with string descriptions instead of the objects
@@ -230,6 +265,12 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             }
         }
         return info;
+    }
+
+    #! Check if the object is from a module that has been subject to dependency injections
+    static private bool checkInjection(object obj, hash<string, string> module_map) {
+        *string module_name = Class::getClass(obj).getModuleName();
+        return module_name && module_map{obj.className()} == module_name;
     }
 }
 }

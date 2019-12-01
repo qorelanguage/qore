@@ -40,7 +40,6 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/FilePoller.qm \
-	qlib/FixedLengthUtil.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
 	qlib/FtpPoller.qm \
@@ -70,6 +69,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
     qlib/AwsRestClient.qm
 
 DOX_SPLIT_MODULES = \
+	qlib/FixedLengthUtil \
     qlib/BulkSqlUtil \
 	qlib/CsvUtil \
     qlib/SwaggerDataProvider
@@ -80,6 +80,7 @@ DataProvider_modverdir = $(modverdir)/DataProvider
 DbDataProvider_modverdir = $(modverdir)/DbDataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
+FixedLengthUtil_modverdir = $(modverdir)/FixedLengthUtil
 SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
@@ -88,6 +89,7 @@ dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
 dist_DbDataProvider_modver_DATA = $(wildcard qlib/DbDataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
+dist_FixedLengthUtil_modver_DATA = $(wildcard qlib/FixedLengthUtil/*.q[cm])
 dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
@@ -538,6 +540,7 @@ noinst_HEADERS = \
 	include/qore/intern/qore_encoding_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
+	include/qore/intern/GlobalThreadLocalVar.h \
 	include/qore/intern/QoreLValue.h \
 	include/qore/intern/LocalVar.h \
 	include/qore/intern/QoreQueueIntern.h \
