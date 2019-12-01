@@ -83,6 +83,16 @@ public class DataProvider {
         factory_cache{name} = factory;
     }
 
+    #! Deregister a data provider factory
+    /** @param factory the data provider factory name to be deregistered
+    */
+    static deregisterFactory(string name) {
+        factory_cache_lock.lock();
+        on_exit factory_cache_lock.unlock();
+
+        remove factory_cache{name};
+    }
+
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
         if (!factory_cache{name}) {
