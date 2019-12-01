@@ -38,12 +38,18 @@ public namespace DataProvider {
 #! Data provider class
 public class DataProvider {
     public {
-        #! List of standard data provider factory modules
-        const FactoryList = (
-            "DbDataProvider",
-            "SwaggerDataProvider",
-            "CsvUtil",
-        );
+        #! Map of known data provider factory names to modules
+        const FactoryMap = {
+            "db": "DbDataProvider",
+            "swagger": "SwaggerDataProvider",
+            "csvread": "CsvUtil",
+            "csvwrite": "CsvUtil",
+            "fixedlengthread": "FixedLengthUtil",
+            "fixedlengthwrite": "FixedLengthUtil",
+        };
+
+        #! List of data provider factory modules
+        const FactoryModuleList = keys (map {$1: True}, FactoryMap.iterator());
     }
 
     private {
@@ -79,6 +85,15 @@ public class DataProvider {
 
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
+        if (!factory_cache{name}) {
+            *string module_name = FactoryMap{name};
+            if (!module_name) {
+                return;
+            }
+            if (!DataProvider::tryLoad(module_name)) {
+                return;
+            }
+        }
         return factory_cache{name};
     }
 
@@ -90,7 +105,7 @@ public class DataProvider {
         @throw PROVIDER-ERROR the given provider is unknown
     */
     static AbstractDataProviderFactory getFactoryEx(string name) {
-        *AbstractDataProviderFactory factory = factory_cache{name};
+        *AbstractDataProviderFactory factory = DataProvider::getFactory(name);
         if (!factory) {
             throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y", name,
                 keys factory_cache);
@@ -187,7 +202,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         therefore not suitable for indexing)
     */
     static AbstractDataProviderType getTypeEx(string label) {
-        *AbstractDataProviderType type = type_cache{label};
+        *AbstractDataProviderType type = DataProvider::getType(label);
         if (!type) {
             throw "PROVIDER-ERROR", sprintf("data provider type label %y is unknown; known data provider type "
                 "labels: %y", label, keys type_cache);
@@ -204,16 +219,21 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         return keys type_cache;
     }
 
-    #! Registers known data provider factories
+    #! Registers all known data provider factories
     static registerKnownFactories() {
-        foreach string factory in (FactoryList) {
-            try {
-                load_module(factory);
-            } catch (hash<ExceptionInfo> ex) {
-                # DEBUG
-                #stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
+        map DataProvider::tryLoad($1), FactoryModuleList;
+    }
+
+    static bool tryLoad(string module_str, *bool verbose) {
+        try {
+            load_module(module_str);
+            return True;
+        } catch (hash<ExceptionInfo> ex) {
+            if (verbose || True) {
+                stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
+        return False;
     }
 
     #! Converts an info hash with objects to a hash with string descriptions instead of the objects

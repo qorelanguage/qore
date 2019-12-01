@@ -1,0 +1,306 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
+
+/*  FixedLengthUtil.qm Copyright 2015 - 2019 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.9.4
+
+%requires Util
+%requires(reexport) DataProvider
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+module FixedLengthUtil {
+    version = "1.2";
+    desc    = "user module for working with files with fixed length lines";
+    author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
+    url     = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factories
+        DataProvider::registerFactory(new FixedLengthReadDataProviderFactory());
+        DataProvider::registerFactory(new FixedLengthWriteDataProviderFactory());
+    };
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage FixedLengthUtil Module
+
+    @tableofcontents
+
+    @section fixedlengthutilintro Introduction to the FixedLengthUtil Module
+
+    The %FixedLengthUtil module provides functionality for parsing files with fixed length lines. This means that we have at least one line type and each line type is described as several data items with fixed length.
+
+    To use this module, use \c "%requires FixedLengthUtil" in your code.
+
+    All the public symbols in the module are defined in the FixedLengthUtil namespace.
+
+    Currently the module provides the following classes:
+    - @ref FixedLengthUtil::FixedLengthAbstractIterator "FixedLengthAbstractIterator": Iterator class allowing for fixed-length line data to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthAbstractWriter "FixedLengthAbstractWriter": Fixed length line writer
+    - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator": Iterator class allowing for generic fixed-length line input data to be processed line by line on a record basis
+
+    Furthermore, the following specialized classes are implemented based on the above and are provided for convenience and backwards-compatibility:
+    - @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator": Iterator class allowing for fixed-length line strings to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter": Fixed length line writer into a variable
+    - @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator": Iterator class allowing for fixed-length line file to be processed line by line on a record basis
+    - @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter": Fixed length line writer into a file
+
+    @section fixedlengthglobals Global Options
+
+    Valid options are:
+    - \c "date_format": the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
+    - \c "encoding": the output encoding for strings parsed or returned
+    - \c "eol": the end of line characters for parsing or generation
+    - \c "file_flags": additional writer @ref file_open_constants; @ref Qore::O_WRONLY | @ref Qore::O_CREAT are used by default. Use eg. @ref Qore::O_EXCL to ensure not to overwrite the target or @ref Qore::O_TRUNC to replace any existing file
+    - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
+    - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
+    - \c "truncate": The flag controls whether to truncate an output field value if its bigger than its specified \a length. Default is \c "False".
+    - \c "tab2space": Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
+
+    @section fixedlengthspec Specification Hash
+
+    Fixed length specification hash is in the form of a hash, where each hash key is the name of a record, and each value
+    is a @ref fixedlengthspecrecordhash "record description hash" describing the record; see the following example:
+    @code{.py}
+# the following spec is suitable for input and output
+const Specs = (
+    "header": (
+        "flow_type": ("length": 3, "type": "string", "value": "001"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+    "line": (
+        "flow_type": ("length": 3, "type": "string"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "processing_id": ("length": 10, "type": "int", "padding_char": "0"),
+        "processing_name": ("length": 10, "type": "string"),
+        "po_number": ("length": 10, "type": "int", "padding_char": "0"),
+    ),
+    "trailer": (
+        "flow_type": ("length": 3, "type": "string", "value": "003"),
+        "record_type": ("length": 3, "type": "int", "padding_char": "0"),
+        "number_of_records": ("length": 8, "type": "int", "padding_char": "0"),
+    ),
+);
+    @endcode
+
+    In the example above, \c "header", \c "line", and \c "trailer" are record names, and the values of each key
+    are @ref fixedlengthspecrecordhash "record description hashes".
+
+    @subsection fixedlengthspecrecordhash Record Description Hash
+
+    Each record will have a number of fields described in the record description hash.  The record description hash keys
+    represent the names of the fields, and the values are @ref fixedlengthspecrow "field specification hashes".
+
+    In the \c "header" record in the example above, the fields are \c "flow_type", \c "record_type",
+    and \c "number_of_records", and the values of each of those keys are
+    @ref fixedlengthspecrow "field specification hashes" for the given fields. As the \c "header" and \c "trailer" have
+    equal line length, extra configuration is required to @ref fixedlengthrecordtyperesolution "resolve the record type";
+    in the example above this is configured using the \c "value" key of the
+    @ref fixedlengthspecrow "field specification hashes" for the \c "flow_type" records.
+
+    @subsection fixedlengthspecrow Field Specification Hash
+
+    The field specification hash has the following format:
+
+    |!Key|!Type|!Description
+    | \c length|integer|the size of the field in bytes
+    | \c type|string|the type of data bound to the field @ref fixedlengthspectypes
+    | \c format|string|a date mask if the \a type of the field is \c "date"; see @ref date_formatting "date formatting" for more information
+    | \c timezone|string|override global timezone for current "date" field
+    | \c padding|string|set padding of the field "left" (default) or "right"; used only in writers; if not given then the default padding depends on the field's \a type: \c "int" fields get left padding (right justification) and all others get right padding (left justification)
+    | \c padding_char|string|a string with size 1 to use for \c padding. Default \c " " (space). Used only in writers
+    | \c value|string|the value to use to compare to input data when determining the record type; if \c "value" is defined for a field, then \c "regex" cannot be defined
+    | \c regex|string|the regular expression to use to apply to input data lines when determining the record type
+    | \c default|string|In writer the value is default output value when value is not specified in record data.
+    | \c truncate|boolean|The flag controls whether to truncate output field value if its bigger than specified \a length. Default is \c "False".
+    | \c tab2space|integer|Controls whether to replace tabs with spaces and its value determines how many spaces to output in place of one tab character.
+
+    @subsection fixedlengthspectypes Field Data Types
+
+    The following values can be used as a @ref fixedlengthspecrow "field" type:
+    - \c "date"
+    - \c "float"
+    - \c "int"
+    - \c "number"
+    - \c "string"
+
+    @section fixedlengthrecordtyperesolution Record Type Resolution
+
+    If no record type resolution rules or logic is defined, then record types are resolved automatically based on their
+    unique line lengths.  If the record line lengths are not unique (i.e. two or more records have the same number of
+    characters), then a rule must exist to resolve the record type.
+
+    Typically the value of the first field determines the record type, however any field in the record can be used to
+    determine the record type or even multiple fields could be used.  Record type detection configuration is supplied
+    by the \c "value" (field value equality test) or \c "regex" (regular expression test) keys in the
+    @ref fixedlengthspecrow "field specification hash" for the record in question.  If multiple fields in a record
+    definintion have \c "value" or \c "regex" keys, then all fields must match the input data in order for the input
+    line to match the record.
+
+    The above record type resolution logic is executed in
+    @ref FixedLengthUtil::FixedLengthAbstractIterator::identifyTypeImpl() "FixedLengthAbstractIterator::identifyTypeImpl()",
+    which executes any \c "regex" or \c "value" tests on the input line in the order of the field definitions in the
+    @ref fixedlengthspecrecordhash "record description hash".
+
+    Record type resolution is performed as follow:
+    - \c "value": Matches the full value of the field; if an integer \c "value" value is used, then integer comparisons are done, otherwise string comparisons are performed.
+    - \c "regex": Matches the input line string starting at the first character in the field to the rest of the line (i.e. not truncated for the current record);
+    this enables regular expression matching against multiple columns if needed.
+
+    When there are no record-matching keys in the field hashes for any record and the input record character lengths are
+    not unique, then
+    @ref FixedLengthUtil::FixedLengthAbstractIterator::identifyTypeImpl() "FixedLengthAbstractIterator::identifyTypeImpl()"
+    must be overridden in a subclass to provide custom record matching logic.
+
+    @note
+    - It is an error to have both \c "regex" and \c "value" keys in a @ref fixedlengthspecrow "field specification hash"
+    - If multiple fields have configuration for input line matching (i.e. \c "regex" and \c "value" keys), then all
+      fields with this configuration must match for the record to be matched
+
+    @section fixedlengthformat Fixed Length Data Format
+
+    Input and output data are formatted in a hash with two mandatory keys:
+    - \c "type": a string with name of the type
+    - \c "record": a hash with line data in field - value map
+
+    @code{.py}
+    ("type": "type1", "record": {"col1": 11111, "col2": "bb"}),
+    @endcode
+
+    <b>Example of reading:</b>
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires FixedLengthUtil
+
+hash specs = (
+    "type1": (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
+        # "timezone": "Europe/Prague", # use global if omitted
+        ),
+    ),
+);
+
+hash global_options = (
+    "encoding"    : "UTF-8",
+    "eol"         : "\n",
+    "ignore_empty": True,
+    "timezone"    : "Europe/Prague", # used if not overridden in a date field specification
+);
+
+FixedLengthFileIterator i(file, specs, global_options);
+while (i.next()) {
+    operation_with_hash(i.getValue())
+}
+    @endcode
+
+    <b>Example of writing:</b>
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires FixedLengthUtil
+
+list data = (
+    ("type": "type1", "record": {"col1": 11111, "col2": "bb"}),
+    ("type": "type2", "record": {"col3": "c", "col4": "ddd", "col5": "31122014"}),
+    ("type": "type1", "record": {"col1": 22222, "col2": "gg"}),
+);
+
+hash specs = (
+    "type1": (
+        "col1": ("length": 5, "type": "int"),
+        "col2": ("length": 2, "type": "string"),
+    ),
+    "type2": (
+        "col3": ("length": 1, "type": "string"),
+        "col4": ("length": 3, "type": "string"),
+        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY", "timezone": "Europe/Prague"),
+    ),
+);
+
+hash global_options = (
+    "eol": "\n",
+);
+
+FixedLengthFileWriter w(file, specs, global_options);
+w.write(data);
+    @endcode
+
+    @section fixedlengthutil_relnotes Release Notes
+
+    @subsection fixedlengthutil_v1_1 Version 1.1
+    - added support for streams; the following classes implement fixed-length input and output based on streams:
+      - @ref FixedLengthUtil::FixedLengthIterator "FixedLengthIterator": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataIterator "FixedLengthDataIterator" and @ref FixedLengthUtil::FixedLengthFileIterator "FixedLengthFileIterator"
+      - @ref FixedLengthUtil::FixedLengthWriter "FixedLengthWriter": provides a more generic interface than @ref FixedLengthUtil::FixedLengthDataWriter "FixedLengthDataWriter" and @ref FixedLengthUtil::FixedLengthFileWriter "FixedLengthFileWriter"
+    - added @ref FixedLengthUtil::FixedLengthFileIterator::getFileName() (<a href="https://github.com/qorelanguage/qore/issues/1164">issue 1164</a>)
+    - added field as well as global option "truncate" (<a href="https://github.com/qorelanguage/qore/issues/1841">issue 1841</a>)
+    - added field as well as global option "tab2space" (<a href="https://github.com/qorelanguage/qore/issues/1866">issue 1866</a>)
+
+    @subsection fixedlengthutil_v1_0_1 Version 1.0.1
+    - fixes and improvements to errors and exceptions (<a href="https://github.com/qorelanguage/qore/issues/1828">issue 1828</a>)
+
+    @subsection fixedlengthutil_v1_0 Version 1.0
+    - initial version of module
+*/
+
+#! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
+public namespace FixedLengthUtil {
+#! Unix end of line character sequence (for new OS X too)
+public const EOL_UNIX = "\n";
+#! MS DOS/Windows end of line character sequence
+public const EOL_WIN = "\r\n";
+#! Old (pre-OSX) Macintosh end of line character sequence
+public const EOL_MACINTOSH = "\r";
+
+# helper hash (for O(ln(n)) lookups in the worst case) of end of line values
+const EOLS = {
+    EOL_UNIX: True,
+    EOL_WIN: True,
+    EOL_MACINTOSH: True,
+};
+}
