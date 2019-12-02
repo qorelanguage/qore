@@ -90,7 +90,12 @@ public class DataProvider {
                 throw "PROVIDER-ERROR", sprintf("provider %y has already been registered", name);
             }
         }
-        factory_module_map{factory.className()} = Class::getClass(factory).getModuleName();
+        {
+            *string module_name = Class::getClass(factory).getModuleName();
+            if (exists module_name) {
+                factory_module_map{factory.className()} = module_name;
+            }
+        }
         factory_cache{name} = factory;
     }
 
@@ -191,7 +196,12 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
                 throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
             }
         }
-        type_module_map{type.className()} = Class::getClass(type).getModuleName();
+        {
+            *string module_name = Class::getClass(type).getModuleName();
+            if (exists module_name) {
+                type_module_map{type.className()} = module_name;
+            }
+        }
 
         type_cache{label} = type;
     }
