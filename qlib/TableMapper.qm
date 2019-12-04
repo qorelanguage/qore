@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9.4
 
 # require type definitions everywhere
 %require-types
@@ -286,12 +286,36 @@ public namespace TableMapper {
     public class InboundTableMapper inherits Mapper::Mapper {
         public {
             #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + {
-                "unstable_input": sprintf("if this is set to True then a slower insert/upsert method will be used that verifies each input row; if False an optimized insert/upsert method is used (additionally bulk inserts/upserts are possible) but all input hashes must have the same keys in the same order; default: %y", OptionDefaults.unstable_input),
-                "insert_block": sprintf("the row block size used when bulk DML / batch inserts/upserts are used; default: %y", OptionDefaults.insert_block),
-                "rowcode": "a closure or call reference taking a single hash argument representing the row values inserted/upserted plus any output values generated in inserts (such as sequence values, for example)",
-                "upsert": "if True then data will be upserted instead of inserted",
-                "upsert_strategy": "the upsert strategy code to use; implies 'upsert'",
+            const OptionKeys = Mapper::OptionKeys
+                + (map {$1.key: $1.value.desc}, UserOptions.pairIterator())
+                + {
+                    "rowcode": "a closure or call reference taking a single hash argument representing the row values "
+                        "inserted/upserted plus any output values generated in inserts (such as sequence values, for "
+                        "example)",
+                };
+
+            #! User options
+            const UserOptions = Mapper::UserOptions + {
+                "unstable_input": <MapperOptionInfo>{
+                    "type": "bool",
+                    "desc": sprintf("if this is set to True then a slower insert/upsert method will be used that "
+                        "verifies each input row; if False an optimized insert/upsert method is used (additionally "
+                        "bulk inserts/upserts are possible) but all input hashes must have the same keys in the same "
+                        "order; default: %y", OptionDefaults.unstable_input),
+                },
+                "insert_block": <MapperOptionInfo>{
+                    "type": "int",
+                    "desc": sprintf("the row block size used when bulk DML / batch inserts/upserts are used; "
+                        "default: %y", OptionDefaults.insert_block),
+                },
+                "upsert": <MapperOptionInfo>{
+                    "type": "bool",
+                    "desc": "if True then data will be upserted instead of inserted",
+                },
+                "upsert_strategy": <MapperOptionInfo>{
+                    "type": "string",
+                    "desc": "the upsert strategy code to use; implies 'upsert'",
+                },
             };
 
             #! default option values
@@ -610,8 +634,13 @@ InboundTableMapper mapper(table, DbMapper);
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
-        hash optionKeys() {
+        hash<auto> optionKeys() {
             return OptionKeys;
+        }
+
+        #! returns mapper options useful for users
+        hash<string, hash<MapperOptionInfo>> getUserOptions() {
+            return UserOptions;
         }
 
         #! inserts or upserts a row into the target table based on a mapped input record; does not commit the transaction
@@ -1752,10 +1781,16 @@ InboundTableMapperIterator i(input, mapper);
     #! provides an abstract base for all SQL based outbound mappers
     public class AbstractSqlStatementOutboundMapper inherits Mapper::Mapper {
         public {
-            #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + {
-                "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
-            };
+            #! option keys for this class
+            const OptionKeys = Mapper::OptionKeys
+                + (map {$1.key: $1.value.desc}, UserOptions.pairIterator())
+                + {
+                    "select_block": <MapperOptionInfo>{
+                        "type": "int",
+                        "desc": sprintf("the row block size used when bulk DML / batch inserts are used; default: %y",
+                            OptionDefaults.select_block),
+                    },
+                };
 
             #! default option values
             const OptionDefaults = {
@@ -1803,6 +1838,11 @@ InboundTableMapperIterator i(input, mapper);
         */
         hash<auto> optionKeys() {
             return OptionKeys;
+        }
+
+        #! returns mapper options useful for users
+        hash<string, hash<MapperOptionInfo>> getUserOptions() {
+            return UserOptions;
         }
 
         #! commits the transaction and frees the Qore::SQL::AbstractDatasource transaction thread resource
@@ -1948,10 +1988,19 @@ InboundTableMapperIterator i(input, mapper);
             # SqlUtil select hash
             *hash m_sh;
 
-            #! option keys for this object
-            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys + {
-                "table": "(required) the AbstractTable object for the source of the data",
-                "sh": "(optional) an SqlUtil select hash",
+            #! option keys for this class
+            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys
+                + (map {$1.key: $1.value.desc}, UserOptions.pairIterator())
+                + {
+                    "table": "(required) the AbstractTable object for the source of the data",
+                };
+
+            #! user options for this class
+            const UserOptions = {
+                "sh": <MapperOptionInfo>{
+                    "type": "hash",
+                    "desc": "(optional) an SqlUtil select hash",
+                },
             };
         }
 
@@ -2016,6 +2065,11 @@ InboundTableMapperIterator i(input, mapper);
             return OptionKeys;
         }
 
+        #! returns mapper options useful for users
+        hash<string, hash<MapperOptionInfo>> getUserOptions() {
+            return UserOptions;
+        }
+
         #! initializes options
         private initOptions(reference<hash<auto>> opts) {
             m_table = opts.table;
@@ -2049,10 +2103,23 @@ InboundTableMapperIterator i(input, mapper);
             string m_sql;
             *list m_sqlargs;
 
-            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys + {
-                "datasource": "(internal) the datasource containing the target table",
-                "select": "(internal) the SQL statement used",
-                "bind": "(internal) a runtime bind-variable (soft)list",
+            #! option keys for this class
+            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys
+                + (map {$1.key: $1.value.desc}, UserOptions.pairIterator())
+                + {
+                    "datasource": "(internal) the datasource containing the target table",
+                };
+
+            #! user options for this class
+            const UserOptions = {
+                "select": <MapperOptionInfo>{
+                    "type": "string",
+                    "desc": "the SQL statement to use",
+                },
+                "bind": <MapperOptionInfo>{
+                    "type": "list",
+                    "desc": "(internal) a list of runtime bind values",
+                },
             };
         }
 
@@ -2101,6 +2168,11 @@ printf("%N\n", m.getDataRows());
         */
         hash<auto> optionKeys() {
             return OptionKeys;
+        }
+
+        #! returns mapper options useful for users
+        hash<string, hash<MapperOptionInfo>> getUserOptions() {
+            return UserOptions;
         }
 
         #! initializes the internal statement object

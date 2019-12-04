@@ -97,97 +97,105 @@ public class TableMapperTest inherits QUnit::Test {
             "id": ("sequence": "seq_table_mapper_test"),
             "string": True,
             "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
-            );
+        );
 
         const Map2 = (
             "id": ("sequence": "seq_table_mapper_test"),
             "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
             "dte": ("code": date sub (nothing x, hash rec) { return now_us(); }),
-            );
+        );
 
         const Map2NoSequence = (
             "id": ("constant": 1),
             "string": ("code": string sub (any x, hash rec) { return rec.string ?? rec.str2; }),
             "dte" : ("constant" : date("2017-05-03"),),
-            );
+        );
 
         const Map2CodeFirstVal = (
             "id": ("constant": 1),
             "string": ("code": *string sub (any x, hash rec) { return x; }),
             "dte" : ("constant" : date("2017-05-03"),),
-            );
+        );
 
         const Map2NoSequenceIdent = (
             "id": ("constant": 1),
             "string": True,
             "dte" : ("constant" : date("2017-05-03"),),
-            );
+        );
 
         const Map2WithIndex = (
             "id": ("index": 10),
              "dte" : ("constant" : date("2017-05-03"),),
-            );
+        );
 
         const ConstMap = (
             "id": ("constant": 1),
             "string": ("constant": "2"),
             "dte" : ("constant" : date("2017-05-03"),),
-            );
+        );
 
         const TrivMap = (
             "id": ("constant" : 0),
             "string" : ("name" : "string"),
-            "dte" : ("constant" : date("2017-05-03")));
+            "dte" : ("constant" : date("2017-05-03")),
+        );
 
         const MapRuntime = (
             "id": ("index": 0),
             "string": ("runtime" : "rstring"),
             "dte" : True,
-            );
+        );
 
         const InputRT1 = ("dte" : (date("2017-05-03"), date("2017-05-04")));
         const InputRT2 = ("dte" : (date("2017-05-05"), date("2017-05-06")));
 
         const OutputRT = (
-                ("id" : 0, "string" : "pass1", "dte" : date("2017-05-03")),
-                ("id" : 1, "string" : "pass1", "dte" : date("2017-05-04")),
-                ("id" : 2, "string" : "pass1", "dte" : date("2017-05-05")),
-                ("id" : 3, "string" : "pass1", "dte" : date("2017-05-06")));
-        const OutputRTHash =
-                ("id" : (0,1,2,3),
-                 "string" : "pass1",
-                 "dte" : (date("2017-05-03"),
-                          date("2017-05-04"),
-                          date("2017-05-05"),
-                          date("2017-05-06")));
+            ("id" : 0, "string" : "pass1", "dte" : date("2017-05-03")),
+            ("id" : 1, "string" : "pass1", "dte" : date("2017-05-04")),
+            ("id" : 2, "string" : "pass1", "dte" : date("2017-05-05")),
+            ("id" : 3, "string" : "pass1", "dte" : date("2017-05-06"))
+        );
+        const OutputRTHash = (
+            "id" : (0,1,2,3),
+            "string" : "pass1",
+            "dte" : (
+                date("2017-05-03"),
+                date("2017-05-04"),
+                date("2017-05-05"),
+                date("2017-05-06"),
+            ),
+        );
 
-        const Input1 = (("string": "string_1"),
-                        ("string": "string_2"),
-                        ("string": ""),
-                       );
-        const Input2 = (("string": "string_1", "str2" : "str2_1"),
-                        ("string": "string_2", "str2" : "str2_2"),
-                        ("string": NOTHING, "str2" : "str2_3"),
-                       );
+        const Input1 = (
+            ("string": "string_1"),
+            ("string": "string_2"),
+            ("string": ""),
+        );
+        const Input2 = (
+            ("string": "string_1", "str2" : "str2_1"),
+            ("string": "string_2", "str2" : "str2_2"),
+            ("string": NOTHING, "str2" : "str2_3"),
+        );
         const Input3 = ("string": ("string_1", "string_2", NOTHING), "str2": "str2");
         const Input4 = ("str2": "str2", "string": ("string_1", "string_2", NOTHING));
         const InputWithEmptyList = ("str2": list(), "string": list());
         const Input5 = ("string" : ("string_1",));
         const Input6 = ("string": "string_6", "str2": "str6");
-        const Output1 = (("string" : "string_1"),
-                         ("string" : "string_2"),
-                         ("string" : ""),
-                        );
+        const Output1 = (
+            ("string" : "string_1"),
+            ("string" : "string_2"),
+            ("string" : ""),
+        );
 
         const UpsertMap = (
             "id": "num",
             "string": "label",
-            );
+        );
 
         const UpsertInput1 = (
             "num": (1, 2, 3, 4, 5),
             "label": ("one", "two", "three", "four", "five"),
-            );
+        );
 
         const UpsertInput2 = (
             ("num": 1, "label": "uno"),
@@ -196,23 +204,23 @@ public class TableMapperTest inherits QUnit::Test {
             ("num": 4, "label": "cuatro"),
             ("num": 5, "label": "cinco"),
             ("num": 6, "label": "seis"),
-            );
+        );
 
         const UpsertInput3 = (
             "num": (1, 2, 3, 4, 5, 6, 7),
             "label": ("jedna", "dva", "tři", "čtyři", "pět", "šest", "sedm"),
-            );
+        );
 
         const OutMap1 = (
             "seq": "id",
             "tstr": string sub (any ignored, hash rec) {
                 return sprintf("%s-%s", rec.id, rec.string);
             },
-            );
+        );
 
         const SelectHash = (
             "orderby": "id",
-            );
+        );
 
         const SelectSql = "select * from table_mapper_test order by id";
 
@@ -220,121 +228,124 @@ public class TableMapperTest inherits QUnit::Test {
             ("id": 19, "code1": "code", "string": "string_1"),
             ("id": 20, "code1": "code", "string": "string_2"),
             ("id": 21, "code1": "code", "string": "str2"),
-            );
+        );
 
         const OutputBulk2 = (
             ("id": 22, "code1": "code", "string": "string_1"),
             ("id": 23, "code1": "code", "string": "string_2"),
             ("id": 24, "code1": "code", "string": ""),
-            );
+        );
 
-        const OutputBulk3 =
-            ("id": 1,
-             "string": ("string_1", "string_2", "str2"),
-             "dte" :
-                 date("2017-05-03"),);
+        const OutputBulk3 = (
+            "id": 1,
+            "string": ("string_1", "string_2", "str2"),
+            "dte": date("2017-05-03"),
+        );
 
-        const OutputBulk3a =
-            ("id": 1,
-             "string": ("string_1", "string_2", NOTHING),
-             "dte" :
-                 date("2017-05-03"),);
+        const OutputBulk3a = (
+            "id": 1,
+            "string": ("string_1", "string_2", NOTHING),
+            "dte": date("2017-05-03"),
+        );
 
-        const OutputBulk3b =
-            ("id": 1,
-             "string": ("string_6", "string_6", "string_6"),
-             "dte" :
-                 date("2017-05-03"),);
+        const OutputBulk3b = (
+            "id": 1,
+            "string": ("string_6", "string_6", "string_6"),
+            "dte": date("2017-05-03"),
+        );
 
         const Output2 = (
             ("seq": 25, "tstr": "25-string_1"),
             ("seq": 26, "tstr": "26-string_2"),
             ("seq": 27, "tstr": "27-"),
-            );
+        );
 
-        const Output3 =
-            (("string": "string_1"),
-             ("string": "string_2"),
-             ("string": "str2"),
-            );
+        const Output3 = (
+            ("string": "string_1"),
+            ("string": "string_2"),
+            ("string": "str2"),
+        );
 
-        const Output3a =
-            (
-             ("string": "str2"),
-             ("string": "string_1"),
-             ("string": "string_2"),
-            );
+        const Output3a = (
+            ("string": "str2"),
+            ("string": "string_1"),
+            ("string": "string_2"),
+        );
 
-        const Output3b =
-            (
-             ("string": "string_1"),
-             ("string": "string_2"),
-             ("string": NOTHING),
-            );
+        const Output3b = (
+            ("string": "string_1"),
+            ("string": "string_2"),
+            ("string": NOTHING),
+        );
 
-        const Output3c =
-            (
-             ("string": "string_6"),
-             ("string": "string_6"),
-             ("string": "string_6"),
-            );
+        const Output3c = (
+            ("string": "string_6"),
+            ("string": "string_6"),
+            ("string": "string_6"),
+        );
 
-        const Output3aCrec =
-            (
-             ("string": "ms"),
-             ("string": "ms"),
-             ("string": "ms"),
-            );
+        const Output3aCrec = (
+            ("string": "ms"),
+            ("string": "ms"),
+            ("string": "ms"),
+        );
 
-        const Output3bCrec =
-            (
-             ("string": "ms1"),
-             ("string": "ms1"),
-             ("string": "ms1"),
-             ("string": "ms2"),
-             ("string": "ms2"),
-             ("string": "ms2"),
-            );
+        const Output3bCrec = (
+            ("string": "ms1"),
+            ("string": "ms1"),
+            ("string": "ms1"),
+            ("string": "ms2"),
+            ("string": "ms2"),
+            ("string": "ms2"),
+        );
 
         const Output4 = (
-                ("string" : "str2"),
-                ("string" : "string_1"),
-                ("string" : "string_2"),
-                ("string" : "string_6"),);
+            ("string" : "str2"),
+            ("string" : "string_1"),
+            ("string" : "string_2"),
+            ("string" : "string_6"),
+        );
 
         const Output5 = (
-                ("id" : "10"),
-                ("id" : "11"),
-                ("id" : "12"),
-                ("id" : "13"),);
+            ("id" : "10"),
+            ("id" : "11"),
+            ("id" : "12"),
+            ("id" : "13"),
+        );
 
-        const ConstOutput =
-            (("id": 1, "string" : "2"),
-             ("id": 1, "string" : "2"),
-             ("id": 1, "string" : "2"),);
-        const ConstOutputHash =
-            ("id": 1,
-             "string" : "2",
-             "dte" : date("2017-05-03"));
-        const OutputHash4 =
-                ("id" : 1,
-                 "string" : ("string_1", "string_2", "str2", "string_6"),
-                 "dte" : date("2017-05-03"),);
-        const OutputHash5 =
-                ("id" : (10,11,12,13),
-                 "dte" : 2017-05-03,);
-        const OutputHash6 =
-                ("id" : 1,
-                 "string" : "string_6",
-                 "dte" : date("2017-05-03"),);
-        const OutputHash7 =
-                ("id" : 1,
-                 "string" : ("string_1", "string_2", "str2"),
-                 "dte" : date("2017-05-03"),);
+        const ConstOutput = (
+            ("id": 1, "string" : "2"),
+            ("id": 1, "string" : "2"),
+            ("id": 1, "string" : "2"),
+        );
+        const ConstOutputHash = (
+            "id": 1,
+            "string" : "2",
+            "dte" : date("2017-05-03"),
+        );
+        const OutputHash4 = (
+            "id" : 1,
+            "string" : ("string_1", "string_2", "str2", "string_6"),
+            "dte" : date("2017-05-03"),
+        );
+        const OutputHash5 = (
+            "id" : (10,11,12,13),
+            "dte" : 2017-05-03,
+        );
+        const OutputHash6 = (
+            "id" : 1,
+            "string" : "string_6",
+            "dte" : date("2017-05-03"),
+        );
+        const OutputHash7 = (
+            "id" : 1,
+            "string" : ("string_1", "string_2", "str2"),
+            "dte" : date("2017-05-03"),
+        );
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
-            );
+        );
 
         const OptionColumn = 22;
     }
@@ -397,8 +408,12 @@ public class TableMapperTest inherits QUnit::Test {
                 fl = ();
 
                 InboundTableMapper mapper(table, ConstMap, ("info_log": info_log));
+                assertTrue(mapper.optionKeys().hasKey("rowcode"));
                 *hash ret = mapper.queueData(Input3);
                 if (!ret) { ret = mapper.flush(); }
+
+                hash<auto> user_opts = mapper.getUserOptions();
+                assertTrue(user_opts.hasKey("unstable_input"));
 
                 # issue #1849 test
                 assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
