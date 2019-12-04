@@ -15,7 +15,7 @@
 
 public class MapperTest inherits QUnit::Test {
     public {
-        const DataMap = (
+        const DataMap = {
             # this will take the "Id" element of any "^attributes^" hash in the input record
             "id": "^attributes^.Id",
             # this maps input "name" -> output "name"
@@ -23,18 +23,22 @@ public class MapperTest inherits QUnit::Test {
             # this marks "explicit_count" as an integer field mapped from the input "Count" field
             "explicit_count": ("type": "int", "name": "Count"),
             # runs the given code on the input record and retuns the result - the number of "Products" sub-records
-            "implicit_count": int sub (any ignored, hash rec) { return rec.Products.size(); },
+            "implicit_count": int sub (auto ignored, hash<auto> rec) { return rec.Products.size(); },
             # converts the given field to a date in the specified format
             "order_date": ("name": "OrderDate", "date_format": "DD.MM.YYYY HH:mm:SS.us"),
             # converts the given field to a number in the specified format
-            "unit_price": ("name": "UnitPrice", "number_format": ".,"),
+            "unit_price": {"name": "UnitPrice", "type_options": {"number.format": ".,"}},
             # returns a constant value
             "target_sys": ("constant": "Orders"),
             # returns structured output
             "sr0.sr1.key0": ("constant": "key0"),
             "sr0.sr1.^attributes^.key0": ("constant": "key0"),
             "sr0.sr1.^attributes^.key1": ("constant": "key1"),
-            "sr0.sr1.^attributes^.type": ("name": "Type", "code": *string sub (*string v, hash rec) { return v ? v.lwr() : NOTHING;}, "default": "unknown"),
+            "sr0.sr1.^attributes^.type": (
+                "name": "Type",
+                "code": *string sub (*string v, hash<auto> rec) { return v ? v.lwr() : NOTHING;},
+                "default": "unknown",
+            ),
             "sr0.sr1.key1": ("constant": "key1"),
             "sr0.store_name": "StoreInfo.StoreName",
             "runtimetest": ("runtime" : "runtimetest"),
@@ -43,11 +47,12 @@ public class MapperTest inherits QUnit::Test {
             "indextest3": ("index" : "a"),
             "empty_string": "EmptyString",
             "length_test": ("maxlen": 5, "default": ""),
-        );
+        };
 
-        const DataMap2 = (
+        const DataMap2 = {
             "int_field": ("type": "int", "name": "count"),
-        );
+            "date_field": ("name": "idate"),
+        };
 
         const MapInput = ((
             "^attributes^": ("Id": 1),
@@ -110,6 +115,7 @@ public class MapperTest inherits QUnit::Test {
 
         const MapInput3 = (
             "count": (11, "10", NOTHING),
+            "idate": ("10.12.2019", "11.12.2019", "12.12.2019"),
         );
 
         const MapOutput = ((
@@ -168,9 +174,9 @@ public class MapperTest inherits QUnit::Test {
         );
 
         const MapOutput2 = (
-            ("int_field" : 11),
-            ("int_field" : 10),
-            ("int_field" : NOTHING),
+            ("int_field": 11, "date_field": 2019-12-10),
+            ("int_field": 10, "date_field": 2019-12-11),
+            ("int_field": NOTHING, "date_field": 2019-12-12),
         );
 
         const DotMap = (
@@ -607,8 +613,18 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testMapperMapFieldType() {
-        Mapper m(DataMap2, m_opts);
-        list l = m.mapAll(MapInput3);
+        Mapper m(DataMap2, m_opts + {
+            "output": {
+                "int_field": {},
+                "date_field": {
+                    "type": "date",
+                },
+            },
+            "global_type_options": {
+                "date.format": "DD.MM.YYYY",
+            }
+        });
+        list<auto> l = m.mapAll(MapInput3);
         assertEq(MapOutput2, l);
     }
 
