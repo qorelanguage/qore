@@ -547,7 +547,7 @@ static inline DateTimeNode *makeRelativeDateTime(char* str) {
    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
-static DateTimeNode *makeRelativeTime(char* str) {
+static DateTimeNode* makeRelativeTime(char* str) {
    const char* p = str;
 
    int hour = 0, minute = 0, second = 0, us = 0;
@@ -557,43 +557,49 @@ static DateTimeNode *makeRelativeTime(char* str) {
 }
 
 static bool isRegexModifier(QoreRegex *qr, int c) {
-   if (c == 'i')
-      qr->setCaseInsensitive();
-   else if (c == 's')
-      qr->setDotAll();
-   else if (c == 'x')
-      qr->setExtended();
-   else if (c == 'm')
-      qr->setMultiline();
-   else
-      return false;
-   return true;
+    if (c == 'i')
+        qr->setCaseInsensitive();
+    else if (c == 's')
+        qr->setDotAll();
+    else if (c == 'x')
+        qr->setExtended();
+    else if (c == 'm')
+        qr->setMultiline();
+    else if (c == 'u') {
+        qr->setUnicode();
+    } else {
+        return false;
+    }
+    return true;
 }
 
 static bool isRegexExtractModifier(QoreRegex *qr, int c) {
-   if (isRegexModifier(qr, c))
-      return true;
-   if (c == 'g')
-      qr->setGlobal();
-   else
-      return false;
-   return true;
+    if (isRegexModifier(qr, c))
+        return true;
+    if (c == 'g')
+        qr->setGlobal();
+    else
+        return false;
+    return true;
 }
 
 static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
-   if (c == 'g')
-      qr->setGlobal();
-   else if (c == 'i')
-      qr->setCaseInsensitive();
-   else if (c == 's')
-      qr->setDotAll();
-   else if (c == 'x')
-      qr->setExtended();
-   else if (c == 'm')
-      qr->setMultiline();
-   else
-      return false;
-   return true;
+    if (c == 'g')
+        qr->setGlobal();
+    else if (c == 'i')
+        qr->setCaseInsensitive();
+    else if (c == 's')
+        qr->setDotAll();
+    else if (c == 'x')
+        qr->setExtended();
+    else if (c == 'm')
+        qr->setMultiline();
+    else if (c == 'u') {
+        qr->setUnicode();
+    } else {
+        return false;
+    }
+    return true;
 }
 
 static char* make_cast(const char* s) {
