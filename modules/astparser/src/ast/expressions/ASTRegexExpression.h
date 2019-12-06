@@ -55,6 +55,9 @@ public:
     //! Whether the regex is multi-line.
     bool multiline = false;
 
+    //! Whether the regex performs Unicode char matches
+    bool unicode = false;
+
     // only valid for extract regex
     bool global = false;
 

@@ -466,6 +466,13 @@ class StringTest inherits QUnit::Test {
         # regex subpattern extraction operator tests
         assertEq("xmlns:wsdl" =~ x/(\w+):(\w+)/, ("xmlns", "wsdl"), "regex subpattern extraction");
         assertEq("xmlns-wsdl" =~ x/(\w+):(\w+)/, NOTHING, "negative regex subpattern extraction");
+
+        # unicode match tests
+        assertNothing("ステップの例:1.0" =~ x/(\w+):([[:alnum:]\._]+)/);
+        assertEq(("ステップの例", "1.0"), ("ステップの例:1.0" =~ x/(\w+):([[:alnum:]\._]+)/u));
+        assertNothing(regex_extract("ステップの例:1.0", "(\\w+):([[:alnum:]\\._]+)"));
+        assertEq(("ステップの例", "1.0"), regex_extract("ステップの例:1.0", "(\\w+):([[:alnum:]\\._]+)", RE_Unicode));
+
         assertEq(regex_extract("xmlns:wsdl", "(\\w+):(\\w+)"), ("xmlns", "wsdl"), "regex_extract()");
         {
             *list<*string> l = ("xmlns:wsdl" =~ x/(\w+):(\w+)/);

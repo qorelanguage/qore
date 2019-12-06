@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,22 +38,23 @@
 // base class for regex and regex substitution classes
 #include <pcre.h>
 
-#define check_re_options(a) (a & ~(PCRE_CASELESS|PCRE_DOTALL|PCRE_EXTENDED|PCRE_MULTILINE|PCRE_UTF8))
+#define check_re_options(a) (a & ~(PCRE_CASELESS|PCRE_DOTALL|PCRE_EXTENDED|PCRE_MULTILINE|PCRE_UTF8|PCRE_UCP))
 
 // note that the following constant is > 32 bits
 #define QRE_GLOBAL 0x100000000LL
 
 class QoreRegexBase {
-protected:
-   pcre* p;
-   int options;
-   QoreString* str;
-
 public:
-   DLLLOCAL void setCaseInsensitive();
-   DLLLOCAL void setDotAll();
-   DLLLOCAL void setExtended();
-   DLLLOCAL void setMultiline();
+    DLLLOCAL void setCaseInsensitive();
+    DLLLOCAL void setDotAll();
+    DLLLOCAL void setExtended();
+    DLLLOCAL void setMultiline();
+    DLLLOCAL void setUnicode();
+
+protected:
+    pcre* p = nullptr;
+    int options = 0;
+    QoreString* str = nullptr;
 };
 
 #endif

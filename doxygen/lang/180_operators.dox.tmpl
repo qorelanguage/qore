@@ -1462,7 +1462,7 @@ if (x !== y)
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
-    \a expression <tt>=~ [m]/</tt><em>regex</em><tt>/[isxm]</tt>
+    \a expression <tt>=~ [m]/</tt><em>regex</em><tt>/[isxmu]</tt>
 
     @par Return Type
     @ref bool_type "bool"
@@ -1487,7 +1487,7 @@ if (str =~ /hello/)
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
-    \a expression <tt>!~ [m]/</tt><em>regex</em><tt>/[isxm]</tt>
+    \a expression <tt>!~ [m]/</tt><em>regex</em><tt>/[isxmu]</tt>
 
     @par Return Type
     @ref bool_type "bool"
@@ -1512,7 +1512,7 @@ if (str !~ /hello/)
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
-    \a lvalue <tt>=~ s/</tt><em>regex_pattern</em><tt>/</tt><em>target_string</em><tt>/[isxmg]</tt>
+    \a lvalue <tt>=~ s/</tt><em>regex_pattern</em><tt>/</tt><em>target_string</em><tt>/[isxmug]</tt>
 
     @par Return Type
     @ref string_type "string" or @ref nothing (if the \a lvalue does not hold a string)
@@ -1537,7 +1537,7 @@ str =~ s/(\w+) +(\w+)/$2, $1/;
     See @ref qore_regex for more information about regular expression support in %Qore.
 
     @par Syntax
-    \a string <tt>=~ x/</tt><em>regex_with_patterns</em><tt>/[isxm]</tt>
+    \a string <tt>=~ x/</tt><em>regex_with_patterns</em><tt>/[isxmug]</tt>
 
     @par Return Type
     @ref list_type "list" or @ref nothing (if the \a lvalue does not hold a string or if the pattern is not matched)

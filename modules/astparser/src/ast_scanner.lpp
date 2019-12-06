@@ -134,8 +134,11 @@ static bool isRegexModifier(ASTRegexExpression* re, int c) {
         re->extended = true;
     else if (c == 'm')
         re->multiline = true;
-    else
+    else if (c == 'u') {
+        re->unicode = true;
+    } else {
         return false;
+    }
     return true;
 }
 
@@ -160,8 +163,11 @@ static bool isRegexSubstModifier(ASTRegexSubstExpression* rs, int c) {
         rs->extended = true;
     else if (c == 'm')
         rs->multiline = true;
-    else
+    else if (c == 'u') {
+        rs->unicode = true;
+    } else {
         return false;
+    }
     return true;
 }
 

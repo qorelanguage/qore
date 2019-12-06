@@ -207,13 +207,13 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
 }
 
 void QoreRegex::init(int64 opt) {
-    p = 0;
-    options = (int)opt;
+    p = nullptr;
+    options = (int)opt | PCRE_UTF8;
     global = opt & QRE_GLOBAL ? true : false;
 }
 
 QoreString* QoreRegex::getString() {
     QoreString* rs = str;
-    str = 0;
+    str = nullptr;
     return rs;
 }

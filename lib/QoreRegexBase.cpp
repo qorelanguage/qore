@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,17 +34,22 @@
 #include "qore/intern/QoreRegexBase.h"
 
 void QoreRegexBase::setCaseInsensitive() {
-   options |= PCRE_CASELESS;
+    options |= PCRE_CASELESS;
 }
 
 void QoreRegexBase::setDotAll() {
-   options |= PCRE_DOTALL;
+    options |= PCRE_DOTALL;
 }
 
 void QoreRegexBase::setExtended() {
-   options |= PCRE_EXTENDED;
+    options |= PCRE_EXTENDED;
 }
 
 void QoreRegexBase::setMultiline() {
-   options |= PCRE_MULTILINE;
+    options |= PCRE_MULTILINE;
 }
+
+void QoreRegexBase::setUnicode() {
+    options |= PCRE_UCP;
+}
+
