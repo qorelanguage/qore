@@ -70,7 +70,10 @@ int len = str.strlen();
     - this operation is always executed in constant time (ie <i>O(1)</i>) because the string's byte length is always stored with the string
     - equivalent to <string>::size() and @ref Qore::strlen(softstring)
 
-    @see <string>::length()
+    @see
+    - <string>::size()
+    - <string>::length()
+    - <string>::width()
 */
 int <string>::strlen() [flags=CONSTANT] {
    return str->strlen();
@@ -92,9 +95,10 @@ int len = str.size();
     @see
     - <string>::sizep()
     - <string>::length()
+    - <string>::width()
 */
 int <string>::size() [flags=CONSTANT] {
-   return str->size();
+    return str->size();
 }
 
 //! Returns the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
@@ -113,9 +117,36 @@ int len = str.length();
     @see
     - <string>::strlen()
     - <string>::size()
+    - <string>::width()
 */
 int <string>::length() [flags=CONSTANT] {
-   return str->length();
+    return str->length();
+}
+
+//! Returns the width of characters in the string; some unicode characters take up multiple spaces on output
+/**
+    @return the width of characters in the string; some unicode characters take up multiple spaces on output;
+    for example the string "ステップの例" is made up of 6 double-wide characters, so the width is 12, while the length in
+    characters is 6, and the size (string byte length) is 18
+
+    @par Example:
+    @code{.py}
+int width = str.width();
+    @endcode
+
+    @note
+    - this operation has <i>O(n)</i> complexity if the string has a multi-byte @ref character_encoding "character encoding", otherwise it is <i>O(1)</i>
+    - equivalent to @ref Qore::char_width(softstring)
+
+    @see
+    - <string>::length()
+    - <string>::strlen()
+    - <string>::size()
+
+    @since %Qore 0.9.4
+*/
+int <string>::width() [flags=RET_VALUE_ONLY] {
+    return str->getCharWidth(xsink);
 }
 
 //! Returns @ref True if the string is empty, @ref False if not
@@ -129,7 +160,7 @@ bool b = str.empty();
     @endcode
 */
 bool <string>::empty() [flags=CONSTANT] {
-   return str->empty();
+    return str->empty();
 }
 
 //! Returns the name of the string's @ref character_encoding "character encoding"
@@ -144,7 +175,7 @@ string enc = str.encoding();
     @note equivalent to @ref Qore::get_encoding(string)
 */
 string <string>::encoding() [flags=CONSTANT] {
-   return new QoreStringNode(str->getEncoding()->getCode());
+    return new QoreStringNode(str->getEncoding()->getCode());
 }
 
 //! Returns the string in lower case

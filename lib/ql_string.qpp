@@ -411,11 +411,13 @@ const RE_Unicode = PCRE_UCP;
     There are three types of objects in the format string:
     - Plain characters, which are copied as-is to the output string
     - Escape characters, which are converted and copied to the output string
-    - Format specifications for arguments to be included in the output string, which are preceded by the percent sign \c "%"
+    - Format specifications for arguments to be included in the output string, which are preceded by the percent sign
+      \c "%"
 
-    @note The percent sign \c "%" always starts a format specification unless it is followed by another \c "%" sign, in this case only one \c "%" is output (ie \c "%%" in the format string is output as a single \c "%")
+    @note The percent sign \c "%" always starts a format specification unless it is followed by another \c "%" sign,
+    in this case only one \c "%" is output (ie \c "%%" in the format string is output as a single \c "%")
 
-    @subsection format_specification
+    @subsection format_specification Format Specification
 
     After the \c "%" sign, there can be zero or more formatting flags as in the following table:
 
@@ -426,9 +428,26 @@ const RE_Unicode = PCRE_UCP;
     |\c 0|use zero left padding rather than space padding
     |<em>space</em>|use space padding
 
-    Then a field width specifier can optionally be given as a string of digits specifying the length of the field. With "field" functions (function names preceded by \c "f_"), these width specifiers are hard limits; that is; arguments longer than the width specified are truncated to the specified width.
+    Then a field width specifier can optionally be given as a string of digits specifying the length of the field.
+    With "field" functions (function names preceded by \c "f_"), these width specifiers are hard limits; that is;
+    arguments longer than the width specified are truncated to the specified width.
 
-    For floating-point arguments, a precision specifier may be given by including a period "." and another digit string, which indicates the number of digits to appear after the decimal point.
+    @note String fields are padded based on the byte length of characters by default; to do string padding based on
+    character width; use one of the following functions instead:
+    - @ref Qore::f_vwprintf()
+    - @ref Qore::f_vwsprintf()
+    - @ref Qore::f_wprintf()
+    - @ref Qore::f_wsprintf()
+    - @ref Qore::vwprintf()
+    - @ref Qore::vwsprintf()
+    - @ref Qore::wprintf()
+    - @ref Qore::wsprintf()
+    .
+    for "field" functions, if a multi-position character cannot fit in the space left in the field, the field is
+    padded with \c "." characters; ex: @code f_wsprintf("%-5s", str) == "ステ." @endcode
+
+    For floating-point arguments, a precision specifier may be given by including a period "." and another digit
+    string, which indicates the number of digits to appear after the decimal point.
 
     Then the format character is given as follows:
 
@@ -566,6 +585,32 @@ nothing strlen() [flags=RUNTIME_NOOP] {
  */
 int strlen(auto[doc] arg) [flags=NOOP] {
    return 0;
+}
+
+//! Returns the width of characters in the string; some unicode characters take up multiple spaces on output
+/**
+    @return the width of characters in the string; some unicode characters take up multiple spaces on output;
+    for example the string "ステップの例" is made up of 6 double-wide characters, so the width is 12, while the length in
+    characters is 6, and the size (string byte length) is 18
+
+    @par Example:
+    @code{.py}
+int width = char_width(str);
+    @endcode
+
+    @note
+    - this operation has <i>O(n)</i> complexity if the string has a multi-byte @ref character_encoding "character encoding", otherwise it is <i>O(1)</i>
+    - equivalent to @ref <string>::width()
+
+    @see
+    - <string>::width()
+    - strlen()
+    - length()
+
+    @since %Qore 0.9.4
+*/
+int char_width(softstring str) [flags=RET_VALUE_ONLY] {
+    return str->getCharWidth(xsink);
 }
 
 //! Returns a string in all lower-case characters based on the argument passed
@@ -1794,6 +1839,30 @@ string f_sprintf() [flags=NOOP] {
    return null_string();
 }
 
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; enforces field widths on arguments larger than the given field width and uses the actual character width when formatting string fields
+/**
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+string str = f_wsprintf("%5s", "a long string"); # will return "a lon"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - wsprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.9.4
+ */
+string f_wsprintf(string[doc] fmt, ...) [flags=CONSTANT] {
+   return q_sprintf(xsink, args, 1, 0, true);
+}
+
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; does not enforce field widths on arguments larger than the given field width
 /**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
@@ -1814,6 +1883,30 @@ string str = sprintf("%5s", "a long string"); # will return "a long string"
  */
 string sprintf(string[doc] fmt, ...) [flags=CONSTANT] {
    return q_sprintf(args, 0, 0, xsink);
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments; does not enforce field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+string str = wsprintf("%5s", "a long string"); # will return "a long string"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_wsprintf() for a similar function that enforces field widths
+
+    @since %Qore 0.9.4
+ */
+string wsprintf(string[doc] fmt, ...) [flags=CONSTANT] {
+   return q_sprintf(xsink, args, 0, 0, true);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1847,6 +1940,30 @@ string f_vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 1, 0, xsink);
 }
 
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; enforces field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+string str = f_vwsprintf("%5s %3d\n", ("a long string", 500)); # will return "a lon 500"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - vwsprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.9.4
+*/
+string f_vwsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
+   return q_vsprintf(xsink, args, 1, 0, true);
+}
+
 //! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; does not enforce field widths on arguments larger than the given field width
 /**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
@@ -1867,6 +1984,30 @@ string str = vsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a lo
  */
 string vsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
    return q_vsprintf(args, 0, 0, xsink);
+}
+
+//! Returns a formatted string based on a @ref string_formatting "format string" and other arguments given as a list after the format string; does not enforce field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return a formatted string corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+string str = vwsprintf("%5s %3d\n", ("a long string", 5000)); # will return "a long string 5000"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_vwsprintf() for a similar function that enforces field widths
+
+    @since %Qore 0.9.4
+*/
+string vwsprintf(string[doc] fmt, auto[doc] varg) [flags=CONSTANT] {
+   return q_vsprintf(xsink, args, 0, 0, true);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1900,6 +2041,32 @@ string f_printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
    return node;
 }
 
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; enforces field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+f_wprintf("%5s", "a long string"); # will print out "a lon"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - wprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.9.4
+ */
+string f_wprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+   AbstractQoreNode* node;
+   print_node(stdout, node = q_sprintf(xsink, args, 1, 0, true));
+   return node;
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
@@ -1928,6 +2095,32 @@ printf("%5s", "a long string"); # will print out "a long string"
 string printf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_sprintf(args, 0, 0, xsink));
+   return node;
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string"; does not enforce field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param ... the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+wprintf("%5s", "a long string"); # will print out "a long string"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_wprintf() for a similar function that enforces field widths
+
+    @since %Qore 0.9.4
+ */
+string wprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+   AbstractQoreNode* node;
+   print_node(stdout, node = q_sprintf(xsink, args, 0, 0, true));
    return node;
 }
 
@@ -1964,6 +2157,32 @@ string f_vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    return node;
 }
 
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; enforces field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+f_vwprintf("%5s %3d", ("a long string", 5000)); # will print out "a lon 500"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - vwprintf() for a similar function that does not enforce field widths
+
+    @since %Qore 0.9.4
+ */
+string f_vwprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
+   AbstractQoreNode* node;
+   print_node(stdout, node = q_vsprintf(xsink, args, 1, 0, true));
+   return node;
+}
+
 //! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; does not enforce field widths on arguments larger than the given field width
 /**
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
@@ -1985,6 +2204,32 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
 string vprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
+   return node;
+}
+
+//! Outputs the string passed to standard output, using the first argument as a @ref string_formatting "format string" and a second argument giving a list or a single argument to the format string; does not enforce field widths on arguments larger than the given field width; uses the actual character width when formatting string fields
+/**
+    This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
+
+    @param fmt the @ref string_formatting "format string"
+    @param varg the argument(s) corresponding to format specifiers in the format string
+
+    @return the formatted string output corresponding to the arguments given
+
+    @par Example:
+    @code{.py}
+vwprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 5000"
+    @endcode
+
+    @see
+    - @ref string_formatting for information on the formatting string
+    - f_vwprintf() for a similar function that enforces field widths
+
+    @since %Qore 0.9.4
+ */
+string vwprintf(string[doc] fmt, auto[doc] varg) [dom=TERMINAL_IO] {
+   AbstractQoreNode* node;
+   print_node(stdout, node = q_vsprintf(xsink, args, 0, 0, true));
    return node;
 }
 
