@@ -514,7 +514,8 @@ include_HEADERS = \
 	include/qore/OutputStream.h \
 	include/qore/Transform.h \
 	include/qore/AbstractException.h \
-	include/qore/QoreStandardException.h
+	include/qore/QoreStandardException.h \
+    include/qore/UnicodeCharacterIterator.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \

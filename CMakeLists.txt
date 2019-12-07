@@ -609,6 +609,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreRangeOperatorNode.cpp
     lib/QoreSquareBracketsRangeOperatorNode.cpp
     lib/QoreSerializable.cpp
+    lib/UnicodeCharacterIterator.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)

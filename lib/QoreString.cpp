@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -52,13 +52,13 @@
 
 // to be used for trim
 static intvec_t default_whitespace = {
-   ' ', '\t', '\n', '\r', '\v',
+    ' ', '\t', '\n', '\r', '\v',
 };
 
 struct code_table {
-      char symbol;
-      const char* code;
-      unsigned len;
+    char symbol;
+    const char* code;
+    unsigned len;
 };
 
 // complete set of characters to percent-encode (RFC 3986 http://tools.ietf.org/html/rfc3986)
@@ -75,267 +75,267 @@ typedef std::map<uint32_t, std::string> smap_t;
 static smap_t smap;
 
 struct unicode_entity {
-   // unicode code point for symbol
-   uint32_t symbol;
-   // entity string
-   std::string entity;
+    // unicode code point for symbol
+    uint32_t symbol;
+    // entity string
+    std::string entity;
 };
 
 // contains the 252 character entities in HTML + &apos; for XML
 static const struct unicode_entity xhtml_entity_list[] = {
-   {34, "quot"},         // HTML 2.0: double quotation mark
-   {38, "amp"},          // HTML 2.0: ampersand
-   {39, "apos"},         // XHTML 1.0: apostrophe
-   {60, "lt"},           // HTML 2.0: less-than sign
-   {62, "gt"},           // HTML 2.0: greater-than sign
-   {160, "nbsp"},        // HTML 3.2: no-break space (non-breaking space)[d]
-   {161, "iexcl"},       // HTML 3.2: inverted exclamation mark
-   {162, "cent"},        // HTML 3.2: cent sign
-   {163, "pound"},       // HTML 3.2: pound sign
-   {164, "curren"},      // HTML 3.2: currency sign
-   {165, "yen"},         // HTML 3.2: yen sign (yuan sign)
-   {166, "brvbar"},      // HTML 3.2: broken bar (broken vertical bar)
-   {167, "sect"},        // HTML 3.2: section sign
-   {168, "uml"},         // HTML 3.2: diaeresis (spacing diaeresis); see Germanic umlaut
-   {169, "copy"},        // HTML 3.2: copyright symbol
-   {170, "ordf"},        // HTML 3.2: feminine ordinal indicator
-   {171, "laquo"},       // HTML 3.2: left-pointing double angle quotation mark (left pointing guillemet)
-   {172, "not"},         // HTML 3.2: not sign
-   {173, "shy"},         // HTML 3.2: soft hyphen (discretionary hyphen)
-   {174, "reg"},         // HTML 3.2: registered sign (registered trademark symbol)
-   {175, "macr"},        // HTML 3.2: macron (spacing macron, overline, APL overbar)
-   {176, "deg"},         // HTML 3.2: degree symbol
-   {177, "plusmn"},      // HTML 3.2: plus-minus sign (plus-or-minus sign)
-   {178, "sup2"},        // HTML 3.2: superscript two (superscript digit two, squared)
-   {179, "sup3"},        // HTML 3.2: superscript three (superscript digit three, cubed)
-   {180, "acute"},       // HTML 3.2: acute accent (spacing acute)
-   {181, "micro"},       // HTML 3.2: micro sign
-   {182, "para"},        // HTML 3.2: pilcrow sign (paragraph sign)
-   {183, "middot"},      // HTML 3.2: middle dot (Georgian comma, Greek middle dot)
-   {184, "cedil"},       // HTML 3.2: cedilla (spacing cedilla)
-   {185, "sup1"},        // HTML 3.2: superscript one (superscript digit one)
-   {186, "ordm"},        // HTML 3.2: masculine ordinal indicator
-   {187, "raquo"},       // HTML 3.2: right-pointing double angle quotation mark (right pointing guillemet)
-   {188, "frac14"},      // HTML 3.2: vulgar fraction one quarter (fraction one quarter)
-   {189, "frac12"},      // HTML 3.2: vulgar fraction one half (fraction one half)
-   {190, "frac34"},      // HTML 3.2: vulgar fraction three quarters (fraction three quarters)
-   {191, "iquest"},      // HTML 3.2: inverted question mark (turned question mark)
-   {192, "Agrave"},      // HTML 2.0: Latin capital letter A with grave accent (Latin capital letter A grave)
-   {193, "Aacute"},      // HTML 2.0: Latin capital letter A with acute accent
-   {194, "Acirc"},       // HTML 2.0: Latin capital letter A with circumflex
-   {195, "Atilde"},      // HTML 2.0: Latin capital letter A with tilde
-   {196, "Auml"},        // HTML 2.0: Latin capital letter A with diaeresis
-   {197, "Aring"},       // HTML 2.0: Latin capital letter A with ring above (Latin capital letter A ring)
-   {198, "AElig"},       // HTML 2.0: Latin capital letter AE (Latin capital ligature AE)
-   {199, "Ccedil"},      // HTML 2.0: Latin capital letter C with cedilla
-   {200, "Egrave"},      // HTML 2.0: Latin capital letter E with grave accent
-   {201, "Eacute"},      // HTML 2.0: Latin capital letter E with acute accent
-   {202, "Ecirc"},       // HTML 2.0: Latin capital letter E with circumflex
-   {203, "Euml"},        // HTML 2.0: Latin capital letter E with diaeresis
-   {204, "Igrave"},      // HTML 2.0: Latin capital letter I with grave accent
-   {205, "Iacute"},      // HTML 2.0: Latin capital letter I with acute accent
-   {206, "Icirc"},       // HTML 2.0: Latin capital letter I with circumflex
-   {207, "Iuml"},        // HTML 2.0: Latin capital letter I with diaeresis
-   {208, "ETH"},         // HTML 2.0: Latin capital letter Eth
-   {209, "Ntilde"},      // HTML 2.0: Latin capital letter N with tilde
-   {210, "Ograve"},      // HTML 2.0: Latin capital letter O with grave accent
-   {211, "Oacute"},      // HTML 2.0: Latin capital letter O with acute accent
-   {212, "Ocirc"},       // HTML 2.0: Latin capital letter O with circumflex
-   {213, "Otilde"},      // HTML 2.0: Latin capital letter O with tilde
-   {214, "Ouml"},        // HTML 2.0: Latin capital letter O with diaeresis
-   {215, "times"},       // HTML 3.2: multiplication sign
-   {216, "Oslash"},      // HTML 2.0: Latin capital letter O with stroke (Latin capital letter O slash)
-   {217, "Ugrave"},      // HTML 2.0: Latin capital letter U with grave accent
-   {218, "Uacute"},      // HTML 2.0: Latin capital letter U with acute accent
-   {219, "Ucirc"},       // HTML 2.0: Latin capital letter U with circumflex
-   {220, "Uuml"},        // HTML 2.0: Latin capital letter U with diaeresis
-   {221, "Yacute"},      // HTML 2.0: Latin capital letter Y with acute accent
-   {222, "THORN"},       // HTML 2.0: Latin capital letter THORN
-   {223, "szlig"},       // HTML 2.0: Latin small letter sharp s (ess-zed); see German Eszett
-   {224, "agrave"},      // HTML 2.0: Latin small letter a with grave accent
-   {225, "aacute"},      // HTML 2.0: Latin small letter a with acute accent
-   {226, "acirc"},       // HTML 2.0: Latin small letter a with circumflex
-   {227, "atilde"},      // HTML 2.0: Latin small letter a with tilde
-   {228, "auml"},        // HTML 2.0: Latin small letter a with diaeresis
-   {229, "aring"},       // HTML 2.0: Latin small letter a with ring above
-   {230, "aelig"},       // HTML 2.0: Latin small letter ae (Latin small ligature ae)
-   {231, "ccedil"},      // HTML 2.0: Latin small letter c with cedilla
-   {232, "egrave"},      // HTML 2.0: Latin small letter e with grave accent
-   {233, "eacute"},      // HTML 2.0: Latin small letter e with acute accent
-   {234, "ecirc"},       // HTML 2.0: Latin small letter e with circumflex
-   {235, "euml"},        // HTML 2.0: Latin small letter e with diaeresis
-   {236, "igrave"},      // HTML 2.0: Latin small letter i with grave accent
-   {237, "iacute"},      // HTML 2.0: Latin small letter i with acute accent
-   {238, "icirc"},       // HTML 2.0: Latin small letter i with circumflex
-   {239, "iuml"},        // HTML 2.0: Latin small letter i with diaeresis
-   {240, "eth"},         // HTML 2.0: Latin small letter eth
-   {241, "ntilde"},      // HTML 2.0: Latin small letter n with tilde
-   {242, "ograve"},      // HTML 2.0: Latin small letter o with grave accent
-   {243, "oacute"},      // HTML 2.0: Latin small letter o with acute accent
-   {244, "ocirc"},       // HTML 2.0: Latin small letter o with circumflex
-   {245, "otilde"},      // HTML 2.0: Latin small letter o with tilde
-   {246, "ouml"},        // HTML 2.0: Latin small letter o with diaeresis
-   {247, "divide"},      // HTML 3.2: division sign (obelus)
-   {248, "oslash"},      // HTML 2.0: Latin small letter o with stroke (Latin small letter o slash)
-   {249, "ugrave"},      // HTML 2.0: Latin small letter u with grave accent
-   {250, "uacute"},      // HTML 2.0: Latin small letter u with acute accent
-   {251, "ucirc"},       // HTML 2.0: Latin small letter u with circumflex
-   {252, "uuml"},        // HTML 2.0: Latin small letter u with diaeresis
-   {253, "yacute"},      // HTML 2.0: Latin small letter y with acute accent
-   {254, "thorn"},       // HTML 2.0: Latin small letter thorn
-   {255, "yuml"},        // HTML 2.0: Latin small letter y with diaeresis
-   {338, "OElig"},       // HTML 4.0: Latin capital ligature oe[e]
-   {339, "oelig"},       // HTML 4.0: Latin small ligature oe[e]
-   {352, "Scaron"},      // HTML 4.0: Latin capital letter s with caron
-   {353, "scaron"},      // HTML 4.0: Latin small letter s with caron
-   {376, "Yuml"},        // HTML 4.0: Latin capital letter y with diaeresis
-   {402, "fnof"},        // HTML 4.0: Latin small letter f with hook (function, florin)
-   {710, "circ"},        // HTML 4.0: modifier letter circumflex accent
-   {732, "tilde"},       // HTML 4.0: small tilde
-   {913, "Alpha"},       // HTML 4.0: Greek capital letter Alpha
-   {914, "Beta"},        // HTML 4.0: Greek capital letter Beta
-   {915, "Gamma"},       // HTML 4.0: Greek capital letter Gamma
-   {916, "Delta"},       // HTML 4.0: Greek capital letter Delta
-   {917, "Epsilon"},     // HTML 4.0: Greek capital letter Epsilon
-   {918, "Zeta"},        // HTML 4.0: Greek capital letter Zeta
-   {919, "Eta"},         // HTML 4.0: Greek capital letter Eta
-   {920, "Theta"},       // HTML 4.0: Greek capital letter Theta
-   {921, "Iota"},        // HTML 4.0: Greek capital letter Iota
-   {922, "Kappa"},       // HTML 4.0: Greek capital letter Kappa
-   {923, "Lambda"},      // HTML 4.0: Greek capital letter Lambda
-   {924, "Mu"},          // HTML 4.0: Greek capital letter Mu
-   {925, "Nu"},          // HTML 4.0: Greek capital letter Nu
-   {926, "Xi"},          // HTML 4.0: Greek capital letter Xi
-   {927, "Omicron"},     // HTML 4.0: Greek capital letter Omicron
-   {928, "Pi"},          // HTML 4.0: Greek capital letter Pi
-   {929, "Rho"},         // HTML 4.0: Greek capital letter Rho
-   {931, "Sigma"},       // HTML 4.0: Greek capital letter Sigma
-   {932, "Tau"},         // HTML 4.0: Greek capital letter Tau
-   {933, "Upsilon"},     // HTML 4.0: Greek capital letter Upsilon
-   {934, "Phi"},         // HTML 4.0: Greek capital letter Phi
-   {935, "Chi"},         // HTML 4.0: Greek capital letter Chi
-   {936, "Psi"},         // HTML 4.0: Greek capital letter Psi
-   {937, "Omega"},       // HTML 4.0: Greek capital letter Omega
-   {945, "alpha"},       // HTML 4.0: Greek small letter alpha
-   {946, "beta"},        // HTML 4.0: Greek small letter beta
-   {947, "gamma"},       // HTML 4.0: Greek small letter gamma
-   {948, "delta"},       // HTML 4.0: Greek small letter delta
-   {949, "epsilon"},     // HTML 4.0: Greek small letter epsilon
-   {950, "zeta"},        // HTML 4.0: Greek small letter zeta
-   {951, "eta"},         // HTML 4.0: Greek small letter eta
-   {952, "theta"},       // HTML 4.0: Greek small letter theta
-   {953, "iota"},        // HTML 4.0: Greek small letter iota
-   {954, "kappa"},       // HTML 4.0: Greek small letter kappa
-   {955, "lambda"},      // HTML 4.0: Greek small letter lambda
-   {956, "mu"},          // HTML 4.0: Greek small letter mu
-   {957, "nu"},          // HTML 4.0: Greek small letter nu
-   {958, "xi"},          // HTML 4.0: Greek small letter xi
-   {959, "omicron"},     // HTML 4.0: Greek small letter omicron
-   {960, "pi"},          // HTML 4.0: Greek small letter pi
-   {961, "rho"},         // HTML 4.0: Greek small letter rho
-   {962, "sigmaf"},      // HTML 4.0: Greek small letter final sigma
-   {963, "sigma"},       // HTML 4.0: Greek small letter sigma
-   {964, "tau"},         // HTML 4.0: Greek small letter tau
-   {965, "upsilon"},     // HTML 4.0: Greek small letter upsilon
-   {966, "phi"},         // HTML 4.0: Greek small letter phi
-   {967, "chi"},         // HTML 4.0: Greek small letter chi
-   {968, "psi"},         // HTML 4.0: Greek small letter psi
-   {969, "omega"},       // HTML 4.0: Greek small letter omega
-   {977, "thetasym"},    // HTML 4.0: Greek theta symbol
-   {978, "upsih"},       // HTML 4.0: Greek Upsilon with hook symbol
-   {982, "piv"},         // HTML 4.0: Greek pi symbol
-   {8194, "ensp"},       // HTML 4.0: en space[d]
-   {8195, "emsp"},       // HTML 4.0: em space[d]
-   {8201, "thinsp"},     // HTML 4.0: thin space[d]
-   {8204, "zwnj"},       // HTML 4.0: zero-width non-joiner
-   {8205, "zwj"},        // HTML 4.0: zero-width joiner
-   {8206, "lrm"},        // HTML 4.0: left-to-right mark
-   {8207, "rlm"},        // HTML 4.0: right-to-left mark
-   {8211, "ndash"},      // HTML 4.0: en dash
-   {8212, "mdash"},      // HTML 4.0: em dash
-   {8216, "lsquo"},      // HTML 4.0: left single quotation mark
-   {8217, "rsquo"},      // HTML 4.0: right single quotation mark
-   {8218, "sbquo"},      // HTML 4.0: single low-9 quotation mark
-   {8220, "ldquo"},      // HTML 4.0: left double quotation mark
-   {8221, "rdquo"},      // HTML 4.0: right double quotation mark
-   {8222, "bdquo"},      // HTML 4.0: double low-9 quotation mark
-   {8224, "dagger"},     // HTML 4.0: dagger, obelisk
-   {8225, "Dagger"},     // HTML 4.0: double dagger, double obelisk
-   {8226, "bull"},       // HTML 4.0: bullet (black small circle)[f]
-   {8230, "hellip"},     // HTML 4.0: horizontal ellipsis (three dot leader)
-   {8240, "permil"},     // HTML 4.0: per mille sign
-   {8242, "prime"},      // HTML 4.0: prime (minutes, feet)
-   {8243, "Prime"},      // HTML 4.0: double prime (seconds, inches)
-   {8249, "lsaquo"},     // HTML 4.0: single left-pointing angle quotation mark[g]
-   {8250, "rsaquo"},     // HTML 4.0: single right-pointing angle quotation mark[g]
-   {8254, "oline"},      // HTML 4.0: overline (spacing overscore)
-   {8260, "frasl"},      // HTML 4.0: fraction slash (solidus)
-   {8364, "euro"},       // HTML 4.0: euro sign
-   {8465, "image"},      // HTML 4.0: black-letter capital I (imaginary part)
-   {8472, "weierp"},     // HTML 4.0: script capital P (power set, Weierstrass p)
-   {8476, "real"},       // HTML 4.0: black-letter capital R (real part symbol)
-   {8482, "trade"},      // HTML 4.0: trademark symbol
-   {8501, "alefsym"},    // HTML 4.0: alef symbol (first transfinite cardinal)[h]
-   {8592, "larr"},       // HTML 4.0: leftwards arrow
-   {8593, "uarr"},       // HTML 4.0: upwards arrow
-   {8594, "rarr"},       // HTML 4.0: rightwards arrow
-   {8595, "darr"},       // HTML 4.0: downwards arrow
-   {8596, "harr"},       // HTML 4.0: left right arrow
-   {8629, "crarr"},      // HTML 4.0: downwards arrow with corner leftwards (carriage return)
-   {8656, "lArr"},       // HTML 4.0: leftwards double arrow[i]
-   {8657, "uArr"},       // HTML 4.0: upwards double arrow
-   {8658, "rArr"},       // HTML 4.0: rightwards double arrow[j]
-   {8659, "dArr"},       // HTML 4.0: downwards double arrow
-   {8660, "hArr"},       // HTML 4.0: left right double arrow
-   {8704, "forall"},     // HTML 4.0: for all
-   {8706, "part"},       // HTML 4.0: partial differential
-   {8707, "exist"},      // HTML 4.0: there exists
-   {8709, "empty"},      // HTML 4.0: empty set (null set); see also U+8960, ⌀
-   {8711, "nabla"},      // HTML 4.0: del or nabla (vector differential operator)
-   {8712, "isin"},       // HTML 4.0: element of
-   {8713, "notin"},      // HTML 4.0: not an element of
-   {8715, "ni"},         // HTML 4.0: contains as member
-   {8719, "prod"},       // HTML 4.0: n-ary product (product sign)[k]
-   {8721, "sum"},        // HTML 4.0: n-ary summation[l]
-   {8722, "minus"},      // HTML 4.0: minus sign
-   {8727, "lowast"},     // HTML 4.0: asterisk operator
-   {8730, "radic"},      // HTML 4.0: square root (radical sign)
-   {8733, "prop"},       // HTML 4.0: proportional to
-   {8734, "infin"},      // HTML 4.0: infinity
-   {8736, "ang"},        // HTML 4.0: angle
-   {8743, "and"},        // HTML 4.0: logical and (wedge)
-   {8744, "or"},         // HTML 4.0: logical or (vee)
-   {8745, "cap"},        // HTML 4.0: intersection (cap)
-   {8746, "cup"},        // HTML 4.0: union (cup)
-   {8747, "int"},        // HTML 4.0: integral
-   {8756, "there4"},     // HTML 4.0: therefore sign
-   {8764, "sim"},        // HTML 4.0: tilde operator (varies with, similar to)[m]
-   {8773, "cong"},       // HTML 4.0: congruent to
-   {8776, "asymp"},      // HTML 4.0: almost equal to (asymptotic to)
-   {8800, "ne"},         // HTML 4.0: not equal to
-   {8801, "equiv"},      // HTML 4.0: identical to; sometimes used for 'equivalent to'
-   {8804, "le"},         // HTML 4.0: less-than or equal to
-   {8805, "ge"},         // HTML 4.0: greater-than or equal to
-   {8834, "sub"},        // HTML 4.0: subset of
-   {8835, "sup"},        // HTML 4.0: superset of[n]
-   {8836, "nsub"},       // HTML 4.0: not a subset of
-   {8838, "sube"},       // HTML 4.0: subset of or equal to
-   {8839, "supe"},       // HTML 4.0: superset of or equal to
-   {8853, "oplus"},      // HTML 4.0: circled plus (direct sum)
-   {8855, "otimes"},     // HTML 4.0: circled times (vector product)
-   {8869, "perp"},       // HTML 4.0: up tack (orthogonal to, perpendicular)[o]
-   {8901, "sdot"},       // HTML 4.0: dot operator[p]
-   {8968, "lceil"},      // HTML 4.0: left ceiling (APL upstile)
-   {8969, "rceil"},      // HTML 4.0: right ceiling
-   {8970, "lfloor"},     // HTML 4.0: left floor (APL downstile)
-   {8971, "rfloor"},     // HTML 4.0: right floor
-   {9001, "lang"},       // HTML 4.0: left-pointing angle bracket (bra)[q]
-   {9002, "rang"},       // HTML 4.0: right-pointing angle bracket (ket)[r]
-   {9674, "loz"},        // HTML 4.0: lozenge
-   {9824, "spades"},     // HTML 4.0: black spade suit[f]
-   {9827, "clubs"},      // HTML 4.0: black club suit (shamrock)[f]
-   {9829, "hearts"},     // HTML 4.0: black heart suit (valentine)[f]
-   {9830, "diams"},      // HTML 4.0: black diamond suit[f]
+    {34, "quot"},         // HTML 2.0: double quotation mark
+    {38, "amp"},          // HTML 2.0: ampersand
+    {39, "apos"},         // XHTML 1.0: apostrophe
+    {60, "lt"},           // HTML 2.0: less-than sign
+    {62, "gt"},           // HTML 2.0: greater-than sign
+    {160, "nbsp"},        // HTML 3.2: no-break space (non-breaking space)[d]
+    {161, "iexcl"},       // HTML 3.2: inverted exclamation mark
+    {162, "cent"},        // HTML 3.2: cent sign
+    {163, "pound"},       // HTML 3.2: pound sign
+    {164, "curren"},      // HTML 3.2: currency sign
+    {165, "yen"},         // HTML 3.2: yen sign (yuan sign)
+    {166, "brvbar"},      // HTML 3.2: broken bar (broken vertical bar)
+    {167, "sect"},        // HTML 3.2: section sign
+    {168, "uml"},         // HTML 3.2: diaeresis (spacing diaeresis); see Germanic umlaut
+    {169, "copy"},        // HTML 3.2: copyright symbol
+    {170, "ordf"},        // HTML 3.2: feminine ordinal indicator
+    {171, "laquo"},       // HTML 3.2: left-pointing double angle quotation mark (left pointing guillemet)
+    {172, "not"},         // HTML 3.2: not sign
+    {173, "shy"},         // HTML 3.2: soft hyphen (discretionary hyphen)
+    {174, "reg"},         // HTML 3.2: registered sign (registered trademark symbol)
+    {175, "macr"},        // HTML 3.2: macron (spacing macron, overline, APL overbar)
+    {176, "deg"},         // HTML 3.2: degree symbol
+    {177, "plusmn"},      // HTML 3.2: plus-minus sign (plus-or-minus sign)
+    {178, "sup2"},        // HTML 3.2: superscript two (superscript digit two, squared)
+    {179, "sup3"},        // HTML 3.2: superscript three (superscript digit three, cubed)
+    {180, "acute"},       // HTML 3.2: acute accent (spacing acute)
+    {181, "micro"},       // HTML 3.2: micro sign
+    {182, "para"},        // HTML 3.2: pilcrow sign (paragraph sign)
+    {183, "middot"},      // HTML 3.2: middle dot (Georgian comma, Greek middle dot)
+    {184, "cedil"},       // HTML 3.2: cedilla (spacing cedilla)
+    {185, "sup1"},        // HTML 3.2: superscript one (superscript digit one)
+    {186, "ordm"},        // HTML 3.2: masculine ordinal indicator
+    {187, "raquo"},       // HTML 3.2: right-pointing double angle quotation mark (right pointing guillemet)
+    {188, "frac14"},      // HTML 3.2: vulgar fraction one quarter (fraction one quarter)
+    {189, "frac12"},      // HTML 3.2: vulgar fraction one half (fraction one half)
+    {190, "frac34"},      // HTML 3.2: vulgar fraction three quarters (fraction three quarters)
+    {191, "iquest"},      // HTML 3.2: inverted question mark (turned question mark)
+    {192, "Agrave"},      // HTML 2.0: Latin capital letter A with grave accent (Latin capital letter A grave)
+    {193, "Aacute"},      // HTML 2.0: Latin capital letter A with acute accent
+    {194, "Acirc"},       // HTML 2.0: Latin capital letter A with circumflex
+    {195, "Atilde"},      // HTML 2.0: Latin capital letter A with tilde
+    {196, "Auml"},        // HTML 2.0: Latin capital letter A with diaeresis
+    {197, "Aring"},       // HTML 2.0: Latin capital letter A with ring above (Latin capital letter A ring)
+    {198, "AElig"},       // HTML 2.0: Latin capital letter AE (Latin capital ligature AE)
+    {199, "Ccedil"},      // HTML 2.0: Latin capital letter C with cedilla
+    {200, "Egrave"},      // HTML 2.0: Latin capital letter E with grave accent
+    {201, "Eacute"},      // HTML 2.0: Latin capital letter E with acute accent
+    {202, "Ecirc"},       // HTML 2.0: Latin capital letter E with circumflex
+    {203, "Euml"},        // HTML 2.0: Latin capital letter E with diaeresis
+    {204, "Igrave"},      // HTML 2.0: Latin capital letter I with grave accent
+    {205, "Iacute"},      // HTML 2.0: Latin capital letter I with acute accent
+    {206, "Icirc"},       // HTML 2.0: Latin capital letter I with circumflex
+    {207, "Iuml"},        // HTML 2.0: Latin capital letter I with diaeresis
+    {208, "ETH"},         // HTML 2.0: Latin capital letter Eth
+    {209, "Ntilde"},      // HTML 2.0: Latin capital letter N with tilde
+    {210, "Ograve"},      // HTML 2.0: Latin capital letter O with grave accent
+    {211, "Oacute"},      // HTML 2.0: Latin capital letter O with acute accent
+    {212, "Ocirc"},       // HTML 2.0: Latin capital letter O with circumflex
+    {213, "Otilde"},      // HTML 2.0: Latin capital letter O with tilde
+    {214, "Ouml"},        // HTML 2.0: Latin capital letter O with diaeresis
+    {215, "times"},       // HTML 3.2: multiplication sign
+    {216, "Oslash"},      // HTML 2.0: Latin capital letter O with stroke (Latin capital letter O slash)
+    {217, "Ugrave"},      // HTML 2.0: Latin capital letter U with grave accent
+    {218, "Uacute"},      // HTML 2.0: Latin capital letter U with acute accent
+    {219, "Ucirc"},       // HTML 2.0: Latin capital letter U with circumflex
+    {220, "Uuml"},        // HTML 2.0: Latin capital letter U with diaeresis
+    {221, "Yacute"},      // HTML 2.0: Latin capital letter Y with acute accent
+    {222, "THORN"},       // HTML 2.0: Latin capital letter THORN
+    {223, "szlig"},       // HTML 2.0: Latin small letter sharp s (ess-zed); see German Eszett
+    {224, "agrave"},      // HTML 2.0: Latin small letter a with grave accent
+    {225, "aacute"},      // HTML 2.0: Latin small letter a with acute accent
+    {226, "acirc"},       // HTML 2.0: Latin small letter a with circumflex
+    {227, "atilde"},      // HTML 2.0: Latin small letter a with tilde
+    {228, "auml"},        // HTML 2.0: Latin small letter a with diaeresis
+    {229, "aring"},       // HTML 2.0: Latin small letter a with ring above
+    {230, "aelig"},       // HTML 2.0: Latin small letter ae (Latin small ligature ae)
+    {231, "ccedil"},      // HTML 2.0: Latin small letter c with cedilla
+    {232, "egrave"},      // HTML 2.0: Latin small letter e with grave accent
+    {233, "eacute"},      // HTML 2.0: Latin small letter e with acute accent
+    {234, "ecirc"},       // HTML 2.0: Latin small letter e with circumflex
+    {235, "euml"},        // HTML 2.0: Latin small letter e with diaeresis
+    {236, "igrave"},      // HTML 2.0: Latin small letter i with grave accent
+    {237, "iacute"},      // HTML 2.0: Latin small letter i with acute accent
+    {238, "icirc"},       // HTML 2.0: Latin small letter i with circumflex
+    {239, "iuml"},        // HTML 2.0: Latin small letter i with diaeresis
+    {240, "eth"},         // HTML 2.0: Latin small letter eth
+    {241, "ntilde"},      // HTML 2.0: Latin small letter n with tilde
+    {242, "ograve"},      // HTML 2.0: Latin small letter o with grave accent
+    {243, "oacute"},      // HTML 2.0: Latin small letter o with acute accent
+    {244, "ocirc"},       // HTML 2.0: Latin small letter o with circumflex
+    {245, "otilde"},      // HTML 2.0: Latin small letter o with tilde
+    {246, "ouml"},        // HTML 2.0: Latin small letter o with diaeresis
+    {247, "divide"},      // HTML 3.2: division sign (obelus)
+    {248, "oslash"},      // HTML 2.0: Latin small letter o with stroke (Latin small letter o slash)
+    {249, "ugrave"},      // HTML 2.0: Latin small letter u with grave accent
+    {250, "uacute"},      // HTML 2.0: Latin small letter u with acute accent
+    {251, "ucirc"},       // HTML 2.0: Latin small letter u with circumflex
+    {252, "uuml"},        // HTML 2.0: Latin small letter u with diaeresis
+    {253, "yacute"},      // HTML 2.0: Latin small letter y with acute accent
+    {254, "thorn"},       // HTML 2.0: Latin small letter thorn
+    {255, "yuml"},        // HTML 2.0: Latin small letter y with diaeresis
+    {338, "OElig"},       // HTML 4.0: Latin capital ligature oe[e]
+    {339, "oelig"},       // HTML 4.0: Latin small ligature oe[e]
+    {352, "Scaron"},      // HTML 4.0: Latin capital letter s with caron
+    {353, "scaron"},      // HTML 4.0: Latin small letter s with caron
+    {376, "Yuml"},        // HTML 4.0: Latin capital letter y with diaeresis
+    {402, "fnof"},        // HTML 4.0: Latin small letter f with hook (function, florin)
+    {710, "circ"},        // HTML 4.0: modifier letter circumflex accent
+    {732, "tilde"},       // HTML 4.0: small tilde
+    {913, "Alpha"},       // HTML 4.0: Greek capital letter Alpha
+    {914, "Beta"},        // HTML 4.0: Greek capital letter Beta
+    {915, "Gamma"},       // HTML 4.0: Greek capital letter Gamma
+    {916, "Delta"},       // HTML 4.0: Greek capital letter Delta
+    {917, "Epsilon"},     // HTML 4.0: Greek capital letter Epsilon
+    {918, "Zeta"},        // HTML 4.0: Greek capital letter Zeta
+    {919, "Eta"},         // HTML 4.0: Greek capital letter Eta
+    {920, "Theta"},       // HTML 4.0: Greek capital letter Theta
+    {921, "Iota"},        // HTML 4.0: Greek capital letter Iota
+    {922, "Kappa"},       // HTML 4.0: Greek capital letter Kappa
+    {923, "Lambda"},      // HTML 4.0: Greek capital letter Lambda
+    {924, "Mu"},          // HTML 4.0: Greek capital letter Mu
+    {925, "Nu"},          // HTML 4.0: Greek capital letter Nu
+    {926, "Xi"},          // HTML 4.0: Greek capital letter Xi
+    {927, "Omicron"},     // HTML 4.0: Greek capital letter Omicron
+    {928, "Pi"},          // HTML 4.0: Greek capital letter Pi
+    {929, "Rho"},         // HTML 4.0: Greek capital letter Rho
+    {931, "Sigma"},       // HTML 4.0: Greek capital letter Sigma
+    {932, "Tau"},         // HTML 4.0: Greek capital letter Tau
+    {933, "Upsilon"},     // HTML 4.0: Greek capital letter Upsilon
+    {934, "Phi"},         // HTML 4.0: Greek capital letter Phi
+    {935, "Chi"},         // HTML 4.0: Greek capital letter Chi
+    {936, "Psi"},         // HTML 4.0: Greek capital letter Psi
+    {937, "Omega"},       // HTML 4.0: Greek capital letter Omega
+    {945, "alpha"},       // HTML 4.0: Greek small letter alpha
+    {946, "beta"},        // HTML 4.0: Greek small letter beta
+    {947, "gamma"},       // HTML 4.0: Greek small letter gamma
+    {948, "delta"},       // HTML 4.0: Greek small letter delta
+    {949, "epsilon"},     // HTML 4.0: Greek small letter epsilon
+    {950, "zeta"},        // HTML 4.0: Greek small letter zeta
+    {951, "eta"},         // HTML 4.0: Greek small letter eta
+    {952, "theta"},       // HTML 4.0: Greek small letter theta
+    {953, "iota"},        // HTML 4.0: Greek small letter iota
+    {954, "kappa"},       // HTML 4.0: Greek small letter kappa
+    {955, "lambda"},      // HTML 4.0: Greek small letter lambda
+    {956, "mu"},          // HTML 4.0: Greek small letter mu
+    {957, "nu"},          // HTML 4.0: Greek small letter nu
+    {958, "xi"},          // HTML 4.0: Greek small letter xi
+    {959, "omicron"},     // HTML 4.0: Greek small letter omicron
+    {960, "pi"},          // HTML 4.0: Greek small letter pi
+    {961, "rho"},         // HTML 4.0: Greek small letter rho
+    {962, "sigmaf"},      // HTML 4.0: Greek small letter final sigma
+    {963, "sigma"},       // HTML 4.0: Greek small letter sigma
+    {964, "tau"},         // HTML 4.0: Greek small letter tau
+    {965, "upsilon"},     // HTML 4.0: Greek small letter upsilon
+    {966, "phi"},         // HTML 4.0: Greek small letter phi
+    {967, "chi"},         // HTML 4.0: Greek small letter chi
+    {968, "psi"},         // HTML 4.0: Greek small letter psi
+    {969, "omega"},       // HTML 4.0: Greek small letter omega
+    {977, "thetasym"},    // HTML 4.0: Greek theta symbol
+    {978, "upsih"},       // HTML 4.0: Greek Upsilon with hook symbol
+    {982, "piv"},         // HTML 4.0: Greek pi symbol
+    {8194, "ensp"},       // HTML 4.0: en space[d]
+    {8195, "emsp"},       // HTML 4.0: em space[d]
+    {8201, "thinsp"},     // HTML 4.0: thin space[d]
+    {8204, "zwnj"},       // HTML 4.0: zero-width non-joiner
+    {8205, "zwj"},        // HTML 4.0: zero-width joiner
+    {8206, "lrm"},        // HTML 4.0: left-to-right mark
+    {8207, "rlm"},        // HTML 4.0: right-to-left mark
+    {8211, "ndash"},      // HTML 4.0: en dash
+    {8212, "mdash"},      // HTML 4.0: em dash
+    {8216, "lsquo"},      // HTML 4.0: left single quotation mark
+    {8217, "rsquo"},      // HTML 4.0: right single quotation mark
+    {8218, "sbquo"},      // HTML 4.0: single low-9 quotation mark
+    {8220, "ldquo"},      // HTML 4.0: left double quotation mark
+    {8221, "rdquo"},      // HTML 4.0: right double quotation mark
+    {8222, "bdquo"},      // HTML 4.0: double low-9 quotation mark
+    {8224, "dagger"},     // HTML 4.0: dagger, obelisk
+    {8225, "Dagger"},     // HTML 4.0: double dagger, double obelisk
+    {8226, "bull"},       // HTML 4.0: bullet (black small circle)[f]
+    {8230, "hellip"},     // HTML 4.0: horizontal ellipsis (three dot leader)
+    {8240, "permil"},     // HTML 4.0: per mille sign
+    {8242, "prime"},      // HTML 4.0: prime (minutes, feet)
+    {8243, "Prime"},      // HTML 4.0: double prime (seconds, inches)
+    {8249, "lsaquo"},     // HTML 4.0: single left-pointing angle quotation mark[g]
+    {8250, "rsaquo"},     // HTML 4.0: single right-pointing angle quotation mark[g]
+    {8254, "oline"},      // HTML 4.0: overline (spacing overscore)
+    {8260, "frasl"},      // HTML 4.0: fraction slash (solidus)
+    {8364, "euro"},       // HTML 4.0: euro sign
+    {8465, "image"},      // HTML 4.0: black-letter capital I (imaginary part)
+    {8472, "weierp"},     // HTML 4.0: script capital P (power set, Weierstrass p)
+    {8476, "real"},       // HTML 4.0: black-letter capital R (real part symbol)
+    {8482, "trade"},      // HTML 4.0: trademark symbol
+    {8501, "alefsym"},    // HTML 4.0: alef symbol (first transfinite cardinal)[h]
+    {8592, "larr"},       // HTML 4.0: leftwards arrow
+    {8593, "uarr"},       // HTML 4.0: upwards arrow
+    {8594, "rarr"},       // HTML 4.0: rightwards arrow
+    {8595, "darr"},       // HTML 4.0: downwards arrow
+    {8596, "harr"},       // HTML 4.0: left right arrow
+    {8629, "crarr"},      // HTML 4.0: downwards arrow with corner leftwards (carriage return)
+    {8656, "lArr"},       // HTML 4.0: leftwards double arrow[i]
+    {8657, "uArr"},       // HTML 4.0: upwards double arrow
+    {8658, "rArr"},       // HTML 4.0: rightwards double arrow[j]
+    {8659, "dArr"},       // HTML 4.0: downwards double arrow
+    {8660, "hArr"},       // HTML 4.0: left right double arrow
+    {8704, "forall"},     // HTML 4.0: for all
+    {8706, "part"},       // HTML 4.0: partial differential
+    {8707, "exist"},      // HTML 4.0: there exists
+    {8709, "empty"},      // HTML 4.0: empty set (null set); see also U+8960, ⌀
+    {8711, "nabla"},      // HTML 4.0: del or nabla (vector differential operator)
+    {8712, "isin"},       // HTML 4.0: element of
+    {8713, "notin"},      // HTML 4.0: not an element of
+    {8715, "ni"},         // HTML 4.0: contains as member
+    {8719, "prod"},       // HTML 4.0: n-ary product (product sign)[k]
+    {8721, "sum"},        // HTML 4.0: n-ary summation[l]
+    {8722, "minus"},      // HTML 4.0: minus sign
+    {8727, "lowast"},     // HTML 4.0: asterisk operator
+    {8730, "radic"},      // HTML 4.0: square root (radical sign)
+    {8733, "prop"},       // HTML 4.0: proportional to
+    {8734, "infin"},      // HTML 4.0: infinity
+    {8736, "ang"},        // HTML 4.0: angle
+    {8743, "and"},        // HTML 4.0: logical and (wedge)
+    {8744, "or"},         // HTML 4.0: logical or (vee)
+    {8745, "cap"},        // HTML 4.0: intersection (cap)
+    {8746, "cup"},        // HTML 4.0: union (cup)
+    {8747, "int"},        // HTML 4.0: integral
+    {8756, "there4"},     // HTML 4.0: therefore sign
+    {8764, "sim"},        // HTML 4.0: tilde operator (varies with, similar to)[m]
+    {8773, "cong"},       // HTML 4.0: congruent to
+    {8776, "asymp"},      // HTML 4.0: almost equal to (asymptotic to)
+    {8800, "ne"},         // HTML 4.0: not equal to
+    {8801, "equiv"},      // HTML 4.0: identical to; sometimes used for 'equivalent to'
+    {8804, "le"},         // HTML 4.0: less-than or equal to
+    {8805, "ge"},         // HTML 4.0: greater-than or equal to
+    {8834, "sub"},        // HTML 4.0: subset of
+    {8835, "sup"},        // HTML 4.0: superset of[n]
+    {8836, "nsub"},       // HTML 4.0: not a subset of
+    {8838, "sube"},       // HTML 4.0: subset of or equal to
+    {8839, "supe"},       // HTML 4.0: superset of or equal to
+    {8853, "oplus"},      // HTML 4.0: circled plus (direct sum)
+    {8855, "otimes"},     // HTML 4.0: circled times (vector product)
+    {8869, "perp"},       // HTML 4.0: up tack (orthogonal to, perpendicular)[o]
+    {8901, "sdot"},       // HTML 4.0: dot operator[p]
+    {8968, "lceil"},      // HTML 4.0: left ceiling (APL upstile)
+    {8969, "rceil"},      // HTML 4.0: right ceiling
+    {8970, "lfloor"},     // HTML 4.0: left floor (APL downstile)
+    {8971, "rfloor"},     // HTML 4.0: right floor
+    {9001, "lang"},       // HTML 4.0: left-pointing angle bracket (bra)[q]
+    {9002, "rang"},       // HTML 4.0: right-pointing angle bracket (ket)[r]
+    {9674, "loz"},        // HTML 4.0: lozenge
+    {9824, "spades"},     // HTML 4.0: black spade suit[f]
+    {9827, "clubs"},      // HTML 4.0: black club suit (shamrock)[f]
+    {9829, "hearts"},     // HTML 4.0: black heart suit (valentine)[f]
+    {9830, "diams"},      // HTML 4.0: black diamond suit[f]
 };
 
 #define HTML_ASCII(c) (c==34||c==38||c==60||c==62)
@@ -344,66 +344,135 @@ static const struct unicode_entity xhtml_entity_list[] = {
 #define NUM_ENTITIES (sizeof(xhtml_entity_list) / sizeof (struct unicode_entity))
 
 static const struct code_table html_codes[] = {
-   { '&', "&amp;", 5 },
-   { '<', "&lt;", 4 },
-   { '>', "&gt;", 4 },
-   { '"', "&quot;", 6 },
+    { '&', "&amp;", 5 },
+    { '<', "&lt;", 4 },
+    { '>', "&gt;", 4 },
+    { '"', "&quot;", 6 },
 };
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
+// for binary searches of non-spacing unicode characters
+typedef std::map<int, int> intmap_t;
+
+// non-spacing ranges - {end, start} so std::map::lower_bound() can be used
+static intmap_t non_spacing_map = {
+    {0x0036f, 0x00300}, {0x00486, 0x00483}, {0x00489, 0x00488}, {0x005bd, 0x00591},
+    {0x005bf, 0x005bf}, {0x005c2, 0x005c1}, {0x005c5, 0x005c4}, {0x005c7, 0x005c7},
+    {0x00603, 0x00600}, {0x00615, 0x00610}, {0x0065e, 0x0064b}, {0x00670, 0x00670},
+    {0x006e4, 0x006d6}, {0x006e8, 0x006e7}, {0x006ed, 0x006ea}, {0x0070f, 0x0070f},
+    {0x00711, 0x00711}, {0x0074a, 0x00730}, {0x007b0, 0x007a6}, {0x007f3, 0x007eb},
+    {0x00902, 0x00901}, {0x0093c, 0x0093c}, {0x00948, 0x00941}, {0x0094d, 0x0094d},
+    {0x00954, 0x00951}, {0x00963, 0x00962}, {0x00981, 0x00981}, {0x009bc, 0x009bc},
+    {0x009c4, 0x009c1}, {0x009cd, 0x009cd}, {0x009e3, 0x009e2}, {0x00a02, 0x00a01},
+    {0x00a3c, 0x00a3c}, {0x00a42, 0x00a41}, {0x00a48, 0x00a47}, {0x00a4d, 0x00a4b},
+    {0x00a71, 0x00a70}, {0x00a82, 0x00a81}, {0x00abc, 0x00abc}, {0x00ac5, 0x00ac1},
+    {0x00ac8, 0x00ac7}, {0x00acd, 0x00acd}, {0x00ae3, 0x00ae2}, {0x00b01, 0x00b01},
+    {0x00b3c, 0x00b3c}, {0x00b3f, 0x00b3f}, {0x00b43, 0x00b41}, {0x00b4d, 0x00b4d},
+    {0x00b56, 0x00b56}, {0x00b82, 0x00b82}, {0x00bc0, 0x00bc0}, {0x00bcd, 0x00bcd},
+    {0x00c40, 0x00c3e}, {0x00c48, 0x00c46}, {0x00c4d, 0x00c4a}, {0x00c56, 0x00c55},
+    {0x00cbc, 0x00cbc}, {0x00cbf, 0x00cbf}, {0x00cc6, 0x00cc6}, {0x00ccd, 0x00ccc},
+    {0x00ce3, 0x00ce2}, {0x00d43, 0x00d41}, {0x00d4d, 0x00d4d}, {0x00dca, 0x00dca},
+    {0x00dd4, 0x00dd2}, {0x00dd6, 0x00dd6}, {0x00e31, 0x00e31}, {0x00e3a, 0x00e34},
+    {0x00e4e, 0x00e47}, {0x00eb1, 0x00eb1}, {0x00eb9, 0x00eb4}, {0x00ebc, 0x00ebb},
+    {0x00ecd, 0x00ec8}, {0x00f19, 0x00f18}, {0x00f35, 0x00f35}, {0x00f37, 0x00f37},
+    {0x00f39, 0x00f39}, {0x00f7e, 0x00f71}, {0x00f84, 0x00f80}, {0x00f87, 0x00f86},
+    {0x00f97, 0x00f90}, {0x00fbc, 0x00f99}, {0x00fc6, 0x00fc6}, {0x01030, 0x0102d},
+    {0x01032, 0x01032}, {0x01037, 0x01036}, {0x01039, 0x01039}, {0x01059, 0x01058},
+    {0x011ff, 0x01160}, {0x0135f, 0x0135f}, {0x01714, 0x01712}, {0x01734, 0x01732},
+    {0x01753, 0x01752}, {0x01773, 0x01772}, {0x017b5, 0x017b4}, {0x017bd, 0x017b7},
+    {0x017c6, 0x017c6}, {0x017d3, 0x017c9}, {0x017dd, 0x017dd}, {0x0180d, 0x0180b},
+    {0x018a9, 0x018a9}, {0x01922, 0x01920}, {0x01928, 0x01927}, {0x01932, 0x01932},
+    {0x0193b, 0x01939}, {0x01a18, 0x01a17}, {0x01b03, 0x01b00}, {0x01b34, 0x01b34},
+    {0x01b3a, 0x01b36}, {0x01b3c, 0x01b3c}, {0x01b42, 0x01b42}, {0x01b73, 0x01b6b},
+    {0x01dca, 0x01dc0}, {0x01dff, 0x01dfe}, {0x0200f, 0x0200b}, {0x0202e, 0x0202a},
+    {0x02063, 0x02060}, {0x0206f, 0x0206a}, {0x020ef, 0x020d0}, {0x0302f, 0x0302a},
+    {0x0309a, 0x03099}, {0x0a806, 0x0a806}, {0x0a80b, 0x0a80b}, {0x0a826, 0x0a825},
+    {0x0fb1e, 0x0fb1e}, {0x0fe0f, 0x0fe00}, {0x0fe23, 0x0fe20}, {0x0feff, 0x0feff},
+    {0x0fffb, 0x0fff9}, {0x10a03, 0x10a01}, {0x10a06, 0x10a05}, {0x10a0f, 0x10a0c},
+    {0x10a3a, 0x10a38}, {0x10a3f, 0x10a3f}, {0x1d169, 0x1d167}, {0x1d182, 0x1d173},
+    {0x1d18b, 0x1d185}, {0x1d1ad, 0x1d1aa}, {0x1d244, 0x1d242}, {0xe0001, 0xe0001},
+    {0xe007f, 0xe0020}, {0xe01ef, 0xe0100},
+};
+
 void qore_string_init() {
-   static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
+    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
 #define URLIST_SIZE (sizeof(url_reserved_list) / sizeof(int))
 
-   for (unsigned i = 0; i < URLIST_SIZE; ++i)
-      url_reserved.insert(url_reserved_list[i]);
+    for (unsigned i = 0; i < URLIST_SIZE; ++i)
+        url_reserved.insert(url_reserved_list[i]);
 
-   for (unsigned i = 0; i < NUM_ENTITIES; ++i) {
-      assert(emap.find(xhtml_entity_list[i].entity) == emap.end());
-      emap[xhtml_entity_list[i].entity] = xhtml_entity_list[i].symbol;
-      assert(smap.find(xhtml_entity_list[i].symbol) == smap.end());
-      smap[xhtml_entity_list[i].symbol] = xhtml_entity_list[i].entity;
-   }
+    for (unsigned i = 0; i < NUM_ENTITIES; ++i) {
+        assert(emap.find(xhtml_entity_list[i].entity) == emap.end());
+        emap[xhtml_entity_list[i].entity] = xhtml_entity_list[i].symbol;
+        assert(smap.find(xhtml_entity_list[i].symbol) == smap.end());
+        smap[xhtml_entity_list[i].symbol] = xhtml_entity_list[i].entity;
+    }
 }
 
 static unsigned get_unicode_from_utf8(const char* buf, unsigned bl) {
-   if (bl == 1)
-      return buf[0];
+    if (bl == 1)
+        return buf[0];
 
-   if (bl == 2)
-      return ((buf[0] & 0x1f) << 6)
-         | (buf[1] & 0x3f);
+    if (bl == 2)
+        return ((buf[0] & 0x1f) << 6)
+            | (buf[1] & 0x3f);
 
-   if (bl == 3)
-      return ((buf[0] & 0x0f) << 12)
-         | ((buf[1] & 0x3f) << 6)
-         | (buf[2] & 0x3f);
+    if (bl == 3)
+        return ((buf[0] & 0x0f) << 12)
+            | ((buf[1] & 0x3f) << 6)
+            | (buf[2] & 0x3f);
 
-   return (((unsigned)(buf[0] & 0x07)) << 18)
-      | (((unsigned)(buf[1] & 0x3f)) << 12)
-      | ((((unsigned)buf[2] & 0x3f)) << 6)
-      | (((unsigned)buf[3] & 0x3f));
+    return (((unsigned)(buf[0] & 0x07)) << 18)
+        | (((unsigned)(buf[1] & 0x3f)) << 12)
+        | ((((unsigned)buf[2] & 0x3f)) << 6)
+        | (((unsigned)buf[3] & 0x3f));
+}
+
+// based on: https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c by Markus Kuhn -- 2007-05-26 (Unicode 5.0)
+size_t qore_get_unicode_character_width(int ucs) {
+    // see if character is a non-spacing character or control character
+    if (!ucs || (ucs < 32 || (ucs >= 0x7f && ucs < 0xa0))) {
+        return 0;
+    }
+
+    intmap_t::const_iterator i = non_spacing_map.lower_bound(ucs);
+    if (i != non_spacing_map.end()
+        && (i->first == ucs || i->second <= ucs)) {
+        return 0;
+    }
+
+    return 1 +
+        (ucs >= 0x1100 &&
+            (ucs <= 0x115f ||                    /* Hangul Jamo init. consonants */
+                ucs == 0x2329 || ucs == 0x232a ||
+                (ucs >= 0x2e80 && ucs <= 0xa4cf && ucs != 0x303f)
+                ||                  /* CJK ... Yi */
+                (ucs >= 0xac00 && ucs <= 0xd7a3) || /* Hangul Syllables */
+                (ucs >= 0xf900 && ucs <= 0xfaff) || /* CJK Compatibility Ideographs */
+                (ucs >= 0xfe10 && ucs <= 0xfe19) || /* Vertical forms */
+                (ucs >= 0xfe30 && ucs <= 0xfe6f) || /* CJK Compatibility Forms */
+                (ucs >= 0xff00 && ucs <= 0xff60) || /* Fullwidth Forms */
+                (ucs >= 0xffe0 && ucs <= 0xffe6) ||
+                (ucs >= 0x20000 && ucs <= 0x2fffd) ||
+                (ucs >= 0x30000 && ucs <= 0x3fffd)));
 }
 
 void qore_string_private::concatUTF8FromUnicode(unsigned code) {
-   if (code > 0xffff) { // 4-byte code
-      concat(0xf0 | ((code & (0x7 << 18)) >> 18));
-      concat(0x80 | ((code & (0x3f << 12)) >> 12));
-      concat(0x80 | ((code & (0x3f << 6)) >> 6));
-      concat(0x80 | (code & 0x3f));
-   }
-   else if (code > 0x7ff) { // 3-byte code
-      concat(0xe0 | ((code & (0xf << 12)) >> 12));
-      concat(0x80 | ((code & (0x3f << 6)) >> 6));
-      concat(0x80 | (code & 0x3f));
-   }
-   else if (code > 0x7f) { // 2-byte code
-      concat(0xc0 | ((code & (0x2f << 6)) >> 6));
-      concat(0x80 | (code & 0x3f));
-   }
-   else
-      concat((char)code);
+    if (code > 0xffff) { // 4-byte code
+        concat(0xf0 | ((code & (0x7 << 18)) >> 18));
+        concat(0x80 | ((code & (0x3f << 12)) >> 12));
+        concat(0x80 | ((code & (0x3f << 6)) >> 6));
+        concat(0x80 | (code & 0x3f));
+    } else if (code > 0x7ff) { // 3-byte code
+        concat(0xe0 | ((code & (0xf << 12)) >> 12));
+        concat(0x80 | ((code & (0x3f << 6)) >> 6));
+        concat(0x80 | (code & 0x3f));
+    } else if (code > 0x7f) { // 2-byte code
+        concat(0xc0 | ((code & (0x2f << 6)) >> 6));
+        concat(0x80 | (code & 0x3f));
+    } else
+        concat((char)code);
 }
 
 // FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
@@ -593,7 +662,6 @@ int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore
 
    return 0;
 }
-
 
 // static function
 int qore_string_private::convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink) {
@@ -3080,12 +3148,24 @@ qore_offset_t QoreString::getByteOffset(qore_size_t i, ExceptionSink* xsink) con
    return priv->getByteOffset(i, xsink);
 }
 
+size_t QoreString::getCharWidth(ExceptionSink* xsink) const {
+    if (!priv->charset->isMultiByte()) {
+        return priv->len;
+    }
+    size_t rc = 0;
+    UnicodeCharacterIterator i(*this);
+    while (i.next(xsink)) {
+        rc += qore_get_unicode_character_width(i.getValue());
+    }
+    return *xsink ? 0 : rc;
+}
+
 void TempEncodingHelper::removeBom() {
-   if (!str || str->getEncoding()->isAsciiCompat())
-      return;
-   if (!temp) {
-      str = new QoreString(*str);
-      temp = true;
-   }
-   q_remove_bom_utf16(str, qore_string_private::get(*str)->charset);
+    if (!str || str->getEncoding()->isAsciiCompat())
+        return;
+    if (!temp) {
+        str = new QoreString(*str);
+        temp = true;
+    }
+    q_remove_bom_utf16(str, qore_string_private::get(*str)->charset);
 }

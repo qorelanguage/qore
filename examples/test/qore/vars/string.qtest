@@ -15,6 +15,7 @@
 
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("width test", \testWidth());
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Comparison test", \testComparison());
         addTestCase("Encoding test", \testEncoding());
@@ -31,6 +32,18 @@ class StringTest inherits QUnit::Test {
         addTestCase("String conversion test", \testConversions());
         addTestCase("trim", \testTrim());
         set_return_value(main());
+    }
+
+    testWidth() {
+        # 6 characters, 12 positions, 18 bytes
+        string str = "ステップの例";
+        assertEq(6, str.length());
+        assertEq(12, str.width());
+        assertEq(18, str.size());
+        assertEq(str + " ", wsprintf("%-13s", str));
+        assertEq(str + " ", vwsprintf("%-13s", str));
+        assertEq("ステ.", f_wsprintf("%-5s", str));
+        assertEq("ステ.", f_vwsprintf("%-5s", str));
     }
 
     testBasics() {

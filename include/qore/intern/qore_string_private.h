@@ -646,6 +646,8 @@ public:
         return charset ? charset : QCS_USASCII;
     }
 
+    DLLLOCAL size_t getCharWidth(ExceptionSink* xsink) const;
+
     DLLLOCAL static bool inVector(int c, const intvec_t& vec) {
         for (unsigned j = 0; j < vec.size(); ++j) {
             if ((int)vec[j] == c)

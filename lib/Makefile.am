@@ -331,7 +331,8 @@ libqore_la_SOURCES = \
 	minitest.cpp \
 	FunctionalOperatorInterface.cpp \
 	FunctionalOperator.cpp \
-	QoreSerializable.cpp
+	QoreSerializable.cpp \
+    UnicodeCharacterIterator.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp
