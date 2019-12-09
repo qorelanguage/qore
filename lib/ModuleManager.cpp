@@ -962,6 +962,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         qore_program_private::forceReplaceParseOptions(*mpgm, parseOptions);
     } else {
         mpgm = new QoreProgram(parseOptions);
+        mpgm->setScriptPath(modulePath.c_str());
     }
     // issue #3592: must add feature first
     qore_program_private::addUserFeature(*mpgm, feature);

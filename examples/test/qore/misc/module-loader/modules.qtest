@@ -6,23 +6,33 @@
 %require-types
 %strict-args
 
+%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
-%requires ./ModuleDepLoad_0.qm
 
-%exec-class ModulesTest
+%exec-class ModuleTest
 
-class ModulesTest inherits QUnit::Test {
+class ModuleTest inherits QUnit::Test {
     constructor() : QUnit::Test("Modules test", "1.0") {
         addTestCase("dep load test", \depLoadTest());
         addTestCase("warning test", \warningTest());
         addTestCase("Test modules", \testModules());
         addTestCase("Side effect test", \sideEffectTest());
+
+        our ModuleTest mt = self;
+
         set_return_value(main());
     }
 
     depLoadTest() {
-        Child c();
-        assertEq(1, c.get());
+        Program p(PO_NEW_STYLE);
+        p.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
+        #p.setScriptPath(get_script_path());
+        p.importGlobalVariable("mt");
+        p.parse("%requires " + normalize_dir(get_script_dir()) + "/ModuleDepLoad_0.qm
+Child c();
+mt.assertEq(1, c.get());
+", "p");
+        p.run();
     }
 
     warningTest() {
@@ -36,8 +46,6 @@ class ModulesTest inherits QUnit::Test {
     }
 
     testModules() {
-        our ModulesTest mt = self;
-
         Program p(PO_NEW_STYLE);
         p.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
         p.setScriptPath(get_script_path());

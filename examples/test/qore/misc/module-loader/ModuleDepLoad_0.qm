@@ -22,6 +22,7 @@ class Test {
 sub init() {
     Program p(PO_NO_USER_API);
     p.importClass("Test");
+    p.setScriptPath(get_script_path());
     p.loadApplyToUserModule("./ModuleDepLoad_1.qm", False, WARN_MODULES, True);
 }
 
