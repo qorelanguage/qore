@@ -7,15 +7,22 @@
 %strict-args
 
 %requires ../../../../../qlib/QUnit.qm
+%requires ./ModuleDepLoad_0.qm
 
 %exec-class ModulesTest
 
 class ModulesTest inherits QUnit::Test {
     constructor() : QUnit::Test("Modules test", "1.0") {
+        addTestCase("dep load test", \depLoadTest());
         addTestCase("warning test", \warningTest());
         addTestCase("Test modules", \testModules());
         addTestCase("Side effect test", \sideEffectTest());
         set_return_value(main());
+    }
+
+    depLoadTest() {
+        Child c();
+        assertEq(1, c.get());
     }
 
     warningTest() {

@@ -561,14 +561,14 @@ int ModuleManager::runTimeLoadModule(const char* name, QoreProgram* pgm, Excepti
 }
 
 int QoreModuleManager::runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
-    QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask) {
+    QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask, bool reexport) {
     // grab the parse lock
     ProgramRuntimeParseContextHelper pah(&xsink, pgm);
     if (xsink)
         return -1;
 
-    AutoLocker al2(mutex);               // grab global module lock
-    loadModuleIntern(xsink, wsink, name, pgm, false, MOD_OP_NONE, 0, 0, mpgm, load_opt, warning_mask);
+    AutoLocker al2(mutex); // grab global module lock
+    loadModuleIntern(xsink, wsink, name, pgm, reexport, MOD_OP_NONE, 0, 0, mpgm, load_opt, warning_mask);
     return xsink ? -1 : 0;
 }
 

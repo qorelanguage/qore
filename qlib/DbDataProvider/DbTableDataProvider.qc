@@ -348,7 +348,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Deletes zero or more records
     /**
         @param where_cond a hash for identifying the record(s) to be deleted
-        @param search_options the update options after processing by validateSearchOptions()
+        @param search_options the delete options after processing by validateSearchOptions()
 
         @return the number of records deleted
 
