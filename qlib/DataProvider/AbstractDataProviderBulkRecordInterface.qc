@@ -71,8 +71,11 @@ public class AbstractDataProviderBulkRecordInterface {
             return;
         }
         hash<string, list<auto>> rv = getValueImpl();
-        if (rv.firstValue().size() < block_size) {
+        if ((int size = rv.firstValue().size()) < block_size) {
             valid = False;
+            if (!size) {
+                return;
+            }
         }
         return rv;
     }
