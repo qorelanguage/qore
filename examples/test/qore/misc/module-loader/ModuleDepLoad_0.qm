@@ -1,0 +1,28 @@
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+%allow-injection
+
+module ModuleDepLoad_0 {
+    version = "1.0";
+    desc = "module load inject test";
+    author = "Qore Technologies, s.r.o.";
+    url = "https://qore.org";
+    license = "MIT";
+    init = \init();
+}
+
+class Test {
+    int get() {
+        return 1;
+    }
+}
+
+sub init() {
+    Program p(PO_NO_USER_API);
+    p.importClass("Test");
+    p.setScriptPath(get_script_path());
+    p.loadApplyToUserModule("./ModuleDepLoad_1.qm", False, WARN_MODULES, True);
+}
+

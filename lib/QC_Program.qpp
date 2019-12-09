@@ -1251,20 +1251,28 @@ nothing Program::importFunction(string func) {
 }
 
 //! Imports a function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
-/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the
+    embedded code.
 
     @param func the name of the function to import into the Program object
-    @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::my_func")
-    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemFunctions(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-
+    qualified namespace path, in which case the namespace path will be created in the target Program object if
+    necessary as well (ex: \c "Ns1::Ns2::my_func")
+    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and
+    therefore will not be overritten by subsequent calls to Program::importSystemFunctions(),
+    Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note
+    that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
 
     @par Example:
     @code{.py}
 pgm.importFunction("service_log", "log");
     @endcode
 
-    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name already exists; target namespace does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
+    @throw FUNCTION-IMPORT-ERROR Cannot import a function into the same Program object; function with this name
+    already exists; target namespace does not exist; injection indicated but @ref Qore::PO_ALLOW_INJECTION not set
     @throw PROGRAM-IMPORTFUNCTION-NO-FUNCTION The function does not exist
-    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
+    @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the
+    @ref default_encoding "default character encoding"
 
     @since
     - %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
@@ -1305,11 +1313,18 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
 }
 
 //! Imports a class into the program object's space; any calls to the imported class's code will run with the parent Program object's permissions
-/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the embedded code.
+/** This allows a user-defined API with greater capabilities than the embedded Program object to be imported into the
+    embedded code.
 
     @param cls the name of the class to import into the Program object
-    @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in which case the namespace path will be created in the target Program object if necessary as well (ex: \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and therefore will not be overritten by subsequent calls to Program::importSystemClasses(), Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
+    @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in
+    which case the namespace path will be created in the target Program object if necessary as well (ex:
+    \c "Ns1::Ns2::MyClass")
+    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and
+    therefore will not be overritten by subsequent calls to Program::importSystemClasses(),
+    Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(),
+    Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed,
+    the Program must have @ref Qore::PO_ALLOW_INJECTION set
     @param module_visibility see @ref import_visibility_constants for valid values
 
     @par Example:
@@ -1900,6 +1915,7 @@ pgm.loadUserModuleWithProgram("MyModule", p);
     @param name the name or path of the user module to load
     @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
     @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
+    @param reexport reexport symbols from the imported module (only valid when used in a user module)
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
@@ -1918,9 +1934,11 @@ pgm.loadUserModuleWithProgram("MyModule", p);
     - get_module_hash()
     - get_feature_list()
 
-    @since %Qore 0.9 added the \c warning_mask parameter
+    @since
+    - %Qore 0.9 added the \c warning_mask parameter
+    - %Qore 0.9.4 added the \c reexport parameter
  */
-Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
+Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask = WARN_MODULES, bool reexport = False) [dom=MODULES,INJECTION] {
     // remove the QoreProgram private data from the object
     printd(5, "Program::loadApplyToUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
@@ -1932,7 +1950,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
 #endif
     if (!*xsink) {
         QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
-            warning_mask);
+            warning_mask, reexport);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);
@@ -1945,6 +1963,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     @param name the name or path of the user module to load
     @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
     @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
+    @param reexport reexport symbols from the imported module (only valid when used in a user module)
 
     @return any warnings found while parsing the module (if the module is a user module)
 
@@ -1965,9 +1984,11 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     - get_module_hash()
     - get_feature_list()
 
-    @since %Qore 0.9 added the \c warning_mask parameter
+    @since
+    - %Qore 0.9 added the \c warning_mask parameter
+    - %Qore 0.9.4 added the \c reexport parameter
  */
-*hash<ExceptionInfo> Program::loadApplyToUserModuleWarn(string name, *softbool reinject, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
+*hash<ExceptionInfo> Program::loadApplyToUserModuleWarn(string name, *softbool reinject, int warning_mask = WARN_MODULES, bool reexport = False) [dom=MODULES,INJECTION] {
     // remove the QoreProgram private data from the object
     printd(5, "Program::loadApplyToUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
 #ifdef DEBUG
@@ -1980,7 +2001,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     if (!*xsink) {
         ExceptionSink wsink;
         QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
-            warning_mask);
+            warning_mask, reexport);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);

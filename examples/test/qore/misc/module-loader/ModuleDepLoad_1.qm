@@ -1,0 +1,15 @@
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+module ModuleDepLoad_1 {
+    version = "1.0";
+    desc = "module load inject test";
+    author = "Qore Technologies, s.r.o.";
+    url = "https://qore.org";
+    license = "MIT";
+}
+
+public class Child inherits Test {
+}
