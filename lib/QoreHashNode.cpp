@@ -229,7 +229,7 @@ QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* type
         if (!init->is_unique())
             init = init->copy();
         HashIterator i(*init);
-        const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+        const QoreTypeInfo* vti = QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
         assert(vti);
         while (i.next()) {
             // check types

@@ -37,6 +37,30 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("auto sub t() { *hash<auto> h = {}; auto x = cast<*hash<string, list<auto>>>(h); return remove x; }", "");
+            assertEq({}, p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("auto sub t() { *hash<auto> h = {}; auto x = cast<*hash<string, *list<auto>>>(h); return remove x; }", "");
+            assertEq({}, p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("auto sub t() { *hash<auto> h; auto x = cast<*hash<string, list<auto>>>(h); return remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("auto sub t() { *hash<auto> h; auto x = cast<*hash<string, *list<auto>>>(h); return remove x; }", "");
+            assertNothing(p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             p.parse("sub t() { *hash h; auto x = cast<hash<StatInfo>>(h); remove x; }", "");
             assertThrows("RUNTIME-CAST-ERROR", \p.callFunction(), "t");
         }
