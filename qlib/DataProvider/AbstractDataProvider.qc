@@ -703,6 +703,13 @@ public class AbstractDataProvider {
         # this method intentionally left blank
     }
 
+    #! Returns the description of the record type, if any
+    *hash<string, AbstractDataField> getSoftRecordType() {
+        return map {
+            $1.key: $1.value.getSoftType()
+        }, getRecordType().pairIterator();
+    }
+
     #! Returns options that can be used for searching
     /** @return a hash of options that can be used for searching; keys are search option names, values describe the
         search option; if @ref nothing is returned, then the provider does not support any search options

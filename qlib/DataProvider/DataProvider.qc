@@ -116,13 +116,26 @@ public class DataProvider {
 
     #! Tries to load a module corresponding to the given factory
     static *string tryGetModuleName(string name) {
-        *string prov = ENV.QORE_CONNECTION_PROVIDERS;
+        *string prov = ENV.QORE_DATA_PROVIDERS;
         if (prov) {
-            try {
-                return parse_to_qore_value(prov){name};
-            } catch (hash<ExceptionInfo> ex) {
-                stderr.printf("ERROR: invalid QORE_CONNECTION_PROVIDERS value %y; should have provider=module_name, "
-                    "... format: %s: %s", prov, ex.err, ex.desc);
+            list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
+                Program p(PO_NO_USER_API);
+                try {
+                    p.loadModule(mod);
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
+                }
+                try {
+                    hash<string, string> dmap = p.callFunction("get_data_provider_map");
+                    *string mod = dmap{name};
+                    if (mod) {
+                        return mod;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y registration function: %s: %s\n",
+                        mod, ex.err, ex.desc);
+                }
             }
         }
     }
