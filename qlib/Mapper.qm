@@ -822,7 +822,7 @@ Mapper mapv(DataMap);
                 output_provider.getName(), self.className());
         }
         output_provider = opts.output_provider;
-        output = output_provider.getRecordType();
+        output = output_provider.getSoftRecordType();
         if (!output) {
             error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
                 output_provider.getName(), self.className());
@@ -1486,6 +1486,13 @@ Mapper mapv(DataMap);
     runAutonomous() {
         checkInputProvider();
         checkOutputProvider();
+
+        if (info_log) {
+            info_log("autonomous mapping %y (bulk: %y) -> %y (bulk: %y)%s", input_provider.getName(),
+                input_provider.supportsBulkRead(), output_provider.getName(),
+                exists output_provider_bulk_operation, exists output_provider_bulk_operation ? (" using " +
+                    output_provider_bulk_operation.className()) : NOTHING);
+        }
 
         if (output_provider_bulk_operation) {
             on_error {

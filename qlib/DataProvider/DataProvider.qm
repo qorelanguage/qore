@@ -112,6 +112,34 @@ module DataProvider {
     - @ref DataProvider::QoreStringDataTypeBase "QoreStringDataTypeBase"
     - @ref DataProvider::QoreStringOrNothingDataType "QoreStringOrNothingDataType"
 
+    @subsection dataprovider_modules Data Provider Modules
+
+    This module uses the \c "QORE_DATA_PROVIDERS" environment variable to register data provider
+    modules.  Each data provider registration module must provide a single public function with the following signature:
+    @code{.py}
+# returns a hash of connection provider factory names to module names
+public hash<string, string> sub get_data_provider_map() { ... }
+    @endcode
+
+    Data provider registration modules declared in the \c "QORE_DATA_PROVIDERS" environment variable must
+    be separated by the platform-specific @ref Qore::PathSep "PathSep" character as in the following
+    examples:
+
+    @par Unix Example
+    @verbatim
+export QORE_DATA_PROVIDERS=MyConnectionProvider:OtherConnectionProvider
+    @endverbatim
+
+    @par Windows CMD.EXE Example
+    @verbatim
+set QORE_DATA_PROVIDERS=MyConnectionProvider;OtherConnectionProvider
+    @endverbatim
+
+    @par Windows PowerShell Example
+    @verbatim
+$env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
+    @endverbatim
+
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v1_0 DataProvider v1.0

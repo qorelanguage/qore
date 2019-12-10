@@ -34,6 +34,7 @@
 %enable-all-warnings
 
 %requires reflection
+%requires Util
 
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
@@ -102,7 +103,7 @@ public class DataProvider {
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
         if (!factory_cache{name}) {
-            *string module_name = FactoryMap{name};
+            *string module_name = FactoryMap{name} ?? DataProvider::tryGetModuleName(name);
             if (!module_name) {
                 return;
             }
@@ -111,6 +112,32 @@ public class DataProvider {
             }
         }
         return factory_cache{name};
+    }
+
+    #! Tries to load a module corresponding to the given factory
+    static *string tryGetModuleName(string name) {
+        *string prov = ENV.QORE_DATA_PROVIDERS;
+        if (prov) {
+            list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
+                Program p(PO_NO_USER_API);
+                try {
+                    p.loadModule(mod);
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
+                }
+                try {
+                    hash<string, string> dmap = p.callFunction("get_data_provider_map");
+                    *string mod = dmap{name};
+                    if (mod) {
+                        return mod;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y registration function: %s: %s\n",
+                        mod, ex.err, ex.desc);
+                }
+            }
+        }
     }
 
     #! Returns the given data provider factory or throws an exception if not present
