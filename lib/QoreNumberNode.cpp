@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -94,71 +94,71 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
    //printd(5, "qore_number_private::getAsString() this: %p returning '%s'\n", this, str.getBuffer());
 }
 
-void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last) {
-   // the position of the last significant digit
-   qore_offset_t pos = (qore_offset_t)dp;
-   qore_size_t i = dp;
-   // the last digit found in the sequence
-   char lc = 0;
-   // 0 or 9 count
-   unsigned cnt = 0;
-   bool has_e = (str[last] == 'e');
-   // don't check the last character
-   --last;
-   // check all except the last digit
-   while (i < last) {
-      char c = str[i++];
-      if (c == '0' || c == '9') {
-         // continue the sequence
-         if (c == lc) {
-            ++cnt;
-            continue;
-         }
+void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last,
+    int round_threshold_1, int round_threshold_2) {
+    // the position of the last significant digit
+    qore_offset_t pos = (qore_offset_t)dp;
+    qore_size_t i = dp;
+    // the last digit found in the sequence
+    char lc = 0;
+    // 0 or 9 count
+    unsigned cnt = 0;
+    bool has_e = (str[last] == 'e');
+    // don't check the last character
+    --last;
+    // check all except the last digit
+    while (i < last) {
+        char c = str[i++];
+        if (c == '0' || c == '9') {
+            // continue the sequence
+            if (c == lc) {
+                ++cnt;
+                continue;
+            }
 
-	 // check for 2nd threshold
-         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
-            break;
-         }
+            // check for 2nd threshold
+            if (cnt > round_threshold_2) {
+                break;
+            }
 
-         // set last digit to digit found
-         lc = c;
-      }
-      else {
-         // check for 2nd threshold
-         if (cnt > QORE_MPFR_ROUND_THRESHOLD_2) {
-            break;
-         }
-         // no 0 or 9 digit found
-         lc = 0;
-      }
+            // set last digit to digit found
+            lc = c;
+        }  else {
+            // check for 2nd threshold
+            if (cnt > round_threshold_2) {
+                break;
+            }
+            // no 0 or 9 digit found
+            lc = 0;
+        }
 
-      // mark position of the last significant digit
-      pos = i - 2;
-      //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
+        // mark position of the last significant digit
+        pos = i - 2;
+        //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
 
-      // reset count
-      cnt = 0;
-   }
+        // reset count
+        cnt = 0;
+    }
 
-   // round the number for display
-   if (cnt > QORE_MPFR_ROUND_THRESHOLD) {
-      //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
-      // if rounding right after the decimal point, then remove the decimal point
-      if (pos == (qore_offset_t)dp)
-         --pos;
-      if (has_e && str[pos + cnt + 3] == 'e')
-	 --cnt;
-      // remove the excess digits
-      if (!has_e)
-         str.terminate(pos + 1);
-      else
-         str.replace(pos + 1, cnt + 3, (const char*)0);
+    // round the number for display
+    if (cnt > round_threshold_1) {
+        //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
+        // if rounding right after the decimal point, then remove the decimal point
+        if (pos == (qore_offset_t)dp)
+            --pos;
+        if (has_e && str[pos + cnt + 3] == 'e')
+            --cnt;
+        // remove the excess digits
+        if (!has_e)
+            str.terminate(pos + 1);
+        else
+            str.replace(pos + 1, cnt + 3, (const char*)0);
 
-      // rounding down is easy; the truncation is enough
-      if (lc == '9') // round up
-         roundUp(str, pos);
-      //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
-   }
+        // rounding down is easy; the truncation is enough
+        if (lc == '9') // round up
+            roundUp(str, pos);
+        //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
+    }
 }
 
 int qore_number_private::roundUp(QoreString& str, qore_offset_t pos) {
