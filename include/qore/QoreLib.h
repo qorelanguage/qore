@@ -707,4 +707,15 @@ DLLEXPORT void qore_set_module_option(std::string mod, std::string opt, QoreValu
 */
 DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
 
+// try to remove noise in insignificant digits from a number string
+/** finds the decimal point and attempts to remove noise and round the number if found
+
+    @param str the number string to round
+    @param round_threshold_1 the number of consecutive trailing 0 or 9 digits that will be rounded in string output
+    @param round_threshold_2 the number of consecutive trailing 0 or 9 digits that will be rounded in string output if there are trailing non-0/9 digits
+
+    @since %Qore 0.9.4
+*/
+DLLEXPORT void qore_apply_rounding_heuristic(QoreString& str, int round_threshold_1, int round_threshold_2);
+
 #endif // _QORE_QORELIB_H

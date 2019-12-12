@@ -2858,3 +2858,7 @@ const QoreTypeInfo* qore_get_type_from_string(const char* str, ExceptionSink& xs
     }
     return rv;
 }
+
+void qore_apply_rounding_heuristic(QoreString& str, int round_threshold_1, int round_threshold_2) {
+    return qore_number_private::applyRoundingHeuristicToString(str, round_threshold_1, round_threshold_2);
+}
