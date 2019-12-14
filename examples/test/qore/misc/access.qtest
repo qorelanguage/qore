@@ -11,6 +11,12 @@
 
 %exec-class AccessTest
 
+namespace T0 {
+    int sub get_int() {
+        return 1;
+    }
+}
+
 class Base {
     public {
         static int statpub = 1;
@@ -221,6 +227,10 @@ class BI1 {
     private int get() {
         return i;
     }
+
+    private static int getStatic() {
+        return 1;
+    }
 }
 
 class CI1 inherits private:internal BI1 {
@@ -232,7 +242,17 @@ class CI1 inherits private:internal BI1 {
     }
 }
 
-class BI2 {
+class BIBase {
+    private int get() {
+        return 0;
+    }
+
+    private static int getStatic() {
+        return 0;
+    }
+}
+
+class BI2 inherits private:internal BIBase {
     private:internal {
         int i;
     }
@@ -246,6 +266,10 @@ class BI2 {
 
     private int get() {
         return i;
+    }
+
+    private static int getStatic() {
+        return 1;
     }
 }
 
@@ -281,6 +305,14 @@ class CI3 inherits private:internal BI2 {
 
     int get() {
         return BI2::get();
+    }
+
+    code getRef(string name) {
+        return self.getCallReference(name);
+    }
+
+    static int getStatic() {
+        return 1;
     }
 }
 
@@ -552,6 +584,22 @@ class TestInheritB {
 
         CI3 c6(2);
         assertEq(2, c6.get());
+
+        assertThrows("CALL-REFERENCE-ERROR", \c6.getRef(), "BI1::get");
+        assertThrows("CALL-REFERENCE-ERROR", \c6.getRef(), "BIBase::get");
+        assertEq(2, c6.getRef("BI2::get")());
+        assertEq(2, c6.getRef("get")());
+
+        assertThrows("CALL-REFERENCE-ERROR", \c6.getRef(), "BI1::getStatic");
+        assertThrows("CALL-REFERENCE-ERROR", \c6.getRef(), "BIBase::getStatic");
+        assertEq(1, c6.getRef("BI2::getStatic")());
+        assertEq(1, c6.getRef("getStatic")());
+
+        assertThrows("CALL-REFERENCE-ERROR", \get_call_reference(), "BIBase::get");
+        assertThrows("CALL-REFERENCE-ERROR", \get_call_reference(), "_invalid_");
+        assertThrows("CALL-REFERENCE-ERROR", \c6.getRef(), "_invalid_");
+        assertEq(1, c6.getRef("get_int")());
+        assertEq(1, get_call_reference("get_int")());
 
         RefTest rt();
         assertEq(1, rt.get());

@@ -320,9 +320,11 @@ void ParseScopedSelfMethodReferenceNode::parseInitImpl(QoreValue& val, LocalVar*
     }
 }
 
-RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj, const QoreMethod* n_method) : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(runtime_get_class()) {
-   printd(5, "RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode() this: %p obj: %p\n", this, obj);
-   obj->tRef();
+RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc,
+    QoreObject* n_obj, const QoreMethod* n_method, const qore_class_private* ctx)
+    : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(ctx) {
+    printd(5, "RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode() this: %p obj: %p\n", this, obj);
+    obj->tRef();
 }
 
 RunTimeResolvedMethodReferenceNode::~RunTimeResolvedMethodReferenceNode() {

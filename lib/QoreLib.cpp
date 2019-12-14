@@ -498,7 +498,7 @@ static int get_number(char** param) {
         num = num*10 + (**param - '0');
         ++(*param);
     }
-    //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
+    //printd(5, "get_number(%x: %s) num: %d\n", *param, *param, num);
     return num;
 }
 
@@ -869,6 +869,85 @@ QoreStringNode* q_vsprintf(ExceptionSink* xsink, const QoreListNode* params, int
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
     return q_vsprintf(xsink, params, field, offset, false);
+}
+
+static QoreValue do_method_intern(QoreObject* self, const QoreMethod* meth, ClassAccess access, const char* name, const qore_class_private* pcls, ExceptionSink* xsink) {
+    if (!meth->isStatic() && !self) {
+        xsink->raiseException("CALL-REFERENCE-ERROR", "non-static method \"%s\" is not accessible without an object "
+            "context", name);
+        return QoreValue();
+    }
+    if (access > Public) {
+        // ensure the method can be accessed
+        if (self) {
+            const qore_class_private* selfcls = qore_class_private::get(*self->getClass());
+            if (selfcls != pcls) {
+                if (access > Private || !selfcls->runtimeCheckPrivateClassAccess(pcls)) {
+                    meth = nullptr;
+                }
+            }
+        } else {
+            meth = nullptr;
+        }
+        if (!meth) {
+            xsink->raiseException("CALL-REFERENCE-ERROR", "%s method \"%s\" is not accessible in this context",
+                privpub(access), name);
+            return QoreValue();
+        }
+    }
+    // see if non-static method is part of self's class hierarchy
+    if (!meth->isStatic()) {
+        bool priv;
+        if (!self->getClass()->getClass(*meth->getClass(), priv)) {
+            xsink->raiseException("CALL-REFERENCE-ERROR", "\"%s\" is not accessible from an object of " \
+                "class '%s' as the classes are not in the same hierarchy", name, self->getClassName());
+        }
+    }
+    return QoreValue(new RunTimeResolvedMethodReferenceNode(&loc_builtin, self, meth,
+        qore_class_private::get(*meth->getClass())));
+}
+
+QoreValue get_call_reference_intern(QoreObject* self, const QoreStringNode* identifier, ExceptionSink* xsink) {
+    TempEncodingHelper name(identifier, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    bool scoped_ref = strstr(name->c_str(), "::");
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (scoped_ref) {
+        NamedScope ns(name->c_str());
+        const QoreClass* cls = qore_root_ns_private::get(*(getRootNS()))->runtimeFindScopedClassWithMethod(ns);
+        if (cls) {
+            const qore_class_private* pcls = qore_class_private::get(*cls);
+            ClassAccess access;
+            const QoreMethod* meth = pcls->runtimeFindCommittedMethodForEval(ns.getIdentifier(), access, class_ctx);
+            if (!meth) {
+                meth = pcls->runtimeFindCommittedStaticMethod(ns.getIdentifier(), access, class_ctx);
+            }
+            //printd(5, "get_call_reference_intern() '%s' -> cls: '%s' ctx: '%s' meth: %p\n", name->c_str(), cls->getName(), class_ctx ? class_ctx->name.c_str() : "n/a", meth);
+            if (meth) {
+                return do_method_intern(self, meth, access, name->c_str(), pcls, xsink);
+            }
+        }
+    } else if (self) {
+        const qore_class_private* pcls = qore_class_private::get(*self->getClass());
+        ClassAccess access;
+        const QoreMethod* meth = pcls->runtimeFindCommittedMethodForEval(name->c_str(), access, class_ctx);
+        if (!meth) {
+            meth = pcls->runtimeFindCommittedStaticMethod(name->c_str(), access, class_ctx);
+        }
+        if (meth) {
+            return do_method_intern(self, meth, access, name->c_str(), pcls, xsink);
+        }
+    }
+
+    const FunctionEntry* fe = qore_root_ns_private::runtimeFindFunctionEntry(*getRootNS(), name->c_str());
+    if (fe) {
+        return new FunctionCallReferenceNode(&loc_builtin, fe->getFunction(), ::getProgram());
+    }
+
+    xsink->raiseException("CALL-REFERENCE-ERROR", "cannot resolve \"%s\" to any callable reference", name->c_str());
+    return QoreValue();
 }
 
 static void concatASCII(QoreString &str, unsigned char c) {
@@ -2700,7 +2779,7 @@ const char* get_full_type_name(const AbstractQoreNode* n) {
 }
 
 void QorePossibleListNodeParseInitHelper::parseInit(const QoreTypeInfo*& typeInfo) {
-    //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
+    //printd(5, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
 
     typeInfo = nullptr;
     if (!l) {
@@ -2725,8 +2804,7 @@ void QorePossibleListNodeParseInitHelper::parseInit(const QoreTypeInfo*& typeInf
         QoreValue& v = qore_list_private::get(*l)->getEntryReference(pos);
         parse_init_value(v, oflag, pflag, lvids, typeInfo);
 
-        //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
-
+        //printd(5, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
         if (l && !l->needs_eval() && v.hasNode() && v.getInternalNode()->needs_eval()) {
             qore_list_private::setNeedsEval(*l);
         }
@@ -2739,7 +2817,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
     for (unsigned i = 0; i < num_params; ++i) {
         typeList.push_back(va_arg(args, const QoreTypeInfo*));
         defaultArgList.push_back(va_arg(args, QoreSimpleValue));
-        //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+        //printd(5, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
 
@@ -2751,7 +2829,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
         typeList.push_back(va_arg(args, const QoreTypeInfo *));
         defaultArgList.push_back(va_arg(args, QoreSimpleValue));
         nameList.push_back(va_arg(args, const char*));
-        //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+        //printd(5, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
 

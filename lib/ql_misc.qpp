@@ -54,7 +54,7 @@ static const QoreFunction* get_builtin_func(const QoreStringNode* str, Exception
       return f;
 
    xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
-   return 0;
+   return nullptr;
 }
 
 static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
@@ -2854,7 +2854,7 @@ set_module_option(mod, opt, val);
 
     @see get_module_option()
 
-    @since %Qore 0.0
+    @since %Qore 0.9
  */
 nothing set_module_option(string module, string option, auto value) [dom=PROCESS] {
     TempEncodingHelper mod_str(module, QCS_DEFAULT, xsink);
@@ -2869,4 +2869,29 @@ nothing set_module_option(string module, string option, auto value) [dom=PROCESS
     qore_set_module_option(mod_str->c_str(), opt_str->c_str(), value.refSelf());
 }
 
+//! resolve the string as a call reference
+/** @param identifier the string to resolve; function or static class method, can include namespace path
+
+    @return the call reference to the given function or static method; the string is resolved as follows:
+    - if in a class method, a non-static method lookup is made
+    - if not found, then a static method lookup is made
+    - if not found, then a function lookup is made
+    - if not found, an \c CALL-REFERENCE-ERROR exception is thrown
+
+    @throw CALL-REFERENCE-ERROR cannot resolve call reference; method not accessible in the calling context
+
+    @note
+    - use <object>::getCallReference() to get call references to non-public class methods; this builtin function
+      will always run without any class context, however pseudo-methods run with the class context of the caller, which
+      enables it to access any accessible private method
+    - call references to non-static methods contain a weak reference to the object; the lifetime of the object is not
+      extended by the call reference
+
+    @see <object>::getCallReference()
+
+    @since %Qore 0.9.4
+ */
+code get_call_reference(string identifier) [flags=RET_VALUE_ONLY] {
+    return get_call_reference_intern(runtime_get_stack_object(), identifier, xsink);
+}
 //@}
