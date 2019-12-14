@@ -1167,9 +1167,6 @@ protected:
         return nullptr;
     }
 
-    DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethod(const NamedScope& name) const;
-    DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethodIntern(const NamedScope& name) const;
-
     DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation* loc, const NamedScope& name);
     DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
     DLLLOCAL QoreClass* parseFindScopedClassWithMethodInternError(const QoreProgramLocation* loc, const NamedScope& name, bool error);
@@ -1547,6 +1544,9 @@ public:
 
         return nsmap.findFirst(name.c_str());
     }
+
+    DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethod(const NamedScope& name) const;
+    DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethodIntern(const NamedScope& name) const;
 
     /*
     DLLLOCAL void deleteClearData(ExceptionSink* xsink) {

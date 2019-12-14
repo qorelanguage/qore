@@ -965,4 +965,6 @@ DLLLOCAL void qore_delete_module_options();
 
 DLLLOCAL const QoreTypeInfo* qore_get_type_from_string_intern(const char* str);
 
+DLLLOCAL QoreValue get_call_reference_intern(QoreObject* self, const QoreStringNode* identifier, ExceptionSink* xsink);
+
 #endif

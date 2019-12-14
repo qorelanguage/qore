@@ -333,3 +333,29 @@ string <object>::uniqueHash() [flags=CONSTANT] {
    qore_get_ptr_hash(*rv, obj);
    return rv;
 }
+
+//! resolve the string as a call reference
+/** @param identifier the string to resolve; function or static class method, can include namespace path
+
+    @return the call reference to the given function or static method; the string is resolved as follows:
+    - if in a class method, a non-static method lookup is made
+    - if not found, then a static method lookup is made
+    - if not found, then a function lookup is made
+    - if not found, an \c CALL-REFERENCE-ERROR exception is thrown
+
+    @throw CALL-REFERENCE-ERROR cannot resolve call reference; method not accessible in the calling context
+
+    @note
+    - Pseudo-methods run with the class context of the caller, which enables this method to access any accessible
+      private method; use this pseudo-method instead of @ref Qore::get_call_reference() "get_call_reference()" to get
+      call references to accessible private methods in a class context
+    - call references to non-static methods contain a weak reference to the object; the lifetime of the object is not
+      extended by the call reference
+
+    @see @ref Qore::get_call_reference()
+
+    @since %Qore 0.9.4
+ */
+code <object>::getCallReference(string identifier) [flags=RET_VALUE_ONLY] {
+    return get_call_reference_intern(obj, identifier, xsink);
+}

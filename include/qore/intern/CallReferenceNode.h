@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -265,26 +265,27 @@ public:
 // is known when the method reference node object is created
 class RunTimeResolvedMethodReferenceNode : public ResolvedCallReferenceNodeIntern {
 private:
-   QoreObject* obj;
-   const QoreMethod* method;
-   const qore_class_private* qc;
+    QoreObject* obj;
+    const QoreMethod* method;
+    const qore_class_private* qc;
 
-   DLLLOCAL virtual ~RunTimeResolvedMethodReferenceNode();
+    DLLLOCAL virtual ~RunTimeResolvedMethodReferenceNode();
 
 public:
-   DLLLOCAL RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj, const QoreMethod* n_method);
+    DLLLOCAL RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj,
+        const QoreMethod* n_method, const qore_class_private* ctx = runtime_get_class());
 
-   DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreProgram* getProgram() const;
+    DLLLOCAL virtual QoreProgram* getProgram() const;
 
-   DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-      return RunTimeResolvedMethodReferenceNode::is_equal_hard(v, xsink);
-   }
+    DLLLOCAL virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
+        return RunTimeResolvedMethodReferenceNode::is_equal_hard(v, xsink);
+    }
 
-   DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+    DLLLOCAL virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreFunction* getFunction();
+    DLLLOCAL virtual QoreFunction* getFunction();
 };
 
 #endif
