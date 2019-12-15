@@ -35,7 +35,7 @@
 
 #! Contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
-#! The DB data provider factory
+#! The Swagger data provider factory
 public class SwaggerDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         static Class cls = new Class("SwaggerDataProvider");
