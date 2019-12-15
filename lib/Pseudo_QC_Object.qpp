@@ -352,7 +352,9 @@ string <object>::uniqueHash() [flags=CONSTANT] {
     - call references to non-static methods contain a weak reference to the object; the lifetime of the object is not
       extended by the call reference
 
-    @see @ref Qore::get_call_reference()
+    @see
+    - @ref Qore::get_call_reference()
+    - @ref Qore::Program::getCallReference()
 
     @since %Qore 0.9.4
  */

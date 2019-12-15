@@ -2887,7 +2887,9 @@ nothing set_module_option(string module, string option, auto value) [dom=PROCESS
     - call references to non-static methods contain a weak reference to the object; the lifetime of the object is not
       extended by the call reference
 
-    @see <object>::getCallReference()
+    @see
+    - <object>::getCallReference()
+    - @ref Qore::Program::getCallReference()
 
     @since %Qore 0.9.4
  */

@@ -2314,3 +2314,32 @@ nothing Program::issueModuleCmd(string module, string cmd) {
 
     QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
 }
+
+//! resolve the string as a call reference in the given Program
+/** @param identifier the string to resolve; function or static class method, can include namespace path
+
+    @return the call reference to the given function or static method; the string is resolved as follows:
+    - if in a class method, a non-static method lookup is made
+    - if not found, then a static method lookup is made
+    - if not found, then a function lookup is made
+    - if not found, an \c CALL-REFERENCE-ERROR exception is thrown
+
+    @throw CALL-REFERENCE-ERROR cannot resolve call reference; method not accessible in the calling context
+
+    @note
+    - use <object>::getCallReference() to get call references to non-public class methods; this builtin function
+      will always run without any class context, however pseudo-methods run with the class context of the caller, which
+      enables it to access any accessible private method
+    - call references to non-static methods contain a weak reference to the object; the lifetime of the object is not
+      extended by the call reference
+
+    @see
+    - @ref Qore::get_call_reference()
+    - <object>::getCallReference()
+
+    @since %Qore 0.9.4
+ */
+code Program::getCallReference(string identifier) [flags=RET_VALUE_ONLY] {
+    QoreProgramContextHelper pch(p);
+    return get_call_reference_intern(runtime_get_stack_object(), identifier, xsink);
+}

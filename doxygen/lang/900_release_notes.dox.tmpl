@@ -5,7 +5,9 @@
     @section qore_094 Qore 0.9.4
 
     @par Release Summary
-    TDB
+    The main new feature in this release is the <a href="../../modules/DataProvider/html/index.html">DataProvider</a>
+    API, which provides a generic API for introspecting and manupilating data in various formats and over various
+    protocols.  %Qore 0.9.4 also contains mamny small usability and consistency fixes as well.
 
     @subsection qore_094_compatibility Fixes That Can Affect Backwards-Compatibility
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module: renamed
@@ -13,18 +15,18 @@
       collision with a REST method name
       (<a href="https://github.com/qorelanguage/qore/issues/3614">issue 3614</a>)
     - fixed broken @ref cast "cast<>" operator handling; in previous releases, @ref cast "cast<>" would accept and
-      return @ref nothing without raising an error.  To get the old behavior, use the @ref broken-cast "%broken-cast"
-      parse directive.
+      return @ref nothing without raising an error with type specifications that did not accept or return
+      @ref nothing.  To get the old behavior, use the @ref broken-cast "%broken-cast" parse directive.
 
     @subsection qore_094_new_features New Features in Qore
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module:
-      - adds @ref <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
+      - adds <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module:
       - supports arbitrary data inputs and outputs with introspection and strong type support
     - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module:
       - adds a data provider API for databases
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module:
-      - adds @ref <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
+      - adds  <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
     - <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module:
       - added this new module to support polling files from a remote directory with the FTP protocol
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module:
@@ -50,6 +52,8 @@
       - @ref Qore::vwsprintf()
       - @ref Qore::wprintf()
       - @ref Qore::wsprintf()
+    - new methods:
+      - @ref Qore::Program::getCallReference() "Program::getCallReference()"
     - updated methods:
       - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()": added the \c reexport argument
       - @ref Qore::Program::loadApplyToUserModuleWarn() "Program::loadApplyToUserModuleWarn()": added the \c reexport argument
