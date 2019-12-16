@@ -369,15 +369,16 @@ public class AbstractDataProvider {
         return doRequestImpl(validateRequestOptions(request_options));
     }
 
-    #! Returns the description of a sucessful response message, if any
-    /**
-        @return the response type to the request for successful responses
+    #! Returns the description of a response message, if this object represents a response message
+    /** If the object is a request message, then any successful response message should be returned here as well
+
+        @return the response type for this response message
 
         @throw INVALID-OPERATION the data provider does not support the request API
     */
-    *hash<string, AbstractDataField> getSuccessResponseType() {
+    *AbstractDataProviderType getResponseType() {
         checkRequest();
-        return getSuccessResponseTypeImpl();
+        return getResponseTypeImpl();
     }
 
     #! Returns a list of child data provider names, if any
@@ -904,12 +905,15 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Returns the description of a sucessful response message, if any
-    /**
-        @return the response type to the request for successful responses
+    #! Returns the description of a response message, if this object represents a response message
+    /** If the object is a request message, then any successful response message should be returned here as well
+
+        @return the response type for this response message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
     */
-    private *hash<string, AbstractDataField> getSuccessResponseTypeImpl() {
-        throwUnimplementedException();
+    private *AbstractDataProviderType getResponseTypeImpl() {
+        # this method intentionally left blank
     }
 
     #! Throws an \c INVALID-OPERATION exception

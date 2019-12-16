@@ -70,7 +70,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "name": getName(),
             "supports_read": True,
             "supports_request": True,
-            "has_record": True,
+            "has_record": exists getRecordType(),
         });
         rv += getStaticInfoImpl();
         return rv;
@@ -94,15 +94,15 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     }
 
     #! Returns the description of a sucessful response message, if any
-    private *hash<string, AbstractDataField> getSuccessResponseTypeImpl() {
+    private *AbstractDataProviderType getResponseTypeImpl() {
         *ResponseObject response = getSuccessResponse();
         if (response) {
-            hash<string, AbstractDataField> rv;
+            HashDataType rv(getName() + ": success response");
             if (response.schema) {
-                rv.body = getFieldFromSchema("body", "REST response body argument", response.schema);
+                rv.addField(getFieldFromSchema("body", "REST response body argument", response.schema));
             }
             if (response.headers) {
-                rv.headers = getFieldForHeaders("headers", response.headers);
+                rv.addField(getFieldForHeaders("headers", response.headers));
             }
             return rv;
         }

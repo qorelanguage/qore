@@ -217,7 +217,7 @@ class QdpCmd {
     }
 
     static response(AbstractDataProvider provider) {
-        QdpCmd::showRecord(provider.getSuccessResponseType());
+        QdpCmd::showType(provider.getResponseType());
     }
 
     static showOptionHash(*hash<auto> req, string offset = "") {
@@ -233,6 +233,15 @@ class QdpCmd {
                     QdpCmd::showRecord(fields, offset + "  ");
                 }
             }
+        }
+    }
+
+    static showType(*AbstractDataProviderType type) {
+        *hash<string, AbstractDataField> fields = type.getFields();
+        if (fields) {
+            QdpCmd::showRecord(fields);
+        } else {
+            printf("%s\n", type.getName());
         }
     }
 
