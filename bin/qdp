@@ -58,6 +58,7 @@ class QdpCmd {
             "upsert": \QdpCmd::upsert(),
             "delete": \QdpCmd::del(),
             "request": \QdpCmd::request(),
+            "response": \QdpCmd::response(),
             "dorequest": \QdpCmd::doRequest(),
         };
     }
@@ -212,10 +213,14 @@ class QdpCmd {
     }
 
     static request(AbstractDataProvider provider) {
-        QdpCmd::showRequest(provider.getRequestOptions());
+        QdpCmd::showOptionHash(provider.getRequestOptions());
     }
 
-    static showRequest(*hash<auto> req, string offset = "") {
+    static response(AbstractDataProvider provider) {
+        QdpCmd::showType(provider.getResponseType());
+    }
+
+    static showOptionHash(*hash<auto> req, string offset = "") {
         foreach hash<auto> i in (req.pairIterator()) {
             foreach AbstractDataProviderType type in (i.value.type) {
                 if (i.value.type.lsize() > 1) {
@@ -228,6 +233,15 @@ class QdpCmd {
                     QdpCmd::showRecord(fields, offset + "  ");
                 }
             }
+        }
+    }
+
+    static showType(*AbstractDataProviderType type) {
+        *hash<string, AbstractDataField> fields = type.getFields();
+        if (fields) {
+            QdpCmd::showRecord(fields);
+        } else {
+            printf("%s\n", type.getName());
         }
     }
 
@@ -320,7 +334,7 @@ class QdpCmd {
 
     static usage() {
         printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
-  <cmd> = info|list|record|search|update
+  <cmd> = info|list|record|search|update (default=list)
     create <new record> (ex create id=123,name=\"my name\")
         create a new record
     delete <match criteria>
@@ -335,6 +349,8 @@ class QdpCmd {
         show the record format (more -v's = more info)
     request
         show request information (if supported)
+    response
+        show successful response information (if supported)
     search [search criteria] (ex: search name=\"my name\")
         search for record(s) matching the given criteria
     update <set criteria> <match criteria> (ex update name=other id=123)

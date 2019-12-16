@@ -49,9 +49,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
         #! The operation object
         OperationObject op;
-
-        #! The key name for responses not in hash format
-        const ResponseSearchKey = "_response";
     }
 
     #! Creates the object from the arguments
@@ -73,7 +70,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "name": getName(),
             "supports_read": True,
             "supports_request": True,
-            "has_record": True,
+            "has_record": exists getRecordType(),
         });
         rv += getStaticInfoImpl();
         return rv;
@@ -83,24 +80,40 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     /** Returns the record type description for any successful response
     */
     *hash<string, AbstractDataField> getRecordType() {
+        *ResponseObject response = getSuccessResponse();
+        if (response) {
+            AbstractDataField response_field = getFieldFromSchema("body", "REST response body argument",
+                response.schema);
+            AbstractDataProviderType type = response_field.getType();
+            *hash<string, AbstractDataField> rv = type.getFields();
+            # if we have a list of hashes, then return the list element type
+            if (type.getBaseTypeCode() == NT_LIST && (rv = type.getElementType().getFields())) {
+                return rv;
+            }
+        }
+    }
+
+    #! Returns the description of a sucessful response message, if any
+    private *AbstractDataProviderType getResponseTypeImpl() {
+        *ResponseObject response = getSuccessResponse();
+        if (response) {
+            HashDataType rv(getName() + ": success response");
+            if (response.schema) {
+                rv.addField(getFieldFromSchema("body", "REST response body argument", response.schema));
+            }
+            if (response.headers) {
+                rv.addField(getFieldForHeaders("headers", response.headers));
+            }
+            return rv;
+        }
+    }
+
+    #! Returns the schema for the first successful response message found
+    private *ResponseObject getSuccessResponse() {
         # check for any successful response data structure
         foreach hash<auto> i in (op.responses.responses.pairIterator()) {
-            if (i.key =~ /^2/) {
-                if (i.value.schema) {
-                    AbstractDataField response_field = getFieldFromSchema("body", "REST response body argument",
-                        i.value.schema);
-                    AbstractDataProviderType type = response_field.getType();
-                    *hash<string, AbstractDataField> rv = type.getFields();
-                    if (rv) {
-                        return rv;
-                    }
-                    # if we have a list of hashes, then return the list element type
-                    if (type.getBaseTypeCode() == NT_LIST && (rv = type.getElementType().getFields())) {
-                        return rv;
-                    }
-                    return {ResponseSearchKey: response_field};
-                }
-                break;
+            if (i.key =~ /^2/ && i.value) {
+                return i.value;
             }
         }
     }
@@ -122,6 +135,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         @param search_options the search options after processing by validateSearchOptions()
 
         This will execute the request and perform a default search on any record(s) returned
+
+        @throw SWAGGER-SEARCH-ERROR the response type it not list or hash and does not support searching
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         hash<auto> resp = doRequestIntern(search_options);
@@ -135,7 +150,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                 i = new ListIterator(resp.body);
                 break;
             default:
-                i = new SingleValueIterator({ResponseSearchKey: resp.body});
+                throw "SWAGGER-SEARCH-ERROR", sprintf("the response has type %y, which does not support searching",
+                    resp.body.type());
                 break;
         }
         return new DefaultRecordIterator(i, where_cond);

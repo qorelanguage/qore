@@ -356,7 +356,7 @@ public class AbstractDataProvider {
         return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
-    #! Makes a request and returned the response
+    #! Makes a request and returns the response
     /**
         @param request_options the request options; will be processed by validateRequestOptions()
 
@@ -367,6 +367,18 @@ public class AbstractDataProvider {
     auto doRequest(*hash<auto> request_options) {
         checkRequest();
         return doRequestImpl(validateRequestOptions(request_options));
+    }
+
+    #! Returns the description of a response message, if this object represents a response message
+    /** If the object is a request message, then any successful response message should be returned here as well
+
+        @return the response type for this response message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    *AbstractDataProviderType getResponseType() {
+        checkRequest();
+        return getResponseTypeImpl();
     }
 
     #! Returns a list of child data provider names, if any
@@ -883,16 +895,25 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Makes a request and returned the response
+    #! Makes a request and returns the response
     /**
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
-
-        @throw INVALID-OPERATION the data provider does not support the request API
     */
     private auto doRequestImpl(*hash<auto> request_options) {
         throwUnimplementedException();
+    }
+
+    #! Returns the description of a response message, if this object represents a response message
+    /** If the object is a request message, then any successful response message should be returned here as well
+
+        @return the response type for this response message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    private *AbstractDataProviderType getResponseTypeImpl() {
+        # this method intentionally left blank
     }
 
     #! Throws an \c INVALID-OPERATION exception

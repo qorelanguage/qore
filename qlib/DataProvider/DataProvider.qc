@@ -49,10 +49,13 @@ public class DataProvider {
             "csvwrite": "CsvUtil",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
+            # provided by the xml module
+            "soap": "SoapDataProvider",
         };
 
         #! List of data provider factory modules
         const FactoryModuleList = keys (map {$1: True}, FactoryMap.iterator());
+        # "map" is used above to ensure that the values only appear once in the final list
     }
 
     private {
