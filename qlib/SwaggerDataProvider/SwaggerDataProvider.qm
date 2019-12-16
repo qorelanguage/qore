@@ -67,7 +67,7 @@ module SwaggerDataProvider {
         @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider" object where a request can be sent
         to the server
     - responses: <tt><i>uri_path</i>/<i>HTTP_method</i>/response/<i>code</i></tt>
-      - ex: <tt><b>/pet/PUT/reply/404</b></tt>
+      - ex: <tt><b>/pet/PUT/response/404</b></tt>
       - results in a
         @ref SwaggerDataProvider::SwaggerRestResponseDataProvider "SwaggerRestResponseDataProvider" object where the response
         definition can be introspected
