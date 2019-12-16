@@ -356,7 +356,7 @@ public class AbstractDataProvider {
         return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
     }
 
-    #! Makes a request and returned the response
+    #! Makes a request and returns the response
     /**
         @param request_options the request options; will be processed by validateRequestOptions()
 
@@ -367,6 +367,17 @@ public class AbstractDataProvider {
     auto doRequest(*hash<auto> request_options) {
         checkRequest();
         return doRequestImpl(validateRequestOptions(request_options));
+    }
+
+    #! Returns the description of a sucessful response message, if any
+    /**
+        @return the response type to the request for successful responses
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    *hash<string, AbstractDataField> getSuccessResponseType() {
+        checkRequest();
+        return getSuccessResponseTypeImpl();
     }
 
     #! Returns a list of child data provider names, if any
@@ -883,15 +894,21 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Makes a request and returned the response
+    #! Makes a request and returns the response
     /**
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
-
-        @throw INVALID-OPERATION the data provider does not support the request API
     */
     private auto doRequestImpl(*hash<auto> request_options) {
+        throwUnimplementedException();
+    }
+
+    #! Returns the description of a sucessful response message, if any
+    /**
+        @return the response type to the request for successful responses
+    */
+    private *hash<string, AbstractDataField> getSuccessResponseTypeImpl() {
         throwUnimplementedException();
     }
 
