@@ -61,9 +61,11 @@ qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStrea
 
 //! Creates the BinaryInputStream based on the \ref binary given
 /**
-    @param src the \ref binary to read bytes from
+    @param src the \ref binary or string to read bytes from
+
+    @since %Qore 0.9.4 this constructor also accepts strings
  */
-BinaryInputStream::constructor(binary src) {
+BinaryInputStream::constructor(data src) {
    SimpleRefHolder<BinaryInputStream> bis(new BinaryInputStream(src));
    self->setPrivate(CID_BINARYINPUTSTREAM, bis.release());
 }

@@ -369,27 +369,35 @@ ENDMACRO (QORE_USER_MODULE)
 MACRO (QORE_USER_MODULES _inputs)
     # first - handle qlib documentation
     find_package(Doxygen)
-    if (xDOXYGEN_FOUND)
-        foreach(i ${_inputs})
-            get_filename_component(f ${i} NAME_WE)
-            message(STATUS "Doxyfile for ${f}")
-            set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
-            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
-            file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/)
-            add_custom_target(docs-${f}
-                ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}
+    foreach(f ${_inputs})
+        unset(_mod_targets)
+        if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${f})
+            file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
+            set(qm_install_subdir "${f}") # install files into a subdir
+            message(STATUS "_mod_targets ${_mod_targets}")
+        else()
+            set(_mod_targets ${f})
+            set(qm_install_subdir "") # common qm file
+        endif()
+
+        if (xDOXYGEN_FOUND)
+            get_filename_component(file ${f} NAME_WE)
+            message(STATUS "Doxyfile for ${file}")
+            set(QORE_QMOD_FNAME ${file}) # used for configure_file line below
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${file} @ONLY)
+            file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${file}/${qm_install_subdir}/)
+            add_custom_target(docs-${file}
+                ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${file}
                 COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/*.html
                 COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html/search/*.html
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-                COMMENT "Generating API documentation with Doxygen for: ${f}" VERBATIM
+                COMMENT "Generating API documentation with Doxygen for: ${file}" VERBATIM
             )
-            add_dependencies(docs docs-${f})
-        endforeach(i)
-    else (xDOXYGEN_FOUND)
-        message(WARNING "Doxygen support for user modules is still TODO")
-    endif (xDOXYGEN_FOUND)
-    # install qm files
-    install(FILES ${_inputs} DESTINATION ${QORE_USER_MODULES_DIR})
+            add_dependencies(docs docs-${file})
+        endif (xDOXYGEN_FOUND)
+        # install qm files
+        install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
+    endforeach(f)
 ENDMACRO (QORE_USER_MODULES)
 
 
