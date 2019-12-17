@@ -35,6 +35,14 @@ public class BinaryInputStreamTest inherits QUnit::Test {
         assertEq(<03>, bis.read(2));
         assertEq(NOTHING, bis.read(2));
         assertEq(NOTHING, bis.read(10));
+
+        bis = new BinaryInputStream("abc");
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(0); });
+        assertThrows("INPUT-STREAM-ERROR", sub() { bis.read(-2); });
+        assertEq(<6162>, bis.read(2));
+        assertEq(<63>, bis.read(2));
+        assertEq(NOTHING, bis.read(2));
+        assertEq(NOTHING, bis.read(10));
     }
 
     peekTest() {

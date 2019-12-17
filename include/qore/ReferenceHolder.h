@@ -114,7 +114,7 @@ public:
    return *xsink ? str.release() : 0;
    @endcode
 */
-template<typename T>
+template<typename T = class SimpleQoreNode>
 class SimpleRefHolder {
 private:
    DLLLOCAL SimpleRefHolder(const SimpleRefHolder&); // not implemented
