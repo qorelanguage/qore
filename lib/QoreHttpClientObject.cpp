@@ -1449,6 +1449,12 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     qore_uncompress_to_string_t dec = 0;
 
+    const char* conn = get_string_header(xsink, **ans, "connection", true);
+    if (*xsink) {
+        disconnect_unlocked();
+        return nullptr;
+    }
+
     // code >= 300 && < 400 is already handled above
     if (bodyp && (code < 100 || code >= 200) && code != 204) {
         // see if we should do a binary or string read
@@ -1492,8 +1498,16 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         }
         int len = cl ? atoi(cl) : 0;
         // do not try to get a body in any case if Content-Length: 0 is sent
-        if (cl && !len)
-            getbody = false;
+        if (cl) {
+            if (!len) {
+                getbody = false;
+            }
+        } else {
+            // issue #3691: ready the body if we have Connection: close and a content-type and a potential response
+            if (!te && !strcasecmp("close", conn) && strcmp(mname, "HEAD") && code != 204 && code != 304) {
+                len = -1;
+            }
+        }
 
         if (cl && cb_queue)
             do_content_length_event(cb_queue, msock->socket->getObjectIDForEvents(), len);
@@ -1509,8 +1523,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                     msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
                 else
                     msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
-            }
-            else {
+            } else {
                 if (content_encoding)
                     nah = msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT);
                 else
@@ -1568,7 +1581,6 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     if (!keep_alive) {
         disconnect_unlocked();
     } else {
-        const char* conn = get_string_header(xsink, **ans, "connection", true);
         if (*xsink) {
             disconnect_unlocked();
             return nullptr;

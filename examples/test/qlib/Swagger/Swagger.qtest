@@ -963,10 +963,10 @@ public class SwaggerTest inherits QUnit::Test {
         hash oh = SwaggerLoader::parseSchemaContent(filePath, ReadOnlyFile::readTextFile(filePath));
         OperationObject op = new OperationObject("/create", "post", oh.paths."/create".post, swagger);
         string body = "body";
-        hash headers = { "header" : "header" };
+        hash<auto> headers = {"header": "header"};
 
         assertThrows("SCHEMA-VALIDATION-ERROR",
-           'Parameter \"formData\" has invalid type \"string\" \(should be \"file\"\)',
+           'Parameter \"formData.upfile\".*expected type is \"file\"',
            sub() {op.validateRequest(False, new PathItemObject("/create", {}, swagger), \h, \body, \headers, \mime_types); });
     }
 

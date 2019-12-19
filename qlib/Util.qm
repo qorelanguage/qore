@@ -1608,7 +1608,7 @@ check_ip_address(str, True);
     */
     public data sub get_file_from_http(string url, *string path, *hash<UrlRetrievalOptions> options) {
         HTTPClient http({"url": url});
-        string body = http.get(path ? path : "/", options.http_headers);
+        string body = http.get(path ? path : "/", {"Accept": "*"} + options.http_headers);
         return options.as_binary ? binary(body) : body;
     }
 
