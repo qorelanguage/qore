@@ -32,7 +32,7 @@ public namespace ConnectionProvider {
     #! abstract base class for connections
     /** this class can be specialized to provide for user-defined connection types
      */
-    public class AbstractConnection {
+    public class AbstractConnection inherits Serializable {
         public {
             #! connection name
             string name;

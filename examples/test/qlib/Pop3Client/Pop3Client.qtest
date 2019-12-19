@@ -6,6 +6,9 @@
 %require-types
 %strict-args
 
+# purposely test deprecated functionality
+%disable-warning deprecated
+
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/Pop3Client.qm
 %requires ../../../../qlib/QUnit.qm
@@ -39,6 +42,10 @@ public class Pop3ClientTest inherits QUnit::Test {
         Pop3Connection conn("test", "test", url, False, NOTHING, parse_url(url));
         Pop3Client client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
+
+        # issue #3696: test connection serialization
+        Pop3Connection conn2 = Serializable::deserialize(conn.serialize());
+        assertEq(conn.url, conn2.url);
 
         conn = new Pop3Connection("test", "test", url, {"monitor": False});
         client = conn.get(False);
