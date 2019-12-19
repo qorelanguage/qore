@@ -76,10 +76,7 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider"
     - @ref SwaggerDataProvider::SwaggerDataProviderBase "SwaggerDataProviderBase"
     - @ref SwaggerDataProvider::SwaggerDataProviderFactory "SwaggerDataProviderFactory"
-    - @ref SwaggerDataProvider::SwaggerOperationDataProvider "SwaggerOperationDataProvider"
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
-    - @ref SwaggerDataProvider::SwaggerResponseDataProvider "SwaggerResponseDataProvider"
-    - @ref SwaggerDataProvider::SwaggerRestResponseDataProvider "SwaggerRestResponseDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
 

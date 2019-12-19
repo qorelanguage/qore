@@ -237,7 +237,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         *PathItemObject pio = schema.paths.tryMatch(uri_path);
         if (pio) {
             try {
-                return new SwaggerOperationDataProvider(schema, rest, uri_path, pio.getOperation(name.lwr(), uri_path));
+                return new SwaggerRequestDataProvider(schema, rest, uri_path, pio.getOperation(name.lwr(), uri_path));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "INVALID-METHOD") {
                     rethrow;

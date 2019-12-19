@@ -44,11 +44,17 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         #! The REST client object for API calls
         *RestClient rest;
 
-        #! current URI path
+        #! The current URI path
         string uri_path;
 
         #! The operation object
         OperationObject op;
+
+        #! The success response code, if any
+        string success_response;
+
+        #! If the request supports a list of hashes in the response and therefore the record API
+        *hash<string, AbstractDataField> record_type;
     }
 
     #! Creates the object from the arguments
@@ -57,6 +63,14 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         self.rest = rest;
         self.uri_path = uri_path;
         self.op = op;
+
+        # check for any successful response data structure
+        foreach hash<auto> i in (op.responses.responses.pairIterator()) {
+            if (i.key =~ /^2/ && i.value) {
+                success_response = i.key;
+                record_type = getRecordTypeIntern();
+            }
+        }
     }
 
     #! Returns the data provider name
@@ -68,9 +82,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     hash<DataProviderInfo> getInfo() {
         hash<DataProviderInfo> rv({
             "name": getName(),
-            "supports_read": True,
-            "supports_request": True,
-            "has_record": exists getRecordType(),
         });
         rv += getStaticInfoImpl();
         return rv;
@@ -80,6 +91,10 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     /** Returns the record type description for any successful response
     */
     *hash<string, AbstractDataField> getRecordType() {
+        return record_type;
+    }
+
+    private *hash<string, AbstractDataField> getRecordTypeIntern() {
         *ResponseObject response = getSuccessResponse();
         if (response) {
             AbstractDataField response_field = getFieldFromSchema("body", "REST response body argument",
@@ -93,53 +108,105 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         }
     }
 
-    #! Returns the description of a sucessful response message, if any
+    #! Returns the description of a successful request message, if any
+    private *AbstractDataProviderType getRequestTypeImpl() {
+        HashDataType rv(getName() + ": request");
+        if (op.parameters) {
+            addFieldsFromParameters(rv, op.parameters);
+        }
+        if (op.body) {
+            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema, op.body.required));
+        }
+        if (op.formData) {
+            HashDataType formData(getName() + ": request formData");
+            foreach hash<auto> i in (op.formData.pairIterator()) {
+                OtherParameter formData = cast<OtherParameter>(i.value);
+                rv.addField(new QoreDataField(i.key, "formData." + i.key, getType(i.value.type, i.value.items, i.value.required)));
+            }
+            rv.addField(new QoreDataField("formData", "REST request form data", formData));
+        }
+        return rv;
+    }
+
+    #! Returns the description of a successful response message, if any
     private *AbstractDataProviderType getResponseTypeImpl() {
         *ResponseObject response = getSuccessResponse();
         if (response) {
-            HashDataType rv(getName() + ": success response");
-            if (response.schema) {
-                rv.addField(getFieldFromSchema("body", "REST response body argument", response.schema));
-            }
-            if (response.headers) {
-                rv.addField(getFieldForHeaders("headers", response.headers));
-            }
-            return rv;
+            return getResponseTypeIntern(response, "success");
         }
+    }
+
+    #! Returns a hash of error responses, if any
+    private *hash<string, AbstractDataProviderType> getErrorResponseTypesImpl() {
+        *hash<string, AbstractDataProviderType> rv = map {$1.key: getResponseTypeIntern($1.value,
+            ($1.key =~ /^2/ ? "success" : "error") + sprintf(" (%s)", $1.key))},
+            op.responses.responses.pairIterator(), $1.key != success_response;
+        if (op.responses.defaultResp) {
+            rv."default" = getResponseTypeIntern(op.responses.defaultResp, "default");
+        }
+        return rv;
+    }
+
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    private AbstractDataProviderType getErrorResponseTypeImpl(string error_code) {
+        *ResponseObject resp = op.responses.responses{error_code};
+        if (!resp && error_code == "default" && op.responses.defaultResp) {
+            resp = op.responses.defaultResp;
+        }
+        if (!resp) {
+            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code,
+                keys op.responses.responses + (op.responses.defaultResp ? ("default",) : ()));
+        }
+        return getResponseTypeIntern(resp, error_code);
+    }
+
+    #! Returns a data provider type object for a Swagger response
+    private AbstractDataProviderType getResponseTypeIntern(ResponseObject response, string label) {
+        label += " response";
+        HashDataType rv();
+        if (response.schema) {
+            rv.addField(getFieldFromSchema("body", "REST " + label + " body argument", response.schema));
+        }
+        if (response.headers) {
+            rv.addField(getFieldForHeaders("headers", response.headers));
+        }
+        return rv;
     }
 
     #! Returns the schema for the first successful response message found
     private *ResponseObject getSuccessResponse() {
-        # check for any successful response data structure
-        foreach hash<auto> i in (op.responses.responses.pairIterator()) {
-            if (i.key =~ /^2/ && i.value) {
-                return i.value;
-            }
-        }
+        return success_response
+            ? op.responses.responses{success_response}
+            : op.responses.defaultResp;
     }
 
     #! Makes a request and returned the response
-    /**
+    /** @param req the request to serialize and make according to the request type
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
-
-        @throw INVALID-OPERATION the data provider does not support the request API
     */
-    private auto doRequestImpl(*hash<auto> request_options) {
-        return doRequestIntern(request_options);
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return doRequestIntern(req, request_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options after processing by validateSearchOptions()
 
         This will execute the request and perform a default search on any record(s) returned
 
-        @throw SWAGGER-SEARCH-ERROR the response type it not list or hash and does not support searching
+        @throw SWAGGER-SEARCH-ERROR the response type is not list or hash and does not support searching
     */
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        hash<auto> resp = doRequestIntern(search_options);
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
+        hash<auto> resp = doRequestIntern(req, search_options);
         # return an iterator for the result
         AbstractIterator i;
         switch (resp.body.typeCode()) {
@@ -158,18 +225,19 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     }
 
     #! Makes a REST request and returns the response
-    private hash<auto> doRequestIntern(*hash<auto> options) {
+    private hash<auto> doRequestIntern(auto req, *hash<auto> options) {
         RestClient rest = getRestClient();
         # make URI path with any query args
         string uri_path = self.uri_path;
-        if (options.query) {
+        if (req.query) {
             uri_path += "?" +
                 (foldl $1 + "&" + $1,
-                    (map sprintf("%s=%s", $1.key, $1.value), options.query.pairIterator()));
+                    (map sprintf("%s=%s", $1.key, $1.value), req.query.pairIterator()));
+            remove req.query;
         }
         # make the call
         hash<auto> info;
-        hash<auto> resp = rest.doRequest(op.method, uri_path, options.body, \info, NOTHING, options.header);
+        hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
         return resp + {"info": info};
     }
 
@@ -188,35 +256,17 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     private hash<DataProviderInfo> getStaticInfoImpl() {
         hash<DataProviderInfo> rv = SwaggerDataProvider::ProviderInfo - "constructor_options";
         rv += {
-            "supports_read": True,
+            "supports_read": exists record_type,
             "supports_request": True,
-            "has_record": True,
+            "has_record": exists record_type,
+            "request_options": {
+                "hdr": hash<DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(AutoHashType),
+                    "required": False,
+                    "desc": "headers to send in the request",
+                },
+            },
         };
-        rv.request_options = rv.search_options = getApiOptions();
-        return rv;
-    }
-
-    #! Returns API options for the current operation
-    private *hash<string, hash<DataProviderOptionInfo>> getApiOptions() {
-        *hash<string, hash<DataProviderOptionInfo>> rv;
-        if (op.parameters) {
-            rv = getOptionInfoFromParameters("parameters", op.parameters);
-        }
-        if (op.body) {
-            rv.body = <DataProviderOptionInfo>{
-                "type": getSchemaDataType(cast<BodyParameter>(op.body).schema),
-                "required": op.body.required,
-                "desc": "REST request body argument",
-            };
-        }
-        if (op.formData) {
-            OtherParameter formData = cast<OtherParameter>(op.formData);
-            rv.formData = <DataProviderOptionInfo>{
-                "type": getType(formData.type, formData.items),
-                "required": formData.required,
-                "desc": "REST request query arguments",
-            };
-        }
         return rv;
     }
 }

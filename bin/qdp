@@ -49,6 +49,7 @@ class QdpCmd {
 
         #! commands
         const Cmds = {
+            "errors": \QdpCmd::errors(),
             "info": \QdpCmd::getInfo(),
             "list": \QdpCmd::listChildren(),
             "record": \QdpCmd::getRecord(),
@@ -59,7 +60,9 @@ class QdpCmd {
             "delete": \QdpCmd::del(),
             "request": \QdpCmd::request(),
             "response": \QdpCmd::response(),
+            "reply": \QdpCmd::response(),
             "dorequest": \QdpCmd::doRequest(),
+            "rsearch": \QdpCmd::doRequestSearch(),
         };
     }
 
@@ -118,12 +121,36 @@ class QdpCmd {
         }
     }
 
+    static errors(AbstractDataProvider provider) {
+        *hash<string, AbstractDataProviderType> errs = provider.getErrorResponseTypes();
+        *string err = QdpCmd::getString("errors");
+        if (err) {
+            *AbstractDataProviderType type = errs{err};
+            if (!type) {
+                QdpCmd::error("unknown error code %y; known error codes: %y", err, keys errs);
+            }
+            QdpCmd::showType(type);
+            return;
+        }
+
+        if (!opts.verbose) {
+            printf("%y\n", keys errs);
+        } else {
+            map (printf("%s:\n", $1.key), QdpCmd::showType($1.value, "  ")), errs.pairIterator();
+        }
+    }
+
     static getInfo(AbstractDataProvider provider) {
         printf("%N\n", provider.getInfo());
     }
 
     static listChildren(AbstractDataProvider provider) {
-        printf("%y\n", provider.getChildProviderNames());
+        *list<string> children = provider.getChildProviderNames();
+        if (children) {
+            printf("%y\n", children);
+        } else {
+            printf(provider.getName() + " has no children\n");
+        }
     }
 
     static getRecord(AbstractDataProvider provider) {
@@ -203,8 +230,9 @@ class QdpCmd {
     }
 
     static doRequest(AbstractDataProvider provider) {
-        *hash<auto> options = QdpCmd::getHash("request");
-        hash<auto> resp = provider.doRequest(options);
+        *hash<auto> req = QdpCmd::getHash("request");
+        *hash<auto> options = QdpCmd::getHash("request-options");
+        hash<auto> resp = provider.doRequest(req, options);
         if (!opts.verbose && resp.info."response-uri" && resp.body) {
             printf("%s: %N\n", resp.info."response-uri", resp.body);
         } else {
@@ -212,8 +240,22 @@ class QdpCmd {
         }
     }
 
+    static doRequestSearch(AbstractDataProvider provider) {
+        hash<auto> req = QdpCmd::getHash("request", True);
+        hash<auto> where_cond = QdpCmd::getHash("request-search", True);
+        *hash<auto> options = QdpCmd::getHash("request-options");
+        AbstractDataProviderRecordIterator i = provider.requestSearchRecords(req, where_cond, options);
+        map printf("%y\n", $1), i;
+    }
+
     static request(AbstractDataProvider provider) {
-        QdpCmd::showOptionHash(provider.getRequestOptions());
+        QdpCmd::showType(provider.getRequestType());
+        if (opts.verbose) {
+            *hash<string, hash<DataProviderOptionInfo>> opts = provider.getRequestOptions();
+            if (opts) {
+                QdpCmd::showOptionHash(opts);
+            }
+        }
     }
 
     static response(AbstractDataProvider provider) {
@@ -236,12 +278,15 @@ class QdpCmd {
         }
     }
 
-    static showType(*AbstractDataProviderType type) {
+    static showType() {
+    }
+
+    static showType(AbstractDataProviderType type, *string offset) {
         *hash<string, AbstractDataField> fields = type.getFields();
         if (fields) {
-            QdpCmd::showRecord(fields);
+            QdpCmd::showRecord(fields, offset);
         } else {
-            printf("%s\n", type.getName());
+            printf("%s%s%s\n", offset, type.getName());
         }
     }
 
@@ -257,6 +302,16 @@ class QdpCmd {
             QdpCmd::error("missing required %s argument; expecting type \"hash\"", action);
         }
         return arg;
+    }
+
+    static *string getString(string action, *bool required) {
+        auto arg = shift ARGV;
+        if (exists arg) {
+            return arg;
+        }
+        if (required && !arg) {
+            QdpCmd::error("missing required %s argument; expecting type \"string\"", action);
+        }
     }
 
     private AbstractDataProvider getDataProvider(string name) {
@@ -334,13 +389,15 @@ class QdpCmd {
 
     static usage() {
         printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
-  <cmd> = info|list|record|search|update (default=list)
+  <cmd> = create|delete|dorequest|errors|info|list|record|request|response|reply|rsearch|search|update|upsert (default=list)
     create <new record> (ex create id=123,name=\"my name\")
         create a new record
     delete <match criteria>
         deletes record matching the given criteria
     dorequest <request info>
         executes a request against the given provider (if supported)
+    errors [<code>]
+        lists all error replies
     info
        show information about the data provider
     list
@@ -349,8 +406,10 @@ class QdpCmd {
         show the record format (more -v's = more info)
     request
         show request information (if supported)
-    response
+    response|reply
         show successful response information (if supported)
+    rsearch <req> <search> [<options>]
+        executes a request and then a search on the results (if supported)
     search [search criteria] (ex: search name=\"my name\")
         search for record(s) matching the given criteria
     update <set criteria> <match criteria> (ex update name=other id=123)

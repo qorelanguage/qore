@@ -43,63 +43,39 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     }
 
     #! Returns a field definition from Swagger parameters
-    private *hash<string, hash<DataProviderOptionInfo>> getOptionInfoFromParameters(string name, hash<string, AbstractParameterObject> parameters) {
-        hash<string, hash<DataProviderOptionInfo>> rv;
-        # temporary hash for types
-        hash<string, HashDataType> params;
+    private addFieldsFromParameters(HashDataType rv, hash<string, AbstractParameterObject> parameters) {
+        # temporary hash for fields: loc -> name -> field
+        hash<string, hash<string, AbstractDataField>> params;
+        # required flag map for type: loc -> bool
+        hash<string, bool> req_map;
         foreach hash<auto> i in (parameters.pairIterator()) {
             switch (i.value.inLoc) {
-                case "body": {
-                    rv.body = <DataProviderOptionInfo>{
-                        "type": getSchemaDataType(i.value.schema),
-                        "required": i.value.required,
-                        "desc": "REST request body argument",
-                    };
-                    #rv.body = getFieldFromSchema("body", "REST request body argument", i.value.schema, i.value.required);
-                    break;
-                }
-                case "formData":
+                # body and formData parameters are handled directly under the operation
                 case "query": {
-                    if (!rv{i.value.inLoc}) {
-                        params{i.value.inLoc} = new HashDataType();
-                        # create the query hash argument, by default "required" is set to False
-                        rv{i.value.inLoc} = <DataProviderOptionInfo>{
-                            "type": params{i.value.inLoc},
-                            "required": False,
-                            "desc": "REST request query arguments",
-                        };
-                        #rv{i.value.inLoc} = new QoreDataField("query", "REST request query arguments", params{i.value.inLoc});
-                    }
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, i.value.type, i.value.items, i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
-                    if (i.value.required && !rv{i.value.inLoc}.required) {
-                        rv{i.value.inLoc}.required = True;
+                    if (i.value.required && !req_map{i.value.inLoc}) {
+                        req_map{i.value.inLoc} = True;
                     }
-                    params{i.value.inLoc}.addField(getFieldFromParameter(i.value.name, i.value.type, i.value.items, i.value.desc, i.value.required));
                     break;
                 }
+
                 case "header": {
-                    if (!rv.header) {
-                        # create the header hash argument, by default "required" is set to False
-                        rv.header = <DataProviderOptionInfo>{
-                            "type": new HashDataType(),
-                            "required": False,
-                            "desc": "REST request query arguments",
-                        };
-                        #rv.header = new QoreDataField("query", "REST request query arguments", params.header);
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc, i.value.required);
+                    # if at least one query argument is required, then we set "required" to True for the hash
+                    if (i.value.required && !req_map{i.value.inLoc}) {
+                        req_map{i.value.inLoc} = True;
                     }
-                    # if at least one header is required, then we set "required" to True for the hash
-                    if (i.value.required && !rv.header.required) {
-                        rv.header.required = True;
-                    }
-                    rv.header.type[0].addField(getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc,
-                        i.value.required));
                     break;
                 }
-                # ignore path
             }
         }
 
-        return rv;
+        foreach hash<auto> i in (params.pairIterator()) {
+            HashDataType type(req_map{i.key} ? AutoHashType : AutoHashOrNothingType, "i.key");
+            map type.addField($1), i.value.iterator();
+            rv.addField(new QoreDataField(i.key, "Swagger " + i.key + " parameter", type));
+        }
     }
 
     #! Returns a field definition from the Swagger parameter

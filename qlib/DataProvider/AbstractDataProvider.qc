@@ -268,6 +268,7 @@ public class AbstractDataProvider {
         @throw INVALID-OPERATION the data provider does not support reading
     */
     AbstractDataProviderRecordIterator getRecordIterator(*hash<auto> search_options) {
+        checkRead();
         return searchRecords(NOTHING, validateSearchOptions(search_options));
     }
 
@@ -281,6 +282,7 @@ public class AbstractDataProvider {
         @throw INVALID-OPERATION the data provider does not support reading
     */
     AbstractDataProviderBulkRecordInterface getBulkRecordInterface(int block_size = 1000, *hash<auto> search_options) {
+        checkRead();
         return searchRecordsBulk(block_size, NOTHING, validateSearchOptions(search_options));
     }
 
@@ -295,6 +297,7 @@ public class AbstractDataProvider {
         @throw INVALID-OPERATION the data provider does not support reading
     */
     AbstractDataProviderBulkRecordInterface searchRecordsBulk(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
         if (block_size <= 0) {
             throw "INVALID-BLOCK-SIZE", sprintf("block_size %d is invalid; the block size mst be a positive number",
                 block_size);
@@ -309,7 +312,23 @@ public class AbstractDataProvider {
         @throw INVALID-OPERATION the data provider does not support reading
     */
     AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
         return searchRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+    }
+
+    #! Returns an iterator for zero or more records matching the search options according to an API request
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        This will execute the request and perform a default search on any record(s) returned
+
+        @throw INVALID-OPERATION the data provider does not support reading records or the request / response API
+    */
+    AbstractDataProviderRecordIterator requestSearchRecords(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
+        checkRead();
+        checkRequest();
+        return requestSearchRecordsImpl(req, where_cond, search_options);
     }
 
     #! Updates a single record matching the search options
@@ -357,28 +376,59 @@ public class AbstractDataProvider {
     }
 
     #! Makes a request and returns the response
-    /**
+    /** @param req the request to serialize and make according to the request type
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
 
         @throw INVALID-OPERATION the data provider does not support the request API
     */
-    auto doRequest(*hash<auto> request_options) {
+    auto doRequest(auto req, *hash<auto> request_options) {
         checkRequest();
-        return doRequestImpl(validateRequestOptions(request_options));
+        return doRequestImpl(req, validateRequestOptions(request_options));
+    }
+
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    *AbstractDataProviderType getRequestType() {
+        checkRequest();
+        return getRequestTypeImpl();
     }
 
     #! Returns the description of a response message, if this object represents a response message
-    /** If the object is a request message, then any successful response message should be returned here as well
-
-        @return the response type for this response message
+    /** @return the response type for this response message
 
         @throw INVALID-OPERATION the data provider does not support the request API
     */
     *AbstractDataProviderType getResponseType() {
         checkRequest();
         return getResponseTypeImpl();
+    }
+
+    #! Returns a hash of error responses, if any
+    /** @return a hash of error responses, if any, keyed by response code or string
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+    */
+    *hash<string, AbstractDataProviderType> getErrorResponseTypes() {
+        checkRequest();
+        return getErrorResponseTypesImpl();
+    }
+
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    AbstractDataProviderType getErrorResponseType(string error_code) {
+        checkRequest();
+        return getErrorResponseTypeImpl(error_code);
     }
 
     #! Returns a list of child data provider names, if any
@@ -483,7 +533,7 @@ public class AbstractDataProvider {
     */
     private checkRead() {
         if (!supportsRead()) {
-            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support reading",
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support reading records",
                 getName(), self.className());
         }
     }
@@ -839,8 +889,23 @@ public class AbstractDataProvider {
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
+
+        @see requestSearchRecordsImpl()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+
+    #! Returns an iterator for zero or more records matching the search options according to an API request
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        This will execute the request and perform a default search on any record(s) returned
+
+        @see searchRecordsImpl()
+    */
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
 
@@ -896,24 +961,58 @@ public class AbstractDataProvider {
     }
 
     #! Makes a request and returns the response
-    /**
+    /** @param req the request to serialize and make according to the request type
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
     */
-    private auto doRequestImpl(*hash<auto> request_options) {
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        throwUnimplementedException();
+    }
+
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
+
+        @note only called if the provider supports the request / response API
+    */
+    private *AbstractDataProviderType getRequestTypeImpl() {
         throwUnimplementedException();
     }
 
     #! Returns the description of a response message, if this object represents a response message
-    /** If the object is a request message, then any successful response message should be returned here as well
+    /** @return the response type for this response message
 
-        @return the response type for this response message
-
-        @throw INVALID-OPERATION the data provider does not support the request API
+        @note only called if the provider supports the request / response API
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        # this method intentionally left blank
+        throwUnimplementedException();
+    }
+
+    #! Returns a hash of error responses, if any
+    /** @return a hash of error responses, if any, keyed by response code or string
+
+        @note only called if the provider supports the request / response API
+    */
+    private *hash<string, AbstractDataProviderType> getErrorResponseTypesImpl() {
+        throwUnimplementedException();
+    }
+
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    private AbstractDataProviderType getErrorResponseTypeImpl(string error_code) {
+        # note: this should be reimplemented with a more efficient implementation if creating the error type hash on
+        # demand is expensive
+        *hash<string, AbstractDataProviderType> err_map = getErrorResponseTypesImpl();
+        *AbstractDataProviderType type = err_map{error_code};
+        if (!type) {
+            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code, keys err_map);
+        }
+        return type;
     }
 
     #! Throws an \c INVALID-OPERATION exception

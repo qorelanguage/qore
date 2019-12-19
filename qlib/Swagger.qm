@@ -236,6 +236,14 @@ public const MimeDataTypes = {
         "module": "yaml",
     ),
 %endif
+%ifndef NoXml
+    MimeTypeXmlApp: (
+        "serialize": \make_xml(),
+        "serialize_verbose": string sub (auto val) {return make_xml(val, XGF_ADD_FORMATTING);},
+        "deserialize": \parse_xml(),
+        "module": "xml",
+    ),
+%endif
     # Content-Type: application/x-www-form-urlencoded
     MimeTypeFormUrlEncoded: (
         "serialize": \mime_get_form_urlencoded_string(),
@@ -948,6 +956,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         string hash_str;
     }
 
+    private:internal {
+        #! the raw parsed definitions; used for resolving out-of-order references
+        *hash<auto> source_definition_hash;
+    }
+
     #! Builds the schema representation from the deserialized schema hash describing the root document object
     /**
         @param oh deserialized hash from the source schema description describing the root document object
@@ -988,17 +1001,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
         {
-            hash<auto> obj;
-            optional_field(objType, oh, "definitions", NT_HASH, \obj);
-            foreach hash item in (obj.pairIterator()) {
-                if (item.value.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + item.value.type();
-                definitions{item.key} = SchemaObject::newSchemaObject(item.key, item.value, self);
-            }
+            optional_field(objType, oh, "definitions", NT_HASH, \source_definition_hash);
+            map processDefinition($1.key, $1.value), source_definition_hash.pairIterator();
+            # all definitions must be resolved now; delete the intermediate definition hash
+            delete source_definition_hash;
 
-            delete obj;
+            hash<auto> obj;
             optional_field(objType, oh, "parameters", NT_HASH, \obj);
-            foreach hash item in (obj.pairIterator()) {
+            foreach hash<auto> item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
                 parameters{item.key} = AbstractParameterObject::newParameter(item.key, item.value, self);
@@ -1006,7 +1016,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
             delete obj;
             optional_field(objType, oh, "responses", NT_HASH, \obj);
-            foreach hash item in (obj.pairIterator()) {
+            foreach hash<auto> item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid response datatype: " + item.value.type();
                 responses{item.key} = ResponseObject::newResponse(item.key, item.value, self);
@@ -1089,11 +1099,25 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
         string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
         *SchemaObject ref = definitions{rstr};
-        if (!ref)
-            throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
-        int size = foldl $1 + $2, (map 1, keys oh, $1 !~ /^x-/);
-        if (size > 1)
-            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", (map $1, keys oh, $1 !~ /^x-/));
+        if (!ref) {
+            if (*hash<auto> def = source_definition_hash{rstr}) {
+                ref = processDefinition(rstr, def);
+            } else {
+                throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+            }
+        }
+        # get all non "x-" attributes
+        *hash<auto> attr = map {$1.key: $1.value}, oh.pairIterator(), $1.key !~ /^x-/ && $1.key != "$ref";
+        *hash<auto> xmlObj;
+        # process additional attributes
+        if (optional_field("Swagger", attr, "xml", NT_HASH, \xmlObj)) {
+            attr -= "xml";
+            ref = ref.copy();
+            ref.xml = new XmlObject(xmlObj);
+        }
+        if (attr) {
+            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", keys attr);
+        }
         return ref;
     }
 
@@ -1762,6 +1786,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         resp.hdr."Content-Type" = "text/plain";
         return True;
     }
+
+    #! Processes a schema definition
+    private:internal SchemaObject processDefinition(string key, auto value) {
+        if (value.typeCode() != NT_HASH)
+            throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + value.type();
+        return definitions{key} = SchemaObject::newSchemaObject(key, value, self);
+    }
 }
 
 #! The object provides metadata about the API. The metadata can be used by the clients if needed, and can be presented in the %Swagger-UI for convenience.
@@ -2217,7 +2248,7 @@ public class OperationObject inherits ObjectBase {
         AbstractParameterObject body;
 
         #! formData parameter; if defined for this operation, body parameter will be excluded
-        AbstractParameterObject formData;
+        hash<string, AbstractParameterObject> formData;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
@@ -2300,7 +2331,7 @@ public class OperationObject inherits ObjectBase {
                 if (param.inLoc == "body")
                     body = param;
                 else if (param.inLoc == "formData")
-                    formData = param;
+                    formData{param.name} = param;
                 else
                     parameters{param.name} = param;
             }
@@ -2388,12 +2419,13 @@ public class OperationObject inherits ObjectBase {
         # check body parameters
         {
             *AbstractParameterObject body_po = self.body ?? pio.body;
-            *AbstractParameterObject formData_po = formData;
             if (body_po)
                 body_po.check(serialize, True, path, method, "body", \body);
-            else if (formData_po)
-                formData_po.check(serialize, True, path, method, "formData", \body);
-            else if (body)
+            else if (formData) {
+                foreach hash<auto> i in (formData.pairIterator()) {
+                    i.value.check(serialize, True, path, method, "formData." + i.key, \body{i.key});
+                }
+            } else if (body)
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
         }
 
@@ -2439,9 +2471,9 @@ public class OperationObject inherits ObjectBase {
     #! validates a response against the response definition, if any
     validateResponse(string method, string path, PathItemObject pio, int code, reference<auto> response_body, reference<hash<string, bool>> mime_types) {
         *ResponseObject res = getResponse(code);
-        if (res.schema)
+        if (res.schema) {
             res.schema.check(True, False, path, method, "response body", \response_body);
-        else if (response_body != NOTHING)
+        } else if (response_body != NOTHING)
             error("SCHEMA-VALIDATION-ERROR", "Response to this path and method should not have any body");
 
         if (produces)
@@ -2477,14 +2509,14 @@ public class OperationObject inherits ObjectBase {
         if (body_po)
             rv.example += body_po.getQoreExample(\rv);
 
-        rv.example += "hash info;\n";
+        rv.example += "hash<auto> info;\n";
         if (headers) {
-            rv.example += "hash hdr = (\n";
+            rv.example += "hash<auto> hdr = (\n";
             rv.example += foldl $1 + "\n" + $2, (map sprintf("    %y: %y,", $1.key, $1.value), headers.pairIterator());
             rv.example += "\n);\n";
         }
 
-        rv.example += sprintf("hash res = rest.%s", method.lwr());
+        rv.example += sprintf("hash<auto> res = rest.%s", method.lwr());
         rv.example += sprintf("(%y, ", path);
         # body
         rv.example += body_po ? "rest_body, " : "NOTHING, ";
@@ -2566,7 +2598,7 @@ public class OperationObject inherits ObjectBase {
     private getQoreExampleParams(reference<hash> query, reference<hash> headers, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
         foreach hash ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
-            if (child_params{ph.key} || ph.value.inLoc == "body")
+            if (child_params{ph.key} || ph.value.inLoc == "body" || ph.value.inLoc == "formData")
                 continue;
             switch (ph.value.inLoc) {
                 case "query":
@@ -2575,12 +2607,6 @@ public class OperationObject inherits ObjectBase {
                 case "header":
                     headers{ph.key} = ph.value.getExampleValue();
                     break;
-                /*
-                case "formData":
-                    if (!exists body{ph.key})
-                        body{ph.key} = val;
-                    break;
-                */
             }
         }
     }
@@ -3207,8 +3233,7 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
                     throw "INVALID-FIELD-VALUE",
                         sprintf("Header Object: invalid collectionFormat value %y; expected one of: %y", collectionFormat, keys CollectionFormats);
             }
-        }
-        else if (oh.collectionFormat)
+        } else if (oh.collectionFormat)
             throw "INVALID-FIELD-TYPE", sprintf("Header Object: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", type, oh.collectionFormat);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
@@ -3674,7 +3699,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static SchemaObject newSchemaObject(string name, hash oh, SwaggerSchema swagger) {
+    static SchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger) {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
