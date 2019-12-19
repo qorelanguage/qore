@@ -172,8 +172,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
-
-        @throw INVALID-OPERATION the data provider does not support the request API
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         return doRequestIntern(req, request_options);

@@ -145,7 +145,12 @@ class QdpCmd {
     }
 
     static listChildren(AbstractDataProvider provider) {
-        printf("%y\n", provider.getChildProviderNames() ?? "<n/a>");
+        *list<string> children = provider.getChildProviderNames();
+        if (children) {
+            printf("%y\n", children);
+        } else {
+            printf(provider.getName() + " has no children\n");
+        }
     }
 
     static getRecord(AbstractDataProvider provider) {
