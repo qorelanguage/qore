@@ -418,6 +418,19 @@ public class AbstractDataProvider {
         return getErrorResponseTypesImpl();
     }
 
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    AbstractDataProviderType getErrorResponseType(string error_code) {
+        checkRequest();
+        return getErrorResponseTypeImpl(error_code);
+    }
+
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
@@ -982,6 +995,24 @@ public class AbstractDataProvider {
     */
     private *hash<string, AbstractDataProviderType> getErrorResponseTypesImpl() {
         throwUnimplementedException();
+    }
+
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    private AbstractDataProviderType getErrorResponseTypeImpl(string error_code) {
+        # note: this should be reimplemented with a more efficient implementation if creating the error type hash on
+        # demand is expensive
+        *hash<string, AbstractDataProviderType> err_map = getErrorResponseTypesImpl();
+        *AbstractDataProviderType type = err_map{error_code};
+        if (!type) {
+            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code, keys err_map);
+        }
+        return type;
     }
 
     #! Throws an \c INVALID-OPERATION exception

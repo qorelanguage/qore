@@ -1504,7 +1504,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
         } else {
             // issue #3691: ready the body if we have Connection: close and a content-type and a potential response
-            if (!te && !strcasecmp("close", conn) && strcmp(mname, "HEAD") && code != 204 && code != 304) {
+            if (!te && conn && !strcasecmp("close", conn) && strcmp(mname, "HEAD") && code != 204 && code != 304) {
                 len = -1;
             }
         }

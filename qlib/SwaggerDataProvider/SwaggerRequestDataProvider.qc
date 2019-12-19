@@ -147,6 +147,25 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         return rv;
     }
 
+    #! Returns the type for the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return the type for the given error code
+
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+    */
+    private AbstractDataProviderType getErrorResponseTypeImpl(string error_code) {
+        *ResponseObject resp = op.responses.responses{error_code};
+        if (!resp && error_code == "default" && op.responses.defaultResp) {
+            resp = op.responses.defaultResp;
+        }
+        if (!resp) {
+            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code,
+                keys op.responses.responses + (op.responses.defaultResp ? ("default",) : ()));
+        }
+        return getResponseTypeIntern(resp, error_code);
+    }
+
     #! Returns a data provider type object for a Swagger response
     private AbstractDataProviderType getResponseTypeIntern(ResponseObject response, string label) {
         label += " response";
