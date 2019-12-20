@@ -372,9 +372,19 @@ MACRO (QORE_USER_MODULES _inputs)
     foreach(f ${_inputs})
         unset(_mod_targets)
         if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${f})
-            file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
-            set(qm_install_subdir "${f}") # install files into a subdir
-            message(STATUS "_mod_targets ${_mod_targets}")
+            if (${f} MATCHES "^qlib/")
+                string(LENGTH "${f}" f_len)
+                MATH(EXPR f_len "${f_len}-5")
+                string(SUBSTRING ${f} 5 ${f_len} new_f)
+
+                file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
+                set(qm_install_subdir "${new_f}") # install files into a subdir
+                message(STATUS "_mod_targets ${_mod_targets}")
+            else()
+                file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
+                set(qm_install_subdir "${f}") # install files into a subdir
+                message(STATUS "_mod_targets ${_mod_targets}")
+            endif()
         else()
             set(_mod_targets ${f})
             set(qm_install_subdir "") # common qm file
