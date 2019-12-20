@@ -179,7 +179,14 @@ list: (2 elements)
       with the \a input option.  If an \c "output_provider" is also provided, the
       @ref Mapper::Mapper::runAutonomous() "Mapper::runAutonomous()" method can be used to map from input to output
       in a single call
-    - \c "input_provider_search": the search options for the input provider; see the \a where_cond option of
+    - \c "input_provider_search": the search criteria for the input provider; see the \a where_cond option of
+      @ref DataProvider::AbstractDataProvider::searchRecords() "AbstractDataProvider::searchRecords()" for more
+      information on this option
+    - \c "input_request": the arguments for input providers using the request/response API
+    - \c "input_request_options": any options to input providers using the request/response API
+    - \c "input_response_error": a string indicating the input providers using the request/response API should use
+      the given error response message for the record format
+    - \c "input_search_options": the search options for the input provider; see the \a search_options option of
       @ref DataProvider::AbstractDataProvider::searchRecords() "AbstractDataProvider::searchRecords()" for more
       information on this option
     - \c "name": the name of the mapper for use in logging and error strings
@@ -370,7 +377,6 @@ public class Mapper {
             "input": "the input record description (mutually exclusive with input_provider)",
             "input_log": "a call reference / closure for input record logging",
             "input_provider": "the input provider (mutually exclusive with input)",
-            "input_provider_search": "the input provider search options",
             "input_timezone": "DEPRECATED: the default timezone to assume when parsing input dates",
             "name": "the name of the Mapper object",
             "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: "
@@ -391,16 +397,45 @@ public class Mapper {
                 "desc": "a hash of global type options to be used by applicable fields if they do not override the "
                     "option",
             },
+
+            "input_provider_search": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "the input provider search criteria",
+            },
+
+            "input_request": <MapperOptionInfo>{
+                "type": "any",
+                "desc": "the arguments for input providers using the request/response API",
+            },
+
+            "input_request_options": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "any options to input providers using the request/response API",
+            },
+
+            "input_response_error": <MapperOptionInfo>{
+                "type": "string",
+                "desc": "a string indicating the input providers using the request/response API should "
+                "use the given error response message for the record format",
+            },
+
+            "input_search_options": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "the input provider search options",
+            },
+
             "output_provider_bulk": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to enable bulk operations with an output provider; this option only has an "
                     "affect when sued with an output provider that supports bulk operations on output",
             },
+
             "output_provider_upsert": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to enable upserting instead of creating records with an output "
                 "data provider; this option only has an affect when sued with an output provider",
             },
+
             "runtime": <MapperOptionInfo>{
                 "type": "hash",
                 "desc": "defines key-value pairs lookups for the \"runtime\" field mapping key",
@@ -487,8 +522,23 @@ public class Mapper {
         #! the optional input data provider
         *AbstractDataProvider input_provider;
 
-        #! search options for the input provider
+        #! search conditions for the input provider
         *hash<auto> input_provider_search;
+
+        #! search options for the input provider
+        *hash<auto> input_search_options;
+
+        #! indicates that the request/response API should be used for the mapper
+        bool input_do_request;
+
+        #! the argument for the request/response API for the input provider
+        auto input_request;
+
+        #! options for the request when using the request/response API for the input provider
+        *hash<auto> input_request_options;
+
+        #! a boolean flag that indicates that an input provider that supports both the record API and the request/response API should use the request search API to provide records
+        bool input_request_search;
 
         #! an optional description of the output data structure
         *hash<string, AbstractDataField> output;
@@ -783,12 +833,29 @@ Mapper mapv(DataMap);
             }
         }
 
-        if (!opts.input_provider.supportsRead()) {
-            error("\"input_provider\" %y passed to %s::constructor() does not support reading",
-                input_provider.getName(), self.className());
+        if (opts.input_provider.supportsRead()) {
+            input_provider = opts.input_provider;
+            input = input_provider.getRecordType();
+            if (opts.input_provider.supportsRequest()) {
+                input_request_search = True;
+                input_request = opts.input_request;
+                input_request_options = opts.input_request_options;
+            }
+        } else if (opts.input_provider.supportsRequest()) {
+            input_provider = opts.input_provider;
+            if (opts.input_response_error) {
+                input = input_provider.getErrorResponseType(opts.input_response_error);
+            } else {
+                input = getFields("input", input_provider.getResponseType());
+            }
+            input_do_request = True;
+            input_request = opts.input_request;
+            input_request_options = opts.input_request_options;
+        } else {
+            error("\"input_provider\" %y passed to %s::constructor() does not support reading or the request/response "
+                "API", opts.input_provider.getName(), self.className());
         }
-        input_provider = opts.input_provider;
-        input = input_provider.getRecordType();
+
         if (!input) {
             error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
                 input_provider.getName(), self.className());
@@ -800,7 +867,16 @@ Mapper mapv(DataMap);
                     "got type %y instead", self.className(), opts.input_provider_search.type());
             }
             input_provider_search = opts.input_provider_search;
+            input_search_options = opts.input_search_options;
         }
+    }
+
+    private:internal *hash<string, AbstractDataField> getFields(string pfx, AbstractDataProviderType type) {
+        *hash<string, AbstractDataField> fields = type.getFields();
+        if (!fields) {
+            error("%s provider provides type %y which cannot be mapped", pfx, type.getName());
+        }
+        return fields;
     }
 
     private setOutputProvider(hash<auto> opts) {
@@ -819,7 +895,7 @@ Mapper mapv(DataMap);
 
         if (!opts.output_provider.supportsCreate()) {
             error("\"output_provider\" %y passed to %s::constructor() does not support writing",
-                output_provider.getName(), self.className());
+                opts.output_provider.getName(), self.className());
         }
         output_provider = opts.output_provider;
         output = output_provider.getSoftRecordType();
@@ -1431,7 +1507,10 @@ Mapper mapv(DataMap);
     */
     MapperOutputRecordIterator getOutputIterator() {
         checkInputProvider();
-        return new MapperOutputRecordIterator(self, input_provider, input_provider_search);
+        if (input_do_request) {
+            error("cannot use an output iterator with an input providing using the request/response API");
+        }
+        return new MapperOutputRecordIterator(self, input_provider, input_provider_search, input_search_options);
     }
 
     #! Commits data written to the output data provider if the output data provider supports transaction management
@@ -1487,11 +1566,29 @@ Mapper mapv(DataMap);
         checkInputProvider();
         checkOutputProvider();
 
+        # first process autonomous mappings using the request/response API
+        if (input_do_request) {
+            if (info_log) {
+                info_log("autonomous mapping %y request -> %y", input_provider.getName(), output_provider.getName());
+            }
+
+            auto response = input_provider.doRequest(input_request, input_request_options);
+            mapData(response);
+            return;
+        }
+
         if (info_log) {
-            info_log("autonomous mapping %y (bulk: %y) -> %y (bulk: %y)%s", input_provider.getName(),
-                input_provider.supportsBulkRead(), output_provider.getName(),
-                exists output_provider_bulk_operation, exists output_provider_bulk_operation ? (" using " +
+            if (input_request_search) {
+                info_log("autonomous mapping %y request/search -> %y (bulk: %y)%s", input_provider.getName(),
+                    output_provider.getName(), exists output_provider_bulk_operation,
+                    exists output_provider_bulk_operation ? (" using " +
                     output_provider_bulk_operation.className()) : NOTHING);
+            } else {
+                info_log("autonomous mapping %y (bulk: %y) -> %y (bulk: %y)%s", input_provider.getName(),
+                    input_provider.supportsBulkRead(), output_provider.getName(),
+                    exists output_provider_bulk_operation, exists output_provider_bulk_operation ? (" using " +
+                        output_provider_bulk_operation.className()) : NOTHING);
+            }
         }
 
         if (output_provider_bulk_operation) {
@@ -1504,27 +1601,35 @@ Mapper mapv(DataMap);
             if (input_provider.supportsBulkRead()) {
                 # bulk read + bulk write for high performance mapping
                 AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
-                    input_provider_search);
+                    input_provider_search, input_search_options);
                 while (*hash<auto> records = i.getValue()) {
                     mapBulk(records);
                 }
             } else {
                 # bulk output with normal input
-                map mapData($1), input_provider.searchRecords(input_provider_search);
+                map mapData($1), getInputProviderRecordIterator();
             }
         } else {
             if (input_provider.supportsBulkRead()) {
                 # bulk read + bulk write for high performance mapping
                 AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
-                    input_provider_search);
+                    input_provider_search, input_search_options);
                 while (*hash<auto> records = i.getValue()) {
                     map mapData($1), records.contextIterator();
                 }
             } else {
                 # bulk output with normal input
-                map mapData($1), input_provider.searchRecords(input_provider_search);
+                map mapData($1), getInputProviderRecordIterator();
             }
         }
+    }
+
+    #! returns a record iterator for an input provider
+    private:internal AbstractDataProviderRecordIterator getInputProviderRecordIterator() {
+        if (input_request_search) {
+            return input_provider.requestSearchRecords(input_request, input_provider_search, input_search_options);
+        }
+        return input_provider.searchRecords(input_provider_search, input_search_options);
     }
 
     #! maps all input records and returns the mapped data as a list of output records
@@ -2301,9 +2406,9 @@ public class MapperOutputRecordIterator inherits AbstractDataProviderRecordItera
     }
 
     #! Creates the object from the arguments
-    constructor(Mapper mapper, AbstractDataProvider input, *hash<auto> where_cond) {
+    constructor(Mapper mapper, AbstractDataProvider input, *hash<auto> where_cond, *hash<auto> search_options) {
         self.mapper = mapper;
-        i = input.searchRecords(where_cond);
+        i = input.searchRecords(where_cond, search_options);
     }
 
     #! Moves the current position to the next element; returns @ref False if there are no more elements
