@@ -102,6 +102,8 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section connectionproviderrelnotes Release Notes
 
     @subsection connectionprovider_1_3 ConnectionProvider 1.3
+    - implemented support for serializing connections
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
     - implemented support for the data provider API
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 

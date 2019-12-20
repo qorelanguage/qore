@@ -224,6 +224,10 @@ public class Main inherits QUnit::Test {
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
 
+        # issue #3696: test connection serialization
+        RestConnection conn2 = Serializable::deserialize(conn.serialize());
+        assertEq(conn.url, conn2.url);
+
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
