@@ -32,6 +32,8 @@
       - adds  <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
     - <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module:
       - added this new module to support polling files from a remote directory with the FTP protocol
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module:
+      - adds <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module:
       - adds a data provider API for Swagger / OpenAPI schemas
     - support for Unicode character matching in regular expressions:
@@ -78,6 +80,8 @@
     @subsection qore_094_bug_fixes Bug Fixes in Qore
     - fixes in modules:
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
+        - fixed support for additional YAML MIME types
+          (<a href="https://github.com/qorelanguage/qore/issues/3699">issue 3699</a>)
         - fixed a bug resolving out of order definitions
           (<a href="https://github.com/qorelanguage/qore/issues/3694">issue 3694</a>)
         - fixed a bug handling \c formData elements

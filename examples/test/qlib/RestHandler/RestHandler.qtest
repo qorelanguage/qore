@@ -7,6 +7,8 @@
 %strict-args
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
@@ -16,6 +18,7 @@
 %requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/Mapper.qm
 
 %try-module xml >= 1.3
 %define NoXml
@@ -45,6 +48,10 @@ class MyStaticRestClass inherits AbstractRestClass {
 }
 
 class TestRestClass inherits AbstractRestClass {
+    public {
+        static int test_cnt = 0;
+    }
+
     constructor() {
         addClass(new MyStaticRestClass());
     }
@@ -76,6 +83,11 @@ class TestRestClass inherits AbstractRestClass {
     hash<HttpHandlerResponseInfo> putEx(hash<auto> cx, *hash<auto> ah) {
         # throw an exception with unserializable content
         throw "EXCEPTION-TEST-ERROR", "exception test error", new Mutex();
+    }
+
+    hash<HttpHandlerResponseInfo> putTest(hash<auto> cx, *hash<auto> ah) {
+        ++test_cnt;
+        return RestHandler::makeResponse(200, ah);
     }
 
     hash<auto> options(hash<auto> cx, *hash<auto> ah) {
@@ -157,7 +169,7 @@ public class RestHandlerTest inherits QUnit::Test {
         RestClient mClient;
         MyRestHandler mHandler();
 %ifndef NoJson
-        SwaggerRestHandler swaggerHandler(SwaggerLoader::fromString(make_json(TestSchema)));
+        SwaggerRestHandler swaggerHandler(RestHandlerTest::getSwagger());
 %else
         SwaggerRestHandler swaggerHandler;
 %endif
@@ -217,6 +229,7 @@ public class RestHandlerTest inherits QUnit::Test {
                     ),
                     "put": (
                         "produces": (MimeTypeJson,),
+                        "consumes": (MimeTypeJson,),
                         "responses": (
                             "200": (
                                 "description": "",
@@ -321,6 +334,10 @@ public class RestHandlerTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+    static SwaggerSchema getSwagger() {
+        return SwaggerLoader::fromString(make_json(TestSchema));
+    }
+
     globalSetUp() {
         mServer = new HttpServer(\log(), \log());
         mServer.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler, NOTHING, False);
@@ -379,7 +396,7 @@ public class RestHandlerTest inherits QUnit::Test {
             mHandler.handleExternalRequest("PUT", "test/echo1");
             assertTrue(False);
         } catch (hash<ExceptionInfo> ex) {
-            assertRegex("known subclasses: \"static\", \"ex\", \"echo\"", ex.desc);
+            assertRegex("known subclasses: \"static\", \"test\", \"ex\", \"echo\"", ex.desc);
         }
 
         assertEq("static", mHandler.handleExternalRequest("GET", "test/static"));
@@ -481,6 +498,40 @@ public class RestHandlerTest inherits QUnit::Test {
                 assertThrows("REST-RESPONSE-ERROR", \mClient.put(), ("/swagger/test?invalid=sdf", SimpleHashValue, \info));
             }
             assertEq(400, info."response-code");
+        }
+
+        string url = "http://localhost:" + port + "/swagger";
+        RestConnection conn("test", "test", url, False, {"validator": RestHandlerTest::getSwagger()}, parse_url(url));
+        AbstractDataProvider rest_provider = conn.getDataProvider().getChildProviderEx("test").getChildProviderEx("PUT");
+
+        #printf("req: %N\nresp: %N\n", rest_provider.getRequestType(), rest_provider.getResponseType());
+
+        int cnt = TestRestClass::test_cnt;
+
+        {
+            hash<auto> mappings = {
+                "A": "body",
+            };
+            NullOutputProvider null_provider();
+            Mapper m(mappings, {
+                "input_provider": rest_provider,
+                "input_request": {"query": {"action": "test"}, "body": {"A": "1"}},
+                "output_provider": null_provider,
+            });
+            m.runAutonomous();
+            assertEq(++cnt, TestRestClass::test_cnt);
+        }
+
+        {
+            hash<auto> mappings = {
+                "query.action": "action",
+                "body.A": "a",
+            };
+            Mapper m(mappings, {
+                "output_provider": rest_provider,
+            });
+            m.mapData({"action": "test", "a": "1"});
+            assertEq(++cnt, TestRestClass::test_cnt);
         }
     }
 
@@ -641,5 +692,27 @@ public class RestHandlerTest inherits QUnit::Test {
 
     log(string str) {
         delete argv;
+    }
+}
+
+class NullOutputProvider inherits AbstractDataProvider {
+    public {
+        int test_cnt = 0;
+    }
+
+    string getName() {
+        return "test";
+    }
+
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        ++test_cnt;
+    }
+
+    hash<DataProviderInfo> getStaticInfoImpl() {
+        return <DataProviderInfo>{
+            "name": getName(),
+            "type": self.className(),
+            "supports_request": True,
+        };
     }
 }
