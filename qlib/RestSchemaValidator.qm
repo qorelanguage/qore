@@ -111,6 +111,10 @@ public namespace RestSchemaValidator {
         string uri_path;
         #! the Content-Type for the message
         string content;
+        #! Content-Type for the response message if available
+        /** to be used for the Accept header
+        */
+        *list<string> response_content;
         #! the serialized message body hash
         *data body;
     }
@@ -124,7 +128,7 @@ public namespace RestSchemaValidator {
         #! the deserialized message body data
         auto body;
         #! miscellaneous free-form info about the parsed request
-        hash info;
+        hash<auto> info;
     }
 
     #! a hash of information about a response from the server
@@ -134,9 +138,9 @@ public namespace RestSchemaValidator {
         #! the deserialized message body
         auto body;
         #! the HTTP headers received
-        hash hdr;
+        hash<auto> hdr;
         #! miscellaneous free-form info about the parsed response
-        hash info;
+        hash<auto> info;
     }
 
     #! a hash giving example info for example HTTP request messages
@@ -144,7 +148,7 @@ public namespace RestSchemaValidator {
         #! the HTTP request URI
         string request_uri;
         #! the HTTP request header hash
-        hash hdr;
+        hash<auto> hdr;
         #! the HTTP request body
         string body;
     }
@@ -156,7 +160,7 @@ public namespace RestSchemaValidator {
         #! the HTTP status code
         int code;
         #! the HTTP response header hash
-        hash hdr;
+        hash<auto> hdr;
         #! the HTTP response body
         string body;
     }
@@ -217,7 +221,7 @@ public namespace RestSchemaValidator {
             @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
             @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
-        hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash> headers) {
+        hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash<auto>> headers) {
             return parseRequestImpl(method, path, http_body, \headers);
         }
 

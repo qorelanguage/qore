@@ -214,22 +214,26 @@ list: (2 elements)
     - \c "output_provider": gives the output provider with an
       @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
       also location where the output data will be written.  If this option is set, then every mapped record will be
-      written to the output data provider automatically.  If the output provider supports transaction management,
-      @ref Mapper::Mapper::commit() "Mapper::commit()" and
-      @ref Mapper::Mapper::rollback() "Mapper::rollback()" can be used.  This option is mutually exclusive
-      with the \a output option.  If an \c "input_provider" is also provided, the
+      written to the output data provider automatically.
+      - record-based output providers: The mapped output is written to the output provider as records.  If the output
+        provider supports transaction management. @ref Mapper::Mapper::commit() "Mapper::commit()" and
+        @ref Mapper::Mapper::rollback() "Mapper::rollback()" can be used.
+      - request/reply output providers: The mapped output is used as the request data for the output provider and above
+        request is made for each output record.
+      .
+      This option is mutually exclusive with the \a output option.  If an \c "input_provider" is also provided, the
       @ref Mapper::Mapper::runAutonomous() "Mapper::runAutonomous()" method can be used to map from input to output
       in a single call
-    - \c "output_provider_bulk": if this option is used then bulk operations are used with the output provider and the
-      @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called after all mapping is done to
-      flush the output buffer to the output provider at the end or
+    - \c "output_provider_bulk": if this option is used with a record-based output provider, then bulk operations are
+      used with the output provider, and the @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called
+      after all mapping is done to flush the output buffer to the output provider at the end, or
       @ref Mapper::Mapper::discard() "Mapper::discard()" must be called to discard any data left in the
       bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
       and an error occurs causing the transaction to be rolled back)
-    - \c "output_provider_upsert": if upsert instead of creation APIs should be used with the output provider, if
-      \a output_provider_bulk is set, this indicates if the
-      @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will be a create
-      or upsert object
+    - \c "output_provider_upsert": set to @ref True if upsert operations instead of creation APIs should be used with
+      the output provider.  If \a output_provider_bulk is also set, this indicates if the
+      @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will use upsert
+      operations instead of insert operations
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
     - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
       any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated
@@ -436,6 +440,11 @@ public class Mapper {
                 "data provider; this option only has an affect when sued with an output provider",
             },
 
+            "output_request_options": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "any options to output providers using the request/response API",
+            },
+
             "runtime": <MapperOptionInfo>{
                 "type": "hash",
                 "desc": "defines key-value pairs lookups for the \"runtime\" field mapping key",
@@ -528,7 +537,7 @@ public class Mapper {
         #! search options for the input provider
         *hash<auto> input_search_options;
 
-        #! indicates that the request/response API should be used for the mapper
+        #! indicates that the request/response API should be used for mapper input
         bool input_do_request;
 
         #! the argument for the request/response API for the input provider
@@ -551,6 +560,12 @@ public class Mapper {
 
         #! if the upsert operations should be used on the output provider
         bool output_provider_upsert;
+
+        #! indicates that the request/response API should be used for mapper output
+        bool output_do_request;
+
+        #! options for the request when using the request/response API for the output provider
+        *hash<auto> output_request_options;
 
         #! flag if the field descriptions were provided to the constructor
         /** if so then allow_dot cannot be set
@@ -893,29 +908,34 @@ Mapper mapv(DataMap);
             }
         }
 
-        if (!opts.output_provider.supportsCreate()) {
-            error("\"output_provider\" %y passed to %s::constructor() does not support writing",
-                opts.output_provider.getName(), self.className());
-        }
-        output_provider = opts.output_provider;
-        output = output_provider.getSoftRecordType();
-        if (!output) {
-            error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
-                output_provider.getName(), self.className());
-        }
-        if (opts.output_provider_upsert) {
-            if (!opts.output_provider.supportsUpsert()) {
-                error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
+        if (opts.output_provider.supportsCreate()) {
+            output_provider = opts.output_provider;
+            output = output_provider.getSoftRecordType();
+            if (!output) {
+                error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
                     output_provider.getName(), self.className());
             }
-            if (opts.output_provider_bulk) {
-                output_provider_bulk_operation = output_provider.getBulkUpserter();
+            if (opts.output_provider_upsert) {
+                if (!opts.output_provider.supportsUpsert()) {
+                    error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
+                        output_provider.getName(), self.className());
+                }
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkUpserter();
+                }
+                output_provider_upsert = True;
+            } else {
+                if (opts.output_provider_bulk) {
+                    output_provider_bulk_operation = output_provider.getBulkInserter();
+                }
             }
-            output_provider_upsert = True;
+        } else if (opts.output_provider.supportsRequest()) {
+            output_provider = opts.output_provider;
+            output_do_request = True;
+            output_request_options = opts.output_request_options;
         } else {
-            if (opts.output_provider_bulk) {
-                output_provider_bulk_operation = output_provider.getBulkInserter();
-            }
+            error("\"output_provider\" %y passed to %s::constructor() does not support writing or the "
+                "request/response API", opts.output_provider.getName(), self.className());
         }
     }
 
@@ -1503,12 +1523,13 @@ Mapper mapv(DataMap);
     #! returns an output record iterator that produces mapped data from the input data provider
     /** @return an output record iterator that produces mapped data from the input data provider
 
-        @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor
+        @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor or the input
+        provider uses the request/response API
     */
     MapperOutputRecordIterator getOutputIterator() {
         checkInputProvider();
         if (input_do_request) {
-            error("cannot use an output iterator with an input providing using the request/response API");
+            error("cannot use an output iterator with an input provider using the request/response API");
         }
         return new MapperOutputRecordIterator(self, input_provider, input_provider_search, input_search_options);
     }
@@ -1579,15 +1600,17 @@ Mapper mapv(DataMap);
 
         if (info_log) {
             if (input_request_search) {
-                info_log("autonomous mapping %y request/search -> %y (bulk: %y)%s", input_provider.getName(),
-                    output_provider.getName(), exists output_provider_bulk_operation,
-                    exists output_provider_bulk_operation ? (" using " +
+                info_log("autonomous mapping %y request/search -> %y (bulk: %y type: %s)%s",
+                    input_provider.getName(), output_provider.getName(), exists output_provider_bulk_operation,
+                    output_do_request ? "req/resp" : "record", exists output_provider_bulk_operation ? (" using " +
                     output_provider_bulk_operation.className()) : NOTHING);
             } else {
-                info_log("autonomous mapping %y (bulk: %y) -> %y (bulk: %y)%s", input_provider.getName(),
-                    input_provider.supportsBulkRead(), output_provider.getName(),
-                    exists output_provider_bulk_operation, exists output_provider_bulk_operation ? (" using " +
-                        output_provider_bulk_operation.className()) : NOTHING);
+                info_log("autonomous mapping %y (bulk: %y) -> %y (bulk: %y type: %s)%s",
+                    input_provider.getName(), input_provider.supportsBulkRead(), output_provider.getName(),
+                    exists output_provider_bulk_operation, output_do_request ? "req/resp" : "record",
+                        exists output_provider_bulk_operation
+                            ? (" using " + output_provider_bulk_operation.className())
+                            : NOTHING);
             }
         }
 
@@ -1756,14 +1779,18 @@ Mapper mapv(DataMap);
             # add constant values to hash
             dh += consth;
 
-            # write to putput provider, if any
+            # write to output provider, if any
             if (output_provider_bulk_operation) {
                 output_provider_bulk_operation.queueData(dh);
             } else if (output_provider) {
                 if (output_provider_upsert) {
                     map output_provider.upsertRecord($1), dh.contextIterator();
                 } else {
-                    map output_provider.createRecord($1), dh.contextIterator();
+                    if (output_do_request) {
+                        map output_provider.doRequest($1, output_request_options), dh.contextIterator();
+                    } else {
+                        map output_provider.createRecord($1), dh.contextIterator();
+                    }
                 }
             }
 
@@ -1812,7 +1839,11 @@ Mapper mapv(DataMap);
             if (output_provider_upsert) {
                 output_provider.upsertRecord(h);
             } else {
-                output_provider.createRecord(h);
+                if (output_do_request) {
+                    output_provider.doRequest(h, output_request_options);
+                } else {
+                    output_provider.createRecord(h);
+                }
             }
         }
 

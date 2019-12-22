@@ -251,6 +251,9 @@ public namespace RestClient {
             #! Accept header value
             const Accept = AcceptList.join(",");
 
+            #! Map of acceptable Mime types
+            const AcceptMap = map {$1: True}, AcceptList;
+
             #! RestClient Version
             const Version = "1.6.2";
 
@@ -795,7 +798,7 @@ hash<auto> ans = rest.del("/orders/1");
         }
 
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(string method, string path, reference body, reference<hash<auto>> hdr, string ct = "Content-Type") {
+        private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr, string ct = "Content-Type") {
             hdr = headers + hdr;
 
             # must get the path from the HTTPClient object if not given in the request
@@ -815,6 +818,15 @@ hash<auto> ans = rest.del("/orders/1");
                     body = seh.func(body);
                 }
             }
+            /*
+            if (req.response_content) {
+                hdr.Accept = foldl $1 + "," + $2, (map $1, req.response_content, AcceptMap{$1});
+                if (!hdr.Accept) {
+                    throw "REST-ACCEPT-ERROR", sprintf("%s %s returns types %y; none of which are currently "
+                        "supported; supported response types: %y", method, path, req.response_content, AcceptList);
+                }
+            }
+            */
         }
 
         #! sets up the path for the HTTP request URI
@@ -872,6 +884,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
             option is set to @ref Qore::True "True"
+            @throw REST-ACCEPT-ERROR if the message has a validator that indicates that the response message only
+            supports types not supported by the current options or environment
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -884,10 +898,10 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             prepareMsg(m, path, \body, \hdr);
 
             on_exit if (exists body) {
-                info += (
+                info += {
                     "request-body": body,
                     "request-serialization": ds,
-                    );
+                };
             }
 
             # prepare path
