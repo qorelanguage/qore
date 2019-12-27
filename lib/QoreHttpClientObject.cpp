@@ -391,9 +391,8 @@ struct qore_httpclient_priv {
         strcase_set_t::iterator i = hdrs.find(key);
         if (i == hdrs.end()) {
             hdrs.insert(i, key);
-        }
-        else {
-            //printd(0, "qore_httpclient_priv::getHeaderString() taking '%s' -> setting '%s'\n", (*i).c_str(), key);
+        } else {
+            //printd(5, "qore_httpclient_priv::getHeaderString() taking '%s' -> setting '%s'\n", (*i).c_str(), key);
             // remove the key
             QoreValue t = nh.takeKeyValue((*i).c_str());
             assert(!t.isNothing());
@@ -691,7 +690,7 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
             return -1;
 
         if (q) { // pass reference from QoreObject::getReferencedPrivateData() to function
-            priv->socket->setEventQueue(q, xsink);
+            priv->socket->setEventQueue(xsink, q, QoreValue(), false);
         }
     }
 
@@ -914,7 +913,10 @@ void QoreHttpClientObject::disconnect() {
     http_priv->disconnect_unlocked();
 }
 
-QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink) {
+QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath,
+    const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback,
+    InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info,
+    bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink) {
     QoreString pathstr(msock->socket->getEncoding());
     const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
@@ -939,7 +941,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
         http11 ? "1.1" : "1.0", &nh, data, size, send_callback, is, max_chunk_size, trailer_callback,
         QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
 
-    //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() '%s' path: '%s' send_callback: %p aborted: %d rc: %d\n", meth, msgpath, send_callback, aborted, rc);
+    //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() '%s' path: '%s' data: %p size: %d send_callback: %p is: %p aborted: %d rc: %d\n", meth, msgpath, data, (int)size, send_callback, is, aborted, rc);
 
     // do not exit immediately if the transfer was aborted with a streaming send unless the socket was already closed
     if (rc && (!send_callback || !aborted || !msock->socket->isOpen())) {
@@ -996,43 +998,31 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     return response_hash.release();
 }
 
-void do_content_length_event(Queue *cb_queue, int64 id, int len) {
-    if (cb_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+void do_content_length_event(Queue *event_queue, qore_socket_private* priv, int len) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", QORE_EVENT_HTTP_CONTENT_LENGTH);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
         hh->setKeyValueIntern("len", len);
-        cb_queue->pushAndTakeRef(h);
+        event_queue->pushAndTakeRef(h);
     }
 }
 
-void do_redirect_event(Queue *cb_queue, int64 id, const QoreStringNode* loc, const QoreStringNode* msg) {
-    if (cb_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+void do_redirect_event(Queue *event_queue, qore_socket_private* priv, const QoreStringNode* loc, const QoreStringNode* msg) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_REDIRECT, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", QORE_EVENT_HTTP_REDIRECT);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
         hh->setKeyValueIntern("location", loc->refSelf());
         if (msg)
             hh->setKeyValueIntern("status_message", msg->refSelf());
-        cb_queue->pushAndTakeRef(h);
+        event_queue->pushAndTakeRef(h);
     }
 }
 
-void do_event(Queue *cb_queue, int64 id, int event) {
-    if (cb_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+void do_event(Queue *event_queue, qore_socket_private* priv, int event) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(event, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", event);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
-        cb_queue->pushAndTakeRef(h);
+        event_queue->pushAndTakeRef(h);
     }
 }
 
@@ -1043,8 +1033,7 @@ void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans,
             ans.setKeyValue("_qore_multipart", new QoreStringNode(str + 10, len - 10, enc), xsink);
             multipart = true;
         }
-    }
-    else {
+    } else {
         if (len > 9 && !strncasecmp(str, "boundary=", 9))
             ans.setKeyValue("_qore_multipart_boundary", new QoreStringNode(str + 9, len - 9, enc), xsink);
         else if (len > 6 && !strncasecmp(str, "start=", 6))
@@ -1087,7 +1076,11 @@ static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, cons
    return str && !str->empty() ? str->c_str() : nullptr;
 }
 
-QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
+QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth,
+    const char* mpath, const QoreHashNode* headers, const void* data, unsigned size,
+    const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
+    const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is,
+    size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
     assert(!(data && send_callback));
     assert(!(data && is));
     assert(!(is && send_callback));
@@ -1112,7 +1105,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         timeout_ms = timeout;
 
     SafeLocker sl(msock->m);
-    Queue* cb_queue = msock->socket->getQueue();
+    Queue* event_queue = msock->socket->getQueue();
 
     ReferenceHolder<QoreHashNode> nh(new QoreHashNode(autoTypeInfo), xsink);
     bool keep_alive = true;
@@ -1290,8 +1283,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 return nullptr;
             }
 
-            if (cb_queue)
-                do_redirect_event(cb_queue, msock->socket->getObjectIDForEvents(), loc, mess);
+            if (event_queue)
+                do_redirect_event(event_queue, msock->socket->priv, loc, mess);
 
             if (++redirect_count > max_redirects)
                 break;
@@ -1509,12 +1502,12 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
         }
 
-        if (cl && cb_queue)
-            do_content_length_event(cb_queue, msock->socket->getObjectIDForEvents(), len);
+        if (cl && event_queue)
+            do_content_length_event(event_queue, msock->socket->priv, len);
 
         if (te && !strcasecmp(te, "chunked")) { // check for chunked response body
-            if (cb_queue)
-                do_event(cb_queue, msock->socket->getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_START);
+            if (event_queue)
+                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_START);
             ReferenceHolder<QoreHashNode> nah(xsink);
             if (os) {
                 msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj, os);
@@ -1529,8 +1522,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 else
                     nah = msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT);
             }
-            if (cb_queue)
-                do_event(cb_queue, msock->socket->getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
+            if (event_queue)
+                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_END);
 
             if (!nah && !recv_callback) {
                 if (!msock->socket->isOpen())
@@ -1560,13 +1553,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
         } else if (getbody || len) {
             if (os) {
-                msock->socket->priv->recvToOutputStream(os, len, timeout_ms, xsink, &msock->m);
+                msock->socket->priv->recvToOutputStream(os, len, timeout_ms, xsink, &msock->m, QORE_SOURCE_HTTPCLIENT);
             } else if (content_encoding) {
-                SimpleRefHolder<BinaryNode> bobj(msock->socket->recvBinary(len, timeout_ms, xsink));
+                qore_offset_t rc;
+                SimpleRefHolder<BinaryNode> bobj(msock->socket->priv->recvBinary(xsink, len, timeout_ms, rc, QORE_SOURCE_HTTPCLIENT));
                 if (!(*xsink) && bobj)
                     body = bobj.release();
             } else {
-                QoreStringNodeHolder bstr(msock->socket->recv(len, timeout_ms, xsink));
+                qore_offset_t rc;
+                QoreStringNodeHolder bstr(msock->socket->priv->recv(xsink, len, timeout_ms, rc, QORE_SOURCE_HTTPCLIENT));
                 if (!(*xsink) && bstr)
                     body = bstr.release();
             }
@@ -1710,7 +1705,12 @@ void QoreHttpClientObject::setDefaultHeaderValue(const char* header, const char*
 
 void QoreHttpClientObject::setEventQueue(Queue *cbq, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    priv->socket->setEventQueue(cbq, xsink);
+    priv->socket->setEventQueue(xsink, cbq, QoreValue(), false);
+}
+
+void QoreHttpClientObject::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+    AutoLocker al(priv->m);
+    priv->socket->setEventQueue(xsink, q, arg, with_data);
 }
 
 void QoreHttpClientObject::cleanup(ExceptionSink* xsink) {

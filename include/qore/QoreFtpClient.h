@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -434,13 +434,13 @@ public:
     DLLLOCAL int getTimeout() const;
 
     //! sets the same event queue for data and control sockets
-    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+    DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     //! sets the event queue for the data socket
-    DLLLOCAL void setDataEventQueue(Queue *cbq, ExceptionSink *xsink);
+    DLLLOCAL void setDataEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     //! sets the event queue for the control socket
-    DLLLOCAL void setControlEventQueue(Queue *cbq, ExceptionSink *xsink);
+    DLLLOCAL void setControlEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     DLLLOCAL void cleanup(ExceptionSink *xsink);
 };

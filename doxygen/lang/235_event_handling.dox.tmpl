@@ -6,9 +6,11 @@
 
     See @ref event_constants for a list of all event constants; details about each event are documented in the following sections.
 
-    Event information is placed on the event queue (which must be a @ref Qore::Thread::Queue "Queue" object) in the form of a hash. Each event has at least the following keys:\n
+    Event information is placed on the event queue (which must be a @ref Qore::Thread::Queue "Queue" object) in the
+    form of a hash. Each event has the following standar keys:\n
     <b>Event Hash Common Keys</b>
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|This key holds the event code; see information for individual events in the following sections
     |\c source|This key holds the event source code
     |\c id|The value of this key is a unique integer that can be used to uniquely identify the object generating the event.
@@ -25,6 +27,7 @@
     @par Description
     This event is raised immediately after a network packet is received.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_PACKET_READ
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -44,6 +47,7 @@
     @par Description
     This event is raised immediately after a network packet is sent.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_PACKET_SENT
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -64,6 +68,7 @@
     @par Description
     This event is raised immediately after an HTTP header is received containing a content length header line, but before the message body is received.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_CONTENT_LENGTH
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c id|A unique integer ID for the underlying socket object
@@ -81,6 +86,7 @@
     @par Description
     This event is raised after receiving an HTTP header with the \c Transfer-Encoding header set to \c chunked and before the chunked data is read.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_CHUNKED_START
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c id|A unique integer ID for the socket object.
@@ -97,6 +103,7 @@
     @par Description
     This event is raised after all chunked data is read from the socket.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_CHUNKED_END
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c id|A unique integer ID for the socket object.
@@ -113,6 +120,7 @@
     @par Description
     This event is raised after a redirect response is received from an HTTP server.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_REDIRECT
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c id|A unique integer ID for the socket object.
@@ -131,6 +139,7 @@
     @par Description
     This event is raised immediately after the socket is closed.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_CHANNEL_CLOSED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -147,6 +156,7 @@
     @par Description
     This event is raised when the socket object is deleted.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_DELETED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -163,6 +173,7 @@
     @par Description
     This event is raised immediately before a message is sent on the FTP control channel.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_FTP_SEND_MESSAGE
     |\c source|@ref Qore::SOURCE_FTPCLIENT, indicating the @ref Qore::FtpClient "FtpClient class"
     |\c id|A unique integer ID for the underlying socket object
@@ -181,6 +192,7 @@
     @par Description
     This event is raised immediately after a message is received on the FTP control channel.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_FTP_MESSAGE_RECEIVED
     |\c source|@ref Qore::SOURCE_FTPCLIENT, indicating the @ref Qore::FtpClient "FtpClient class"
     |\c id|A unique integer ID for the underlying socket object
@@ -199,6 +211,7 @@
     @par Description
     This event is raised immediately before a hostname lookup is made.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HOSTNAME_LOOKUP
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -216,6 +229,7 @@
     @par Description
     This event is raised immediately after a successful hostname resolution.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HOSTNAME_RESOLVED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -235,6 +249,7 @@
     @par Description
     This event is raised immediately before an HTTP message is sent.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_SEND_MESSAGE
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class", or @ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c message|The first string in the HTTP message (ex: GET / HTTP/1.1).
@@ -252,6 +267,7 @@
     @par Description
     This event is raised immediately after an HTTP message is received.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_MESSAGE_RECEIVED
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class", or @ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c headers|A hash of all headers received in the message, plus the following headers giving additional information about the message:\n - \c "http_version": giving the HTTP protocol version in the message\n - \c "status_code": giving the HTTP status code if the message is a response\n - \c "status_message": giving any HTTP status message if the message is a response\n - \c "method": giving the HTTP method if the message is a request\n - \c "path": providing the path in request messages.
@@ -268,6 +284,7 @@
     @par Description
     This event is raised immediately after HTTP footers are received after receiving chunked data.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_FOOTERS_RECEIVED
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c headers|A hash of all footers received in the message.
@@ -284,6 +301,7 @@
     @par Description
     This event is raised immediately after chunked data is received.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_CHUNKED_DATA_RECEIVED
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c read|An integer giving the number of bytes read in the chunk.
@@ -301,6 +319,7 @@
     @par Description
     This event is raised immediately after chunk information is received providing the size of the next chunk.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_HTTP_CHUNK_SIZE
     |\c source|@ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient "HTTPClient class"
     |\c size|An integer giving the number of bytes in the next chunk.
@@ -318,6 +337,7 @@
     @par Description
     This event is raised immediately before a socket connection is attempted.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_CONNECTING
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -339,6 +359,7 @@
     @par Description
     This event is raised immediately after a socket connection is established.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_CONNECTED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -355,6 +376,7 @@
     @par Description
     This event is raised immediately before SSL negotiation is attempted.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_START_SSL
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -371,6 +393,7 @@
     @par Description
     This event is raised immediately after SSL negotiation has been successfully established.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_SSL_ESTABLISHED
     |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class"
     |\c id|A unique integer ID for the underlying socket object
@@ -389,6 +412,7 @@
     @par Description
     This event is raised immediately before a file is opened.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_OPEN_FILE
     |\c source|@ref Qore::SOURCE_FILE, indicating the @ref Qore::File "File class"
     |\c id|A unique integer ID for the @ref Qore::File "File" object
@@ -409,6 +433,7 @@
     @par Description
     This event is raised immediately after a file has been successfully opened.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_FILE_OPENED
     |\c source|@ref Qore::SOURCE_FILE, indicating the @ref Qore::File "File class"
     |\c id|A unique integer ID for the @ref Qore::File "File" object
@@ -429,6 +454,7 @@
     @par Description
     This event is raised immediately after data is read from a file.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_DATA_READ
     |\c source|@ref Qore::SOURCE_FILE, indicating the @ref Qore::File "File class"
     |\c id|A unique integer ID for the @ref Qore::File "File" object
@@ -446,12 +472,121 @@
     @ref Qore::SOURCE_FILE
 
     @par Description
-    This event is raised immediately after data is written from a file.\n\n The event hash contains the following keys:\n
+    This event is raised immediately after data is written to a file.\n\n The event hash contains the following keys:\n
     |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
     |\c event|@ref Qore::EVENT_DATA_WRITTEN
     |\c source|@ref Qore::SOURCE_FILE, indicating the @ref Qore::File "File class"
     |\c id|A unique integer ID for the @ref Qore::File "File" object
     |\c written|The number of bytes written to the file.
     |\c total_written|The total number of bytes written in the write loop.
     |\c total_to_write|The total number of bytes to write in the write loop.
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_DATA_READ
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Event
+    @ref Qore::EVENT_HTTP_CHUNKED_DATA_READ
+
+    @par Description
+    This event is raised when HTTP chunked data is read if the event data flag is set in the call to set the event
+    queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_HTTP_CHUNKED_DATA_READ
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c data|a @ref string_type "string" or @ref binary_type "binary" value
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_DATA_SENT
+
+    @par Event
+    @ref Qore::EVENT_HTTP_CHUNKED_DATA_SENT
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised when HTTP chunked data is sent if the event data flag is set in the call to set the event
+    queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_HTTP_CHUNKED_DATA_SENT
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c data|a @ref string_type "string" or @ref binary_type "binary" value
+
+    <hr>
+    @section EVENT_HTTP_CHUNKED_FOOTERS_SENT
+
+    @par Event
+    @ref Qore::EVENT_HTTP_CHUNKED_FOOTERS_SENT
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised when HTTP footers are sent at the end of a chunked data transfer if the event data flag is
+    set in the call to set the event queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_HTTP_CHUNKED_FOOTERS_SENT
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c headers|a @ref hash_type "hash" of chunked footers sent
+
+    <hr>
+    @section EVENT_SOCKET_DATA_READ
+
+    @par Event
+    @ref Qore::EVENT_SOCKET_DATA_READ
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised when socket data is read if the event data flag is set in the call to set the event
+    queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_SOCKET_DATA_READ
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c data|a @ref string_type "string" or @ref binary_type "binary" value
+
+    <hr>
+    @section EVENT_SOCKET_DATA_SENT
+
+    @par Event
+    @ref Qore::EVENT_SOCKET_DATA_SENT
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised when socket data is sent if the event data flag is set in the call to set the event
+    queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_SOCKET_DATA_SENT
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c data|a @ref string_type "string" or @ref binary_type "binary" value
+
+    <hr>
+    @section EVENT_HTTP_HEADERS_READ
+
+    @par Event
+    @ref Qore::EVENT_HTTP_HEADERS_READ
+
+    @par Source
+    @ref Qore::SOURCE_SOCKET, @ref Qore::SOURCE_HTTPCLIENT
+
+    @par Description
+    This event is raised when HTTP header data is read if the event data flag is set in the call to set the event
+    queue.\n\n The event hash contains the following keys:\n
+    |!Key|!Value
+    |[\c arg]|This key holds any argument provided when setting the event queue
+    |\c event|@ref Qore::EVENT_HTTP_HEADERS_READ
+    |\c source|@ref Qore::SOURCE_SOCKET, indicating the @ref Qore::Socket "Socket class" or @ref Qore::SOURCE_HTTPCLIENT, indicating the @ref Qore::HTTPClient class "HTTPClient class"
+    |\c data|a @ref string_type "string" value
 */

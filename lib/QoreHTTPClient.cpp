@@ -87,5 +87,9 @@ QoreHashNode* QoreHTTPClient::send(const char* meth, const char* path, const Qor
 }
 
 void QoreHTTPClient::setEventQueue(Queue* cbq, ExceptionSink* xsink) {
-   QoreHttpClientObject::setEventQueue(cbq, xsink);
+    QoreHttpClientObject::setEventQueue(cbq, xsink);
+}
+
+void QoreHTTPClient::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+    QoreHttpClientObject::setEventQueue(xsink, q, arg, with_data);
 }

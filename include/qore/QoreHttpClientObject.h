@@ -335,6 +335,9 @@ public:
     //! sets the event queue, must be already referenced before call
     DLLEXPORT void setEventQueue(Queue* cbq, ExceptionSink* xsink);
 
+    //! sets the event queue, must be already referenced before call
+    DLLEXPORT void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
+
     //! returns the value of the TCP_NODELAY flag on the object
     DLLEXPORT bool getNoDelay() const;
 

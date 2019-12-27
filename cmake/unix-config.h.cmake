@@ -146,6 +146,7 @@
 #cmakedefine HAVE_X509_GET0_SIGNATURE_CONST
 #cmakedefine HAVE_X509_GET0_PUBKEY
 #cmakedefine HAVE_OPENSSL_INIT_CRYPTO
+#cmakedefine HAVE_SSL_SET_MAX_PROTO_VERSION
 
 /* mpfr */
 #cmakedefine HAVE_MPFR_BUILDOPT_TLS_P

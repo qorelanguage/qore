@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2018 Qore Technologies, s.r.o.
+/*  SmtpClient.qm Copyright 2012 - 2019 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # need mime definitions
 %requires Mime >= 1.4
@@ -39,7 +39,7 @@
 %new-style
 
 module SmtpClient {
-    version = "1.7";
+    version = "1.8";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -108,6 +108,10 @@ smtp.sendMessage(msg);@endcode
     - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 
     @section smtpclient_relnotes SmtpClient Release Notes
+
+    @subsection smtpclient_v1_8 SmtpClient 1.8
+    - added support for socket events
+      (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
     @subsection smtpclient_v1_7 SmtpClient 1.7
     - added the @ref SmtpClient::SmtpConnection::getConstructorInfo() "SmtpConnection::getConstructorInfo()"
@@ -565,7 +569,7 @@ smtp.setWarningQueue(5000, 5000, queue, "socket-1");
         #! Returns performance statistics for the socket
         /** @par Example:
             @code{.py}
-hash h = smtp.getUsageInfo();
+hash<auto> h = smtp.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -581,7 +585,7 @@ hash h = smtp.getUsageInfo();
 
             @see clearStats()
         */
-        hash getUsageInfo() {
+        hash<auto> getUsageInfo() {
             return sock.getUsageInfo();
         }
 
@@ -597,6 +601,41 @@ smtp.clearStats();
         */
         clearStats() {
             sock.clearStats();
+        }
+
+        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+        /** @par Example:
+            @code{.py}
+smtp.setEventQueue(queue);
+            @endcode
+
+            @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
+            the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+            @param arg an argument that will be included in each event hash in the \a arg key
+            @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+
+            @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+            @see @ref event_handling for more information
+
+            @since %SmtpClient 1.8
+        */
+        setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
+            sock.setEventQueue(queue, arg, with_data);
+        }
+
+        #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+        /** @par Example:
+            @code{.py}
+smtp.setEventQueue();
+            @endcode
+
+            @see @ref event_handling for more information
+
+            @since %SmtpClient 1.8
+        */
+        setEventQueue() {
+            sock.setEventQueue();
         }
 
         #! @cond nodoc

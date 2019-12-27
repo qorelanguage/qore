@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 - 2018 Qore Technologies s.r.o.
+/*  TelnetClient.qm Copyright 2012 - 2019 Qore Technologies s.r.o.
 
     Original Author: Pavol Potancok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -36,7 +36,7 @@
 %requires(reexport) ConnectionProvider >= 1.2
 
 module TelnetClient {
-    version = "1.5";
+    version = "1.6";
     desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
     author = "Pavol Potancok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -65,6 +65,10 @@ module TelnetClient {
     - @ref TelnetOptionCodes "TelnetOptionCodes": telnet protocol option codes and a lookup map
 
     @section telnetclient_relnotes TelnetClient Module Release Notes
+
+    @subsection telnetclient_v1_6 TelnetClient v1.6
+    - added support for socket events
+      (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
     @subsection telnetclient_v1_5 TelnetClient v1.5
     - all connection clases have unified constructor
@@ -580,7 +584,7 @@ telnet.setWarningQueue(5000, 5000, queue, "socket-1");
         #! Returns performance statistics for the socket
         /** @par Example:
             @code{.py}
-hash h = telnet.getUsageInfo();
+hash<auto> h = telnet.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -596,7 +600,7 @@ hash h = telnet.getUsageInfo();
 
             @see TelnetClient::clearStats()
         */
-        hash getUsageInfo() {
+        hash<auto> getUsageInfo() {
             return conn.getUsageInfo();
         }
 
@@ -612,6 +616,41 @@ telnet.clearStats();
         */
         clearStats() {
             conn.clearStats();
+        }
+
+        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+        /** @par Example:
+            @code{.py}
+telnet.setEventQueue(queue);
+            @endcode
+
+            @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
+            the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+            @param arg an argument that will be included in each event hash in the \a arg key
+            @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+
+            @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+            @see @ref event_handling for more information
+
+            @since %TelnetClient 1.6
+        */
+        setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
+            conn.setEventQueue(queue, arg, with_data);
+        }
+
+        #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+        /** @par Example:
+            @code{.py}
+telnet.setEventQueue();
+            @endcode
+
+            @see @ref event_handling for more information
+
+            @since %TelnetClient 1.6
+        */
+        setEventQueue() {
+            conn.setEventQueue();
         }
 
         #! Returns the connection target string

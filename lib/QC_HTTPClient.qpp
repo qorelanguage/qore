@@ -355,14 +355,15 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::send(string body, string method, *string path, *hash<auto> headers, softbool getbody = False, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   // issue 1813: convert string to socket's character encoding as documented
-   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
-   if (*xsink)
-      return QoreValue();
+    OptHashRefHelper ohrh(info, xsink);
+    // issue 1813: convert string to socket's character encoding as documented
+    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, xsink), xsink);
-   return *xsink ? 0 : rv.release();
+    ReferenceHolder<QoreHashNode> rv(client->send(method->c_str(), path && !path->empty() ? path->c_str() : nullptr,
+        headers, btmp->c_str(), btmp->size(), getbody, *ohrh, xsink), xsink);
+    return *xsink ? QoreValue() : rv.release();
 }
 
 //! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
@@ -418,9 +419,10 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::send(*binary body, string method, *string path, *hash<auto> headers, softbool getbody = False, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->send(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, body ? body->getPtr() : 0, body ? body->size() : 0, getbody, *ohrh, xsink), xsink);
-   return *xsink ? 0 : rv.release();
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<QoreHashNode> rv(client->send(method->c_str(), path && !path->empty() ? path->c_str() : nullptr,
+        headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, xsink), xsink);
+    return *xsink ? QoreValue() : rv.release();
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback and returns headers and any body received as a response in a hash format
@@ -482,9 +484,9 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
-   return *xsink ? 0 : rv.release();
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
+    return *xsink ? QoreValue() : rv.release();
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -551,12 +553,12 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   // issue 1813: convert string to socket's character encoding as documented
-   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
-   if (*xsink)
-      return QoreValue();
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
+    OptHashRefHelper ohrh(info, xsink);
+    // issue 1813: convert string to socket's character encoding as documented
+    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
+    if (*xsink)
+        return QoreValue();
+    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -621,8 +623,8 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
+    OptHashRefHelper ohrh(info, xsink);
+    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers are returned through an optional receive callback and any body received is written to the @ref OutputStream
@@ -682,17 +684,17 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     @since %Qore 0.8.13
  */
 nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info, *code rcb) {
-   SimpleRefHolder<OutputStream> osHolder(os);
-   OptHashRefHelper ohrh(info, xsink);
-   const char* pstr = path && !path->empty() ? path->c_str() : nullptr;
-   if (get_node_type(body) == NT_STRING) {
-      const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(body);
-      TempEncodingHelper tmp(str, client->getEncoding(), xsink);
-      client->sendWithOutputStream(method->getBuffer(), pstr, headers, str->c_str(), str->size(), getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
-   } else {
-      const BinaryNode* b = reinterpret_cast<const BinaryNode*>(body);
-      client->sendWithOutputStream(method->getBuffer(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
-   }
+    SimpleRefHolder<OutputStream> osHolder(os);
+    OptHashRefHelper ohrh(info, xsink);
+    const char* pstr = path && !path->empty() ? path->c_str() : nullptr;
+    if (get_node_type(body) == NT_STRING) {
+        const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(body);
+        TempEncodingHelper tmp(str, client->getEncoding(), xsink);
+        client->sendWithOutputStream(method->getBuffer(), pstr, headers, str->c_str(), str->size(), getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+    } else {
+        const BinaryNode* b = reinterpret_cast<const BinaryNode*>(body);
+        client->sendWithOutputStream(method->getBuffer(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+    }
 }
 
 //! Sends a chunked HTTP request with the specified method and message body; headers are returned through an optional receive callback and any body received is written to the @ref OutputStream
@@ -1285,27 +1287,31 @@ httpclient.setEventQueue();
     @endcode
  */
 nothing HTTPClient::setEventQueue() {
-    client->setEventQueue(0, xsink);
+    client->setEventQueue(xsink, nullptr, QoreValue(), false);
 }
 
 //! Sets a Queue object to receive HTTPClient and Socket events
-/** @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
-
-    @par Example:
+/** @par Example:
     @code{.py}
 httpclient.setEventQueue(queue);
     @endcode
 
+    @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+    @param arg an argument that will be included in each event hash in the \a arg key
+    @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+
     @throw QUEUE-ERROR the Queue passed has a maximum size set
 
     @see event_handling for more information
- */
-nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue) {
-   ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1)
-      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-   // pass reference from QoreObject::getReferencedPrivateData() to function
-   client->setEventQueue(q.release(), xsink);
+
+    @since %Qore 0.9.4 added the \a arg and \a with_data options
+*/
+nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg, *bool with_data) {
+    ReferenceHolder<Queue> q(queue, xsink);
+    if (queue->getMax() != -1)
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    client->setEventQueue(xsink, q.release(), arg.refSelf(), with_data);
 }
 
 //! Sets the connect timeout in milliseconds

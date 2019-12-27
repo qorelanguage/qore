@@ -108,39 +108,39 @@ const NT_CALLREF = NT_FUNCREF;
 //@{
 //! type code map, looks up type names from type code values
 const TypeCodeMap = (
-      "0": "nothing",
-      "1": "integer",
-      "2": "float",
-      "3": "string",
-      "4": "date",
-      "5": "bool",
-      "6": "NULL",
-      "7": "binary",
-      "8": "list",
-      "9": "hash",
-      "10": "object",
-      "11": "number",
-      "29": "call reference",
-      "32": "closure",
-      );
+    "0": "nothing",
+    "1": "integer",
+    "2": "float",
+    "3": "string",
+    "4": "date",
+    "5": "bool",
+    "6": "NULL",
+    "7": "binary",
+    "8": "list",
+    "9": "hash",
+    "10": "object",
+    "11": "number",
+    "29": "call reference",
+    "32": "closure",
+);
 
 //! type name map, looks up type codes from type names
 const TypeNameMap = (
-      "nothing": NT_NOTHING,
-      "integer": NT_INT,
-      "float": NT_FLOAT,
-      "number": NT_NUMBER,
-      "string": NT_STRING,
-      "date": NT_DATE,
-      "bool": NT_BOOLEAN,
-      "NULL": NT_NULL,
-      "binary": NT_BINARY,
-      "list": NT_LIST,
-      "hash": NT_HASH,
-      "object": NT_OBJECT,
-      "call reference": NT_FUNCREF,
-      "closure": NT_RUNTIME_CLOSURE,
-      );
+    "nothing": NT_NOTHING,
+    "integer": NT_INT,
+    "float": NT_FLOAT,
+    "number": NT_NUMBER,
+    "string": NT_STRING,
+    "date": NT_DATE,
+    "bool": NT_BOOLEAN,
+    "NULL": NT_NULL,
+    "binary": NT_BINARY,
+    "list": NT_LIST,
+    "hash": NT_HASH,
+    "object": NT_OBJECT,
+    "call reference": NT_FUNCREF,
+    "closure": NT_RUNTIME_CLOSURE,
+);
 //@}
 
 /** @defgroup boolean_constants Boolean Constants
@@ -269,11 +269,11 @@ const SOURCE_FILE = QORE_SOURCE_FILE;
 //@{
 //! Maps from @ref event_source_constants (the keys) to descriptive strings (the values)
 const EVENT_SOURCE_MAP = (
-   "1": "SOCKET",
-   "2": "HTTPCLIENT",
-   "3": "FTPCLIENT",
-   "4": "FILE",
-   );
+    "1": "SOCKET",
+    "2": "HTTPCLIENT",
+    "3": "FTPCLIENT",
+    "4": "FILE",
+);
 
 //! Maps from @ref event_constants (the keys) to descriptive strings (the values)
 const EVENT_MAP = (
@@ -302,7 +302,13 @@ const EVENT_MAP = (
     "23": "FILE_OPENED",
     "24": "DATA_READ",
     "25": "DATA_WRITTEN",
-   );
+    "26": "HTTP_CHUNKED_DATA_READ",
+    "27": "HTTP_CHUNKED_DATA_SENT",
+    "28": "HTTP_FOOTERS_SENT",
+    "29": "SOCKET_DATA_READ",
+    "30": "SOCKET_DATA_SENT",
+    "31": "HTTP_HEADERS_READ",
+);
 //@}
 
 /** @defgroup event_constants Event Constants
@@ -382,6 +388,36 @@ const EVENT_DATA_READ = QORE_EVENT_DATA_READ;
 
 //! Raised when data has been written to a file
 const EVENT_DATA_WRITTEN = QORE_EVENT_DATA_WRITTEN;
+
+//! Raised when data is read if the event data flag is set
+/** @since %Qore 0.9.4
+*/
+const EVENT_HTTP_CHUNKED_DATA_READ = QORE_EVENT_HTTP_CHUNKED_DATA_READ;
+
+//! Raised when data is sent if the event data flag is set
+/** @since %Qore 0.9.4
+*/
+const EVENT_HTTP_CHUNKED_DATA_SENT = QORE_EVENT_HTTP_CHUNKED_DATA_SENT;
+
+//! Raised when HTTP footers are sent while receiving chunked data if the event data flag is set
+/** @since %Qore 0.9.4
+*/
+const EVENT_HTTP_CHUNKED_FOOTERS_SENT = QORE_EVENT_HTTP_FOOTERS_SENT;
+
+//! Raised when data is read on the socket if the event data flag is set
+/** @since %Qore 0.9.4
+*/
+const EVENT_SOCKET_DATA_READ = QORE_EVENT_SOCKET_DATA_READ;
+
+//! Raised when data is sent on the socket if the event data flag is set
+/** @since %Qore 0.9.4
+*/
+const EVENT_SOCKET_DATA_SENT = QORE_EVENT_SOCKET_DATA_SENT;
+
+//! Raised when HTTP headers are received
+/** @since %Qore 0.9.4
+*/
+const EVENT_HTTP_HEADERS_READ = QORE_EVENT_HTTP_HEADERS_READ;
 //@}
 
 /** @defgroup io_constants I/O Constants

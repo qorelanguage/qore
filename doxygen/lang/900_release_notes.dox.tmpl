@@ -40,6 +40,12 @@
       - the \c <tt>/u</tt> option in @ref qore_regex_options
       - the @ref Qore::RE_Unicode "RE_Unicode" constant
     - new constants:
+      - @ref Qore::EVENT_HTTP_CHUNKED_DATA_READ "EVENT_HTTP_CHUNKED_DATA_READ"
+      - @ref Qore::EVENT_HTTP_CHUNKED_DATA_SENT "EVENT_HTTP_CHUNKED_DATA_SENT"
+      - @ref Qore::EVENT_HTTP_CHUNKED_FOOTERS_SENT "EVENT_HTTP_CHUNKED_FOOTERS_SENT"
+      - @ref Qore::EVENT_HTTP_HEADERS_READ "EVENT_HTTP_HEADERS_READ"
+      - @ref Qore::EVENT_SOCKET_DATA_READ "EVENT_SOCKET_DATA_READ"
+      - @ref Qore::EVENT_SOCKET_DATA_SENT "EVENT_SOCKET_DATA_SENT"
       - @ref Qore::NT_ALL "NT_ALL"
       - @ref Qore::RE_Unicode "RE_Unicode"
     - new pseudo-methods:
@@ -61,8 +67,14 @@
       - @ref Qore::Program::getCallReference() "Program::getCallReference()"
     - updated methods:
       - @ref Qore::BinaryInputStream::constructor() "BinaryInputStream::constructor()" accepts strings as well as binary values
+      - @ref Qore::FtpClient::setControlEventQueue() "FtpClient::setControlEventQueue()": added the \a arg and \a with_data options
+      - @ref Qore::FtpClient::setDataEventQueue() "FtpClient::setDataEventQueue()": added the \a arg and \a with_data options
+      - @ref Qore::FtpClient::setEventQueue() "FtpClient::setEventQueue()": added the \a arg and \a with_data options
+      - @ref Qore::HTTPClient::setEventQueue() "HTTPClient::setEventQueue()": added the \a arg and \a with_data options
       - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()": added the \c reexport argument
       - @ref Qore::Program::loadApplyToUserModuleWarn() "Program::loadApplyToUserModuleWarn()": added the \c reexport argument
+      - @ref Qore::ReadOnlyFile::setEventQueue() "ReadOnlyFile::setEventQueue()": added the \a arg and \a with_data options
+      - @ref Qore::Socket::setEventQueue() "Socket::setEventQueue()": added the \a arg and \a with_data options
     - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
       - added \c Type::isAssignableFrom() methods
       - added a working \c Type::constructor() method

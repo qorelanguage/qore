@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -49,23 +49,25 @@ class Queue;
 */
 class QoreHTTPClient : public QoreHttpClientObject {
 public:
-   //! creates the QoreHTTPClient object
-   DLLEXPORT QoreHTTPClient();
+    //! creates the QoreHTTPClient object
+    DLLEXPORT QoreHTTPClient();
 
-   //! destroys the object and frees all associated memory
-   DLLEXPORT virtual ~QoreHTTPClient();
+    //! destroys the object and frees all associated memory
+    DLLEXPORT virtual ~QoreHTTPClient();
 
-   DLLEXPORT void setDefaultPath(const char* pth);
-   DLLEXPORT void setDefaultHeaderValue(const char* header, const char* val);
-   DLLEXPORT void addProtocol(const char* prot, int port, bool ssl = false);
+    DLLEXPORT void setDefaultPath(const char* pth);
+    DLLEXPORT void setDefaultHeaderValue(const char* header, const char* val);
+    DLLEXPORT void addProtocol(const char* prot, int port, bool ssl = false);
 
-   DLLEXPORT int setOptions(const QoreHashNode* opts, ExceptionSink* xsink);
-   DLLEXPORT const QoreEncoding* getEncoding() const;
+    DLLEXPORT int setOptions(const QoreHashNode* opts, ExceptionSink* xsink);
+    DLLEXPORT const QoreEncoding* getEncoding() const;
 
-   DLLEXPORT int connect(ExceptionSink* xsink);
-   DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT int connect(ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
-   DLLEXPORT void setEventQueue(Queue* cbq, ExceptionSink* xsink);
+    DLLEXPORT void setEventQueue(Queue* cbq, ExceptionSink* xsink);
+
+    DLLEXPORT void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 };
 
 #endif
