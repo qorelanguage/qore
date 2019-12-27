@@ -38,7 +38,7 @@
 %new-style
 
 module WebSocketClient {
-    version = "1.7";
+    version = "1.8";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -86,6 +86,10 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v1_8 v1.8
+    - added support for socket events
+      (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
     @subsection wsc_v1_7 v1.7
     - all connection clases have unified constructor
@@ -384,7 +388,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
         #! Returns performance statistics for the socket
         /** @par Example:
             @code{.py}
-hash h = ws.getUsageInfo();
+hash<auto> h = ws.getUsageInfo();
             @endcode
 
             @return a hash with the following keys:
@@ -400,7 +404,7 @@ hash h = ws.getUsageInfo();
 
             @see WebSocketClient::clearStats()
         */
-        hash getUsageInfo() {
+        hash<auto> getUsageInfo() {
             return hc.getUsageInfo();
         }
 
@@ -416,6 +420,41 @@ ws.clearStats();
         */
         clearStats() {
             hc.clearStats();
+        }
+
+        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+        /** @par Example:
+            @code{.py}
+ws.setEventQueue(queue);
+            @endcode
+
+            @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
+            the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+            @param arg an argument that will be included in each event hash in the \a arg key
+            @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+
+            @throw QUEUE-ERROR the Queue passed has a maximum size set
+
+            @see @ref event_handling for more information
+
+            @since %WebSocketClient 1.8
+        */
+        setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
+            hc.setEventQueue(queue, arg, with_data);
+        }
+
+        #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+        /** @par Example:
+            @code{.py}
+ws.setEventQueue();
+            @endcode
+
+            @see @ref event_handling for more information
+
+            @since %WebSocketClient 1.8
+        */
+        setEventQueue() {
+            hc.setEventQueue();
         }
 
         private disconnectUnlocked(int cmd = WSCC_GoingAway) {

@@ -133,9 +133,9 @@ int QoreSocketObject::send(const char* buf, int size, int timeout_ms, ExceptionS
 }
 
 // send a null-terminated string
-int QoreSocketObject::send(const QoreString* msg, int timeout_ms, ExceptionSink* xsink) {
-   AutoLocker al(priv->m);
-   return priv->socket->send(msg, timeout_ms, xsink);
+int QoreSocketObject::send(const QoreStringNode& msg, int timeout_ms, ExceptionSink* xsink) {
+    AutoLocker al(priv->m);
+    return priv->socket->send(msg, timeout_ms, xsink);
 }
 
 // send a binary object
@@ -198,14 +198,14 @@ int QoreSocketObject::sendi8LSB(int64 b, int timeout_ms, ExceptionSink* xsink) {
 
 // receive a packet of bytes as a string
 QoreStringNode* QoreSocketObject::recv(int timeout_ms, ExceptionSink* xsink) {
-   AutoLocker al(priv->m);
-   return priv->socket->recv(timeout_ms, xsink);
+    AutoLocker al(priv->m);
+    return priv->socket->recv(timeout_ms, xsink);
 }
 
 // receive a certain number of bytes as a string
 QoreStringNode* QoreSocketObject::recv(qore_offset_t bufsize, int timeout_ms, ExceptionSink* xsink) {
-   AutoLocker al(priv->m);
-   return priv->socket->recv(bufsize, timeout_ms, xsink);
+    AutoLocker al(priv->m);
+    return priv->socket->recv(bufsize, timeout_ms, xsink);
 }
 
 // receive a packet of bytes as a binary
@@ -294,35 +294,45 @@ int64 QoreSocketObject::recvu4LSB(int timeout_ms, unsigned int* b, ExceptionSink
 }
 
 // send HTTP message
-int QoreSocketObject::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms) {
-   AutoLocker al(priv->m);
-   return priv->socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, source, timeout_ms);
+int QoreSocketObject::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path,
+    const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms) {
+    AutoLocker al(priv->m);
+    return priv->socket->sendHTTPMessage(xsink, info, method, path, http_version, headers, ptr, size, source,
+        timeout_ms);
 }
 
-int QoreSocketObject::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m);
-}
-
-int QoreSocketObject::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted) {
-   AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m, aborted);
+int QoreSocketObject::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method,
+    const char* path, const char* http_version, const QoreHashNode* headers,
+    const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted) {
+    AutoLocker al(priv->m);
+    return priv->socket->priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path,
+        http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m,
+        aborted);
 }
 
 // send HTTP response
-int QoreSocketObject::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms) {
-   AutoLocker al(priv->m);
-   return priv->socket->sendHTTPResponse(xsink, code, desc, http_version, headers, ptr, size, source, timeout_ms);
+int QoreSocketObject::sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
+    const char* http_version, const QoreHashNode* headers, const void* ptr, size_t size, int source, int timeout_ms) {
+    AutoLocker al(priv->m);
+    return priv->socket->sendHTTPResponse(xsink, info, code, desc, http_version, headers, ptr, size, source,
+        timeout_ms);
 }
 
-int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms, &priv->m);
+int QoreSocketObject::sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
+    const char* http_version, const QoreHashNode* headers, InputStream *input_stream, size_t max_chunked_size,
+    const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms) {
+    AutoLocker al(priv->m);
+    return priv->socket->priv->sendHttpResponse(xsink, info, "Socket", "sendHTTPResponse", code, desc, http_version,
+        headers, nullptr, 0, nullptr, input_stream, max_chunked_size, trailer_callback, source, timeout_ms, &priv->m);
 }
 
-int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted) {
-   AutoLocker al(priv->m);
-   return priv->socket->priv->sendHttpResponse(xsink, "Socket", "sendHTTPResponseWithCallback", code, desc, http_version, headers, 0, 0, &send_callback, source, timeout_ms, &priv->m, aborted);
+int QoreSocketObject::sendHTTPResponseWithCallback(ExceptionSink* xsink, QoreHashNode* info, int code,
+    const char* desc, const char* http_version, const QoreHashNode* headers,
+    const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted) {
+    AutoLocker al(priv->m);
+    return priv->socket->priv->sendHttpResponse(xsink, info, "Socket", "sendHTTPResponseWithCallback", code, desc,
+        http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms, &priv->m,
+        aborted);
 }
 
 // send data in HTTP chunked format
@@ -565,9 +575,14 @@ void QoreSocketObject::upgradeServerToSSL(int timeout_ms, ExceptionSink* xsink) 
    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, timeout_ms, xsink);
 }
 
+void QoreSocketObject::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+    AutoLocker al(priv->m);
+    priv->socket->setEventQueue(xsink, q, arg, with_data);
+}
+
 void QoreSocketObject::setEventQueue(Queue* cbq, ExceptionSink* xsink) {
-   AutoLocker al(priv->m);
-   priv->socket->setEventQueue(cbq, xsink);
+    AutoLocker al(priv->m);
+    priv->socket->setEventQueue(xsink, cbq, QoreValue(), false);
 }
 
 int QoreSocketObject::setNoDelay(int nodelay) {

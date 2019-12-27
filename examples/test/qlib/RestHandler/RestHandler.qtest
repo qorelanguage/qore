@@ -438,7 +438,7 @@ public class RestHandlerTest inherits QUnit::Test {
             h = mClient.doRequest("OPTIONS", "test", NOTHING, \info);
             assertEq(200, h.status_code);
             assertNothing(h.body);
-            assertEq("0", h."content-length");
+            assertNothing(h."content-length");
 
             # issue #3373 exception test
             assertThrows("EXCEPTION-TEST-ERROR", "exception test error", \mClient.doRequest(), ("PUT", "test/ex", NOTHING, \info));

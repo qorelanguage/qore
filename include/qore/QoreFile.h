@@ -600,7 +600,7 @@ public:
     DLLLOCAL void makeSpecial(int sfd);
 
     //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
-    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink *xsink);
+    DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     //! internal API, must be called before deleting the object if an event queue is set
     DLLLOCAL void cleanup(ExceptionSink *xsink);

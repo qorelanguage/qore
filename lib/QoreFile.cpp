@@ -803,8 +803,8 @@ int QoreFile::getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) cons
 }
 #endif
 
-void QoreFile::setEventQueue(Queue *cbq, ExceptionSink *xsink) {
-   priv->setEventQueue(cbq, xsink);
+void QoreFile::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+   priv->setEventQueue(xsink, q, arg, with_data);
 }
 
 void QoreFile::cleanup(ExceptionSink *xsink) {

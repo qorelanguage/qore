@@ -82,6 +82,9 @@ public namespace ConnectionProvider {
             #! locked/unlocked flag
             bool locked = False;
 
+            #! debug data flag; to be used an an indication for a higher-level implementation
+            bool debug_data = False;
+
             #! connection tags; user-defined key-value pairs
             hash<auto> tags = {};
         }
@@ -149,6 +152,7 @@ public namespace ConnectionProvider {
             self.monitor = attributes.monitor ?? True;
             self.enabled = attributes.enabled ?? True;
             self.locked = attributes.locked ?? False;
+            self.debug_data = attributes.debug_data ?? False;
             self.tags = attributes.tags ?? {};
 
             self.orig_opts = options;
@@ -256,8 +260,11 @@ schema://user:pass@hostname:port/path
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
             hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check",
-                "updated", "status", "up", "loopback", "enabled", "locked", "tags") + ("type": getType(),
-                "url_hash": urlh, "has_provider": hasDataProvider()));
+                "updated", "status", "up", "loopback", "enabled", "locked", "debug_data", "tags") + {
+                "type": getType(),
+                "url_hash": urlh,
+                "has_provider": hasDataProvider(),
+            });
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;

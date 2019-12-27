@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,13 +41,13 @@ extern QoreClass* QC_READONLYFILE;
 #endif
 
 QoreFileHelper::QoreFileHelper(QoreObject* obj, ExceptionSink* xs) : QorePrivateObjectAccessHelper(xs) {
-   File* f = reinterpret_cast<File*>(obj->getReferencedPrivateData(CID_FILE, xs));
-   if (!f) {
-      if (!*xsink)
-         xsink->raiseException("FILE-ERROR", "expecting an object derived from File; got class '%s' instead", obj->getClassName());
-      return;
-   }
-   ptr = (void*)f;
+    File* f = reinterpret_cast<File*>(obj->getReferencedPrivateData(CID_FILE, xs));
+    if (!f) {
+        if (!*xsink)
+            xsink->raiseException("FILE-ERROR", "expecting an object derived from File; got class '%s' instead", obj->getClassName());
+        return;
+    }
+    ptr = (void*)f;
 }
 
 QoreFileHelper::~QoreFileHelper() {
@@ -107,8 +107,8 @@ static int file_lock_error(const char* f, ExceptionSink* xsink) {
 #endif
 
 AbstractQoreNode* missing_method_error(const char* meth, const char* feat, ExceptionSink* xsink) {
-   xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::HAVE_%s before calling this method", meth, feat);
-   return 0;
+    xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::HAVE_%s before calling this method", meth, feat);
+    return nullptr;
 }
 
 /** @defgroup file_open_constants File Open Constants

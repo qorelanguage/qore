@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -180,29 +180,30 @@ struct qore_ftp_private {
         return data.getSocketInfo(xsink, host_lookup);
     }
 
-    DLLLOCAL void setControlEventQueue(Queue *cbq, ExceptionSink* xsink) {
+    DLLLOCAL void setControlEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
         AutoLocker al(m);
-        control.setEventQueue(cbq, xsink);
+        control.setEventQueue(xsink, q, arg, with_data);
     }
 
-    DLLLOCAL void setDataEventQueue(Queue *cbq, ExceptionSink* xsink) {
+    DLLLOCAL void setDataEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
         AutoLocker al(m);
-        data.setEventQueue(cbq, xsink);
+        data.setEventQueue(xsink, q, arg, with_data);
     }
 
-    DLLLOCAL void setEventQueue(Queue *cbq, ExceptionSink* xsink) {
+    DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
         AutoLocker al(m);
-        control.setEventQueue(cbq, xsink);
-        if (cbq)
-            cbq->ref();
-        data.setEventQueue(cbq, xsink);
+        control.setEventQueue(xsink, q, arg, with_data);
+        if (q)
+            q->ref();
+        data.setEventQueue(xsink, q, arg, with_data);
     }
 
     DLLLOCAL void cleanup(ExceptionSink* xsink) {
         AutoLocker al(m);
         if (data.getQueue() && (data.getQueue() == control.getQueue())) {
+            // make sure only one close event is pushed on the queue
             data.cleanup(xsink);
-            control.setEventQueue(0, xsink);
+            control.setEventQueue(xsink, nullptr, QoreValue(), false);
             return;
         }
 
@@ -213,13 +214,10 @@ struct qore_ftp_private {
     DLLLOCAL void do_event_send_msg(const char* cmd, const char* arg) {
         Queue *q = control.getQueue();
         if (q) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_FTP_SEND_MESSAGE, 0);
-            h->setKeyValue("source", QORE_SOURCE_FTPCLIENT, 0);
-            h->setKeyValue("id", control.getObjectIDForEvents(), 0);
-            h->setKeyValue("command", new QoreStringNode(cmd), 0);
+            QoreHashNode* h = qore_socket_private::get(control)->getEvent(QORE_EVENT_FTP_SEND_MESSAGE, QORE_SOURCE_FTPCLIENT);
+            h->setKeyValue("command", new QoreStringNode(cmd), nullptr);
             if (arg)
-                h->setKeyValue("arg", new QoreStringNode(arg), 0);
+                h->setKeyValue("arg", new QoreStringNode(arg), nullptr);
             q->pushAndTakeRef(h);
         }
     }
@@ -227,12 +225,9 @@ struct qore_ftp_private {
     DLLLOCAL void do_event_msg_received(int code, const char* msg) {
         Queue *q = control.getQueue();
         if (q) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_FTP_MESSAGE_RECEIVED, 0);
-            h->setKeyValue("source", QORE_SOURCE_FTPCLIENT, 0);
-            h->setKeyValue("id", control.getObjectIDForEvents(), 0);
-            h->setKeyValue("code", code, 0);
-            h->setKeyValue("message", msg[0] ? new QoreStringNode(msg) : 0, 0);
+            QoreHashNode* h = qore_socket_private::get(control)->getEvent(QORE_EVENT_FTP_MESSAGE_RECEIVED, QORE_SOURCE_FTPCLIENT);
+            h->setKeyValue("code", code, nullptr);
+            h->setKeyValue("message", msg[0] ? QoreValue(new QoreStringNode(msg)) : QoreValue(), nullptr);
             q->pushAndTakeRef(h);
         }
     }
@@ -1248,37 +1243,38 @@ QoreStringNode* QoreFtpClient::getAsString(const char* remotepath, ExceptionSink
 
 // public locked
 BinaryNode* QoreFtpClient::getAsBinary(const char* remotepath, ExceptionSink* xsink) {
-   printd(5, "QoreFtpClient::getAsBinary(%s)\n", remotepath);
+    printd(5, "QoreFtpClient::getAsBinary(%s)\n", remotepath);
 
-   SafeLocker sl(priv->m);
-   if (priv->checkConnectedUnlocked(xsink))
-      return 0;
+    SafeLocker sl(priv->m);
+    if (priv->checkConnectedUnlocked(xsink))
+        return nullptr;
 
-   printd(FTPDEBUG, "QoreFtpClient::getAsBinary(%s)\n", remotepath);
+    printd(FTPDEBUG, "QoreFtpClient::getAsBinary(%s)\n", remotepath);
 
-   FtpResp resp;
-   if (priv->pre_get(resp, remotepath, xsink))
-      return 0;
+    FtpResp resp;
+    if (priv->pre_get(resp, remotepath, xsink))
+        return nullptr;
 
-   SimpleRefHolder<BinaryNode> rv(priv->data.recvBinary(-1, priv->timeout_ms, xsink));
-   priv->data.close();
-   if (*xsink)
-      return 0;
+    qore_offset_t rc;
+    SimpleRefHolder<BinaryNode> rv(priv->data.priv->recvBinary(xsink, -1, priv->timeout_ms, rc, QORE_SOURCE_FTPCLIENT));
+    priv->data.close();
+    if (*xsink)
+        return nullptr;
 
-   int code;
-   resp.assign(priv->getResponse(code, xsink));
-   sl.unlock();
+    int code;
+    resp.assign(priv->getResponse(code, xsink));
+    sl.unlock();
 
-   if (*xsink)
-      return 0;
+    if (*xsink)
+        return nullptr;
 
-   //printf("PUT: %s", resp->getBuffer());
-   if ((code / 100 != 2)) {
-      xsink->raiseException("FTP-GETASBINARY-ERROR", "FTP server returned an error to the RETR command: %s",
-                            resp.getBuffer());
-      return 0;
-   }
-   return rv.release();
+    //printf("PUT: %s", resp->getBuffer());
+    if ((code / 100 != 2)) {
+        xsink->raiseException("FTP-GETASBINARY-ERROR", "FTP server returned an error to the RETR command: %s",
+                                resp.getBuffer());
+        return nullptr;
+    }
+    return rv.release();
 }
 
 // public locked
@@ -1593,16 +1589,16 @@ const char* QoreFtpClient::getHostName() const {
    return priv->host;
 }
 
-void QoreFtpClient::setEventQueue(Queue *cbq, ExceptionSink* xsink) {
-   priv->setEventQueue(cbq, xsink);
+void QoreFtpClient::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+   priv->setEventQueue(xsink, q, arg, xsink);
 }
 
-void QoreFtpClient::setControlEventQueue(Queue *cbq, ExceptionSink* xsink) {
-   priv->setControlEventQueue(cbq, xsink);
+void QoreFtpClient::setControlEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+   priv->setControlEventQueue(xsink, q, arg, xsink);
 }
 
-void QoreFtpClient::setDataEventQueue(Queue *cbq, ExceptionSink* xsink) {
-   priv->setDataEventQueue(cbq, xsink);
+void QoreFtpClient::setDataEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
+   priv->setDataEventQueue(xsink, q, arg, xsink);
 }
 
 void QoreFtpClient::cleanup(ExceptionSink* xsink) {

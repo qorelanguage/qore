@@ -114,8 +114,11 @@ class SocketTest inherits QUnit::Test {
     }
 
     tls13Test() {
+        assertEq(0, qore_get_library_options() & QLO_DISABLE_TLS_13);
+
         # disable TLS 1.3
         qore_set_library_options(QLO_DISABLE_TLS_13);
+        assertEq(QLO_DISABLE_TLS_13, qore_get_library_options() & QLO_DISABLE_TLS_13);
 
         Queue q();
         background doServ(q);
@@ -271,7 +274,7 @@ class SocketTest inherits QUnit::Test {
         Socket s();
         # setting the callback will output far too much data
         if (m_options.events) {
-            s.setEventQueue(queue);
+            s.setEventQueue(queue, "server", True);
         }
 
         {
@@ -328,7 +331,7 @@ class SocketTest inherits QUnit::Test {
                 #SocketTest::printf("server: cleartext connection from %s\n", s.getPeerInfo().address_desc);
             }
             if (m_options.events)
-                s.setEventQueue(queue);
+                s.setEventQueue(queue, "server connection", True);
         } catch (hash<ExceptionInfo> ex) {
             SocketTest::printf("server error: %s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             thread_exit;
@@ -347,7 +350,7 @@ class SocketTest inherits QUnit::Test {
         Socket s();
         # setting the callback will output far too much data
         if (m_options.events)
-            s.setEventQueue(queue);
+            s.setEventQueue(queue, "client", True);
 
         try {
             if (m_options.ssl) {
@@ -418,7 +421,17 @@ class SocketTest inherits QUnit::Test {
         m = s.recv(m."content-length");
         assertEq(XString, m, who + " HTTP message body");
 
-        s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
+        s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK", \info);
+        assertEq("HTTP/1.1 200 OK", info."response-uri");
+
+        m = s.readHTTPHeader(-1, \info);
+        assertEq(Type::Hash, info."headers-raw".type());
+        assertEq("GET", m.method, who + " HTTP header method");
+        assertNothing(m."content-length");
+
+        StringInputStream input_stream("OK");
+        s.sendHTTPResponse(200, "OK", "1.1", http_headers + {"Transfer-Encoding": "chunked"}, input_stream, NOTHING, \info);
+        assertEq("HTTP/1.1 200 OK", info."response-uri");
     }
 
     private send_messages(Socket s) {
@@ -445,6 +458,8 @@ class SocketTest inherits QUnit::Test {
         get_response(s);
         s.sendHTTPMessage("POST", "none", "1.1", http_headers, XString);
         get_http_response(s);
+        s.sendHTTPMessage("GET", "none", "1.1", http_headers);
+        get_http_response(s);
     }
 
     static check_send(int rc, string data) {
@@ -460,9 +475,14 @@ class SocketTest inherits QUnit::Test {
 
     private get_http_response(Socket s) {
         auto m = s.readHTTPHeader();
-        m = s.recv(m."content-length");
-        if (m != "OK")
-            throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", m);
+        if (m."transfer-encoding" == "chunked") {
+            m = s.readHTTPChunkedBody();
+            assertEq("OK", m.body);
+        } else {
+            m = s.recv(m."content-length");
+            if (m != "OK")
+                throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", m);
+        }
     }
 
     private usageIntern(int offset = OffsetColumn) {
@@ -531,11 +551,27 @@ class SocketTest inherits QUnit::Test {
             # least the following keys: "event" with the event code, and
             # "source" with the event source identifier
 
-            auto e = queue.get();
+            *hash<auto> e = queue.get();
 
             # stop listening when empty event posted to queue in constructor()
-            if (!exists e)
+            if (!e)
                 return;
+
+            if (e.data.typeCode() == NT_BINARY) {
+                string str = e.data.toString();
+                delete e.data;
+                for (int i = 0, int end = str.size(); i < end; ++i) {
+                    string char = str[i];
+                    int uc = char.getUnicode();
+                    if (uc < 32 || uc >= 127) {
+                        e.data += sprintf("<%x>", uc);
+                    } else {
+                        e.data += char;
+                    }
+                }
+            }
+
+            e.id = sprintf("%x", e.id);
 
             SocketTest::printf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), SocketTest::getstr(e - ("event", "source")));
             flush(); # flush output
@@ -554,7 +590,7 @@ class SocketTest inherits QUnit::Test {
         # of the hash keys.  this is more consise than iterating the keys with
         # a "foreach" statement, for example
 
-        map (str += sprintf("%s=%n ", $1, h.$1)), keys h;
+        map (str += sprintf("%s: %y ", $1.key, $1.value)), h.pairIterator();
         return str;
     }
 }

@@ -813,22 +813,28 @@ f.setEventQueue(queue);
     @endcode
 
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref file_events "file events"; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+    @param arg an argument that will be included in each event hash in the \a arg key
+    @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
     @throw QUEUE-ERROR the Queue passed has a maximum size set
 
     @see @ref event_handling for more information
- */
-nothing ReadOnlyFile::setEventQueue(Qore::Thread::Queue[Queue] queue) {
-   ReferenceHolder<Queue> q(queue, xsink);
-   if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return QoreValue();
 
-   if (queue->getMax() != -1)
-      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+    @since %Qore 0.9.4 added the \a arg and \a with_data options
+*/
+nothing ReadOnlyFile::setEventQueue(Queue[Queue] queue, auto arg, *bool with_data) {
+    ReferenceHolder<Queue> q(queue, xsink);
+    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
+        return QoreValue();
 
-   // pass reference from QoreObject::getReferencedPrivateData() to function
-   f->setEventQueue(q.release(), xsink);
+    if (queue->getMax() != -1)
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which " \
+            "could cause internal I/O to freeze in the File object if used; use a Queue object with no maximum " \
+            "size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    f->setEventQueue(xsink, q.release(), arg.refSelf(), with_data);
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the %ReadOnlyFile object so that @ref file_events "file events" are no longer added to the @ref Qore::Thread::Queue "Queue"
@@ -842,10 +848,10 @@ f.setEventQueue();
     @see @ref event_handling for more information
  */
 nothing ReadOnlyFile::setEventQueue() {
-   if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
-      return QoreValue();
+    if (check_terminal_io(self, "ReadOnlyFile::setEventQueue", xsink))
+        return QoreValue();
 
-   f->setEventQueue(0, xsink);
+    f->setEventQueue(xsink, nullptr, QoreValue(), false);
 }
 
 //! Returns a @ref stat_list about the file's status or throws an exception if any errors occur

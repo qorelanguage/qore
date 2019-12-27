@@ -611,13 +611,25 @@ public:
 
     //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
     /**
-         @param msg the string to send (must not be 0)
+        @param msg the string to send (must not be 0)
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
         @param xsink if an error occurs in converting the string's character encoding or in socket communication, the Qore-language exception information will be added here
 
         @return 0 for OK, not 0 if an error occured
     */
     DLLEXPORT int send(const QoreString *msg, int timeout_ms, ExceptionSink* xsink);
+
+    //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
+    /**
+        @param msg the string to send (must not be 0)
+        @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
+        @param xsink if an error occurs in converting the string's character encoding or in socket communication, the Qore-language exception information will be added here
+
+        @return 0 for OK, not 0 if an error occured
+
+        @since %Qore 0.9.4
+    */
+    DLLEXPORT int send(const QoreStringNode& msg, int timeout_ms, ExceptionSink* xsink);
 
     //! sends binary data on a connected socket
     /**
@@ -1363,21 +1375,27 @@ public:
     */
     DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source, int timeout_ms);
 
-    //! send an HTTP response message on the socket with a chunked message body using a calback
+    //! send an HTTP response message on the socket
     /** The socket must be connected before this call is made.
 
         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param info if not null, the response-uri will be written to this hash, neither of these keys should be set before this call
         @param code the HTTP response code
         @param desc the text description for the response code
         @param http_version should be either "1.0" or "1.1"
         @param headers a hash of headers to send (key: value)
-        @param send_callback the callback for the chunked message body
+        @param data optional message body to send (may be 0)
+        @param size the length of the message body (may be 0)
         @param source the event source code for socket events
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
 
         @return 0 for OK, not 0 for error
+
+        @since %Qore 0.9.4
     */
-    DLLEXPORT int sendHTTPResponseWithCallback(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms);
+    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
+        const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source,
+        int timeout_ms);
 
     //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
     /** The socket must be connected before this call is made.
@@ -1774,7 +1792,7 @@ public:
     DLLLOCAL static void doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink);
 
     //! sets the event queue (not part of the library's pubilc API), must be already referenced before call
-    DLLLOCAL void setEventQueue(Queue* cbq, ExceptionSink* xsink);
+    DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     //! returns the event queue (not part of the library's public API)
     DLLLOCAL Queue* getQueue();

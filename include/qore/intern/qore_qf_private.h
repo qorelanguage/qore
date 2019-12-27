@@ -69,7 +69,11 @@ struct qore_qf_private {
     const QoreEncoding* charset;
     std::string filename;
     mutable QoreThreadLock m;
-    Queue* cb_queue = nullptr;
+    Queue* event_queue = nullptr;
+    //! argument for the event queue
+    QoreValue event_arg;
+    //! if data should be included in file events
+    bool event_data = false;
 
     DLLLOCAL qore_qf_private(const QoreEncoding* cs) : charset(cs) {
     }
@@ -78,7 +82,7 @@ struct qore_qf_private {
         close_intern();
 
         // must be dereferenced and removed before deleting
-        assert(!cb_queue);
+        assert(!event_queue);
      }
 
     DLLLOCAL int close_intern(bool detach = false) {
@@ -405,16 +409,16 @@ struct qore_qf_private {
 
             if (size > 0) {
                 if (size - br < bs)
-                bs = size - br;
+                    bs = size - br;
                 if (br >= (qore_size_t)size)
-                break;
+                    break;
             }
         }
         free(buf);
         if (*xsink) {
             if (bbuf)
                 free(bbuf);
-            return 0;
+            return nullptr;
         }
         size = br;
         return bbuf;
@@ -458,8 +462,7 @@ struct qore_qf_private {
                         if (ch == '\n') {
                             if (incl_eol)
                                 str.concat((char)ch);
-                        }
-                        else {
+                        } else {
                             // reset file to previous byte position
                             lseek(fd, -1, SEEK_CUR);
                         }
@@ -497,7 +500,7 @@ struct qore_qf_private {
                 rc = 0;
             if (c == byte) {
                 if (!incl_byte)
-                str.terminate(str.strlen() - 1);
+                    str.terminate(str.strlen() - 1);
                 break;
             }
         }
@@ -563,7 +566,7 @@ struct qore_qf_private {
                     }
                 }
                 if (!incl_eol)
-                str.terminate(str.strlen() - 1);
+                    str.terminate(str.strlen() - 1);
                 break;
             }
 
@@ -643,8 +646,7 @@ struct qore_qf_private {
                         str.terminate(str.strlen() - pos);
                     break;
                 }
-            }
-            else if (pos) {
+            } else if (pos) {
                 // bytes=aaac read=aaaac str=aaa pos=3
                 //          ^         ^
                 // restart search with characters already added to the string if more than 1 character was matched previously
@@ -659,8 +661,7 @@ struct qore_qf_private {
                     }
                     if (pos == ps)
                         pos = 0;
-                }
-                else {
+                } else {
                     // restart search if failed
                     pos = 0;
                 }
@@ -700,8 +701,7 @@ struct qore_qf_private {
                         str.terminate(str.strlen() - pos);
                     break;
                 }
-            }
-            else if (pos) {
+            } else if (pos) {
                 // bytes=aaac read=aaaac str=aaa pos=3
                 //          ^         ^
                 // restart search with characters already added to the string if more than 1 character was matched previously
@@ -716,8 +716,7 @@ struct qore_qf_private {
                 }
                 if (pos == ps)
                     pos = 0;
-                }
-                else {
+                } else {
                     // restart search if failed
                     pos = 0;
                 }
@@ -760,95 +759,100 @@ struct qore_qf_private {
         return lseek(fd, 0, SEEK_CUR);
     }
 
-    DLLLOCAL void setEventQueue(Queue* cbq, ExceptionSink* xsink) {
+    DLLLOCAL QoreHashNode* getEvent(int event, int source = QORE_SOURCE_FILE) const {
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        if (event_arg) {
+            h->setKeyValue("arg", event_arg.refSelf(), nullptr);
+        }
+
+        h->setKeyValue("event", event, nullptr);
+        h->setKeyValue("source", source, nullptr);
+        h->setKeyValue("id", (int64)this, nullptr);
+
+        return h;
+    }
+
+    DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
         AutoLocker al(m);
-        if (cb_queue)
-            cb_queue->deref(xsink);
-        cb_queue = cbq;
+        if (event_queue) {
+            if (event_arg) {
+                event_arg.discard(xsink);
+            }
+            event_queue->deref(xsink);
+        }
+        event_queue = q;
+        event_arg = arg;
+        event_data = with_data;
     }
 
     DLLLOCAL void cleanup(ExceptionSink* xsink) {
         AutoLocker al(m);
-        if (cb_queue) {
+        if (event_queue) {
             // close the file before the delete message is put on the queue
             // the file would be closed anyway in the destructor
             close_intern();
 
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_DELETED, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            cb_queue->pushAndTakeRef(h);
+            event_queue->pushAndTakeRef(getEvent(QORE_EVENT_DELETED));
 
-            // deref and remove event queue
-            cb_queue->deref(xsink);
-            cb_queue = 0;
+            // deref and remove event queue and arg
+            if (event_arg) {
+                event_arg.discard(xsink);
+                event_arg.clear();
+            }
+            event_queue->deref(xsink);
+            event_queue = nullptr;
         }
     }
 
     DLLLOCAL void do_open_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
-        if (cb_queue) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_OPEN_FILE, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            h->setKeyValue("filename", new QoreStringNode(fn), 0);
-            h->setKeyValue("flags", flags, 0);
-            h->setKeyValue("mode", mode, 0);
-            h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-            cb_queue->pushAndTakeRef(h);
+        if (event_queue) {
+            QoreHashNode* h = getEvent(QORE_EVENT_OPEN_FILE);
+            h->setKeyValue("filename", new QoreStringNode(fn), nullptr);
+            h->setKeyValue("flags", flags, nullptr);
+            h->setKeyValue("mode", mode, nullptr);
+            h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), nullptr);
+            event_queue->pushAndTakeRef(h);
         }
     }
 
     DLLLOCAL void do_opened_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
-        if (cb_queue) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_FILE_OPENED, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            h->setKeyValue("filename", new QoreStringNode(fn), 0);
-            h->setKeyValue("flags", flags, 0);
-            h->setKeyValue("mode", mode, 0);
-            h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
-            cb_queue->pushAndTakeRef(h);
+        if (event_queue) {
+            QoreHashNode* h = getEvent(QORE_EVENT_FILE_OPENED);
+            h->setKeyValue("source", QORE_SOURCE_FILE, nullptr);
+            h->setKeyValue("id", (int64)this, nullptr);
+            h->setKeyValue("filename", new QoreStringNode(fn), nullptr);
+            h->setKeyValue("flags", flags, nullptr);
+            h->setKeyValue("mode", mode, nullptr);
+            h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), nullptr);
+            event_queue->pushAndTakeRef(h);
         }
     }
 
     DLLLOCAL void do_close_event_unlocked() const {
-        if (cb_queue) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_CHANNEL_CLOSED, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            cb_queue->pushAndTakeRef(h);
+        if (event_queue) {
+            event_queue->pushAndTakeRef(getEvent(QORE_EVENT_CHANNEL_CLOSED));
         }
     }
 
     DLLLOCAL void do_read_event_unlocked(int bytes_read, int total_read, int bufsize) const {
         // post bytes read on event queue, if any
-        if (cb_queue) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_DATA_READ, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            h->setKeyValue("read", bytes_read, 0);
-            h->setKeyValue("total_read", total_read, 0);
-            h->setKeyValue("total_to_read", bufsize, 0);
-            cb_queue->pushAndTakeRef(h);
+        if (event_queue) {
+            QoreHashNode* h = getEvent(QORE_EVENT_DATA_READ);
+            h->setKeyValue("read", bytes_read, nullptr);
+            h->setKeyValue("total_read", total_read, nullptr);
+            h->setKeyValue("total_to_read", bufsize, nullptr);
+            event_queue->pushAndTakeRef(h);
         }
     }
 
     DLLLOCAL void do_write_event_unlocked(int bytes_written, int total_written, int bufsize) const {
         // post bytes sent on event queue, if any
-        if (cb_queue) {
-            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-            h->setKeyValue("event", QORE_EVENT_DATA_WRITTEN, 0);
-            h->setKeyValue("source", QORE_SOURCE_FILE, 0);
-            h->setKeyValue("id", (int64)this, 0);
-            h->setKeyValue("written", bytes_written, 0);
-            h->setKeyValue("total_written", total_written, 0);
-            h->setKeyValue("total_to_write", bufsize, 0);
-            cb_queue->pushAndTakeRef(h);
+        if (event_queue) {
+            QoreHashNode* h = getEvent(QORE_EVENT_DATA_WRITTEN);
+            h->setKeyValue("written", bytes_written, nullptr);
+            h->setKeyValue("total_written", total_written, nullptr);
+            h->setKeyValue("total_to_write", bufsize, nullptr);
+            event_queue->pushAndTakeRef(h);
         }
     }
 
@@ -856,12 +860,12 @@ struct qore_qf_private {
         AutoLocker al(m);
 
         if (check_read_open(xsink))
-            return 0;
+            return nullptr;
 
         struct stat sbuf;
         if (fstat(fd, &sbuf)) {
             xsink->raiseErrnoException("FILE-STAT-ERROR", errno, "fstat() call failed");
-            return 0;
+            return nullptr;
         }
 
         return stat_to_list(sbuf);
@@ -871,12 +875,12 @@ struct qore_qf_private {
         AutoLocker al(m);
 
         if (check_read_open(xsink))
-            return 0;
+            return nullptr;
 
         struct stat sbuf;
         if (fstat(fd, &sbuf)) {
             xsink->raiseErrnoException("FILE-HSTAT-ERROR", errno, "fstat() call failed");
-            return 0;
+            return nullptr;
         }
 
         return stat_to_hash(sbuf);
@@ -887,18 +891,18 @@ struct qore_qf_private {
         AutoLocker al(m);
 
         if (check_read_open(xsink))
-            return 0;
+            return nullptr;
 
         struct statvfs vfs;
 #ifdef HAVE_SYS_STATVFS_H
         if (fstatvfs(fd, &vfs)) {
             xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
-            return 0;
+            return nullptr;
         }
 #else
         if (q_fstatvfs(filename.c_str(), &vfs)) {
             xsink->raiseErrnoException("FILE-STATVFS-ERROR", errno, "fstatvfs() call failed");
-            return 0;
+            return nullptr;
         }
 #endif
 
