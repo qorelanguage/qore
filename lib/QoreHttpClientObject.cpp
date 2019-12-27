@@ -998,27 +998,19 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     return response_hash.release();
 }
 
-void do_content_length_event(Queue *event_queue, int64 id, int len) {
+void do_content_length_event(Queue *event_queue, qore_socket_private* priv, int len) {
     if (event_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", QORE_EVENT_HTTP_CONTENT_LENGTH);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
         hh->setKeyValueIntern("len", len);
         event_queue->pushAndTakeRef(h);
     }
 }
 
-void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode* loc, const QoreStringNode* msg) {
+void do_redirect_event(Queue *event_queue, qore_socket_private* priv, const QoreStringNode* loc, const QoreStringNode* msg) {
     if (event_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_REDIRECT, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", QORE_EVENT_HTTP_REDIRECT);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
         hh->setKeyValueIntern("location", loc->refSelf());
         if (msg)
             hh->setKeyValueIntern("status_message", msg->refSelf());
@@ -1026,14 +1018,10 @@ void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode* loc, 
     }
 }
 
-void do_event(Queue *event_queue, int64 id, int event) {
+void do_event(Queue *event_queue, qore_socket_private* priv, int event) {
     if (event_queue) {
-        ExceptionSink xsink;
-        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        QoreHashNode* h = priv->getEvent(event, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("event", event);
-        hh->setKeyValueIntern("source", QORE_SOURCE_HTTPCLIENT);
-        hh->setKeyValueIntern("id", id);
         event_queue->pushAndTakeRef(h);
     }
 }
@@ -1296,7 +1284,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
 
             if (event_queue)
-                do_redirect_event(event_queue, msock->socket->getObjectIDForEvents(), loc, mess);
+                do_redirect_event(event_queue, msock->socket->priv, loc, mess);
 
             if (++redirect_count > max_redirects)
                 break;
@@ -1515,11 +1503,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         }
 
         if (cl && event_queue)
-            do_content_length_event(event_queue, msock->socket->getObjectIDForEvents(), len);
+            do_content_length_event(event_queue, msock->socket->priv, len);
 
         if (te && !strcasecmp(te, "chunked")) { // check for chunked response body
             if (event_queue)
-                do_event(event_queue, msock->socket->getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_START);
+                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_START);
             ReferenceHolder<QoreHashNode> nah(xsink);
             if (os) {
                 msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj, os);
@@ -1535,7 +1523,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                     nah = msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT);
             }
             if (event_queue)
-                do_event(event_queue, msock->socket->getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
+                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_END);
 
             if (!nah && !recv_callback) {
                 if (!msock->socket->isOpen())
