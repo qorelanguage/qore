@@ -1932,10 +1932,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                         if (ah) {
                             if (!ah.code)
                                 ah.code = 401;
-                            if (!ah.body && !ah.chunked_body)
+                            if (!ah.body && !ah.hasKeyValue("chunked_body"))
                                 ah.body = "Authentication is required to access this server";
                             cx.close = True;
-                            sendHttpError(listener, cx, s, ah.code, ah.body, ah.chunked_body, ah.hdr, cx."response-encoding", head);
+                            sendHttpError(listener, cx, s, ah.code, ah.body,
+                                ah.hasKey("chunked_body") ? ah.chunked_body : NOTHING, ah.hdr, cx."response-encoding",
+                                head);
                             return;
                         }
                     } catch (hash<ExceptionInfo> ex) {
@@ -2024,23 +2026,26 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         rv.hdr = self.hdr + rv.hdr;
 
-        if ((exists rv.body || rv.chunked_body)
+        if ((exists rv.body || (bool chunked_body = rv.hasKeyValue("chunked_body")))
             && (head
                 || (rv.code < 200
                     || (rv.code == 204
                     || rv.code == 304)))) {
             remove rv.body;
-            remove rv.chunked_body;
+            if (chunked_body) {
+                remove rv.chunked_body;
+            }
         }
 
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
             doResponse(listener, s, cx, rv);
         } else if (rv.code >= 400) {
-            if (!rv.body && !rv.chunked_body) {
+            if (!rv.body && !rv.hasKeyValue("chunked_body")) {
                 rv.body = sprintf("unknown error in %s handler", cx.handler_name);
             }
-            sendHttpError(listener, cx, s, rv.code, rv.body, rv.chunked_body, rv.hdr, cx."response-encoding", head);
+            sendHttpError(listener, cx, s, rv.code, rv.body, rv.hasKey("chunked_body") ? rv.chunked_body : NOTHING,
+                rv.hdr, cx."response-encoding", head);
         } else {
             HttpServer::http_set_reply_headers(s, cx, \rv);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
@@ -2095,7 +2100,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     private:internal doResponse(HttpListener listener, Socket s, hash<auto> cx, hash<auto> rv) {
-        if (rv.body || !rv.chunked_body) {
+        if (rv.body || !rv.hasKeyValue("chunked_body")) {
             s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
         } else {
             if (rv.chunked_body instanceof StringInputStream) {
@@ -2566,7 +2571,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     logResponse(hash<auto> cx, hash<auto> rv) {
-        if (rv.body || !rv.chunked_body) {
+        #  "rv" can be a "HttpHandlerResponseInfo", so we can't access "chunked_body" directly
+        if (rv.body || !rv.hasKeyValue("chunked_body")) {
             logResponse(cx, rv.code, rv.body, rv.hdr);
         } else {
             logResponse(cx, rv.code, rv.chunked_body, rv.hdr);
@@ -2586,8 +2592,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
             }
-        }
-        else
+        } else
             serv.logArgs(args);
     }
 

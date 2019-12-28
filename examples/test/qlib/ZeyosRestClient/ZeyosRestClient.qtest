@@ -120,28 +120,6 @@ class ZeyosTest inherits QUnit::Test {
 
         ZeyosRestClient client = zeyosrc.get(False);
         assertEq(True, client instanceof ZeyosRestClient);
-
-        hash<ConnectionConstructorInfo> info = zeyosrc.getConstructorInfo();
-        assertEq("ZeyosRestClient", info.module);
-        assertEq("ZeyosRestClient", info.class_name);
-        assertEq(url, info.args[0].url);
-        checkPreAndPostProcessing(info);
-    }
-
-    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
-        Program program(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
-        if (info.module)
-            program.loadModule(info.module);
-        if (info.pre_processing) {
-            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
-            program.parse(pre_processing, "pre processing");
-            assertTrue(True, "pre processing: " + info.class_name);
-        }
-        if (info.post_processing) {
-            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
-            program.parse(post_processing, "post processing");
-            assertTrue(True, "post processing: " + info.class_name);
-        }
     }
 
 }

@@ -57,13 +57,6 @@ class TestConnection inherits AbstractConnection {
     private TestConn getImpl(bool connect = True, *hash rtopts) {
         return new TestConn();
     }
-
-    private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-        return new hash<ConnectionConstructorInfo>({
-            "module": "TestConnection",
-            "class_name": "TestConn",
-        });
-    }
 }
 
 public namespace TestConnectionProvider {

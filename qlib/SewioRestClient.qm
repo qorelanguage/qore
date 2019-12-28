@@ -261,18 +261,6 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
             return new SewioRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %SewioRestClient 1.5
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "SewioRestClient",
-                "class_name": "SewioRestClient",
-                "args": real_opts,
-                "pre_processing": "args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "apikey": the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio API key in use

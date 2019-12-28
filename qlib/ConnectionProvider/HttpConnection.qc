@@ -114,19 +114,6 @@ public namespace ConnectionProvider {
             return sc;
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %ConnectionProvider 1.1
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            string my_code = "if (connect) {obj.connect();}";
-
-            return new hash<ConnectionConstructorInfo>((
-                "class_name": "HTTPClient",
-                "args": {"url": url} + opts,
-                "post_processing": my_code,
-            ));
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds

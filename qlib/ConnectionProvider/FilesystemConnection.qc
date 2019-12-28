@@ -117,25 +117,6 @@ public namespace ConnectionProvider {
             return dir;
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %ConnectionProvider 1.1
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            string my_code;
-            if (urlh.path.val()) {
-                my_code = sprintf("obj.chdir(%y); ", urlh.path);
-            }
-            if (!opts.readonly) {
-                string err_msg = sprintf("connection %y (type %y url %y) points to non-existent, inaccessible, or read-only directory %y", name, urlh.protocol, url, urlh.path);
-                my_code += sprintf("if (connect && (!is_writeable(%y) || !obj.exists())) {throw \"CONNECTION-ERROR\", %y;};", urlh.path, err_msg);
-            }
-
-            return new hash<ConnectionConstructorInfo>((
-                "class_name": "Dir",
-                "post_processing": my_code,
-            ));
-        }
-
         #! gets options
         /** @return returns a hash with the following supported option:
         - \c "readonly": if @ref Qore::True "True", does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable (default: @ref Qore::False "False")

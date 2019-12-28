@@ -491,18 +491,6 @@ AwsRestClient rest({
             return new AwsRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %AwsRestClient 1.5
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "AwsRestClient",
-                "class_name": "AwsRestClient",
-                "args": real_opts,
-                "pre_processing": "args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "aws_keyid": (required) AWS key ID

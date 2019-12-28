@@ -104,19 +104,6 @@ public namespace ConnectionProvider {
             return fc;
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %ConnectionProvider 1.1
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            string my_code = sprintf("if (connect) {obj.connect(); *string rtpath = rtopts.path ?* %s; if (rtpath.path_add.val()) {if (rtpath !~ /\\/$/ && rtopts.path_add !~ /^\\//) {rtpath += \"/\";} rtpath += rtopts.path_add;} if (rtpath.val()) {obj.cwd(rtpath);}}", urlh.path.val() ? sprintf("%y", urlh.path) : "NOTHING");
-
-            return new hash<ConnectionConstructorInfo>({
-                "class_name": "FtpClient",
-                "args": url,
-                "post_processing": my_code,
-            });
-        }
-
         #! DEPRECATED: static constructor
         /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */

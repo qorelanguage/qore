@@ -103,35 +103,6 @@ class WebSocketClientTest inherits QUnit::Test {
         conn = new WebSocketConnectionObject("test", "test", url, {"monitor": False});
         client = conn.get(False);
         assertEq(url, client.getUrl());
-
-        hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
-        assertEq("WebSocketClient", info.module);
-        assertEq("WebSocketClient", info.class_name);
-        assertEq(url, info.args[0].url);
-        assertEq(45s, info.args[0].timeout);
-        assertEq(45s, info.args[0].connect_timeout);
-        checkPreAndPostProcessing(info);
-    }
-
-    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
-        if (info.pre_processing) {
-            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
-            if (info.module)
-                p.loadModule(info.module);
-            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
-            # ensure that the pre processing code can be parsed
-            p.parse(pre_processing, "pre processing");
-            assertTrue(True, "pre processing: " + info.class_name);
-        }
-        if (info.post_processing) {
-            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
-            if (info.module)
-                p.loadModule(info.module);
-            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
-            # ensure that the post processing code can be parsed
-            p.parse(post_processing, "post processing");
-            assertTrue(True, "post processing: " + info.class_name);
-        }
     }
 
     private log(string str) {

@@ -1085,18 +1085,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %RestClient 1.5
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "RestClient",
-                "class_name": "RestClient",
-                "args": real_opts,
-                "pre_processing": "if (rtopts.validator) {args[0] += (\"validator\": rtopts.validator);} args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds

@@ -322,18 +322,6 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
             return new Sap4HanaRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %Sap4HanaRestClient 1.5
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "Sap4HanaRestClient",
-                "class_name": "Sap4HanaRestClient",
-                "args": real_opts,
-                "pre_processing": "args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "apikey": the <a href="https://sap.com">SAP S/4Hana</a> API key in use
