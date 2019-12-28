@@ -928,19 +928,6 @@ smtp.setEventQueue();
             return sc;
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %SmtoClient 1.7
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "SmtpClient",
-                "class_name": "SmtpClient",
-                "args": url,
-                "pre_processing": "args += (rtopts.log, rtopts.dbglog);",
-                "post_processing": "if (connect) obj.connect();",
-            });
-        }
-
         #! DEPRECATED: static constructor
         /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */

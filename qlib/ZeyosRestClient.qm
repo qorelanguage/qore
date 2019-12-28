@@ -301,16 +301,6 @@ ZeyosRestClient zeyos(
             return new ZeyosRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "ZeyosRestClient",
-                "class_name": "ZeyosRestClient",
-                "args": real_opts,
-                "pre_processing": "args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds

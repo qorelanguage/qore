@@ -73,7 +73,7 @@ public namespace ConnectionProvider {
             #! set to @ref Qore::True "True" for loopback connections
             bool loopback = False;
 
-            #! optional code for default post-processing of objects created by getImpl(); must take the object created and the connection name as arguments
+            #! optional code for default post-processing of objects created by getImpl(); must take the connection object and the object created as arguments
             static *code post_processing;
 
             #! enabled/disabled indicator flag
@@ -87,6 +87,9 @@ public namespace ConnectionProvider {
 
             #! connection tags; user-defined key-value pairs
             hash<auto> tags = {};
+
+            #! internal tags
+            hash<auto> internal_info;
         }
 
         #! creates the AbstractConnection object
@@ -304,7 +307,7 @@ schema://user:pass@hostname:port/path
             if (!connect) {
                 object o = getImpl(False, rtopts);
                 if (post_processing)
-                    post_processing(o, name);
+                    post_processing(self, o);
                 return o;
             }
 
@@ -314,7 +317,7 @@ schema://user:pass@hostname:port/path
             try {
                 object o = getImpl(True, rtopts);
                 if (post_processing)
-                    post_processing(o, name);
+                    post_processing(self, o);
                 up = True;
                 status = "OK";
                 return o;
@@ -323,15 +326,6 @@ schema://user:pass@hostname:port/path
                 up = False;
                 rethrow;
             }
-        }
-
-        #! returns a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically
-        /** @return a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically
-
-            @since ConnectionProvider 1.1
-        */
-        hash<ConnectionConstructorInfo> getConstructorInfo() {
-            return getConstructorInfoImpl();
         }
 
         #! this method is called when parsing connection file definitions from text files when loading into the database
@@ -398,13 +392,6 @@ schema://user:pass@hostname:port/path
             @return the connection object
         */
         private abstract object getImpl(bool connect = True, *hash<auto> rtopts);
-
-        #! this method must return a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically
-        /** @return a @ref ConnectionProvider::ConnectionConstructorInfo "ConnectionConstructorInfo" hash for creating the connection object dynamically
-
-            @since ConnectionProvider 1.1
-        */
-        private abstract hash<ConnectionConstructorInfo> getConstructorInfoImpl();
 
         #! returns the string type name for the connection object
         abstract string getType();

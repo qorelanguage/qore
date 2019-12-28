@@ -81,11 +81,6 @@ public namespace ConnectionProvider {
             throw "INVALID-CONNECTION", sprintf("connection %y (type %y url %y) is invalid and therefore could not be loaded: %s", name, urlh.protocol, url, error);
         }
 
-        #! throws an exception because the object is invalid
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            getImpl(False);
-        }
-
         #! returns \c "invalid"
         string getType() {
             return "invalid";

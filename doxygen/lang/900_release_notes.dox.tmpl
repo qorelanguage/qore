@@ -17,6 +17,8 @@
     - fixed broken @ref cast "cast<>" operator handling; in previous releases, @ref cast "cast<>" would accept and
       return @ref nothing without raising an error with type specifications that did not accept or return
       @ref nothing.  To get the old behavior, use the @ref broken-cast "%broken-cast" parse directive.
+    - classes inheriting \c AbstractConneciton must be serializable; the \c AbstractConnection::getConstructorInfo()
+      and \c AbstractConnection::getConstructorInfoImpl() methods have been removed and are ignored in child classes
 
     @subsection qore_094_new_features New Features in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module:

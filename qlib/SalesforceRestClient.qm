@@ -1113,18 +1113,6 @@ sfrest.logout();
             return new SalesforceRestClient(real_opts, !connect);
         }
 
-        #! returns a hash that can be used to construct the object dynamically
-        /** @since %SalesforceRestClient 1.2
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            return new hash<ConnectionConstructorInfo>({
-                "module": "SalesforceRestClient",
-                "class_name": "SalesforceRestClient",
-                "args": real_opts,
-                "pre_processing": "args[1] = !connect;",
-            });
-        }
-
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "api": the Salesforce.com API to use; use \c "auto" (the default) to use the latest API version
