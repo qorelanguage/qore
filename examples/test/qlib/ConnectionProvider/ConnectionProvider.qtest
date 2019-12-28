@@ -53,11 +53,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
         # issue #3696: test connection serialization
         FtpConnection conn2 = Serializable::deserialize(fc.serialize());
         assertEq(fc.url, conn2.url);
-
-        hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
-        assertEq("FtpClient", info.class_name);
-        assertEq(url, info.args[0]);
-        checkPreAndPostProcessing(info);
     }
 
     ftpConnectionTestDeprecated() {
@@ -66,29 +61,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(False, fc.locked, "connection is unlocked by default");
-
-        hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
-        assertEq("FtpClient", info.class_name);
-        assertEq(url, info.args[0]);
-        checkPreAndPostProcessing(info);
-    }
-
-    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
-        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
-        if (info.module)
-            p.loadModule(info.module);
-        if (info.pre_processing) {
-            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash<auto> rtopts) { %s }", info.pre_processing);
-            # ensure that the pre processing code can be parsed
-            p.parse(pre_processing, "pre processing");
-            assertTrue(True, "pre processing: " + info.class_name);
-        }
-        if (info.post_processing) {
-            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash<auto> rtopts) { %s }", info.class_name, info.post_processing);
-            # ensure that the post processing code can be parsed
-            p.parse(post_processing, "post processing");
-            assertTrue(True, "post processing: " + info.class_name);
-        }
     }
 
     httpConnectionTest() {
@@ -123,13 +95,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
-
-        hash<ConnectionConstructorInfo> info = hc.getConstructorInfo();
-        assertEq("HTTPClient", info.class_name);
-        assertEq(45s, info.args[0].timeout);
-        assertEq(45s, info.args[0].connect_timeout);
-        assertEq("password", info.args[0].ssl_key_password);
-        checkPreAndPostProcessing(info);
 
         # turn on certificate verification in the server
         server.acceptAllCertificates(False);
@@ -275,9 +240,7 @@ class MyConnection inherits AbstractConnection {
     string getType() {
         return "sql";
     }
-    hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-        return hash<ConnectionConstructorInfo>{};
-    }
+
     object getImpl(bool _ = True, *hash<auto> __) {
         return new Dir(); # just a silence the missing abtsract method. No use for Dir at all
     }
