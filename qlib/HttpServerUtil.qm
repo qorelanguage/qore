@@ -409,7 +409,7 @@ public namespace HttpServer {
     }
 
     #! helper function for setting HTTP response headers
-    public nothing sub http_set_reply_headers(Socket s, hash<auto> cx, reference rv, *string server_string) {
+    public nothing sub http_set_reply_headers(Socket s, hash<auto> cx, reference<auto> rv, *string server_string) {
         if (!rv.hdr.Connection) {
             if (rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
                 rv.hdr.Connection = "close";
@@ -433,12 +433,13 @@ public namespace HttpServer {
         else if (cx."response-encoding".lwr() != old_encoding.lwr())
             s.setEncoding(cx."response-encoding");
 
-        if (rv.body || rv.chunked_body || rv.hdr."Transfer-Encoding" == "chunked") {
+        # "rv" may be a HttpHandlerResponseInfo hashdecl, so we can't access "chunked_body" directly in that case
+        if (rv.body || rv.hasKey("chunked_body") || rv.hdr."Transfer-Encoding" == "chunked") {
             if (!rv.hdr."Content-Type") {
                 rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
             } else if (rv.hdr."Content-Type" !~ /charset=/
                 && ((rv.body.typeCode() == NT_STRING)
-                    || (rv.chunked_body instanceof StringInputStream))) {
+                    || (rv.hasKey("chunked_body") && (rv.chunked_body instanceof StringInputStream)))) {
                 rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
             }
         }
