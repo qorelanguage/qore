@@ -22,15 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.3
-# need mime definitions
+%requires qore >= 0.9.4
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
 
 %new-style
+%require-types
+%strict-args
+%enable-all-warnings
 
 module HttpServerUtil {
-    version = "0.3.12.1";
+    version = "0.9.4";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -69,6 +71,10 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil094 HttpServerUtil 0.9.4
+    - added support for sending chunked replies from an @ref Qore::InputStream "InputStream"
+      (<a href="https://github.com/qorelanguage/qore/issues/3702">issue 3702</a>)
 
     @subsection httputil03121 HttpServerUtil 0.3.12.1
     - improved sensitive data masking in log messages (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
@@ -237,8 +243,21 @@ public namespace HttpServer {
         #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
         int code;
 
-        #! the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        #! the message body to return in the response
+        /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
+            sendImpl() are not called
+
+            @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
+        */
         *data body;
+
+        #! the message body to return in the response as a chunked response
+        /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
+            sendImpl() are not called
+
+            @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
+        */
+        *InputStream chunked_body;
 
         #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
         softbool close = False;
@@ -414,10 +433,12 @@ public namespace HttpServer {
         else if (cx."response-encoding".lwr() != old_encoding.lwr())
             s.setEncoding(cx."response-encoding");
 
-        if (rv.body || rv.hdr."Transfer-Encoding" == "chunked") {
+        if (rv.body || rv.chunked_body || rv.hdr."Transfer-Encoding" == "chunked") {
             if (!rv.hdr."Content-Type") {
                 rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
-            } else if (rv.hdr."Content-Type" !~ /charset=/ && (rv.body.typeCode() == NT_STRING)) {
+            } else if (rv.hdr."Content-Type" !~ /charset=/
+                && ((rv.body.typeCode() == NT_STRING)
+                    || (rv.chunked_body instanceof StringInputStream))) {
                 rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
             }
         }
@@ -586,7 +607,7 @@ public namespace HttpServer {
 
         SSLPrivateKey key;
         if (key_path.val()) {
-            *hash<StatInfo> statinfo = hstat(key_path);
+            statinfo = hstat(key_path);
             if (!statinfo) {
                 throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
                     "%y", key_path);
@@ -762,7 +783,7 @@ public class HttpServer::AbstractAuthenticator {
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash<auto> hdr, reference<hash> cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash<auto> hdr, reference<hash<auto>> cx) {
         #printf("HTTP DEBUG %s::authenticateRequest() called\n", self.className());
         if (!requiresAuthentication())
             return;
@@ -1374,6 +1395,37 @@ public class HttpServer::AbstractHttpRequestHandler {
         };
     }
 
+    #! creates a hash for an HTTP response with the response code and a response message body from an input stream
+    /** @since %HttpServerUtil 0.9.4
+    */
+    static hash<HttpResponseInfo> makeResponse(int code, *InputStream chunked_body, *hash<auto> hdr) {
+        return <HttpResponseInfo>{
+            "code": code,
+            "chunked_body": chunked_body,
+            "hdr": hdr,
+        };
+    }
+
+    #! creates a hash for an HTTP 200 OK error response with the response message body as a string
+    static hash<HttpResponseInfo> make200(string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(200, vsprintf(fmt, argv));
+    }
+
+    #! creates a hash for an HTTP 200 OK error response with the response message body as a string
+    static hash<HttpResponseInfo> make200(hash<auto> hdr, string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(200, vsprintf(fmt, argv), hdr);
+    }
+
+    #! creates a hash for an HTTP 200 OK error response with the response message body from an input stream
+    static hash<HttpResponseInfo> make200(hash<auto> hdr, InputStream chunked_body) {
+        return AbstractHttpRequestHandler::makeResponse(200, chunked_body, hdr);
+    }
+
+    #! creates a hash for an HTTP 200 OK error response with the response message body from an input stream
+    static hash<HttpResponseInfo> make200(InputStream chunked_body) {
+        return AbstractHttpRequestHandler::makeResponse(200, chunked_body);
+    }
+
     #! creates a hash for an HTTP 400 error response with the response message body as a string
     static hash<HttpResponseInfo> make400(string fmt) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv));
@@ -1382,6 +1434,16 @@ public class HttpServer::AbstractHttpRequestHandler {
     #! creates a hash for an HTTP 400 error response with the response message body as a string
     static hash<HttpResponseInfo> make400(hash<auto> hdr, string fmt) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv), hdr);
+    }
+
+    #! creates a hash for an HTTP 500 error response with the response message body as a string
+    static hash<HttpResponseInfo> make500(string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(500, vsprintf(fmt, argv));
+    }
+
+    #! creates a hash for an HTTP 500 error response with the response message body as a string
+    static hash<HttpResponseInfo> make500(hash<auto> hdr, string fmt) {
+        return AbstractHttpRequestHandler::makeResponse(500, vsprintf(fmt, argv), hdr);
     }
 
     #! creates a hash for an HTTP 501 error response with the response message body as a string

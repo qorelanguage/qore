@@ -1698,50 +1698,50 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
+   return priv->sendHttpMessage(0, 0, "Socket", "sendHTTPMessage", method, path, http_version, headers, nullptr, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(0, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
+   return priv->sendHttpMessage(0, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, nullptr, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, nullptr, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessage", method, path, http_version, headers, nullptr, data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode *info, const char *method, const char *path, const char *http_version, const QoreHashNode *headers, const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms) {
-   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms);
+   return priv->sendHttpMessage(xsink, info, "Socket", "sendHTTPMessageWithCallback", method, path, http_version, headers, nullptr, nullptr, 0, &send_callback, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 // returns 0 for success
 int QoreSocket::sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers,
     const void *data, qore_size_t size, int source) {
     return priv->sendHttpResponse(nullptr, nullptr, "Socket", "sendHTTPResponse", code, desc, http_version, headers,
-        data, size, nullptr, nullptr, 0, nullptr, source);
+        nullptr, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version,
     const QoreHashNode* headers, const void *data, qore_size_t size, int source) {
     return priv->sendHttpResponse(xsink, nullptr, "Socket", "sendHTTPResponse", code, desc, http_version, headers,
-        data, size, nullptr, nullptr, 0, nullptr, source);
+        nullptr, data, size, nullptr, nullptr, 0, nullptr, source);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version,
     const QoreHashNode* headers, const void *data, qore_size_t size, int source, int timeout_ms) {
     return priv->sendHttpResponse(xsink, nullptr, "Socket", "sendHTTPResponse", code, desc, http_version, headers,
-        data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
+        nullptr, data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 int QoreSocket::sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
     const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, int source,
     int timeout_ms) {
     return priv->sendHttpResponse(xsink, info, "Socket", "sendHTTPResponse", code, desc, http_version, headers,
-        data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
+        nullptr, data, size, nullptr, nullptr, 0, nullptr, source, timeout_ms);
 }
 
 AbstractQoreNode* QoreSocket::readHTTPHeader(int timeout, int *rc, int source) {

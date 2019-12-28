@@ -2669,9 +2669,10 @@ struct qore_socket_private {
     }
 
     DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname,
-        const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data,
-        qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* input_stream,
-        size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1,
+        const char* method, const char* path, const char* http_version, const QoreHashNode* headers,
+        const QoreStringNode* body, const void *data, qore_size_t size,
+        const ResolvedCallReferenceNode* send_callback, InputStream* input_stream, size_t max_chunk_size,
+        const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1,
         QoreThreadLock* l = nullptr, bool* aborted = nullptr) {
         // prepare header string
         QoreString hdr(enc);
@@ -2683,13 +2684,13 @@ struct qore_socket_private {
             info->setKeyValue("request-uri", new QoreStringNode(hdr), nullptr);
         }
 
-        return sendHttpMessageCommon(xsink, hdr, info, cname, mname, headers, data, size, send_callback, input_stream,
-            max_chunk_size, trailer_callback, source, timeout_ms, l, aborted);
+        return sendHttpMessageCommon(xsink, hdr, info, cname, mname, headers, body, data, size, send_callback,
+            input_stream, max_chunk_size, trailer_callback, source, timeout_ms, l, aborted);
     }
 
     DLLLOCAL int sendHttpResponse(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname,
-        int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void *data,
-        qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* input_stream,
+        int code, const char* desc, const char* http_version, const QoreHashNode* headers, const QoreStringNode* body,
+        const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* input_stream,
         size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1,
         QoreThreadLock* l = nullptr, bool* aborted = nullptr) {
         // prepare header string
@@ -2704,14 +2705,14 @@ struct qore_socket_private {
             info->setKeyValue("response-uri", new QoreStringNode(hdr), nullptr);
         }
 
-        return sendHttpMessageCommon(xsink, hdr, info, cname, mname, headers, data, size, send_callback, input_stream,
-            max_chunk_size, trailer_callback, source, timeout_ms, l, aborted);
+        return sendHttpMessageCommon(xsink, hdr, info, cname, mname, headers, body, data, size, send_callback,
+            input_stream, max_chunk_size, trailer_callback, source, timeout_ms, l, aborted);
     }
 
     DLLLOCAL int sendHttpMessageCommon(ExceptionSink* xsink, QoreString& hdr, QoreHashNode* info, const char* cname,
-        const char* mname, const QoreHashNode* headers, const void *data, qore_size_t size,
-        const ResolvedCallReferenceNode* send_callback, InputStream* input_stream, size_t max_chunk_size,
-        const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1,
+        const char* mname, const QoreHashNode* headers, const QoreStringNode* body, const void *data,
+        qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* input_stream,
+        size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1,
         QoreThreadLock* l = nullptr, bool* aborted = nullptr) {
         assert(xsink);
         assert(!(data && send_callback));
@@ -2737,7 +2738,11 @@ struct qore_socket_private {
         if (size && data) {
             int rc = send(xsink, cname, mname, (char*)data, size, timeout_ms, -1);
             if (!rc) {
-                do_data_event(QORE_EVENT_SOCKET_DATA_SENT, source, data, size);
+                if (body) {
+                    do_data_event(QORE_EVENT_SOCKET_DATA_SENT, source, *body);
+                } else {
+                    do_data_event(QORE_EVENT_SOCKET_DATA_SENT, source, data, size);
+                }
             }
             return rc;
         } else if (send_callback) {
