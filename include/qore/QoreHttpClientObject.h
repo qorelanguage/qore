@@ -232,7 +232,7 @@ public:
 
     //! sends a message to the remote server and returns the entire response as a hash, caller owns the QoreHashNode reference returned
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
-         @param meth the HTTP method name to send
+        @param meth the HTTP method name to send
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param data optional data to send (may be 0)
@@ -242,27 +242,53 @@ public:
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
     */
-    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data,
+        unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
-    DLLEXPORT QoreHashNode* sendWithSendCallback(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers,
+        const QoreStringNode& body, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
-    DLLEXPORT void sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* sendWithSendCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
+        ExceptionSink* xsink);
 
-    DLLEXPORT void sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+    DLLEXPORT void sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
+        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+
+    DLLEXPORT void sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
+        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+
+    DLLEXPORT void sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
+        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
 
     //! make an HTTP request and receive the response to an OutputStream
     /** @since %Qore 0.8.13
-        */
-    DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
+    */
+    DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
+        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
+
+    //! make an HTTP request and receive the response to an OutputStream
+    /** @since %Qore 0.9.4
+    */
+    DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers,
+        const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
+        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
 
     //! send a chunked HTTP message through an InputStream and receive the response to an OutputStream
     /** @since %Qore 0.8.13
-        */
-    DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, ExceptionSink* xsink);
+    */
+    DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody,
+        QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj,
+        OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback,
+        ExceptionSink* xsink);
 
     //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
     /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead
-         @param path the path string to send in the header
+        @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -273,7 +299,7 @@ public:
 
     //! sends an HTTP "HEAD" method and returns the headers returned, the caller owns the QoreHashNode reference returned
     /** @param path the path string to send in the header
-         @param headers a hash of headers to add to the message
+        @param headers a hash of headers to add to the message
         @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
@@ -283,7 +309,7 @@ public:
 
     //! sends an HTTP "POST" message to the remote server and returns the message body of the response, caller owns the AbstractQoreNode reference returned
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
-         @param path the path string to send in the header
+        @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param data optional data to send (should not be 0 for a POST)
         @param size the byte length of the data to send (if this is 0 then no data is sent)
@@ -294,9 +320,25 @@ public:
     */
     DLLEXPORT AbstractQoreNode* post(const char* path, const QoreHashNode* headers, const void* data, unsigned size, QoreHashNode* info, ExceptionSink* xsink);
 
+    //! sends an HTTP "POST" message to the remote server and returns the message body of the response, caller owns the AbstractQoreNode reference returned
+    /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
+        @param path the path string to send in the header
+        @param headers a hash of headers to add to the message
+        @param body optional message body to send (should not be 0 for a POST)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an
+        error or no body returned)
+    */
+    DLLEXPORT AbstractQoreNode* post(const char* path, const QoreHashNode* headers, const QoreStringNode& body,
+        QoreHashNode* info, ExceptionSink* xsink);
+
     //! sets the value of a default header to send with every outgoing message
     /**
-         @param header the name of the header to send
+        @param header the name of the header to send
         @param val the string value to use in the HTTP header
     */
     DLLEXPORT void setDefaultHeaderValue(const char* header, const char* val);

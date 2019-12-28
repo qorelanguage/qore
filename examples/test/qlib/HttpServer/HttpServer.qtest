@@ -32,7 +32,7 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
 }
 
 class ReqHandler inherits AbstractHttpRequestHandler {
-    hash handleRequest(hash cx, hash hdr, *data body) {
+    hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
         string rpath = hdr.path;
         if (rpath =~ /^test400\//) {
             return make400("test400");
@@ -52,7 +52,7 @@ class ReqHandler inherits AbstractHttpRequestHandler {
             string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?(.+)"?/i)[0];
             hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, body, True);
             #printf("h: %N\n", h);
-            return makeResponse(200, binary(h.part[1].body), {"Content-Type": h.part[1].hdr."content-type"});
+            return makeResponse(200, new BinaryInputStream(h.part[1].body), {"Content-Type": h.part[1].hdr."content-type"});
         }
 
         if (hdr.method == "POST") {
@@ -251,5 +251,6 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         assertEq(200, info."response-headers".status_code);
         assertEq(MimeTypePng, info."response-headers"."content-type");
         assertEq(BinImage, img);
+        assertEq("chunked", info."response-headers"."transfer-encoding");
     }
 }

@@ -135,9 +135,12 @@ public:
     DLLEXPORT int64 recvu4(int timeout, unsigned int *b, ExceptionSink* xsink);
     DLLEXPORT int64 recvu2LSB(int timeout, unsigned short *b, ExceptionSink* xsink);
     DLLEXPORT int64 recvu4LSB(int timeout, unsigned int *b, ExceptionSink* xsink);
+
     // send HTTP message
     DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path,
         const char* http_version, const QoreHashNode* headers, const void* ptr, int size, int source, int timeout_ms);
+    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path,
+        const char* http_version, const QoreHashNode* headers, const QoreStringNode& body, int source, int timeout_ms);
     DLLEXPORT int sendHTTPMessageWithCallback(ExceptionSink* xsink, QoreHashNode* info, const char* method,
         const char *path, const char *http_version, const QoreHashNode *headers,
         const ResolvedCallReferenceNode& send_callback, int source, int timeout_ms, bool* aborted = nullptr);
@@ -145,6 +148,9 @@ public:
     // send HTTP response
     DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
         const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source,
+        int timeout_ms);
+    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
+        const char* http_version, const QoreHashNode* headers, const QoreStringNode& body, int source,
         int timeout_ms);
 
     // send HTTP response from stream

@@ -356,13 +356,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
  */
 hash<auto> HTTPClient::send(string body, string method, *string path, *hash<auto> headers, softbool getbody = False, *reference<hash<auto>> info) {
     OptHashRefHelper ohrh(info, xsink);
-    // issue 1813: convert string to socket's character encoding as documented
-    TempEncodingHelper btmp(body, client->getEncoding(), xsink);
-    if (*xsink)
-        return QoreValue();
-
     ReferenceHolder<QoreHashNode> rv(client->send(method->c_str(), path && !path->empty() ? path->c_str() : nullptr,
-        headers, btmp->c_str(), btmp->size(), getbody, *ohrh, xsink), xsink);
+        headers, *body, getbody, *ohrh, xsink), xsink);
     return *xsink ? QoreValue() : rv.release();
 }
 
@@ -688,12 +683,12 @@ nothing HTTPClient::send(Qore::OutputStream[OutputStream] os, *data body, string
     OptHashRefHelper ohrh(info, xsink);
     const char* pstr = path && !path->empty() ? path->c_str() : nullptr;
     if (get_node_type(body) == NT_STRING) {
-        const QoreStringNode* str = reinterpret_cast<const QoreStringNode*>(body);
-        TempEncodingHelper tmp(str, client->getEncoding(), xsink);
-        client->sendWithOutputStream(method->getBuffer(), pstr, headers, str->c_str(), str->size(), getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+        client->sendWithOutputStream(method->c_str(), pstr, headers, *static_cast<const QoreStringNode*>(body), getbody,
+            *ohrh, timeout_ms, rcb, self, os, xsink);
     } else {
         const BinaryNode* b = reinterpret_cast<const BinaryNode*>(body);
-        client->sendWithOutputStream(method->getBuffer(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
+        client->sendWithOutputStream(method->c_str(), pstr, headers, b ? b->getPtr() : nullptr, b ? b->size() : 0,
+            getbody, *ohrh, timeout_ms, rcb, self, os, xsink);
     }
 }
 
@@ -1014,16 +1009,12 @@ httpclient.post("/path", body);
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::post(string path, string body, *hash<auto> headers, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   // issue 1813: convert string to socket's character encoding as documented
-   TempEncodingHelper btmp(body, client->getEncoding(), xsink);
-   if (*xsink)
-      return QoreValue();
-   ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, btmp->c_str(), btmp->size(), *ohrh, xsink), xsink);
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<AbstractQoreNode> rv(client->post(path->c_str(), headers, *body, *ohrh, xsink), xsink);
 #ifdef DEBUG
-   assert(!rv || rv->getType() == NT_STRING);
+    assert(!rv || rv->getType() == NT_STRING);
 #endif
-   return *xsink ? 0 : rv.release();
+    return *xsink ? QoreValue() : rv.release();
 }
 
 //! Sends an HTTP \c POST request with a message body and returns the message body received as a string or @ref nothing if no message body is received
