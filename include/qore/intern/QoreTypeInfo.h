@@ -464,11 +464,9 @@ public:
         return first->parseAccepts(second, may_not_match, may_need_filter);
     }
 
-    static void breakit() {}
     // static version of method, checking for null pointer
     DLLLOCAL static qore_type_result_e runtimeTypeMatch(const QoreTypeInfo* first, const QoreTypeInfo* second) {
         //printd(5, "QoreTypeInfo::runtimeTypeMatch() %p '%s' (ht: %d) <=> %p '%s' (ht: %d)\n", first, QoreTypeInfo::getName(first), QoreTypeInfo::hasType(first), second, QoreTypeInfo::getName(second), QoreTypeInfo::hasType(second));
-        if (!first && second) breakit();
         if (first == second) {
             return QTI_IDENT;
         }
