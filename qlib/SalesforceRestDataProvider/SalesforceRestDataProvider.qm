@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore SwaggerDataProvider module definition
+#! Qore SalesforceRestDataProvider module definition
 
-/*  SwaggerDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  SalesforceRestDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,51 +34,50 @@
 %enable-all-warnings
 
 %requires(reexport) DataProvider
-%requires(reexport) Swagger
-%requires(reexport) RestClient
+%requires(reexport) SalesforceRestClient
 
-module SwaggerDataProvider {
+module SalesforceRestDataProvider {
     version = "1.0";
-    desc = "user module providing a data provider API for Swagger schemas";
+    desc = "user module providing a data provider API for Salesforce instances through the REST API";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
         # register the data provider factory
-        DataProvider::registerFactory(new SwaggerDataProviderFactory());
+        DataProvider::registerFactory(new SalesforceRestDataProviderFactory());
     };
 }
 
-/** @mainpage SwaggerDataProvider Module
+/** @mainpage SalesforceRestDataProvider Module
 
     @tableofcontents
 
-    @section swaggerdataproviderintro Introduction to the SwaggerDataProvider Module
+    @section salesforcerestdataproviderintro Introduction to the SalesforceRestDataProvider Module
 
-    The %SwaggerDataProvider module provides a @ref dataproviderintro "data provider" API for Swagger / Open API REST
-    APIs.  The @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider" class allows for introspecting a Swagger /
-    Open API schema, while the @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider" class
+    The %SalesforceRestDataProvider module provides a @ref dataproviderintro "data provider" API for the Salesforce
+    REST API.  The @ref SalesforceRestDataProvider::SalesforceRestDataProvider "SalesforceRestDataProvider" class
+    allows for introspecting a Salesforce instance, while the
+    @ref SalesforceRestDataProvider::SalesforceRestRequestDataProvider "SalesforceRestRequestDataProvider" class
     supports the @ref dataproviderintro "data provider" request-reply API for communication with REST servers.
 
-    Swagger / Open API schemas can be introspected with the following format:
+    Salesforce instances can be introspected with the following format:
     - REST operation path: <tt><i>uri_path</i>/<i>HTTP_method</i></tt>
-      - ex: <tt><b>pet/PUT</b></tt>
+      - ex: <tt><b>Account</b></tt>
       - results in a
-        @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider" object where the request and
-        response messages can be queried and requests can be sent to the server
+        @ref SalesforceRestDataProvider::SalesforceRestObjectDataProvider "SalesforceRestObjectDataProvider" object
+        where operations supported on the object can be executed
 
     The following classes are provided by this module:
-    - @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider"
-    - @ref SwaggerDataProvider::SwaggerDataProviderBase "SwaggerDataProviderBase"
-    - @ref SwaggerDataProvider::SwaggerDataProviderFactory "SwaggerDataProviderFactory"
-    - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
+    - @ref SalesforceRestDataProvider::SalesforceRestDataProvider "SalesforceRestDataProvider"
+    - @ref SalesforceRestDataProvider::SalesforceRestDataProviderFactory "SalesforceRestDataProviderFactory"
+    - @ref SalesforceRestDataProvider::SalesforceRestObjectDataProvider "SalesforceRestObjectDataProvider"
 
-    @section swaggerdataprovider_relnotes Release Notes
+    @section salesforcerestdataprovider_relnotes Release Notes
 
-    @subsection swaggerdataprovider_v1_0 SwaggerDataProvider v1.0
+    @subsection salesforcerestdataprovider_v1_0 SalesforceRestDataProvider v1.0
     - initial release of the module
 */
 
-#! contains all public definitions in the SwaggerDataProvider module
-public namespace SwaggerDataProvider {
+#! contains all public definitions in the SalesforceRestDataProvider module
+public namespace SalesforceRestDataProvider {
 }

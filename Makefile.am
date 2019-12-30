@@ -72,7 +72,8 @@ DOX_SPLIT_MODULES = \
 	qlib/FixedLengthUtil \
     qlib/BulkSqlUtil \
 	qlib/CsvUtil \
-    qlib/SwaggerDataProvider
+    qlib/SwaggerDataProvider \
+    qlib/SalesforceRestDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -82,6 +83,7 @@ BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
 FixedLengthUtil_modverdir = $(modverdir)/FixedLengthUtil
 SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
+SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -91,6 +93,7 @@ dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
 dist_FixedLengthUtil_modver_DATA = $(wildcard qlib/FixedLengthUtil/*.q[cm])
 dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[cm])
+dist_SalesforceRestDataProvider_modver_DATA = $(wildcard qlib/SalesforceRestDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)

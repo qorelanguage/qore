@@ -112,9 +112,6 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         self.path_tree = path_tree;
         self.uri_path = uri_path;
         self.schema = schema;
-        if (rest) {
-            checkRestClient(rest);
-        }
         self.rest = rest;
     }
 
@@ -251,7 +248,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns the child provider for the given path component
-    AbstractDataProvider getChildIntern(string name, *string real_name) {
+    private AbstractDataProvider getChildIntern(string name, *string real_name) {
         string new_uri_path = uri_path;
         if (new_uri_path !~ /\/$/) {
             new_uri_path += "/";

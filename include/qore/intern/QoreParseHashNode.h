@@ -154,7 +154,7 @@ protected:
     // common value type, if any
     const QoreTypeInfo* vtype = nullptr;
     // node type info (derivative of hash)
-    const QoreTypeInfo* typeInfo;
+    const QoreTypeInfo* typeInfo = nullptr;
     // flag for a hash expression in curly brackets for the hash version of the map operator
     bool curly;
 

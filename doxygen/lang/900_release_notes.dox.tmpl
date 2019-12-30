@@ -38,6 +38,8 @@
       - added support for sending chunked replies from an @ref Qore::InputStream "InputStream"
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module:
       - adds <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
+    - <a href="../../modules/SalesforceRestDataProvider/html/index.html">SalesforceRestDataProvider</a> module:
+      - adds a data provider API for Salesforce REST connections
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module:
       - adds a data provider API for Swagger / OpenAPI schemas
     - support for Unicode character matching in regular expressions:
@@ -102,6 +104,8 @@
           (<a href="https://github.com/qorelanguage/qore/issues/3694">issue 3694</a>)
         - fixed a bug handling \c formData elements
           (<a href="https://github.com/qorelanguage/qore/issues/3692">issue 3692</a>)
+    - fixed a crash in parse error handling for recursive constant parse hash resolution cases
+      (<a href="https://github.com/qorelanguage/qore/issues/3708">issue 3708</a>)
     - fixed a bug retrieving HTTP message bodies with servers that do not send a \c Content-Length header but close the
       connection
       (<a href="https://github.com/qorelanguage/qore/issues/3691">issue 3691</a>)

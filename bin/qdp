@@ -67,6 +67,10 @@ class QdpCmd {
     }
 
     constructor() {
+        # must be called before any data provider operations are performed to allow for automatic configuration from
+        # environment variables by supported data provider modules (ex: SalesforceRestDataProvider)
+        DataProvider::setAutoConfig();
+
         GetOpt g(Opts);
         our hash<auto> opts = g.parse3(\ARGV);
         if (opts.listconnections) {
