@@ -59,7 +59,9 @@ public const OptimalQoreDataTypeMap = {
     "int": "int",
     Type::Int: "int",
     Type::String: "string",
+    "boolean": "bool",
     Type::Boolean: "bool",
+    "double": "float",
     Type::Float: "float",
     Type::Number: "number",
     Type::Binary: "binary",
@@ -79,11 +81,46 @@ public const OptimalQoreSoftDataTypeMap = OptimalQoreDataTypeMap + {
     "int": "softint",
     Type::Int: "softint",
     Type::String: "softstring",
+    "boolean": "softbool",
     Type::Boolean: "softbool",
+    "double": "softfloat",
     Type::Float: "softfloat",
     Type::Number: "softnumber",
     Type::List: "softlist<auto>",
     Type::Date: "softdate",
+};
+
+#! maps Qore type name constant values to data type objects
+public const DataTypeMap = {
+    "int": IntType,
+    Type::Int: IntType,
+    Type::String: StringType,
+    "boolean": BoolType,
+    Type::Boolean: BoolType,
+    "double": FloatType,
+    Type::Float: FloatType,
+    Type::Number: NumberType,
+    Type::Binary: BinaryType,
+    Type::List: AutoListType,
+    Type::Hash: AutoHashType,
+    Type::Object: ObjectType,
+    Type::Date: DateType,
+    Type::NullType: Reflection::NullType,
+    Type::NothingType: AbstractDataProviderType::nothingType,
+    "all": AbstractDataProviderType::anyType,
+    "*int": IntOrNothingType,
+    "*integer": IntOrNothingType,
+    "*string": StringOrNothingType,
+    "*boolean": BoolOrNothingType,
+    "*bool": BoolOrNothingType,
+    "*double": FloatOrNothingType,
+    "*float": FloatOrNothingType,
+    "*number": NumberOrNothingType,
+    "*binary": BinaryOrNothingType,
+    "*list": AutoListOrNothingType,
+    "*hash": AutoHashOrNothingType,
+    "*object": ObjectOrNothingType,
+    "*date": DateOrNothingType,
 };
 
 #! describes type options
@@ -376,6 +413,12 @@ public class AbstractDataProviderType {
             return new QoreStringDataTypeBase(type, options);
         }
         return new QoreDataType(type, options);
+    }
+
+    #! returns an appropriate object for the given type
+    static AbstractDataProviderType get(string typename, *hash<auto> options) {
+        return AbstractDataProviderType::get(DataTypeMap{typename}
+            ?? AbstractDataProviderType::anyType, options);
     }
 
     #! sets the given option without any validation of the option

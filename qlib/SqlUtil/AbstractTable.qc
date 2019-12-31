@@ -4196,7 +4196,7 @@ string sql = table.getSelectSql(sh, \args);
             args = ();
 
         # resolve any table names in joins first
-        foreach string k in (qh.join.keyIterator()) {
+        foreach string k in (keys qh.join) {
             if (qh.join{k}.table.typeCode() == NT_STRING)
                 qh.join{k}.table = opt.tablecode ? opt.tablecode(ds, qh.join{k}.table) : new Table(ds, qh.join{k}.table).getTable();
         }
@@ -4561,16 +4561,15 @@ string sql = table.getSelectSql(sh, \args);
             throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
 
         if (cmd.withalias) {
-                # get escaped AS alias only when required (a reserved word)
-                switch (arg.typeCode()) {
-                    case NT_STRING: arg = getColumnSqlName(arg); break;
-                    case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
-                }
-                return cmd.code(cve, arg, \psch_ref);
+            # get escaped AS alias only when required (a reserved word)
+            switch (arg.typeCode()) {
+                case NT_STRING: arg = getColumnSqlName(arg); break;
+                case NT_HASH: arg.as = getColumnSqlName(arg.as); break;
             }
-            else {
-                return cmd.code(cve, arg);
-            }
+            return cmd.code(cve, arg, \psch_ref);
+        } else {
+            return cmd.code(cve, arg);
+        }
     }
 
     private string getColumnNameIntern(string cv, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch) {

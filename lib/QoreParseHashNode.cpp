@@ -75,7 +75,7 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
         argTypeInfo = nullptr;
         parse_init_value(values[i], oflag, pflag, lvids, vtypes[i]);
 
-        //printd(5, "QoreParseHashNode::parseInitImpl() this: %p i: %d '%s'\n", this, i, values[i].getFullTypeName());
+        //printd(5, "QoreParseHashNode::parseInitImpl() this: %p i: %d '%s': '%s'\n", this, i, keys[i].getType() == NT_STRING ? keys[i].get<const QoreStringNode>()->c_str() : keys[i].getFullTypeName(), values[i].getFullTypeName());
 
         if (!i) {
             if (vtypes[0] && vtypes[0] != anyTypeInfo) {

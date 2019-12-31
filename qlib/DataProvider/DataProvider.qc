@@ -49,6 +49,7 @@ public class DataProvider {
             "csvwrite": "CsvUtil",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
+            "salesforcerest": "SalesforceRestDataProvider",
             # provided by the xml module
             "soap": "SoapDataProvider",
         };
@@ -76,6 +77,14 @@ public class DataProvider {
 
         #! data provider type cache lock
         static Mutex type_cache_lock();
+
+        #! flag to allow automatic configuration from environment variables
+        /** must be set before any requests for types or factories are made
+        */
+        static bool allow_env_config = False;
+
+        #! flag that locks the \a allow_env_config var
+        static bool env_config_locked = False;
     }
 
     #! Register a new data provider factory
@@ -105,6 +114,7 @@ public class DataProvider {
 
     #! Returns the given data provider factory or @ref nothing if not present
     static *AbstractDataProviderFactory getFactory(string name) {
+        DataProvider::checkRequest();
         if (!factory_cache{name}) {
             *string module_name = FactoryMap{name} ?? DataProvider::tryGetModuleName(name);
             if (!module_name) {
@@ -243,6 +253,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         therefore not suitable for indexing)
     */
     static *AbstractDataProviderType getType(string label) {
+        DataProvider::checkRequest();
         return type_cache{label};
     }
 
@@ -305,6 +316,31 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             }
         }
         return info;
+    }
+
+    #! Sets the flag that allows for automatic configuration from environment variables
+    /** Must be called before any requests for types or factories are made, or an exception is raised
+
+        @throw DATA-PROVIDER-ERROR cannot call this method after requests for types or factories are made
+    */
+    static setAutoConfig() {
+        if (env_config_locked) {
+            throw "DATA-PROVIDER-ERROR", "cannot call DataProvider::setAutoConfigFromEnvironment() after type or "
+                "factories have been loaded";
+        }
+        allow_env_config = True;
+    }
+
+    #! Returns the auto config flag
+    static bool getAutoConfig() {
+        return allow_env_config;
+    }
+
+    #! Sets the \a env_config_locked variable if not already set
+    static private checkRequest() {
+        if (!env_config_locked) {
+            env_config_locked = True;
+        }
     }
 
     #! Check if the object is from a module that has been subject to dependency injections

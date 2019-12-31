@@ -854,12 +854,15 @@ qore_user_module("qlib/VscDebugAdapter.qm" "DebugCmdLine;DebugUtil;Util")
 qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
 
 # base 7 modules
-qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient;DataProvider")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/ZeyosRestClient.qm" "ConnectionProvider;RestClient")
 qore_user_module("qlib/Sap4HanaRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSchemaValidator")
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")
+
+# base 8 modules
+qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
 
 # print info
 message(STATUS "")

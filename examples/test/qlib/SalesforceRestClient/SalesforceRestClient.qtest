@@ -4,9 +4,12 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SalesforceRestClient.qm
+%requires ../../../../qlib/SalesforceRestDataProvider
 
 %requires qore >= 0.9
 
@@ -47,6 +50,7 @@ class SalesforceTest inherits QUnit::Test {
     }
 
     constructor() : Test("SalesforceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("Salesforce.com DataProvider test", \salesForceDataProviderTests());
         addTestCase("Salesforce.com REST", \salesForceRestTests());
         addTestCase("connection tests", \connectionTest());
 
@@ -88,8 +92,30 @@ class SalesforceTest inherits QUnit::Test {
         rc = new SalesforceRestClient(sfopts);
     }
 
-    error(string fmt) {
+    private error(string fmt) {
         throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    salesForceDataProviderTests() {
+        if (!rc) testSkip("no Salesforce.com connection");
+
+        SalesforceRestDataProvider dp(rc);
+
+        assertFalse(dp.requiresTransactionManagement());
+        {
+            list<string> children = dp.getChildProviderNames();
+            assertEq(Type::List, children.type());
+            hash<string, bool> child_map = map {$1: True}, children;
+            assertTrue(child_map.Account);
+        }
+
+        list<hash<auto>> recs;
+        {
+            AbstractDataProvider account = dp.getChildProvider("Account");
+            recs = map $1, account.searchRecords(NOTHING, {"limit": 1});
+            assertEq(1, recs.size());
+            assertEq(Type::String, recs[0].Id.type());
+        }
     }
 
     salesForceRestTests() {

@@ -67,6 +67,10 @@ class QdpCmd {
     }
 
     constructor() {
+        # must be called before any data provider operations are performed to allow for automatic configuration from
+        # environment variables by supported data provider modules (ex: SalesforceRestDataProvider)
+        DataProvider::setAutoConfig();
+
         GetOpt g(Opts);
         our hash<auto> opts = g.parse3(\ARGV);
         if (opts.listconnections) {
@@ -200,7 +204,8 @@ class QdpCmd {
 
     static search(AbstractDataProvider provider) {
         *hash<auto> where_cond = QdpCmd::getHash("search");
-        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond);
+        *hash<auto> search_options = QdpCmd::getHash("search options");
+        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond, search_options);
         map printf("%y\n", $1), i;
     }
 

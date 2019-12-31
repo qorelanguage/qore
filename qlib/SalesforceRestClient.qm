@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.2
 
 module SalesforceRestClient {
-    version = "1.3";
+    version = "1.4";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -92,15 +92,15 @@ printf("%N\n", ans.body);
 
     @par Example:
     @code{.py}
-list sub create_accounts(list account_list) {
+list<string> sub create_accounts(list account_list) {
     # get list of account numbers for return value
-    list account_numbers = map $1.AccountNumber, account_list;
+    list<string> account_numbers = map $1.AccountNumber, account_list;
 
     # add reference IDs for composite REST call
     account_list = map $1 + ("attributes": ("type": "Account", "referenceId": $#.toString())), account_list;
 
     # create accounts
-    hash info;
+    hash<auto> info;
     on_error printf("ERROR info: %N", info);
     # maximum 200 accounts can be created; if any errors occur, an exception is thrown
     rc.post("composite/tree/Account", ("records": account_list), \info);
@@ -123,7 +123,7 @@ list sub create_accounts(list account_list) {
 %requires SalesforceRestClient
 %requires json
 
-hash opts = (
+hash<auto> opts = (
     "client_id": ENV.SALESFORCE_CONSUMER_KEY,
     "client_secret": ENV.SALESFORCE_CONSUMER_SECRET,
     "username": ENV.SALESFORCE_USER,
@@ -133,9 +133,9 @@ hash opts = (
 SalesforceRestClient rest(opts);
 
 # get list of Account IDs to delete with the REST API with an SOQL query
-list al = map ("Id": $1.Id), rc.get("query?q=select Id, Name from Account where Name like 'Account %%'").body.records;
+list<hash<auto>> al = map ("Id": $1.Id), rc.get("query?q=select Id, Name from Account where Name like 'Account %%'").body.records;
 # create job with the Bulk REST API
-hash h = rc.bulkJobCreate(BulkJobDelete, "Account", BulkJobJson).jobInfo;
+hash<auto> h = rc.bulkJobCreate(BulkJobDelete, "Account", BulkJobJson).jobInfo;
 printf("created job %y\n", h.id);
 # create JSON data
 string data = make_json(al);
@@ -149,6 +149,9 @@ rc.bulkJobClose(h.id);
     functionality and a more detailed example of code using this module.
 
     @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_4 SalesforceRestClient v1.4
+    - added support for the data provider API
 
     @subsection salesforcerestclientv1_3 SalesforceRestClient v1.3
     - all connection clases have unified constructor
@@ -199,13 +202,13 @@ public namespace SalesforceRestClient {
         - @ref BulkJobUpsert (\c "upsert")
         - @ref BulkJobDelete (\c "delete")
      */
-    public const BulkJobOperations = (
+    public const BulkJobOperations = {
         BulkJobQuery: True,
         BulkJobInsert: True,
         BulkJobUpdate: True,
         BulkJobUpsert: True,
         BulkJobDelete: True,
-        );
+    };
 
     /** @defgroup bulkjob_contenttypes Salesforce.com Bulk REST API Job Content Types
      */
@@ -238,14 +241,14 @@ public namespace SalesforceRestClient {
         - \c BulkJobZipJson (\c "ZIP_JSON")
         - \c BulkJobZipXml (\c "ZIP_XML")
      */
-    public const BulkJobContentTypes = (
+    public const BulkJobContentTypes = {
         BulkJobCsv: MimeTypeCsv,
         BulkJobJson: MimeTypeJson,
         BulkJobXml: MimeTypeXmlApp,
         BulkJobZipCsv: "zip/csv",
         BulkJobZipJson: "zip/json",
         BulkJobZipXml: "zip/xml",
-        );
+    };
 
     #! this class provides the REST client API for communication with Salesforce.com
     /** This class requires the following options for Salesforce.com authentication and authorization to the target Connected App:
@@ -256,7 +259,7 @@ public namespace SalesforceRestClient {
 
         The following options can be overridden; default values are provided as follows:
         - \c api: default value \c "auto" for the Salesforce.com REST API version; \c "auto" means use the latest version available
-        - \c oauth_url_auth: default value \c "https://login.salesforce.com/services/oauth2/authorize" (not currently used)
+        - \c oauth_url_auth: default value \c "https://login.salesforce.com/services/oauth2/authorize"
         - \c oauth_url_token: default value \c "https://login.salesforce.com/services/oauth2/token" (used for logging in to Salesforce.com)
         - \c oauth_url_revoke: default value \c "https://login.salesforce.com/services/oauth2/revoke"
 
@@ -296,12 +299,12 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
     public class SalesforceRestClient inherits RestClient::RestClient {
         public {
             #! defaults for direct member values
-            const Defaults = (
+            const Defaults = {
                 "oauth_url_auth": "https://login.salesforce.com/services/oauth2/authorize",
                 "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
                 "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
                 "api": "auto",
-                );
+            };
 
             #! default send encoding
             const DefaultSendEncoding = "gzip";
@@ -316,7 +319,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
                 "username",
                 # the Salesforce.com password
                 "password",
-                );
+            );
 
             #! Salesforce.com async dataload namespace
             const AsyncDataloadNs = "http://www.force.com/2009/06/asyncapi/dataload";
@@ -326,7 +329,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
                 "^attributes^": (
                     "xmlns": AsyncDataloadNs,
                 ),
-                );
+            );
         }
 
         private {
@@ -364,7 +367,7 @@ If-Modified-Since: Thu, 24 Nov 2016 23:00:00 GMT
             string api_used;
 
             #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
-            hash api_hash;
+            hash<auto> api_hash;
         }
 
         #! creates the object with the given options (which include the following mandatory options for Salesforce.com authentication: \c client_id, \c client_secret, \c username, \c password)
@@ -388,7 +391,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
@@ -396,7 +399,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c password: (required) the Salesforce.com account password for the Connected App
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
@@ -406,10 +409,10 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
             @throw SALESFORCERESTCLIENT-ERROR missing or invalid required option for Salesforce.com REST authentication or communication
         */
-        constructor(*hash opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
+        constructor(*hash<auto> opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
             # set options
             setSendEncoding(opts.send_encoding ?? DefaultSendEncoding);
-            map self.$1 = opts.$1 ?? Defaults.$1, Defaults.keyIterator();
+            map self.$1 = opts.$1 ?? Defaults.$1, keys Defaults;
 
             # check required options
             foreach string key in (RequiredOptions) {
@@ -467,7 +470,7 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
         */
-        hash patch(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> patch(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doRequest("PATCH", path, body, \info, NOTHING, hdr);
         }
 
@@ -515,7 +518,7 @@ hash ans = rest.doRequest("GET", "sobjects");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -572,7 +575,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash doBulkRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash hdr) {
+        hash<auto> doBulkRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
             # convert any dates in headers to GMT format
             map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
@@ -652,7 +655,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkGet(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> bulkGet(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doBulkRequest("GET", path, body, \info, NOTHING, hdr);
         }
 
@@ -699,7 +702,7 @@ hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
             - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
             - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
          */
-        hash bulkPost(string path, auto body, *reference<hash> info, *hash hdr) {
+        hash<auto> bulkPost(string path, auto body, *reference<hash<auto>> info, *hash<auto> hdr) {
             return doBulkRequest("POST", path, body, \info, NOTHING, hdr);
         }
 
@@ -735,13 +738,13 @@ printf("job ID created: %y\n", h.jobInfo.id);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobCreate(string operation, string object, string job_content_type, *reference<hash> info, *hash hdr) {
+        hash<auto> bulkJobCreate(string operation, string object, string job_content_type, *reference<hash<auto>> info, *hash<auto> hdr) {
             if (!BulkJobOperations{operation})
                 throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job operation %y; known operations: %y", operation, BulkJobOperations.keys());
             if (!BulkJobContentTypes{job_content_type})
                 throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job content type %y; known content types: %y", job_content_type, BulkJobContentTypes.keys());
 
-            hash h = (
+            hash<auto> h = (
                 "jobInfo": (
                     JobInfoAttributes + (
                         "operation": operation,
@@ -786,7 +789,7 @@ printf("batch ID: %y batch state: %y\n", h.id, h.state);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobAddBatch(string jobid, data batch_data, string job_content_type, *reference<hash> info, *hash hdr) {
+        hash<auto> bulkJobAddBatch(string jobid, data batch_data, string job_content_type, *reference<hash<auto>> info, *hash<auto> hdr) {
             *string ct = BulkJobContentTypes{job_content_type};
             if (!ct)
                 throw "INVALID-OPERATION", sprintf("invalid Salesforce.com Bulk REST API job content type %y; known content types: %y", job_content_type, BulkJobContentTypes.keys());
@@ -859,8 +862,8 @@ sfrest.bulkJobClose(jh.id);
 
             @note authentication and authorization is done transparently as with the standard OAuth2 mechanism used with the non-bulk REST API
          */
-        hash bulkJobClose(string jobid, *reference<hash> info, *hash hdr) {
-            hash h = (
+        hash<auto> bulkJobClose(string jobid, *reference<hash<auto>> info, *hash<auto> hdr) {
+            hash<auto> h = (
                 "jobInfo": (
                     JobInfoAttributes + (
                         "state": "Closed",
@@ -888,7 +891,7 @@ sfrest.bulkJobClose(jh.id);
 
             @note this call is made implicitly before each REST call and should not need to be called manually
          */
-        login(*reference<hash> info) {
+        login(*reference<hash<auto>> info) {
             AutoLock al(m);
 
             loginIntern(\info);
@@ -916,7 +919,7 @@ sfrest.logout();
             - \c request-body: the raw message body in the request (before any content encoding)
             - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values (for this method, always \c "url")
          */
-        logout(*reference<hash> info) {
+        logout(*reference<hash<auto>> info) {
             AutoLock al(m);
 
             # if we are not logged in, then do nothing
@@ -946,6 +949,17 @@ sfrest.logout();
         #! returns the access token
         *string getToken() {
             return token;
+        }
+
+        #! verifies that the options passed match the configured options
+        /** @throw SALESFORCE-REST-OPTION-ERROR one or more options does not match
+        */
+        checkClientOptions(hash<auto> opts) {
+            foreach hash<auto> i in (opts.pairIterator()) {
+                if (i.value != self{i.key}) {
+                    throw "SALESFORCE-REST-OPTION-ERROR", sprintf("SalesforceRestClient has %y = %y; expected: %y", i.key, self{i.key}, i.value);
+                }
+            }
         }
 
         #! returns a date string for use with Salesforce.com Bulk REST API requests
@@ -1042,19 +1056,23 @@ sfrest.logout();
         - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
         - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
         - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+          requested response encoding; for possible values, see
+          @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
           values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when
           talking to Qorus
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
           \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
-          processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+          instead of processed
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+          \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+          message bodies
         - \c "timeout": transfer timeout to use in milliseconds
 
         @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
@@ -1064,11 +1082,11 @@ sfrest.logout();
     public class SalesforceRestConnection inherits RestClient::RestConnection {
         public {
             #! SalesforceRestConnection object connection options
-            const Options = RestConnection::Options + (
+            const Options = RestConnection::Options + {
                 "api": True,
                 "client_id": True,
                 "client_secret": True,
-                );
+            };
 
             const OptionList = Options.keys();
         }
@@ -1098,7 +1116,7 @@ sfrest.logout();
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
             real_opts = ("url": real_url) + urlh.("username", "password") + opts;
         }
@@ -1109,7 +1127,7 @@ sfrest.logout();
 
             @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
         */
-        private SalesforceRestClient getImpl(bool connect = True, *hash rtopts) {
+        private SalesforceRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
             return new SalesforceRestClient(real_opts, !connect);
         }
 
@@ -1119,27 +1137,33 @@ sfrest.logout();
             - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
             - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
             - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
-              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+              requested response encoding; for possible values, see
+              @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is
+              \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause
+              a \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+              caller like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
-              processed
-            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+              instead of processed
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the
+              value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on
+              sent message bodies
             - \c "timeout": transfer timeout to use in milliseconds
 
-            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()"
+            for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return HttpConnection::DefaultOptions;
         }
 
@@ -1148,8 +1172,29 @@ sfrest.logout();
             return "sfrests";
         }
 
+        #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+        /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+            @see @ref getDataProvider()
+        */
+        bool hasDataProvider() {
+            return True;
+        }
+
+       #! returns a data provider object for this connection
+        /** @return a data provider object for this connection
+
+            @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+        */
+        DataProvider::AbstractDataProvider getDataProvider() {
+            # to avoid circular dependencies, this object loads the SwaggerDataProvider and creates the data provider
+            # object dynamically
+            load_module("SalesforceRestDataProvider");
+            return create_object("SalesforceRestDataProvider", self);
+        }
+
         #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and QQore::Reflection
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */
         deprecated
         static SalesforceRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {

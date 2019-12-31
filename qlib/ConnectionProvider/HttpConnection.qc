@@ -38,7 +38,7 @@ public namespace ConnectionProvider {
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
           processed
         - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
         - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
@@ -123,7 +123,7 @@ public namespace ConnectionProvider {
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
             - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
