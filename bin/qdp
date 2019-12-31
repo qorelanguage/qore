@@ -204,7 +204,8 @@ class QdpCmd {
 
     static search(AbstractDataProvider provider) {
         *hash<auto> where_cond = QdpCmd::getHash("search");
-        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond);
+        *hash<auto> search_options = QdpCmd::getHash("search options");
+        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond, search_options);
         map printf("%y\n", $1), i;
     }
 

@@ -129,7 +129,22 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
 
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        hash<DataProviderInfo> rv = SalesforceRestDataProvider::ProviderInfo - "constructor_options";
+        hash<DataProviderInfo> rv = SalesforceRestDataProvider::ProviderInfo - "constructor_options" + <DataProviderInfo>{
+            "search_options": {
+                "columns": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                    "desc": "column argument for the SOQL select expression",
+                },
+                "limit": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(IntType),
+                    "desc": "the maximum number of records to return",
+                },
+                "offset": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(IntType),
+                    "desc": "the offset number in records to return",
+                },
+            },
+        };
         if (record_info.record_type) {
             if (sobject.queryable) {
                 rv.supports_read = True;

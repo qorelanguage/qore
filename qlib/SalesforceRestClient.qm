@@ -391,7 +391,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
@@ -399,7 +399,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c password: (required) the Salesforce.com account password for the Connected App
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the called instead of
+            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
@@ -1056,19 +1056,23 @@ sfrest.logout();
         - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
         - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
         - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+          requested response encoding; for possible values, see
+          @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
           values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when
           talking to Qorus
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
           \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
-          processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+          instead of processed
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+          \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+          message bodies
         - \c "timeout": transfer timeout to use in milliseconds
 
         @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
@@ -1078,11 +1082,11 @@ sfrest.logout();
     public class SalesforceRestConnection inherits RestClient::RestConnection {
         public {
             #! SalesforceRestConnection object connection options
-            const Options = RestConnection::Options + (
+            const Options = RestConnection::Options + {
                 "api": True,
                 "client_id": True,
                 "client_secret": True,
-                );
+            };
 
             const OptionList = Options.keys();
         }
@@ -1112,7 +1116,7 @@ sfrest.logout();
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
             real_opts = ("url": real_url) + urlh.("username", "password") + opts;
         }
@@ -1123,7 +1127,7 @@ sfrest.logout();
 
             @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
         */
-        private SalesforceRestClient getImpl(bool connect = True, *hash rtopts) {
+        private SalesforceRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
             return new SalesforceRestClient(real_opts, !connect);
         }
 
@@ -1133,27 +1137,33 @@ sfrest.logout();
             - \c "client_id": (required) the Salesforce.com "consumer key" for the Connected App
             - \c "client_secret": (required) the Salesforce.com "consumer secret" for the Connected App
             - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
-              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
+            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+              requested response encoding; for possible values, see
+              @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is
+              \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
+            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause
+              a \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+              caller like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the called instead of
-              processed
-            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+              instead of processed
+            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the
+              value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on
+              sent message bodies
             - \c "timeout": transfer timeout to use in milliseconds
 
-            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()" for more information on the above options
+            @see @ref SalesforceRestClient::SalesforceRestClient::constructor() "SalesforceRestClient::constructor()"
+            for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return HttpConnection::DefaultOptions;
         }
 
@@ -1162,8 +1172,29 @@ sfrest.logout();
             return "sfrests";
         }
 
+        #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+        /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+            @see @ref getDataProvider()
+        */
+        bool hasDataProvider() {
+            return True;
+        }
+
+       #! returns a data provider object for this connection
+        /** @return a data provider object for this connection
+
+            @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+        */
+        DataProvider::AbstractDataProvider getDataProvider() {
+            # to avoid circular dependencies, this object loads the SwaggerDataProvider and creates the data provider
+            # object dynamically
+            load_module("SalesforceRestDataProvider");
+            return create_object("SalesforceRestDataProvider", self);
+        }
+
         #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and QQore::Reflection
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */
         deprecated
         static SalesforceRestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {

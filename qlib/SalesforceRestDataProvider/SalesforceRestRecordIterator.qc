@@ -35,322 +35,6 @@
 
 #! contains all public definitions in the SalesforceRestDataProvider module
 public namespace SalesforceRestDataProvider {
- #! SOQL operator info hash as returned by all @ref soql_op_funcs "operator functions"
-public hashdecl SoqlOperatorInfo {
-    string op;   #!< the operator string code
-    auto arg;    #!< optional argument
-}
-
-/** @defgroup soql_ops SQL Operators
-    These are the operators that can be used in where clauses
-*/
-#@{
-#! like operator
-const SOQL_OP_LIKE = "like";
-
-#! the SOQL in operator for use in where clauses
-/** @see soql_op_in()
-*/
-public const SOQL_OP_IN = "in";
-
-#! the SOQL less than (<) operator for use in where clauses
-/** @see soql_op_lt()
-*/
-public const SOQL_OP_LT = "<";
-
-#! the SOQL less than or equals (<=) operator for use in where clauses
-/** @see soql_op_le()
-*/
-public const SOQL_OP_LE = "<=";
-
-#! the SOQL greater than operator (>) for use in where clauses
-/** @see soql_op_gt()
-*/
-public const SOQL_OP_GT = ">";
-
-#! the SOQL greater than or equals operator (>=) for use in where clauses
-/** @see soql_op_ge()
-*/
-public const SOQL_OP_GE = ">=";
-
-#! the SOQL not equals operator (!= or <>) for use in where clauses
-/** @see soql_op_ne()
-*/
-public const SOQL_OP_NE = "!=";
-
-#! the SOQL equals operator (=) for use in where clauses
-/** @see soql_op_eq()
-*/
-public const SOQL_OP_EQ = "=";
-
-#! the SQL \c "not" operator for use in @ref where_clauses
-/** @see soql_op_not()
-*/
-public const SOQL_OP_NOT = "not";
-
-#! to combine SQL expressions with \c "or" for use in @ref where_clauses
-/** @see soql_wsoql_op_or()
-*/
-public const SOQL_OP_OR = "or";
-#@}
-
-/** @defgroup soql_op_funcs SOQL Operator Functions
-    These are the operators that can be used in Salesforce where clauses
-    - soql_op_in(): for the \c "in" operator
-    - soql_op_like(): for the \c "like" operator
-    - soql_op_ge(): for the \c ">=" operator when comparing column values to immediate values
-    - soql_op_gt(): for the \c ">" operator when comparing column values to immediate values
-    - soql_op_le(): for the \c "<=" operator when comparing column values to immediate values
-    - soql_op_lt(): for the \c "<" operator when comparing column values to immediate values
-    - soql_op_ne(): for the \c "!=" or \c "<>" operator when comparing column values to immediate values
-    - soql_op_eq(): for the \c "=" operator when comparing column values to immediate values
-    - soql_op_not(): for negating other operators
-    - soql_wop_or(): for combining SQL expressions with \c "or"
-*/
-#@{
-#! returns an @ref SoqlOperatorInfo hash
-public hash<SoqlOperatorInfo> sub soql_make_op(string op, auto arg) {
-    return new hash<SoqlOperatorInfo>({"op": op, "arg": arg});
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "like" operator with the given argument for use in salesforce where clauses
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": soql_op_like("%smith%")});
-    @endcode
-
-    @param str the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-*/
-public hash<SoqlOperatorInfo> sub soql_op_like(string str) {
-    return soql_make_op(SOQL_OP_LIKE, str);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "<" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": soql_op_lt("Zebra")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-*/
-public hash<SoqlOperatorInfo> sub soql_op_lt(auto arg) {
-    return soql_make_op(SOQL_OP_LT, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "<=" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": soql_op_le("Zebra")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-*/
-public hash<SoqlOperatorInfo> sub op_le(auto arg) {
-    return soql_make_op(SOQL_OP_LE, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c ">" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_gt("Apple")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @see op_cgt() for a function to be used when comparing two column values
-*/
-public hash<SoqlOperatorInfo> sub op_gt(auto arg) {
-    return soql_make_op(SOQL_OP_GT, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c ">=" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_ge("Apple")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @see op_cge() for a function to be used when comparing two column values
-*/
-public hash<SoqlOperatorInfo> sub op_ge(auto arg) {
-    return soql_make_op(SOQL_OP_GE, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_ne("Smith")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @see op_cne() for a function to be used when comparing two column values
-
-    This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NOT NULL</tt> clause.
-*/
-public hash<SoqlOperatorInfo> sub op_ne(auto arg) {
-    return soql_make_op(SOQL_OP_NE, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "=" operator with the given argument for use in salesforce where clauses when comparing column values to immediate values
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_eq("Smith")});
-    @endcode
-
-    @param arg the argument for the operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @see op_ceq() for a function to be used when comparing two column values
-
-    This operator also handles Qore::NULL as SQL NULL values expanding them into <tt>IS NULL</tt> clause.
-*/
-public hash<SoqlOperatorInfo> sub op_eq(auto arg) {
-    return soql_make_op(SOQL_OP_EQ, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "in" operator with all arguments passed to the function; for use in salesforce where clauses
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_in(200, 300, 500, 9)});
-    @endcode
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
-*/
-public hash<SoqlOperatorInfo> sub op_in() {
-    return soql_make_op(SOQL_OP_IN, argv);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "in" operator with the given argument list as the first argument; for use in salesforce where clauses
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": op_in(idlist)});
-    @endcode
-
-    @param args a list of values for the \c "in" operator
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-
-    @note The argument list size may be constrained depending on the database server / driver used; passing a large number of arguments to this function may be a sign of an improper application or query design; consider using a join with a temporary table instead of passing a large number of arguments to this function
-*/
-public hash<SoqlOperatorInfo> sub op_in(list<auto> args) {
-    return soql_make_op(SOQL_OP_IN, args);
-}
-
-#! returns an @ref SoqlOperatorInfo hash for the \c "not" operator; for use in salesforce where clauses
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"name": opt_not(op_in(200, 300, 500, 9))))_;
-    @endcode
-
-    @return an @ref SoqlOperatorInfo hash for use in salesforce where clauses
-*/
-public hash<SoqlOperatorInfo> sub op_not(hash arg) {
-    return soql_make_op(SOQL_OP_NOT, arg);
-}
-
-#! returns an @ref SoqlOperatorInfo hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in salesforce where clauses
-/** @par Example:
-    @code{.py}
-*list<auto> rows = provider.searchRecords({"id": id} + wop_or({"type": "C", "validation_flag": op_ne("Y")}, {"expiration_flag": 'Y'}));
-    @endcode
-    Generates:
-    @verbatim
-select * from Account where id = '0012A000022K3zxQAC' and ((type = 'C' and validation flag != 'Y') or (expiration_flag = 'Y'))
-    @endverbatim
-
-    @param h1 the first hash of expressions to combine with \c "or" logic
-    @param h2 the second hash of expressions to combine with \c "or" logic
-    @param ... remaining expressions to combine with \c "or" logic
-
-    @return a hash with an @ref SoqlOperatorInfo hash value keyed by a fake column name (\c "_OR_" with a numeric
-    prefix for uniqueness) for use in a where operation description hash for use in salesforce where clauses
-
-    @note a random prefix is used so that multiple uses of the function can be used to generate a single where clause
-    hash
-*/
-public hash<string, hash<SoqlOperatorInfo>> sub wop_or(hash<auto> h1, hash<auto> h2) {
-    softlist<auto> l = h1;
-    l += h2;
-    if (argv)
-        l += argv;
-    return new hash<string, hash<SoqlOperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): soql_make_op(SOQL_OP_OR, l)));
-}
-#@}
-
-#! a hash of valid operators for use in where clauses
-public const DefaultOpMap = {
-    SOQL_OP_LIKE: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s like %s", cn, arg);
-        },
-    ),
-    SOQL_OP_LT: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s < %s", cn, arg);
-        },
-    ),
-    SOQL_OP_LE: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s <= %s", cn, arg);
-        },
-    ),
-    SOQL_OP_GT: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s > %s", cn, arg);
-        },
-    ),
-    SOQL_OP_GE: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s >= %s", cn, arg);
-        },
-    ),
-    SOQL_OP_NE: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s != %s", cn, arg);
-        },
-    ),
-    SOQL_OP_EQ: (
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("%s = %s", cn, arg);
-        },
-    ),
-    SOQL_OP_IN: (
-        "code": string sub (object i, string cn, auto arg) {
-            *string ins = (foldl $1 + "," + $2, (map i.getSoqlValue($1), arg));
-            return sprintf("%s in (%s)", cn, ins);
-        },
-    ),
-    SOQL_OP_NOT: (
-        "recursive": True,
-        "code": string sub (object i, string cn, auto arg) {
-            return sprintf("not (%s)", cn);
-        },
-    ),
-    SOQL_OP_OR: (
-        "code": string sub (object i, string cn, list<auto> arg) {
-            return i.getOrClause(arg);
-        },
-    ),
-};
-#@}
-
 #! Defines the record iterator class for Table-based iterators
 public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIterator {
     public {
@@ -381,10 +65,16 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
 
         # make query
         string soql = makeQuery(where_cond, search_options);
-        #printf("SOQL: %y\n", soql);
         hash<auto> info;
-        #on_error printf("info: %N\n", info);
-        i = new ListHashIterator(rest.get("query?q=" + soql, NOTHING, \info).body.records);
+        try {
+            i = new ListHashIterator(rest.get("query?q=" + soql, NOTHING, \info).body.records);
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            hash<auto> ex_arg = {
+                "soql": soql,
+            } + info{"response-bode", "response-body"};
+            throw ex.err, ex.desc, ex_arg;
+        }
     }
 
     #! Returns @ref True if the iterator is valid
@@ -446,21 +136,110 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         if (where_cond) {
             soql += " where " + doWhereExpression(where_cond, search_options);
         }
+
+        if (search_options.limit) {
+            soql += sprintf(" limit %d", search_options.limit);
+        }
+        if (search_options.hasKey("offset")) {
+            if (!search_options.limit)
+                throw "SELECT-ERROR", sprintf("select 'offset' supplied (%d) without limit", search_options.offset);
+            soql += sprintf(" offset %d", search_options.offset);
+        }
+
         return soql;
     }
 
-    private string getColumnNames(*list<string> column_names) {
-        return foldl $1 + "," + $2, keys record_info.record_type;
+    private string getColumnNames(*softlist<auto> column_names) {
+        if (column_names) {
+            list<string> exp_list;
+            foreach auto col in (column_names) {
+                switch (col.typeCode()) {
+                    case NT_STRING:
+                        exp_list += col;
+                        break;
+
+                    case NT_HASH:
+                        if (!col.cop) {
+                            throw "COLUMN-ERROR", sprintf("missing column operator in \"columns\" hash element "
+                                "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
+                                "the column names or a list of column operator hashes as returned from column "
+                                "operator functions; this element is missing hash key \"cop\" giving the column "
+                                "operator; keys provided: %y", $# + 1, column_names.size(), col.keys());
+                        }
+                        try {
+                            string val = doColumnOperatorIntern(col.cop, col.arg, col.column);
+                            exp_list += val;
+                        } catch (hash<ExceptionInfo> ex) {
+                            # rethrow exception with additional contextual information
+                            throw ex.err, sprintf("%s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), $# + 1,
+                                column_names.size(), ex.desc), ex.arg;
+                        }
+                        break;
+
+                    default:
+                        throw "COLUMN-ERROR", sprintf("cannot process column value of type %y (%y)", col.type(), col);
+                }
+            }
+
+            return foldl $1 + "," + $2, exp_list;
+        } else {
+            return foldl $1 + "," + $2, keys record_info.record_type;
+        }
+    }
+
+    private string doColumnOperatorIntern(auto cop, auto arg, auto cve) {
+        if (cve) {
+            cve = getColumnExpressionIntern(cve);
+        }
+
+        if (cop.typeCode() != NT_STRING) {
+            throw "SELECT-ERROR", sprintf("invalid column operator code %y; use column operator functions to "
+                "create valid column specifications with supported column operators", cop);
+        }
+
+        *hash<auto> cmd = DefaultSoqlCopMap{cop};
+        if (!cmd) {
+            throw "SELECT-ERROR", sprintf("unknown column operator %y: expecting one of: %y", cop,
+                keys DefaultSoqlCopMap);
+        }
+
+        if (cmd.arg) {
+            string at = arg.type();
+            switch (cmd.arg) {
+                default: {
+                    if (at != cmd.arg)
+                        throw "SELECT-ERROR", sprintf("invalid argument to column operator %y; got type %y, "
+                            "expecting %y", cop, at, cmd.arg);
+                }
+            }
+        }
+
+        if (!exists cve && !cmd.nocolumn && !cmd.columnargs) {
+            throw "SELECT-ERROR", sprintf("column operator %y requires a column argument name but none was provided", cop);
+        }
+
+        return cmd.code(cve, arg);
+    }
+
+    private string getColumnExpressionIntern(auto cvc) {
+        switch (cvc.typeCode()) {
+            case NT_HASH:
+                return doColumnOperatorIntern(cvc.cop, cvc.arg, cvc.column);
+            case NT_STRING:
+                return cvc;
+        }
+        throw "SELECT-ERROR", sprintf("column operator hash %y has an invalid \"column\" key; expecting a string "
+            "column specification or a column operator description hash", cvc);
     }
 
     private string doWhereExpression(hash<auto> where_cond, *hash<auto> search_options) {
         list<string> clauses;
         foreach hash<auto> i in (where_cond.pairIterator()) {
             if (i.value.typeCode()) {
-                *hash<auto> op = DefaultOpMap{i.value.op};
+                *hash<auto> op = DefaultSoqlOpMap{i.value.op};
                 if (!op) {
                     throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
-                        "%y: expecting one of: %y (operator hash: %y)", i.key, i.value.op, keys DefaultOpMap,
+                        "%y: expecting one of: %y (operator hash: %y)", i.key, i.value.op, keys DefaultSoqlOpMap,
                         i.value);
                 }
                 clauses += op.code(self, i.key, getArgValue(i.key, i.value.arg));

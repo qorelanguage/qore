@@ -39,7 +39,7 @@ public namespace SalesforceRestDataProvider {
 public class SalesforceRestDataProvider inherits AbstractDataProvider {
     public {
         #! The REST client object for API calls
-        *SalesforceRestClient rest;
+        SalesforceRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -128,7 +128,7 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(*SalesforceRestClient rest) {
+    constructor(SalesforceRestClient rest) {
         self.rest = rest;
     }
 

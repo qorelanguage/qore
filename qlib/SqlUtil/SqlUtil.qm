@@ -2316,7 +2316,6 @@ public namespace SqlUtil {
     */
     public const COP_ROW_NUMBER = "row_number";
 
-
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
