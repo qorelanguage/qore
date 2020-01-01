@@ -46,12 +46,12 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName()) : QoreDataType(AutoHashType) {
+    constructor(string name = AutoHashType.getName(), *hash<auto> options) : QoreDataType(AutoHashType, options) {
         self.name = name;
     }
 
     #! creates the object and assigns the name as the given name or the base type's name
-    constructor(Type base_type, *string name) : QoreDataType(base_type) {
+    constructor(Type base_type, *string name, *hash<auto> options) : QoreDataType(base_type, options) {
         self.name = name ?? base_type.getName();
     }
 
