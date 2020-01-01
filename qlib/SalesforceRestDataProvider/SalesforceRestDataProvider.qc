@@ -190,7 +190,7 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns options for the SalesforceRestClient
-    static private hash<auto> getClientOptions(hash<auto> copts) {
+    static private *hash<auto> getClientOptions(*hash<auto> copts) {
         return copts - ("salesforcerestclient_options", "salesforcerestclient")
             + copts.salesforcerestclient_options;
     }

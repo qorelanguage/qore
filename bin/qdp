@@ -224,7 +224,8 @@ class QdpCmd {
 
     static upsert(AbstractDataProvider provider) {
         *hash<auto> rec = QdpCmd::getHash("upsert");
-        string result = provider.upsertRecord(rec);
+        *hash<auto> upsert_options = QdpCmd::getHash("upsert options");
+        string result = provider.upsertRecord(rec, upsert_options);
         printf("upsert result: %y\n", result);
     }
 
@@ -284,6 +285,7 @@ class QdpCmd {
     }
 
     static showType() {
+        # this method intentionally left empty
     }
 
     static showType(AbstractDataProviderType type, *string offset) {

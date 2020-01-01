@@ -93,6 +93,7 @@ module DataProvider {
     - @ref DataProvider::QoreIntDataType "QoreIntDataType"
     - @ref DataProvider::QoreIntDataTypeBase "QoreIntDataTypeBase"
     - @ref DataProvider::QoreIntOrNothingDataType "QoreIntOrNothingDataType"
+    - @ref DataProvider::QoreListDataType "QoreListDataType"
     - @ref DataProvider::QoreNumberDataType "QoreNumberDataType"
     - @ref DataProvider::QoreNumberDataTypeBase "QoreNumberDataTypeBase"
     - @ref DataProvider::QoreNumberOrNothingDataType "QoreNumberOrNothingDataType"

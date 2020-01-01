@@ -53,16 +53,12 @@ public class ListDataType inherits AbstractDataProviderType {
 
     #! creates the object
     constructor(AbstractDataProviderType element_type, bool or_nothing = False) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
-        self.element_type = element_type;
-        accept_type_hash = return_type_hash = {
-            Type::List: True,
-        };
-        if (or_nothing) {
-            accept_type_hash{Type::NothingType} = True;
-            accept_type_hash{Type::NullType} = True;
-            return_type_hash{Type::NothingType} = True;
-        }
+        init(element_type, or_nothing);
+    }
+
+    #! creates the object
+    constructor(Type element_type, bool or_nothing = False) {
+        init(AbstractDataProviderType::get(element_type), or_nothing);
     }
 
     #! returns the type name
@@ -103,13 +99,26 @@ public class ListDataType inherits AbstractDataProviderType {
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
     */
     auto acceptsValue(auto value) {
-        int typecode = value.typeCode();
-        if (!accept_type_hash{typecode}) {
+        string typename = value.type();
+        if (!accept_type_hash{typename}) {
             throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
-                value.type());
+                value.fullType());
         }
-        if (typecode == NT_LIST) {
+        if (typename == Type::List) {
             return map element_type.acceptsValue($1), value;
+        }
+    }
+
+    #! common constructor initialization
+    private init(AbstractDataProviderType element_type, bool or_nothing) {
+        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        self.element_type = element_type;
+        accept_type_hash = return_type_hash = {
+            Type::List: True,
+        };
+        if (or_nothing) {
+            accept_type_hash{Type::NothingType} = True;
+            return_type_hash{Type::NothingType} = True;
         }
     }
 }

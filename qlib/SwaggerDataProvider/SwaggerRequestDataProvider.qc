@@ -75,7 +75,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     #! Returns the data provider name
     string getName() {
-        return schema.info.title + uri_path + "/" + op.method.upr() + "/" + "request";
+        return schema.info.title + uri_path + "/" + op.method.upr();
     }
 
     #! Returns data provider info

@@ -653,16 +653,18 @@ hash: (1 member)
             } else switch (v.typeCode()) {
                 case NT_HASH: {
                     if (do_break)
-                        v = (v, (key: val));
+                        v = (v, {key: val});
                     else
                         v{key} = val;
                     break;
                 }
                 case NT_LIST: {
-                    if (v.last().typeCode() == NT_HASH && !do_break)
-                        v[v.size() - 1]{key} = val;
-                    else
-                        v += (key: val);
+                    if (v.last().typeCode() == NT_HASH && !do_break) {
+                        # must use += here so that any hash created stays "hash<auto>"
+                        v[v.size() - 1]{key} += val;
+                    } else {
+                        v += {key: val};
+                    }
                     break;
                 }
                 default: throw "PARSE-ERROR", sprintf("impossible hash v: %y key: %y val: %y", v, key, val);

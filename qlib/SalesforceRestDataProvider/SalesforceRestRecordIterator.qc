@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SalesforceRestRecordIterator class definition
 
-/** SalesforceRestRecordIterator.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SalesforceRestRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = {
                 "soql": soql,
-            } + info{"response-bode", "response-body"};
+            } + info{"response-code", "response-body"};
             throw ex.err, ex.desc, ex_arg;
         }
     }
@@ -136,7 +136,18 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         if (where_cond) {
             soql += " where " + doWhereExpression(where_cond, search_options);
         }
-
+        if (search_options.scope) {
+            soql += " using scope " + search_options.scope;
+        }
+        if (search_options.groupby) {
+            soql += " group by " + getGroupOrderBy(search_options.groupby);
+        }
+        if (search_options.having) {
+            soql += " having " + doWhereExpression(search_options.having);
+        }
+        if (search_options.orderby) {
+            soql += " order by " + getGroupOrderBy(search_options.orderby);
+        }
         if (search_options.limit) {
             soql += sprintf(" limit %d", search_options.limit);
         }
@@ -145,8 +156,26 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
                 throw "SELECT-ERROR", sprintf("select 'offset' supplied (%d) without limit", search_options.offset);
             soql += sprintf(" offset %d", search_options.offset);
         }
+        if (search_options.forview) {
+            soql += " for view";
+        }
+        if (search_options.forreference) {
+            soql += " for reference";
+        }
 
         return soql;
+    }
+
+    private string getGroupOrderBy(softlist<string> coll) {
+        return foldl $1 + "," + $2, (map $1, coll, checkColumnName($1));
+    }
+
+    private bool checkColumnName(string col) {
+        if (!record_info.record_type{col}) {
+            throw "COLUMN-ERROR", sprintf("column %y is unknown; known columns: %y", col,
+                keys record_info.record_type);
+        }
+        return True;
     }
 
     private string getColumnNames(*softlist<auto> column_names) {
@@ -214,6 +243,11 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
             }
         }
 
+        if (cmd.dostring) {
+            remove record_info.date_time_fields;
+            remove record_info.date_fields;
+        }
+
         if (!exists cve && !cmd.nocolumn && !cmd.columnargs) {
             throw "SELECT-ERROR", sprintf("column operator %y requires a column argument name but none was provided", cop);
         }
@@ -235,7 +269,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
     private string doWhereExpression(hash<auto> where_cond, *hash<auto> search_options) {
         list<string> clauses;
         foreach hash<auto> i in (where_cond.pairIterator()) {
-            if (i.value.typeCode()) {
+            if (i.value.typeCode() == NT_HASH && i.value.op) {
                 *hash<auto> op = DefaultSoqlOpMap{i.value.op};
                 if (!op) {
                     throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
@@ -244,7 +278,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
                 }
                 clauses += op.code(self, i.key, getArgValue(i.key, i.value.arg));
             } else {
-                clauses += sprintf("%s = '%s'", i.key, getArgValue(i.key, i.value));
+                clauses += sprintf("%s = %s", i.key, getArgValue(i.key, i.value));
             }
         }
         return foldl $1 + " and " + $2, clauses;

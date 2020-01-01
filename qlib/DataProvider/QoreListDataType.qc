@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore HashDataType class definition
+#! Qore QoreListDataType class definition
 
-/** HashDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreListDataType.qc Copyright 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,23 +36,20 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
-public class HashDataType inherits QoreDataType {
+public class QoreListDataType inherits QoreDataType {
     private {
         #! the name of the type
         string name;
-
-        #! fields
-        hash<string, AbstractDataField> fields;
     }
 
-    #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName(), *hash<auto> options) : QoreDataType(AutoHashType, options) {
-        self.name = name;
+    #! creates the object
+    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+        init(type.getName());
     }
 
-    #! creates the object and assigns the name as the given name or the base type's name
-    constructor(Type base_type, *string name, *hash<auto> options) : QoreDataType(base_type, options) {
-        self.name = name ?? base_type.getName();
+    #! creates the object
+    constructor(string name, Type type, *hash<auto> options) : QoreDataType(type, options) {
+        init(name);
     }
 
     #! returns the type name
@@ -60,32 +57,14 @@ public class HashDataType inherits QoreDataType {
         return name;
     }
 
-    #! adds a field to the type
-    addField(AbstractDataField field) {
-        fields{field.getName()} = field;
-    }
-
-    #! returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        return fields{name};
-    }
-
-    #! returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return fields;
-    }
-
-    #! returns a "soft" type equivalent to the current type
-    /** @return a "soft" type equivalent to the current type
-    */
-    AbstractDataProviderType getSoftType() {
-        if (soft_type) {
-            return self;
+    #! common constructor initialization
+    private init(string name) {
+        if (type.getBaseTypeCode() != NT_LIST) {
+            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
+                type.getName());
         }
-        HashDataType rv(name);
-        map rv.addField($1.getSoftType()), getFields().iterator();
-        rv.soft_type = True;
-        return rv;
+
+        self.name = name;
     }
 }
 }

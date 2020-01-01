@@ -1190,7 +1190,7 @@ sfrest.logout();
             # to avoid circular dependencies, this object loads the SwaggerDataProvider and creates the data provider
             # object dynamically
             load_module("SalesforceRestDataProvider");
-            return create_object("SalesforceRestDataProvider", self);
+            return create_object("SalesforceRestDataProvider", get());
         }
 
         #! DEPRECATED: static constructor
