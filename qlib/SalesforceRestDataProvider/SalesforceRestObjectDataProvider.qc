@@ -101,32 +101,6 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         return new SalesforceRestRecordIterator(rest, name, record_info, where_cond, search_options);
     }
 
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
-    */
-    private *list<string> getChildProviderNamesImpl() {
-        #return ("*",);
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @see getChildProviderEx()
-    */
-    private *AbstractDataProvider getChildProviderImpl(string object_id) {
-        /*
-        try {
-            hash<auto> obj = rest.get("sobjects/" + name + "/" + object_id);
-            return new SalesforceRestObjectDataProvider(rest, name, sobject, desc, record_type, object_id, obj);
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err == "HTTP-CLIENT-RECEIVE-ERROR" && info."response-headers".status_code == 404) {
-                return;
-            }
-            rethrow;
-        }
-        */
-    }
-
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         hash<DataProviderInfo> rv = SalesforceRestDataProvider::ProviderInfo - "constructor_options" + <DataProviderInfo>{
@@ -142,6 +116,10 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                 "offset": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderType::get(IntType),
                     "desc": "the offset number in records to return",
+                },
+                "groupby": <DataProviderOptionInfo>{
+                    "type": new QoreListDataType(new Type("softlist<string>")),
+                    "desc": "group by argument for the SOQL select expression",
                 },
             },
         };
@@ -184,7 +162,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     if (field.length) {
                         opts."string.max_size_chars" = field.length;
                     }
-                    type = AbstractDataProviderType::get(field.nillable ? StringOrNothingType : StringType, opts);
+                    type = AbstractDataProviderType::get(field.nillable ? SoftStringOrNothingType : SoftStringType, opts);
                     break;
                 }
 
@@ -208,20 +186,20 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     break;
 
                 case "time":
-                    type = AbstractDataProviderType::get(field.nillable ? StringOrNothingType : StringType, opts);
+                    type = AbstractDataProviderType::get(field.nillable ? SoftStringOrNothingType : SoftStringType, opts);
                     record_info.time_fields{field.name} = True;
                     break;
 
                 case "int":
-                    type = AbstractDataProviderType::get(field.nillable ? IntOrNothingType : IntType, opts);
+                    type = AbstractDataProviderType::get(field.nillable ? SoftIntOrNothingType : SoftIntType, opts);
                     break;
 
                 case "double":
-                    type = AbstractDataProviderType::get(field.nillable ? FloatOrNothingType : FloatType, opts);
+                    type = AbstractDataProviderType::get(field.nillable ? SoftFloatOrNothingType : SoftFloatType, opts);
                     break;
 
                 case "boolean":
-                    type = AbstractDataProviderType::get(field.nillable ? BoolOrNothingType : BoolType, opts);
+                    type = AbstractDataProviderType::get(field.nillable ? SoftBoolOrNothingType : SoftBoolType, opts);
                     break;
 
                 default:

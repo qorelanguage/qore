@@ -392,5 +392,26 @@ public class DataProviderTest inherits QUnit::Test {
             QoreDataType t(SoftStringType, {"qore.no_null": True});
             assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*NULL", \t.acceptsValue(), (NULL,));
         }
+
+        {
+            ListDataType t(IntType);
+            assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*integer", \t.acceptsValue(), (1,));
+            assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*NULL", \t.acceptsValue(), (NULL,));
+            assertEq((1,), t.acceptsValue((1,)));
+        }
+
+        {
+            QoreListDataType t(new Type("softlist<int>"));
+            assertEq((1,), t.acceptsValue(1));
+            assertThrows("RUNTIME-TYPE-ERROR", "NULL", \t.acceptsValue(), (NULL,));
+            assertEq((1,), t.acceptsValue((1,)));
+        }
+
+        {
+            QoreListDataType t(new Type("softlist<string>"));
+            assertEq(("a",), t.acceptsValue("a"));
+            assertThrows("RUNTIME-TYPE-ERROR", "NULL", \t.acceptsValue(), (NULL,));
+            assertEq(("a",), t.acceptsValue(("a",)));
+        }
     }
 }

@@ -137,6 +137,14 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
             soql += " where " + doWhereExpression(where_cond, search_options);
         }
 
+        if (search_options.groupby) {
+            soql += " group by " + getGroupOrderBy(search_options.groupby);
+        }
+
+        if (search_options.orderby) {
+            soql += " order by " + getGroupOrderBy(search_options.orderby);
+        }
+
         if (search_options.limit) {
             soql += sprintf(" limit %d", search_options.limit);
         }
@@ -147,6 +155,17 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         }
 
         return soql;
+    }
+
+    private string getGroupOrderBy(softlist<string> coll) {
+        return foldl $1 + "," + $2, (map $1, coll, checkColumnName($1));
+    }
+
+    private checkColumnName(string col) {
+        if (!record_info.record_type{col}) {
+            throw "COLUMN-ERROR", sprintf("column %y is unknown; known columns: %y", col,
+                keys record_info.record_type);
+        }
     }
 
     private string getColumnNames(*softlist<auto> column_names) {
@@ -235,7 +254,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
     private string doWhereExpression(hash<auto> where_cond, *hash<auto> search_options) {
         list<string> clauses;
         foreach hash<auto> i in (where_cond.pairIterator()) {
-            if (i.value.typeCode()) {
+            if (i.value.typeCode() == NT_HASH) {
                 *hash<auto> op = DefaultSoqlOpMap{i.value.op};
                 if (!op) {
                     throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
@@ -244,7 +263,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
                 }
                 clauses += op.code(self, i.key, getArgValue(i.key, i.value.arg));
             } else {
-                clauses += sprintf("%s = '%s'", i.key, getArgValue(i.key, i.value));
+                clauses += sprintf("%s = %s", i.key, getArgValue(i.key, i.value));
             }
         }
         return foldl $1 + " and " + $2, clauses;
