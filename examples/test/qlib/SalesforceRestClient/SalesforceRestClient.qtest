@@ -112,9 +112,24 @@ class SalesforceTest inherits QUnit::Test {
         list<hash<auto>> recs;
         {
             AbstractDataProvider account = dp.getChildProvider("Account");
-            recs = map $1, account.searchRecords(NOTHING, {"limit": 1});
+
+            # create new account
+            string id = account.createRecord({"Name": "deleteme", "Type": "test-delete"}).id;
+
+            # search the record
+            recs = map $1, account.searchRecords({"Id": id}, {"limit": 1});
             assertEq(1, recs.size());
-            assertEq(Type::String, recs[0].Id.type());
+            assertEq(id, recs[0].Id);
+
+            recs = map $1, account.searchRecords({"Type": soql_op_in("test-delete", get_random_string())});
+            assertEq(1, recs.size());
+            assertEq(id, recs[0].Id);
+
+            # update the record
+            assertEq(1, account.updateRecords({"Type": "delete"}, {"Id": id}));
+
+            # delete the record
+            assertEq(1, account.deleteRecords({"Id": id}));
         }
     }
 

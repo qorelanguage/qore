@@ -140,13 +140,13 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
             soql += " using scope " + search_options.scope;
         }
         if (search_options.groupby) {
-            soql += " group by " + getGroupOrderBy(search_options.groupby);
+            soql += " group by " + getColumnNames(search_options.groupby);
         }
         if (search_options.having) {
             soql += " having " + doWhereExpression(search_options.having);
         }
         if (search_options.orderby) {
-            soql += " order by " + getGroupOrderBy(search_options.orderby);
+            soql += " order by " + getOrderBy(search_options.orderby);
         }
         if (search_options.limit) {
             soql += sprintf(" limit %d", search_options.limit);
@@ -166,7 +166,7 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         return soql;
     }
 
-    private string getGroupOrderBy(softlist<string> coll) {
+    private string getOrderBy(softlist<string> coll) {
         return foldl $1 + "," + $2, (map $1, coll, checkColumnName($1));
     }
 
@@ -269,22 +269,35 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
     private string doWhereExpression(hash<auto> where_cond, *hash<auto> search_options) {
         list<string> clauses;
         foreach hash<auto> i in (where_cond.pairIterator()) {
-            if (i.value.typeCode() == NT_HASH && i.value.op) {
-                *hash<auto> op = DefaultSoqlOpMap{i.value.op};
-                if (!op) {
-                    throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
-                        "%y: expecting one of: %y (operator hash: %y)", i.key, i.value.op, keys DefaultSoqlOpMap,
-                        i.value);
-                }
-                clauses += op.code(self, i.key, getArgValue(i.key, i.value.arg));
-            } else {
-                clauses += sprintf("%s = %s", i.key, getArgValue(i.key, i.value));
-            }
+            clauses += doWhereExpressionIntern(i.key, i.value);
         }
         return foldl $1 + " and " + $2, clauses;
     }
 
-    private string getArgValue(string key, auto value) {
+    private string doWhereExpressionIntern(string key, auto value) {
+        if (value.typeCode() == NT_HASH && value.op) {
+            *hash<auto> op = DefaultSoqlOpMap{value.op};
+            if (!op) {
+                throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
+                    "%y: expecting one of: %y (operator hash: %y)", key, value.op, keys DefaultSoqlOpMap,
+                    value);
+            }
+            string column_name;
+            if (op.recursive) {
+                column_name = doWhereExpressionIntern(key, value.arg);
+            } else {
+                column_name = key;
+            }
+            if (!op.no_process_arg) {
+                value.arg = getArgValue(key, value.arg);
+            }
+            return op.code(self, column_name, value.arg);
+        }
+
+        return sprintf("%s = %s", key, getArgValue(key, value));
+    }
+
+    string getArgValue(string key, auto value) {
         switch (record_info.field_types{key}) {
             case "datetime":
             case "date":

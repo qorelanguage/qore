@@ -122,7 +122,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     "desc": "the offset number in records to return",
                 },
                 "groupby": <DataProviderOptionInfo>{
-                    "type": new QoreListDataType(new Type("softlist<string>")),
+                    "type": new QoreListDataType(new Type("softlist<auto>")),
                     "desc": "group by argument for the SOQL select expression",
                 },
                 "having": <DataProviderOptionInfo>{
@@ -175,7 +175,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
     /** @param rec a hash representing a single input record
         @param create_options the create options after processing by validateCreateOptions()
 
-        @return the data written to the data provider
+        @return the data written to the data provider with the \c "id" field of the new record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         string url = sprintf("sobjects/%s", name);
@@ -192,7 +192,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         if (!resp.body.success) {
             throw "UPSERT-ERROR", sprintf("error creating record: %y", resp.errors);
         }
-        return rec;
+        return rec + {"id": resp.body.id};
     }
 
     #! Upserts the given record to the data provider
@@ -244,7 +244,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         }
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options);
         int count = 0;
-        map updateSingleRecord(i.getValue().Id, set), i;
+        map (updateSingleRecord(i.getValue().Id, set), ++count), i;
         return count;
     }
 
@@ -261,8 +261,8 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             return 1;
         }
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options);
-        int count = 0;
-        map deleteSingleRecord(i.getValue().Id), i;
+        int count;
+        map (deleteSingleRecord(i.getValue().Id), ++count), i;
         return count;
     }
 
@@ -346,6 +346,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     type = AbstractDataProviderType::get(field.nillable ? SoftIntOrNothingType : SoftIntType, opts);
                     break;
 
+                case "currency":
                 case "double":
                     type = AbstractDataProviderType::get(field.nillable ? SoftFloatOrNothingType : SoftFloatType, opts);
                     break;
