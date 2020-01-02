@@ -310,6 +310,8 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                 case "id":
                 case "textarea":
                 case "email":
+                case "reference":
+                case "phone":
                 case "url": {
                     if (field.length) {
                         opts."string.max_size_chars" = field.length;
@@ -346,6 +348,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     type = AbstractDataProviderType::get(field.nillable ? SoftIntOrNothingType : SoftIntType, opts);
                     break;
 
+                case "percent":
                 case "currency":
                 case "double":
                     type = AbstractDataProviderType::get(field.nillable ? SoftFloatOrNothingType : SoftFloatType, opts);
