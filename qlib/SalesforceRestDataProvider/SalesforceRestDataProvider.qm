@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SalesforceRestDataProvider module definition
 
-/*  SalesforceRestDataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  SalesforceRestDataProvider.qm Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -55,22 +55,37 @@ module SalesforceRestDataProvider {
     @section salesforcerestdataproviderintro Introduction to the SalesforceRestDataProvider Module
 
     The %SalesforceRestDataProvider module provides a @ref dataproviderintro "data provider" API for the Salesforce
-    REST API.  The @ref SalesforceRestDataProvider::SalesforceRestDataProvider "SalesforceRestDataProvider" class
-    allows for introspecting a Salesforce instance, while the
-    @ref SalesforceRestDataProvider::SalesforceRestRequestDataProvider "SalesforceRestRequestDataProvider" class
-    supports the @ref dataproviderintro "data provider" request-reply API for communication with REST servers.
+    REST API to work with data under the \c "sobjects" URI path.  The
+    @ref SalesforceRestDataProvider::SalesforceRestDataProvider "SalesforceRestDataProvider" class allows for
+    introspecting a Salesforce instance, while the
+    @ref SalesforceRestDataProvider::SalesforceRestObjectDataProvider "SalesforceRestObjectDataProvider" class
+    supports the @ref dataproviderintro "data provider" record-based API for communication with REST servers and
+    querying and manipulating data in the Salesforce instance.
 
     Salesforce instances can be introspected with the following format:
-    - REST operation path: <tt><i>uri_path</i>/<i>HTTP_method</i></tt>
+    - REST operation path: <tt><i>uri_path</i></tt>
       - ex: <tt><b>Account</b></tt>
       - results in a
         @ref SalesforceRestDataProvider::SalesforceRestObjectDataProvider "SalesforceRestObjectDataProvider" object
-        where operations supported on the object can be executed
+        where record operations supported on the object can be executed
 
     The following classes are provided by this module:
     - @ref SalesforceRestDataProvider::SalesforceRestDataProvider "SalesforceRestDataProvider"
     - @ref SalesforceRestDataProvider::SalesforceRestDataProviderFactory "SalesforceRestDataProviderFactory"
     - @ref SalesforceRestDataProvider::SalesforceRestObjectDataProvider "SalesforceRestObjectDataProvider"
+    - @ref SalesforceRestDataProvider::SalesforceRestRecordIterator "SalesforceRestRecordIterator"
+
+    @section salesforcerestdataprovider_queries Salesforce Queries
+
+    Queries are made by generating SOQL query strings from the where clause and search options.  Note that the
+    Salesforce query API does not currently support server-side result set caching, so the entire result set is
+    returned by the server for each query and stored in memory when using the
+    @ref SalesforceRestDataProvider::SalesforceRestRecordIterator "SalesforceRestRecordIterator" class, so it's
+    recommended to limit query result set sizes using the \c limit search option.
+
+    @see
+    - @ref soql_soql_cop_funcs
+    - @ref soql_op_funcs
 
     @section salesforcerestdataprovider_relnotes Release Notes
 

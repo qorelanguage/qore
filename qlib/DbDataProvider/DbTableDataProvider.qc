@@ -52,7 +52,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "supports_bulk_upsert": True,
             "supports_children": False,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
+            "search_options": SearchOptions,
             "create_options": CreateOptions,
             "upsert_options": UpsertOptions,
             "transaction_management": True,
@@ -123,6 +123,38 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                 "desc": "allows for an asymmetrical upsert where a set of column values is inserted, but a smaller "
                     "set is updated in case the unique key values are present in the target table; the value of this "
                     "option should be set to the columns to omit in the update clause",
+            },
+        };
+
+        #! Search options
+        const SearchOptions = {
+            "columns": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "column argument for the select expression",
+            },
+            "limit": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "the maximum number of records to return",
+            },
+            "offset": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "the offset number in records to return",
+            },
+            "groupby": <DataProviderOptionInfo>{
+                "type": new QoreListDataType(new Type("softlist<auto>")),
+                "desc": "group by argument for the select expression",
+            },
+            "having": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "having argument for the select expression",
+            },
+            "orderby": <DataProviderOptionInfo>{
+                "type": new QoreListDataType(new Type("softlist<string>")),
+                "desc": "order by argument for the select expression",
+            },
+            "forupdate": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "uses FOR UPDATE with the query to lock records selected",
             },
         };
 
@@ -277,7 +309,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
         try {
-            return table.selectRow({"where": where_cond});
+            return table.selectRow(search_options + {"where": where_cond});
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "DBI-SELECT-ROW-ERROR") {
                 throw "MULTIPLE-RECORDS-ERROR", ex.desc, ex.arg;
