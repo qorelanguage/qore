@@ -1,5 +1,5 @@
 # issue #3069: make sure to install correctly when cross compiling
-modexeclibdir=${libdir}/${mypkglibdir}/${VERSION}
+modexeclibdir=${libdir}/${mymodverdir}
 
 MNAME=reflection
 
