@@ -44,8 +44,6 @@ const char* ClassNs::getName() const {
 }
 #endif
 
-static void breakit2() {}
-
 ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
     : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
       init(n_init), builtin(n_builtin), access(n_access) {
