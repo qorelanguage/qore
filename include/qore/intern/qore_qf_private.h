@@ -96,6 +96,8 @@ struct qore_qf_private {
                 rc = ::close(fd);
                 is_open = false;
                 do_close_event_unlocked();
+            } else {
+               rc = 0;
             }
         } else {
             rc = 0;
