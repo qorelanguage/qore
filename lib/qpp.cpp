@@ -52,7 +52,6 @@
 #include <sys/stat.h>
 #include <utility>
 #include <vector>
-#include <regex>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -171,20 +170,34 @@ typedef std::vector<Param> paramlist_t;
 
 #define BUFSIZE 1024
 
-static inline const char* get_access(int mods) {
+static const char* get_access(int mods) {
     if (mods & QCA_PRIVATE) return "Private";
     if (mods & QCA_PRIVATE_INTERNAL) return "Internal";
     return "Public";
 }
 
+static std::vector<std::string> get_namespace_path(const std::string str) {
+    std::vector<std::string> rv;
+    size_t start = 0;
+    while (true) {
+        size_t pos = str.find("::", start);
+        rv.push_back(str.substr(start, pos));
+        if (pos == std::string::npos) {
+            break;
+        }
+        start = pos + 2;
+    }
+    return rv;
+}
+
 /*
 static char* strchrs(const char* str, const char* chars) {
-   while (*str) {
-      if (strchr(chars, *str))
-         return (char* )str;
-      str++;
-   }
-   return nullptr;
+    while (*str) {
+        if (strchr(chars, *str))
+            return (char* )str;
+        str++;
+    }
+    return nullptr;
 }
 */
 
@@ -2444,13 +2457,7 @@ public:
 
     void outputNamespaceStart(FILE* fp) {
         ns_size = 0;
-        std::vector<std::string> ns_list;
-        // passing -1 as the submatch index parameter performs splitting
-        std::regex re("::");
-        std::sregex_token_iterator
-            first{ns.begin(), ns.end(), re, -1},
-            last;
-        ns_list = {first, last};
+        std::vector<std::string> ns_list = get_namespace_path(ns);
         for (auto& i : ns_list) {
             fprintf(fp, "//! %s namespace\nnamespace %s {\n", i.c_str(), i.c_str());
             ++ns_size;
