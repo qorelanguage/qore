@@ -2203,7 +2203,6 @@ void* q_memrmem(const void* big, size_t big_len, const void* little, size_t litt
         return (void*)big;
     }
     //printd(5, "q_memrmem() big: '%s' (%d) little: '%s' (%d)\n", big, (int)big_len, little, (int)little_len);
-    const char* lt = (const char*)little;
     const char* lt_end = (const char*)little + little_len - 1;
     const char* bg = (const char*)big;
     // first character to search in "big"

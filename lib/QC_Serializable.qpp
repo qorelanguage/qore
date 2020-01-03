@@ -252,7 +252,7 @@ class MyClass inherits Qore::Serializable {
 
     @see deserializeMembers()
 */
-private:internal *hash<auto> Serializable::serializeMembers(*hash<auto> members) {
+private:internal *hash<auto> Serializable::serializeMembers(*hash<auto>[doc] members) {
 }
 
 //! overrides the default automatic member assignment logic for user classes during data deserialization
@@ -294,7 +294,7 @@ class MyClass inherits Qore::Serializable {
 
     @see serializeMembers()
 */
-private:internal nothing Serializable::deserializeMembers(hash<auto> members) {
+private:internal nothing Serializable::deserializeMembers(hash<auto>[doc] members) {
 }
 
 //! Deserializes data produced with serialize() and returns the value represented by the data
@@ -466,4 +466,3 @@ static binary Serializable::serialize(auto val) {
     QoreSerializable::serialize(val, **stream, xsink);
     return *xsink ? QoreValue() : stream->getData(xsink);
 }
-

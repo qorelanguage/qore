@@ -1187,7 +1187,6 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const QoreProgramLocation*
     return qore_class_private::addUserMethod(*oc, scname.getIdentifier(), v.release(), static_flag);
 }
 
-static void breakit() {}
 // returns 0 for success, non-zero for error
 QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation* loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
     assert(!found);
