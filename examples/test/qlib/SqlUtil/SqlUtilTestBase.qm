@@ -286,11 +286,11 @@ public class SqlTestBase inherits QUnit::Test {
                     list<hash<auto>> recs;
                     {
                         on_error {
-                            m.discard();
+                            m.discardOutput();
                             m.rollback();
                         }
                         on_success {
-                            m.flush();
+                            m.flushOutput();
                             m.commit();
                         }
                         recs = m.mapAll(row_id_2);
