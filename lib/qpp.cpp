@@ -181,7 +181,7 @@ static std::vector<std::string> get_namespace_path(const std::string str) {
     size_t start = 0;
     while (true) {
         size_t pos = str.find("::", start);
-        rv.push_back(str.substr(start, pos));
+        rv.push_back(str.substr(start, pos - start));
         if (pos == std::string::npos) {
             break;
         }
