@@ -225,9 +225,9 @@ list: (2 elements)
       @ref Mapper::Mapper::runAutonomous() "Mapper::runAutonomous()" method can be used to map from input to output
       in a single call
     - \c "output_provider_bulk": if this option is used with a record-based output provider, then bulk operations are
-      used with the output provider, and the @ref Mapper::Mapper::flush() "Mapper::flush()" method must be called
-      after all mapping is done to flush the output buffer to the output provider at the end, or
-      @ref Mapper::Mapper::discard() "Mapper::discard()" must be called to discard any data left in the
+      used with the output provider, and the @ref Mapper::Mapper::flushOutput() "Mapper::flushOutput()" method must be
+      called after all mapping is done to flush the output buffer to the output provider at the end, or
+      @ref Mapper::Mapper::discardOutput() "Mapper::discardOutput()" must be called to discard any data left in the
       bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
       and an error occurs causing the transaction to be rolled back)
     - \c "output_provider_upsert": set to @ref True if upsert operations instead of creation APIs should be used with
@@ -1525,6 +1525,8 @@ Mapper mapv(DataMap);
 
         @throw MAPPER-INPUT-PROVIDER-ERROR if no \a input_provider option was provided in the constructor or the input
         provider uses the request/response API
+
+        @since %Mapper 1.5
     */
     MapperOutputRecordIterator getOutputIterator() {
         checkInputProvider();
@@ -1538,6 +1540,8 @@ Mapper mapv(DataMap);
     /** Has no effect if the output data provider does not support transaction management
 
         @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+
+        @since %Mapper 1.5
     */
     commit() {
         checkOutputProvider();
@@ -1548,30 +1552,40 @@ Mapper mapv(DataMap);
     /** Has no effect if the output data provider does not support transaction management
 
         @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+
+        @since %Mapper 1.5
     */
     rollback() {
         checkOutputProvider();
         output_provider.rollback();
     }
 
-    #! Flushes any remaining data to the data provider
+    #! Flushes any remaining data to the output data provider in a bulk operation
     /** This method should always be called for successful bulk output operations with an output provider
 
         @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+
+        @see discardOutput()
+
+        @since %Mapper 1.5
     */
-    flush() {
+    flushOutput() {
         checkOutputBulkOperation();
         if (output_provider_bulk_operation) {
             output_provider_bulk_operation.flush();
         }
     }
 
-    #! Discards any buffered data
+    #! Discards any buffered data in the output data provider in a bulk operation
     /** This method should always be called if an error occurs in a bulk output operation
 
         @throw MAPPER-OUTPUT-BULK-ERROR no output bulk operation is in progress
+
+        @see flushOutput()
+
+        @since %Mapper 1.5
     */
-    discard() {
+    discardOutput() {
         checkOutputBulkOperation();
         if (output_provider_bulk_operation) {
             output_provider_bulk_operation.discard();
@@ -1582,6 +1596,8 @@ Mapper mapv(DataMap);
     /**
         @throw MAPPER-INPUT-PROVIDER-ERROR no input provider available in this mapper
         @throw MAPPER-OUTPUT-PROVIDER-ERROR no output provider available in this mapper
+
+        @since %Mapper 1.5
     */
     runAutonomous() {
         checkInputProvider();
@@ -1648,6 +1664,8 @@ Mapper mapv(DataMap);
     }
 
     #! returns a record iterator for an input provider
+    /** @since %Mapper 1.5
+    */
     private:internal AbstractDataProviderRecordIterator getInputProviderRecordIterator() {
         if (input_request_search) {
             return input_provider.requestSearchRecords(input_request, input_provider_search, input_search_options);
@@ -1722,8 +1740,8 @@ Mapper mapv(DataMap);
             \c C = "mystring" on the input.
 
         @see
-        - flush()
-        - discard()
+        - flushOutput()
+        - discardOutput()
 
         @throw MISSING-INPUT a field marked mandatory is missing
         @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
