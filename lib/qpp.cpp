@@ -176,20 +176,6 @@ static const char* get_access(int mods) {
     return "Public";
 }
 
-static std::vector<std::string> get_namespace_path(const std::string str) {
-    std::vector<std::string> rv;
-    size_t start = 0;
-    while (true) {
-        size_t pos = str.find("::", start);
-        rv.push_back(str.substr(start, pos - start));
-        if (pos == std::string::npos) {
-            break;
-        }
-        start = pos + 2;
-    }
-    return rv;
-}
-
 /*
 static char* strchrs(const char* str, const char* chars) {
     while (*str) {
@@ -2081,7 +2067,7 @@ class NamespaceElement {
 public:
     void outputNamespaceStart(FILE* fp) {
         ns_size = 0;
-        std::vector<std::string> ns_list = get_namespace_path(ns);
+        std::vector<std::string> ns_list = getNamespacePath(ns);
         for (auto& i : ns_list) {
             fprintf(fp, "//! %s namespace\nnamespace %s {\n", i.c_str(), i.c_str());
             ++ns_size;
@@ -2095,6 +2081,20 @@ public:
         for (unsigned i = 0; i < ns_size; ++i) {
             fprintf(fp, "}\n");
         }
+    }
+
+    static std::vector<std::string> getNamespacePath(const std::string str) {
+        std::vector<std::string> rv;
+        size_t start = 0;
+        while (true) {
+            size_t pos = str.find("::", start);
+            rv.push_back(str.substr(start, pos - start));
+            if (pos == std::string::npos) {
+                break;
+            }
+            start = pos + 2;
+        }
+        return rv;
     }
 
     std::string ns;
@@ -2123,6 +2123,8 @@ protected:
     }
 
     int readUntilOpenGroup(const char* fileName, unsigned &lineNumber, std::string& str, FILE* fp) {
+        bool open_group = false;
+        bool open_group_injected = false;
         while (true) {
             std::string line;
             if (read_line(lineNumber, line, fp)) {
@@ -2131,10 +2133,23 @@ protected:
                 return -1;
             }
 
+            // inject open group marker in block comment if necessary
+            if (!open_group && line.find("*/") != std::string::npos) {
+                str += "@{\n";
+                open_group_injected = true;
+            } else if (open_group_injected && !line.compare(0, 4, "//@{")) {
+                break;
+            }
+
             str += line;
 
-            if (!line.compare(0, 4, "//@{"))
+            if (!line.compare(0, 4, "//@{")) {
                 break;
+            } else if (line.find("@{") != std::string::npos) {
+                open_group = true;
+            } else if (open_group && !line.compare(0, 2, "*/")) {
+                break;
+            }
         }
 
         return 0;
@@ -2324,8 +2339,9 @@ public:
                 continue;
             }
             //log(LL_INFO, "Group line: %s", line.c_str());
-            if (!line.compare(0, 4, "//@}"))
+            if (line.find("@}") != std::string::npos) {
                 break;
+            }
 
             buf += line;
         }
@@ -2440,7 +2456,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("//@}\n", fp);
+        fputs("/** @} */\n", fp);
 
         outputNamespaceEnd(fp);
 
@@ -2467,7 +2483,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("//@}\n", fp);
+        fputs("/** @} */\n", fp);
 
         if (needs_prefix) {
             outputNamespaceEnd(fp);
@@ -3759,11 +3775,12 @@ protected:
     void checkBuf(std::string& buf) {
         if (!buf.empty()) {
             bool ws = true;
-            for (unsigned i = 0, e = buf.size(); i < e; ++i)
+            for (unsigned i = 0, e = buf.size(); i < e; ++i) {
                 if (buf[i] != '\n') {
                     ws = false;
                     break;
                 }
+            }
             if (ws) {
                 buf.clear();
                 return;
