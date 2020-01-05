@@ -53,7 +53,7 @@ module DatasourceProvider {
 
     Functions:
     - @ref DatasourceProvider::get_ds_string() "get_ds_string()"
-    - @ref DatasourceProvider::get_ds_list() "get_ds_list()"
+    - @ref DatasourceProvider::get_ds_hash() "get_ds_hash()"
 
     @subsection datasourceprovider_modules Datasource Provider Modules
 
