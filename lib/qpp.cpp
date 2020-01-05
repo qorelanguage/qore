@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -2077,16 +2077,37 @@ public:
 typedef MyMap<cmap_raw_t> cmap_t;
 typedef MyMap<fmap_raw_t> fmap_t;
 
-class Group {
+class NamespaceElement {
+public:
+    void outputNamespaceStart(FILE* fp) {
+        ns_size = 0;
+        std::vector<std::string> ns_list = get_namespace_path(ns);
+        for (auto& i : ns_list) {
+            fprintf(fp, "//! %s namespace\nnamespace %s {\n", i.c_str(), i.c_str());
+            ++ns_size;
+        }
+    }
+
+    void outputNamespaceEnd(FILE* fp) {
+        if (!ns_size) {
+            ns_size = 1;
+        }
+        for (unsigned i = 0; i < ns_size; ++i) {
+            fprintf(fp, "}\n");
+        }
+    }
+
+    std::string ns;
+    unsigned ns_size = 0;
+};
+
+class Group : protected NamespaceElement {
 protected:
     cmap_t cmap;                // constant map
     fmap_t fmap;                // function multimap
     tlist_t tlist;              // list of text elements
 
-    std::string doc,            // doc header for group
-        ns;                     // namespace
-
-    unsigned ns_size = 0;
+    std::string doc;            // doc header for group
 
     bool valid;
     const char* fileName;
@@ -2455,24 +2476,6 @@ public:
         return 0;
     }
 
-    void outputNamespaceStart(FILE* fp) {
-        ns_size = 0;
-        std::vector<std::string> ns_list = get_namespace_path(ns);
-        for (auto& i : ns_list) {
-            fprintf(fp, "//! %s namespace\nnamespace %s {\n", i.c_str(), i.c_str());
-            ++ns_size;
-        }
-    }
-
-    void outputNamespaceEnd(FILE* fp) {
-        if (!ns_size) {
-            ns_size = 1;
-        }
-        for (unsigned i = 0; i < ns_size; ++i) {
-            fprintf(fp, "}\n");
-        }
-    }
-
     bool hasFunctions() const {
         return !fmap.empty();
     }
@@ -2673,7 +2676,7 @@ struct HashDeclInfo {
     }
 };
 
-class HashDecl : public AbstractElement {
+class HashDecl : public AbstractElement, protected NamespaceElement {
 public:
     HashDecl(std::string&& comment, std::string& str, FILE* fp, const char* fileName, unsigned& lineNumber) : comment(comment) {
         const char* p = str.c_str();
@@ -2817,9 +2820,10 @@ public:
 
     virtual int serializeDox(FILE* fp) {
         if (ns.empty())
-            fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
-        else
-            fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
+            fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
+        else {
+            outputNamespaceStart(fp);
+        }
 
         // serialize hashdecl doc
         process_comment(comment);
@@ -2828,7 +2832,8 @@ public:
         for (auto& i : hdmap)
             if (i.second.serializeDox(fp, i.first.c_str()))
                 return -1;
-        fputs("};\n};\n", fp);
+        fputs("};\n", fp);
+        outputNamespaceEnd(fp);
         return 0;
     }
 
@@ -2845,7 +2850,6 @@ public:
     }
 
 protected:
-    std::string ns;
     std::string comment;
     std::string name;
     typedef std::map<std::string, HashDeclInfo> hdmap_t;
@@ -3290,7 +3294,7 @@ public:
     }
 };
 
-class ClassElement : public AbstractElement {
+class ClassElement : public AbstractElement, protected NamespaceElement {
 protected:
     typedef std::multimap<std::string, Method*> mmap_t;
 
@@ -3300,7 +3304,6 @@ protected:
         arg,                       // argument for non-static methods
         defbase,                   // default builtin base class
         scons,                     // system constructor
-        ns,                        // namespace name
         serializer,                // class serializer function
         deserializer;              // class deserializer function
 
@@ -3341,11 +3344,9 @@ protected:
 
             if (access == Public) {
                 public_members.push_back(Param(type, name, "", ""));
-            }
-            else if (access == Private) {
+            } else if (access == Private) {
                 private_members.push_back(Param(type, name, "", ""));
-            }
-            else {
+            } else {
                 internal_members.push_back(Param(type, name, "", ""));
             }
         }
@@ -3689,9 +3690,10 @@ public:
 
     virtual int serializeDox(FILE* fp) {
         if (ns.empty())
-            fputs("//! main Qore-language namespace\nnamespace Qore {\n", fp);
-        else
-            fprintf(fp, "//! %s namespace\nnamespace %s {\n", ns.c_str(), ns.c_str());
+            fputs("\n//! main Qore-language namespace\nnamespace Qore {\n", fp);
+        else {
+            outputNamespaceStart(fp);
+        }
 
         serialize_dox_comment(fp, doc, dom);
 
@@ -3734,7 +3736,7 @@ public:
 
         groups.serializeConstantDox(fp);
 
-        fputs("};\n", fp);
+        outputNamespaceEnd(fp);
         return 0;
     }
 };
