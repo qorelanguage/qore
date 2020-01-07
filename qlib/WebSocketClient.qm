@@ -88,14 +88,18 @@ c.waitForZero();
     @section websocketclient_relnotes WebSocketClient Module Release History
 
     @subsection wsc_v1_8 v1.8
+    - removed the \c WebSocketConnectionObject::getConstructorInfo() and
+      \c WebSocketConnectionObject::getConstructorInfoImpl() methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
     - added support for socket events
       (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
     @subsection wsc_v1_7 v1.7
     - all connection clases have unified constructor
-    - added the @ref WebSocketClient::WebSocketConnectionObject::getConstructorInfo() "WebSocketConnectionObject::getConstructorInfo()"
+    - added the \c WebSocketConnectionObject::getConstructorInfo()
       method to allow connections to be created dynamically, potentially in another process from a network
-      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      call (removed in WebSocketClient 1.8)
+      (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
     - add WebSocketClient handling of WSCC_GoingAway event
 
     @subsection wsc_v1_6_3 v1.6.3
@@ -319,7 +323,7 @@ ws.connect();
             return h;
         }
 
-        #! returns @ref Qore::True "True" if the connection is currently open and active, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the connection is currently open and active, @ref False "False" if not
         bool isOpen() {
             m.lock();
             on_exit m.unlock();
@@ -720,7 +724,7 @@ ws.setEventQueue();
         }
 
         #! returns a @ref WebSocketClient object
-        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
+        /** @param connect if @ref True "True", then @ref WebSocketClient::connect() is called
             @param rtopts supports the following runtime options in getImpl():
             - \c "callback": (required) a callback to receive websocket events
             - \c "dbglog": a closure taking a single string for detailed technical connection logging

@@ -221,7 +221,7 @@ public namespace FreetdsSqlUtil {
             return sql;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         private bool equalImpl(AbstractIndex ix) {
             return True;
         }
@@ -387,7 +387,7 @@ string str = col.getRenameSql(t, "new_name");
             return FreetdsDatabase::FreetdsReservedWords{name.lwr()} ? ("[" + name + "]") : name;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractColumn c) {
             return True;
         }
@@ -454,7 +454,7 @@ string str = col.getRenameSql(t, "new_name");
     #! class modeling a unique constraint
     public class FreetdsUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, FreetdsUniqueConstraintCommon {
         private {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the constraint is enabled, @ref False "False" if not
             bool enabled;
         }
 
@@ -509,7 +509,7 @@ auto v = c.name;
             return sql;
         }
 
-        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the constraint is enabled, @ref False "False" if not
         bool isEnabled() {
             return enabled;
         }
@@ -634,7 +634,7 @@ any v = c.name;
             return sprintf("drop trigger %s", name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -668,7 +668,7 @@ any v = c.name;
             return sprintf("drop function %s", name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -1023,7 +1023,7 @@ any v = c.name;
             return ds.selectRow("select current_value from sys.sequences where name = %v", name).current_value;
         }
 
-        #! returns @ref Qore::True "True" if the database supports sequences
+        #! returns @ref True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             # MS SQL Server 2012+ supports sequences
             if (isSybase(ds)) {
@@ -1034,12 +1034,12 @@ any v = c.name;
             return ver >= 2012;
         }
 
-        #! returns @ref Qore::True "True" if the database supports named types
+        #! returns @ref True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database supports packages
+        #! returns @ref True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
         }
@@ -1498,7 +1498,7 @@ any v = c.name;
             };
         }
 
-        #! returns @ref Qore::False "False" because the freetds driver does not support array binds / bulk DML operations
+        #! returns @ref False "False" because the freetds driver does not support array binds / bulk DML operations
         bool hasArrayBind() {
             return False;
         }
@@ -2024,17 +2024,17 @@ order by
         private setupTableImpl(hash desc, *hash opt) {
         }
 
-        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
         private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database support tablespaces
+        #! returns @ref True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return False;
         }

@@ -1629,6 +1629,10 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token TOK_ABSTRACT "abstract"
 %token TOK_HASHDECL "hashdecl"
 %token TOK_TRANSIENT "transient"
+%token TOK_NULL "NULL"
+%token TOK_NOTHING "NOTHING"
+%token TOK_TRUE "True"
+%token TOK_FALSE "False"
 
 // currently unused tokens
 %token TOK_UNREFERENCE "unreference"
@@ -4074,6 +4078,10 @@ scalar:
         | string      { $$.set($1); }
         | DATETIME    { $$.set($1); }
         | NUMBER      { $$.set($1); }
+        | TOK_NOTHING { $$.set(nullptr); }
+        | TOK_NULL    { $$.set(&Null); }
+        | TOK_TRUE    { $$.set(true); }
+        | TOK_FALSE   { $$.set(false); }
         ;
 
 %%

@@ -188,9 +188,9 @@ public namespace ConnectionProvider {
         *hash opts;                 #!< the original options used to create the object
         string status;              #!< a string giving the connection's status
         string type;                #!< the connection type
-        bool up = False;            #!< a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
+        bool up = False;            #!< a boolean vaue indicating the connection is known to be up (will be @ref False "False" if not checked)
         *date updated;              #!< the date/time value of the update (or @ref nothing if not updated)
-        string url;                 #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
+        string url;                 #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref True "True")
         hash url_hash;              #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
         bool enabled;               #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
         bool locked;                #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations

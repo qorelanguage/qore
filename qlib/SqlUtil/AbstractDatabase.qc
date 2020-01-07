@@ -40,7 +40,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
     public {
         #! database options
         /** The following keys can be set for this option:
-            - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
+            - \c native_case: (@ref bool_type) if @ref True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
         */
         const DatabaseOptions = (
             "native_case": Type::Boolean,
@@ -161,7 +161,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
         #! default generic creation options
         /** This option is comprised of @ref AbstractDatabase::CallbackOptions plus the following keys:
-            - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver, \c "create or replace" text is used when creating objects
+            - \c replace: (@ref bool_type) if @ref True "True" and supported by the underlying db driver, \c "create or replace" text is used when creating objects
             - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             - \c data_tablespace: (@ref string_type) a string giving the data tablespace to use for tables
             - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
@@ -175,7 +175,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
         #! default generic schema description / alignment options
         /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
-            - \c force: (@ref bool_type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
+            - \c force: (@ref bool_type) is @ref True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping or aligning objects
         */
         const AlignSchemaOptions = CreationOptions + (
             "force": Type::Boolean,
@@ -183,7 +183,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
         #! default generic drop schema options
         /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
-            - \c force: (@ref bool_type) is @ref Qore::True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
+            - \c force: (@ref bool_type) is @ref True "True" and supported by the underlying db driver, \c FORCE or \c CASCADE options are used when dropping objects
         */
         const DropSchemaOptions = CallbackOptions + (
             "force": Type::Boolean,
@@ -749,7 +749,7 @@ AbstractFunction f = db.makeProcedure("get_queue_info", src);
         return makeProcedureImpl(name, src, opt);
     }
 
-    #! drops the given function if it exists; returns @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+    #! drops the given function if it exists; returns @ref True "True" if the function was dropped, @ref False "False" if not
     /** @par Example:
         @code{.py}
 db.dropFunctionIfExists(name);
@@ -758,7 +758,7 @@ db.dropFunctionIfExists(name);
         @param name the name of the function
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return @ref Qore::True "True" if the function was dropped, @ref Qore::False "False" if not
+        @return @ref True "True" if the function was dropped, @ref False "False" if not
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -770,7 +770,7 @@ db.dropFunctionIfExists(name);
         return AbstractDatabase::doDrop(f.getDropSql(opt), "function", name, opt);
     }
 
-    #! drops the given procedure if it exists; returns @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+    #! drops the given procedure if it exists; returns @ref True "True" if the procedure was dropped, @ref False "False" if not
     /** @par Example:
         @code{.py}
 db.dropProcedureIfExists(name);
@@ -779,7 +779,7 @@ db.dropProcedureIfExists(name);
         @param name the name of the procedure
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return @ref Qore::True "True" if the procedure was dropped, @ref Qore::False "False" if not
+        @return @ref True "True" if the procedure was dropped, @ref False "False" if not
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -791,7 +791,7 @@ db.dropProcedureIfExists(name);
         return AbstractDatabase::doDrop(f.getDropSql(opt), "procedure", name, opt);
     }
 
-    #! drops the given sequence if it exists; returns @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+    #! drops the given sequence if it exists; returns @ref True "True" if the sequence was dropped, @ref False "False" if not
     /** @par Example:
         @code{.py}
 db.dropSequenceIfExists(name);
@@ -800,7 +800,7 @@ db.dropSequenceIfExists(name);
         @param name the name of the sequence
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return @ref Qore::True "True" if the sequence was dropped, @ref Qore::False "False" if not
+        @return @ref True "True" if the sequence was dropped, @ref False "False" if not
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -812,7 +812,7 @@ db.dropSequenceIfExists(name);
         return AbstractDatabase::doDrop(seq.getDropSql(opt), "sequence", name, opt);
     }
 
-    #! drops the given view if it exists; returns @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
+    #! drops the given view if it exists; returns @ref True "True" if the view was dropped, @ref False "False" if not
     /** @par Example:
         @code{.py}
 db.dropViewIfExists(name);
@@ -821,7 +821,7 @@ db.dropViewIfExists(name);
         @param name the name of the view
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return @ref Qore::True "True" if the view was dropped, @ref Qore::False "False" if not
+        @return @ref True "True" if the view was dropped, @ref False "False" if not
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -833,7 +833,7 @@ db.dropViewIfExists(name);
         return AbstractDatabase::doDrop(obj.getDropSql(opt), "view", name, opt);
     }
 
-    #! drops the given table if it exists; returns @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+    #! drops the given table if it exists; returns @ref True "True" if the table was dropped, @ref False "False" if not
     /** @par Example:
         @code{.py}
 db.dropTableIfExists(name);
@@ -842,7 +842,7 @@ db.dropTableIfExists(name);
         @param name the name of the table
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return @ref Qore::True "True" if the table was dropped, @ref Qore::False "False" if not
+        @return @ref True "True" if the table was dropped, @ref False "False" if not
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -1131,17 +1131,17 @@ string sql = t.getSqlFromList(list);
         return getCreateSqlImpl(l);
     }
 
-    #! returns @ref Qore::True "True" if the database supports sequences
+    #! returns @ref True "True" if the database supports sequences
     bool supportsSequences() {
         return supportsSequencesImpl();
     }
 
-    #! returns @ref Qore::True "True" if the database supports named types
+    #! returns @ref True "True" if the database supports named types
     bool supportsTypes() {
         return supportsTypesImpl();
     }
 
-    #! returns @ref Qore::True "True" if the database supports packages
+    #! returns @ref True "True" if the database supports packages
     bool supportsPackages() {
         return supportsPackagesImpl();
     }
@@ -1406,7 +1406,7 @@ string sql = t.getSqlFromList(list);
     #! returns the last value issued for the given sequence in the current session
     private abstract int getCurrentSequenceValueImpl(string name);
 
-    #! returns @ref Qore::True "True" if the database supports sequences
+    #! returns @ref True "True" if the database supports sequences
     private abstract bool supportsSequencesImpl();
     private abstract bool supportsPackagesImpl();
     private abstract bool supportsTypesImpl();

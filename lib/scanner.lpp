@@ -1530,6 +1530,10 @@ foldr                                   { push_ignore_numeric_argv_ref(); return
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }
 select                                  { push_ignore_numeric_argv_ref(); return TOK_SELECT; }
 static                                  return TOK_STATIC;
+(::(Qore::)?)?NOTHING                   return TOK_NOTHING;
+(::(Qore::)?)?NULL                      return TOK_NULL;
+(::(Qore::)?)?True                      return TOK_TRUE;
+(::(Qore::)?)?False                     return TOK_FALSE;
 class\(                                 yylval->string = strdup("class"); return KW_IDENTIFIER_OPENPAREN;
 private\(                               yylval->string = strdup("private"); return KW_IDENTIFIER_OPENPAREN;
 new\(                                   yylval->string = strdup("new"); return KW_IDENTIFIER_OPENPAREN;

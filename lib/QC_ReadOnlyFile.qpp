@@ -672,7 +672,7 @@ while (exists (*string line = f.readLine(False))) {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @param incl_eol if this argument is @ref Qore::True "True", then the end of line characters read are included in the string returned
+    @param incl_eol if this argument is @ref True "True", then the end of line characters read are included in the string returned
     @param eol the end of line character(s); if not given, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n" (the last one is only automatically detected when not connected to a terminal device in order to keep the I/O from stalling); if this string is passed and has a different @ref character_encoding "character encoding" from the File's, then it will be converted to the File's @ref character_encoding "character encoding"
 
     @return The line read from the file. @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.  Any string returned will be tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".
@@ -784,7 +784,7 @@ int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
    return f->getchar(xsink);
 }
 
-//! Returns @ref Qore::True "True" if there is data available for reading from the file within the timeout period
+//! Returns @ref True "True" if there is data available for reading from the file within the timeout period
 /** With a timeout of zero (the default if no timeout value is passed), this method can be used for non-blocking polling the file for data. Like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear (ex: \c 25ms).
 
     @par Example:
@@ -795,7 +795,7 @@ if (!isDataAvailable(30s))
 
     @param timeout_ms An optional timeout in milliseconds (1/1000 second); @ref relative_dates "relative date/time values" can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s
 
-    @return @ref Qore::True "True" if data becomes available for reading from the file within the timeout period, @ref Qore::False "False" if not
+    @return @ref True "True" if data becomes available for reading from the file within the timeout period, @ref False "False" if not
 
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
@@ -930,8 +930,8 @@ hash<FilesystemInfo> ReadOnlyFile::statvfs() {
 #endif
 }
 
-//! returns @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the File is open, @ref Qore::False "False" if not
+//! returns @ref True "True" if the File is open, @ref False "False" if not
+/** @return @ref True "True" if the File is open, @ref False "False" if not
 
     @par Example:
     @code{.py}
@@ -942,13 +942,13 @@ bool ReadOnlyFile::isOpen() [flags=CONSTANT] {
    return f->isOpen();
 }
 
-//! returns @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
+//! returns @ref True "True" if the File is connected to a terminal device, @ref False "False" if not
 /** @par Example:
     @code{.py}
 bool b = file.isTty();
     @endcode
 
-    @return @ref Qore::True "True" if the File is connected to a terminal device, @ref Qore::False "False" if not
+    @return @ref True "True" if the File is connected to a terminal device, @ref False "False" if not
 
     @since %Qore 0.8.6
 */

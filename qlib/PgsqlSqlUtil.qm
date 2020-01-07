@@ -318,7 +318,7 @@ public namespace PgsqlSqlUtil {
         }
 
         #! returns a string that can be used to drop the function from the database
-        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+        /** @param opt drop options; if \a force is @ref True "True", then the \c CASCADE option will be used in the drop statement
          */
         string getDropSql(*hash opt) {
             return sprintf("drop type %s%s", name, opt.force ? " cascade" : "");
@@ -360,7 +360,7 @@ public namespace PgsqlSqlUtil {
             return sql;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         private bool equalImpl(AbstractIndex ix) {
             return True;
         }
@@ -546,7 +546,7 @@ string str = col.getRenameSql(t, "new_name");
             return PgsqlDatabase::PgsqlReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractColumn c) {
             return True;
         }
@@ -624,7 +624,7 @@ string str = col.getRenameSql(t, "new_name");
     #! class modeling a unique constraint
     public class PgsqlUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, PgsqlUniqueConstraintCommon {
         private {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the constraint is enabled, @ref False "False" if not
             bool enabled;
         }
 
@@ -680,7 +680,7 @@ auto v = c.name;
             return sql;
         }
 
-        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the constraint is enabled, @ref False "False" if not
         bool isEnabled() {
             return enabled;
         }
@@ -813,7 +813,7 @@ auto v = c.name;
             return sprintf("drop trigger %s on %s", name, table_name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -857,13 +857,13 @@ auto v = c.name;
         }
 
         #! returns a string that can be used to drop the function from the database
-        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c CASCADE option will be used in the drop statement
+        /** @param opt drop options; if \a force is @ref True "True", then the \c CASCADE option will be used in the drop statement
          */
         string getDropSql(*hash opt) {
             return sprintf("drop function %s%s", name, opt.force ? " cascade" : "");
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -1360,17 +1360,17 @@ auto v = c.name;
             return ds.selectRow("select currval(%v)", name).nextval;
         }
 
-        #! returns @ref Qore::True "True" if the database supports sequences
+        #! returns @ref True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database supports named types
+        #! returns @ref True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database supports packages
+        #! returns @ref True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
         }
@@ -1708,7 +1708,7 @@ auto v = c.name;
             return addTriggerFunctionUnlocked(tfname, src, trigger);
         }
 
-        #! returns @ref Qore::False "False" because the pgsql driver does not support array binds / bulk DML operations
+        #! returns @ref False "False" because the pgsql driver does not support array binds / bulk DML operations
         bool hasArrayBind() {
             return False;
         }
@@ -2210,17 +2210,17 @@ auto v = c.name;
             }
         }
 
-        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
         private bool uniqueIndexCreatesConstraintImpl() {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if the database support tablespaces
+        #! returns @ref True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return True;
         }

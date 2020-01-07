@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file TelnetClient.qm Telnet module definition
 
-/*  TelnetClient.qm Copyright 2012 - 2019 Qore Technologies s.r.o.
+/*  TelnetClient.qm Copyright 2012 - 2020 Qore Technologies s.r.o.
 
     Original Author: Pavol Potancok
 
@@ -67,6 +67,8 @@ module TelnetClient {
     @section telnetclient_relnotes TelnetClient Module Release Notes
 
     @subsection telnetclient_v1_6 TelnetClient v1.6
+    - removed the \c TelnetConnection::getConstructorInfo() and \c TelnetConnection::getConstructorInfoImpl() methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
     - added support for socket events
       (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
@@ -74,9 +76,10 @@ module TelnetClient {
     - all connection clases have unified constructor
 
     @subsection telnetclient_v1_4 TelnetClient v1.4
-    - added the @ref TelnetClient::TelnetConnection::getConstructorInfo() "TelnetConnection::getConstructorInfo()"
+    - added the \c TelnetConnection::getConstructorInfo()
       method to allow connections to be created dynamically, potentially in another process from a network
-      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      call (removed in TelnetClient 1.6)
+      (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection telnetclient_v1_3 TelnetClient v1.3
     - added the @ref TelnetClient::TelnetConnection "TelnetConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -392,7 +395,7 @@ public namespace TelnetClient {
             log("connected to %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
         }
 
-        #! returns @ref Qore::True "True" if the client is connected to the server
+        #! returns @ref True "True" if the client is connected to the server
         bool isConnected() {
             return conn.isOpen();
         }
@@ -467,7 +470,7 @@ public namespace TelnetClient {
             return getAvailableDataIntern(t);
         }
 
-        #! returns @ref Qore::True "True" if the server has confirmed with a DO command that it supports the given feature
+        #! returns @ref True "True" if the server has confirmed with a DO command that it supports the given feature
         /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
             - @ref TOPT_TS "TOPT_TS": TerminalSpeed
             - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
@@ -1013,7 +1016,7 @@ telnet.setEventQueue();
         }
 
         #! returns an @ref TelnetClient object
-        /** @param connect if @ref Qore::True "True", then @ref TelnetClient::connect() is called
+        /** @param connect if @ref True "True", then @ref TelnetClient::connect() is called
             @param rtopts supports the following runtime options in getImpl() for connection logging:
             - \c "log": a closure accepting a single string for logging
             - \c "dbglog": a closure taking a single string for detailed technical connection logging

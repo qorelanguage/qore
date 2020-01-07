@@ -537,11 +537,11 @@ nothing Dir::rmdir(string subdir) {
 }
 
 //! Get all entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
-/** This method uses \c stat() system call internally to get detailed info about directory entries if the \c full parameter is @ref Qore::True "True". If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
+/** This method uses \c stat() system call internally to get detailed info about directory entries if the \c full parameter is @ref True "True". If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
 
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @returns a list of all entries in the directory (except \c "." and \c ".." directories); if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -569,9 +569,9 @@ list<auto> Dir::list(bool full = False) {
 
     @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @return a list of all entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -601,9 +601,9 @@ list<auto> Dir::list(string regex, softint regex_options = 0, softbool full = Fa
 //! Retrieves all files in this directory; if any errors occur an exception is thrown
 /** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for a file, the file is skipped and information about this file is not included in the returned list.
 
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all files in the current directory of the object; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @return a list of all files in the current directory of the object; if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -633,9 +633,9 @@ list<auto> Dir::listFiles(bool full = False) {
 
     @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all files in the directory that match the given regular expression; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @return a list of all files in the directory that match the given regular expression; if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -665,9 +665,9 @@ list<auto> Dir::listFiles(string regex, softint regex_options = 0, softbool full
 //! Retrieves all subdirectory entries in this directory, except \c "." and \c ".." directories; if any errors occur an exception is thrown
 /** This method uses \c stat() system call internally to get info about directory entries. If a stat() call fails for an entry, the entry is skipped and information about it is not included in the returned list.
 
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in this directory, except \c "." and \c ".." directories; if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}
@@ -697,9 +697,9 @@ list<auto> Dir::listDirs(bool full = False) {
 
     @param regex a regular expression string used to filter the arguments (note that this is not a glob, but rather a regular expression string)
     @param regex_options optional bitwise-or'ed @ref regex_constants "regex option constants"
-    @param full if @ref Qore::True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @param full if @ref True "True" then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
-    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref Qore::True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
+    @return a list of all subdirectory entries in the directory that match the given regular expression (except \c "." and \c ".." directories); if \a full is @ref True "True", then the return value is a list of @ref Qore::DirStatInfo "DirStatInfo" hashes, otherwise a simple list of string names is returned
 
     @par Example:
     @code{.py}

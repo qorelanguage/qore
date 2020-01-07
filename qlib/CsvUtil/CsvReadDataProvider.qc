@@ -66,7 +66,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     /** @param path the input file to iterate
         @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
     */
     constructor(string path, *hash<auto> opts) {
         i = new CsvFileIterator(path, opts);
@@ -76,7 +76,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     /** @param stream the input stream to iterate
         @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
     */
     constructor(InputStream stream, *hash<auto> opts) {
         i = new CsvIterator(stream, opts.encoding, opts);

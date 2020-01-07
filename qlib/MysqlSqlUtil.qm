@@ -198,7 +198,7 @@ public namespace MysqlSqlUtil {
             return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         private bool equalImpl(AbstractIndex ix) {
             return type == cast<MysqlIndex>(ix).type;
         }
@@ -334,7 +334,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return MysqlDatabase::MysqlReservedWords{name.lwr()} ? ("`" + name + "`") : name;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractColumn c) {
             return True;
         }
@@ -396,7 +396,7 @@ my string $str = $col.getRenameSql($t, "new_name");
             return str;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractColumn c) {
             MysqlNumericColumn nc = c;
             return unsigned = nc.unsigned && auto_increment == nc.auto_increment && pk == nc.pk;
@@ -521,7 +521,7 @@ auto v = c.name;
             return sprintf("alter table %s drop primary key", table_name);
         }
 
-        #! returns @ref Qore::False "False" since primary key constraints in MySQL have no name
+        #! returns @ref False "False" since primary key constraints in MySQL have no name
         bool supportsName() {
             return False;
         }
@@ -543,7 +543,7 @@ auto v = c.name;
             return sprintf("drop trigger %s", name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -571,7 +571,7 @@ auto v = c.name;
             return sprintf("drop function %s", name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -1180,17 +1180,17 @@ end";
             throw "MYSQL-SEQUENCE-ERROR", "currval is not supported for emulated MySQL sequences";
         }
 
-        #! returns @ref Qore::True "True" since we have a workaround implementation for sequences in MySQL
+        #! returns @ref True "True" since we have a workaround implementation for sequences in MySQL
         private bool supportsSequencesImpl() {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if the database supports named types
+        #! returns @ref True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if the database supports packages
+        #! returns @ref True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return False;
         }
@@ -1669,7 +1669,7 @@ end";
             return sql;
         }
 
-        #! returns @ref Qore::False "False" because the mysql driver does not support array binds / bulk DML operations
+        #! returns @ref False "False" because the mysql driver does not support array binds / bulk DML operations
         bool hasArrayBind() {
             return False;
         }
@@ -1892,17 +1892,17 @@ my string $str = $table.getSqlValue($date);
         private setupTableImpl(hash desc, *hash opt) {
         }
 
-        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
         private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database support tablespaces
+        #! returns @ref True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return False;
         }
@@ -1965,7 +1965,7 @@ my string $str = $table.getSqlValue($date);
             return ce;
         }
 
-        #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
         bool hasReturningImpl() {
             return False;
         }

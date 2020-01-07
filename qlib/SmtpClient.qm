@@ -110,13 +110,16 @@ smtp.sendMessage(msg);@endcode
     @section smtpclient_relnotes SmtpClient Release Notes
 
     @subsection smtpclient_v1_8 SmtpClient 1.8
+    - removed the \c SmtpConnection::getConstructorInfo() and \c SmtpConnection::getConstructorInfoImpl() methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
     - added support for socket events
       (<a href="https://github.com/qorelanguage/qore/issues/3425">issue 3425</a>)
 
     @subsection smtpclient_v1_7 SmtpClient 1.7
-    - added the @ref SmtpClient::SmtpConnection::getConstructorInfo() "SmtpConnection::getConstructorInfo()"
+    - added the \c SmtpConnection::getConstructorInfo()
       method to allow connections to be created dynamically, potentially in another process from a network
-      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      call (removed in SmtpClient 1.8)
+      (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection smtpclient_v1_6 SmtpClient 1.6
     - added the @ref SmtpClient::SmtpConnection "SmtpConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -354,7 +357,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         }
 
         #! sets the TLS/SSL flag
-        /** @param n_tls if @ref Qore::True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
+        /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
          */
         tls(bool n_tls) {
             tls = n_tls;
@@ -368,7 +371,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         }
 
         #! sets the SSL connection flag
-        /** @param n_ssl if @ref Qore::True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
+        /** @param n_ssl if @ref True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
          */
         ssl(bool n_ssl) {
             ssl = n_ssl;
@@ -914,7 +917,7 @@ smtp.setEventQueue();
         }
 
         #! returns an @ref SmtpClient object
-        /** @param connect if @ref Qore::True "True", then @ref SmtpClient::SmtpClient::connect() "SmtpClient::connect()" is called
+        /** @param connect if @ref True "True", then @ref SmtpClient::SmtpClient::connect() "SmtpClient::connect()" is called
             @param rtopts supports the following runtime options in getImpl() for connection logging:
             - \c "log": a closure accepting a single string for logging
             - \c "dbglog": a closure taking a single string for detailed technical connection logging

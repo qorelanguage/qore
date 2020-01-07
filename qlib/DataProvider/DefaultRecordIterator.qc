@@ -69,9 +69,9 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         return False;
     }
 
-    #! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-    /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element,
-        @ref Qore::False "False" if not
+    #! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
+    /** @return @ref True "True" if the iterator is currently pointing at a valid element,
+        @ref False "False" if not
     */
     bool valid() {
         return i.valid();

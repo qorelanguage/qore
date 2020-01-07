@@ -42,7 +42,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
     public {
         #! table options
         /** The following keys can be set for this option:
-            - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
+            - \c native_case: (@ref bool_type) if @ref True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
             - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
         */
         const TableOptions = {
@@ -53,7 +53,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         #! default index options
         /**
             - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
-            - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+            - \c replace: (@ref bool_type) if @ref True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
         */
         const IndexOptions = {
             "index_tablespace": Type::String,
@@ -125,7 +125,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             - \c constraint_map: (@ref hash_type) a hash for automatically renaming constraints; if the source name (key) exists and the target name (value) does not exist, then the source constraint is automatically renamed
             - \c trigger_map: (@ref hash_type) a hash for automatically renaming triggers; if the source name (key) exists and the target name (value) does not exist, then the source trigger is automatically renamed
             - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
-            - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
+            - \c force: (@ref bool_type) if @ref True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
         */
         const AlignTableOptions = TableCreationOptions + {
             "column_map": Type::Hash,
@@ -168,7 +168,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             - \c default_value: the default value for the column
             - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
             - \c comment: (@ref string_type) an optional comment for the column
-            - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+            - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref False "False"
             - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
             @see @ref column_desc_hash
         */
@@ -186,7 +186,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
         #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
         /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref SqlUtil::AbstractTable::ColumnDescOptions "AbstractTable::ColumnDescOptions":
-            - \c notnull: (@ref bool_type) if @ref Qore::True "True" then the column will have a not null constraint
+            - \c notnull: (@ref bool_type) if @ref True "True" then the column will have a not null constraint
         */
         const AdditionalColumnDescOptions = {
             "notnull": Type::Boolean,
@@ -222,7 +222,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         #! default upsert option keys
         /** The following keys can be set for this option:
             - \c commit_block: the number of changes made before an automatic commit is made for upsert methods that perform commits
-            - \c delete_others: if this option is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation allows tables to be completely synchronized by removing rows in the target table not present in the source table.  This operation is expensive for large data sets.
+            - \c delete_others: if this option is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation allows tables to be completely synchronized by removing rows in the target table not present in the source table.  This operation is expensive for large data sets.
             - \c info_callback: see @ref upsert_info_callback
             - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is updated in case the unique key values are present in the target table; the value of this key should be set to the columns to omit in the update clause
         */
@@ -345,7 +345,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         #! row was unchanged (only possible with @ref UpsertSelectFirst, @ref UpsertInsertOnly, and @ref UpsertUpdateOnly)
         const UR_Unchanged = 4;
 
-        #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True")
+        #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True")
         const UR_Deleted = 5;
         #@}
 
@@ -437,7 +437,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         copyImpl(old);
     }
 
-    #! changes the datasource for the table; if the \c inDb flag is @ref Qore::True "True", then it is set to @ref Qore::False "False" by calling this method
+    #! changes the datasource for the table; if the \c inDb flag is @ref True "True", then it is set to @ref False "False" by calling this method
     /** @par Example:
         @code{.py}
 Table table(ds1, "table_name");
@@ -473,13 +473,13 @@ table.create();
         ds.rollback();
     }
 
-    #! returns @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the table has been read from or created in the database, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool b = table.inDb();
         @endcode
 
-        @return @ref Qore::True "True" if the table has been read from or created in the database, @ref Qore::False "False" if not
+        @return @ref True "True" if the table has been read from or created in the database, @ref False "False" if not
 
         @note this method only returns a flag if the object contains configuration already retrieved from the database, @see AbstractTable::checkExistence() for a method that will check the database if the table exists in case the table is not already known to exist in the database
     */
@@ -669,7 +669,7 @@ string sql = table.getTruncateSql();
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getTruncateSql(*hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -750,13 +750,13 @@ table.rename("new_name");
         name = new_name;
     }
 
-    #! returns @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the table has no data rows, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool b = table.emptyData();
         @endcode
 
-        @return @ref Qore::True "True" if the table has no data rows, @ref Qore::False "False" if not
+        @return @ref True "True" if the table has no data rows, @ref False "False" if not
 
         @see
         - empty()
@@ -766,13 +766,13 @@ bool b = table.emptyData();
         return findSingle() ? False : True;
     }
 
-    #! returns @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the table has no definitions, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool b = table.empty();
         @endcode
 
-        @return @ref Qore::True "True" if the table has no definitions, @ref Qore::False "False" if not
+        @return @ref True "True" if the table has no definitions, @ref False "False" if not
 
         @see emptyData()
     */
@@ -965,7 +965,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
         - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
-        @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+        @param nullable if @ref True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
         @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
         @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column already exists, invalid column data
@@ -997,7 +997,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
         - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
-        @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+        @param nullable if @ref True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
         @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
         @return a list of SQL strings that can be use to add a column to the table
@@ -1007,7 +1007,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
 
         @note
         - make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -1073,7 +1073,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
         - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
         @param lsql an optional reference to a list of strings to retrieve the SQL used to modify the table (only executed if the table is already in the database)
 
-        @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+        @param nullable if @ref True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
 
         @throw COLUMN-ERROR no \c native_type or \c qore_type keys in column option hash, column does not exist, invalid column data
 
@@ -1118,7 +1118,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
         - \c scale: for numeric data types, this value gives the scale
         - \c default_value: the default value for the column
         - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
-        @param nullable if @ref Qore::True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
+        @param nullable if @ref True "True" then the column can hold NULL values; note that primary key columns cannot be nullable
         @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
 
         @return a list of SQL strings that can be used to modify an existing column in the table
@@ -1128,7 +1128,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
 
         @note
         - make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -1207,7 +1207,7 @@ string sql = table.getRenameColumnSql("name", "family_name");
 
         @see getModifyColumnSql() for a method that allows the column definition to be updated
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
     */
     string getRenameColumnSql(string old_name, string new_name, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -1330,7 +1330,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -1406,7 +1406,7 @@ list l = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
 
         @note
         - this method retrieves current primary key definition from the database if not already loaded or defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
@@ -1482,7 +1482,7 @@ list l = table.getDropPrimaryKeySql();
         @note
         - this method retrieves current primary key definition from the database if not already loaded or defined
         - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also returned
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -1588,7 +1588,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -1702,7 +1702,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getAddIndexSql(string iname, bool unique, softlist cols, *hash<auto> ixopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -1873,7 +1873,7 @@ string sql = table.getDropIndexSql("uk_mytable_name");
 
         @note
         - this method retrieves current index definitions from the database if not already loaded or defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -1944,7 +1944,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -2148,7 +2148,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -2276,7 +2276,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
 
         @note
         - this method retrieves current constraint definitions from the database if not already loaded or defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -2311,7 +2311,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
 
         @note
         - this method retrieves current constraint definitions from the database if not already loaded or defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -2464,7 +2464,7 @@ printf("%s;\n", sql);
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
         */
     list<auto> getAddTriggerSql(string tname, string src, *hash topt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -2569,7 +2569,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
 
         @note
         - this method retrieves all current trigger definitions from the database if none have already been defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -2743,7 +2743,7 @@ string sql = table.getDropColumnSql("notes_2");
 
         @note
         - this method retrieves the column definitions from the database if none have already been defined
-        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
         */
@@ -2994,8 +2994,8 @@ table.insert(row);
         );
     }
 
-    #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
-    /** @return @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
+    /** @return @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
         @since %SqlUtil 1.3
     */
     bool hasReturning() {
@@ -3412,13 +3412,13 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-        @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+        @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
 
         @see
         - upsertFromIteratorCommit()
@@ -3452,13 +3452,13 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly,  or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
-        @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+        @note if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
 
         @see
         - upsertFromIteratorCommit()
@@ -3568,14 +3568,14 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
         - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
         - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
@@ -3624,14 +3624,14 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
         - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
         - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True"
+        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
         @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
+        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
         - this method uses an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
         - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
@@ -5464,7 +5464,7 @@ string sql = table.getRenameSql("new_name");
 
         @throw OPTION-ERROR invalid or unsupported option passed
 
-        @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True",
+        @note If the @ref sql_callback_executed "sql_callback_executed option key" is @ref True "True",
         this method also renames the object internally (see @ref sql_callback_executed for more information),
         additionally if the \c "db_table_cache" option key is assigned to a @ref SqlUtil::Tables "Tables"
         argument, then the table cache is also updated with the name change in this case.
@@ -5551,7 +5551,7 @@ string sql = table.getCreateTableSql();
         return getCreateTableSqlUnlocked(opt);
     }
 
-    #! returns @ref Qore::True "True" if the table exists in the database, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the table exists in the database, @ref False "False" if not
     /** this method will actively check the database if the table is defined there in case no configuration from the database has already been cached for the object
 
         @see AbstractTable::inDb()
@@ -5592,7 +5592,7 @@ list l = table.getAlignSql(table2);
         @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
         @throw OPTION-ERROR invalid or unsupported option passed
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref Qore::True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
     */
     list<auto> getAlignSql(AbstractTable t, *hash<auto> opt) {
         if (self.className() != t.className())
@@ -6453,7 +6453,7 @@ string sql = table.getAlignSqlString(table2);
         return getSavepointHelperImpl(savepoint);
     }
 
-    #! returns @ref Qore::True "True" if the underlying DB driver supports bulk DML operations
+    #! returns @ref True "True" if the underlying DB driver supports bulk DML operations
     abstract bool hasArrayBind();
 
     #! returns the table options for this driver
@@ -6948,7 +6948,7 @@ any res = t.selectRows(sh, \sql);
         inDb = True;
     }
 
-    #! returns @ref Qore::True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
     private bool hasReturningImpl() {
         return True;
     }
@@ -6990,19 +6990,19 @@ any res = t.selectRows(sh, \sql);
     #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
     private abstract *string getSqlValueImpl(auto v);
 
-    #! returns @ref Qore::True "True" if the table exists in the DB, @ref Qore::False "False" if not
-    /** this method will only be called if inDb is @ref Qore::False "False" and
-        should set inDb = True if it returns @ref Qore::True "True"
+    #! returns @ref True "True" if the table exists in the DB, @ref False "False" if not
+    /** this method will only be called if inDb is @ref False "False" and
+        should set inDb = True if it returns @ref True "True"
         */
     private abstract bool checkExistenceImpl();
 
-    #! returns @ref Qore::True "True" if the database support tablespaces
+    #! returns @ref True "True" if the database support tablespaces
     private abstract bool supportsTablespacesImpl();
 
-    #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+    #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
     private abstract bool constraintsLinkedToIndexesImpl();
 
-    #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+    #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
     private abstract bool uniqueIndexCreatesConstraintImpl();
 
     private abstract setupTableImpl(hash<auto> desc, *hash<auto> opt);
@@ -7029,7 +7029,7 @@ any res = t.selectRows(sh, \sql);
 
     private abstract AbstractTrigger addTriggerImpl(string tname, string src, *hash<auto> opt);
 
-    #! tries to insert a row, if there is a duplicate key, then it returns @ref Qore::False "False", if successful, returns @ref Qore::True "True"
+    #! tries to insert a row, if there is a duplicate key, then it returns @ref False "False", if successful, returns @ref True "True"
     private abstract bool tryInsertImpl(string sql, hash<auto> row);
 
     #! returns the qore type -> column type map

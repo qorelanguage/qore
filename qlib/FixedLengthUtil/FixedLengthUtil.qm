@@ -79,7 +79,7 @@ module FixedLengthUtil {
     - \c "encoding": the output encoding for strings parsed or returned
     - \c "eol": the end of line characters for parsing or generation
     - \c "file_flags": additional writer @ref file_open_constants; @ref Qore::O_WRONLY | @ref Qore::O_CREAT are used by default. Use eg. @ref Qore::O_EXCL to ensure not to overwrite the target or @ref Qore::O_TRUNC to replace any existing file
-    - \c "ignore_empty": if @ref Qore::True "True" then ignore empty lines
+    - \c "ignore_empty": if @ref True "True" then ignore empty lines
     - \c "number_format": the default number format for \c "float" or \c "number" fields (see @ref Qore::parse_number() and @ref Qore::parse_float() for the value in these cases)
     - \c "timezone": a string giving a time zone region name or an integer offset in seconds east of UTC
     - \c "truncate": The flag controls whether to truncate an output field value if its bigger than its specified \a length. Default is \c "False".

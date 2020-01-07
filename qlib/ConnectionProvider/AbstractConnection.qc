@@ -70,7 +70,7 @@ public namespace ConnectionProvider {
             #! date/time of last update
             date updated;
 
-            #! set to @ref Qore::True "True" for loopback connections
+            #! set to @ref True "True" for loopback connections
             bool loopback = False;
 
             #! optional code for default post-processing of objects created by getImpl(); must take the connection object and the object created as arguments
@@ -386,7 +386,7 @@ schema://user:pass@hostname:port/path
         }
 
         #! this method must return the connection object corresponding to the object's configuration
-        /** @param connect if @ref Qore::True "True" then the connection should be returned connected (and if possible a round-trip "ping" of the server should be made)
+        /** @param connect if @ref True "True" then the connection should be returned connected (and if possible a round-trip "ping" of the server should be made)
             @param rtopts if the object acquisition requires any runtime options, then these are passed here
 
             @return the connection object

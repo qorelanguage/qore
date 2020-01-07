@@ -233,8 +233,8 @@ bool ListIterator::set(int pos) {
    return !i->set(pos);
 }
 
-//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+//! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
+/** @return @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
 
     @par Example:
     @code{.py}

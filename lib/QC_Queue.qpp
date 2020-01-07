@@ -191,11 +191,11 @@ int Queue::size() [flags=CONSTANT] {
     return q->size();
 }
 
-//! Returns @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
+//! Returns @ref True "True" if the Queue is empty, @ref False "False" if not
 /** @par Example:
     @code{.py} bool b = queue.empty(); @endcode
 
-    @return @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
+    @return @ref True "True" if the Queue is empty, @ref False "False" if not
 
     @see Queue::size()
 

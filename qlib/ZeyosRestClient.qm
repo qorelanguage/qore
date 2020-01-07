@@ -133,7 +133,7 @@ ZeyosRestClient zeyos(
             @param options valid options are:
             - \c appsecret (optional): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
             - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
@@ -143,7 +143,7 @@ ZeyosRestClient zeyos(
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause an
               \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
@@ -236,7 +236,7 @@ ZeyosRestClient zeyos(
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
           \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
@@ -292,7 +292,7 @@ ZeyosRestClient zeyos(
         }
 
         #! returns a @ref ZeyosRestClient::ZeyosRestClient object
-        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+        /** @param connect if @ref True "True", then the connection is returned already connected
             @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
 
             @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
@@ -306,7 +306,7 @@ ZeyosRestClient zeyos(
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
               \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")

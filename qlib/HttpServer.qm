@@ -705,7 +705,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
         @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
-        @param n_dbg if this parameter is set to @ref Qore::True "True", then additional information will be logged when errors occur
+        @param n_dbg if this parameter is set to @ref True "True", then additional information will be logged when errors occur
         @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
         @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
      */
@@ -829,7 +829,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         - \c key_password: (optional) an optional string giving the password for the private key (PEM format only)
         - \c cert: (optional) a Qore::SSLCertificate object for HTTPS listeners
         - \c key: (optional) a Qore::SSLPrivateKey object for HTTPS listeners
-        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners; this is a regular expression unless \a isregex is @ref Qore::False "False"
+        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners; this is a regular expression unless \a isregex is @ref False "False"
         - \c isregex: (optional) a boolean value determining if the \a url (= path value) is a regular expression or a simple string; if this key is not present, then \a url is assumed to the a regular expression
         - \c bind: (required) the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
         - \c content_type: (optional) an optional string or list of string content types to match

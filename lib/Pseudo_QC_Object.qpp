@@ -242,22 +242,22 @@ ObjectPairIterator <object>::pairIterator() [flags=CONSTANT] {
    return new QoreObject(QC_OBJECTPAIRITERATOR, 0, new QoreObjectIterator(obj));
 }
 
-//! Returns @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
+//! Returns @ref True "True" if the given method exists (can be non-static or static) and is callable from the current context
 /** @par Example:
     @code{.py}
 bool b = obj.hasCallableMethod("getStatus");
     @endcode
 
-    @return @ref Qore::True "True" if the given method exists (can be non-static or static) and is callable from the current context
+    @return @ref True "True" if the given method exists (can be non-static or static) and is callable from the current context
 
     @see
     - hasCallableNormalMethod()
     - hasCallableStaticMethod
 
     @note
-    - returns @ref Qore::False "False" if the method doesn't exist or is not callable due to being private, for example
-    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref Qore::False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
-    - this pseudo-method will also return @ref Qore::True "True" if the given method exists and is accessible in an inherited class
+    - returns @ref False "False" if the method doesn't exist or is not callable due to being private, for example
+    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
+    - this pseudo-method will also return @ref True "True" if the given method exists and is accessible in an inherited class
 
     @since %Qore 0.8.8
  */
@@ -265,22 +265,22 @@ bool <object>::hasCallableMethod(string name) [flags=CONSTANT] {
    return qore_class_private::runtimeHasCallableMethod(*(obj->getClass()), name->getBuffer());
 }
 
-//! Returns @ref Qore::True "True" if the given non-static method exists and is callable from the current context
+//! Returns @ref True "True" if the given non-static method exists and is callable from the current context
 /** @par Example:
     @code{.py}
 bool b = obj.hasCallableNormalMethod("getStatus");
     @endcode
 
-    @return @ref Qore::True "True" if the given non-static method exists and is callable from the current context
+    @return @ref True "True" if the given non-static method exists and is callable from the current context
 
     @see
     - hasCallableMethod()
     - hasCallableStaticMethod
 
     @note
-    - returns @ref Qore::False "False" if the method doesn't exist or is not callable due to being private, for example
-    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref Qore::False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
-    - this pseudo-method will also return @ref Qore::True "True" if the given method exists and is accessible in an inherited class
+    - returns @ref False "False" if the method doesn't exist or is not callable due to being private, for example
+    - if a @ref methodGate_methods "methodGate() method" exists but no explicit definition of the given method exists, then this pseudo-method will return @ref False "False", but any method name can be called on the object due to the existence of the @ref methodGate_methods "methodGate() method"
+    - this pseudo-method will also return @ref True "True" if the given method exists and is accessible in an inherited class
 
     @since %Qore 0.8.8
  */
@@ -288,21 +288,21 @@ bool <object>::hasCallableNormalMethod(string name) [flags=CONSTANT] {
    return qore_class_private::runtimeHasCallableNormalMethod(*(obj->getClass()), name->getBuffer());
 }
 
-//! Returns @ref Qore::True "True" if the given static method exists and is callable from the current context
+//! Returns @ref True "True" if the given static method exists and is callable from the current context
 /** @par Example:
     @code{.py}
 bool b = obj.hasCallableStaticMethod("getStatus");
     @endcode
 
-    @return @ref Qore::True "True" if the given static method exists and is callable from the current context
+    @return @ref True "True" if the given static method exists and is callable from the current context
 
     @see
     - hasCallableMethod()
     - hasCallableStaticMethod
 
     @note
-    - returns @ref Qore::False "False" if the static method doesn't exist or is not callable due to being private, for example
-    - this pseudo-method will also return @ref Qore::True "True" if the given static method exists and is accessible in an inherited class
+    - returns @ref False "False" if the static method doesn't exist or is not callable due to being private, for example
+    - this pseudo-method will also return @ref True "True" if the given static method exists and is accessible in an inherited class
 
     @since %Qore 0.8.8
  */

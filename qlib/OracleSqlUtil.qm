@@ -453,7 +453,7 @@ string str = col.getRenameSql(t, "new_name");
             return sprintf("alter table %s rename column %s to %s", t.getSqlName(), ddl_name, getDdlName(new_name));
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equalImpl(AbstractColumn c) {
             return char_used == cast<OracleColumn>(c).char_used;
         }
@@ -506,7 +506,7 @@ string str = col.getRenameSql(t, "new_name");
             return sql;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         bool equalImpl(AbstractIndex ix) {
             return True;
         }
@@ -520,7 +520,7 @@ string str = col.getRenameSql(t, "new_name");
     #! represents an Oracle foreign constraint
     public class OracleForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
         public {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the constraint is enabled, @ref False "False" if not
             bool enabled;
         }
 
@@ -550,7 +550,7 @@ string str = col.getRenameSql(t, "new_name");
     #! represents an Oracle check constraint
     public class OracleCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
         public {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the constraint is enabled, @ref False "False" if not
             bool enabled;
         }
 
@@ -580,7 +580,7 @@ string str = col.getRenameSql(t, "new_name");
     #! represents an Oracle unique constraint
     public class OracleUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint {
         private {
-            #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the constraint is enabled, @ref False "False" if not
             bool enabled;
 
             #! any tablespace for the unique key index
@@ -658,7 +658,7 @@ auto v = c.name;
             return sprintf("alter table %s enable constraint %s", table_name, name);
         }
 
-        #! returns @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the constraint is enabled, @ref False "False" if not
         bool isEnabled() {
             return enabled;
         }
@@ -837,7 +837,7 @@ auto v = c.name;
     #! represents an Oracle trigger
     public class OracleTrigger inherits SqlUtil::AbstractTrigger {
         public {
-            #! @ref Qore::True "True" if the trigger is enabled, @ref Qore::False "False" if not
+            #! @ref True "True" if the trigger is enabled, @ref False "False" if not
             bool enabled;
         }
 
@@ -849,7 +849,7 @@ auto v = c.name;
             return sprintf("create%s trigger %s %s", opt.replace ? " or replace" : "", name, src);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equalImpl(AbstractFunctionBase t) {
             return enabled == cast<OracleTrigger>(t).enabled;
         }
@@ -876,13 +876,13 @@ auto v = c.name;
         }
 
         #! returns a string that can be used to create the object in the database
-        /** @param opt create options; if \a replace is @ref Qore::True "True", then <tt>CREATE OR REPLACE</tt> will be used in the create statement
+        /** @param opt create options; if \a replace is @ref True "True", then <tt>CREATE OR REPLACE</tt> will be used in the create statement
          */
         softlist getCreateSql(*hash opt) {
             return sprintf("create%s %s %s", opt.replace ? " or replace" : "", type, src);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equalImpl(AbstractFunctionBase t) {
             return True;
         }
@@ -911,7 +911,7 @@ auto v = c.name;
         /** The object is dropped and recreated with this method call
 
             @param new_name the new name of the object
-            @param opt rename options; if \a force if @ref Qore::True "True", then the \c FORCE option will be used with the drop statement
+            @param opt rename options; if \a force if @ref True "True", then the \c FORCE option will be used with the drop statement
          */
         softlist getRenameSql(string new_name, *hash opt) {
             list l = ();
@@ -927,7 +927,7 @@ auto v = c.name;
         }
 
         #! returns a string that can be used to drop the type from the database
-        /** @param opt drop options; if \a force is @ref Qore::True "True", then the \c FORCE option will be used in the drop statement
+        /** @param opt drop options; if \a force is @ref True "True", then the \c FORCE option will be used in the drop statement
          */
         string getDropSql(*hash opt) {
             return sprintf("drop %s %s%s", type, name, opt.force ? " force" : "");
@@ -981,7 +981,7 @@ auto v = c.name;
             return l;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equalImpl(AbstractFunctionBase t) {
             return body_src == cast<OraclePackage>(t).body_src;
         }
@@ -1571,17 +1571,17 @@ auto v = c.name;
             return ds.selectRow("select %s.currval from dual", name).nextval;
         }
 
-        #! returns @ref Qore::True "True" if the database supports sequences
+        #! returns @ref True "True" if the database supports sequences
         private bool supportsSequencesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database supports named types
+        #! returns @ref True "True" if the database supports named types
         private bool supportsTypesImpl() {
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the database supports packages
+        #! returns @ref True "True" if the database supports packages
         private bool supportsPackagesImpl() {
             return True;
         }
@@ -3071,7 +3071,7 @@ auto v = c.name;
             };
         }
 
-        #! returns @ref Qore::True "True" because the oracle driver supports array binds / bulk DML operations
+        #! returns @ref True "True" because the oracle driver supports array binds / bulk DML operations
         bool hasArrayBind() {
             return True;
         }
@@ -3118,17 +3118,17 @@ auto v = c.name;
         private setupTableImpl(hash<auto> desc, *hash<auto> opt) {
         }
 
-        #! returns @ref Qore::True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
         private bool constraintsLinkedToIndexesImpl() {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
         private bool uniqueIndexCreatesConstraintImpl() {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if the database support tablespaces
+        #! returns @ref True "True" if the database support tablespaces
         private bool supportsTablespacesImpl() {
             return True;
         }

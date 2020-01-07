@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
 
-/*  SalesforceRestClient.qm Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
+/*  SalesforceRestClient.qm Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -151,15 +151,19 @@ rc.bulkJobClose(h.id);
     @section salesforcerestclientrelnotes Release Notes
 
     @subsection salesforcerestclientv1_4 SalesforceRestClient v1.4
+    - removed the \c SalesforceRestConnection::getConstructorInfo() and
+      \c SalesforceRestConnection::getConstructorInfoImpl() methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
     - added support for the data provider API
 
     @subsection salesforcerestclientv1_3 SalesforceRestClient v1.3
     - all connection clases have unified constructor
 
     @subsection salesforcerestclientv1_2 SalesforceRestClient v1.2
-    - added the @ref SalesforceRestClient::SalesforceRestConnection::getConstructorInfo() "SalesforceRestConnection::getConstructorInfo()"
+    - added the \c SalesforceRestConnection::getConstructorInfo()
       method to allow connections to be created dynamically, potentially in another process from a network
-      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      call (removed in SalesforceRestClient 1.4)
+      (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection salesforcerestclientv1_1_1 SalesforceRestClient v1.1.1
     - fixed a bug handling default options including timeouts in @ref SalesforceRestClient::SalesforceRestConnection "SalesforceRestConnection"
@@ -378,7 +382,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method can accept a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
@@ -391,7 +395,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
@@ -399,7 +403,7 @@ SalesforceRestClient rest(("url": "http://localhost:8001/rest"));
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c password: (required) the Salesforce.com account password for the Connected App
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size); additionally please note that Salesforce.com does not support \c "bzip2" compression
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
@@ -444,7 +448,7 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -462,7 +466,7 @@ hash ans = rest.patch("/orders/1", ("action": "cancel"));
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -490,7 +494,7 @@ hash ans = rest.doRequest("GET", "sobjects");
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -510,7 +514,7 @@ hash ans = rest.doRequest("GET", "sobjects");
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -545,7 +549,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -565,7 +569,7 @@ hash ans = rest.doBulkRequest("POST", "job", job);
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -627,7 +631,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -645,7 +649,7 @@ hash ans = rest.bulkGet("/orders/1?info=verbose");
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -674,7 +678,7 @@ hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -692,7 +696,7 @@ hash ans = rest.bulkPost("/orders", ("product": "xyz123", "options": 500));
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -723,7 +727,7 @@ printf("job ID created: %y\n", h.jobInfo.id);
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -776,7 +780,7 @@ printf("batch ID: %y batch state: %y\n", h.id, h.state);
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -850,7 +854,7 @@ sfrest.bulkJobClose(jh.id);
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -882,7 +886,7 @@ sfrest.bulkJobClose(jh.id);
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -912,7 +916,7 @@ sfrest.logout();
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values
@@ -1062,13 +1066,13 @@ sfrest.logout();
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
           values; the default is \c "auto" for possible values; note that it's recommended to use \c "yaml" when
           talking to Qorus
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
           \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller
           instead of processed
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
           \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
@@ -1122,7 +1126,7 @@ sfrest.logout();
         }
 
         #! returns a @ref SalesforceRestClient::SalesforceRestClient object
-        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+        /** @param connect if @ref True "True", then the connection is returned already connected
             @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
 
             @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
@@ -1142,13 +1146,13 @@ sfrest.logout();
               @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is
               \c "auto" for possible values; note that it's recommended to use \c "yaml" when talking to Qorus
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause
+            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause
               a \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
               caller like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller
+            - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller
               instead of processed
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the
               value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on

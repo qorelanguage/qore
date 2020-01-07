@@ -358,7 +358,7 @@ HashListIterator <hash>::contextIterator() [flags=CONSTANT] {
    return new QoreObject(QC_HASHLISTITERATOR, 0, new QoreHashListIterator(h));
 }
 
-//! Returns @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
+//! Returns @ref True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref False "False" if not
 /** @par Example:
     @code{.py}
 bool b = h.compareKeys(oh);
@@ -368,7 +368,7 @@ bool b = h.compareKeys(oh);
 
     @param oh a hash to compare the keys against
 
-    @return @ref Qore::True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref Qore::False "False" if not
+    @return @ref True "True" if the hash argument passed has the same keys in the same order as the current hash, @ref False "False" if not
 
     @since %Qore 0.8.8
  */

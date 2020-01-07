@@ -118,7 +118,7 @@ public namespace Schema {
     public const C_NOT_NULL = True;
 
     #! returns a column hash for an \c INT column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+    /** @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @note might be a numeric type if \c INT is not supported by the dataserver
@@ -149,7 +149,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c VARCHAR column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
      */
     public hash<GenericColumnInfo> sub c_varchar(int size, bool notnull = False, *string comment) {
@@ -175,7 +175,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c CHAR column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
      */
     public hash<GenericColumnInfo> sub c_char(int size, bool notnull = False, *string comment) {
@@ -200,7 +200,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c DATE column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+    /** @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_timestamp()
@@ -228,7 +228,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c TIMESTAMP column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+    /** @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_date()
@@ -255,7 +255,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c NUMBER or \c NUMERIC column
     /**
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_int()
@@ -271,7 +271,7 @@ public namespace Schema {
     #! returns a column hash for a \c NUMBER or \c NUMERIC column
     /** @param size the size of the column
         @param scale the scale of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_int()
@@ -288,7 +288,7 @@ public namespace Schema {
 
     #! returns a column hash for a \c NUMBER or \c NUMERIC column
     /** @param size the size of the column
-        @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+        @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_int()
@@ -317,7 +317,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c BLOB column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+    /** @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_clob()
@@ -343,7 +343,7 @@ public namespace Schema {
     }
 
     #! returns a column hash for a \c CLOB column
-    /** @param notnull @ref Qore::True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
+    /** @param notnull @ref True "True" for a <tt>NOT NULL</tt> constraint on the column. See constants Schema::C_NULL and Schema::C_NOT_NULL
         @param comment an optional comment for the column
 
         @see c_blob()
@@ -981,9 +981,9 @@ public namespace Schema {
         private *hash getInsertOnlyReferenceDataImpl() {
         }
 
-        #! returns @ref Qore::True "True" if the method can detect that DB objects defined in the schema exist in the database
+        #! returns @ref True "True" if the method can detect that DB objects defined in the schema exist in the database
         /** Currently this method checks if any of tables, sequences, functions, or procedures defined in the schema template exists.
-            If so, this method returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
+            If so, this method returns @ref True "True", otherwise it returns @ref False "False"
         */
         private bool checkExistence() {
             # NOTE: we cannot check firstKey() only as before. It fails
@@ -1022,18 +1022,18 @@ public namespace Schema {
             return False;
         }
 
-        #! returns @ref Qore::True "True" if checkExistence() returns @ref Qore::False "False"
+        #! returns @ref True "True" if checkExistence() returns @ref False "False"
         private bool checkFirstTimeInstall() {
             return !checkExistence();
         }
 
-        #! this method returns @ref Qore::True "True" if the schema can be dropped
+        #! this method returns @ref True "True" if the schema can be dropped
         private bool checkDropSchema(bool force) {
             logpf("dropping schema version %s", version);
             return True;
         }
 
-        #! this method returns @ref Qore::True "True" if the schema can be updated
+        #! this method returns @ref True "True" if the schema can be updated
         private bool checkUpdateSchema(bool force, reference<hash<auto>> initial_schema_info) {
             logpf("verifying/aligning schema version %s", version);
             return True;
@@ -1190,7 +1190,7 @@ public namespace Schema {
             return vt.selectRow(("columns": version_column, "where": version_where)){version_column};
         }
 
-        #! this method returns @ref Qore::True "True" if the schema can be dropped
+        #! this method returns @ref True "True" if the schema can be dropped
         private bool checkDropSchema(bool force) {
             *string current_version = getSchemaVersion();
             if (!current_version) {
@@ -1215,7 +1215,7 @@ public namespace Schema {
             return False;
         }
 
-        #! this method returns @ref Qore::True "True" if the schema can be updated
+        #! this method returns @ref True "True" if the schema can be updated
         private bool checkUpdateSchema(bool force, reference<hash<auto>> initial_schema_info) {
             *string current_version = getSchemaVersion();
             if (!current_version) {
@@ -1249,12 +1249,12 @@ public namespace Schema {
             }
         }
 
-        #! this method is called if the current schema version is less than the target version; returns @ref Qore::True "True" if the schema can be updated
+        #! this method is called if the current schema version is less than the target version; returns @ref True "True" if the schema can be updated
         private bool checkUpgrade(string current_version) {
             return True;
         }
 
-        #! this method is called if the current schema version is greater than the target version; returns @ref Qore::True "True" if the schema can be downgraded
+        #! this method is called if the current schema version is greater than the target version; returns @ref True "True" if the schema can be downgraded
         private bool checkDowngrade(string current_version) {
             return True;
         }

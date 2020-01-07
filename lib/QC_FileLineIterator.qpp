@@ -170,8 +170,8 @@ string FileLineIterator::getLine() [flags=RET_VALUE_ONLY] {
     return i->checkValid(xsink) ? 0 : i->getValue();
 }
 
-//! Returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+//! Returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
+/** @return @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
 
     @par Example:
     @code{.py}
@@ -209,8 +209,8 @@ string FileLineIterator::getEncoding() [flags=CONSTANT] {
     return new QoreStringNode(i->getEncoding()->getCode());
 }
 
-//! Returns @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the FileLineIterator is connected to a terminal device, @ref Qore::False "False" if not
+//! Returns @ref True "True" if the FileLineIterator is connected to a terminal device, @ref False "False" if not
+/** @return @ref True "True" if the FileLineIterator is connected to a terminal device, @ref False "False" if not
 
     @par Example:
     @code{.py}

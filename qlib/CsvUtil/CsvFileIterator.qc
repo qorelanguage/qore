@@ -48,7 +48,7 @@ public namespace CsvUtil {
         /** @param path the path to the CSV file to read
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(string path, *hash opts) : AbstractCsvIterator(new InputStreamLineIterator(new FileInputStream(path), opts.encoding, opts.eol), opts) {
             m_file_path = path;

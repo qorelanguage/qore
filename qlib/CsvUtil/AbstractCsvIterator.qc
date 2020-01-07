@@ -41,26 +41,26 @@ public namespace CsvUtil {
         |\c "date_format"|@ref string_type "string"|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
-        |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
-        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref Qore::False "False" then fields not yet specified are pushed at the end of the field definition.
-        |\c "ignore_empty"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref True "True")
+        |\c "header_names"|@ref bool_type "bool"|if @ref True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref False "False".
+        |\c "header_reorder"|@ref bool_type "bool"|if @ref True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref False "False" then fields not yet specified are pushed at the end of the field definition.
+        |\c "ignore_empty"|@ref bool_type "bool"|if @ref True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
+        |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "number_format"|@ref string_type "string"|the default format for \c "int", \c "float", and \c "number" fields as a string giving the thousands separator character followed by the decimal separator character (ex: \c ".," for continental-European-style numbers)
         |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
         |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
         |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
-        |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
-        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column or field count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "tolwr"|@ref bool_type "bool"|if @ref True "True" then all header names will be converted to lower case letters
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref True "True" (the default is @ref False "False") then if a line is parsed with a different column or field count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
 
         <b>AbstractCsvIterator Single-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
+        |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref False "False".
         |\c "fields"|@ref hash|the keys are field names as given by the \a header_names or \a headers option (in case neither of these options are used, then field names are numbers starting with \c "0") and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"; note that invalid field names given in this option are ignored
 
         <b>AbstractCsvIterator Multi-type-only Options </b>
         |!Option|!Data Type|!Description
-        |\c "extended_record"|@ref boolean|if @ref Qore::True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: @ref Qore::False "False"
+        |\c "extended_record"|@ref boolean|if @ref True "True" then get functions will use extended hash with \"type\" and \"record\" members to provide type to calling party, Default: @ref False "False"
 
         @note the following options separated by dashes are still supported for backwards-compatibility:
         - \c "date-format"
@@ -199,7 +199,7 @@ public namespace CsvUtil {
             @param li source line iterator
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
          */
         constructor(AbstractLineIterator li, *hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
             lineIterator = li;

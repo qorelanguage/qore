@@ -426,7 +426,7 @@ const CRYPTO_ALG_RC4 = "rc4";
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_RC5
 
-    Use of this cipher is only possible if the constant listed above is @ref Qore::True "True"
+    Use of this cipher is only possible if the constant listed above is @ref True "True"
 
     @note This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
  */
@@ -436,7 +436,7 @@ const CRYPTO_ALG_RC5 = "rc5";
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_RC5
 
-    Use of this cipher is only possible if the constant listed above is @ref Qore::True "True"
+    Use of this cipher is only possible if the constant listed above is @ref True "True"
 
     @note This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
  */
@@ -446,7 +446,7 @@ const CRYPTO_ALG_RC5_CFB = "rc5-cfb";
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_RC5
 
-    Use of this cipher is only possible if the constant listed above is @ref Qore::True "True"
+    Use of this cipher is only possible if the constant listed above is @ref True "True"
 
     @note This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
  */
@@ -594,7 +594,7 @@ const CRYPTO_DIGEST_MDC2 = "mdc2";
 */
 const CRYPTO_DIGEST_RIPEMD160 = "ripemd160";
 
-//! A hash keyed by supported digest name where each value is @ref Qore::True "True"
+//! A hash keyed by supported digest name where each value is @ref True "True"
 /** @since %Qore 0.9.3
 */
 const DigestMap = qore(init_digest_map_hash());

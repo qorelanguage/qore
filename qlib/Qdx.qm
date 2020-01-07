@@ -129,7 +129,7 @@ public namespace Qdx {
             @param is the @ref Qore::InputStream "InputStream" to iterate over
             @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
@@ -178,7 +178,7 @@ public namespace Qdx {
             @param is the @ref Qore::InputStream "InputStream" to iterate over
             @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
@@ -189,7 +189,7 @@ public namespace Qdx {
 
             @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
@@ -280,7 +280,7 @@ public namespace Qdx {
             @param is the @ref Qore::InputStream "InputStream" to iterate over
             @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
@@ -291,7 +291,7 @@ public namespace Qdx {
 
             @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
             @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
 
             @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */

@@ -1258,7 +1258,7 @@ nothing Program::importFunction(string func) {
     @param new_name the name of the function as it will be known in the Program object once imported; can be a fully-
     qualified namespace path, in which case the namespace path will be created in the target Program object if
     necessary as well (ex: \c "Ns1::Ns2::my_func")
-    @param inject if @ref Qore::True "True" then the imported function will be marked as a dependency injection and
+    @param inject if @ref True "True" then the imported function will be marked as a dependency injection and
     therefore will not be overritten by subsequent calls to Program::importSystemFunctions(),
     Program::importSystemApi(), Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note
     that for this call to succeed, the Program must have @ref Qore::PO_ALLOW_INJECTION set
@@ -1320,7 +1320,7 @@ nothing Program::importGlobalVariable(string varname, bool readonly = False) {
     @param new_name the name of the class in the imported Program object; can be a fully-qualified namespace path, in
     which case the namespace path will be created in the target Program object if necessary as well (ex:
     \c "Ns1::Ns2::MyClass")
-    @param inject if @ref Qore::True "True" then the imported class will be marked as a dependency injection and
+    @param inject if @ref True "True" then the imported class will be marked as a dependency injection and
     therefore will not be overritten by subsequent calls to Program::importSystemClasses(),
     Program::importSystemHashDecls(), Program::importSystemConstants(), Program::importSystemApi(),
     Program::loadApplyToPrivateUserModule(), or Program::loadApplyToUserModule(); note that for this call to succeed,
@@ -1913,14 +1913,14 @@ pgm.loadUserModuleWithProgram("MyModule", p);
 /** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
-    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
+    @param reinject if @ref True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
     @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
     @param reexport reexport symbols from the imported module (only valid when used in a user module)
 
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
     @note
-    - it is not an error to set the \a reinject argument to @ref Qore::True "True" when the given module has not already been loaded
+    - it is not an error to set the \a reinject argument to @ref True "True" when the given module has not already been loaded
     - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
 
     @see
@@ -1961,7 +1961,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
 /** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
 
     @param name the name or path of the user module to load
-    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
+    @param reinject if @ref True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
     @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
     @param reexport reexport symbols from the imported module (only valid when used in a user module)
 
@@ -1970,7 +1970,7 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
 
     @note
-    - it is not an error to set the \a reinject argument to @ref Qore::True "True" when the given module has not already been loaded
+    - it is not an error to set the \a reinject argument to @ref True "True" when the given module has not already been loaded
     - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
 
     @see

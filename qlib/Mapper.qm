@@ -131,7 +131,7 @@ list: (2 elements)
     @section mapperkeys Mapper Specification Format
 
     The mapper hash is made up of target (ie output) field names (note that dotted output field names result in a nested hash output unless the \a allow_output_dot option is set) as the key values assigned to field specifications as follows:
-    - @ref Qore::True "True": this is a shortcut meaning map from an input field with the same name
+    - @ref True "True": this is a shortcut meaning map from an input field with the same name
     - a @ref string_type "string": giving the input field name directly (equivalent to a hash with the \c "name" key)
     - a @ref closure "closure" or @ref call_reference "call reference": meaning map from a field of the same name an apply the given code to give the value for the mapping (equivalent to a hash with the \c "code" key); the @ref closure "closure" or @ref call_reference "call reference" must accept the following arguments:
       - @ref any_type "any" <i>value</i>: the input field value (with the same name as the output field; to use a different name, see the \a code hash option below)
@@ -142,14 +142,14 @@ list: (2 elements)
       - \c "index": gives current index/count of the row. The initial int value is the start offset. So value 0 means that mapped values will be: 0, 1, ..., N; 1 means: 1, 2, ..., N; etc.
       - \c "date_format": gives the format for converting an input string to a date; see @ref date_formatting for the format of this string; note that this also implies \c "type" = \c "date"
       - \c "default": gives a default value for the field in case no input or translated value is provided
-      - \c "mand": assign to boolean @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
+      - \c "mand": assign to boolean @ref True "True" if the field is mandatory and an exception should be thrown if no input data is supplied
       - \c "maxlen": an integer giving the maximum output string field length in bytes
       - \c "name": the value of this key gives the name of the input field; only use this if the input record name is different than the output field name; note that if this value contains \c "." characters and the \a allow_dot option is not set (see @ref mapperoptions), then the value will be treated like \c "struct" (the \c "struct" key value will be created automatically); cannot be used with the \c "constant" ior \c "index" keys
       - \c "number_format": gives the format for converting an input string to a number; see @ref Qore::parse_number() for the format of this string; note that this also implies \c "type" = \c "number"
       - \c "output_key_path": gives the output path for hash output values; each element in the list is a string key name
       - \c "runtime": a reference to @ref mapper_runtime_handling current status. The value is key in the current runtime structure.
       - \c "struct": the value of this key gives the location of the input field in an input hash in dot notation, ex: \c "element.name" would look for the field's value in the \c "name" key of the \c "element" hash in the input record; cannot be used with the \c "constant" or \c "index" keys; this option is only necessary in place of the "name" option if the \a allow_dot option is set, otherwise use \c "name" instead
-      - \c "trunc": assign to boolean @ref Qore::True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref Qore::True "True" if the \c "maxlen" key is also given
+      - \c "trunc": assign to boolean @ref True "True" if the field should be truncated if over the maximum field length; this key can only be set to @ref True "True" if the \c "maxlen" key is also given
       - \c "type": this gives the output field type, can be:
         - \c "date": date/time field
         - \c "int": fields accepts only integer values (any non-integer values on input will cause an exception to be thrown when mapping; note: also \c "integer" is accepted as an alias for \c "int")
@@ -196,7 +196,7 @@ list: (2 elements)
       notation indicates a multi-level hash) and each value is an optional hash describing the output field taking a
       subset of @ref mapperkeys "mapper field hash keys" as follows:
       - \c "desc": a description of the output field
-      - \c "mand": @ref Qore::True "True" if the field is mandatory and an exception should be thrown if no input data
+      - \c "mand": @ref True "True" if the field is mandatory and an exception should be thrown if no input data
         is supplied
       - \c "maxlen": an integer giving the maximum length of a string field in bytes
       - \c "type": this gives the output field type, can be:
@@ -235,16 +235,16 @@ list: (2 elements)
       @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will use upsert
       operations instead of insert operations
     - \c "runtime": an initial runtime structure for @ref mapper_runtime_handling
-    - \c "trunc_all": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+    - \c "trunc_all": if @ref True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
       any field without a \c "trunc" key (see @ref mapperkeys \c "trunc" description) will automatically be truncated
       if a \c "maxlen" attribute is set for the field
 
     The following deprecated options are also accepted:
-    - \c "allow_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
+    - \c "allow_dot": if @ref True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()") then
       field names with \c "." characters do not imply a structured internal element lookup; in this case input field
       names may have \c "." characters in them, use the \c "struct" key to use structured internal element loopups
       (see @ref mapperkeys \c "struct" docs for more info)
-    - \c "allow_output_dot": if @ref Qore::True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()")
+    - \c "allow_output_dot": if @ref True "True" (as evaluated by @ref Qore::parse_boolean() "parse_boolean()")
       then output field names with \c "." characters do not imply a structured/hash output element; in this case
       output field names may have \c "." characters in them
     - \c "date_format": gives the global format for converting a string to a date; see @ref date_formatting for the
@@ -649,7 +649,7 @@ const DataMap = (
 Mapper mapv(DataMap);
         @endcode
 
-        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
         @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
         @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -2236,12 +2236,12 @@ public class AbstractMapperIterator inherits Qore::AbstractIterator {
         i = iter;
     }
 
-    #! Moves the current position of the iterator to the next element; returns @ref Qore::False "False" if there are no more elements
+    #! Moves the current position of the iterator to the next element; returns @ref False "False" if there are no more elements
     bool next() {
         return i.next();
     }
 
-    #! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
     bool valid() {
         return i.valid();
     }
@@ -2279,7 +2279,7 @@ public class MapperIterator inherits Mapper::AbstractMapperIterator {
 
     #! creates the iterator from the arguments passed
     /** @param i input iterator; @ref Qore::AbstractIterator::getValue() "AbstractIterator::getValue()" must return a hash
-        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref Qore::True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
+        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documnentation for this option
         @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
         @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
