@@ -603,7 +603,7 @@ tm.add("/html/index.qhtml", qhtml);
             return src;
         }
 
-        #! returns @ref Qore::True "True" if the given template exists, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the given template exists, @ref False "False" if not
         bool hasTemplate(string tname) {
             return boolean(th{tname});
         }
@@ -667,7 +667,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             };
         }
 
-        #! returns a hash of template names, values are @ref Qore::True "True" or @ref nothing if no templates are currently cached
+        #! returns a hash of template names, values are @ref True "True" or @ref nothing if no templates are currently cached
         *hash<string, bool> getTemplateHash() {
             return map {$1: True}, keys th;
         }
@@ -829,7 +829,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
@@ -841,14 +841,14 @@ hash h = tm.render("html/index.qhtml", ctx);
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
             The following keys are added to the \a cx argument when calling handleRequestImpl():
             - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
             - \c url_root: the root URL
             - \c file_root: the root directory for serving files
-            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref Qore::False "False" when this class is used)
+            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref False "False" when this class is used)
             - \c hdr: this is added to the \a cx argument directly from the \a hdr argument, however it also includes the \c "params" key which holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
@@ -1059,13 +1059,13 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
             - \c url_root: the root URL
             - \c file_root: the root directory for serving files
-            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref Qore::False "False" when this class is used)
+            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref False "False" when this class is used)
             - \c hdr: this is a copy of the \a hdr argument, however it also includes the \c "params" key which holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -1077,7 +1077,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
             @note

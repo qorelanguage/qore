@@ -259,13 +259,13 @@ public namespace HttpServer {
         */
         *InputStream chunked_body;
 
-        #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         softbool close = False;
 
         #! set this key to a hash of extra header information to be returned with the response
         *hash<auto> hdr;
 
-        #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
+        #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
         bool reply_sent = False;
 
         #! a string can be returned here which will be logged in the HTTP server's log file (if any)
@@ -283,13 +283,13 @@ public namespace HttpServer {
         #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
         auto body;
 
-        #! set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         softbool close = False;
 
         #! set this key to a hash of extra header information to be returned with the response
         *hash<auto> hdr;
 
-        #! this key can be set to @ref Qore::True "True" if the reply has already been sent (by a chunked callback for example)
+        #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
         bool reply_sent = False;
 
         #! a string can be returned here which will be logged in the HTTP server's log file (if any)
@@ -698,7 +698,7 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
   */
 public class HttpServer::AbstractAuthenticator {
     #! called to check if the connection requires authentication
-    /** @return @ref Qore::True "True" if authentication is enabled, @ref Qore::False "False" if not (@ref Qore::False "False" is the default value returned)
+    /** @return @ref True "True" if authentication is enabled, @ref False "False" if not (@ref False "False" is the default value returned)
       */
     bool requiresAuthentication() {
         return False;
@@ -712,7 +712,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called to authenticate a user for a connection
-    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True"
+    /** This method will only be called if requiresAuthentication() returns @ref True "True"
         @param user the username to authenticate
         @param pass the password for the user
 
@@ -722,7 +722,7 @@ public class HttpServer::AbstractAuthenticator {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
-    /** This method will only be called if requiresAuthentication() returns @ref Qore::True "True" and no authentication credentials are supplied with the request
+    /** This method will only be called if requiresAuthentication() returns @ref True "True" and no authentication credentials are supplied with the request
         @param ip the IP address of the source connection
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
 
@@ -764,8 +764,8 @@ public class HttpServer::AbstractAuthenticator {
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -774,7 +774,7 @@ public class HttpServer::AbstractAuthenticator {
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -850,8 +850,8 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -860,7 +860,7 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -949,7 +949,7 @@ public class HttpServer::AbstractStreamRequest {
     #! called to either create the response hash or send a chunked response directly
     /** This method calls getResponseHeaderMessageImpl() to get the response code, headers and optionally a response message body.
         If a \c "Transfer-Encoding: chunked" header is included, then the response is sent chunked using the send() callback;
-        in this case the \c "reply_sent" key in the response is set to @ref Qore::True "True".
+        in this case the \c "reply_sent" key in the response is set to @ref True "True".
         Otherwise, any message body is immediately encoded (if accepted by the requestor).
     */
     private hash<HttpHandlerResponseInfo> sendResponse() {
@@ -971,7 +971,7 @@ public class HttpServer::AbstractStreamRequest {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
@@ -1026,7 +1026,7 @@ private logChunk(bool send, int size) {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
@@ -1043,7 +1043,7 @@ private logChunk(bool send, int size) {
     /**
         @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
         - \c "data": the string or binary data
-        - \c "chunked": @ref Qore::True "True" if the data was received with chunked transfer encoding, @ref Qore::False "False" if not
+        - \c "chunked": @ref True "True" if the data was received with chunked transfer encoding, @ref False "False" if not
         .
         Header or trailer data is placed in a hash with the following keys:
         - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
@@ -1063,7 +1063,7 @@ private logChunk(bool send, int size) {
 #! abstract class that all HTTP request handler objects must inherit from
 /** Reimplement handleRequest() in subclasses
 
-    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref Qore::True "True" in the constructor() method
+    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref True "True" in the constructor() method
     and implement getStreamRequestImpl() to return the HTTP stream request handler.
 
     @see AbstractStreamRequest for information about HTTP stream request handlers
@@ -1076,7 +1076,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         #! if POSTed data should be decompressed automatically if there is content-encoding
         bool decompress = True;
 
-        #! if automatically decompressed POSTed data should be converted to a string (if @ref Qore::False "False", then it will be decompressed to a binary)
+        #! if automatically decompressed POSTed data should be converted to a string (if @ref False "False", then it will be decompressed to a binary)
         bool decompress_to_string = True;
 
         #! if the handler supports streaming requests/responses with chunked data
@@ -1094,14 +1094,14 @@ public class HttpServer::AbstractHttpRequestHandler {
 
     #! create the object optionally with the given AbstractAuthenticator
     /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-        @param n_stream if @ref Qore::True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
+        @param n_stream if @ref True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
       */
     constructor(*AbstractAuthenticator n_auth, softbool n_stream = False) {
         auth = n_auth;
         stream = n_stream;
     }
 
-    #! returns @ref Qore::True "True" if the current connection is persistent, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the current connection is persistent, @ref False "False" if not
     bool isPersistent() {
         return boolean(get_thread_data(PersistenceThreadKey));
     }
@@ -1178,8 +1178,8 @@ public class HttpServer::AbstractHttpRequestHandler {
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -1188,7 +1188,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1201,7 +1201,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
@@ -1296,8 +1296,8 @@ public class HttpServer::AbstractHttpRequestHandler {
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -1306,7 +1306,7 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1537,8 +1537,8 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -1547,7 +1547,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1612,8 +1612,8 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
             this key
           - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
             a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref Qore::True "True" if the connection should be closed after responding,
-            @ref Qore::False "False" if not (as derived from the request header)
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
           - \c headers-raw: a hash of raw request headers without any case conversions or other processing
           - \c request-uri: gives the request URI in an HTTP request
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -1622,7 +1622,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
@@ -1639,7 +1639,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         or, to handle the request without a dedicated connection, return a hash with the following keys
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
      */
     abstract hash handleRequest(hash<auto> cx, hash<auto> hdr, *data b);
@@ -1654,7 +1654,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
-        - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix

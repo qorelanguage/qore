@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SewioRestClient.qm Qore user module for calling Sewio.net REST services
 
-/*  SewioRestClient.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
+/*  SewioRestClient.qm Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.2
 
 module SewioRestClient {
-    version = "1.2";
+    version = "1.3";
     desc = "user module for calling Sewio.net RTLS Studio REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -87,13 +87,19 @@ printf("%N\n", ans.body);
 
     @section sewiorestclientrelnotes Release Notes
 
+    @subsection Sewiorestclientv1_3 SewioRestClient v1.3
+    - removed the \c SewioRestConnection::getConstructorInfo() and
+      \c SewioRestConnection::getConstructorInfoImpl() methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3696">issue 3696</a>)
+
     @subsection Sewiorestclientv1_2 SewioRestClient v1.2
     - all connection clases have unified constructor
 
     @subsection Sewiorestclientv1_1 SewioRestClient v1.1
-    - added the @ref SewioRestClient::SewioRestConnection::getConstructorInfoImpl() "SewioConnection::getConstructorInfoImpl()"
+    - added the \c SewioConnection::getConstructorInfoImpl()
       method to allow connections to be created dynamically, potentially in another process from a network
-      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      call (removed in SewioRestClient 1.3)
+      (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection sewiorestclientv1_0_1 SewioRestClient v1.0.1
    - fixed a bug handling default options including timeouts in @ref SewioRestClient::SewioRestConnection "SewioRestConnection"
@@ -133,7 +139,7 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method requires a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
@@ -143,14 +149,14 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
             - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
             - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
@@ -188,13 +194,13 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
           values; the default is \c "json"
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
           \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
           processed
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
         - \c "timeout": transfer timeout to use in milliseconds
@@ -240,7 +246,7 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
 
             @throws SEWIORESTCONNECTION-ERROR missing apikey option
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
             constructorInit();
         }
@@ -252,12 +258,12 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
         }
 
         #! returns a @ref SewioRestClient::SewioRestClient object
-        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+        /** @param connect if @ref True "True", then the connection is returned already connected
             @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
 
             @return a @ref SewioRestClient::SewioRestClient "SewioRestClient" object
         */
-        private SewioRestClient getImpl(bool connect = True, *hash rtopts) {
+        private SewioRestClient getImpl(bool connect = True, *hash<auto>rtopts) {
             return new SewioRestClient(real_opts, !connect);
         }
 
@@ -267,25 +273,25 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref SewioRestClient::SewioRestClient::constructor() "SewioRestClient::constructor()" for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return HttpConnection::DefaultOptions;
         }
 

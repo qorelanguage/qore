@@ -100,7 +100,7 @@ public namespace ConnectionProvider {
         }
 
         #! returns a @ref Qore::Dir object
-        /** @param connect if @ref Qore::True "True", then the target directory is checked for existence and if it's writable, if either check fails, an exception is thrown
+        /** @param connect if @ref True "True", then the target directory is checked for existence and if it's writable, if either check fails, an exception is thrown
             @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
 
             @return a @ref Qore::Dir object
@@ -119,7 +119,7 @@ public namespace ConnectionProvider {
 
         #! gets options
         /** @return returns a hash with the following supported option:
-        - \c "readonly": if @ref Qore::True "True", does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable (default: @ref Qore::False "False")
+        - \c "readonly": if @ref True "True", does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable (default: @ref False "False")
          */
         hash getOptions() {
             return Options;

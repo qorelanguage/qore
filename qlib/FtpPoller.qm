@@ -256,7 +256,7 @@ public namespace FtpPoller {
         - \c reopts: regular expression match options (ex RE_Caseless for case-insensitive matches)
         - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
         - \c encoding: the encoding for any text files received
-        - \c binary: if set to @ref Qore::True "True" then files are transferred in binary mode by default (with singleFileEvent() usage only), otherwise file data is returned in text format
+        - \c binary: if set to @ref True "True" then files are transferred in binary mode by default (with singleFileEvent() usage only), otherwise file data is returned in text format
         - \c log_info: a @ref closure "closure" or @ref call_reference "call reference" for logging important information; must accept a single string giving the log message
         - \c log_detail: a @ref closure "closure" or @ref call_reference "call reference" for logging detailed information; must accept a single string giving the log message
         - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose debgugging information; must accept a single string giving the log message
@@ -855,7 +855,7 @@ public namespace FtpPoller {
             - \c name: the name of the file, link, or directory
         - \c size: the size of the file in bytes
         - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref Qore::True "True", in which case this key is assigned to the files binary data
+        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
         - \c filepath: the remote filepath relative to FTP root directory
         */
         abstract singleFileEvent(hash fih);
@@ -869,7 +869,7 @@ public namespace FtpPoller {
         - \c name: the name of the file, link, or directory
         - \c size: the size of the file in bytes
         - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref Qore::True "True", in which case this key is assigned to the files binary data
+        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
         - \c filepath: the remote filepath relative to FTP root directory
         */
         abstract postSingleFileEvent(hash fih);

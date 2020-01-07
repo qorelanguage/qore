@@ -954,7 +954,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     }
 
     private {
-        #! if serialized data should be subject to compact serialization (default: @ref Qore::True "True")
+        #! if serialized data should be subject to compact serialization (default: @ref True "True")
         bool compact_serialization;
 
         #! the default path to use when retrieving external schema references
@@ -976,7 +976,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /**
         @param oh deserialized hash from the source schema description describing the root document object
         @param opts options as per @ref SwaggerOptions as follows:
-        - \c compact_serialization (default @ref Qore::True "True"): optimize the size of serialized data strings
+        - \c compact_serialization (default @ref True "True"): optimize the size of serialized data strings
         - \c def_path: the default path to use when retrieving external schema references
         - \c try_import: a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
 

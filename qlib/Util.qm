@@ -160,7 +160,7 @@ public namespace Util {
         #! the part of the URI path before the first \c "?" character or the entire path if no \c "?" character is present in the path
         string method;
 
-        #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref Qore::True "True"
+        #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref True "True"
         *hash<auto> params;
     }
 
@@ -338,7 +338,7 @@ string dir = normalize_dir_windows(dir, "c:\\qore"));
         return dir ? dir : "\\";
     }
 
-    #! returns @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the argument is an absolute path, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool abs = absolute_path(path);
@@ -346,7 +346,7 @@ bool abs = absolute_path(path);
 
         @param path the path to check
 
-        @return @ref Qore::True "True" if the argument is an absolute path, @ref Qore::False "False" if not
+        @return @ref True "True" if the argument is an absolute path, @ref False "False" if not
 
         @see @ref Qore::absolute_path()
 
@@ -356,7 +356,7 @@ bool abs = absolute_path(path);
         return Qore::absolute_path(path);
     }
 
-    #! returns @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the argument is a UNIX absolute path, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool abs = absolute_path_unix(path);
@@ -364,7 +364,7 @@ bool abs = absolute_path_unix(path);
 
         @param path the path to check
 
-        @return @ref Qore::True "True" if the argument is a UNIX absolute path, @ref Qore::False "False" if not
+        @return @ref True "True" if the argument is a UNIX absolute path, @ref False "False" if not
 
         @see @ref Qore::absolute_path_unix()
 
@@ -374,7 +374,7 @@ bool abs = absolute_path_unix(path);
         return Qore::absolute_path_unix(path);
     }
 
-    #! returns @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+    #! returns @ref True "True" if the argument is a Windows absolute path, @ref False "False" if not
     /** @par Example:
         @code{.py}
 bool abs = absolute_path_windows(path);
@@ -382,7 +382,7 @@ bool abs = absolute_path_windows(path);
 
         @param path the path to check
 
-        @return @ref Qore::True "True" if the argument is a Windows absolute path, @ref Qore::False "False" if not
+        @return @ref True "True" if the argument is a Windows absolute path, @ref False "False" if not
 
         @see @ref Qore::absolute_path_windows()
 

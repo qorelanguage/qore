@@ -438,7 +438,7 @@ public namespace RestHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
@@ -675,7 +675,7 @@ public namespace RestHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -705,7 +705,7 @@ public namespace RestHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
@@ -803,7 +803,7 @@ public namespace RestHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
 
             @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
@@ -1139,7 +1139,7 @@ public namespace RestHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
-            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)

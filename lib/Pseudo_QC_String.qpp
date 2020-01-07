@@ -866,7 +866,7 @@ int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
    return !rc ? 0 : (rc < 0 ? -1 : 1);
 }
 
-//! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
+//! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref True "True" if the string argument matches the beginning of the string, @ref False "False" if not
 /** @par Example:
     @code{.py}
 bool b = str.equalPartial(ostr);
@@ -876,7 +876,7 @@ bool b = str.equalPartial(ostr);
 
     @param ostr the partial string to compare the current string to
 
-    @return @ref Qore::True "True" if the string argument matches the beginning of the string, @ref Qore::False "False" if not
+    @return @ref True "True" if the string argument matches the beginning of the string, @ref False "False" if not
 
     @since %Qore 0.8.8
 */
@@ -884,7 +884,7 @@ bool <string>::equalPartial(string ostr) [flags=RET_VALUE_ONLY] {
    return str->equalPartialSoft(ostr, xsink);
 }
 
-//! Compares the beginning of the current string assumed to be a path with a shorter string passed as an argument for equality only, returns @ref Qore::True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref Qore::False "False" if not
+//! Compares the beginning of the current string assumed to be a path with a shorter string passed as an argument for equality only, returns @ref True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref False "False" if not
 /** @par Example:
     @code{.py}
 bool b = str.equalPartialPath(ostr);
@@ -892,7 +892,7 @@ bool b = str.equalPartialPath(ostr);
 
     @param ostr the partial string to compare the current string to
 
-    @return @ref Qore::True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref Qore::False "False" if not
+    @return @ref True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref False "False" if not
 
     @since %Qore 0.8.8
 */

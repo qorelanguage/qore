@@ -81,7 +81,7 @@ public namespace ConnectionProvider {
         }
 
         #! returns an @ref Qore::FtpClient object
-        /** @param connect if @ref Qore::True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
+        /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
             @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
         */
         private FtpClient getImpl(bool connect = True, *hash rtopts) {

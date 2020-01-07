@@ -110,10 +110,10 @@ RangeIterator::copy() {
    self->setPrivate(CID_RANGEITERATOR, new RangeIterator(*i));
 }
 
-//! This method returns @ref Qore::True "True" while there are more numbers to iterate and @ref Qore::False "False" when the range has been completely iterated
-/** The iterator object should not be used after this method returns @ref Qore::False "False".
+//! This method returns @ref True "True" while there are more numbers to iterate and @ref False "False" when the range has been completely iterated
+/** The iterator object should not be used after this method returns @ref False "False".
 
-    @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
+    @return @ref True "True" and @ref False "False" alternately unless it has no value iterate.
 
     @par Example:
     @code{.py}
@@ -183,8 +183,8 @@ RangeIterator::reset() {
    i->reset();
 }
 
-//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+//! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
+/** @return @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
 
     @par Example:
     @code{.py}

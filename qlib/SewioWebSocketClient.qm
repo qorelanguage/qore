@@ -272,7 +272,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         }
 
         #! returns a @ref SewioWebSocketClient object
-        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" is called
+        /** @param connect if @ref True "True", then @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" is called
             @param rtopts supports the following runtime options in getImpl() for connection logging:
             - \c "log": a closure accepting a single string for logging
             - \c "errlog": a closure accepting a single string for error logging

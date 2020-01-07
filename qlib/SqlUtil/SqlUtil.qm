@@ -391,7 +391,7 @@ hash soh = (
     - @ref select_option_columns "columns": describes the output columns and any output column operations; if not present, then all columns are returned directly in the output
     - @ref select_option_where "where": (@ref hash_type "hash") describes how any \c "where" clause will be built; if not present, then there is no \c where clause
     - @ref select_option_orderby "orderby": (@ref list_type "list of strings") describes the ordering of the results; if not present (and no other output ordering is required, such as implied by the @ref select_option_offset "offset" option), then results are returned in the order returned by the database server
-    - @ref select_option_desc "desc": (@ref bool_type "bool") specifies descending order for results; if not present or not @ref Qore::True "True" and results are ordered, then the results are returned in ascending order
+    - @ref select_option_desc "desc": (@ref bool_type "bool") specifies descending order for results; if not present or not @ref True "True" and results are ordered, then the results are returned in ascending order
     - @ref select_option_limit "limit": (@ref int_type "int") specifies the maximum number of results to be returned; if not present, then all results are returned
     - @ref select_option_offset "offset": (@ref int_type "int") specifies the starting offset of the first record to be returned (starting with 0)
     - @ref select_option_join "join": (@ref hash_type "hash") specifies any SQL join operations to return results from multiple tables
@@ -534,7 +534,7 @@ hash<auto> sh = (
 );
 *list rows = table.selectRows(sh);
     @endcode
-    If the value of this key is @ref Qore::True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
+    If the value of this key is @ref True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
 
     @note per-column descending options can be given by prepending a \c "-" character to the column name in the @ref select_option_orderby "orderby option list"
@@ -1086,9 +1086,9 @@ else
 
     @subsection sql_upsert_with_delete Upserting Many Rows and Deleting Unwanted Rows
 
-    Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref Qore::True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
+    Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
 
-    The only difference in the following examples and the preceding ones is  any that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True" in these examples. any
+    The only difference in the following examples and the preceding ones is  any that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True" in these examples. any
  any
     @par Simple Example: any
     @code{.py}
@@ -1245,7 +1245,7 @@ Tables tables(ds);
     @endcode
     This can be useful when performing a schema change and a table will be dropped, for example.
 
-    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
 
     @par Drop a Constraint If It Exists
     The following code provides an example of how to unconditionally drop a constraint from a table and update the internal links between unique constraints and foreign constraints (if a foreign constraint is dropped):
@@ -1258,7 +1258,7 @@ if (sql) {
 }
     @endcode
 
-    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
 
     @par Rename a Table
     The following code gives an example of renaming a table and updating all foreign constraint and unique key links in impacted tables if the source table exists and the target name does not exist:
@@ -1271,7 +1271,7 @@ if (sql) {
 }
     @endcode
 
-    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref Qore::True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
+    @note by setting the @ref sql_callback_executed "sql_callback_executed option" to @ref True "True", the affected constraints and linked unique constraints are also updated in the cached table objects, see @ref sql_callback_executed for more information
 
     @section aligning_schemas Aligning Schemas With a Template
 
@@ -1600,7 +1600,7 @@ hash table_desc = (
     - \c default_value: the default value for the column
     - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
     - \c comment: an optional comment for the column
-    - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+    - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref False "False"
     - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
     Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnDescOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
@@ -1734,7 +1734,7 @@ db.getAlignSql(schema, callback_opts);
 
     @subsection sql_callback_executed SQL CallBack Executed Flag
 
-    If the \c "sql_callback_executed" flag is set to @ref Qore::True "True" then the called method knows that the changes are made in the database and the internal representation of the affected object(s) is also updated accordingly.  Here is an example:
+    If the \c "sql_callback_executed" flag is set to @ref True "True" then the called method knows that the changes are made in the database and the internal representation of the affected object(s) is also updated accordingly.  Here is an example:
     @code{.py}
 code sql_callback = sub (string str) {
     if (verbose > 1)
@@ -1968,11 +1968,11 @@ public namespace SqlUtil {
         bool default_value_native = False;
         #! an optional comment for the column
         *string comment;
-        #! if the column should have a "not null" constraint on it; if missing the default value is @ref Qore::False "False"
+        #! if the column should have a "not null" constraint on it; if missing the default value is @ref False "False"
         bool notnull = False;
         #! this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys
         hash<string, hash> driver;
-        #! @ref Qore::True "True" for DBs that support an auto-increment column
+        #! @ref True "True" for DBs that support an auto-increment column
         *bool auto_increment;
     }
 
@@ -4933,7 +4933,7 @@ c.clear();
             return h;
         }
 
-        #! returns @ref Qore::True "True" if the hash argument has the same keys (in any order), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the hash argument has the same keys (in any order), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.matchKeys(h);
@@ -4941,7 +4941,7 @@ bool b = c.matchKeys(h);
 
             @param h1 the hash to compare
 
-            @return @ref Qore::True "True" if the hash argument has the same keys (in any order), @ref Qore::False "False" if not
+            @return @ref True "True" if the hash argument has the same keys (in any order), @ref False "False" if not
         */
         bool matchKeys(hash h1) {
             if (h.size() != h1.size())
@@ -4955,7 +4955,7 @@ bool b = c.matchKeys(h);
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the list<auto> argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the list<auto> argument has the same list of key strings as the keys in the object (in any order), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.matchKeys(l);
@@ -4963,7 +4963,7 @@ bool b = c.matchKeys(l);
 
             @param l the hash to compare
 
-            @return @ref Qore::True "True" if the list<auto> argument has the same list of key strings as the keys in the object (in any order), @ref Qore::False "False" if not
+            @return @ref True "True" if the list<auto> argument has the same list of key strings as the keys in the object (in any order), @ref False "False" if not
         */
         bool matchKeys(list<auto> l) {
             if (h.size() != l.size())
@@ -4977,7 +4977,7 @@ bool b = c.matchKeys(l);
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the container argument has the same keys (in any order), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.matchKeys(c1);
@@ -4985,13 +4985,13 @@ bool b = c.matchKeys(c1);
 
             @param c the container to compare
 
-            @return @ref Qore::True "True" if the container argument has the same keys (in any order), @ref Qore::False "False" if not
+            @return @ref True "True" if the container argument has the same keys (in any order), @ref False "False" if not
         */
         bool matchKeys(AbstractHashContainer c) {
             return matchKeys(c.h);
         }
 
-        #! returns @ref Qore::True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.partialMatchKeys(h);
@@ -4999,7 +4999,7 @@ bool b = c.partialMatchKeys(h);
 
             @param h1 the hash to compare
 
-            @return @ref Qore::True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+            @return @ref True "True" if the hash argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         */
         bool partialMatchKeys(hash h1) {
             if (h.size() > h1.size())
@@ -5013,7 +5013,7 @@ bool b = c.partialMatchKeys(h);
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the list<auto> argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the list<auto> argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.partialMatchKeys(l);
@@ -5021,7 +5021,7 @@ bool b = c.partialMatchKeys(l);
 
             @param l the list of strings to compare
 
-            @return @ref Qore::True "True" if the list<auto> argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+            @return @ref True "True" if the list<auto> argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         */
         bool partialMatchKeys(list<auto> l) {
             if (h.size() > l.size())
@@ -5038,7 +5038,7 @@ bool b = c.partialMatchKeys(l);
             return True;
         }
 
-        #! returns @ref Qore::True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+        #! returns @ref True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = c.partialMatchKeys(c1);
@@ -5046,13 +5046,13 @@ bool b = c.partialMatchKeys(c1);
 
             @param c the container to compare
 
-            @return @ref Qore::True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref Qore::False "False" if not
+            @return @ref True "True" if the container argument has at least the same keys (in any order, can have more keys), @ref False "False" if not
         */
         bool partialMatchKeys(AbstractHashContainer c) {
             return partialMatchKeys(c.h);
         }
 
-        #! Returns @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
+        #! Returns @ref False "False" if the contained hash has no keys, @ref True "True" if it does
         /** @par Example:
             @code{.py}
 bool b = h.val();
@@ -5060,7 +5060,7 @@ bool b = h.val();
 
             The opposite of empty()
 
-            @return @ref Qore::False "False" if the contained hash has no keys, @ref Qore::True "True" if it does
+            @return @ref False "False" if the contained hash has no keys, @ref True "True" if it does
         */
         bool val() {
             return h.val();
@@ -5126,7 +5126,7 @@ map printf("+ %s: %y\n", $1.key, $1.value), h.pairIterator();
             return h.pairIterator();
         }
 
-        #! returns @ref Qore::True "True" if the container is empty, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the container is empty, @ref False "False" if not
         bool empty() {
             return h.empty();
         }
@@ -5143,7 +5143,7 @@ int num = h.size();
             return h.size();
         }
 
-        #! Returns @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
+        #! Returns @ref True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = h.hasKey(key);
@@ -5151,13 +5151,13 @@ bool b = h.hasKey(key);
 
             @param k the key name to check
 
-            @return @ref Qore::True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref Qore::False "False" if not
+            @return @ref True "True" if the key exists in the contained hash (may or may not be assigned a value), @ref False "False" if not
         */
         bool hasKey(string k) {
             return h.hasKey(k);
         }
 
-        #! Returns @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
+        #! Returns @ref True "True" if the key exists in the contained hash and is assigned a value, @ref False "False" if not
         /** @par Example:
             @code{.py}
 bool b = h.hasKeyValue(key);
@@ -5165,7 +5165,7 @@ bool b = h.hasKeyValue(key);
 
             @param k the key name to check
 
-            @return @ref Qore::True "True" if the key exists in the contained hash and is assigned a value, @ref Qore::False "False" if not
+            @return @ref True "True" if the key exists in the contained hash and is assigned a value, @ref False "False" if not
         */
         bool hasKeyValue(string k) {
             return h.hasKeyValue(k);
@@ -5246,7 +5246,7 @@ auto v = c.get(2);
             return l;
         }
 
-        #! Returns @ref Qore::False "False" if the contained list is empty, @ref Qore::True "True" if not
+        #! Returns @ref False "False" if the contained list is empty, @ref True "True" if not
         /** @par Example:
             @code{.py}
 bool b = l.val();
@@ -5254,7 +5254,7 @@ bool b = l.val();
 
             The opposite of empty()
 
-            @return @ref Qore::False "False" if the contained list is empty, @ref Qore::True "True" if not
+            @return @ref False "False" if the contained list is empty, @ref True "True" if not
         */
         bool val() {
             return l.val();
@@ -5272,7 +5272,7 @@ map printf("+ %s: %y\n", $1), h.iterator();
             return l.iterator();
         }
 
-        #! returns @ref Qore::True "True" if the container is empty, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the container is empty, @ref False "False" if not
         bool empty() {
             return l.empty();
         }
@@ -5462,7 +5462,7 @@ AbstractTable t = tables.table_name;
 *string sql = tables.getRenameTableIfExistsSql(old_name, new_name);
             @endcode
 
-            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True", this
+            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref True "True", this
             method also takes care of renaming internal foreign constraint references and source constraint references
             from unique keys for the renamed table (see @ref sql_callback_executed for more information).
 
@@ -5495,7 +5495,7 @@ tables.tableRenamed(old, newv);
             @param new_name the new name of the table
             @param old_sql_name the old full SQL name of the table (ie the value returned by @ref SqlUtil::AbstractTable::getSqlName())
 
-            @return @ref Qore::True "True" if the table was renamed internally, @ref Qore::False "False" if not
+            @return @ref True "True" if the table was renamed internally, @ref False "False" if not
         */
         bool tableRenamed(string old_name, string new_name, string old_sql_name) {
             if (!h{old_name} || h{new_name})
@@ -5535,7 +5535,7 @@ tables.tableRenamed(old, newv);
 *string sql = tables.getDropConstraintIfExistsSql("table", "pk_table");
             @endcode
 
-            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref Qore::True "True" and
+            If the @ref sql_callback_executed "sql_callback_executed option key" is @ref True "True" and
             if the constraint to be dropped is a foreign constraint, then if any unique constraint is linked
             to this foreign constraint, the link is removed (see @ref sql_callback_executed for more information).
 
@@ -5737,7 +5737,7 @@ AbstractColumn c = cols.id;
             return "column";
         }
 
-        #! returns @ref Qore::True "True" if the argument has the same columns in the same order as the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument has the same columns in the same order as the current object, @ref False "False" if not
         bool equal(Columns cols) {
             AbstractIterator i = cols.iterator();
             foreach AbstractColumn c in (iterator()) {
@@ -5793,7 +5793,7 @@ AbstractColumn c = cols.id;
             #! the size of the column
             int size;
 
-            #! @ref Qore::True "True" if the column can hold a NULL value, @ref Qore::False "False" if not
+            #! @ref True "True" if the column can hold a NULL value, @ref False "False" if not
             bool nullable;
 
             #! default value for column
@@ -5899,7 +5899,7 @@ string str = col.getRenameSql(t, "new_name");
         */
         abstract string getRenameSql(AbstractTable t, string new_name);
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(AbstractColumn c) {
             if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size || nullable != c.nullable || def_val != c.def_val || comment != c.comment) {
                 #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
@@ -5909,7 +5909,7 @@ string str = col.getRenameSql(t, "new_name");
             return equalImpl(c);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private abstract bool equalImpl(AbstractColumn c);
 
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
@@ -6012,7 +6012,7 @@ AbstractIndex ix = indexes.pk_jobs;
             #! the name of the index
             string name;
 
-            #! @ref Qore::True "True" if the index is a unique index, @ref Qore::False "False" if not
+            #! @ref True "True" if the index is a unique index, @ref False "False" if not
             bool unique;
 
             #! an object of class Columns representing the columns in the index
@@ -6036,7 +6036,7 @@ AbstractIndex ix = indexes.pk_jobs;
             return name;
         }
 
-        #! returns @ref Qore::True "True" if the constraint references the named column
+        #! returns @ref True "True" if the constraint references the named column
         bool hasColumn(string cname) {
             return columns.hasKey(cname);
         }
@@ -6049,7 +6049,7 @@ AbstractIndex ix = indexes.pk_jobs;
             return sprintf("drop index %s", name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         bool equal(AbstractIndex ix) {
             if (ix.className() != self.className())
                 return False;
@@ -6060,7 +6060,7 @@ AbstractIndex ix = indexes.pk_jobs;
             return equalImpl(ix);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index with the exception of the name, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index with the exception of the name, @ref False "False" if not
         bool equalExceptName(AbstractIndex ix) {
             if (ix.className() != self.className())
                 return False;
@@ -6071,7 +6071,7 @@ AbstractIndex ix = indexes.pk_jobs;
             return equalImpl(ix);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current index, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         abstract bool equalImpl(AbstractIndex ix);
 
         #! returns a string that can be used to rename the index in the database
@@ -6213,7 +6213,7 @@ AbstractConstraint ix = constraints.uk_jobs;
             return getCreateSql(table_name, opt);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(AbstractConstraint c) {
             if (c.className() != self.className() || name != c.name)
                 return False;
@@ -6221,16 +6221,16 @@ AbstractConstraint ix = constraints.uk_jobs;
             return equalImpl(c);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private abstract bool equalImpl(AbstractConstraint c);
 
-        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the object supports an index property and is set, @ref False "False" if not
         abstract bool setIndexBase(string ix);
 
         #! clears any index base for the constraint
         abstract clearIndex();
 
-        #! returns @ref Qore::True "True" if the constraint references the named column
+        #! returns @ref True "True" if the constraint references the named column
         bool hasColumn(string cname) {
             return False;
         }
@@ -6249,12 +6249,12 @@ AbstractConstraint ix = constraints.uk_jobs;
             src = n_src;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractConstraint c) {
             return src != cast<AbstractCheckConstraint>(c).src ? False : True;
         }
 
-        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the object supports an index property and is set, @ref False "False" if not
         bool setIndexBase(string ix) {
             return False;
         }
@@ -6382,7 +6382,7 @@ uk.addSourceConstraint(table_name, constraint_name);
                 sourceConstraints{new_name} = remove sourceConstraints{old_name};
         }
 
-        #! returns @ref Qore::True "True" if the constraint references the named column
+        #! returns @ref True "True" if the constraint references the named column
         bool hasColumn(string cname) {
             return h.hasKey(cname);
         }
@@ -6392,12 +6392,12 @@ uk.addSourceConstraint(table_name, constraint_name);
             return index;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractConstraint c) {
             return (self.keys() != cast<AbstractColumnSupportingConstraint>(c).keys()) ? False : True;
         }
 
-        #! returns @ref Qore::True "True" if the object supports an index property and is set, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the object supports an index property and is set, @ref False "False" if not
         bool setIndexBase(string ix) {
             if (index && index != ix)
                 return False;
@@ -6503,7 +6503,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             columns = c;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(ForeignConstraintTarget targ) {
             return table != targ.table || (columns.keys() != targ.columns.keys()) ? False : True;
         }
@@ -6520,7 +6520,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             target = t;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractConstraint con) {
             AbstractForeignConstraint c = cast<AbstractForeignConstraint>(con);
             return (h.keys() != c.h.keys())
@@ -6653,7 +6653,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             return sprintf("drop %s %s", type, name);
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(AbstractFunctionBase t) {
             if (self.className() != t.className() || name != t.name || type != t.type) {
                 return False;
@@ -6681,7 +6681,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             return src;
         }
 
-        #! returns @ref Qore::True "True" if the argument is equal to the current object, @ref Qore::False "False" if not
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private abstract bool equalImpl(AbstractFunctionBase t);
     }
 

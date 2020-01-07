@@ -706,7 +706,7 @@ int FtpClient::getNetworkFamily() [flags=CONSTANT] {
 hash<auto> h = ftp.getControlSocketInfo();
     @endcode
 
-    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+    @param host_lookup do a lookup of the hostname; if this is @ref False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
@@ -727,7 +727,7 @@ hash<auto> FtpClient::getControlSocketInfo(bool host_lookup = True) {
 hash<auto> h = ftp.getControlSocketInfo();
     @endcode
 
-    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+    @param host_lookup do a lookup of the hostname; if this is @ref False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
@@ -748,7 +748,7 @@ hash<auto> FtpClient::getDataSocketInfo(bool host_lookup = True) {
 hash<auto> h = ftp.getControlPeerInfo();
     @endcode
 
-    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+    @param host_lookup do a lookup of the hostname; if this is @ref False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 
@@ -769,7 +769,7 @@ hash<auto> FtpClient::getControlPeerInfo(bool host_lookup = True) {
 hash<auto> h = ftp.getDataPeerInfo();
     @endcode
 
-    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+    @param host_lookup do a lookup of the hostname; if this is @ref False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
 
     @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
 

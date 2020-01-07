@@ -32,18 +32,18 @@ public namespace ConnectionProvider {
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
         - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
           \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
           processed
         - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
         - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
         - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
-        - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
+        - \c "ssl_verify_cert": if @ref True "True" then the server's certificate will only be accepted if it's verified
         - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
 
         @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options
@@ -103,7 +103,7 @@ public namespace ConnectionProvider {
         }
 
         #! returns an @ref Qore::HTTPClient object
-        /** @param connect if @ref Qore::True "True" then a connection is made by calling @ref Qore::HTTPClient::connect() before returning the object
+        /** @param connect if @ref True "True" then a connection is made by calling @ref Qore::HTTPClient::connect() before returning the object
             @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
         */
         private Qore::HTTPClient getImpl(bool connect = True, *hash rtopts) {
@@ -117,18 +117,18 @@ public namespace ConnectionProvider {
         #! gets options
         /** @return returns a hash with the following supported options:
             - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
               \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
             - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
             - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
-            - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
+            - \c "ssl_verify_cert": if @ref True "True" then the server's certificate will only be accepted if it's verified
             - \c "timeout": transfer timeout to use in milliseconds
 
             @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options

@@ -583,8 +583,8 @@ bool SQLStatement::next() {
    return stmt->next(xsink);
 }
 
-//! returns @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not (use when iterating with SQLStatement::next())
-/** @return @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not
+//! returns @ref True "True" if the object is currently pointing at a valid element, @ref False "False" if not (use when iterating with SQLStatement::next())
+/** @return @ref True "True" if the object is currently pointing at a valid element, @ref False "False" if not
 
     @par Example:
     @code{.py}

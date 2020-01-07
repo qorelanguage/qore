@@ -346,7 +346,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref Qore::True "True" or @ref Qore::False "False": indicating if the method can accept a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
@@ -356,7 +356,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
             - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in
@@ -364,7 +364,7 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
             - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
@@ -577,7 +577,7 @@ hash<auto> ans = rest.get("/orders/1?info=verbose");
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -595,7 +595,7 @@ hash<auto> ans = rest.get("/orders/1?info=verbose");
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -623,7 +623,7 @@ hash<auto> ans = rest.put("/orders/1", ("action": "cancel"));
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -641,7 +641,7 @@ hash<auto> ans = rest.put("/orders/1", ("action": "cancel"));
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -668,7 +668,7 @@ hash<auto> ans = rest.patch("/orders/1", ("action": "cancel"));
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -686,7 +686,7 @@ hash<auto> ans = rest.patch("/orders/1", ("action": "cancel"));
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -713,7 +713,7 @@ hash<auto> ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -731,7 +731,7 @@ hash<auto> ans = rest.post("/orders", ("product": "xyz123", "options": 500));
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -758,7 +758,7 @@ hash<auto> ans = rest.del("/orders/1");
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -776,7 +776,7 @@ hash<auto> ans = rest.del("/orders/1");
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
 
             Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
 
@@ -863,7 +863,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
               lower case and additional information added
             - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-            - \c chunked: set to @ref Qore::True "True" if the response was received with chunked transfer encoding
+            - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
             - \c response-code: the HTTP response code
             - \c response-body: the raw message body in the response (after any content decoding)
             - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
@@ -883,7 +883,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             - \c "response-body": the decoded response body
             .
             Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
-            option is set to @ref Qore::True "True"
+            option is set to @ref True "True"
             @throw REST-ACCEPT-ERROR if the message has a validator that indicates that the response message only
             supports types not supported by the current options or environment
 
@@ -993,7 +993,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
           @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
         - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
           null REST schema validator; the default is \c "auto"
-        - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
           \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
           like any other response
         - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
@@ -1003,7 +1003,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
         - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
           processed
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
           \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
@@ -1075,7 +1075,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         #! returns a @ref RestClient::RestClient "RestClient" object
-        /** @param connect if @ref Qore::True "True", then the connection is returned already connected
+        /** @param connect if @ref True "True", then the connection is returned already connected
             @param rtopts supports the following runtime option in getImpl():
             - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
 
@@ -1093,7 +1093,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
               @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
             - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
               null REST schema validator; the default is \c "auto"
-            - \c "error_passthru": if @ref Qore::True "True" then HTTP status codes indicating errors will not cause a
+            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
               \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
               like any other response
             - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
@@ -1103,7 +1103,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
             - \c "max_redirects": maximum redirects to support
             - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+            - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
               processed
             - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
               \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent

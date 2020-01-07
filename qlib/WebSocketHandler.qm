@@ -301,7 +301,7 @@ public namespace WebSocketHandler {
         }
 
         #! called by the HTTP server to handle incoming HTTP requests
-        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False"
+        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False"
 
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
@@ -317,10 +317,10 @@ public namespace WebSocketHandler {
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
             @param b message body, if any
 
-            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref Qore::False "False":
+            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False":
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
             - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref Qore::True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
             Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"

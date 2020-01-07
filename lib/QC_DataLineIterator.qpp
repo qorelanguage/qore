@@ -61,7 +61,7 @@ qclass DataLineIterator [arg=DataLineIterator* i; ns=Qore; vparent=AbstractLineI
 //! creates the DataLineIterator based on the string given
 /** @param str the string to iterate over; note that if this string is in a non-ascii-compatible character encoding, it will be converted to UTF-8 for processing in the constructor and the UTF-8 version of the string will be used for iterating in this object
     @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the DataLineIterator's @ref character_encoding "character encoding"
-    @param trim if @ref Qore::True "True" the string return values for the lines iterated will be trimmed of the eol bytes
+    @param trim if @ref True "True" the string return values for the lines iterated will be trimmed of the eol bytes
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
  */
@@ -148,8 +148,8 @@ string DataLineIterator::getLine() [flags=RET_VALUE_ONLY] {
    return i->checkValid(xsink) ? 0 : i->getValue();
 }
 
-//! returns @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
-/** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
+//! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
+/** @return @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
 
     @par Example:
     @code{.py}

@@ -196,28 +196,28 @@ if (n.val())
 
     @par Rules:
     |!%Type|!Rule
-    |@ref int_type "int", @ref float_type "float", @ref number_type "number"|@ref Qore::False "False" if zero, @ref Qore::True "True" if non-zero
-    |@ref string_type "string"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
-    |@ref list_type "list"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
-    |@ref hash_type "hash"|@ref Qore::False "False" if empty, @ref Qore::True "True" if not empty
-    |@ref object_type "object"|always @ref Qore::True "True" with a valid object
-    |@ref code_type "code"|always @ref Qore::True "True"
-    |@ref nothing|always @ref Qore::False "False"
-    |@ref null|always @ref Qore::False "False"
+    |@ref int_type "int", @ref float_type "float", @ref number_type "number"|@ref False "False" if zero, @ref True "True" if non-zero
+    |@ref string_type "string"|@ref False "False" if empty, @ref True "True" if not empty
+    |@ref list_type "list"|@ref False "False" if empty, @ref True "True" if not empty
+    |@ref hash_type "hash"|@ref False "False" if empty, @ref True "True" if not empty
+    |@ref object_type "object"|always @ref True "True" with a valid object
+    |@ref code_type "code"|always @ref True "True"
+    |@ref nothing|always @ref False "False"
+    |@ref null|always @ref False "False"
 
     @par Example Values:
     |!Example|!Result
-    |@code{.py}0.val()@endcode|@ref Qore::False "False"
-    |@code{.py}1.val()@endcode|@ref Qore::True "True"
-    |@code{.py}"".val()@endcode|@ref Qore::False "False" (empty string)
-    |@code{.py}"0".val()@endcode|@ref Qore::True "True"
-    |@code{.py}"string".val()@endcode|@ref Qore::True "True"
-    |@code{.py}().val()@endcode|@ref Qore::False "False" (empty list)
-    |@code{.py}(0,).val()@endcode|@ref Qore::True "True"
-    |@code{.py}{}.val()@endcode|@ref Qore::False "False" (empty hash)
-    |@code{.py}("a":0).val()@endcode|@ref Qore::True "True"
-    |@code{.py}NOTHING.val()@endcode|@ref Qore::False "False"
-    |@code{.py}NULL.val()@endcode|@ref Qore::False "False"
+    |@code{.py}0.val()@endcode|@ref False "False"
+    |@code{.py}1.val()@endcode|@ref True "True"
+    |@code{.py}"".val()@endcode|@ref False "False" (empty string)
+    |@code{.py}"0".val()@endcode|@ref True "True"
+    |@code{.py}"string".val()@endcode|@ref True "True"
+    |@code{.py}().val()@endcode|@ref False "False" (empty list)
+    |@code{.py}(0,).val()@endcode|@ref True "True"
+    |@code{.py}{}.val()@endcode|@ref False "False" (empty hash)
+    |@code{.py}("a":0).val()@endcode|@ref True "True"
+    |@code{.py}NOTHING.val()@endcode|@ref False "False"
+    |@code{.py}NULL.val()@endcode|@ref False "False"
 
     @note
     - Use @ref exists to tell if an expression has a value or not
@@ -225,8 +225,8 @@ if (n.val())
       @ref strict-bool-eval "%strict-bool-eval" is enabled; the return value of this method
       is the same as that of any value except \c \"0\" when evaluated in a boolean context when
       @ref perl-bool-eval "%perl-bool-eval" is enabled (the default); note that
-      <tt>"0".val()</tt> returns @ref Qore::True "True" while <tt>boolean("0")</tt>
-      returns @ref Qore::False "False" in all cases.
+      <tt>"0".val()</tt> returns @ref True "True" while <tt>boolean("0")</tt>
+      returns @ref False "False" in all cases.
 
     @see
     - @ref perl-bool-eval "%perl-bool-eval"

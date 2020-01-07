@@ -309,7 +309,7 @@ while (i.next()) {
 
     @subsection csvutil_v1_3 Version 1.3
     - added the \c "write-headers" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable headers to be suppressed
-    - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output (now the default output option); to revert back to the previous behavior (where all fields are quoted regardless of data type or content), set to @ref Qore::False "False" in the constructor
+    - added the \c "optimal-quotes" option to @ref CsvUtil::AbstractCsvWriter and subclasses to enable more efficient csv output (now the default output option); to revert back to the previous behavior (where all fields are quoted regardless of data type or content), set to @ref False "False" in the constructor
 
     @subsection csvutil_v1_2 Version 1.2
     - fixed @ref CsvUtil::CsvDataIterator::next() when header_lines > 0 and working with empty input data

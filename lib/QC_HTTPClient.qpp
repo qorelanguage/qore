@@ -130,7 +130,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
     @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref Qore::True "True" or @ref Qore::False "False" indicating if the method can accept a message body; for example:
+    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref True "True" or @ref False "False" indicating if the method can accept a message body; for example:
     @code{.py}
     # add two new HTTP methods for WebDAV; both require message bodies
     HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
@@ -139,19 +139,19 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
     - \c encoding_passthru: Do not decode known content-encodings but rather pass the body through as-is
-    - \c error_passthru: If @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    - \c error_passthru: If @ref True "True" then HTTP status codes indicating errors will not cause an
       \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
       like any other response
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
-    - \c redirect_passthru: if @ref Qore::True "True" then redirect responses will be passed to the caller instead of
+    - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
       processed
     - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
     - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
     - \c ssl_key_password: the password to the private key given with \c ssl_key_path
-    - \c ssl_verify_cert: if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
+    - \c ssl_verify_cert: if @ref True "True" then the server's certificate will only be accepted if it's verified
     - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
     - \c url: A string giving the URL to connect to
 
@@ -338,7 +338,7 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
@@ -398,7 +398,7 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -458,7 +458,7 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
@@ -664,7 +664,7 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True" (see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True" (see the
     \c error_passthru option in @ref HTTPClient::constructor()) or if a receive callback is used
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
@@ -740,7 +740,7 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True" (see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True" (see the
     \c error_passthru option in @ref HTTPClient::constructor()) or if a receive callback is used
     @throw HTTP-CHUNK-ERROR the chunk size given is not greater than 0
     @throw HTTP-TRAILER-ERROR the trailer callback must return either @ref nothing or @ref hash_type "hash"; this exception is thrown is another type is returned
@@ -790,7 +790,7 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
       - \c "charset": any character set value found in the \c "Content-Type" header
       - \c "response-headers-raw": a hash of unprocessed headers with no case conversions or additional keys
     - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
-    - \c "send_aborted": this is set to @ref Qore::True "True" if a response header was set while sending an outgoing chunked message
+    - \c "send_aborted": this is set to @ref True "True" if a response header was set while sending an outgoing chunked message
     @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
     @param headers An optional hash of headers to include in the message; values are converted to strings; a list is converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search
@@ -879,7 +879,7 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -936,7 +936,7 @@ hash<auto> msg = httpclient.head("/path");
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -994,7 +994,7 @@ httpclient.post("/path", body);
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw ENCODING-CONVERSION-ERROR the given string could not be converted to the socket's character encoding
     @throw SOCKET-SEND-ERROR There was an error sending the data
@@ -1056,7 +1056,7 @@ httpclient.post("/path", body);
     (status code < 100 or > 299); in case of a status error the \c "arg" key of the exception hash will be set to a
     hash equal to the normal return value of this method including a \c "status_code" key (giving the status code) and
     a \c "body" key (giving the message body returned by the server); note that this error is not raised for HTTP
-    status codes indicating an error if the \c error_passthru option is set to @ref Qore::True "True"; see the
+    status codes indicating an error if the \c error_passthru option is set to @ref True "True"; see the
     \c error_passthru option in @ref HTTPClient::constructor()
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
@@ -1641,7 +1641,7 @@ httpclient.connect();
 httpclient.setPersistent();
     @endcode
 
-    The persistent flag is automatically reset to @ref Qore::False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
+    The persistent flag is automatically reset to @ref False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
 
     To turn off the persistent flag manually, call @ref HTTPClient::disconnect()
 
@@ -1657,13 +1657,13 @@ HTTPClient::setPersistent() {
 httpclient.setErrorPassthru();
     @endcode
 
-    @param set if @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    @param set if @ref True "True" then HTTP status codes indicating errors will not cause an
       \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
       like any other response
 
     @return the old \c error_passthru value
 
-    If @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    If @ref True "True" then HTTP status codes indicating errors will not cause an
     \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
     like any other response.
 
@@ -1681,7 +1681,7 @@ bool b = httpclient.getErrorPassthru();
 
     @return the current \c error_passthru value
 
-    If @ref Qore::True "True" then HTTP status codes indicating errors will not cause an
+    If @ref True "True" then HTTP status codes indicating errors will not cause an
     \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
     like any other response.
 
@@ -1697,11 +1697,11 @@ bool HTTPClient::getErrorPassthru() [flags=CONSTANT] {
 httpclient.setRedirectPassthru();
     @endcode
 
-    @param set if @ref Qore::True "True" then redirect messages will be passed to the caller instead of proceessed
+    @param set if @ref True "True" then redirect messages will be passed to the caller instead of proceessed
 
     @return the old \c reddirect_passthru value
 
-    If @ref Qore::True "True" then redirect messages will be passed to the callers instead of proceessed
+    If @ref True "True" then redirect messages will be passed to the callers instead of proceessed
 
     @since %Qore 0.9.3
 */
@@ -1717,7 +1717,7 @@ bool b = httpclient.getRedirectPassthru();
 
     @return the current \c reddirect_passthru value
 
-    If @ref Qore::True "True" then redirect messages will be passed to the caller instead of proceessed
+    If @ref True "True" then redirect messages will be passed to the caller instead of proceessed
 
 
     @since %Qore 0.9.3
@@ -1732,12 +1732,12 @@ bool HTTPClient::getRedirectPassthru() [flags=CONSTANT] {
 httpclient.setEncodingPassthru();
     @endcode
 
-    @param set if @ref Qore::True "True" then message bodies received with known content encodings are not decoded but
+    @param set if @ref True "True" then message bodies received with known content encodings are not decoded but
     rather passed through as-is
 
     @return the old \c encoding_passthru value
 
-    If @ref Qore::True "True" then message bodies received with known content encodings are not decoded but
+    If @ref True "True" then message bodies received with known content encodings are not decoded but
     rather passed through as-is
 
     @since %Qore 0.9.3
@@ -1754,7 +1754,7 @@ bool b = httpclient.getErrorPassthru();
 
     @return the current \c encoding_passthru value
 
-    If @ref Qore::True "True" then message bodies received with known content encodings are not decoded but
+    If @ref True "True" then message bodies received with known content encodings are not decoded but
     rather passed through as-is
 
     @since %Qore 0.9.3
