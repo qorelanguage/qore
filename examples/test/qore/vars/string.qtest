@@ -40,10 +40,10 @@ class StringTest inherits QUnit::Test {
         assertEq(6, str.length());
         assertEq(12, str.width());
         assertEq(18, str.size());
-        assertEq(str + " ", wsprintf("%-13s", str));
-        assertEq(str + " ", vwsprintf("%-13s", str));
-        assertEq("ステ.", f_wsprintf("%-5s", str));
-        assertEq("ステ.", f_vwsprintf("%-5s", str));
+        assertEq(str + " ", sprintf("%-13w", str));
+        assertEq(str + " ", vsprintf("%-13w", str));
+        assertEq("ステ.", f_sprintf("%-5w", str));
+        assertEq("ステ.", f_vsprintf("%-5w", str));
     }
 
     testBasics() {

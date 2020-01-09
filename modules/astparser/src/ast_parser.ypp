@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -178,6 +178,10 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token TOK_ABSTRACT "abstract"
 %token TOK_HASHDECL "hashdecl"
 %token TOK_TRANSIENT "transient"
+%token TOK_NULL "NULL"
+%token TOK_NOTHING "NOTHING"
+%token TOK_TRUE "True"
+%token TOK_FALSE "False"
 
 // currently unused tokens
 %token TOK_UNREFERENCE "unreference"
@@ -2739,11 +2743,15 @@ string:
         ;
 
 scalar:
-        QFLOAT      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Float, $1); $$->loc = @1; }
-        | INTEGER   { $$ = new ASTLiteralExpression(ALEKind::ALEK_Int, $1); $$->loc = @1; }
-        | string    { $$ = new ASTLiteralExpression(ALEKind::ALEK_String, $1); $$->loc = @1; }
-        | DATETIME  { $$ = new ASTLiteralExpression(ALEKind::ALEK_Date, $1); $$->loc = @1; }
-        | NUMBER    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Number, $1); $$->loc = @1; }
+        QFLOAT        { $$ = new ASTLiteralExpression(ALEKind::ALEK_Float, $1); $$->loc = @1; }
+        | INTEGER     { $$ = new ASTLiteralExpression(ALEKind::ALEK_Int, $1); $$->loc = @1; }
+        | string      { $$ = new ASTLiteralExpression(ALEKind::ALEK_String, $1); $$->loc = @1; }
+        | DATETIME    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Date, $1); $$->loc = @1; }
+        | NUMBER      { $$ = new ASTLiteralExpression(ALEKind::ALEK_Number, $1); $$->loc = @1; }
+        | TOK_NOTHING { $$ = new ASTNothing; $$->loc = @1; }
+        | TOK_NULL    { $$ = new ASTNull; $$->loc = @1; }
+        | TOK_TRUE    { $$ = new ASTLiteralExpression(true); $$->loc = @1; }
+        | TOK_FALSE   { $$ = new ASTLiteralExpression(false); $$->loc = @1; }
         ;
 
 %%

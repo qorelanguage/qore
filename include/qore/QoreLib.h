@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -152,13 +152,7 @@ DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int o
 DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_vsprintf(ExceptionSink* xsink, const QoreListNode* params, int field, int offset, bool char_width);
-
-//! a string formatting function that works with Qore data structures
 DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
-
-//! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_sprintf(ExceptionSink* xsink, const QoreListNode* params, int field, int offset, bool char_width);
 
 //! thread-safe version of "localtime()"
 DLLEXPORT struct tm* q_localtime(const time_t* clock, struct tm* tms);

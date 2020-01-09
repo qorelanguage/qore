@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -560,14 +560,65 @@ FeatureList::FeatureList() {
 FeatureList::~FeatureList() {
 }
 
+// process a string argument from a *printf*-style string format specification
+static void process_opt_string(QoreString& tbuf, QoreValue qv, int type, int opts, bool char_width, int width, ExceptionSink* xsink) {
+    QoreStringValueHelper astr(qv);
+    // use the character width and not the byte length for formatting fields if applicable
+    int length = char_width ? astr->getCharWidth(xsink) : astr->size();
+    //printd(5, "process_opt_string() astr: '%s' len: %d width: %d type: %d\n", astr->c_str(), length, width, type);
+    if ((width != -1) && (length > width) && !type) {
+        width = length;
+    }
+    if ((width != -1) && (length > width)) {
+        if (char_width && type) {
+            // count of positions
+            int c = 0;
+            UnicodeCharacterIterator i(**astr);
+            while (i.next(xsink) && c < width) {
+                int ucs = i.getValue();
+                int w = qore_get_unicode_character_width(ucs);
+                if ((c + w) > width) {
+                    // pad with dots
+                    while (c < width) {
+                        tbuf.concat('.');
+                        ++c;
+                    }
+                    break;
+                }
+
+                c += w;
+                tbuf.concatUnicode(ucs, xsink);
+                if (*xsink) {
+                    break;
+                }
+            }
+        } else {
+            tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
+        }
+    } else {
+        if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
+            tbuf.concat(*astr, xsink);
+            while (width > length) {
+                tbuf.concat(' ');
+                --width;
+            }
+        } else {
+            while (width > length) {
+                tbuf.concat(' ');
+                --width;
+            }
+            tbuf.concat(*astr, xsink);
+        }
+    }
+}
+
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bool& arg_used, int char_width, ExceptionSink* xsink) {
+static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bool& arg_used, ExceptionSink* xsink) {
     assert(arg_used == true);
     char* str = param;
     int opts = 0;
     int width = -1;
     int decimals = -1;
-    int length;
     char fmt[20], *f;
     QoreString tbuf(cstr->getEncoding());
 
@@ -609,53 +660,11 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bo
     char p = *param;
     switch (*param) {
         case 's': {
-            QoreStringValueHelper astr(qv);
-            // use the character width and not the byte length for formatting fields if applicable
-            length = char_width ? astr->getCharWidth(xsink) : astr->size();
-            //printd(5, "process_opt() astr: '%s' len: %d width: %d type: %d\n", astr->c_str(), length, width, type);
-            if ((width != -1) && (length > width) && !type)
-                width = length;
-            if ((width != -1) && (length > width)) {
-                if (char_width && type) {
-                    // count of positions
-                    int c = 0;
-                    UnicodeCharacterIterator i(**astr);
-                    while (i.next(xsink) && c < width) {
-                        int ucs = i.getValue();
-                        int w = qore_get_unicode_character_width(ucs);
-                        if ((c + w) > width) {
-                            // pad with dots
-                            while (c < width) {
-                                tbuf.concat('.');
-                                ++c;
-                            }
-                            break;
-                        }
-
-                        c += w;
-                        tbuf.concatUnicode(ucs, xsink);
-                        if (*xsink) {
-                            break;
-                        }
-                    }
-                } else {
-                    tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
-                }
-            } else {
-                if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
-                    tbuf.concat(*astr, xsink);
-                    while (width > length) {
-                        tbuf.concat(' ');
-                        --width;
-                    }
-                } else {
-                    while (width > length) {
-                        tbuf.concat(' ');
-                        --width;
-                    }
-                    tbuf.concat(*astr, xsink);
-                }
-            }
+            process_opt_string(tbuf, qv, type, opts, false, width, xsink);
+            break;
+        }
+        case 'w': {
+            process_opt_string(tbuf, qv, type, opts, true, width, xsink);
             break;
         }
         case 'p':
@@ -773,7 +782,7 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bo
 
 static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStringNode* fmt,
     const QoreListNode* arg_list, size_t arg_offset, int field, int last_arg = -1,
-    bool ignore_broken_sprintf = false, bool char_width = false) {
+    bool ignore_broken_sprintf = false) {
     SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
 
     bool broken_sprintf = ignore_broken_sprintf
@@ -798,7 +807,7 @@ static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStrin
             } else {
                 use_arg = false;
             }
-            i += process_opt(*buf, (char*)&pstr[i], param_value, field, arg_used, char_width, xsink);
+            i += process_opt(*buf, (char*)&pstr[i], param_value, field, arg_used, xsink);
             if (*xsink) {
                 return nullptr;
             }
@@ -816,7 +825,7 @@ static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStrin
     return buf.release();
 }
 
-QoreStringNode* q_sprintf(ExceptionSink* xsink, const QoreListNode* params, int field, int offset, bool char_width) {
+QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
     assert(xsink);
 
     QoreValue pv = get_param_value(params, offset);
@@ -824,14 +833,10 @@ QoreStringNode* q_sprintf(ExceptionSink* xsink, const QoreListNode* params, int 
         return new QoreStringNode;
     }
 
-    return qore_sprintf_intern(xsink, pv.get<const QoreStringNode>(), params, offset + 1, field, -1, false, char_width);
+    return qore_sprintf_intern(xsink, pv.get<const QoreStringNode>(), params, offset + 1, field, -1, false);
 }
 
-QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
-    return q_sprintf(xsink, params, field, offset, false);
-}
-
-QoreStringNode* q_vsprintf(ExceptionSink* xsink, const QoreListNode* params, int field, int offset, bool char_width) {
+QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
     assert(xsink);
     QoreValue pv = get_param_value(params, offset);
     if (pv.getType() != NT_STRING) {
@@ -864,11 +869,7 @@ QoreStringNode* q_vsprintf(ExceptionSink* xsink, const QoreListNode* params, int
         }
     }
 
-    return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg, ignore_broken_sprintf, char_width);
-}
-
-QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
-    return q_vsprintf(xsink, params, field, offset, false);
+    return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg, ignore_broken_sprintf);
 }
 
 static QoreValue do_method_intern(QoreObject* self, const QoreMethod* meth, ClassAccess access, const char* name, const qore_class_private* pcls, ExceptionSink* xsink) {

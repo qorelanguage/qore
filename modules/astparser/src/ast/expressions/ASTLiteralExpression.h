@@ -4,7 +4,7 @@
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,11 +44,15 @@ enum ALEKind {
     ALEK_Int,
     ALEK_Number,
     ALEK_String,
+    ALEK_Nothing,
+    ALEK_Null,
+    ALEK_Bool,
 };
 
 class ASTLiteralExpression : public ASTExpression {
 public:
     union ALEData {
+        bool b;
         int64_t i;
         double d;
         char* str;
@@ -91,6 +95,13 @@ public:
         value.stdstr = val;
     }
 
+    ASTLiteralExpression(bool b) :
+        ASTExpression(),
+        kind(ALEK_Bool)
+    {
+        value.b = b;
+    }
+
     virtual ~ASTLiteralExpression() {
         if (kind == ALEK_Binary || kind == ALEK_Date || kind == ALEK_Number)
             free(value.str);
@@ -100,6 +111,22 @@ public:
 
     virtual ASTExpressionKind getKind() const override {
         return ASTExpressionKind::AEK_Literal;
+    }
+
+protected:
+    ASTLiteralExpression(ALEKind k) : kind(k) {
+    }
+};
+
+class ASTNothing : public ASTLiteralExpression {
+public:
+    ASTNothing() : ASTLiteralExpression(ALEK_Nothing) {
+    }
+};
+
+class ASTNull : public ASTLiteralExpression {
+public:
+    ASTNull() : ASTLiteralExpression(ALEK_Null) {
     }
 };
 
