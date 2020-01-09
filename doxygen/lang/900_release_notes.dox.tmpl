@@ -50,6 +50,8 @@
     - support for Unicode character matching in regular expressions:
       - the \c <tt>/u</tt> option in @ref qore_regex_options
       - the @ref Qore::RE_Unicode "RE_Unicode" constant
+      - the \c "%w" string format code that uses character widths with field widths (ex: \c "%5w" specifies a field 5
+        characters wide; see @ref format_specification for more information)
     - new constants:
       - @ref Qore::EVENT_HTTP_CHUNKED_DATA_READ "EVENT_HTTP_CHUNKED_DATA_READ"
       - @ref Qore::EVENT_HTTP_CHUNKED_DATA_SENT "EVENT_HTTP_CHUNKED_DATA_SENT"
@@ -65,15 +67,7 @@
     - pseudo-methods now run in the same class context as the caller
     - new functions
       - @ref Qore::char_width()
-      - @ref Qore::f_vwprintf()
-      - @ref Qore::f_vwsprintf()
-      - @ref Qore::f_wprintf()
-      - @ref Qore::f_wsprintf()
       - @ref Qore::get_call_reference()
-      - @ref Qore::vwprintf()
-      - @ref Qore::vwsprintf()
-      - @ref Qore::wprintf()
-      - @ref Qore::wsprintf()
     - new methods:
       - @ref Qore::Program::getCallReference() "Program::getCallReference()"
     - updated methods:

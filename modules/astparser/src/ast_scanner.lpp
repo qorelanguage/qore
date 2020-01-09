@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -778,6 +778,10 @@ foldr                                   return TOK_FOLDR;
 foldl                                   return TOK_FOLDL;
 select                                  return TOK_SELECT;
 static                                  return TOK_STATIC;
+(::(Qore::)?)?NOTHING                   return TOK_NOTHING;
+(::(Qore::)?)?NULL                      return TOK_NULL;
+(::(Qore::)?)?True                      return TOK_TRUE;
+(::(Qore::)?)?False                     return TOK_FALSE;
 hashdecl                                return TOK_HASHDECL;
 transient                               {
                                             if (PO_NO_TRANSIENT) {
