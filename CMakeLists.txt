@@ -806,7 +806,6 @@ qore_user_module("qlib/MapperUtil.qm" "")
 qore_user_module("qlib/DataProvider" "MapperUtil")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/FilePoller.qm" "Util")
-qore_user_module("qlib/FtpPoller.qm" "Util")
 qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
@@ -821,6 +820,7 @@ qore_user_module("qlib/Mapper.qm" "MapperUtil;DataProvider")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/FtpPollerUtil.qm" "DataProvider")
 
 # base 4 modules
 qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
@@ -841,6 +841,7 @@ qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/DbDataProvider" "DataProvider;SqlUtil;BulkSqlUtil")
+qore_user_module("qlib/FtpPoller.qm" "FtpPollerUtil;Util;DataProvider")
 
 # base 5 modules
 qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")

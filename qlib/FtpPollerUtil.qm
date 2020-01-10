@@ -1,0 +1,106 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file FtpPollerUtil.qm Qore user module providing definitions for the FtpPoller module
+
+/*  FtpPollerUtil.qm Copyright 2020 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+# make sure we have the required qore version
+%requires qore >= 0.9.4
+%requires DataProvider
+
+module FtpPollerUtil {
+    version = "1.0";
+    desc = "user module providing definitions for the FtpPoller module";
+    author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the event data type
+        DataProvider::registerType("qore/ftp/event", new FtpPollerFileEventInfoDataType());
+    };
+}
+
+/*  Version History
+    * 2019-10-16 v1.0: Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>
+*/
+
+/** @mainpage FtpPollerUtil Module
+
+    @section ftppollerutilintro Introduction to the FtpPollerUtil Module
+
+    The FtpPollerUtil module defines types for the \c FtpPoller module.
+
+    @section ftppollerutilrelnotes FtpPollerUtil Module Release Notes
+
+    @section ftppollerutilv1_0 Version 1.0
+    - initial release
+*/
+
+#! main FtpPoller namespace
+public namespace FtpPoller {
+#! Single file event data description
+public class FtpPollerFileEventInfoDataType inherits HashDataType {
+    public {
+        #! Markdown descriptions for hashdecl members
+        const FieldDescriptions = {
+            "name": "the name of the file, link, or directory",
+            "size": "the size of the file in bytes",
+            "mtime": "the last modified date/time of the file",
+            "data": "the file's data; this will be a string unless the `binary` option is set to `True`, in "
+                "which case this key is assigned to the files binary data",
+            "filepath": "the remote filepath relative to SFTP root directory",
+        };
+    }
+
+    #! Creates the type
+    constructor() {
+        # add members for base hashdecl
+        map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
+            $1.getDefaultValue())), TypedHash::forName("FtpPoller::FtpPollerFileEventInfo").getMembers();
+    }
+}
+
+#! FtpPoller file event hash
+public hashdecl FtpPollerFileEventInfo {
+    #! The name of the file, link, or directory
+    string name;
+
+    #! The size of the file in bytes
+    int size;
+
+    #! The last modified date/time of the file
+    date mtime;
+
+    #! The file's data
+    /** this will be a string unless the \a "binary" option is set to @ref Qore::True "True", in which case this
+        key is assigned to the file's binary data
+    */
+    data data;
+
+    #! The remote filepath relative to FTP root directory
+    string filepath;
+}
+}

@@ -54,6 +54,13 @@ public class DataProvider {
             "soap": "SoapDataProvider",
         };
 
+        #! Map of known type path prefixes to modules
+        const TypeMap = {
+            "qore/ftp": "FtpPollerUtil",
+            "qore/sftp": "SftpPollerUtil",
+            "qore/fsevents": "FsEventPollerUtil",
+        };
+
         #! List of data provider factory modules
         const FactoryModuleList = keys (map {$1: True}, FactoryMap.iterator());
         # "map" is used above to ensure that the values only appear once in the final list
@@ -116,7 +123,7 @@ public class DataProvider {
     static *AbstractDataProviderFactory getFactory(string name) {
         DataProvider::checkRequest();
         if (!factory_cache{name}) {
-            *string module_name = FactoryMap{name} ?? DataProvider::tryGetModuleName(name);
+            *string module_name = FactoryMap{name} ?? DataProvider::tryGetFactoryModuleName(name);
             if (!module_name) {
                 return;
             }
@@ -125,32 +132,6 @@ public class DataProvider {
             }
         }
         return factory_cache{name};
-    }
-
-    #! Tries to load a module corresponding to the given factory
-    static *string tryGetModuleName(string name) {
-        *string prov = ENV.QORE_DATA_PROVIDERS;
-        if (prov) {
-            list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
-            foreach string mod in (pl) {
-                Program p(PO_NO_USER_API);
-                try {
-                    p.loadModule(mod);
-                } catch (hash<ExceptionInfo> ex) {
-                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
-                }
-                try {
-                    hash<string, string> dmap = p.callFunction("get_data_provider_map");
-                    *string mod = dmap{name};
-                    if (mod) {
-                        return mod;
-                    }
-                } catch (hash<ExceptionInfo> ex) {
-                    stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y registration function: %s: %s\n",
-                        mod, ex.err, ex.desc);
-                }
-            }
-        }
     }
 
     #! Returns the given data provider factory or throws an exception if not present
@@ -266,7 +247,12 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         list<string> type_path = DataProvider::getPathList(path);
         *DataProviderTypeEntry type_entry = type_cache;
         map type_entry = type_entry.getChild($1), type_path, type_entry;
-        return type_entry ? type_entry.getType() : NOTHING;
+        if (!type_entry) {
+            type_entry = DataProvider::tryLoadTypeFromPath(type_path);
+        }
+        if (type_entry) {
+            return type_entry.getType();
+        }
     }
 
     #! Returns the given data provider type or throws an exception if not present
@@ -286,6 +272,10 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         foreach string node in (type_path) {
             *DataProviderTypeEntry next_entry = type_entry.getChild(node);
             if (!next_entry) {
+                if (next_entry = DataProvider::tryLoadTypeFromPath(type_path)) {
+                    type_entry = next_entry;
+                    break;
+                }
                 throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known children: %y",
                     path, node, type_entry.getPath(), type_entry.getChildNames());
 
@@ -320,18 +310,6 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         map DataProvider::tryLoad($1), FactoryModuleList;
     }
 
-    static bool tryLoad(string module_str, *bool verbose) {
-        try {
-            load_module(module_str);
-            return True;
-        } catch (hash<ExceptionInfo> ex) {
-            if (verbose || True) {
-                stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
-            }
-        }
-        return False;
-    }
-
     #! Converts an info hash with objects to a hash with string descriptions instead of the objects
     static hash<auto> getInfoAsData(hash<auto> info0) {
         # strip types
@@ -339,14 +317,9 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         foreach hash<auto> i0 in (info.pairIterator()) {
             if (i0.value.typeCode() == NT_HASH && i0.key =~ /_options/) {
                 # if the info key value is a hash with a "type" key, then return the type name instead of the type object
-                /*
-                foreach hash<auto> i1 in (i0.value.pairIterator()) {
-                    if (i1.value.type) {
-                        info{i0.key}{i1.key}.type = map $1.getName(), i1.value.type;
-                    }
-                }
-                */
-                map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type), i0.value.pairIterator(), $1.value.type;
+                map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type),
+                    i0.value.pairIterator(),
+                    $1.value.type;
             }
         }
         return info;
@@ -386,8 +359,76 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         }
     }
 
+    #! Tries to load a module corresponding to the given factory
+    private static *string tryGetFactoryModuleName(string name) {
+        return DataProvider::tryGetModuleName(name, "get_data_provider_map", "data provider");
+    }
+
+    #! Tries to load a module corresponding to the given factory
+    private static *string tryGetTypeModuleName(string name) {
+        return DataProvider::tryGetModuleName(name, "get_type_provider_map", "type");
+    }
+
+    #! Tries to load a module corresponding to the given factory
+    private static *string tryGetModuleName(string name, string func, string type) {
+        *string prov = ENV.QORE_DATA_PROVIDERS;
+        if (prov) {
+            list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
+                Program p(PO_NO_USER_API);
+                try {
+                    p.loadModule(mod);
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
+                }
+                try {
+                    hash<string, string> dmap = p.callFunction(func);
+                    *string mod = dmap{name};
+                    if (mod) {
+                        return mod;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    # ignore NO-FUNCTION error
+                    if (ex.err != "NO-FUNCTION") {
+                        stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y %s registration function: %s: "
+                            "%s\n", mod, type, ex.err, ex.desc);
+                    }
+                }
+            }
+        }
+    }
+
+    #! Tries to load the given type
+    private static *DataProviderTypeEntry tryLoadTypeFromPath(list<string> type_path) {
+        string key = type_path[0 .. (type_path.size() - 2)].join("/");
+        *string module_name = TypeMap{key} ?? DataProvider::tryGetTypeModuleName(key);
+        if (!module_name) {
+            return;
+        }
+        if (!DataProvider::tryLoad(module_name)) {
+            return;
+        }
+        # now that the module has been loaded, try to return the type
+        *DataProviderTypeEntry type_entry = type_cache;
+        map type_entry = type_entry.getChild($1), type_path, type_entry;
+        return type_entry;
+    }
+
+    #! Try to load the given module
+    private static bool tryLoad(string module_str, *bool verbose) {
+        try {
+            load_module(module_str);
+            return True;
+        } catch (hash<ExceptionInfo> ex) {
+            if (verbose || True) {
+                stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
+            }
+        }
+        return False;
+    }
+
     #! Check if the object is from a module that has been subject to dependency injections
-    static private bool checkInjection(object obj, hash<string, string> module_map) {
+    private static bool checkInjection(object obj, hash<string, string> module_map) {
         *string module_name = Class::getClass(obj).getModuleName();
         return module_name && module_map{obj.className()} == module_name;
     }
