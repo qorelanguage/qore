@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FtpPoller.qm Qore user module providing file system related functionality
 
-/*  FtpPoller.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  FtpPoller.qm Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,20 @@
 %require-types
 %enable-all-warnings
 
+# make sure we have the required qore version
+%requires qore >= 0.9.4
+%requires DataProvider
+
 module FtpPoller {
     version = "1.0";
     desc = "user module providing file system related functionality";
     author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        # register the event data type
+        DataProvider::registerType("qore/ftp/event", new FtpPollerFileEventInfoDataType());
+    };
 }
 
 /*  Version History
@@ -59,13 +67,13 @@ class MyFtpPoller inherits FtpPoller {
     constructor(FtpClient ftp_client, hash<auto> opts) : FtpPoller(ftp_client, opts) {
     }
 
-    singleFileEvent(hash file_info) {
+    singleFileEvent(hash<FtpPollerFileEventInfo> file_info) {
         printf("GOT FILE: %y\n", file_info);
         # in this case, the polling stop operation will take effect after all the singleFileEvent() calls are made for the polling operation
         stopNoWait();
     }
 
-    postSingleFileEvent(hash file_info) {
+    postSingleFileEvent(hash<FtpPollerFileEventInfo> file_info) {
     }
 }
 
@@ -73,7 +81,7 @@ code info = sub (string msg) { printf("INFO: %s\n", msg); };
 code detail = sub (string msg) { printf("DETAIL: %s\n", msg); };
 code debug = sub (string msg) { printf("DEBUG: %s\n", msg); };
 
-hash opts = {
+hash<auto> opts = {
     "path": "/tmp"
     "log_info": info,
     "log_detail": detail,
@@ -105,7 +113,50 @@ poller.waitStop();
 
 #! main FtpPoller namespace
 public namespace FtpPoller {
-#! FtpPoller client class implementation
+    #! Single file event data description
+    public class FtpPollerFileEventInfoDataType inherits HashDataType {
+        public {
+            #! Markdown descriptions for hashdecl members
+            const FieldDescriptions = {
+                "name": "the name of the file, link, or directory",
+                "size": "the size of the file in bytes",
+                "mtime": "the last modified date/time of the file",
+                "data": "the file's data; this will be a string unless the `binary` option is set to `True`, in "
+                    "which case this key is assigned to the files binary data",
+                "filepath": "the remote filepath relative to SFTP root directory",
+            };
+        }
+
+        #! Creates the type
+        constructor() {
+            # add members for base hashdecl
+            map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
+                $1.getDefaultValue())), TypedHash::forName("FtpPoller::FtpPollerFileEventInfo").getMembers();
+        }
+    }
+
+    #! FtpPoller file event hash
+    public hashdecl FtpPollerFileEventInfo {
+        #! The name of the file, link, or directory
+        string name;
+
+        #! The size of the file in bytes
+        int size;
+
+        #! The last modified date/time of the file
+        date mtime;
+
+        #! The file's data
+        /** this will be a string unless the \a "binary" option is set to @ref Qore::True "True", in which case this
+            key is assigned to the file's binary data
+        */
+        data data;
+
+        #! The remote filepath relative to FTP root directory
+        string filepath;
+    }
+
+    #! FtpPoller client class implementation
     public class FtpPoller {
         public {
             #! ascending sort order
@@ -174,13 +225,13 @@ public namespace FtpPoller {
             string url;
 
             #! url hash
-            hash urlh;
+            hash<UrlInfo> urlh;
 
             #! password
             *string pass;
 
             #! path(s) to poll
-            softlist path = ".";
+            softlist<string> path = ".";
 
             #! path after connecting to Ftp server
             string rootFtpPath;
@@ -271,9 +322,9 @@ public namespace FtpPoller {
         @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
         @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
         */
-        constructor(Qore::FtpClient n_ftp, hash nconf) {
+        constructor(Qore::FtpClient n_ftp, hash<auto> nconf) {
             # create hash of keys with only valid options in argument hash
-            hash conf = Defaults + nconf{AllKeys};
+            hash<auto> conf += Defaults + nconf{AllKeys};
 
             foreach string k in (RequiredKeys) {
                 if (!exists conf{k}) {
@@ -309,11 +360,13 @@ public namespace FtpPoller {
 
             {
                 *string str = ftp.getUserName();
-                if (str)
-                user = str;
+                if (str) {
+                    user = str;
+                }
                 str = ftp.getPassword();
-                if (str)
-                pass = str;
+                if (str) {
+                    pass = str;
+                }
             }
 
             port = ftp.getPort();
@@ -363,9 +416,9 @@ public namespace FtpPoller {
         @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
         @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
         */
-        constructor(hash nconf) {
+        constructor(hash<auto> nconf) {
             # create hash of keys with only valid options in argument hash
-            hash conf = Defaults + nconf{AllKeys};
+            hash<auto> conf += Defaults + nconf{AllKeys};
 
             foreach string k in (RequiredKeysWithHost) {
                 if (!exists conf{k}) {
@@ -450,8 +503,9 @@ public namespace FtpPoller {
 
         #! calls the \c "log_detail" @ref closure "closure" or @ref call_reference "call reference" with detail information
         private logDetail(string fmt) {
-        if (log_detail)
-            call_function(log_detail, vsprintf(fmt, argv));
+            if (log_detail) {
+                call_function(log_detail, vsprintf(fmt, argv));
+            }
         }
 
         #! calls the \c "log_debug" @ref closure "closure" or @ref call_reference "call reference" with verbose debugging information
@@ -505,147 +559,67 @@ public namespace FtpPoller {
             ftp.del(fn);
         }
 
-        private hash getFtpResponse(Socket control) {
-            int code = control.recv(3, 60s).toInt();
-            # read space or "-"
-            bool cont = control.recv(1, 60s) == "-" ? True : False;
-            string msg;
-            while (True) {
-                msg += control.recv(1, 60s);
-                int len = msg.size();
-                if (msg[len - 1] == "\n" && len > 1 && msg[len - 2] == "\r") {
-                    msg += "\n";
-                    if (!cont || msg.find("\r\n" + code + " ") != -1) {
-                        break;
-                    }
-                }
-            }
-            return {
-                "code": code,
-                "c": code / 100,
-                "msg": msg,
-            };
-        }
-
         #! returns a list of regular file hashes matching any file name mask set for the object
         /**
-        @param subdir the directory to check
-        @param sort the sort option for the list returned
-        @param order the ordering of sorted data returned
+            @param subdir the directory to check
+            @param sort the sort option for the list returned
+            @param order the ordering of sorted data returned
 
-        @return a list of regular file hashes with the following keys in each list element:
-        - \c name: the name of the file, link, or directory
-        - \c size: the size of the file in bytes
-        - \c mtime: the last modified date/time of the file
+            @return a list of regular file hashes with the following keys in each list element:
+            - \c name: the name of the file, link, or directory
+            - \c size: the size of the file in bytes
+            - \c mtime: the last modified date/time of the file
         */
-        list getFiles(string subdir, int sort = FtpPoller::SortNone, int order = FtpPoller::OrderAsc) {
-            list fl = ftp.nlst().split("\r\n");
-
-            # we use another socket connection to get the files ourselves because of the limitations of the FtpClient class
-            Socket control();
-            control.connectINET(urlh.host, port, 60s);
-
-            hash mh = getFtpResponse(control);
-            if (mh.c != 2) {
-                throw "FTP-CONNECT-ERROR", sprintf("got response from server: %d %y ", mh.code, mh.msg);
-            }
-
-            # use FTPS if necessary
-            if (urlh.protocol == "ftps") {
-                control.send("AUTH TLS\r\n", 60s);
-                mh = getFtpResponse(control);
-                if (mh.code != 234) {
-                    throw "FTP-AUTH-ERROR", sprintf("expecting 234 response; got from server: %d %y ", mh.code, mh.msg);
+        list<hash<FtpPollerFileEventInfo>> getFiles(string subdir, int sort = FtpPoller::SortNone, int order = FtpPoller::OrderAsc) {
+            ftp.cwd(subdir);
+            list<string> fl;
+            {
+                *string nlst = ftp.nlst();
+                if (!exists nlst) {
+                    throw "FTP-ERROR", sprintf("no data returned from NLST command");
                 }
-
-                control.upgradeClientToSSL(60s);
-            }
-
-            # login to server
-            control.send("USER " + user + "\r\n", 60s);
-            mh = getFtpResponse(control);
-            if (mh.c != 2) {
-                if (mh.code != 331) {
-                    throw "FTP-LOGIN-ERROR", sprintf("expecting 331 response; got from server: %d %y ", mh.code, mh.msg);
-                }
-                if (!pass) {
-                    throw "FTP-LOGIN-ERROR", sprintf("server expects a password for user %y, but none was provided; "
-                                                    "response from server: %d %y", user, mh.code, mh.msg);
-                }
-                control.send("PASS " + pass + "\r\n", 60s);
-                mh = getFtpResponse(control);
-                if (mh.c != 2) {
-                    throw "FTP-LOGIN-ERROR", sprintf("login failure; got from server: %d %y ", mh.code, mh.msg);
-                }
-            }
-
-            # cwd
-            if (!rootFtpPath.empty() && rootFtpPath != ".") {
-                control.send("CWD " + rootFtpPath + "\r\n", 60s);
-                mh = getFtpResponse(control);
-                if (mh.c != 2) {
-                    throw "FTP-CWD-ERROR", sprintf("CWD failure; got from server: %d %y ", mh.code, mh.msg);
-                }
-            }
-            if (!subdir.empty() && subdir != ".") {
-                control.send("CWD " + subdir + "\r\n", 60s);
-                mh = getFtpResponse(control);
-                if (mh.c != 2) {
-                    throw "FTP-CWD-ERROR", sprintf("CWD failure; got from server: %d %y ", mh.code, mh.msg);
-                }
+                fl = nlst.split("\r\n");
             }
 
             # remove all files that don't fit the mask
             if (mask) {
-                list n = ();
-                foreach string fn in (fl) {
-                    if (regex(fn, mask, reopts)) {
-                        n += fn;
-                    }
-                }
-                fl = n;
+                # apply regex filter to file list
+                fl = map $1, fl, regex($1, mask, reopts);
             }
 
             # now get a list of info about file sizes and last modified timestamps
-            list l = ();
+            list<hash<FtpPollerFileEventInfo>> l = ();
             foreach string fn in (fl) {
-                control.send("MDTM " + fn + "\r\n");
-                mh = getFtpResponse(control);
+                hash<FtpResponseInfo> mh = ftp.sendControlMessage("MDTM", fn);
                 # assume we have a directory if we get a 550 response to the MDTM command
                 if (mh.code == 550) {
                     continue;
                 }
-                if (mh.c != 2) {
-                    throw "FTP-CWD-ERROR", sprintf("MDTM failure; got from server: %d %y ", mh.code, mh.msg);
+                if ((mh.code / 100) != 2) {
+                    throw "FTP-CWD-ERROR", sprintf("MDTM %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
                 }
                 date mtime = date(mh.msg);
-                control.send("SIZE " + fn + "\r\n");
-                mh = getFtpResponse(control);
+                # check minimum age
+                if (minage) {
+                    date now = Qore::now();
+                    if ((now - mtime).durationSeconds() < minage) {
+                        logDebug("file %y is not old enough (minage: %d, current age: %d)", fn, minage,
+                                (now - mtime).durationSeconds());
+                        continue;
+                    }
+                }
 
-                if (mh.c != 2) {
-                    throw "FTP-CWD-ERROR", sprintf("MDTM failure; got from server: %d %y ", mh.code, mh.msg);
+                mh = ftp.sendControlMessage("SIZE", fn);
+
+                if ((mh.code / 100) != 2) {
+                    throw "FTP-CWD-ERROR", sprintf("SIZE %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
                 }
                 int size = mh.msg.toInt();
-                l += {
+                l += <FtpPollerFileEventInfo>{
                     "name": fn,
                     "size": size,
                     "mtime": mtime,
                 };
-            }
-
-            # remove all files that aren't old enough
-            if (minage) {
-                date now = Qore::now();
-                list n = ();
-                foreach hash h in (l) {
-                    if ((now - h.mtime).durationSeconds() < minage) {
-                        logDebug("file %y is not old enough (minage: %d, current age: %d)", h.name, minage,
-                                (now - h.mtime).durationSeconds());
-                        continue;
-                    }
-                    n += h;
-                }
-                l = n;
             }
 
             # return list of files
@@ -657,7 +631,7 @@ public namespace FtpPoller {
                 # sort by file name
                 case FtpPoller::SortName: {
                     # sort closure
-                    code sorter = int sub (hash lt, hash rt) { return lt.name <=> rt.name; };
+                    code sorter = int sub (hash<auto> lt, hash<auto> rt) { return lt.name <=> rt.name; };
                     l = (order == FtpPoller::OrderAsc ? Qore::sort(l, sorter) : sort_descending(l, sorter));
                     break;
                 }
@@ -767,13 +741,13 @@ public namespace FtpPoller {
                 string pwd = ftp.pwd();
                 logInfo("polling %y", pwd);
 
-                list files = getFiles(subdir);
+                list<hash<FtpPollerFileEventInfo>> files = getFiles(subdir);
 
                 if (files) {
                     logDetail("got new files in %y: %y", pwd, files);
 
                     if (fileEvent(files)) {
-                        foreach hash fh in (files) {
+                        foreach hash<FtpPollerFileEventInfo> fh in (files) {
                             # transfer file from server
                             logInfo("%y: retrieving %s file data", fh.name, binary ? "binary" : "text");
                             date t1 = now_us();
@@ -793,8 +767,7 @@ public namespace FtpPoller {
 
                             try {
                                 postSingleFileEvent(fh);
-                            }
-                            catch (hash ex) {
+                            } catch () {
                                 fatal = True;
                                 rethrow;
                             }
@@ -827,14 +800,13 @@ public namespace FtpPoller {
                     if (runflag) {
                         ftpSleep(poll_interval);
                     }
-                } catch (hash ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     if (get_files) {
                         logInfo("FTP error in %y: %s: %s; waiting %y for next try", path, ex.err, ex.desc, ErrorDelay);
                         if (runflag) {
                             ftpSleep(ErrorDelay);
                         }
-                    }
-                    else {
+                    } else {
                         # error thrown in "post transfer" code
                         logInfo("error in post transfer code; polling terminated: %s: %s", ex.err, ex.desc);
                         rethrow;
@@ -853,33 +825,33 @@ public namespace FtpPoller {
         #! called for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the error is logged and the polling operation is retried
         /** @param fih a hash of file data and information with the following keys:
             - \c name: the name of the file, link, or directory
-        - \c size: the size of the file in bytes
-        - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
-        - \c filepath: the remote filepath relative to FTP root directory
+            - \c size: the size of the file in bytes
+            - \c mtime: the last modified date/time of the file
+            - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
+            - \c filepath: the remote filepath relative to FTP root directory
         */
-        abstract singleFileEvent(hash fih);
+        abstract singleFileEvent(hash<FtpPollerFileEventInfo> fih);
 
         #! called after singleFileEvent() for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the polling operation stops
         /** This method would normally delete / rename / move files processed by singleFileEvent() so that they would not be polled a second time.
-        If an error occurs in this operation, then the polling event will stop since continuing after failing to delete, rename, or move a file already processed
-        would cause the file to be processed more than once.
+            If an error occurs in this operation, then the polling event will stop since continuing after failing to delete, rename, or move a file already processed
+            would cause the file to be processed more than once.
 
-        @param fih a hash of file data and information with the following keys:
-        - \c name: the name of the file, link, or directory
-        - \c size: the size of the file in bytes
-        - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
-        - \c filepath: the remote filepath relative to FTP root directory
+            @param fih a hash of file data and information with the following keys:
+            - \c name: the name of the file, link, or directory
+            - \c size: the size of the file in bytes
+            - \c mtime: the last modified date/time of the file
+            - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
+            - \c filepath: the remote filepath relative to FTP root directory
         */
-        abstract postSingleFileEvent(hash fih);
+        abstract postSingleFileEvent(hash<FtpPollerFileEventInfo> fih);
 
         #! checks a path on the local file system
         /**
         @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a directory, or should be writable and is not
         */
         static checkPath(string path, string type, bool write = False) {
-            *hash h = hstat(path);
+            *hash<StatInfo> h = hstat(path);
             if (!h) {
                 throw "DIR-ERROR", sprintf("%y: %s path does not exist", path, type);
             }

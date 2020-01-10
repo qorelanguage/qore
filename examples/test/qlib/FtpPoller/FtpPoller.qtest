@@ -13,26 +13,26 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FtpPoller.qm
 
-
 %exec-class FtpPollerTest
 
 class MyFtpPoller inherits FtpPoller {
     public {
-        list files;
-    }
-    private {
-        hash opts;
+        list<hash<FtpPollerFileEventInfo>> files;
     }
 
-    constructor(FtpClient ftp, hash opts) : FtpPoller(ftp, opts) {
+    private {
+        hash<auto> opts;
+    }
+
+    constructor(FtpClient ftp, hash<auto> opts) : FtpPoller(ftp, opts) {
         self.opts = opts;
     }
 
-    singleFileEvent(hash fih) {
+    singleFileEvent(hash<FtpPollerFileEventInfo> fih) {
         files += fih;
     }
 
-    postSingleFileEvent(hash fih) {
+    postSingleFileEvent(hash<FtpPollerFileEventInfo> fih) {
     }
 }
 
@@ -62,8 +62,7 @@ public class FtpPollerTest inherits QUnit::Test {
             port = m_options.port;
         } else if (ENV.FTPCLIENT_TEST_PORT) {
             port = ENV.FTPCLIENT_TEST_PORT.toInt();
-        }
-        else {
+        } else {
             port = 0;
         }
 
@@ -90,10 +89,10 @@ public class FtpPollerTest inherits QUnit::Test {
         # printf("DIR: %y\n", dir);
         serv.setPwd(dir);
 
-        list files;
+        list<TmpFile> files;
         map files += new TmpFile("ftp_test_" + $1, NOTHING, dir), Files;
 
-        hash file_paths;
+        hash<string, bool> file_paths;
         map file_paths{$1.path} = True, files;
 
         # printf("files: %y\n", file_paths);
@@ -101,7 +100,7 @@ public class FtpPollerTest inherits QUnit::Test {
         MyFtpPoller poller(ftp_client, {"path": dir});
         assertTrue(poller.runOnce());
 
-        foreach auto file in (poller.files) {
+        foreach hash<FtpPollerFileEventInfo> file in (poller.files) {
             printf("check file: %y\n", file.name);
             assertTrue(file.name != NOTHING);
             assertTrue(file_paths.hasKey(file.filepath));

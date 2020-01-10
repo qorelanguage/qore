@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DataProvider.qc module for data access and introspection
 
-/** DataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -227,7 +227,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         and therefore not suitable for indexing)
     */
     static registerType(string path, AbstractDataProviderType type) {
-        list<string> type_path = path.split("/");
+        list<string> type_path = DataProvider::getPathList(path);
 
         DataProviderTypeEntry type_entry = type_cache;
 
@@ -263,7 +263,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     */
     static *AbstractDataProviderType getType(string path) {
         DataProvider::checkRequest();
-        list<string> type_path = path.split("/");
+        list<string> type_path = DataProvider::getPathList(path);
         *DataProviderTypeEntry type_entry = type_cache;
         map type_entry = type_entry.getChild($1), type_path, type_entry;
         return type_entry ? type_entry.getType() : NOTHING;
@@ -281,7 +281,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     */
     static AbstractDataProviderType getTypeEx(string path) {
         DataProvider::checkRequest();
-        list<string> type_path = path.split("/");
+        list<string> type_path = DataProvider::getPathList(path);
         DataProviderTypeEntry type_entry = type_cache;
         foreach string node in (type_path) {
             *DataProviderTypeEntry next_entry = type_entry.getChild(node);
@@ -338,11 +338,15 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         hash info = info0;
         foreach hash<auto> i0 in (info.pairIterator()) {
             if (i0.value.typeCode() == NT_HASH && i0.key =~ /_options/) {
+                # if the info key value is a hash with a "type" key, then return the type name instead of the type object
+                /*
                 foreach hash<auto> i1 in (i0.value.pairIterator()) {
                     if (i1.value.type) {
                         info{i0.key}{i1.key}.type = map $1.getName(), i1.value.type;
                     }
                 }
+                */
+                map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type), i0.value.pairIterator(), $1.value.type;
             }
         }
         return info;
@@ -364,6 +368,15 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     #! Returns the auto config flag
     static bool getAutoConfig() {
         return allow_env_config;
+    }
+
+    #! Returns a list of strings in a path separated by "/" characters
+    list<string> getPathList(string path) {
+        # remove leading "/" chars
+        path =~ s/^\/+//;
+        # combine multiple "/" chars into a single char
+        path =~ s/\/+/\//g;
+        return path.split("/");
     }
 
     #! Sets the \a env_config_locked variable if not already set

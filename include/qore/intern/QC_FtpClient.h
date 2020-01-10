@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,23 +42,24 @@ DLLEXPORT extern qore_classid_t CID_FTPCLIENT;
 DLLLOCAL extern QoreClass* QC_FTPCLIENT;
 
 DLLLOCAL QoreClass *initFtpClientClass(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_FtpResponseInfo(QoreNamespace& ns);
 
 class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient {
-   protected:
-      DLLLOCAL virtual ~QoreFtpClientClass() {}
+protected:
+    DLLLOCAL virtual ~QoreFtpClientClass() {}
 
-   public:
-      DLLLOCAL inline QoreFtpClientClass() {}
+public:
+    DLLLOCAL inline QoreFtpClientClass() {}
 
-      DLLLOCAL inline QoreFtpClientClass(const QoreString *url, ExceptionSink *xsink) : QoreFtpClient(url, xsink) {}
+    DLLLOCAL inline QoreFtpClientClass(const QoreString *url, ExceptionSink *xsink) : QoreFtpClient(url, xsink) {}
 
-      using AbstractPrivateData::deref;
-      DLLLOCAL virtual void deref(ExceptionSink *xsink) {
-	  if (ROdereference()) {
-	      cleanup(xsink);
-	      delete this;
-	  }
-      }
+    using AbstractPrivateData::deref;
+    DLLLOCAL virtual void deref(ExceptionSink *xsink) {
+        if (ROdereference()) {
+            cleanup(xsink);
+            delete this;
+        }
+    }
 };
 
 #endif // _QORE_CLASS_FTPCLIENT_H
