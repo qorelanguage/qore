@@ -168,6 +168,8 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         set(_dox_output "${CMAKE_BINARY_DIR}/docs/${_module_name}")
     endif()
 
+    set(_dox_input ${CMAKE_BINARY_DIR})
+
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
     if(DEFINED QORE_PRE_INCLUDES)
@@ -409,8 +411,11 @@ MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
             SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
         endforeach(i)
 
+        set(_dox_output ${CMAKE_BINARY_DIR}/docs/${f})
+        set(_dox_input ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+
         # prepare QDX arguments
-        configure_file(${CMAKE_SOURCE_DIR}/docs/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl @ONLY)
+        configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl @ONLY)
         set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl ${MOD_DOXYFILE})
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
@@ -476,6 +481,7 @@ MACRO (QORE_USER_MODULES _inputs)
             get_filename_component(file ${f} NAME_WE)
             message(STATUS "Doxyfile for ${file}")
             set(QORE_QMOD_FNAME ${file}) # used for configure_file line below
+            set(_dox_input ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${MODULE_DOX_INPUT})
             configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${file} @ONLY)
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${file}/${qm_install_subdir}/)
             add_custom_target(docs-${file}
