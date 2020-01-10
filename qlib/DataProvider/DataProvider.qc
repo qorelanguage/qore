@@ -70,7 +70,7 @@ public class DataProvider {
         static Mutex factory_cache_lock();
 
         #! data provider data type cache
-        static hash<string, AbstractDataProviderType> type_cache;
+        static DataProviderTypeEntry type_cache();
 
         #! data provider type module map
         static hash<string, string> type_module_map;
@@ -218,71 +218,101 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     }
 
     #! Register a new data provider type
-    /** @param label the label for the type; this is the lookup index
+    /** @param path a \c "/" separated path for the type; this is the lookup index
         @param type the new data provider type
 
         @throw PROVIDER-ERROR the given provider has already been registered
 
-        @note types are stored based on labels which may differ from their type names (which may be generic and
-        therefore not suitable for indexing)
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
     */
-    static registerType(string label, AbstractDataProviderType type) {
+    static registerType(string path, AbstractDataProviderType type) {
+        list<string> type_path = path.split("/");
+
+        DataProviderTypeEntry type_entry = type_cache;
+
         type_cache_lock.lock();
         on_exit type_cache_lock.unlock();
 
-        if (type_cache{label}) {
-            # check if type is being re-registered after module injection
-            if (!DataProvider::checkInjection(type, type_module_map)) {
-                throw "PROVIDER-ERROR", sprintf("provider type label %y has already been registered", label);
+        map type_entry = type_entry.getCreateChild($1), type_path;
+
+        try {
+            type_entry.setType(type);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "TYPE-ERROR") {
+                # check if type is being re-registered after module injection
+                if (!DataProvider::checkInjection(type, type_module_map)) {
+                    throw "PROVIDER-ERROR", sprintf("provider type %y has already been registered", path);
+                }
             }
         }
+
         {
             *string module_name = Class::getClass(type).getModuleName();
             if (exists module_name) {
                 type_module_map{type.className()} = module_name;
             }
         }
-
-        type_cache{label} = type;
     }
 
     #! Returns the given data provider type or @ref nothing if not present
-    /** @param label the label of the data provider type to retrieve
+    /** @param path a \c "/" separated path for the type
 
-        @note types are stored based on labels which may differ from their type names (which may be generic and
-        therefore not suitable for indexing)
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
     */
-    static *AbstractDataProviderType getType(string label) {
+    static *AbstractDataProviderType getType(string path) {
         DataProvider::checkRequest();
-        return type_cache{label};
+        list<string> type_path = path.split("/");
+        *DataProviderTypeEntry type_entry = type_cache;
+        map type_entry = type_entry.getChild($1), type_path, type_entry;
+        return type_entry ? type_entry.getType() : NOTHING;
     }
 
     #! Returns the given data provider type or throws an exception if not present
-    /** @param label the label of the data provider type to retrieve
+    /** @param path a \c "/" separated path for the type
 
         @return the given data provider; an exception is thrown if the data provide is unknown
 
-        @throw PROVIDER-ERROR the given data provider type label is unknown
+        @throw PROVIDER-ERROR the given data provider type path is unknown
 
-        @note types are stored based on labels which may differ from their type names (which may be generic and
-        therefore not suitable for indexing)
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
     */
-    static AbstractDataProviderType getTypeEx(string label) {
-        *AbstractDataProviderType type = DataProvider::getType(label);
+    static AbstractDataProviderType getTypeEx(string path) {
+        DataProvider::checkRequest();
+        list<string> type_path = path.split("/");
+        DataProviderTypeEntry type_entry = type_cache;
+        foreach string node in (type_path) {
+            *DataProviderTypeEntry next_entry = type_entry.getChild(node);
+            if (!next_entry) {
+                throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known children: %y",
+                    path, node, type_entry.getPath(), type_entry.getChildNames());
+
+            }
+            type_entry = next_entry;
+        }
+
+        *AbstractDataProviderType type = type_entry.getType();
         if (!type) {
-            throw "PROVIDER-ERROR", sprintf("data provider type label %y is unknown; known data provider type "
-                "labels: %y", label, keys type_cache);
+            throw "PROVIDER-ERROR", sprintf("data provider type path %y does not contain a type but rather is an "
+                "intermediate node with children: %y", path, type_entry.getChildNames());
         }
         return type;
     }
 
-    #! Returns a list of registered data provider type labels
+    #! Returns the root type entry
+    static DataProviderTypeEntry getTypeRoot() {
+        return type_cache;
+    }
+
+    #! Returns a list of registered data provider type paths
     /**
-        @note types are stored based on labels which may differ from their type names (which may be generic and
-        therefore not suitable for indexing)
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
     */
     static *list<string> listTypes() {
-        return keys type_cache;
+        return type_cache.listAllTypes();
     }
 
     #! Registers all known data provider factories
