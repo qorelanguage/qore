@@ -58,7 +58,7 @@ endif()
 set(QORE_QDX_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qdx)
 
 
-# warning: the same prefix for current qore is ised if there is no
+# warning: the same prefix for current qore is used if there is no
 # CMAKE_INSTALL_PREFIX given
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX @myprefix@)

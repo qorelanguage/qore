@@ -107,7 +107,7 @@ class qdx {
             stderr.printf("MODULE-ERROR: --module-dx argument %y is not in format <src>:<trg>\n", o.moddx);
             exit(1);
         }
-        printf("src: %y trg: %y src_root: %y ofn: %y\n", src, trg, o.src_root, ofn);
+        #printf("src: %y trg: %y src_root: %y ofn: %y\n", src, trg, o.src_root, ofn);
 
         # get module name and version (the easy way)
         string name = basename(src);
