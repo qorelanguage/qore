@@ -26,6 +26,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/DebugUtil.qm \
 	qlib/DebugProgramControl.qm \
 	qlib/WebSocketHandler.qm \
+    qlib/FtpPollerUtil.qm \
 	qlib/WebSocketClient.qm
 
 DOX_SRC_SPLIT_MODULES = \
@@ -1032,6 +1033,9 @@ doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm -tHttpServerUtil.tag=../../HttpServerUtil/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
+
+doxygen/qlib/Doxyfile.FtpPollerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/FtpPollerUtil.qm:doxygen/qlib/FtpPollerUtil.qm -DataProvider.tag=../../DataProvider/html $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \

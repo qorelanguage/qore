@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,17 @@
 #include "qore/intern/ssl_constants.h"
 #include "qore/intern/QC_FtpClient.h"
 #include "qore/intern/QC_Queue.h"
+
+//! A hash describing a free-form FTP control response
+/** @since %Qore 0.9.4
+*/
+hashdecl FtpResponseInfo {
+    //! The integer response code
+    int code;
+
+    //! The response message string
+    string msg;
+}
 
 //! The FtpClient class allows %Qore code to communicate with FTP servers with the FTP and FTPS protocols
 /** The constructor takes an optional URL with the following format:\n
@@ -1217,4 +1228,18 @@ int FtpClient::getTimeout() [flags=CONSTANT] {
  */
 FtpClient::setTimeout(timeout timeout_ms) {
    f->setTimeout(timeout_ms);
+}
+
+//! Sends a message on the control connection with a reply on the control connection only
+/** @param cmd the FTP command to send
+    @param arg the argument for the command
+
+    @response the response from the FTP server
+
+    @note This method is for commands only on the control connection; no data connection is possible with this method
+
+    @since %Qore 0.9.4
+*/
+hash<FtpResponseInfo> FtpClient::sendControlMessage(string cmd, string arg) {
+    return f->sendControlMessage(cmd->c_str(), arg->c_str(), xsink);
 }

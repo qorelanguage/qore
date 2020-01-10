@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DataProvider.qm module for data access and introspection
 
-/*  DataProvider.qm Copyright 2019 Qore Technologies, s.r.o.
+/*  DataProvider.qm Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -121,10 +121,22 @@ module DataProvider {
     @subsection dataprovider_modules Data Provider Modules
 
     This module uses the \c "QORE_DATA_PROVIDERS" environment variable to register data provider
-    modules.  Each data provider registration module must provide a single public function with the following signature:
+    modules.  Each data provider registration module must provide one of the following two public functions.
+
+    @subsubsection dataprovider_dynamic_discovery Data Provider Dynamic Discovery
+
+    Implement a public function with the following signature to support dynamic discovery of data providers:
     @code{.py}
 # returns a hash of connection provider factory names to module names
 public hash<string, string> sub get_data_provider_map() { ... }
+    @endcode
+
+    @subsubsection dataprovider_type_dynamic_discovery Data Provider Type Dynamic Discovery
+
+    Implement a public function with the following signature to support dynamic discovery of data provider types:
+    @code{.py}
+# returns a hash of type prefix paths (ex: \c "qore/sftp") to module names
+public hash<string, string> sub get_type_provider_map() { ... }
     @endcode
 
     Data provider registration modules declared in the \c "QORE_DATA_PROVIDERS" environment variable must

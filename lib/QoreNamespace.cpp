@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -188,7 +188,8 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclIndexedObjectSerializationInfo,
     * hashdeclHashSerializationInfo,
     * hashdeclListSerializationInfo,
-    * hashdeclUrlInfo;
+    * hashdeclUrlInfo,
+    * hashdeclFtpResponseInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -993,6 +994,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclHashSerializationInfo = init_hashdecl_HashSerializationInfo(qns);
     hashdeclListSerializationInfo = init_hashdecl_ListSerializationInfo(qns);
     hashdeclUrlInfo = init_hashdecl_UrlInfo(qns);
+    hashdeclFtpResponseInfo = init_hashdecl_FtpResponseInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 

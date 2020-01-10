@@ -423,6 +423,15 @@ public:
     */
     DLLEXPORT QoreHashNode* getDataSocketInfo(ExceptionSink* xsink, bool host_lookup) const;
 
+    //! Sends a message on the control port and returns a FtpResponseInfo hash or nullptr (if an exception is thrown)
+    /** @param cmd the command to send
+        @param arg the argument for the command
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @since %Qore 0.9.4
+    */
+    QoreHashNode* sendControlMessage(const char* cmd, const char* arg, ExceptionSink* xsink);
+
     //! sets the socket I/O timeout value in milliseconds
     /** @since Qore 0.8.12.3
     */

@@ -39,6 +39,9 @@
       - adds  <a href="../../modules/DataProvider/html/index.html">data provider</a> API support
     - <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module:
       - added this new module to support polling files from a remote directory with the FTP protocol
+    - <a href="../../modules/FtpPollerUtil/html/index.html">FtpPollerUtil</a> module:
+      - added this new module to provide definitions for the
+        <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module:
       - added support for sending chunked replies from an @ref Qore::InputStream "InputStream"
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module:
@@ -69,6 +72,7 @@
       - @ref Qore::char_width()
       - @ref Qore::get_call_reference()
     - new methods:
+      - @ref Qore::FtpClient::sendControlMessage() "FtpClient::sendControlMessage()"
       - @ref Qore::Program::getCallReference() "Program::getCallReference()"
     - updated methods:
       - @ref Qore::BinaryInputStream::constructor() "BinaryInputStream::constructor()" accepts strings as well as binary values

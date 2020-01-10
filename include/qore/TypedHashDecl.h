@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -222,5 +222,10 @@ DLLEXPORT extern const TypedHashDecl* hashdeclListSerializationInfo;
 /** @since %Qore 0.9.3
 */
 DLLEXPORT extern const TypedHashDecl* hashdeclUrlInfo;
+
+//! FtpResponseInfo hashdecl
+/** @since %Qore 0.9.4
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclFtpResponseInfo;
 
 #endif
