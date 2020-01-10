@@ -371,7 +371,7 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
     }
 
     #! Returns a list of strings in a path separated by "/" characters
-    list<string> getPathList(string path) {
+    static list<string> getPathList(string path) {
         # remove leading "/" chars
         path =~ s/^\/+//;
         # combine multiple "/" chars into a single char
