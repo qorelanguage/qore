@@ -138,9 +138,11 @@ MACRO (QORE_BINARY_MODULE_QORE _module_name _version _install_suffix)
     QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" 1 ${ARGN})
 ENDMACRO (QORE_BINARY_MODULE_QORE)
 
-MACRO (QORE_BINARY_MODULE_NEW _module_name _version _install_suffix)
-    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" 2 ${ARGN})
-ENDMACRO (QORE_BINARY_MODULE_NEW)
+# macro for external binary modules; supports complex documentation generation with QORE_EXTERNAL_USER_MODULE as well
+MACRO (QORE_EXTERNAL_BINARY_MODULE _module_name _version)
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "" 2 ${ARGN})
+    set(_external_module_name ${_module_name})
+ENDMACRO (QORE_EXTERNAL_BINARY_MODULE)
 
 MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suffix)
     if ("${_mod_suffix}" STREQUAL "")
@@ -161,14 +163,23 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
             set(QORE_USERMODULE_DOXYGEN_TEMPLATE ${CMAKE_SOURCE_DIR}/doxygen/modules/Doxyfile.in)
         endif ()
     else()
-        set(_docs_targ docs)
+        # this configurtion ensures that the primary binary module docs are build first as target "docs-module"
+        # the "docs" target them will depend on "docs-module", and all user modules will also depend on "docs-module"
+        # so that they can use symbols from the primary binary module
+        set(_docs_targ docs-module)
+        set(_extra_docs_targ docs)
         set(_uninstall_targ uninstall)
         set(_working_dir ${CMAKE_BINARY_DIR})
         set(_dox_src ${CMAKE_SOURCE_DIR})
         set(_dox_output "${CMAKE_BINARY_DIR}/docs/${_module_name}")
     endif()
 
-    set(_dox_input ${CMAKE_BINARY_DIR})
+    if (DEFINED MODULE_DOX_INPUT)
+        string(REPLACE ";" " " MODULE_DOX_INPUT_STR "${MODULE_DOX_INPUT}")
+        set(_dox_input ${MODULE_DOX_INPUT_STR})
+    else ()
+        set(_dox_input ${CMAKE_BINARY_DIR})
+    endif ()
 
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
@@ -246,6 +257,7 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
+            set(CURRENT_MODULE_NAME ${_module_name})
             configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${_working_dir}/Doxyfile @ONLY)
 
             add_custom_target(${_docs_targ}
@@ -256,6 +268,11 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
                 COMMENT "Generating API documentation with Doxygen" VERBATIM
             )
             add_dependencies(${_docs_targ} ${_module_name})
+
+            if (NOT "${_extra_docs_targ}" STREQUAL "")
+                add_custom_target(${_extra_docs_targ})
+                add_dependencies(${_extra_docs_targ} ${_docs_targ})
+            endif ()
 
             if (NOT "${_mod_suffix}" STREQUAL "")
                 add_dependencies(docs ${_docs_targ})
@@ -377,6 +394,8 @@ ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user module (.qm file) into proper location.
 #
+# NOTE: must be called afer QORE_EXTERNAL_BINARY_MODULE
+#
 # Param #1: path to the module; e.g. "qlib/RestHandler.qm"
 # Param #2: list of module dependencies separated by semicolon; e.g. "HttpServerUtil;Mime;Util"
 #
@@ -384,7 +403,7 @@ ENDMACRO (QORE_USER_MODULE)
 #     qore_module_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util")
 #
 # The module will be installed automatically in 'make install' target.
-MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
+MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     get_filename_component(f ${_module_file} NAME_WE)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
@@ -404,19 +423,22 @@ MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
 
         # prepare needed vars
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
-        unset(MOD_DEPS)
+        #set(MOD_DEPS -t${_external_module_name}.tag=../../${_external_module_name}/html)
+        set(CURRENT_MODULE_NAME ${f})
+        set(TAGFILES ${CMAKE_BINARY_DIR}/${_external_module_name}.tag=../../${_external_module_name}/html)
         foreach(i ${_mod_deps})
             # we must use relative directories for tags; using absolute paths for tags will break the documentation
             # when used on any system except the one where it's generated
-            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
+            #SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
+            SET(TAGFILES ${TAGFILES} ${i}.tag=../../${i}/html)
         endforeach(i)
 
         set(_dox_output ${CMAKE_BINARY_DIR}/docs/${f})
         set(_dox_input ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # prepare QDX arguments
-        configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl @ONLY)
-        set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl ${MOD_DOXYFILE})
+        configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
+        #set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl ${MOD_DOXYFILE})
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # add CMake target for the documentation
@@ -425,7 +447,7 @@ MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
 
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/${qm_install_subdir}/)
         add_custom_target(docs-${f}
-            COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+            #COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
             COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
             COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
             COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/${f}/html/*.html
@@ -439,6 +461,7 @@ MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
         add_dependencies(docs docs-${f})
 
         # make this dependent on the other module targets
+        add_dependencies(docs-${f} docs-module)
         foreach(i ${_mod_deps})
             add_dependencies(docs-${f} docs-${i})
         endforeach(i)
@@ -446,7 +469,7 @@ MACRO (QORE_MODULE_USER_MODULE _module_file _mod_deps)
 
     # install qm file
     install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
-ENDMACRO (QORE_MODULE_USER_MODULE)
+ENDMACRO (QORE_EXTERNAL_USER_MODULE)
 
 # Install qore native/user modules (qm files) into the proper location.
 # Example:
@@ -480,7 +503,7 @@ MACRO (QORE_USER_MODULES _inputs)
         if (xDOXYGEN_FOUND)
             get_filename_component(file ${f} NAME_WE)
             message(STATUS "Doxyfile for ${file}")
-            set(QORE_QMOD_FNAME ${file}) # used for configure_file line below
+            set(CURRENT_MODULE_NAME ${_file}) # used for configure_file line below
             set(_dox_input ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${MODULE_DOX_INPUT})
             configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${file} @ONLY)
             file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${file}/${qm_install_subdir}/)
