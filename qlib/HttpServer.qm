@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.3
+%requires qore >= 0.9.4
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.3.12.1
+%requires(reexport) HttpServerUtil >= 0.9.4
 
 %new-style
 
