@@ -302,12 +302,28 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
         and therefore not suitable for indexing)
     */
     static *list<string> listTypes() {
-        return type_cache.listAllTypes();
+        return type_cache.listTypes();
     }
 
     #! Registers all known data provider factories
     static registerKnownFactories() {
+        # load known modules
         map DataProvider::tryLoad($1), FactoryModuleList;
+    }
+
+    #! Loads data providers from the environment
+    static loadProvidersFromEnvironment() {
+        DataProvider::loadFromEnvironment("get_data_provider_map", "data provider");
+    }
+
+    #! Registers all known data provider types
+    static registerKnownTypes() {
+        map DataProvider::tryLoad($1), TypeMap.iterator();
+    }
+
+    #! Loads data types from the environment
+    static loadTypesFromEnvironment() {
+        DataProvider::loadFromEnvironment("get_type_provider_map", "type");
     }
 
     #! Converts an info hash with objects to a hash with string descriptions instead of the objects
@@ -421,10 +437,39 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
             return True;
         } catch (hash<ExceptionInfo> ex) {
             if (verbose || True) {
-                stderr.printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
+                #stderr.printf("module %y: %s: %s: %s\n", module_str, get_ex_pos(ex), ex.err, ex.desc);
+                stderr.printf("module %y: %s: %s: %s\n", module_str, get_exception_string(ex));
             }
         }
         return False;
+    }
+
+    #! Loads modules from the QORE_DATA_PROVIDERS environment variable
+    private static loadFromEnvironment(string func, string type) {
+        # load modules from the QORE_DATA_PROVIDERS environment variable
+        *string prov = ENV.QORE_DATA_PROVIDERS;
+        if (prov) {
+            list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
+            foreach string mod in (pl) {
+                Program p(PO_NO_USER_API);
+                try {
+                    p.loadModule(mod);
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
+                }
+                hash<string, string> dmap;
+                try {
+                    dmap = p.callFunction(func);
+                } catch (hash<ExceptionInfo> ex) {
+                    # ignore NO-FUNCTION error
+                    if (ex.err != "NO-FUNCTION") {
+                        stderr.printf("ERROR: error in QORE_DATA_PROVIDERS module %y %s registration function: %s: "
+                            "%s\n", mod, type, ex.err, ex.desc);
+                    }
+                }
+                map DataProvider::tryLoad($1), dmap.iterator();
+            }
+        }
     }
 
     #! Check if the object is from a module that has been subject to dependency injections
