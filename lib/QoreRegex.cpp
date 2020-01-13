@@ -2,7 +2,7 @@
 /*
     QoreRegex.cpp
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) {
     str = nullptr;
 
     if (check_re_options(options)) {
-        xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
+        xsink->raiseException("REGEX-OPTION-ERROR", QLLD " contains invalid option bits", opts);
         options = 0;
     }
 

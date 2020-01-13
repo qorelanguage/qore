@@ -953,7 +953,7 @@ QoreValue get_call_reference_intern(QoreObject* self, const QoreStringNode* iden
 
 static void concatASCII(QoreString &str, unsigned char c) {
     str.sprintf("ascii %03d", c);
-    if (c >= 32 || c < 127) {
+    if (c >= 32 && c < 127) {
         str.sprintf(" ('%c')", c);
     }
 }
@@ -983,7 +983,8 @@ static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, Ex
 
     if (!c) {
         if (!end_ok) {
-            xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+            xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %lu",
+                offset);
         }
     } else {
         QoreStringNode* desc = new QoreStringNode;

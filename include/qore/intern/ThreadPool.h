@@ -2,7 +2,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -183,202 +183,203 @@ public:
 
 class ThreadPool : public AbstractPrivateData {
 protected:
-   int max,        // maximum number of threads in pool (if <= 0 then unlimited)
-      minidle,     // minimum number of idle threads
-      maxidle,     // maximum number of idle threads
-      release_ms;  // number of milliseconds before idle threads are released when > minidle
+    int max,        // maximum number of threads in pool (if <= 0 then unlimited)
+        minidle,     // minimum number of idle threads
+        maxidle,     // maximum number of idle threads
+        release_ms;  // number of milliseconds before idle threads are released when > minidle
 
-   // mutex for atomicity
-   QoreThreadLock m;
+    // mutex for atomicity
+    QoreThreadLock m;
 
-   // worker thread condition variable
-   QoreCondition cond;
+    // worker thread condition variable
+    QoreCondition cond;
 
-   // stop condition variable
-   QoreCondition stopCond;
+    // stop condition variable
+    QoreCondition stopCond;
 
-   tplist_t ah,  // allocated thread list
-      fh;        // free thread list
+    tplist_t ah,  // allocated thread list
+        fh;        // free thread list
 
-   // quit flag
-   bool quit;
+    // quit flag
+    bool quit;
 
-   // master task queue
-   taskq_t q;
+    // master task queue
+    taskq_t q;
 
-   // task waiting flag
-   bool waiting;
+    // task waiting flag
+    bool waiting;
 
-   bool stopflag,   // stop flag
-      stopped,      // stopped flag
-      confirm;      // confirm member thread stop
+    bool stopflag,   // stop flag
+        stopped,      // stopped flag
+        confirm;      // confirm member thread stop
 
-   DLLLOCAL int checkStopUnlocked(const char* m, ExceptionSink* xsink) {
-      if (stopflag) {
-	 xsink->raiseException("THREADPOOL-ERROR", "ThreadPool::%s() cannot be executed because the ThreadPool is being destroyed", m);
-	 return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL int checkStopUnlocked(const char* m, ExceptionSink* xsink) {
+        if (stopflag) {
+            xsink->raiseException("THREADPOOL-ERROR", "ThreadPool::%s() cannot be executed because the ThreadPool " \
+                "is being destroyed", m);
+            return -1;
+        }
+        return 0;
+    }
 
-   DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
-      assert(xsink);
-      std::unique_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
-      if (!tpth->valid()) {
-         assert(*xsink);
-         return -1;
-      }
-
-      ThreadPoolThread* tpt = tpth.release();
-      fh.push_back(tpt);
-#ifdef DEBUG
-      // set to an invalid iterator
-      tpt->setPos(fh.end());
-#endif
-      return 0;
-   }
-
-   DLLLOCAL ThreadPoolThread* getThreadUnlocked(ExceptionSink* xsink) {
-      assert(xsink);
-      while (!stopflag && fh.empty() && max && (int)ah.size() == max) {
-         waiting = true;
-         cond.wait(m);
-         waiting = false;
-      }
-
-      if (stopflag)
-         return 0;
-
-      ThreadPoolThread* tpt;
-
-      if (!fh.empty()) {
-         tpt = fh.front();
-         fh.pop_front();
-      }
-      else {
-         std::unique_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
-         if (!tpt_pt->valid()) {
+    DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
+        assert(xsink);
+        std::unique_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
+        if (!tpth->valid()) {
             assert(*xsink);
-            return 0;
-         }
-         tpt = tpt_pt.release();
-      }
+            return -1;
+        }
 
-      ah.push_back(tpt);
-      tplist_t::iterator i = ah.end();
-      --i;
-      tpt->setPos(i);
-      return tpt;
-   }
+        ThreadPoolThread* tpt = tpth.release();
+        fh.push_back(tpt);
+#ifdef DEBUG
+        // set to an invalid iterator
+        tpt->setPos(fh.end());
+#endif
+        return 0;
+    }
+
+    DLLLOCAL ThreadPoolThread* getThreadUnlocked(ExceptionSink* xsink) {
+        assert(xsink);
+        while (!stopflag && fh.empty() && max && (int)ah.size() == max) {
+            waiting = true;
+            cond.wait(m);
+            waiting = false;
+        }
+
+        if (stopflag)
+            return 0;
+
+        ThreadPoolThread* tpt;
+
+        if (!fh.empty()) {
+            tpt = fh.front();
+            fh.pop_front();
+        } else {
+            std::unique_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
+            if (!tpt_pt->valid()) {
+                assert(*xsink);
+                return 0;
+            }
+            tpt = tpt_pt.release();
+        }
+
+        ah.push_back(tpt);
+        tplist_t::iterator i = ah.end();
+        --i;
+        tpt->setPos(i);
+        return tpt;
+    }
 
 public:
-   DLLLOCAL ThreadPool(ExceptionSink* xsink, int n_max = 0, int n_minidle = 0, int m_maxidle = 0, int n_release_ms = QTP_DEFAULT_RELEASE_MS);
+    DLLLOCAL ThreadPool(ExceptionSink* xsink, int n_max = 0, int n_minidle = 0, int m_maxidle = 0, int n_release_ms = QTP_DEFAULT_RELEASE_MS);
 
-   DLLLOCAL ~ThreadPool() {
-      assert(q.empty());
-      assert(ah.empty());
-      assert(fh.empty());
-      assert(stopped);
-   }
+    DLLLOCAL ~ThreadPool() {
+        assert(q.empty());
+        assert(ah.empty());
+        assert(fh.empty());
+        assert(stopped);
+    }
 
-   DLLLOCAL void toString(QoreString& str) {
-      AutoLocker al(m);
+    DLLLOCAL void toString(QoreString& str) {
+        AutoLocker al(m);
 
-      str.sprintf("ThreadPool %p total: %d max: %d minidle: %d maxidle: %d release_ms: %d running: [", this, ah.size() + fh.size(), max, minidle, maxidle, release_ms);
-      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i) {
-         if (i != ah.begin())
-            str.concat(", ");
-         str.sprintf("%d", (*i)->getId());
-      }
+        str.sprintf("ThreadPool %p total: %lu max: %d minidle: %d maxidle: %d release_ms: %d running: [", this,
+            ah.size() + fh.size(), max, minidle, maxidle, release_ms);
+        for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i) {
+            if (i != ah.begin())
+                str.concat(", ");
+            str.sprintf("%d", (*i)->getId());
+        }
 
-      str.concat("] idle: [");
+        str.concat("] idle: [");
 
-      for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i) {
-         if (i != fh.begin())
-            str.concat(", ");
-         str.sprintf("%d", (*i)->getId());
-      }
+        for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i) {
+            if (i != fh.begin())
+                str.concat(", ");
+            str.sprintf("%d", (*i)->getId());
+        }
 
-      str.concat(']');
-   }
+        str.concat(']');
+    }
 
-   // does not return until the thread pool has been stopped
-   DLLLOCAL void stop() {
-      AutoLocker al(m);
-      if (!stopflag) {
-         stopflag = true;
-         cond.signal();
-      }
+    // does not return until the thread pool has been stopped
+    DLLLOCAL void stop() {
+        AutoLocker al(m);
+        if (!stopflag) {
+            stopflag = true;
+            cond.signal();
+        }
 
-      while (!stopped)
-         stopCond.wait(m);
-   }
+        while (!stopped)
+            stopCond.wait(m);
+    }
 
-   DLLLOCAL int stopWait(ExceptionSink* xsink) {
-      AutoLocker al(m);
-      if (stopflag && !confirm) {
-         xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ()ThreadPool::stop() has been called since child threads have been detached and can no longer be traced");
-         return -1;
-      }
+    DLLLOCAL int stopWait(ExceptionSink* xsink) {
+        AutoLocker al(m);
+        if (stopflag && !confirm) {
+            xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ()ThreadPool::stop() has been called since child threads have been detached and can no longer be traced");
+            return -1;
+        }
 
-      if (!stopflag) {
-         stopflag = true;
-         confirm = true;
-         cond.signal();
-      }
+        if (!stopflag) {
+            stopflag = true;
+            confirm = true;
+            cond.signal();
+        }
 
-      while (!stopped)
-         stopCond.wait(m);
+        while (!stopped)
+            stopCond.wait(m);
 
-      return 0;
-   }
+        return 0;
+    }
 
-   DLLLOCAL int submit(ResolvedCallReferenceNode* c, ResolvedCallReferenceNode* cc, ExceptionSink* xsink) {
-      // optimistically create the task object outside the lock
-      ThreadTaskHolder task(new ThreadTask(c, cc), xsink);
+    DLLLOCAL int submit(ResolvedCallReferenceNode* c, ResolvedCallReferenceNode* cc, ExceptionSink* xsink) {
+        // optimistically create the task object outside the lock
+        ThreadTaskHolder task(new ThreadTask(c, cc), xsink);
 
-      AutoLocker al(m);
-      if (checkStopUnlocked("submit", xsink))
-         return -1;
+        AutoLocker al(m);
+        if (checkStopUnlocked("submit", xsink))
+            return -1;
 
-      if (q.empty())
-         cond.signal();
-      q.push_back(task.release());
+        if (q.empty())
+            cond.signal();
+        q.push_back(task.release());
 
-      return 0;
-   }
+        return 0;
+    }
 
-   DLLLOCAL void threadCounts(int& idle, int& running) {
-      AutoLocker al(m);
-      idle = fh.size();
-      running = ah.size();
-   }
+    DLLLOCAL void threadCounts(int& idle, int& running) {
+        AutoLocker al(m);
+        idle = fh.size();
+        running = ah.size();
+    }
 
-   DLLLOCAL int done(ThreadPoolThread* tpt) {
-      {
-         AutoLocker al(m);
-         // allow the thread to be removed from the active list by ThreadPool::worker() to avoid race conditions
-         if (stopflag)
-            return 0;
+    DLLLOCAL int done(ThreadPoolThread* tpt) {
+        {
+            AutoLocker al(m);
+            // allow the thread to be removed from the active list by ThreadPool::worker() to avoid race conditions
+            if (stopflag)
+                return 0;
 
-         if (!confirm) {
-            tplist_t::iterator i = tpt->getPos();
-            ah.erase(i);
+            if (!confirm) {
+                tplist_t::iterator i = tpt->getPos();
+                ah.erase(i);
 
-            // requeue thread if possible
-            if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
-               fh.push_back(tpt);
-               if (waiting || (release_ms && (int)fh.size() > minidle))
-                  cond.signal();
-               return 0;
+                // requeue thread if possible
+                if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
+                    fh.push_back(tpt);
+                    if (waiting || (release_ms && (int)fh.size() > minidle))
+                        cond.signal();
+                    return 0;
+                }
             }
-         }
-      }
+        }
 
-      return -1;
-   }
+        return -1;
+    }
 
-   DLLLOCAL void worker(ExceptionSink* xsink);
+    DLLLOCAL void worker(ExceptionSink* xsink);
 };
 
 #endif

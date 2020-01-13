@@ -1390,7 +1390,7 @@ static void process_comment(std::string& buf) {
     start = 0;
     while (true) {
         size_t i = buf.find("|!", start);
-        log(LL_DEBUG, "serialize_dox_comment() looking for |! i: %d\n", i);
+        log(LL_DEBUG, "serialize_dox_comment() looking for |! i: %lu\n", i);
         if (i == std::string::npos)
             break;
 
@@ -1400,7 +1400,7 @@ static void process_comment(std::string& buf) {
 
         // find end of line
         size_t j = buf.find('\n', i + 2);
-        log(LL_DEBUG, "serialize_dox_comment() looking for first EOL j: %d\n", j);
+        log(LL_DEBUG, "serialize_dox_comment() looking for first EOL j: %lu\n", j);
         if (j == std::string::npos)
             break;
 

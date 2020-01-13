@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,8 @@ void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln
         const QoreTypeInfo* vti = i.getValue().getTypeInfo();
         if (QoreTypeInfo::canConvertToScalar(vti))
             continue;
-        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i.index(), (int)i.max(), QoreTypeInfo::getName(vti));
+        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %lu/%lu of type '%s'; need a " \
+            "type convertible to an integer or a range", i.index(), i.max(), QoreTypeInfo::getName(vti));
     }
 }
 

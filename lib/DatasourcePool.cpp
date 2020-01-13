@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -377,103 +377,107 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
 }
 
 Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink) {
-   assert(!new_ds);
+    assert(!new_ds);
 
-   int tid = gettid();
+    int tid = gettid();
 
-   Datasource* ds;
+    Datasource* ds;
 
-   SafeLocker sl((QoreThreadLock*)this);
+    SafeLocker sl((QoreThreadLock*)this);
 
-   // increase request counter
-   ++stats_reqs;
+    // increase request counter
+    ++stats_reqs;
 
-   // see if thread already has a datasource allocated
-   thread_use_t::iterator i = tmap.find(tid);
-   if (i != tmap.end()) {
-      ++stats_hits;
-      //printd(5, "DatasourcePool::getDSIntern() this: %p returning already allocated ds: %p\n", this, pool[i->second]);
-      return pool[i->second];
-   }
+    // see if thread already has a datasource allocated
+    thread_use_t::iterator i = tmap.find(tid);
+    if (i != tmap.end()) {
+        ++stats_hits;
+        //printd(5, "DatasourcePool::getDSIntern() this: %p returning already allocated ds: %p\n", this, pool[i->second]);
+        return pool[i->second];
+    }
 
-   // will be a new allocation, not already in a transaction
-   new_ds = true;
+    // will be a new allocation, not already in a transaction
+    new_ds = true;
 
-   // iteration flag
-   bool iter = false;
+    // iteration flag
+    bool iter = false;
 
-   // see if there is a datasource free
-   while (true) {
-      if (!free_list.empty()) {
-         int fi = free_list.front();
-         free_list.pop_front();
-         // DEBUG
-         //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
+    // see if there is a datasource free
+    while (true) {
+        if (!free_list.empty()) {
+            int fi = free_list.front();
+            free_list.pop_front();
+            // DEBUG
+            //printf("DSP::getDS() assigning tid %d index %d from free list (%N)\n", $tid, $i, $.p[$i]);
 
-         tmap[tid] = fi;
-         ds = pool[fi];
-         tid_list[fi] = tid;
+            tmap[tid] = fi;
+            ds = pool[fi];
+            tid_list[fi] = tid;
 
-         // increase hit counter
-         if (!iter)
-            ++stats_hits;
-         break;
-      }
+            // increase hit counter
+            if (!iter)
+                ++stats_hits;
+            break;
+        }
 
-      // see if we can open a new connection
-      if (cmax < max) {
-         ds = pool[cmax] = config.get(this, xsink);
-         assert(!*xsink);
+        // see if we can open a new connection
+        if (cmax < max) {
+            ds = pool[cmax] = config.get(this, xsink);
+            assert(!*xsink);
 
-         tmap[tid] = cmax;
-         tid_list[cmax++] = tid;
+            tmap[tid] = cmax;
+            tid_list[cmax++] = tid;
 
-         // increase hit counter
-         if (!iter)
-            ++stats_hits;
+            // increase hit counter
+            if (!iter)
+                ++stats_hits;
 
-         break;
-      }
+            break;
+        }
 
-      //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
-      // otherwise we sleep until a connection becomes available
-      ++wait_count;
-      int64 warn_start = q_clock_getmicros();
-      int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
-      wait_count--;
+        //printd(5, "DatasourcePool::getDSIntern() this: %p tl_timeout_ms: %d max: %d\n", this, tl_timeout_ms, max);
+        // otherwise we sleep until a connection becomes available
+        ++wait_count;
+        int64 warn_start = q_clock_getmicros();
+        int rc = tl_timeout_ms ? wait((QoreThreadLock*)this, tl_timeout_ms) : wait((QoreThreadLock*)this);
+        wait_count--;
 
-      // add waiting time to total time
-      wait_total += (q_clock_getmicros() - warn_start);
+        // add waiting time to total time
+        wait_total += (q_clock_getmicros() - warn_start);
 
-      if (!valid) {
-         xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid);
-         return nullptr;
-      }
+        if (!valid) {
+            xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: DatasourcePool deleted while TID %d waiting " \
+                "on a connection to become free", getDriverName(), pool[0]->getUsernameStr().c_str(),
+                pool[0]->getDBNameStr().c_str(), tid);
+            return nullptr;
+        }
 
-      if (rc && tl_timeout_ms) {
-         xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after waiting %d millisecond%s for a free connection (max %d connections in use)",
-                               getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), tid,
-                               tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
-         return nullptr;
-      }
+        if (rc && tl_timeout_ms) {
+            xsink->raiseException("DATASOURCEPOOL-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource pool after " \
+                "waiting " QLLD " millisecond%s for a free connection (max %d connections in use)",
+                                getDriverName(), pool[0]->getUsernameStr().c_str(),
+                                pool[0]->getDBNameStr().c_str(), tid,
+                                tl_timeout_ms, tl_timeout_ms == 1 ? "" : "s", max);
+            return nullptr;
+        }
 
-      if (!iter)
-         iter = true;
-      continue;
-   }
+        if (!iter)
+            iter = true;
+        continue;
+    }
 
-   if (wait_total > wait_max)
-      wait_max = wait_total;
+    if (wait_total > wait_max)
+        wait_max = wait_total;
 
-   sl.unlock();
+    sl.unlock();
 
-   // add to thread resource list
-   //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p) ds: %p\n", this, ds);
+    // add to thread resource list
+    //printd(5, "DatasourcePool::getDSIntern() set_thread_resource(this: %p) ds: %p\n", this, ds);
 
-   set_thread_resource(this);
+    set_thread_resource(this);
 
-   assert(ds);
-   return ds;
+    assert(ds);
+    return ds;
 }
 
 QoreValue DatasourcePool::select(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {

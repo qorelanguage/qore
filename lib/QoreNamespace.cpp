@@ -1997,20 +1997,23 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
         while (li.next()) {
             QoreValue v = li.getValue();
             if (v.getType() != NT_STRING) {
-                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d given as type \"%s\"; expecting \"string\"", name, li.index() + 1, v.getTypeName());
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %lu given as type \"%s\"; " \
+                    "expecting \"string\"", name, li.index() + 1, v.getTypeName());
                 return nullptr;
             }
             // get string value for type
             const QoreString& tname = *v.get<const QoreStringNode>();
             // issue #2601: ensure that the string is not empty (client error)
             if (tname.empty()) {
-                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d is an empty string", name, li.index() + 1);
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %lu is an empty string", name,
+                    li.index() + 1);
                 return nullptr;
             }
             // look up type from string
             const QoreTypeInfo* ti = qore_get_type_from_string_intern(tname.c_str());
             if (!ti) {
-                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %lu \"%s\" cannot be " \
+                    "resolved to a known type", name, li.index() + 1, tname.c_str());
                 return nullptr;
             }
             tvec.push_back(ti);

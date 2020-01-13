@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -147,7 +147,8 @@ void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     const QoreListNode* args = m->getArgs();
     if (!strcmp(mname, "copy")) {
         if (args && args->size()) {
-            parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+            parse_error(*loc, "no arguments may be passed to copy methods (%lu argument%s given in call to " \
+                "%s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
         }
 
         // do not save method pointer for copy methods

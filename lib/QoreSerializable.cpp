@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -588,7 +588,7 @@ QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, Refer
     while (li.next()) {
         ValueHolder new_val(serializeValue(li.getValue(), index, imap, mset, xsink), xsink);
         if (*xsink) {
-            xsink->appendLastDescription(" (while serializing list element %d)", li.index() + 1);
+            xsink->appendLastDescription(" (while serializing list element %lu)", li.index() + 1);
             return nullptr;
         }
 
@@ -1493,7 +1493,7 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
             break;
     }
 
-    xsink->raiseException("DESERIALIZATION-ERROR", "invalid serialization type code " QLLD, code);
+    xsink->raiseException("DESERIALIZATION-ERROR", "invalid serialization type code %d", (int)code);
     return QoreValue();
 }
 
@@ -1752,7 +1752,8 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
     }
 
     if (!code_is_int(zt) && zt != qore_stream_type::UTF8_STRING) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "invalid absolute date zone type " QLLD " read from stream; expecting an integer or UTF-8 string type", zt);
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid absolute date zone type %d read from stream; " \
+            "expecting an integer or UTF-8 string type", (int)zt);
         return nullptr;
     }
 

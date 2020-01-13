@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -157,7 +157,7 @@ private:
                 // convert string to a real port
                 try {
                     port = std::stoi(port_str);
-                } catch (std::out_of_range e) {
+                } catch (const std::out_of_range& e) {
                     if (xsink) {
                         doInvalidPortException(xsink, buf);
                     }
