@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,6 @@ enum qore_var_t {
 #include "qore/intern/RSet.h"
 #include "qore/intern/VRMutex.h"
 #include "qore/intern/QoreLValue.h"
-#include "qore/intern/GlobalThreadLocalVar.h"
 #include "qore/intern/qore_var_rwlock_priv.h"
 #include "qore/vector_set"
 

@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1560,7 +1560,7 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
     else {
         str.concat('(');
         if (foff != FMT_NONE)
-            str.sprintf("%d member%s)\n", h->size(), h->size() == 1 ? "" : "s");
+            str.sprintf("%lu member%s)\n", h->size(), h->size() == 1 ? "" : "s");
 
         // FIXME: encapsulation error; private members are included in the string returned
         /*

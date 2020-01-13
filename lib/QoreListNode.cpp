@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -893,13 +893,13 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) c
     str.concat("list: (");
 
     if (foff != FMT_NONE) {
-        str.sprintf("%d element%s)\n", priv->length, priv->length == 1 ? "" : "s");
+        str.sprintf("%lu element%s)\n", priv->length, priv->length == 1 ? "" : "s");
     }
 
     for (size_t i = 0; i < priv->length; ++i) {
         if (foff != FMT_NONE) {
             str.addch(' ', foff + 2);
-            str.sprintf("[%d]=", i);
+            str.sprintf("[%lu]=", i);
         }
 
         QoreValue n = priv->entry[i];

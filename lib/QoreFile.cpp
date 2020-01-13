@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -334,97 +334,100 @@ qore_size_t QoreFile::getPos() const {
 }
 
 QoreStringNode *QoreFile::getchar(ExceptionSink *xsink) {
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(priv->charset));
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(priv->charset));
 
-   int c;
-   {
-      AutoLocker al(priv->m);
+    int c;
+    {
+        AutoLocker al(priv->m);
 
-      if (priv->check_read_open(xsink))
-	 return 0;
+        if (priv->check_read_open(xsink))
+            return 0;
 
-      c = priv->readChar();
-      if (c < 0)
-	 return 0;
+        c = priv->readChar();
+        if (c < 0)
+            return 0;
 
-      str->concat((char)c);
-      if (!priv->charset->isMultiByte())
-	 return str.release();
+        str->concat((char)c);
+        if (!priv->charset->isMultiByte())
+            return str.release();
 
-      // read in more characters for multi-byte chars if needed
-      qore_offset_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
-      if (!rc) {
-	 xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
-	 return 0;
-      }
+        // read in more characters for multi-byte chars if needed
+        qore_offset_t rc = priv->charset->getCharLen(str->getBuffer(), 1);
+        if (!rc) {
+            xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: initial byte 0x%x " \
+                "is an invalid initial character for '%s' character encoding", c, priv->charset->getCode());
+            return 0;
+        }
 
-      // rc == 1: we have a valid character already with the single byte
-      if (rc == 1)
-	 return str.release();
+        // rc == 1: we have a valid character already with the single byte
+        if (rc == 1)
+            return str.release();
 
-      assert(rc < 0);
-      rc = -rc;
-      while (--rc) {
-	 c = priv->readChar();
-	 if (c < 0) {
-	    xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: EOF encountered after %d byte%s read of a %d byte %s character", str->strlen(), str->strlen() == 1 ? "" : "s", str->strlen() + rc + 1, priv->charset->getCode());
-	    return 0;
-	 }
+        assert(rc < 0);
+        rc = -rc;
+        while (--rc) {
+            c = priv->readChar();
+            if (c < 0) {
+                xsink->raiseException("FILE-GETCHAR-ERROR", "invalid multi-byte character received: EOF " \
+                    "encountered after %lu byte%s read of a %lu byte string with %s encoding", str->strlen(),
+                    str->strlen() == 1 ? "" : "s", str->strlen() + rc + 1, priv->charset->getCode());
+                return 0;
+            }
 
-	 str->concat((char)c);
-      }
-   }
+            str->concat((char)c);
+        }
+    }
 
-   return str.release();
+    return str.release();
 }
 
 QoreStringNode *QoreFile::getchar() {
-   int c;
-   {
-      AutoLocker al(priv->m);
+    int c;
+    {
+        AutoLocker al(priv->m);
 
-      if (!priv->is_open)
-	 return 0;
+        if (!priv->is_open)
+            return nullptr;
 
-      c = priv->readChar();
-   }
+        c = priv->readChar();
+    }
 
-   if (c < 0)
-      return 0;
+    if (c < 0)
+        return nullptr;
 
-   QoreStringNode * str = new QoreStringNode(priv->charset);
-   str->concat((char)c);
-   return str;
+    QoreStringNode* str = new QoreStringNode(priv->charset);
+    str->concat((char)c);
+    return str;
 }
 
 int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_write_open(xsink))
-      return -1;
+    if (priv->check_write_open(xsink))
+        return -1;
 
-   if (!len)
-      return 0;
+    if (!len)
+        return 0;
 
-   return priv->write(data, len, xsink);
+    return priv->write(data, len, xsink);
 }
 
 int QoreFile::write(const QoreString *str, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_write_open(xsink))
-      return -1;
+    if (priv->check_write_open(xsink))
+        return -1;
 
-   if (!str)
-      return 0;
+    if (!str)
+        return 0;
 
-   TempEncodingHelper wstr(str, priv->charset, xsink);
-   if (*xsink)
-      return -1;
+    TempEncodingHelper wstr(str, priv->charset, xsink);
+    if (*xsink)
+        return -1;
 
-   //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
+    //printd(0, "QoreFile::write() str priv->charset=%s, priv->charset=%s\n", str->getEncoding()->code, priv->charset->code);
 
-   return priv->write(wstr->getBuffer(), wstr->strlen(), xsink);
+    return priv->write(wstr->getBuffer(), wstr->strlen(), xsink);
 }
 
 int QoreFile::write(const BinaryNode *b, ExceptionSink *xsink) {

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -311,7 +311,7 @@ QoreValue ParseScopedSelfMethodReferenceNode::evalImpl(bool& needs_deref, Except
 void ParseScopedSelfMethodReferenceNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     typeInfo = callReferenceTypeInfo;
     if (!oflag)
-        parse_error(*loc, "reference to object member '%s' when not in an object context", method);
+        parse_error(*loc, "reference to object member '%s' when not in an object context", method->getName());
     else {
         qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
         method = class_ctx->parseResolveSelfMethod(loc, nscope);

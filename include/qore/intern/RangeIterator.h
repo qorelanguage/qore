@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies s r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies s r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -60,7 +60,8 @@ public:
             m_valid(false),
             val((!v.isNothing() && step >= 0) ? v.refSelf() : QoreValue()) {
         if (step < 1) {
-            xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 (value passed: %d)", step);
+            xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 " \
+                "(value passed: " QLLD ")", step);
         }
     }
 
@@ -115,8 +116,7 @@ private:
     DLLLOCAL int64 calculateCurrent() {
         if (m_increasing) {
             return m_start + (m_position * m_step);
-        }
-        else {
+        } else {
             return m_start - (m_position * m_step);
         }
     }

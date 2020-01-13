@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -280,7 +280,8 @@ void SelfFunctionCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
                 is_copy = true;
                 if (args)
-                    parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
+                    parse_error(*loc, "no arguments may be passed to copy methods (%lu argument%s given in " \
+                        "call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
             } else {
                 assert(!qc || qore_class_private::get(*qc) == class_ctx);
                 // raises a parse exception if it fails
@@ -421,7 +422,8 @@ void FunctionCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag,
             SelfFunctionCallNode* sfcn = nullptr;
             if (!strcmp(c_str, "copy")) {
                 if (args) {
-                    parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+                    parse_error(*loc, "no arguments may be passed to copy methods (%lu argument%s given in " \
+                        "call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
                     return;
                 }
                 sfcn = new SelfFunctionCallNode(loc, takeName(), 0);

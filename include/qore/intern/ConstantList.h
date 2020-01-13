@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     constants can only be defined when parsing
     constants values will be substituted during the 2nd parse phase
@@ -343,11 +343,11 @@ public:
         return i->second->getAccess();
     }
 
-    DLLLOCAL const bool isPublic() const {
+    DLLLOCAL bool isPublic() const {
         return i->second->isPublic();
     }
 
-    DLLLOCAL const bool isUserPublic() const {
+    DLLLOCAL bool isUserPublic() const {
         return i->second->isUserPublic();
     }
 };
@@ -381,11 +381,11 @@ public:
         return i->second;
     }
 
-    DLLLOCAL const bool isPublic() const {
+    DLLLOCAL bool isPublic() const {
         return i->second->isPublic();
     }
 
-    DLLLOCAL const bool isUserPublic() const {
+    DLLLOCAL bool isUserPublic() const {
         return i->second->isUserPublic();
     }
 };

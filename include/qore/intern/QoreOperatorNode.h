@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -116,11 +116,7 @@ public:
     DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : T(loc), exp(exp) {
     }
 
-    DLLLOCAL QoreValue getExp() {
-        return exp;
-    }
-
-    DLLLOCAL const QoreValue getExp() const {
+    DLLLOCAL QoreValue getExp() const {
         return exp;
     }
 
@@ -171,11 +167,7 @@ public:
     DLLLOCAL QoreSingleValueExpressionOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : T(loc), exp(exp) {
     }
 
-    DLLLOCAL QoreValue getExp() {
-        return exp;
-    }
-
-    DLLLOCAL const QoreValue getExp() const {
+    DLLLOCAL QoreValue getExp() const {
         return exp;
     }
 
@@ -250,19 +242,11 @@ public:
         return old_r;
     }
 
-    DLLLOCAL QoreValue getLeft() {
+    DLLLOCAL QoreValue getLeft() const {
         return left;
     }
 
-    DLLLOCAL QoreValue getRight() {
-        return right;
-    }
-
-    DLLLOCAL const QoreValue getLeft() const {
-        return left;
-    }
-
-    DLLLOCAL const QoreValue getRight() const {
+    DLLLOCAL QoreValue getRight() const {
         return right;
     }
 
@@ -334,12 +318,7 @@ public:
         va_end(ap);
     }
 
-    DLLLOCAL QoreValue get(unsigned i) {
-        assert(i < N);
-        return e[i];
-    }
-
-    DLLLOCAL const QoreValue get(unsigned i) const {
+    DLLLOCAL QoreValue get(unsigned i) const {
         assert(i < N);
         return e[i];
     }

@@ -545,7 +545,6 @@ noinst_HEADERS = \
 	include/qore/intern/qore_encoding_private.h \
 	include/qore/intern/VRMutex.h \
 	include/qore/intern/Variable.h \
-	include/qore/intern/GlobalThreadLocalVar.h \
 	include/qore/intern/QoreLValue.h \
 	include/qore/intern/LocalVar.h \
 	include/qore/intern/QoreQueueIntern.h \
