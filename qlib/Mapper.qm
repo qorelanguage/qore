@@ -431,13 +431,13 @@ public class Mapper {
             "output_provider_bulk": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to enable bulk operations with an output provider; this option only has an "
-                    "affect when sued with an output provider that supports bulk operations on output",
+                    "effect when used with an output provider that supports bulk operations on output",
             },
 
             "output_provider_upsert": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to enable upserting instead of creating records with an output "
-                "data provider; this option only has an affect when sued with an output provider",
+                "data provider; this option only has an effect when used with an output provider",
             },
 
             "output_request_options": <MapperOptionInfo>{
