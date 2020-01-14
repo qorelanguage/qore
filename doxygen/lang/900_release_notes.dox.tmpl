@@ -17,6 +17,8 @@
     - fixed broken @ref cast "cast<>" operator handling; in previous releases, @ref cast "cast<>" would accept and
       return @ref nothing without raising an error with type specifications that did not accept or return
       @ref nothing.  To get the old behavior, use the @ref broken-cast "%broken-cast" parse directive.
+    - disallowed the use of the deprecated \c returns keyword by default.  To get the old behavior, use the
+      @ref allow-returns "%allow-returns" parse directive.
     - classes inheriting \c AbstractConneciton must be serializable; the \c AbstractConnection::getConstructorInfo()
       and \c AbstractConnection::getConstructorInfoImpl() methods have been removed and are ignored in child classes
     - the following are now reserved words in Qore to prohibit them from being redefined:
@@ -64,6 +66,9 @@
       - @ref Qore::EVENT_SOCKET_DATA_SENT "EVENT_SOCKET_DATA_SENT"
       - @ref Qore::NT_ALL "NT_ALL"
       - @ref Qore::RE_Unicode "RE_Unicode"
+      - @ref Qore::PO_ALLOW_RETURNS "PO_ALLOW_RETURNS"
+      - @ref Qore::PO_BROKEN_CAST "PO_BROKEN_CAST"
+      - @ref Qore::PO_STRICT_TYPES "PO_STRICT_TYPES"
     - new pseudo-methods:
       - <object>::getCallReference()
       - <string>::width()
@@ -80,10 +85,15 @@
       - @ref Qore::FtpClient::setDataEventQueue() "FtpClient::setDataEventQueue()": added the \a arg and \a with_data options
       - @ref Qore::FtpClient::setEventQueue() "FtpClient::setEventQueue()": added the \a arg and \a with_data options
       - @ref Qore::HTTPClient::setEventQueue() "HTTPClient::setEventQueue()": added the \a arg and \a with_data options
-      - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()": added the \c reexport argument
-      - @ref Qore::Program::loadApplyToUserModuleWarn() "Program::loadApplyToUserModuleWarn()": added the \c reexport argument
+      - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()": added the \a reexport argument
+      - @ref Qore::Program::loadApplyToUserModuleWarn() "Program::loadApplyToUserModuleWarn()": added the \a reexport argument
       - @ref Qore::ReadOnlyFile::setEventQueue() "ReadOnlyFile::setEventQueue()": added the \a arg and \a with_data options
       - @ref Qore::Socket::setEventQueue() "Socket::setEventQueue()": added the \a arg and \a with_data options
+    - new parse options:
+      - @ref allow-returns "%allow-returns"
+      - @ref broken-cast "%broken-cast"
+      - @ref loose-types "%loose-types"
+      - @ref strict-types "%strict-types"
     - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
       - added \c Type::isAssignableFrom() methods
       - added a working \c Type::constructor() method

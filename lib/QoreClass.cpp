@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1031,12 +1031,9 @@ int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* m
                 need_scan = true;
             }
         }
-    }
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-    else {
+    } else if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
         v = QoreTypeInfo::getDefaultQoreValue(info.getTypeInfo());
     }
-#endif
     return 0;
 }
 
@@ -4061,71 +4058,69 @@ bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* 
 }
 
 bool qore_class_private::runtimeCheckPrivateClassAccess(const qore_class_private* qc) const {
-   if (!qc) {
-      //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
-      return false;
-   }
+    if (!qc) {
+        //printd(5, "runtimeCheckPrivateClassAccess() this: %p '%s' no runtime class context: failed\n", this, name.c_str());
+        return false;
+    }
 
-   ClassAccess access = Public;
-   //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
-   return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true));
+    ClassAccess access = Public;
+    //printd(5, "runtimeCheckPrivateClassAccess() qc: %p '%s' test: %p '%s' okl: %d okr: %d\n", qc, qc->name.c_str(), this, name.c_str(), qc->getClassIntern(*this, access, true), (scl && scl->getClass(*qc, access, true)));
+    return qc->getClassIntern(*this, access, true) || (scl && scl->getClass(*qc, access, true));
 }
 
 qore_type_result_e qore_class_private::parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const {
-   qore_type_result_e rv = parseCheckCompatibleClassIntern(oc, may_not_match);
-   if (rv != QTI_NOT_EQUAL)
-      return rv;
-   if (injectedClass) {
-      rv = injectedClass->parseCheckCompatibleClass(oc, may_not_match);
-      if (rv != QTI_NOT_EQUAL)
-         return rv;
-   }
-   // FIXME: with %strict-types, this check should not be made (cast<>s are obligatory in that case)
-   if (oc.injectedClass) {
-      qore_type_result_e rv = oc.injectedClass->parseCheckCompatibleClass(*this, may_not_match);
-      if (!may_not_match && rv != QTI_NOT_EQUAL)
-         may_not_match = true;
-      return rv;
-   }
-   return QTI_NOT_EQUAL;
+    qore_type_result_e rv = parseCheckCompatibleClassIntern(oc, may_not_match);
+    if (rv != QTI_NOT_EQUAL)
+        return rv;
+    if (injectedClass) {
+        rv = injectedClass->parseCheckCompatibleClass(oc, may_not_match);
+        if (rv != QTI_NOT_EQUAL)
+            return rv;
+    }
+    if (oc.injectedClass) {
+        qore_type_result_e rv = oc.injectedClass->parseCheckCompatibleClass(*this, may_not_match);
+        if (!may_not_match && rv != QTI_NOT_EQUAL)
+            may_not_match = true;
+        return rv;
+    }
+    return QTI_NOT_EQUAL;
 }
 
 qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const {
-   // make sure both classes are initialized
-   const_cast<qore_class_private*>(this)->initialize();
-   const_cast<qore_class_private&>(oc).initialize();
+    // make sure both classes are initialized
+    const_cast<qore_class_private*>(this)->initialize();
+    const_cast<qore_class_private&>(oc).initialize();
 
 #ifdef DEBUG_SKIP
-   QoreString h1, h2;
-   hash.toString(h1);
-   oc.hash.toString(h2);
-   printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
+    QoreString h1, h2;
+    hash.toString(h1);
+    oc.hash.toString(h2);
+    printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
 #endif
 
-   if (parseEqual(oc))
-      return QTI_IDENT;
+    if (parseEqual(oc))
+        return QTI_IDENT;
 
-   // FIXME: with %strict-types, the second check should not be made (cast<>s are obligatory in that case)
-   ClassAccess access;
-   if (!parseGetClass(oc, access)) {
-      if (!oc.parseGetClass(*this, access))
-         return QTI_NOT_EQUAL;
-      may_not_match = true;
-   }
+    ClassAccess access;
+    if (!parseGetClass(oc, access)) {
+        if (!oc.parseGetClass(*this, access))
+            return QTI_NOT_EQUAL;
+        may_not_match = true;
+    }
 
-   if (access == Public)
-      return QTI_AMBIGUOUS;
+    if (access == Public)
+        return QTI_AMBIGUOUS;
 
-   if (parseCheckPrivateClassAccess())
-      return QTI_AMBIGUOUS;
+    if (parseCheckPrivateClassAccess())
+        return QTI_AMBIGUOUS;
 
-   if (!parseCheckPrivateClassAccess()) {
-      if (may_not_match)
-         may_not_match = false;
-      return QTI_NOT_EQUAL;
-   }
+    if (!parseCheckPrivateClassAccess()) {
+        if (may_not_match)
+            may_not_match = false;
+        return QTI_NOT_EQUAL;
+    }
 
-   return QTI_AMBIGUOUS;
+    return QTI_AMBIGUOUS;
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_class_private& oc) const {

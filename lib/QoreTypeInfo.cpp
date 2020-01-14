@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -598,6 +598,11 @@ const char* getBuiltinTypeName(qore_type_t type) {
 static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTypeInfo* that_type, bool& may_not_match, bool& may_need_filter) {
     //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(this_type), QoreTypeInfo::getName(that_type));
     qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
+    // if the type may not match at runtime, then return no match with %strict-types
+    if (may_not_match && getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+        return QTI_NOT_EQUAL;
+    }
+
     // with strict-types, may not match must be interpreted as no match
     // however if we interpret "may not match" as "no match" here, then we introduce an incompatibility with
     // non-complex types
@@ -633,9 +638,12 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                 case QTS_CLASS:
                     return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc), may_not_match);
                 default: {
-                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
                     qore_type_t tt = t.getType();
                     if (tt == NT_ALL || tt == NT_OBJECT) {
+                        // if the type may not match at runtime, then return no match with %strict-types
+                        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                            return QTI_NOT_EQUAL;
+                        }
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -653,8 +661,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                 case QTS_HASHDECL:
                     return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
                 case QTS_TYPE:
-                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
                     if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                        // if the type may not match at runtime, then return no match with %strict-types
+                        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                            return QTI_NOT_EQUAL;
+                        }
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -683,8 +694,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                     if (t.getType() == NT_HASH && u.ti == autoTypeInfo) {
                         return QTI_NEAR;
                     }
-                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
                     if (t.getType() == NT_ALL) {
+                        // if the type may not match at runtime, then return no match with %strict-types
+                        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                            return QTI_NOT_EQUAL;
+                        }
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -711,8 +725,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                     if (t.getType() == NT_LIST && u.ti == autoTypeInfo) {
                         return QTI_NEAR;
                     }
-                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
                     if (t.getType() == NT_ALL) {
+                        // if the type may not match at runtime, then return no match with %strict-types
+                        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                            return QTI_NOT_EQUAL;
+                        }
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -740,6 +757,10 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                 case QTS_EMPTYLIST:
                 case QTS_EMPTYHASH:
                     if (t.getType() == NT_REFERENCE) {
+                        // if the type may not match at runtime, then return no match with %strict-types
+                        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                            return QTI_NOT_EQUAL;
+                        }
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
@@ -756,8 +777,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             if (u.t == NT_ALL) {
                 return QTI_WILDCARD;
             }
-            // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
             if (ot == NT_ALL) {
+                // if the type may not match at runtime, then return no match with %strict-types
+                if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                    return QTI_NOT_EQUAL;
+                }
                 may_not_match = true;
                 return QTI_AMBIGUOUS;
             }

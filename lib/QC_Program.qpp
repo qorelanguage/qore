@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -720,12 +720,26 @@ const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
 */
 const PO_BROKEN_SPRINTF = PO_BROKEN_SPRINTF;
 
-//! allows for old pre-%Qore 0.9.4 broken @ref cast "cast<>" operator behavior where @ref nothing was silently accepted
+//! Allows for old pre-%Qore 0.9.4 broken @ref cast "cast<>" operator behavior where @ref nothing was silently accepted
 /** @see @ref broken-cast "%broken-cast"
 
     @since %Qore 0.9.4
 */
 const PO_BROKEN_CAST = PO_BROKEN_CAST;
+
+//! Allows the use of the deprecated \c returns keyword
+/** @see @ref allow-returns "%allow-returns"
+
+    @since %Qore 0.9.4
+*/
+const PO_ALLOW_RETURNS = PO_ALLOW_RETURNS;
+
+//! Sets strict type checking and automatically sets default values for lvalues with type restrictions for types with default values
+/** @see @ref strict-types "%strict-types"
+
+    @since %Qore 0.9.4
+*/
+const PO_STRICT_TYPES = PO_STRICT_TYPES;
 //@}
 
 /** @defgroup warning_constants Warning Constants

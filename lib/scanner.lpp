@@ -794,7 +794,10 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%correct-sprintf{WS}*$                 parse_disable_parse_options(yylloc, PO_BROKEN_SPRINTF);
 ^%broken-cast{WS}*$                     parse_set_parse_options(yylloc, PO_BROKEN_CAST);
 ^%correct-cast{WS}*$                    parse_disable_parse_options(yylloc, PO_BROKEN_CAST);
+^%allow-returns{WS}*$                   parse_set_parse_options(yylloc, PO_ALLOW_RETURNS);
 ^%allow-statement-no-effect{WS}*$       parse_set_parse_options(yylloc, PO_ALLOW_STATEMENT_NO_EFFECT);
+^%strict-types{WS}*$                    parse_set_parse_options(yylloc, PO_STRICT_TYPES);
+^%loose-types{WS}*$                     parse_disable_parse_options(yylloc, PO_STRICT_TYPES);
 ^%no-reflection{WS}*$                   parse_set_parse_options(yylloc, PO_NO_REFLECTION);
 ^%no-transient{WS}*$                    parse_set_parse_options(yylloc, PO_NO_TRANSIENT);
 ^%push-parse-options{WS}*$              push_parse_options();

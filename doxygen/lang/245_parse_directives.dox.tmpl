@@ -15,8 +15,9 @@
     <b>Parse Directives</b>
     |!Directive|!Description
     |@ref allow-bare-refs "%allow-bare-refs"|Prohibits the use of the \c "$" character in variable names, method calls, and object member references. This makes %Qore scripts appear superficially more like C++ or Java programs.<br><br>This parse option is set by default with @ref new-style "%new-style".<br><br>Name resolution is made in the following order when this option is set: local variables, class constants and static class vars (when parsing in class code), global variables, and (non-class) constants.<br><br>Note that @ref implicit_arguments "implicit arguments" are still referenced with the \c "$" character even when this parse option is set; see also @ref require-dollar "%require-dollar" <br><br>Since %Qore 0.8.1
-    |@ref allow-debugger "%allow-debugger"|Allows debugging actions that could be insecure such as reading the thread local variable stack <br><br>Since %Qore 0.8.13
+    |@ref allow-debugger "%allow-debugger"|Allows debugging actions that could be insecure such as reading the thread local variable stack<br><br>Since %Qore 0.8.13
     |@ref allow-injection "%allow-injection"|Allows code and dependency injections into the given @ref Qore::Program "Program" object
+    |@ref allow-returns "%allow-returns"|Allows the use of the deprecated \c returns keyword<br><br>Since %Qore 0.9.4
     |@ref allow-weak-references "%allow-weak-references"|Allows the use of the @ref weak_assignment_operator "weak assignment operator (:=)"<br><br>Since %Qore 0.8.13
     |@ref append-include-path "%append-include-path"|Appends the given directories to qore's include path; also performs environment variable substitution
     |@ref append-module-path "%append-module-path"|Appends the given directories to qore's module path; also performs environment variable substitution <br><br>Since %Qore 0.8.6
@@ -54,6 +55,7 @@
     |@ref lock-options "%lock-options"|Prohibits further changes to parse options (equivalent to the <tt>-</tt><tt>-lock-options</tt> command line option)
     |@ref lock-warnings "%lock-warnings"|Prohibits further changes to the warning mask (equivalent to the <tt>-</tt><tt>-lock-warnings</tt> command line option)
     |@ref loose-args "%loose-args"|reverts the effect of the @ref strict-args "%strict-args" parse options
+    |@ref loose-types "%loose-types"|reverts the effect of the @ref strict-types "%strict-types" parse options
     |@ref new-style "%new-style"|Sets both @ref allow-bare-refs "%allow-bare-refs" and @ref assume-local "%assume-local". These two options together make programming in %Qore superficially more like programming in C++ or Java programs; use this if you dislike programming with the \c "$" sign, for example; see also @ref old-style "%old-style" <br><br>Since %Qore 0.8.1
     |@ref old-style "%old-style"|Resets default %Qore parsing behavior by setting @ref require-dollar "%require-dollar" and @ref assume-global "%assume-global"; this option is the opposite of @ref new-style "%new-style" <br><br>Since %Qore 0.8.4
     |@ref no-debugging "%no-debugging"|Forbids debugging of the current @ref Qore::Program "Program" object <br><br>Since %Qore 0.8.13
@@ -94,6 +96,7 @@
     |@ref set-time-zone "%set-time-zone"|Sets the time zone for the current program from a UTC offset (with format \c "+/-[00[:00[:00]]"; \c ":" characters are optional) or a time zone region name (ex: \c "Europe/Prague") <br><br>Since %Qore 0.8.3
     |@ref strict-args "%strict-args"|Prohibits access to builtin functions and methods flagged with @ref RUNTIME_NOOP and also causes errors to be raised if excess arguments are given to functions that do not access excess arguments and if a non-list lvalue is passed to the @ref push, @ref pop, or @ref shift <br><br>Since %Qore 0.8.0
     |@ref strict-bool-eval "%strict-bool-eval"|Sets qore's default strict mathematic boolean evaluation mode, where any value converted to 0 is @ref False "False" and otherwise it's is @ref True "True"; this was how qore behaved by default prior to v0.8.6. <br><br>Equivalent to parse option @ref Qore::PO_STRICT_BOOLEAN_EVAL and the <tt>-pstrict-bool-eval</tt> command line option. <br><br>See also @ref perl-bool-eval "%perl-bool-eval"<br><br>Since %Qore 0.8.6
+    |@ref strict-types "%strict-types"|Sets strict type checking and automatically sets default values for lvalues with type restrictions that have default values
     |@ref strong-encapsulation "%strong-encapsulation"|Disallows out-of-line class and namespace declarations. <br><br>Since %Qore 0.8.13
     |@ref try-module "%try-module" [(@ref variable_declarations "var_decl")] <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|If the named feature is not already present in %Qore, then the \c QORE_MODULE_DIR environment variable is used to provide a list of directories to seach for a module with the same name (<em>feature</em><tt>[-api-</tt><em>x</em><tt>.</tt><em>y</em><tt>].qmod</tt> for binary modules or <em>feature</em><tt>.qm</tt> for user modules). If the module is not found, then the qore default module directory is checked.<br><br>If an error occurs loading the module, then the @ref variable_declarations "variable" declared after <tt>%%try-module</tt> is instantiated with the exception information, and the code up to the @ref endtry "%endtry" parse declaration is parsed into the program, allowing for the qore script/program to handle module loading errors at parse time for modules that must be loaded at parse time.<br><br>If version information is provided, then it is compared with the module's version information, and if it does not match a parse exception is raised that is handled like any other load error.<br><br>See also @ref Qore::load_module() for a function providing run-time module loading and @ref requires "%requires" for a similar declaration that does not allow for parse-time module loading error handling.<br><br>Since %Qore 0.8.6
     |@ref try-reexport-module "%try-reexport-module" [(@ref variable_declarations "var_decl")] <em>feature</em> <tt>[\<\|\<=\|=\|\>=\|\></tt> <em>version</em><tt>]</tt>|The same as @ref try-module "%try-module" except that if used in a @ref user_modules "user module", the module is reexported to the importing code<br><br>Since %Qore 0.8.13
@@ -170,6 +173,23 @@
     - @ref Qore::load_user_module_with_program()
 
     @since %Qore 0.8.12
+
+    <hr>
+    @section allow-returns %allow-returns
+
+    @par Parse Directive:
+    <tt>%%allow-returns</tt>
+
+    @par Command Line:
+    <tt>-pallow-returns</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_ALLOW_RETURNS
+
+    @par Description:
+    Allows the use of the deprecated \c returns keyword.
+
+    @since %Qore 0.9.4
 
     <hr>
     @section allow-weak-references %allow-weak-references
@@ -856,7 +876,7 @@ i+ =4;
     @section loose-args %loose-args
 
     @par Parse Directive:
-    n/a
+    <tt>%%loose-args</tt>
 
     @par Command Line:
     n/a
@@ -868,6 +888,22 @@ i+ =4;
     Reverts the effect of the @ref strict-args "%strict-args" parse option.
 
     @see @ref loose-args "%loose-args"
+
+    <hr>
+    @section loose-types %loose-types
+
+    @par Parse Directive:
+    <tt>%%loose-types</tt>
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref strict-types "%strict-types" parse option.
+
+    @see strict-types "%strict-types"
+
+    @since %Qore 0.9.4
 
     <hr>
     @section new-style %new-style
@@ -1706,6 +1742,26 @@ if (str)
     @see @ref perl-bool-eval "perl-bool-eval"
 
     @since %Qore 0.8.6
+
+    <hr>
+    @section strict-types %strict-types
+
+    @par Parse Directive:
+    <tt>%%strict-types</tt>
+
+    @par Command Line:
+    <tt>-pstrict-types</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_STRICT_TYPES
+
+    @par Description:
+    Sets strict type checking and automatically sets default values for lvalues with type restrictions that have
+    default values.
+
+    @see loose-types "%loose-types"
+
+    @since %Qore 0.9.4
 
     <hr>
     @section strong-encapsulation %strong-encapsulation
