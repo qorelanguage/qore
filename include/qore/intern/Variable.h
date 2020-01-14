@@ -163,11 +163,15 @@ public:
             if (!finalized)
                 finalized = true;
             printd(5, "Var::clearLocal() clearing '%s' %p\n", name.c_str(), this);
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-            h = val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo));
-#else
-            h = val.removeValue(true);
-#endif
+            {
+                QoreProgram* pgm = getProgram();
+                // when Qore is terminating, this may be nullptr
+                if (pgm && (pgm->getParseOptions64() & PO_STRICT_TYPES)) {
+                    h = val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo));
+                } else {
+                    h = val.removeValue(true);
+                }
+            }
         }
 #ifdef DEBUG
         else
@@ -239,10 +243,9 @@ public:
             val.set(typeInfo);
         }
 
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-        if (!val.hasValue())
+        if ((getProgram()->getParseOptions64() & PO_STRICT_TYPES) && !val.hasValue()) {
             discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), nullptr);
-#endif
+        }
     }
 
     DLLLOCAL QoreParseTypeInfo* copyParseTypeInfo() const {
@@ -661,11 +664,13 @@ public:
     }
 
     DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-        rv.assignSetInitialSwap(qv, QoreTypeInfo::getDefaultQoreValue(ti));
-#else
-        rv.assignSetTakeInitial(qv);
-#endif
+        QoreProgram* pgm = getProgram();
+        // when Qore is terminating, this may be nullptr
+        if (pgm && (pgm->getParseOptions64() & PO_STRICT_TYPES)) {
+            rv.assignSetTakeInitial(qv, QoreTypeInfo::getDefaultQoreValue(ti));
+        } else {
+            rv.assignSetTakeInitial(qv);
+        }
     }
 
     DLLLOCAL QoreValue removeValue();

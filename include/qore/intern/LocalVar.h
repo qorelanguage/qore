@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -169,12 +169,12 @@ public:
 
         // no exception is possible here as there was no previous value
         // also since only basic value types could be returned, no exceptions can occur with the value passed either
-        if (assign)
+        if (assign) {
             discard(val.assignAssumeInitial(nval, static_assignment), nullptr);
-#ifdef DEBUG
-        else
+        } else {
             assert(!val.assigned);
-#endif
+            assert(!nval);
+        }
     }
 
     DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
@@ -249,7 +249,7 @@ public:
         else
             assert(!val.assigned);
 #endif
-        }
+    }
 
     DLLLOCAL virtual ~ClosureVarValue() {
         //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);
@@ -331,158 +331,158 @@ public:
 // now shared between parent and child Program objects for top-level local variables with global scope
 class LocalVar {
 private:
-   std::string name;
-   bool closure_use = false,
-      parse_assigned = false;
-   const QoreTypeInfo* typeInfo;
-   const QoreTypeInfo* refTypeInfo;
+    std::string name;
+    bool closure_use = false,
+        parse_assigned = false;
+    const QoreTypeInfo* typeInfo;
+    const QoreTypeInfo* refTypeInfo;
 
-   DLLLOCAL LocalVarValue* get_var() const {
-      return thread_find_lvar(name.c_str());
-   }
+    DLLLOCAL LocalVarValue* get_var() const {
+        return thread_find_lvar(name.c_str());
+    }
 
 public:
-   DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), typeInfo(ti), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)) {
-   }
+    DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), typeInfo(ti), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)) {
+    }
 
-   DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo), refTypeInfo(old.refTypeInfo) {
-   }
+    DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo), refTypeInfo(old.refTypeInfo) {
+    }
 
-   DLLLOCAL ~LocalVar() {
-   }
+    DLLLOCAL ~LocalVar() {
+    }
 
-   DLLLOCAL void parseAssigned() {
-      if (!parse_assigned)
-         parse_assigned = true;
-   }
+    DLLLOCAL void parseAssigned() {
+        if (!parse_assigned)
+            parse_assigned = true;
+    }
 
-   DLLLOCAL void parseUnassigned() {
-      if (parse_assigned)
-         parse_assigned = false;
-   }
+    DLLLOCAL void parseUnassigned() {
+        if (parse_assigned)
+            parse_assigned = false;
+    }
 
-   DLLLOCAL void instantiate() {
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      instantiateIntern(QoreTypeInfo::getDefaultQoreValue(typeInfo), false);
-#else
-      instantiateIntern(QoreValue(), false);
-#endif
-   }
+    DLLLOCAL void instantiate() {
+        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+            //printd(5, "LocalVar::instantiate() this: %p '%s' typeInfo: %s\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo));
+            instantiateIntern(QoreTypeInfo::getDefaultQoreValue(typeInfo), true);
+        } else {
+            //printd(5, "LocalVar::instantiate() this: %p '%s' typeInfo: %s NO ASSIGNMENT\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo));
+            instantiateIntern(QoreValue(), false);
+        }
+    }
 
-   DLLLOCAL void instantiate(QoreValue nval) {
-      instantiateIntern(nval, true);
-   }
+    DLLLOCAL void instantiate(QoreValue nval) {
+        instantiateIntern(nval, true);
+    }
 
-   DLLLOCAL void instantiateIntern(QoreValue nval, bool assign) {
-      //printd(5, "LocalVar::instantiateIntern(%s, %d) this: %p '%s' value closure_use: %s pgm: %p val: %s type: '%s' rti: '%s'\n", nval.getTypeName(), assign, this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+    DLLLOCAL void instantiateIntern(QoreValue nval, bool assign) {
+        //printd(5, "LocalVar::instantiateIntern(%s, %d) this: %p '%s' value closure_use: %s pgm: %p val: %s type: '%s' rti: '%s'\n", nval.getTypeName(), assign, this, name.c_str(), closure_use ? "true" : "false", getProgram(), nval.getTypeName(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
 
-      if (!closure_use) {
-         LocalVarValue* val = thread_instantiate_lvar();
-         val->set(name.c_str(), typeInfo, nval, assign, false);
-      }
-      else
-         thread_instantiate_closure_var(name.c_str(), typeInfo, nval, assign);
-   }
+        if (!closure_use) {
+            LocalVarValue* val = thread_instantiate_lvar();
+            val->set(name.c_str(), typeInfo, nval, assign, false);
+        } else
+            thread_instantiate_closure_var(name.c_str(), typeInfo, nval, assign);
+    }
 
-   DLLLOCAL void instantiateSelf(QoreObject* value) const {
-      printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
-      if (!closure_use) {
-         LocalVarValue* val = thread_instantiate_lvar();
-         val->set(name.c_str(), typeInfo, value, true, true);
-      }
-      else {
-         QoreValue val(value->refSelf());
-         thread_instantiate_closure_var(name.c_str(), typeInfo, val, true);
-      }
-   }
+    DLLLOCAL void instantiateSelf(QoreObject* value) const {
+        printd(5, "LocalVar::instantiateSelf(%p) this: %p '%s'\n", value, this, name.c_str());
+        if (!closure_use) {
+            LocalVarValue* val = thread_instantiate_lvar();
+            val->set(name.c_str(), typeInfo, value, true, true);
+        } else {
+            QoreValue val(value->refSelf());
+            thread_instantiate_closure_var(name.c_str(), typeInfo, val, true);
+        }
+    }
 
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
-      //printd(5, "LocalVar::uninstantiate() this: %p '%s' closure_use: %s pgm: %p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
+    DLLLOCAL void uninstantiate(ExceptionSink* xsink) const  {
+        //printd(5, "LocalVar::uninstantiate() this: %p '%s' closure_use: %s pgm: %p\n", this, name.c_str(), closure_use ? "true" : "false", getProgram());
 
-      if (!closure_use)
-         thread_uninstantiate_lvar(xsink);
-      else
-         thread_uninstantiate_closure_var(xsink);
-   }
+        if (!closure_use)
+            thread_uninstantiate_lvar(xsink);
+        else
+            thread_uninstantiate_closure_var(xsink);
+    }
 
-   DLLLOCAL void uninstantiateSelf() const  {
-      if (!closure_use)
-         thread_uninstantiate_self();
-      else // cannot go out of scope here, so no destructor can be run, so we pass a NULL ExceptionSink ptr
-         thread_uninstantiate_closure_var(0);
-   }
+    DLLLOCAL void uninstantiateSelf() const  {
+        if (!closure_use)
+            thread_uninstantiate_self();
+        else // cannot go out of scope here, so no destructor can be run, so we pass a NULL ExceptionSink ptr
+            thread_uninstantiate_closure_var(0);
+    }
 
-   DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
-      if (!closure_use) {
-         LocalVarValue* val = get_var();
-         //printd(5, "LocalVar::eval '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
-         return val->eval(needs_deref, xsink);
-      }
+    DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
+        if (!closure_use) {
+            LocalVarValue* val = get_var();
+            //printd(5, "LocalVar::eval '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
+            return val->eval(needs_deref, xsink);
+        }
 
-      ClosureVarValue* val = thread_find_closure_var(name.c_str());
-      return val->eval(needs_deref, xsink);
-   }
+        ClosureVarValue* val = thread_find_closure_var(name.c_str());
+        return val->eval(needs_deref, xsink);
+    }
 
-   // returns true if the value could contain an object or a closure
-   DLLLOCAL bool needsScan() const {
-      return QoreTypeInfo::needsScan(typeInfo);
-   }
+    // returns true if the value could contain an object or a closure
+    DLLLOCAL bool needsScan() const {
+        return QoreTypeInfo::needsScan(typeInfo);
+    }
 
-   DLLLOCAL const char* getName() const {
-      return name.c_str();
-   }
+    DLLLOCAL const char* getName() const {
+        return name.c_str();
+    }
 
-   DLLLOCAL const std::string& getNameStr() const {
-      return name;
-   }
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
 
-   DLLLOCAL void setClosureUse() {
-      closure_use = true;
-   }
+    DLLLOCAL void setClosureUse() {
+        closure_use = true;
+    }
 
-   DLLLOCAL bool closureUse() const {
-      return closure_use;
-   }
+    DLLLOCAL bool closureUse() const {
+        return closure_use;
+    }
 
-   DLLLOCAL bool isRef() const {
-      return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
-   }
+    DLLLOCAL bool isRef() const {
+        return !closure_use ? get_var()->isRef() : thread_find_closure_var(name.c_str())->isRef();
+    }
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, bool initial_assignment) const {
-      //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d ti: '%s' rti: '%s'\n", this, getName(), for_remove, closure_use, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
-      if (!closure_use) {
-         return get_var()->getLValue(lvh, for_remove, typeInfo, refTypeInfo);
-      }
+    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, bool initial_assignment) const {
+        //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d ti: '%s' rti: '%s'\n", this, getName(), for_remove, closure_use, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+        if (!closure_use) {
+            return get_var()->getLValue(lvh, for_remove, typeInfo, refTypeInfo);
+        }
 
-      return thread_find_closure_var(name.c_str())->getLValue(lvh, for_remove);
-   }
+        return thread_find_closure_var(name.c_str())->getLValue(lvh, for_remove);
+    }
 
-   DLLLOCAL void remove(LValueRemoveHelper& lvrh) {
-      if (!closure_use)
-         return get_var()->remove(lvrh, typeInfo);
+    DLLLOCAL void remove(LValueRemoveHelper& lvrh) {
+        if (!closure_use)
+            return get_var()->remove(lvrh, typeInfo);
 
-      return thread_find_closure_var(name.c_str())->remove(lvrh);
-   }
+        return thread_find_closure_var(name.c_str())->remove(lvrh);
+    }
 
-   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return typeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+        return typeInfo;
+    }
 
-   DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
-      return parse_assigned && refTypeInfo ? refTypeInfo : typeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() const {
+        return parse_assigned && refTypeInfo ? refTypeInfo : typeInfo;
+    }
 
-   DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
-      return typeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
+        return typeInfo;
+    }
 
-   DLLLOCAL qore_type_t getValueType() const {
-      return !closure_use ? get_var()->val.getType() : thread_find_closure_var(name.c_str())->val.getType();
-   }
+    DLLLOCAL qore_type_t getValueType() const {
+        return !closure_use ? get_var()->val.getType() : thread_find_closure_var(name.c_str())->val.getType();
+    }
 
-   DLLLOCAL const char* getValueTypeName() const {
-      return !closure_use ? get_var()->val.getTypeName() : thread_find_closure_var(name.c_str())->val.getTypeName();
-   }
+    DLLLOCAL const char* getValueTypeName() const {
+        return !closure_use ? get_var()->val.getTypeName() : thread_find_closure_var(name.c_str())->val.getTypeName();
+    }
 };
 
 typedef LocalVar* lvar_ptr_t;

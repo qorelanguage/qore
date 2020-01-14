@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -424,11 +424,9 @@ public:
 
     DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {
         hash_assignment_priv ha(*this, key);
-#ifdef DEBUG
-        assert(ha.swap(v).isNothing());
-#else
-        ha.swap(v);
-#endif
+        // in case of assigning keys to an initialized hashdecl, the key may already have a value
+        // if the value is an object of a class that throws an exception in the destructor, then a crash will result
+        ValueHolder old(ha.swap(v), nullptr);
     }
 
     DLLLOCAL void setKeyValue(const char* key, QoreValue val, ExceptionSink* xsink) {

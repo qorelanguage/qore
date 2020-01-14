@@ -507,11 +507,11 @@ QoreValue qore_object_private::takeMember(ExceptionSink* xsink, const char* key,
 
     QoreHashNode* odata = member_class_ctx ? getCreateInternalData(member_class_ctx) : data;
 
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-    return odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this);
-#else
-    return odata->priv->swapKeyValue(key, QoreValue(), this);
-#endif
+    if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+        return odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this);
+    } else {
+        return odata->priv->swapKeyValue(key, QoreValue(), this);
+    }
 }
 
 QoreValue qore_object_private::takeMember(LValueHelper& lvh, const char* key) {
@@ -536,11 +536,11 @@ QoreValue qore_object_private::takeMember(LValueHelper& lvh, const char* key) {
     QoreHashNode* odata = member_class_ctx ? getCreateInternalData(member_class_ctx) : data;
 
     QoreValue rv;
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-    rv = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this);
-#else
-    rv = odata->priv->swapKeyValue(key, QoreValue(), this);
-#endif
+    if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+        rv = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this);
+    } else {
+        rv = odata->priv->swapKeyValue(key, QoreValue(), this);
+    }
 
     if (needs_scan(rv)) {
         if (!getScanCount())
@@ -594,16 +594,13 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
                 old_member_class_ctx = member_class_ctx;
             }
             odata = id;
-        }
-        else {
+        } else {
             odata = data;
         }
 
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-        QoreValue n = odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this);
-#else
-        QoreValue n = odata->priv->swapKeyValue(key, QoreValue(), this);
-#endif
+        QoreValue n = (getProgram()->getParseOptions64() & PO_STRICT_TYPES)
+            ? odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this)
+            : odata->priv->swapKeyValue(key, QoreValue(), this);
 
         // note that no exception can occur here
         rvh->setKeyValue(key, n, lvh.vl.xsink);

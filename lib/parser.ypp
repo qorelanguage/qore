@@ -3114,12 +3114,17 @@ method_modifier:
 
 return_value:
         TOK_RETURNS qtypedef {
+            // see if the deprecated "returns" keyword can be used
+            if (!parse_check_parse_option(PO_ALLOW_RETURNS)) {
+                const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @2.last_line);
+                parse_error(*loc, "illegal use of the depcreated \"returns\" keyword (enable by setting parse option PO_ALLOW_RETURNS)");
+            }
+
             if (!$2) {
                 const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @2.last_line);
                 parse_error(*loc, "missing type declaration after 'returns'");
                 $$ = 0;
-            }
-            else {
+            } else {
                 $$ = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
                 delete $2;
             }

@@ -4,7 +4,7 @@
 
     QORE programming language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -94,13 +94,15 @@
 #define PO_NO_TRANSIENT                     (1LL << 54)  //!< disables the transient keyword
 #define PO_BROKEN_SPRINTF                   (1LL << 55)  //!< enables pre-0.9 broken sprintf handling
 #define PO_BROKEN_CAST                      (1LL << 56)  //!< enables pre-0.9.4 broken cast<> operator handling
+#define PO_ALLOW_RETURNS                    (1LL << 57)  //!< allows the use of the deprecated "returns" keyword
+#define PO_STRICT_TYPES                     (1LL << 58)  //!< enforce strict type checking and setting default values
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
 #define PO_NO_SYSTEM_CLASSES                PO_NO_INHERIT_SYSTEM_CLASSES
 #define PO_NO_USER_CLASSES                  PO_NO_INHERIT_USER_CLASSES
 
-#define PO_DEFAULT                     0            //!< no parse options set by default
+#define PO_DEFAULT 0            //!< no parse options set by default
 
 //! all options that are set by the system
 #define PO_SYSTEM_OPS (PO_IN_MODULE)

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -578,8 +578,11 @@ public:
         return rv;
     }
 
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-    DLLLOCAL void assignSetInitialSwap(QoreLValue<U>& n, QoreValue& val) {
+    //! takes the value of an lvalue and returns that value in the output variable \a n
+    /** @param n the output variable containing the old value of the lvalue
+        @param val the default value for the type
+    */
+    DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n, QoreValue val) {
         assert(!assigned);
         assigned = true;
         type = n.type;
@@ -588,9 +591,24 @@ public:
             n.static_assignment = false;
         }
         switch (n.type) {
-            case QV_Bool: v.b = n.v.b; n.v.b = val.v.b; break;
-            case QV_Int: v.i = n.v.i; n.v.i = val.v.i; break;
-            case QV_Float: v.f = n.v.f; n.v.f = val.v.f; break;
+            case QV_Bool:
+                v.b = n.v.b;
+                assert(val.getType() == NT_BOOLEAN);
+                n.v.b = val.v.b;
+                break;
+
+            case QV_Int:
+                v.i = n.v.i;
+                assert(val.getType() == NT_INT);
+                n.v.i = val.v.i;
+                break;
+
+            case QV_Float:
+                v.f = n.v.f;
+                assert(val.getType() == NT_FLOAT);
+                n.v.f = val.v.f;
+                break;
+
             case QV_Node:
                 if (n.is_closure) {
                     assert(!is_closure);
@@ -599,11 +617,13 @@ public:
                 v.n = n.v.n;
                 n.v.n = val.takeNode();
                 break;
-            default: assert(false);
-            // no break
+
+            default:
+                assert(false);
+                // no break
         }
     }
-#else
+
     DLLLOCAL void assignSetTakeInitial(QoreLValue<U>& n) {
         assert(!assigned);
         if (!n.assigned)
@@ -620,18 +640,17 @@ public:
             case QV_Float: v.f = n.v.f; n.v.f = 0; break;
             case QV_Node:
                 if (n.is_closure) {
-                assert(!is_closure);
-                is_closure = true;
+                    assert(!is_closure);
+                    is_closure = true;
                 }
                 v.n = n.v.n;
-                n.v.n = 0;
+                n.v.n = nullptr;
                 break;
             default: assert(false);
             // no break
         }
         n.assigned = false;
     }
-#endif
 
     // note: destructive for "n"
     // returns any AbstractQoreNode no longer needed (because it was converted to a base type)

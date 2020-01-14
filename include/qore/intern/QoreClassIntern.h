@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1093,10 +1093,10 @@ public:
 
     DLLLOCAL void init() {
         val.set(getTypeInfo());
-#ifdef QORE_ENFORCE_DEFAULT_LVALUE
-        // try to set an optimized value type for the value holder if possible
-        discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
-#endif
+        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+            // try to set an optimized value type for the value holder if possible
+            discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), nullptr);
+        }
     }
 
     DLLLOCAL QoreValue getReferencedValue() const {
@@ -2831,7 +2831,12 @@ public:
     // this = class to find in "oc"
     DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc) const {
         bool may_not_match = false;
-        return parseCheckCompatibleClass(oc, may_not_match);
+        qore_type_result_e rv = parseCheckCompatibleClass(oc, may_not_match);
+        // if the type may not match at runtime, then return no match with %strict-types
+        if (may_not_match && (getProgram()->getParseOptions64() & PO_STRICT_TYPES)) {
+            return QTI_NOT_EQUAL;
+        }
+        return rv;
     }
     DLLLOCAL qore_type_result_e parseCheckCompatibleClass(const qore_class_private& oc, bool& may_not_match) const;
     DLLLOCAL qore_type_result_e parseCheckCompatibleClassIntern(const qore_class_private& oc, bool& may_not_match) const;
