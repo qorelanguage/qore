@@ -438,7 +438,6 @@ public:
         }
     }
 
-#ifdef DEBUG
     DLLLOCAL bool hasValue() const {
         if (!assigned)
             return false;
@@ -446,13 +445,12 @@ public:
             case QV_Bool: return v.b;
             case QV_Int: return (bool)v.i;
             case QV_Float: return (bool)v.f;
-            case QV_Node: return (bool)v.n;
+            case QV_Node: return !is_nothing(v.n);
             default: assert(false);
             // no break
         }
         return false;
     }
-#endif
 
     DLLLOCAL void set(const QoreTypeInfo* typeInfo) {
         if (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)
