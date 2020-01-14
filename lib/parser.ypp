@@ -3117,7 +3117,7 @@ return_value:
             // see if the deprecated "returns" keyword can be used
             if (!parse_check_parse_option(PO_ALLOW_RETURNS)) {
                 const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @2.last_line);
-                parse_error(*loc, "illegal use of the depcreated \"returns\" keyword (enable by setting parse option PO_ALLOW_RETURNS)");
+                parse_error(*loc, "illegal use of the deprecated \"returns\" keyword (enable by setting parse option PO_ALLOW_RETURNS)");
             }
 
             if (!$2) {
