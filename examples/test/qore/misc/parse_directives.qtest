@@ -40,6 +40,23 @@ public class ParseDirectiveTest inherits QUnit::Test {
     strictTypesTest() {
         {
             Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
+            assertThrows("INVALID-OPERATION", \p.parse(), ("auto sub t() { return { (0,): 1, }; }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
+            p.parse("auto sub t() { int i = 1; delete i; return i; }", "");
+            assertEq(0, p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
+            p.parse("auto sub t() { int i = 1; remove i; return i; }", "");
+            assertEq(0, p.callFunction("t"));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("*int v0 = 0; int v1 = v0;", ""));
         }
 
@@ -197,6 +214,12 @@ public class ParseDirectiveTest inherits QUnit::Test {
         }
 
         # negative tests
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("auto sub t() { return { (0,): 1, }; }", "");
+            assertEq("hash<string, int>", p.callFunction("t").fullType());
+        }
+
         {
             Program p(PO_NEW_STYLE);
             p.parse("int sub t() { *int v0 = 0; return v0; }", "");

@@ -1156,6 +1156,13 @@ void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation* loc, const char
    qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
+void QoreTypeInfo::doNonStringError(const QoreProgramLocation* loc, const char* preface) const {
+   QoreStringNode* desc = new QoreStringNode(preface);
+   getThisTypeImpl(*desc);
+   desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
+   parseException(*loc, "INVALID-OPERATION", desc);
+}
+
 void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
     // strips complex typeinfo for an assignment to an untyped lvalue
     switch (n.getType()) {
