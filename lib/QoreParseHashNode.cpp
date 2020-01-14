@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,12 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
 
         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            argTypeInfo->doNonStringWarning(lvec[i], str.c_str());
+            // this is an error if %strict-types is in force
+            if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                argTypeInfo->doNonStringError(lvec[i], str.c_str());
+            } else {
+                argTypeInfo->doNonStringWarning(lvec[i], str.c_str());
+            }
         }
 
         argTypeInfo = nullptr;

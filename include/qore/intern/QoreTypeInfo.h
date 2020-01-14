@@ -967,6 +967,7 @@ public:
     DLLLOCAL void doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const;
     DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation* loc, const char* preface) const;
     DLLLOCAL void doNonStringWarning(const QoreProgramLocation* loc, const char* preface) const;
+    DLLLOCAL void doNonStringError(const QoreProgramLocation* loc, const char* preface) const;
 
 protected:
     DLLLOCAL int doObjectPrivateClassException(const char* param_name, ExceptionSink* xsink) const {
