@@ -49,6 +49,9 @@ public class DbSelectRecordIterator inherits AbstractDbRecordIterator {
     #! Prepares the AbstractSQLStatement object for the iterator
     private static AbstractSQLStatement prepareStatement(AbstractSQLStatement stmt, hash<auto> select_options) {
         stmt.prepare(select_options.sql);
+        if (select_options.args) {
+            stmt.bindArgs(select_options.args);
+        }
         return stmt;
     }
 }

@@ -81,6 +81,10 @@ public class DbDataProvider inherits AbstractDataProvider {
                 "desc": "the raw SQL for the select statement",
                 "required": True,
             },
+            "args": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoListType),
+                "desc": "any bind arguments for the select statement",
+            },
         };
     }
 
@@ -145,6 +149,56 @@ public class DbDataProvider inherits AbstractDataProvider {
     */
     rollback() {
         db.rollback();
+    }
+
+    #! Returns the description of the record type, if any
+    /** @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
+        is ignored
+    */
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        AbstractDatasource ds = db.getDatasource();
+        bool in_trans = ds.currentThreadInTransaction();
+        on_error {
+            if (!in_trans) {
+                ds.rollback();
+            }
+        }
+        on_success {
+            if (!in_trans) {
+                ds.commit();
+            }
+        }
+
+        AbstractSQLStatement stmt = ds.getSQLStatement();
+        stmt.prepare(search_options.sql);
+        if (search_options.args) {
+            stmt.bindArgs(search_options.args);
+        }
+        HashDataType input_data();
+        foreach hash<auto> i in (stmt.describe().pairIterator()) {
+            # get input column name
+            string key = i.key.lwr();
+            string desc = i.value.native_type.lwr();
+            # add DB maximum size to desc
+            if (i.value.maxsize) {
+                desc += sprintf("(%d)", i.value.maxsize);
+            }
+            #printf("i: %y\n", i);
+            *string type = DataProvider::OptimalQoreDataTypeMap{TypeCodeMap{i.value.type}};
+            AbstractDataProviderType data_type;
+            if (!type.val() || type == "any") {
+                data_type = AbstractDataProviderType::get(AutoType);
+            } else {
+                # maps standard types to auto types to avoid type stripping
+                if (type =~ /(hash|list)$/) {
+                    type += "<auto>";
+                }
+                data_type = AbstractDataProviderType::get(type);
+            }
+            input_data.addField(new QoreDataField(key, desc, data_type));
+        }
+        return input_data.getFields();
     }
 
     #! Returns an iterator for zero or more records matching the search options

@@ -1953,7 +1953,6 @@ InboundTableMapperIterator i(input, mapper);
 
         #! returns an input record description from an SQLStatement
         private static *hash<string, AbstractDataField> getInputRecordFromStmt(AbstractSQLStatement stmt, *hash<auto> input) {
-            #return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.native_type.lwr(), ($1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, stmt.describe().pairIterator();
             HashDataType input_data();
             foreach hash<auto> i in (stmt.describe().pairIterator()) {
                 # get input column name
@@ -1973,7 +1972,7 @@ InboundTableMapperIterator i(input, mapper);
                 } else if (input{key}.hasKey("desc") && input{key}.desc.typeCode() == NT_STRING && input{key}.desc.val()) {
                     desc += "; " + input{key}.desc;
                 }
-                *string type = DataProvider::OptimalQoreDataTypeMap{i.value.type};
+                *string type = DataProvider::OptimalQoreDataTypeMap{TypeCodeMap{i.value.type}};
                 input_data.addField(new QoreDataField(key, desc, Mapper::getInputType(type)));
             }
             return input_data.getFields();
