@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore CsvReadDataProvider class definition
 
-/*  CsvReadDataProvider.qc Copyright 2012 - 2019 Qore Technologies, s.r.o.
+/*  CsvReadDataProvider.qc Copyright 2012 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -116,7 +116,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Returns the description of the record type, if any
-    *hash<string, AbstractDataField> getRecordType() {
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         if (!i.valid()) {
             i.peek();
         }

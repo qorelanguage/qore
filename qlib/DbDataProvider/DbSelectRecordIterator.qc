@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore DbTableRecordIterator class definition
+#! Qore DbSelectRecordIterator class definition
 
-/** DbTableRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** DbSelectRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,14 +36,23 @@
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
-public class DbTableRecordIterator inherits AbstractDbRecordIterator {
-    #! creates the iterator
+public class DbSelectRecordIterator inherits AbstractDbRecordIterator {
+    #! Creates the iterator
     /** @param table the table to iteratate
         @param search_options search options; assumed to have already been processed for validity before this call
     */
-    constructor(AbstractTable table, *hash<auto> where_cond, *hash<auto> search_options)
-        : AbstractDbRecordIterator(!table.getDatasource().currentThreadInTransaction(),
-            table.getStatement(search_options + {"where": where_cond})) {
+    constructor(AbstractDatasource ds, hash<auto> select_options)
+        : AbstractDbRecordIterator(!ds.currentThreadInTransaction(),
+            DbSelectRecordIterator::prepareStatement(ds.getStatement(), select_options)) {
+    }
+
+    #! Prepares the AbstractSQLStatement object for the iterator
+    private static AbstractSQLStatement prepareStatement(AbstractSQLStatement stmt, hash<auto> select_options) {
+        stmt.prepare(select_options.sql);
+        if (select_options.args) {
+            stmt.bindArgs(select_options.args);
+        }
+        return stmt;
     }
 }
 }

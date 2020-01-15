@@ -197,9 +197,10 @@ public class SqlTestBase inherits QUnit::Test {
 
             if (fname) {
                 # test update API
+                AbstractDatasource ds = table.getDatasource();
+                assertFalse(ds.currentThreadInTransaction());
                 string rstr = get_random_string();
                 assertTrue(dp.updateSingleRecord({fname: rstr}, {"id": 1}));
-                AbstractDatasource ds = table.getDatasource();
                 assertFalse(ds.currentThreadInTransaction());
 
                 hash<auto> row = dp.searchSingleRecord({"id": 1});

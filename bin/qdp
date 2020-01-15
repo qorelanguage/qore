@@ -3,7 +3,7 @@
 
 # @file qdp example program for the DataProvider module
 
-/*  Copyright 2019 Qore Technologies, s.r.o.
+/*  Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -158,7 +158,8 @@ class QdpCmd {
     }
 
     static getRecord(AbstractDataProvider provider) {
-        *hash<string, AbstractDataField> rec = provider.getRecordType();
+        *hash<auto> search_options = QdpCmd::getHash("search options");
+        *hash<string, AbstractDataField> rec = provider.getRecordType(search_options);
         if (opts.verbose > 1) {
             printf("%N\n", (map {$1.key: $1.value.getInfo()}, rec.pairIterator()));
         } else {

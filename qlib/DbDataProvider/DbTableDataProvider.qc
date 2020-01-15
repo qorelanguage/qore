@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbTableDataProvider class definition
 
-/** DbTableDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DbTableDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -207,11 +207,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return table.getName();
     }
 
-    #! Returns the description of the record type, if any
-    *hash<string, AbstractDataField> getRecordType() {
-        return table.getRecordType();
-    }
-
     #! Returns child providers; return @ref nothing if there are no child providers
     *AbstractDataProvider getChildProviders() {
     }
@@ -269,6 +264,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         rv.sequence.handler = \doSequenceKey();
         rv.sequence_currval.handler = \doSequenceCurrvalKey();
         return rv;
+    }
+
+    #! Returns the description of the record type, if any
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        return table.getRecordType();
     }
 
     #! Writes the given record to the data provider

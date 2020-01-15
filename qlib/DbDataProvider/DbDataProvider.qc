@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbDataProvider class definition
 
-/** DbDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DbDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "DbDataProvider",
-            "supports_read": False,
+            "supports_read": True,
             "supports_create": False,
             "supports_update": False,
             "supports_upsert": False,
@@ -51,10 +51,12 @@ public class DbDataProvider inherits AbstractDataProvider {
             "supports_bulk_upsert": False,
             "supports_children": True,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
+            "search_options": SearchOptions,
             "create_options": NOTHING,
             "upsert_options": NOTHING,
-            "transaction_management": False,
+            "transaction_management": True,
+            "has_record": True,
+            "record_requires_search_options": True,
         };
 
         #! Constructor options
@@ -69,6 +71,19 @@ public class DbDataProvider inherits AbstractDataProvider {
             "database": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("AbstractDatabase")),
                 "desc": "the database for the object",
+            },
+        };
+
+        #! Search options
+        const SearchOptions = {
+            "sql": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the raw SQL for the select statement",
+                "required": True,
+            },
+            "args": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoListType),
+                "desc": "any bind arguments for the select statement",
             },
         };
     }
@@ -120,6 +135,80 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return db.getDatasourceDesc();
+    }
+
+    #! Commits any transaction in progress in the datasource
+    /**
+    */
+    commit() {
+        db.commit();
+    }
+
+    #! Rolls back any transaction in progress in the datasource
+    /**
+    */
+    rollback() {
+        db.rollback();
+    }
+
+    #! Returns the description of the record type, if any
+    /** @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
+        is ignored
+    */
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        AbstractDatasource ds = db.getDatasource();
+        bool in_trans = ds.currentThreadInTransaction();
+        on_error {
+            if (!in_trans) {
+                ds.rollback();
+            }
+        }
+        on_success {
+            if (!in_trans) {
+                ds.commit();
+            }
+        }
+
+        AbstractSQLStatement stmt = ds.getSQLStatement();
+        stmt.prepare(search_options.sql);
+        if (search_options.args) {
+            stmt.bindArgs(search_options.args);
+        }
+        HashDataType input_data();
+        foreach hash<auto> i in (stmt.describe().pairIterator()) {
+            # get input column name
+            string key = i.key.lwr();
+            string desc = i.value.native_type.lwr();
+            # add DB maximum size to desc
+            if (i.value.maxsize) {
+                desc += sprintf("(%d)", i.value.maxsize);
+            }
+            #printf("i: %y\n", i);
+            *string type = DataProvider::OptimalQoreDataTypeMap{TypeCodeMap{i.value.type}};
+            AbstractDataProviderType data_type;
+            if (!type.val() || type == "any") {
+                data_type = AbstractDataProviderType::get(AutoType);
+            } else {
+                # maps standard types to auto types to avoid type stripping
+                if (type =~ /(hash|list)$/) {
+                    type += "<auto>";
+                }
+                data_type = AbstractDataProviderType::get(type);
+            }
+            input_data.addField(new QoreDataField(key, desc, data_type));
+        }
+        return input_data.getFields();
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @see requestSearchRecordsImpl()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        return new DbSelectRecordIterator(db.getDatasource(), search_options);
     }
 
     #! Returns a list of child data provider names, if any
