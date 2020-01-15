@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerRequestDataProvider module definition
 
-/** SwaggerRequestDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SwaggerRequestDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -90,7 +90,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     #! Returns the description of the record type, if any
     /** Returns the record type description for any successful response
     */
-    *hash<string, AbstractDataField> getRecordType() {
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return record_type;
     }
 

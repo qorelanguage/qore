@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore CsvHelper class definition
 
-/*  CsvHelper.qm Copyright 2012 - 2018 Qore Technologies, s.r.o.
+/*  CsvHelper.qm Copyright 2012 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ class CsvHelper {
         const C_OPT1 = 0x1;
         const C_OPT2 = 0x2;
         #! supported type codes (hash for quick lookups)
-        const Types = (
+        const Types = {
             "int": True,
             "*int": True,
             "float": True,
@@ -44,7 +44,7 @@ class CsvHelper {
             "*string": True,
             "date": True,
             "*date": True,
-        );
+        };
 
         #! supported field description attribute codes
         const FieldAttrs = ("type", "format", "timezone", "code", "header");

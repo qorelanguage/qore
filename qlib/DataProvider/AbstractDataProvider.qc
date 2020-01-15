@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDataProvider class definition
 
-/** AbstractDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -151,6 +151,11 @@ public hashdecl DataProviderInfo {
     */
     bool has_record = False;
 
+    #! Do we require search options to retrieve the record type?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+    */
+    bool record_requires_search_options = False;
+
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -247,7 +252,8 @@ public class AbstractDataProvider {
     */
     *hash<auto> searchFirstRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
-        return searchFirstRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return searchFirstRecordImpl(processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Returns a single record matching the search options
@@ -259,7 +265,8 @@ public class AbstractDataProvider {
     */
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
-        return searchSingleRecordImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return searchSingleRecordImpl(processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator iterating all records
@@ -302,7 +309,8 @@ public class AbstractDataProvider {
             throw "INVALID-BLOCK-SIZE", sprintf("block_size %d is invalid; the block size mst be a positive number",
                 block_size);
         }
-        return searchRecordsBulkImpl(block_size, processFieldValues(where_cond), validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return searchRecordsBulkImpl(block_size, processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -313,7 +321,8 @@ public class AbstractDataProvider {
     */
     AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
-        return searchRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return searchRecordsImpl(processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options according to an API request
@@ -342,8 +351,9 @@ public class AbstractDataProvider {
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
-        return updateSingleRecordImpl(processFieldValues(set), processFieldValues(where_cond),
-            validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return updateSingleRecordImpl(processFieldValues(set, search_options),
+            processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Updates zero or more records matching the search options
@@ -357,8 +367,9 @@ public class AbstractDataProvider {
     */
     int updateRecords(hash<auto> set, *hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
-        return updateRecordsImpl(processFieldValues(set), processFieldValues(where_cond),
-            validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return updateRecordsImpl(processFieldValues(set, search_options),
+            processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Deletes zero or more records
@@ -372,7 +383,8 @@ public class AbstractDataProvider {
     */
     int deleteRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkDelete();
-        return deleteRecordsImpl(processFieldValues(where_cond), validateSearchOptions(search_options));
+        search_options = validateSearchOptions(search_options);
+        return deleteRecordsImpl(processFieldValues(where_cond, search_options), search_options);
     }
 
     #! Makes a request and returns the response
@@ -673,16 +685,17 @@ public class AbstractDataProvider {
 
     #! processes search or set values to convert types if necessary
     /** @param h the hash of field values to process
+        @param search_options the search options after processing by validateSearchOptions()
 
         @return processed field values, all non-hash values of \a h are processed with the field's type to ensure
         that the values are valid for the comparison or set operation; hash values are assumed to be provider-
         specific comparison or set operations and should be processed by the provider-specific method
     */
-    private *hash<auto> processFieldValues(*hash<auto> h) {
+    private *hash<auto> processFieldValues(*hash<auto> h, *hash<auto> search_options) {
         if (!h) {
             return;
         }
-        *hash<string, AbstractDataField> rec = getRecordType();
+        *hash<string, AbstractDataField> rec = getRecordTypeImpl(search_options);
         hash<auto> rv;
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
@@ -761,15 +774,24 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of the record type, if any
-    *hash<string, AbstractDataField> getRecordType() {
-        # this method intentionally left blank
+    /** @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
+        is ignored
+
+        @return the record type or @ref NOTHING if the datas provider does not support a record type
+    */
+    *hash<string, AbstractDataField> getRecordType(*hash<auto> search_options) {
+        if (!hasRecord()) {
+            return;
+        }
+        return getRecordTypeImpl(recordRequiresSearchOptions() ? validateSearchOptions(search_options) : NOTHING);
     }
 
     #! Returns the description of the record type, if any
-    *hash<string, AbstractDataField> getSoftRecordType() {
+    *hash<string, AbstractDataField> getSoftRecordType(*hash<auto> search_options) {
         return map {
             $1.key: $1.value.getSoftType()
-        }, getRecordType().pairIterator();
+        }, getRecordType(search_options).pairIterator();
     }
 
     #! Returns options that can be used for searching
@@ -874,10 +896,33 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().supports_request;
     }
 
+    #! Returns True if the data provider requires search options to retrieve the record type
+    /**
+    */
+    bool recordRequiresSearchOptions() {
+        return getStaticInfoImpl().record_requires_search_options;
+    }
+
+    #! Returns @ref True if the data provider has a record type
+    /** @return @ref True if the data provider has a record type
+    */
+    bool hasRecord() {
+        return getStaticInfoImpl().has_record;
+    }
+
+    #! Returns the description of the record type, if any
+    /** @param search_options to be included and processed by validateSearchOptions() if
+        \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
+        is ignored
+    */
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+
     #! Returns an iterator for zero or more records matching the search options
     /** @param block_size the number of records in a read block; must be a positive number
-        @param where_cond the search criteria; will be processed by processFieldValues()
-        @param search_options the search options; will be processed by validateSearchOptions()
+        @param where_cond the search criteria; after processing by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
 
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
@@ -898,7 +943,7 @@ public class AbstractDataProvider {
 
     #! Returns an iterator for zero or more records matching the search options according to an API request
     /** @param req the request to serialize and make according to the request type
-        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param where_cond the search criteria; after processing by processFieldValues()
         @param search_options the search options after processing by validateSearchOptions()
 
         This will execute the request and perform a default search on any record(s) returned

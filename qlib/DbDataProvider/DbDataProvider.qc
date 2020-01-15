@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbDataProvider class definition
 
-/** DbDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DbDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "DbDataProvider",
-            "supports_read": False,
+            "supports_read": True,
             "supports_create": False,
             "supports_update": False,
             "supports_upsert": False,
@@ -51,10 +51,12 @@ public class DbDataProvider inherits AbstractDataProvider {
             "supports_bulk_upsert": False,
             "supports_children": True,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
+            "search_options": SearchOptions,
             "create_options": NOTHING,
             "upsert_options": NOTHING,
-            "transaction_management": False,
+            "transaction_management": True,
+            "has_record": True,
+            "record_requires_search_options": True,
         };
 
         #! Constructor options
@@ -69,6 +71,15 @@ public class DbDataProvider inherits AbstractDataProvider {
             "database": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("AbstractDatabase")),
                 "desc": "the database for the object",
+            },
+        };
+
+        #! Search options
+        const SearchOptions = {
+            "sql": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the raw SQL for the select statement",
+                "required": True,
             },
         };
     }
@@ -120,6 +131,30 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return db.getDatasourceDesc();
+    }
+
+    #! Commits any transaction in progress in the datasource
+    /**
+    */
+    commit() {
+        db.commit();
+    }
+
+    #! Rolls back any transaction in progress in the datasource
+    /**
+    */
+    rollback() {
+        db.rollback();
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @see requestSearchRecordsImpl()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        return new DbSelectRecordIterator(db.getDatasource(), search_options);
     }
 
     #! Returns a list of child data provider names, if any

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SalesforceRestDataProvider module definition
 
-/** SalesforceRestObjectDataProvider.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SalesforceRestObjectDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -87,7 +87,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         return name;
     }
 
-    *hash<string, AbstractDataField> getRecordType() {
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return record_info.record_type;
     }
 
