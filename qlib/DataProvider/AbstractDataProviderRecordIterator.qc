@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDataProviderRecordIterator class definition
 
-/** AbstractDataProviderRecordIterator.qc Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractDataProviderRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,5 +39,52 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
     /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     */
     abstract hash<auto> getValue();
+
+    #! Returns the value of the given field in the current record, if the iterator is valid
+    /** @param key the name of the field
+
+        @return the value of the given field in the current record, if the iterator is valid
+
+        @throw FIELD-ERROR invalid or unknown field name
+    */
+    private auto doMemberGate(string key) {
+        hash<auto> record = getValue();
+        auto rv = record{key};
+        if (!exists rv && !record.hasKey(key)) {
+            throw "FIELD-ERROR", sprintf("the current record does not have field %y; valid fields: %y", key,
+                keys record);
+        }
+        return rv;
+    }
+
+    #! Checks if the current record matches the search criteria
+    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
+        performed
+    */
+    private static bool matchGeneric(hash<auto> record, *hash<auto> where_cond) {
+        foreach hash<auto> elem in (where_cond.pairIterator()) {
+            if (!AbstractDataProviderRecordIterator::matchGenericValue(record{elem.key}, elem.value)) {
+                return False;
+            }
+        }
+        return True;
+    }
+
+    #! Match a single value
+    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
+        performed
+    */
+    private static bool matchGenericValue(auto expects, auto val) {
+        if (val.typeCode() == NT_HASH) {
+            # in case of a hash, do a recursive partial match with only the given keys
+            foreach hash<auto> i in (val.pairIterator()) {
+                if (!AbstractDataProviderRecordIterator::matchGenericValue(expects{i.key}, i.value)) {
+                    return False;
+                }
+            }
+            return True;
+        }
+        return expects == val;
+    }
 }
 }

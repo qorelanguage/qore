@@ -42,13 +42,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         const ProviderInfo = <DataProviderInfo>{
             "type": "DbDataProvider",
             "supports_read": True,
-            "supports_create": False,
-            "supports_update": False,
-            "supports_upsert": False,
-            "supports_delete": False,
-            "supports_native_search": False,
-            "supports_bulk_create": False,
-            "supports_bulk_upsert": False,
+            "supports_bulk_read": True,
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "search_options": SearchOptions,
@@ -202,13 +196,25 @@ public class DbDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns an iterator for zero or more records matching the search options
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria after processing by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+        return new DbSelectBulkRecordInterface(block_size, db.getDatasource(), where_cond, search_options);
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
 
         @see requestSearchRecordsImpl()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        return new DbSelectRecordIterator(db.getDatasource(), search_options);
+        return new DbSelectRecordIterator(db.getDatasource(), where_cond, search_options);
     }
 
     #! Returns a list of child data provider names, if any

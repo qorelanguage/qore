@@ -37,13 +37,50 @@
 public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
 public class DbSelectRecordIterator inherits AbstractDbRecordIterator {
+    private {
+        #! search conditions
+        *hash<auto> where_cond;
+    }
+
     #! Creates the iterator
-    /** @param table the table to iteratate
-        @param search_options search options; assumed to have already been processed for validity before this call
+    /** @param ds the datasource to use
+        @param where_cond the search conditions to apply to the result set from the SQL
+        @param search_options search options; assumed to have already been processed for validity before this call; contains:
+        - \c sql (required): the SQL query
+        - \c args (optional): a list of bind arguments to \a sql
     */
-    constructor(AbstractDatasource ds, hash<auto> select_options)
+    constructor(AbstractDatasource ds, *hash<auto> where_cond, hash<auto> select_options)
         : AbstractDbRecordIterator(!ds.currentThreadInTransaction(),
-            DbSelectRecordIterator::prepareStatement(ds.getStatement(), select_options)) {
+            DbSelectRecordIterator::prepareStatement(ds.getSQLStatement(), select_options)) {
+        self.where_cond = where_cond;
+    }
+
+    #! Moves the current position to the next element; returns @ref False if there are no more elements
+    /** This method will return @ref True again after it returns @ref False once if the object being iterated is not
+        empty, otherwise it will always return @ref False.  The iterator object should not be used after this method
+        returns @ref False
+
+        @return @ref False if there are no more elements (in which case the iterator object is invalid and should not
+        be used); @ref True if successful (meaning that the iterator object is valid)
+    */
+    bool next() {
+        while (stmt.next()) {
+            if (!where_cond || (where_cond && matchGeneric(stmt.getValue(), where_cond))) {
+                return True;
+            }
+        }
+        return False;
+    }
+
+    #! Returns the value of the given field in the current record, if the iterator is valid
+    /** @param key the name of the field
+
+        @return the value of the given field in the current record, if the iterator is valid
+
+        @throw FIELD-ERROR invalid or unknown field name
+    */
+    auto memberGate(string key) {
+        return doMemberGate(key);
     }
 
     #! Prepares the AbstractSQLStatement object for the iterator

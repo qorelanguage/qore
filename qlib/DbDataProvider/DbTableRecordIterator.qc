@@ -45,5 +45,16 @@ public class DbTableRecordIterator inherits AbstractDbRecordIterator {
         : AbstractDbRecordIterator(!table.getDatasource().currentThreadInTransaction(),
             table.getStatement(search_options + {"where": where_cond})) {
     }
+
+    #! Returns the value of the given field in the current record, if the iterator is valid
+    /** @param key the name of the field
+
+        @return the value of the given field in the current record, if the iterator is valid
+
+        @throw FIELD-ERROR invalid or unknown field name
+    */
+    auto memberGate(string key) {
+        return doMemberGate(key);
+    }
 }
 }

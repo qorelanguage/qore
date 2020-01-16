@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DefaultRecordIterator class definition
 
-/** DefaultRecordIterator.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DefaultRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     */
     bool next() {
         while (i.next()) {
-            if (match()) {
+            if (!where_cond || (where_cond && matchGeneric(i.getValue(), where_cond))) {
                 return True;
             }
         }
@@ -92,44 +92,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         @throw FIELD-ERROR invalid or unknown field name
     */
     auto memberGate(string key) {
-        hash<auto> record = i.getValue();
-        auto rv = record{key};
-        if (!exists rv && !record.hasKey(key)) {
-            throw "FIELD-ERROR", sprintf("the current record does not have field %y; valid fields: %y", key,
-                keys record);
-        }
-        return rv;
-    }
-
-    #! Checks if the current record matches the search criteria
-    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
-        performed
-    */
-    private bool match() {
-        hash<auto> record = i.getValue();
-        foreach hash<auto> elem in (where_cond.pairIterator()) {
-            if (!matchValue(record{elem.key}, elem.value)) {
-                return False;
-            }
-        }
-        return True;
-    }
-
-    #! Match a single value
-    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
-        performed
-    */
-    private bool matchValue(auto expects, auto val) {
-        if (val.typeCode() == NT_HASH) {
-            # in case of a hash, do a recursive partial match with only the given keys
-            foreach hash<auto> i in (val.pairIterator()) {
-                if (!matchValue(expects{i.key}, i.value)) {
-                    return False;
-                }
-            }
-            return True;
-        }
-        return expects == val;
+        return doMemberGate(key);
     }
 }
 }
