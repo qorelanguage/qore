@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractDbRecordIterator class definition
+#! Qore DbSelectBulkRecordInterface class definition
 
-/** AbstractDbRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** DbSelectBulkRecordInterface.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,8 +36,8 @@
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
-public class AbstractDbRecordIterator inherits AbstractDataProviderRecordIterator {
-    private {
+public class DbSelectBulkRecordInterface inherits AbstractDataProviderBulkRecordInterface {
+    private:internal {
         #! the statement being iterated
         AbstractSQLStatement stmt;
 
@@ -46,12 +46,29 @@ public class AbstractDbRecordIterator inherits AbstractDataProviderRecordIterato
     }
 
     #! creates the iterator
-    /** @param release_transaction release the transaction with a rollback in the destructor?
-        @param stmt the SQL statement to iterate
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param ds the datasource to use
+        @param where_cond must be empty; an exception will be thrown if search conditions are passed to this constructor
+        @param search_options search options; assumed to have already been processed for validity before this call; contains:
+        - \c sql (required): the SQL query
+        - \c args (optional): a list of bind arguments to \a sql
+
+        @throw DBSELECT-BULK-ERROR where_cond must be empty
     */
-    constructor(bool release_transaction, AbstractSQLStatement stmt) {
-        self.release_transaction = release_transaction;
-        self.stmt = stmt;
+    constructor(int block_size, AbstractDatasource ds, *hash<auto> where_cond, hash<auto> select_options)
+        : AbstractDataProviderBulkRecordInterface(block_size) {
+        if (where_cond) {
+            throw "DBSELECT-BULK-ERROR", sprintf("where_cond must be empty for %s; value provided: %y",
+                self.className(), where_cond);
+        }
+        # release the transaction with a rollback in the destructor by default if we do not already have a transaction
+        # lock
+        release_transaction = !ds.currentThreadInTransaction();
+        stmt = ds.getSQLStatement();
+        stmt.prepare(select_options.sql);
+        if (select_options.args) {
+            stmt.bindArgs(select_options.args);
+        }
     }
 
     #! rolls back the transaction if a transaction lock was acquired in the constructor and keepTransactionLock() was not called
@@ -61,35 +78,19 @@ public class AbstractDbRecordIterator inherits AbstractDataProviderRecordIterato
         }
     }
 
-    #! Returns @ref True if the iterator is valid
-    /**
-        @return @ref True if the iterator is valid
-    */
-    bool valid() {
-        return stmt.valid();
-    }
-
-    #! Increments the row pointer when retrieving rows from a select statement; returns @ref True if there is a row to retrieve, @ref False if not
-    /**
-        @return @ref True if there is a row to retrieve, @ref False if not (no more rows to be retrieved)
-
-        @note Exceptions could be thrown by the DBI driver when the statement is executed; see the relevant DBI driver
-        docs for more information
-    */
-    bool next() {
-        return stmt.next();
-    }
-
-    #! Returns a single record if the iterator is valid
-    /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-    */
-    hash<auto> getValue() {
-        return stmt.getValue();
-    }
-
     #! Ensures that no rollback is performed when the object is destroyed
     keepTransactionLock() {
         release_transaction = False;
+    }
+
+    #! Returns a hash of lists according to the block size
+    /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+
+        @note This call moves the internal record pointer forward, therefore multiple calls of this methods will
+        return different results as long as data is available
+    */
+    private hash<string, list<auto>> getValueImpl() {
+        return stmt.fetchColumns(block_size);
     }
 }
 }
