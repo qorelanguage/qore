@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,8 +54,7 @@ static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneD
     if (dynamic_cast<const QoreOffsetZoneInfo*>(*z)) {
         int utc_offset = AbstractQoreZoneInfo::getUTCOffset(*z);
         rv->setKeyValue("offset", utc_offset, xsink);
-    }
-    else {
+    } else {
         rv->setKeyValue("region", new QoreStringNode(AbstractQoreZoneInfo::getRegionName(*z)), xsink);
     }
 
