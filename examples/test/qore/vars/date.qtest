@@ -259,7 +259,8 @@ class DateTest inherits QUnit::Test {
         # test for issue #3736
         {
             date now = Qore::now();
-            assertEq(1, now.info().zone.region().split("/").size());
+            string region = now.info().zone.region();
+            assertEq(2, region.split("/").size());
             assertEq(now, Serializable::deserialize(Serializable::serialize(now)));
         }
     }

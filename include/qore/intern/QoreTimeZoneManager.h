@@ -166,6 +166,7 @@ public:
     }
 
     static std::string localtime_path_prefix;
+    static std::string localtime_location;
 };
 
 // offsets are normally in the range of -12 to +14 UTC

@@ -54,6 +54,7 @@
 #define QB(x) ((x) ? "true" : "false")
 
 std::string AbstractQoreZoneInfo::localtime_path_prefix;
+std::string AbstractQoreZoneInfo::localtime_location;
 
 QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
     printd(5, "QoreZoneInfo::QoreZoneInfo() this: %p root: %s name: %s\n", this, root.getBuffer(), name.c_str());
@@ -1392,19 +1393,22 @@ void QoreTimeZoneManager::init() {
     // set localtime path prefix
     {
         std::string path = LOCALTIME_LOCATION;
-#ifdef HAVE_READLINK
-        char buf[QORE_PATH_MAX + 1];
-        qore_offset_t len = readlink(path.c_str(), buf, QORE_PATH_MAX);
-        if (len > 0) {
-            assert(len <= QORE_PATH_MAX);
-            buf[len] = '\0';
-            char* p = strstr(buf, "zoneinfo/");
+#ifdef HAVE_REALPATH
+        char* new_name = nullptr;
+        new_name = realpath(path.c_str(), nullptr);
+        if (new_name) {
+            ON_BLOCK_EXIT(free, new_name);
+            AbstractQoreZoneInfo::localtime_location = new_name;
+            char* p = strstr(new_name, "zoneinfo/");
             if (p) {
                 *(p + 8) = '\0';
-                path = buf;
+                path = new_name;
             }
         }
 #endif
+        if (AbstractQoreZoneInfo::localtime_location.empty()) {
+            AbstractQoreZoneInfo::localtime_location = LOCALTIME_LOCATION;
+        }
         AbstractQoreZoneInfo::localtime_path_prefix = path;
         AbstractQoreZoneInfo::localtime_path_prefix += "/";
     }
@@ -1478,44 +1482,14 @@ void QoreTimeZoneManager::init() {
 }
 
 void QoreTimeZoneManager::setFromLocalTimeFile() {
-    // determine local region
+    // see if file exists
     struct stat sbuf;
-#ifdef HAVE_LSTAT
-    if (!lstat(LOCALTIME_LOCATION, &sbuf)) {
-#else
-    if (!stat(LOCALTIME_LOCATION, &sbuf)) {
-#endif
-        // normally this file is a symlink - we need the target file name for the name of the time zone region
-#ifdef S_IFLNK
-        printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
-        if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
-            char buf[QORE_PATH_MAX + 1];
-            qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);
-            if (len > 0) {
-                buf[len] = '\0';
-                if (buf[0] == '.' && buf[1] == '.') {
-                    char* dn = q_dirname(LOCALTIME_LOCATION);
-                    ON_BLOCK_EXIT(free, dn);
-                    QoreString path(dn);
-                    path.concat('/');
-                    path.concat(buf);
-                    //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() path: '%s'\n", path.getBuffer());
-                    setLocalTZ(path.getBuffer());
-                } else
-                    setLocalTZ(buf);
-            }
-#ifdef DEBUG
-            else
-                printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() failed to read %s link: %s\n", LOCALTIME_LOCATION, strerror(errno));
-#endif // DEBUG
-        }
-        else
-#endif // S_IFLNK
-            setLocalTZ(LOCALTIME_LOCATION);
+    if (!stat(AbstractQoreZoneInfo::localtime_location.c_str(), &sbuf)) {
+        setLocalTZ(AbstractQoreZoneInfo::localtime_location.c_str());
     }
 #ifdef DEBUG
     else {
-        printd(1, "cannot determine local time region: could not lstat() %s: %s\n", LOCALTIME_LOCATION, strerror(errno));
+        printd(1, "cannot determine local time region: could not stat() %s: %s\n", AbstractQoreZoneInfo::localtime_location.c_str(), strerror(errno));
     }
 #endif
 }
