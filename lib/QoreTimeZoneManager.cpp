@@ -64,8 +64,15 @@ QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink 
     fn += name;
 
     QoreFile f;
-    if (f.open2(xsink, fn.c_str()))
-        return;
+    if (f.open2(xsink, fn.c_str())) {
+        fn = localtime_path_prefix + fn;
+        ExceptionSink xsink2;
+        if (f.open2(&xsink2, fn.c_str())) {
+            xsink2.clear();
+            return;
+        }
+        xsink->clear();
+    }
 
     // data buffer
     QoreString str;
