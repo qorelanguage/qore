@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreTimeZoneManager.h
+    QoreTimeZoneManager.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef QORE_TIMEZONEMANAGER_H
@@ -71,96 +71,102 @@ struct QoreDSTTransition {
 
 class AbstractQoreZoneInfo {
 protected:
-   // region or time zone locale name (i.e. "Europe/Prague" or "-06:00" for UTC - 06:00)
-   std::string name;
-   // UTC offset in seconds east; -1 = unknown
-   int utcoff;
-   // true if the zone ever has daylight savings time, false if not
-   bool has_dst;
+    // region or time zone locale name (i.e. "Europe/Prague" or "-06:00" for UTC - 06:00)
+    std::string name;
+    // UTC offset in seconds east; -1 = unknown
+    int utcoff;
+    // true if the zone ever has daylight savings time, false if not
+    bool has_dst;
 
-   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL virtual int getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const = 0;
-
-public:
-   DLLLOCAL AbstractQoreZoneInfo() : utcoff(-1), has_dst(false) {
-   }
-
-   DLLLOCAL AbstractQoreZoneInfo(const std::string &n_name, int n_utcoff = -1) : name(n_name), utcoff(n_utcoff), has_dst(false) {
-   }
-
-   virtual DLLLOCAL ~AbstractQoreZoneInfo() {
-   }
-
-   // returns general UTC offset for the time zone's standard time in seconds east
-   DLLLOCAL int getUTCOffset() const {
-      return utcoff == -1 ? 0 : utcoff;
-   }
-
-   // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL int getUTCOffset(int64 epoch_offset) const {
-      const char *temp;
-      bool is_dst;
-      return getUTCOffsetImpl(epoch_offset, is_dst, temp);
-   }
-
-   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst) const {
-      const char *temp;
-      return getUTCOffsetImpl(epoch_offset, is_dst, temp);
-   }
-
-   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
-      return getUTCOffsetImpl(epoch_offset, is_dst, zone_name);
-   }
-
-   // returns true if the zone has daylight savings time ever
-   DLLLOCAL bool hasDST() const {
-      return has_dst;
-   }
-
-   DLLLOCAL const char *getRegionName() const {
-      return name.c_str();
-   }
+    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL virtual int getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const = 0;
 
 public:
+    DLLLOCAL AbstractQoreZoneInfo() : utcoff(-1), has_dst(false) {
+    }
+
+    DLLLOCAL AbstractQoreZoneInfo(const std::string &n_name, int n_utcoff = -1) : name(n_name), utcoff(n_utcoff), has_dst(false) {
+        // issue #3736: do not return leading path
+        if (!name.compare(0, localtime_path_prefix.size(), localtime_path_prefix)) {
+            name = name.c_str() + localtime_path_prefix.size();
+        }
+    }
+
+    virtual DLLLOCAL ~AbstractQoreZoneInfo() {
+    }
+
+    // returns general UTC offset for the time zone's standard time in seconds east
+    DLLLOCAL int getUTCOffset() const {
+        return utcoff == -1 ? 0 : utcoff;
+    }
+
+    // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL int getUTCOffset(int64 epoch_offset) const {
+        const char *temp;
+        bool is_dst;
+        return getUTCOffsetImpl(epoch_offset, is_dst, temp);
+    }
+
+    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst) const {
+        const char *temp;
+        return getUTCOffsetImpl(epoch_offset, is_dst, temp);
+    }
+
+    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL int getUTCOffset(int64 epoch_offset, bool &is_dst, const char *&zone_name) const {
+        return getUTCOffsetImpl(epoch_offset, is_dst, zone_name);
+    }
+
+    // returns true if the zone has daylight savings time ever
+    DLLLOCAL bool hasDST() const {
+        return has_dst;
+    }
+
+    DLLLOCAL const char* getRegionName() const {
+        return name.c_str();
+    }
+
     // static versions of methods follow which perform null-pointer check on the passed zone
 
     // returns general UTC offset for the time zone's standard time in seconds east
-   DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone) {
-      return zone ? zone->getUTCOffset() : 0;
-   }
+    DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone) {
+        return zone ? zone->getUTCOffset() : 0;
+    }
 
-   // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset) {
-      return zone ? zone->getUTCOffset(epoch_offset) : 0;
-   }
+    // returns the UTC offset for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset) {
+        return zone ? zone->getUTCOffset(epoch_offset) : 0;
+    }
 
-   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset, bool &is_dst) {
-      if (zone)
-         return zone->getUTCOffset(epoch_offset, is_dst);
-      is_dst = false;
-      return 0;
-   }
+    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset, bool &is_dst) {
+        if (zone)
+            return zone->getUTCOffset(epoch_offset, is_dst);
+        is_dst = false;
+        return 0;
+    }
 
-   // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
-   DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset, bool &is_dst, const char *&zone_name) {
-      if (zone)
-         return zone->getUTCOffset(epoch_offset, is_dst, zone_name);
-      is_dst = false;
-      zone_name = "UTC";
-      return 0;
-   }
+    // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
+    DLLLOCAL static int getUTCOffset(const AbstractQoreZoneInfo* zone, int64 epoch_offset, bool &is_dst, const char *&zone_name) {
+        if (zone)
+            return zone->getUTCOffset(epoch_offset, is_dst, zone_name);
+        is_dst = false;
+        zone_name = "UTC";
+        return 0;
+    }
 
-   // returns true if the zone has daylight savings time ever
-   DLLLOCAL static bool hasDST(const AbstractQoreZoneInfo* zone) {
-      return zone ? zone->has_dst : false;
-   }
+    // returns true if the zone has daylight savings time ever
+    DLLLOCAL static bool hasDST(const AbstractQoreZoneInfo* zone) {
+        return zone ? zone->has_dst : false;
+    }
 
-   DLLLOCAL static const char *getRegionName(const AbstractQoreZoneInfo* zone) {
-      return zone ? zone->getRegionName() : STATIC_UTC;
-   }
+    DLLLOCAL static const char *getRegionName(const AbstractQoreZoneInfo* zone) {
+        return zone ? zone->getRegionName() : STATIC_UTC;
+    }
+
+    static std::string localtime_path_prefix;
+    static std::string localtime_location;
 };
 
 // offsets are normally in the range of -12 to +14 UTC
@@ -252,90 +258,90 @@ public:
 
 class QoreTimeZoneManager {
 protected:
-   // read-write lock to manage real (non-offset) zone info objects
-   mutable QoreRWLock rwl;
+    // read-write lock to manage real (non-offset) zone info objects
+    mutable QoreRWLock rwl;
 
-   // read-write lock to guard access to offset custom zone info objects
-   mutable QoreRWLock rwl_offset;
+    // read-write lock to guard access to offset custom zone info objects
+    mutable QoreRWLock rwl_offset;
 
-   // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
-   typedef std::map<std::string, AbstractQoreZoneInfo *> tzmap_t;
+    // time zone info map (ex: "Europe/Prague" -> QoreZoneInfo*)
+    typedef std::map<std::string, AbstractQoreZoneInfo *> tzmap_t;
 
-   // offset map type
-   typedef std::map<int, QoreOffsetZoneInfo *> tzomap_t;
+    // offset map type
+    typedef std::map<int, QoreOffsetZoneInfo *> tzomap_t;
 
-   unsigned tzsize;
+    unsigned tzsize;
 
-   // our utc offset in seconds east of UTC
-   int our_utcoffset;
+    // our utc offset in seconds east of UTC
+    int our_utcoffset;
 
-   QoreString root;
-   tzmap_t tzmap;
+    QoreString root;
+    tzmap_t tzmap;
 
-   // standard (unlocked) zone offset map
-   tzomap_t tzo_std_map;
+    // standard (unlocked) zone offset map
+    tzomap_t tzo_std_map;
 
-   // custom (locked) zone offset map
-   tzomap_t tzomap;
+    // custom (locked) zone offset map
+    tzomap_t tzomap;
 
-   // pointer to our regional time information
-   AbstractQoreZoneInfo *localtz;
-   std::string localtzname;
+    // pointer to our regional time information
+    AbstractQoreZoneInfo* localtz;
+    std::string localtzname;
 
-   DLLLOCAL int processIntern(const char *fn, ExceptionSink *xsink);
-   DLLLOCAL int process(const char *fn);
+    DLLLOCAL int processIntern(const char *fn, ExceptionSink *xsink);
+    DLLLOCAL int process(const char *fn);
 
-   DLLLOCAL const AbstractQoreZoneInfo *processFile(const char *fn, bool use_path, ExceptionSink *xsink);
-   DLLLOCAL int processDir(const char *d, ExceptionSink *xsink);
+    DLLLOCAL const AbstractQoreZoneInfo *processFile(const char *fn, bool use_path, ExceptionSink *xsink);
+    DLLLOCAL int processDir(const char *d, ExceptionSink *xsink);
 
-   // to set the local time zone information from a file
-   DLLLOCAL int setLocalTZ(std::string fname);
+    // to set the local time zone information from a file
+    DLLLOCAL int setLocalTZ(std::string fname);
 
-   DLLLOCAL int setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi);
+    DLLLOCAL int setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi);
 
-   DLLLOCAL void setFromLocalTimeFile();
+    DLLLOCAL void setFromLocalTimeFile();
 
-   DLLLOCAL void init_intern(QoreString &TZ);
+    DLLLOCAL void init_intern(QoreString &TZ);
 
 public:
-   DLLLOCAL QoreTimeZoneManager();
+    DLLLOCAL QoreTimeZoneManager();
 
-   DLLLOCAL ~QoreTimeZoneManager() {
-      for (tzmap_t::iterator i = tzmap.begin(), e = tzmap.end(); i != e; ++i)
-	 delete i->second;
+    DLLLOCAL ~QoreTimeZoneManager() {
+        for (tzmap_t::iterator i = tzmap.begin(), e = tzmap.end(); i != e; ++i)
+            delete i->second;
 
-      for (tzomap_t::iterator i = tzo_std_map.begin(), e = tzo_std_map.end(); i != e; ++i) {
-         //printd(0, "QoreTimeZoneManager::~QoreTimeZoneManager() deleting %d: %s\n", i->first, i->second->getRegionName());
-	 delete i->second;
-      }
+            for (tzomap_t::iterator i = tzo_std_map.begin(), e = tzo_std_map.end(); i != e; ++i) {
+                //printd(0, "QoreTimeZoneManager::~QoreTimeZoneManager() deleting %d: %s\n", i->first, i->second->getRegionName());
+            delete i->second;
+        }
 
-      for (tzomap_t::iterator i = tzomap.begin(), e = tzomap.end(); i != e; ++i)
-	 delete i->second;
-   }
+        for (tzomap_t::iterator i = tzomap.begin(), e = tzomap.end(); i != e; ++i)
+            delete i->second;
+    }
 
-   DLLLOCAL AbstractQoreZoneInfo *getZone(const char *name) {
-      QoreAutoRWReadLocker al(rwl);
-      tzmap_t::iterator i = tzmap.find(name);
-      return i == tzmap.end() ? 0 : i->second;
-   }
+    DLLLOCAL AbstractQoreZoneInfo* getZone(const char *name) {
+        QoreAutoRWReadLocker al(rwl);
+        tzmap_t::iterator i = tzmap.find(name);
+        return i == tzmap.end() ? 0 : i->second;
+    }
 
-   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(int seconds_east);
-   DLLLOCAL const QoreOffsetZoneInfo *findCreateOffsetZone(const char *offset, ExceptionSink *xsink = 0);
+    DLLLOCAL const QoreOffsetZoneInfo* findCreateOffsetZone(int seconds_east);
+    DLLLOCAL const QoreOffsetZoneInfo* findCreateOffsetZone(const char *offset, ExceptionSink *xsink = 0);
 
-   DLLLOCAL int readAll(ExceptionSink *xsink);
+    DLLLOCAL int readAll(ExceptionSink *xsink);
 
-   DLLLOCAL void init();
+    DLLLOCAL void init();
 
-   DLLLOCAL const AbstractQoreZoneInfo *getLocalZoneInfo() const {
-      return localtz;
-   }
+    DLLLOCAL const AbstractQoreZoneInfo* getLocalZoneInfo() const {
+        return localtz;
+    }
 
-   DLLLOCAL const char *getLocalRegion() const {
-      return localtzname.empty() ? 0 : localtzname.c_str();
-   }
+    DLLLOCAL const char* getLocalRegion() const {
+        return localtzname.empty() ? nullptr : localtzname.c_str();
+    }
 
-   DLLLOCAL const AbstractQoreZoneInfo* findLoadRegion(const char* name, ExceptionSink* xsink);
-   DLLLOCAL const AbstractQoreZoneInfo* findLoadRegionFromPath(const char* name, ExceptionSink* xsink);
+    DLLLOCAL const AbstractQoreZoneInfo* findLoadRegion(const char* name, ExceptionSink* xsink);
+    DLLLOCAL const AbstractQoreZoneInfo* findLoadRegionFromPath(const char* name, ExceptionSink* xsink);
 };
 
 DLLLOCAL extern QoreTimeZoneManager QTZM;

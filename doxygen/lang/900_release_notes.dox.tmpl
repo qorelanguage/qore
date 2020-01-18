@@ -120,6 +120,9 @@
       - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> and
         <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
         - fixed the version number reported by the server
+    - fixed setting the time zone region in date/time values to not include the system-specific zoneinfo path prefix
+      in order to allow for deserialization of date/time values on different systems
+      (<a href="https://github.com/qorelanguage/qore/issues/3736">issue 3736</a>)
     - fixed a crash in parse error handling for recursive constant parse hash resolution cases
       (<a href="https://github.com/qorelanguage/qore/issues/3708">issue 3708</a>)
     - fixed a bug retrieving HTTP message bodies with servers that do not send a \c Content-Length header but close the

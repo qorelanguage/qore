@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,218 +53,228 @@
 
 #define QB(x) ((x) ? "true" : "false")
 
+std::string AbstractQoreZoneInfo::localtime_path_prefix;
+std::string AbstractQoreZoneInfo::localtime_location;
+
 QoreZoneInfo::QoreZoneInfo(QoreString &root, std::string &n_name, ExceptionSink *xsink) : AbstractQoreZoneInfo(n_name), first_pos(-1), valid(false), std_abbr(0) {
-   printd(5, "QoreZoneInfo::QoreZoneInfo() this: %p root: %s name: %s\n", this, root.getBuffer(), name.c_str());
+    printd(5, "QoreZoneInfo::QoreZoneInfo() this: %p root: %s name: %s\n", this, root.getBuffer(), name.c_str());
 
-   std::string fn = root.getBuffer();
-   if (!fn.empty())
-      fn += "/";
-   fn += name;
+    std::string fn = root.getBuffer();
+    if (!fn.empty())
+        fn += "/";
+    fn += name;
 
-   QoreFile f;
-   if (f.open2(xsink, fn.c_str()))
-      return;
+    QoreFile f;
+    if (f.open2(xsink, fn.c_str())) {
+        fn = localtime_path_prefix + fn;
+        ExceptionSink xsink2;
+        if (f.open2(&xsink2, fn.c_str())) {
+            xsink2.clear();
+            return;
+        }
+        xsink->clear();
+    }
 
-   // data buffer
-   QoreString str;
-   if (f.read(str, 4, xsink))
-      return;
+    // data buffer
+    QoreString str;
+    if (f.read(str, 4, xsink))
+        return;
 
-   if (strcmp("TZif", str.getBuffer())) {
-      xsink->raiseException("TZINFO-ERROR", "%s: invalid file magic", fn.c_str());
-      return;
-   }
+    if (strcmp("TZif", str.getBuffer())) {
+        xsink->raiseException("TZINFO-ERROR", "%s: invalid file magic", fn.c_str());
+        return;
+    }
 
-   // skip 16 reserved bytes
-   if (f.setPos(20) != 20) {
-      xsink->raiseErrnoException("TZINFO-ERROR", errno, "failed to position file at tzinfo header");
-      return;
-   }
+    // skip 16 reserved bytes
+    if (f.setPos(20) != 20) {
+        xsink->raiseErrnoException("TZINFO-ERROR", errno, "failed to position file at tzinfo header");
+        return;
+    }
 
-   // file header variables
-   unsigned tzh_ttisutccnt,  // The number of UTC/local indicators stored in the file
-      tzh_ttisstdcnt,        // The number of standard/wall indicators stored in the file
-      tzh_leapcnt,           // The number of leap seconds for which data is stored in the file
-      tzh_timecnt,           // The number of "QoreDSTTransition times" for which data is stored in the file
-      tzh_typecnt,           // The number of "local time types" for which data is stored in the file (must not be zero)
-      tzh_charcnt;           // The number of characters of "timezone abbreviation strings" stored in the file
+    // file header variables
+    unsigned tzh_ttisutccnt,  // The number of UTC/local indicators stored in the file
+        tzh_ttisstdcnt,        // The number of standard/wall indicators stored in the file
+        tzh_leapcnt,           // The number of leap seconds for which data is stored in the file
+        tzh_timecnt,           // The number of "QoreDSTTransition times" for which data is stored in the file
+        tzh_typecnt,           // The number of "local time types" for which data is stored in the file (must not be zero)
+        tzh_charcnt;           // The number of characters of "timezone abbreviation strings" stored in the file
 
-   // read in header count variables
-   if (f.readu4(&tzh_ttisutccnt, xsink))
-      return;
+    // read in header count variables
+    if (f.readu4(&tzh_ttisutccnt, xsink))
+        return;
 
-   if (f.readu4(&tzh_ttisstdcnt, xsink))
-      return;
+    if (f.readu4(&tzh_ttisstdcnt, xsink))
+        return;
 
-   if (f.readu4(&tzh_leapcnt, xsink))
-      return;
+    if (f.readu4(&tzh_leapcnt, xsink))
+        return;
 
-   if (f.readu4(&tzh_timecnt, xsink))
-      return;
+    if (f.readu4(&tzh_timecnt, xsink))
+        return;
 
-   if (f.readu4(&tzh_typecnt, xsink))
-      return;
+    if (f.readu4(&tzh_typecnt, xsink))
+        return;
 
-   if (f.readu4(&tzh_charcnt, xsink))
-      return;
+    if (f.readu4(&tzh_charcnt, xsink))
+        return;
 
-   printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt: %d tzh_ttisstdcnt: %d tzh_leapcnt: %d tzh_timecnt: %d tzh_typecnt: %d tzh_charcnt: %d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
+    printd(5, "QoreZoneInfo::QoreZoneInfo() tzh_ttisutccnt: %d tzh_ttisstdcnt: %d tzh_leapcnt: %d tzh_timecnt: %d tzh_typecnt: %d tzh_charcnt: %d\n", tzh_ttisutccnt, tzh_ttisstdcnt, tzh_leapcnt, tzh_timecnt, tzh_typecnt, tzh_charcnt);
 
-   if (tzh_ttisutccnt > tzh_typecnt) {
-      xsink->raiseException("TZINFO-ERROR", "tzh_ttisutccnt (%d) > tzh_typecnt (%d)", tzh_ttisutccnt, tzh_typecnt);
-      return;
-   }
+    if (tzh_ttisutccnt > tzh_typecnt) {
+        xsink->raiseException("TZINFO-ERROR", "tzh_ttisutccnt (%d) > tzh_typecnt (%d)", tzh_ttisutccnt, tzh_typecnt);
+        return;
+    }
 
-   QoreDSTTransitions.resize(tzh_timecnt);
+    QoreDSTTransitions.resize(tzh_timecnt);
 
-   // read in QoreDSTTransition time values
-   for (unsigned i = 0; i < tzh_timecnt; ++i) {
-      if (f.readi4(&QoreDSTTransitions[i].time, xsink))
-	 return;
+    // read in QoreDSTTransition time values
+    for (unsigned i = 0; i < tzh_timecnt; ++i) {
+        if (f.readi4(&QoreDSTTransitions[i].time, xsink))
+            return;
 
-      if (first_pos == -1 && QoreDSTTransitions[i].time >= 0)
-         first_pos = i;
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() trans_time[%d]: %u\n", i, QoreDSTTransitions[i].time);
-   }
+        if (first_pos == -1 && QoreDSTTransitions[i].time >= 0)
+            first_pos = i;
+        //printd(5, "QoreZoneInfo::QoreZoneInfo() trans_time[%d]: %u\n", i, QoreDSTTransitions[i].time);
+    }
 
-   // for QoreDSTTransition type pointers
-   std::vector<unsigned char> trans_type;
-   trans_type.resize(tzh_timecnt);
+    // for QoreDSTTransition type pointers
+    std::vector<unsigned char> trans_type;
+    trans_type.resize(tzh_timecnt);
 
-   // read in QoreDSTTransition type array
-   for (unsigned i = 0; i < tzh_timecnt; ++i) {
-      if (f.readu1(&trans_type[i], xsink))
-	 return;
-      if (trans_type[i] >= tzh_typecnt) {
-	 xsink->raiseException("TZINFO-ERROR", "QoreDSTTransition type index %d (%d) is greater than tzh_typecnt (%d)", i, trans_type[i], tzh_typecnt);
-	 return;
-      }
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() trans_type[%d]: %d\n", i, trans_type[i]);
-   }
+    // read in QoreDSTTransition type array
+    for (unsigned i = 0; i < tzh_timecnt; ++i) {
+        if (f.readu1(&trans_type[i], xsink))
+            return;
+        if (trans_type[i] >= tzh_typecnt) {
+            xsink->raiseException("TZINFO-ERROR", "QoreDSTTransition type index %d (%d) is greater than tzh_typecnt (%d)", i, trans_type[i], tzh_typecnt);
+            return;
+        }
+        //printd(5, "QoreZoneInfo::QoreZoneInfo() trans_type[%d]: %d\n", i, trans_type[i]);
+    }
 
-   // allocate QoreTransitionInfo array
-   tti.resize(tzh_typecnt);
+    // allocate QoreTransitionInfo array
+    tti.resize(tzh_typecnt);
 
-   // declare temporary abbreviation index array
-   std::vector<unsigned char> ai;
-   ai.reserve(tzh_typecnt);
+    // declare temporary abbreviation index array
+    std::vector<unsigned char> ai;
+    ai.reserve(tzh_typecnt);
 
-   // read in QoreTransitionInfo data
-   for (unsigned i = 0; i < tzh_typecnt; ++i) {
-      if (f.readi4(&tti[i].utcoff, xsink))
-	 return;
+    // read in QoreTransitionInfo data
+    for (unsigned i = 0; i < tzh_typecnt; ++i) {
+        if (f.readi4(&tti[i].utcoff, xsink))
+            return;
 
-      //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff: %d\n", tti[i].utcoff);
+        //printd(5, "QoreZoneInfo::QoreZoneInfo() utcoff: %d\n", tti[i].utcoff);
 
-      unsigned char c;
-      if (f.readu1(&c, xsink))
-	 return;
+        unsigned char c;
+        if (f.readu1(&c, xsink))
+            return;
 
-      tti[i].isdst = c;
-      if (c && !has_dst)
-         has_dst = true;
+        tti[i].isdst = c;
+        if (c && !has_dst)
+            has_dst = true;
 
-      if (f.readu1(&c, xsink))
-	 return;
+        if (f.readu1(&c, xsink))
+            return;
 
-      ai.push_back(c);
-   }
+        ai.push_back(c);
+    }
 
-   // set QoreDSTTransition pointers and remove invalid bands
-   {
-      dst_transition_vec_t::iterator di = QoreDSTTransitions.begin();
-      for (unsigned i = 0; i < tzh_timecnt; ++i) {
-         QoreDSTTransition& t = *di;
-         t.trans = &tti[trans_type[i]];
-         if (di != QoreDSTTransitions.begin()) {
-            dst_transition_vec_t::iterator prev = di;
-            --prev;
-            if (t.trans->utcoff == prev->trans->utcoff) {
-               // invalid transition found
-               printd(1, "QoreZoneInfo::QoreZoneInfo() skipping invalid transition [%d] at %d\n", i, t.time);
-               QoreDSTTransitions.erase(di);
-               di = prev;
-               if ((int)i < first_pos)
-                 --first_pos;
+    // set QoreDSTTransition pointers and remove invalid bands
+    {
+        dst_transition_vec_t::iterator di = QoreDSTTransitions.begin();
+        for (unsigned i = 0; i < tzh_timecnt; ++i) {
+            QoreDSTTransition& t = *di;
+            t.trans = &tti[trans_type[i]];
+            if (di != QoreDSTTransitions.begin()) {
+                dst_transition_vec_t::iterator prev = di;
+                --prev;
+                if (t.trans->utcoff == prev->trans->utcoff) {
+                    // invalid transition found
+                    printd(1, "QoreZoneInfo::QoreZoneInfo() skipping invalid transition [%d] at %d\n", i, t.time);
+                    QoreDSTTransitions.erase(di);
+                    di = prev;
+                    if ((int)i < first_pos)
+                        --first_pos;
+                }
             }
-         }
-         ++di;
-      }
-   }
+            ++di;
+        }
+    }
 
-   // read in abbreviation list
-   if (f.read(str, tzh_charcnt, xsink))
-      return;
+    // read in abbreviation list
+    if (f.read(str, tzh_charcnt, xsink))
+        return;
 
-   // set abbreviations
-   for (unsigned i = 0; i < tzh_typecnt; ++i) {
-      tti[i].abbr = str.getBuffer() + ai[i];
-      if (!std_abbr && !tti[i].isdst)
-         std_abbr = tti[i].abbr.c_str();
-   }
+    // set abbreviations
+    for (unsigned i = 0; i < tzh_typecnt; ++i) {
+        tti[i].abbr = str.getBuffer() + ai[i];
+        if (!std_abbr && !tti[i].isdst)
+            std_abbr = tti[i].abbr.c_str();
+    }
 
-   // read in leap info
-   leapinfo.resize(tzh_leapcnt);
-   for (unsigned i = 0; i < tzh_leapcnt; ++i) {
-      if (f.readi4(&leapinfo[i].ttime, xsink)
-	  || f.readi4(&leapinfo[i].total, xsink))
-	 return;
-   }
+    // read in leap info
+    leapinfo.resize(tzh_leapcnt);
+    for (unsigned i = 0; i < tzh_leapcnt; ++i) {
+        if (f.readi4(&leapinfo[i].ttime, xsink)
+            || f.readi4(&leapinfo[i].total, xsink))
+            return;
+    }
 
-   // read in std indicator array
-   for (unsigned i = 0; i < tzh_ttisstdcnt; ++i) {
-      unsigned char c;
-      if (f.readu1(&c, xsink))
-	 return;
+    // read in std indicator array
+    for (unsigned i = 0; i < tzh_ttisstdcnt; ++i) {
+        unsigned char c;
+        if (f.readu1(&c, xsink))
+            return;
 
-      tti[i].isstd = c;
-   }
+        tti[i].isstd = c;
+    }
 
-   // assign remaining entries to default false
-   for (unsigned i = tzh_ttisstdcnt; i < tzh_typecnt; ++i)
-      tti[i].isstd = false;
+    // assign remaining entries to default false
+    for (unsigned i = tzh_ttisstdcnt; i < tzh_typecnt; ++i)
+        tti[i].isstd = false;
 
-   // read in utc indicator array
-   for (unsigned i = 0; i < tzh_ttisutccnt; ++i) {
-      unsigned char c;
-      if (f.readu1(&c, xsink))
-	 return;
+    // read in utc indicator array
+    for (unsigned i = 0; i < tzh_ttisutccnt; ++i) {
+        unsigned char c;
+        if (f.readu1(&c, xsink))
+            return;
 
-      tti[i].isutc = c;
-   }
+        tti[i].isutc = c;
+    }
 
-   // assign remaining entries to default false
-   for (unsigned i = tzh_ttisutccnt; i < tzh_typecnt; ++i)
-      tti[i].isutc = false;
+    // assign remaining entries to default false
+    for (unsigned i = tzh_ttisutccnt; i < tzh_typecnt; ++i)
+        tti[i].isutc = false;
 
-   // scan time bands from the end to get the default UTC offset for this zone
-   // if we start from the first, we'll get some historical offset which may be different than the modern offset
-   {
-      unsigned i = tzh_typecnt;
-      while (i) {
-         --i;
-         if (utcoff == -1 && !tti[i].isdst && tti[i].utcoff != -1) {
-            utcoff = tti[i].utcoff;
-            //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff: %d isdst: %s isstd: %s isutc: %s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
-            break;
-         }
-      }
-   }
+    // scan time bands from the end to get the default UTC offset for this zone
+    // if we start from the first, we'll get some historical offset which may be different than the modern offset
+    {
+        unsigned i = tzh_typecnt;
+        while (i) {
+            --i;
+            if (utcoff == -1 && !tti[i].isdst && tti[i].utcoff != -1) {
+                utcoff = tti[i].utcoff;
+                //printd(5, "QoreZoneInfo::QoreZoneInfo() tti[%d] %s: utcoff: %d isdst: %s isstd: %s isutc: %s\n", i, tti[i].abbr.c_str(), tti[i].utcoff, QB(tti[i].isdst), QB(tti[i].isstd), QB(tti[i].isutc));
+                break;
+            }
+        }
+    }
 
 #if 0
-   for (unsigned i = 0, e = QoreDSTTransitions.size(); i < e; ++i) {
-      DateTime d((int64)QoreDSTTransitions[i].time);
-      str.clear();
-      d.format(str, "Dy Mon DD YYYY HH:mm:SS");
-      QoreTransitionInfo &trans = *QoreDSTTransitions[i].trans;
-      DateTime local(d.getEpochSeconds() + trans.utcoff);
-      QoreString lstr;
-      local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
-      printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time: %d %s UTC = %s %s isdst: %d isstd: %d isutc: %d utcoff: %d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
-   }
+    for (unsigned i = 0, e = QoreDSTTransitions.size(); i < e; ++i) {
+        DateTime d((int64)QoreDSTTransitions[i].time);
+        str.clear();
+        d.format(str, "Dy Mon DD YYYY HH:mm:SS");
+        QoreTransitionInfo &trans = *QoreDSTTransitions[i].trans;
+        DateTime local(d.getEpochSeconds() + trans.utcoff);
+        QoreString lstr;
+        local.format(lstr, "Dy Mon DD YYYY HH:mm:SS");
+        printd(0, "QoreZoneInfo::QoreZoneInfo() trans[%3d] time: %d %s UTC = %s %s isdst: %d isstd: %d isutc: %d utcoff: %d\n", i, QoreDSTTransitions[i].time, str.getBuffer(), lstr.getBuffer(), trans.abbr.c_str(), trans.isdst, trans.isstd, trans.isutc, trans.utcoff);
+    }
 #endif
 
-   valid = true;
+    valid = true;
 }
 
 int QoreTimeZoneManager::process(const char *fn) {
@@ -520,43 +530,43 @@ int QoreTimeZoneManager::processDir(const char *d, ExceptionSink *xsink) {
 }
 
 int QoreTimeZoneManager::setLocalTZ(std::string fname, AbstractQoreZoneInfo *tzi) {
-   localtz = tzi;
-   tzmap[fname] = localtz;
-   localtzname = fname;
-   ++tzsize;
+    localtz = tzi;
+    tzmap[fname] = localtz;
+    localtzname = fname;
+    ++tzsize;
 
-   printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(),
-      AbstractQoreZoneInfo::getRegionName(tzi), AbstractQoreZoneInfo::hasDST(tzi), AbstractQoreZoneInfo::getUTCOffset(tzi));
+    printd(1, "QoreTimeZoneManager::setLocalTZ() set zoneinfo from region: %s (%s has_dst: %d utcoff: %d)\n", fname.c_str(),
+        AbstractQoreZoneInfo::getRegionName(tzi), AbstractQoreZoneInfo::hasDST(tzi), AbstractQoreZoneInfo::getUTCOffset(tzi));
 
-   return 0;
+    return 0;
 }
 
 // to set the local time zone information from a file
 int QoreTimeZoneManager::setLocalTZ(std::string fname) {
-   if (fname.empty())
-      return -1;
+    if (fname.empty())
+        return -1;
 
-   ExceptionSink xsink;
-   QoreString dummy;
+    ExceptionSink xsink;
+    QoreString dummy;
 
-   if (fname[0] != '/')
-      dummy = root;
-   else if (!strncmp(root.getBuffer(), fname.c_str(), root.strlen())) {
-      fname = fname.c_str() + root.strlen() + 1;
-      if (fname.empty())
-	 return -1;
-      dummy = root;
-   }
+    if (fname[0] != '/')
+        dummy = root;
+    else if (!strncmp(root.getBuffer(), fname.c_str(), root.strlen())) {
+        fname = fname.c_str() + root.strlen() + 1;
+        if (fname.empty())
+            return -1;
+        dummy = root;
+    }
 
-   std::unique_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(dummy, fname, &xsink));
-   if (!*(tzi.get())) {
-      //xsink.handleExceptions();
-      xsink.clear();
-      printd(1, "cannot read in localtime file %s%s%s\n", dummy.getBuffer(), dummy.strlen() ? "/" : "", fname.c_str());
-      return -1;
-   }
+    std::unique_ptr<QoreZoneInfo> tzi(new QoreZoneInfo(dummy, fname, &xsink));
+    if (!*(tzi.get())) {
+        //xsink.handleExceptions();
+        xsink.clear();
+        printd(1, "cannot read in localtime file %s%s%s\n", dummy.getBuffer(), dummy.strlen() ? "/" : "", fname.c_str());
+        return -1;
+    }
 
-   return setLocalTZ(fname, tzi.release());
+    return setLocalTZ(fname, tzi.release());
 }
 
 #define MAKE_STD_ZONE(offset, name) tzo_std_map[offset] = new QoreOffsetZoneInfo((name), (offset))
@@ -1358,139 +1368,129 @@ void QoreWindowsZoneInfo::getTransitions(int year, int64 &dst, int64 &std) const
 #endif
 
 void QoreTimeZoneManager::init_intern(QoreString &TZ) {
-   // unix-style zoneinfo initialization
-   if (SysEnv.get("TZ", TZ)) {
-      setFromLocalTimeFile();
-      return;
-   }
+    // unix-style zoneinfo initialization
+    if (SysEnv.get("TZ", TZ)) {
+        setFromLocalTimeFile();
+        return;
+    }
 
-   if (!TZ.strlen())
-      return;
+    if (!TZ.strlen())
+        return;
 
-   if (TZ.getBuffer()[0] == ':') {
-      TZ.trim_single_leading(':');
-      setLocalTZ(TZ.getBuffer());
-      return;
-   }
+    if (TZ.c_str()[0] == ':') {
+        TZ.trim_single_leading(':');
+        setLocalTZ(TZ.c_str());
+        return;
+    }
 
-   if (setLocalTZ(TZ.getBuffer())) {
-      // try to interpret as time zone rule specification
-      printd(1, "QoreTimeZoneManager::init_intern(): cannot find zone: %s\n", TZ.getBuffer());
-   }
+    if (setLocalTZ(TZ.c_str())) {
+        // try to interpret as time zone rule specification
+        printd(1, "QoreTimeZoneManager::init_intern(): cannot find zone: %s\n", TZ.c_str());
+    }
 }
 
 void QoreTimeZoneManager::init() {
-   QoreString TZ(QCS_USASCII);
+    // set localtime path prefix
+    {
+        std::string path = LOCALTIME_LOCATION;
+#ifdef HAVE_REALPATH
+        char* new_name = nullptr;
+        new_name = realpath(path.c_str(), nullptr);
+        if (new_name) {
+            ON_BLOCK_EXIT(free, new_name);
+            AbstractQoreZoneInfo::localtime_location = new_name;
+            char* p = strstr(new_name, "zoneinfo/");
+            if (p) {
+                *(p + 8) = '\0';
+                path = new_name;
+            }
+        }
+#endif
+        if (AbstractQoreZoneInfo::localtime_location.empty()) {
+            AbstractQoreZoneInfo::localtime_location = LOCALTIME_LOCATION;
+        }
+        AbstractQoreZoneInfo::localtime_path_prefix = path;
+        AbstractQoreZoneInfo::localtime_path_prefix += "/";
+    }
+
+    QoreString TZ(QCS_USASCII);
 
 #ifndef _Q_WINDOWS
-   init_intern(TZ);
+    init_intern(TZ);
 #endif
 
 #ifdef SOLARIS
-   // on solaris try to parse /etc/TIMEZONE if TZ is not set
-   if (!localtz) {
-      QoreFile f;
+    // on solaris try to parse /etc/TIMEZONE if TZ is not set
+    if (!localtz) {
+        QoreFile f;
 
-      if (!f.open("/etc/TIMEZONE")) {
-         while (!f.readLine(TZ)) {
-            if (!strncmp(TZ.getBuffer(), "TZ=", 3)) {
-               // remove "TZ=" from string
-               TZ.splice(0, 3, NULL);
-               // remove trailing whitespace and '\n' from string
-               TZ.trim_trailing();
-               // set local time zone region
-               setLocalTZ(TZ.getBuffer());
+        if (!f.open("/etc/TIMEZONE")) {
+            while (!f.readLine(TZ)) {
+                if (!strncmp(TZ.getBuffer(), "TZ=", 3)) {
+                    // remove "TZ=" from string
+                    TZ.splice(0, 3, NULL);
+                    // remove trailing whitespace and '\n' from string
+                    TZ.trim_trailing();
+                    // set local time zone region
+                    setLocalTZ(TZ.c_str());
 
-               break;
+                    break;
+                }
             }
-         }
-      }
-   }
+        }
+    }
 #endif
 #ifdef _Q_WINDOWS
-   win_init_maps();
-   TIME_ZONE_INFORMATION tzi;
-   int rc = GetTimeZoneInformation(&tzi);
-   // assume UTC if no zone info is available
-   if (rc == TIME_ZONE_ID_UNKNOWN) {
-      printd(0, "QoreTimeZoneManager::init() Windows GetTimeZoneInformation returned TIME_ZONE_ID_UNKNOWN, assuming UTC\n");
-   }
-   else {
-      ExceptionSink xsink;
+    win_init_maps();
+    TIME_ZONE_INFORMATION tzi;
+    int rc = GetTimeZoneInformation(&tzi);
+    // assume UTC if no zone info is available
+    if (rc == TIME_ZONE_ID_UNKNOWN) {
+        printd(0, "QoreTimeZoneManager::init() Windows GetTimeZoneInformation returned TIME_ZONE_ID_UNKNOWN, assuming UTC\n");
+    } else {
+        ExceptionSink xsink;
 
-      if (!SysEnv.get("TZ", TZ)) {
-         std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(TZ.getBuffer(), &xsink));
-         if (!*(twzi.get())) {
+        if (!SysEnv.get("TZ", TZ)) {
+            std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(TZ.getBuffer(), &xsink));
+            if (!*(twzi.get())) {
+                xsink.clear();
+                printd(1, "error reading windows registry while setting local time zone: %s\n", TZ.getBuffer());
+            } else
+                setLocalTZ(TZ.getBuffer(), twzi.release());
+            return;
+        }
+
+        QoreString sn;
+        wchar2utf8(tzi.StandardName, sn);
+
+        // try to set the local time zone from the standard zone name
+        std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
+        if (!*(twzi.get())) {
+            //xsink.handleExceptions();
             xsink.clear();
-            printd(1, "error reading windows registry while setting local time zone: %s\n", TZ.getBuffer());
-         }
-         else
-            setLocalTZ(TZ.getBuffer(), twzi.release());
-         return;
-      }
+            printd(1, "error reading windows registry while setting local time zone: %s\n", sn.getBuffer());
+            return;
+        }
 
-      QoreString sn;
-      wchar2utf8(tzi.StandardName, sn);
-
-      // try to set the local time zone from the standard zone name
-      std::unique_ptr<QoreWindowsZoneInfo> twzi(new QoreWindowsZoneInfo(sn.getBuffer(), &xsink));
-      if (!*(twzi.get())) {
-         //xsink.handleExceptions();
-         xsink.clear();
-         printd(1, "error reading windows registry while setting local time zone: %s\n", sn.getBuffer());
-         return;
-      }
-
-      setLocalTZ(sn.getBuffer(), twzi.release());
-   }
+        setLocalTZ(sn.getBuffer(), twzi.release());
+    }
 #endif
 
-   // if no local time zone has been set, then set to UTC
-   if (!localtz)
-      setLocalTZ("UTC");
+    // if no local time zone has been set, then set to UTC
+    if (!localtz)
+        setLocalTZ("UTC");
 }
 
 void QoreTimeZoneManager::setFromLocalTimeFile() {
-   // determine local region
-   struct stat sbuf;
-#ifdef HAVE_LSTAT
-   if (!lstat(LOCALTIME_LOCATION, &sbuf)) {
-#else
-   if (!stat(LOCALTIME_LOCATION, &sbuf)) {
-#endif
-      // normally this file is a symlink - we need the target file name for the name of the time zone region
-#ifdef S_IFLNK
-      printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() %s: %d (%d)\n", LOCALTIME_LOCATION, sbuf.st_mode & S_IFMT, S_IFLNK);
-      if ((sbuf.st_mode & S_IFMT) == S_IFLNK) {
-        char buf[QORE_PATH_MAX + 1];
-        qore_offset_t len = readlink(LOCALTIME_LOCATION, buf, QORE_PATH_MAX);
-        if (len > 0) {
-           buf[len] = '\0';
-           if (buf[0] == '.' && buf[1] == '.') {
-              char* dn = q_dirname(LOCALTIME_LOCATION);
-              ON_BLOCK_EXIT(free, dn);
-              QoreString path(dn);
-              path.concat('/');
-              path.concat(buf);
-              //printd(5, "QoreTimeZoneManager::QoreTimeZoneManager() path: '%s'\n", path.getBuffer());
-              setLocalTZ(path.getBuffer());
-           }
-           else
-              setLocalTZ(buf);
-        }
+    // see if file exists
+    struct stat sbuf;
+    if (!stat(AbstractQoreZoneInfo::localtime_location.c_str(), &sbuf)) {
+        setLocalTZ(AbstractQoreZoneInfo::localtime_location.c_str());
+    }
 #ifdef DEBUG
-        else
-           printd(1, "QoreTimeZoneManager::QoreTimeZoneManager() failed to read %s link: %s\n", LOCALTIME_LOCATION, strerror(errno));
-#endif // DEBUG
-      }
-      else
-#endif // S_IFLNK
-        setLocalTZ(LOCALTIME_LOCATION);
-   }
-#ifdef DEBUG
-   else {
-      printd(1, "cannot determine local time region: could not lstat() %s: %s\n", LOCALTIME_LOCATION, strerror(errno));
-   }
+    else {
+        printd(1, "cannot determine local time region: could not stat() %s: %s\n", AbstractQoreZoneInfo::localtime_location.c_str(), strerror(errno));
+    }
 #endif
 }
 

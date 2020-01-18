@@ -255,6 +255,14 @@ class DateTest inherits QUnit::Test {
 
         # test for issue #584
         assertEq(-14400, new TimeZone("America/New_York").date("1980-07-01").info().utc_secs_east);
+
+        # test for issue #3736
+        {
+            date now = Qore::now();
+            string region = now.info().zone.region();
+            assertEq(2, region.split("/").size());
+            assertEq(now, Serializable::deserialize(Serializable::serialize(now)));
+        }
     }
 
     windowsTimeZoneTests() {
