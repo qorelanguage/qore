@@ -214,7 +214,9 @@ public class AbstractDataProvider {
         rv += getStaticInfoImpl() + {
             "children": getChildProviderNames(),
         };
-        rv.has_record = !rv.supports_children;
+        if (!exists rv.has_record) {
+            rv.has_record = rv.supports_read;
+        }
         return rv;
     }
 

@@ -37,6 +37,7 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
         const ProviderInfo = <DataProviderInfo>{
             "type": "FixedLengthWriteDataProvider",
             "supports_create": True,
+            "has_record": True,
             "constructor_options": ConstructorOptions,
         };
 
