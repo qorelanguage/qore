@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -65,8 +65,7 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
                 vtype = vtypes[0];
                 vcommon = true;
             }
-        }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
             vcommon = false;
 
         if (!needs_eval && values[i].needsEval()) {
@@ -79,15 +78,16 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_get_complex_list_type(vtype);
-    }
-    else {
-        this->typeInfo = listTypeInfo;
+    } else {
+        this->typeInfo = autoListTypeInfo;
+        // issue #3740: must set to auto type info to avoid type stripping
+        vtype = autoTypeInfo;
         // issue #2647: allow an empty list to be assigned to any complex list
         // it will get folded at runtime into the desired type in any case
-        typeInfo = vtypes.empty() ? emptyListTypeInfo : listTypeInfo;
+        typeInfo = vtypes.empty() ? emptyListTypeInfo : autoListTypeInfo;
     }
 
-    //printd(5, "QoreParseListNode::parseInitIntern() this: %p size: %d typeInfo: %p '%s'\n", this, size(), typeInfo, QoreTypeInfo::getName(typeInfo));
+    //printd(5, "QoreParseListNode::parseInitIntern() this: %p size: %d typeInfo: %p '%s' (vtype: %p '%s')\n", this, size(), typeInfo, QoreTypeInfo::getName(typeInfo), vtype, QoreTypeInfo::getName(vtype));
 
     return needs_eval;
 }
@@ -123,8 +123,7 @@ QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
         if (!i) {
             vtype = vt;
             vcommon = true;
-        }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt))
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt))
             vcommon = false;
 
         // issue #2791: ensure that type folding is performed at the source if necessary
@@ -136,6 +135,7 @@ QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
             assert(!xsink || !*xsink);
         }
 
+        //printd(5, "QoreParseListNode::evalImpl() [%lu] (%p: %s) '%s'\n", i, this->vtype, QoreTypeInfo::getName(this->vtype), val.getFullTypeName());
         ll->pushIntern(val);
     }
 
