@@ -154,18 +154,23 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             if (sobject.queryable) {
                 rv.supports_read = True;
                 rv.supports_native_search = True;
+                rv.has_record = True;
             }
             if (sobject.createable) {
                 rv.supports_create = True;
+                rv.has_record = True;
             }
             if (sobject.mergeable) {
                 rv.supports_upsert = True;
+                rv.has_record = True;
             }
             if (sobject.deletable) {
                 rv.supports_delete = True;
+                rv.has_record = True;
             }
             if (sobject.updateable) {
                 rv.supports_update = True;
+                rv.has_record = True;
             }
         }
         return rv;
