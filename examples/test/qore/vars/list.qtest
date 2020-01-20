@@ -121,6 +121,13 @@ public class ListTest inherits QUnit::Test {
             l += 1;
             assertEq((1,), l);
         }
+
+        {
+            code t = auto sub(int i) { return <StatInfo>{}; };
+            auto v = 1;
+            list<auto> l = (1, t(v));
+            assertEq("hash<StatInfo>", l[1].fullType());
+        }
     }
 
     int test(list<int> l1, list<string> l2) {

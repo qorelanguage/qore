@@ -101,6 +101,8 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
         this->typeInfo = typeInfo = qore_get_complex_hash_type(vtype);
     } else {
         this->typeInfo = autoHashTypeInfo;
+        // issue #3740: must set to auto type info to avoid type stripping
+        vtype = autoTypeInfo;
         // issue #2647: allow an empty hash to be assigned to any complex hash (but not hashdecls)
         // it will get folded at runtime into the desired type in any case
         typeInfo = vtypes.empty() ? emptyHashTypeInfo : autoHashTypeInfo;

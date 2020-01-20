@@ -224,5 +224,12 @@ class HashTest inherits QUnit::Test {
             assertEq(Type::Hash, hd.hi.type());
             assertEq(Type::List, hd.l.type());
         }
+
+        {
+            code t = auto sub(int i) { return <StatInfo>{}; };
+            auto v = 1;
+            hash<auto> h = {"a": 1, "b": t(v)};
+            assertEq("hash<StatInfo>", h.b.fullType());
+        }
     }
 }

@@ -120,6 +120,8 @@
       - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> and
         <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
         - fixed the version number reported by the server
+    - fixed type handling in list evaluation with complex types that can only be determined at runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/3740">issue 3740</a>)
     - fixed setting the time zone region in date/time values to not include the system-specific zoneinfo path prefix
       in order to allow for deserialization of date/time values on different systems
       (<a href="https://github.com/qorelanguage/qore/issues/3736">issue 3736</a>)
