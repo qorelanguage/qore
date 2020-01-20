@@ -37,6 +37,7 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
         const ProviderInfo = <DataProviderInfo>{
             "type": "CsvWriteDataProvider",
             "supports_create": True,
+            "has_record": True,
             "constructor_options": ConstructorOptions,
         };
 

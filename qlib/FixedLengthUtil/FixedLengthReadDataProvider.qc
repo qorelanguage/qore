@@ -35,6 +35,7 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
         const ProviderInfo = <DataProviderInfo>{
             "type": "FixedLengthReadDataProvider",
             "supports_read": True,
+            "has_record": True,
             "constructor_options": ConstructorOptions,
         };
 

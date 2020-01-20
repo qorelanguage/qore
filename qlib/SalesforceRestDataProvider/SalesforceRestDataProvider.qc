@@ -44,20 +44,8 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "SalesforceRestDataProvider",
-            "supports_read": False,
-            "supports_create": False,
-            "supports_update": False,
-            "supports_upsert": False,
-            "supports_delete": False,
-            "supports_native_search": False,
-            "supports_bulk_create": False,
-            "supports_bulk_upsert": False,
             "supports_children": True,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
-            "create_options": NOTHING,
-            "upsert_options": NOTHING,
-            "transaction_management": False,
         };
 
         #! Constructor options

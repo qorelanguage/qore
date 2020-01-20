@@ -37,6 +37,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         const ProviderInfo = <DataProviderInfo>{
             "type": "CsvReadDataProvider",
             "supports_read": True,
+            "has_record": True,
             "constructor_options": ConstructorOptions,
         };
 
