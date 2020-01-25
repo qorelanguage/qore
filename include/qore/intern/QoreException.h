@@ -4,7 +4,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,10 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
     std::string file;
     std::string source;
     std::string lang;
-    int offset;
+    int offset = 0;
+
+    DLLLOCAL QoreExceptionLocation() {
+    }
 
     DLLLOCAL QoreExceptionLocation(const QoreProgramLocation& loc) : QoreProgramLineLocation(loc),
         file(loc.getFileValue()), source(loc.getSourceValue()), lang(loc.getLanguageValue()), offset(loc.offset) {
@@ -71,6 +74,16 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
 
     DLLLOCAL QoreExceptionLocation(QoreExceptionLocation&& old) = default;
 
+    DLLLOCAL QoreExceptionLocation& operator=(const QoreExceptionLocation& other) {
+        start_line = other.start_line;
+        end_line = other.end_line;
+        file = other.file;
+        source = other.source;
+        lang = other.lang;
+        offset = other.offset;
+        return *this;
+    }
+
     DLLLOCAL void set(const QoreProgramLocation& loc) {
         start_line = loc.start_line;
         end_line = loc.end_line;
@@ -78,6 +91,10 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
         source = loc.getSourceValue();
         lang = loc.getLanguageValue();
         offset = loc.offset;
+    }
+
+    DLLLOCAL bool isBuiltin() const {
+        return file == "<builtin>" && (start_line == end_line) && (start_line == -1);
     }
 };
 
@@ -90,7 +107,7 @@ public:
 
     // called for generic exceptions
     DLLLOCAL QoreHashNode* makeExceptionObjectAndDelete(ExceptionSink *xsink);
-    DLLLOCAL QoreHashNode* makeExceptionObject();
+    DLLLOCAL QoreHashNode* makeExceptionObject() const;
 
     // called for runtime exceptions
     DLLLOCAL QoreException(const char *n_err, QoreValue n_desc, QoreValue n_arg = QoreValue())
@@ -120,6 +137,40 @@ public:
     DLLLOCAL QoreException(const QoreProgramLocation& n_loc, const char *n_err, QoreValue n_desc,
         QoreValue n_arg = QoreValue(), qore_call_t n_type = CT_BUILTIN) :
         QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc) {
+    }
+
+    DLLLOCAL void getLocation(QoreExceptionLocation& loc) const {
+        if (isBuiltin() && callStack) {
+            ConstListIterator i(callStack);
+            while (i.next()) {
+                QoreValue v = i.getValue();
+                assert(v.getType() == NT_HASH);
+                const QoreHashNode* h = v.get<const QoreHashNode>();
+                QoreValue kv = v.get<const QoreHashNode>()->getKeyValue("file");
+                if (kv.getType() == NT_STRING) {
+                    const QoreStringNode* str = kv.get<const QoreStringNode>();
+                    if (*str != "<builtin>") {
+                        loc.file = str->c_str();
+                        kv = v.get<const QoreHashNode>()->getKeyValue("source");
+                        if (kv.getType() == NT_STRING) {
+                            loc.source = kv.get<const QoreStringNode>()->c_str();
+                        }
+                        kv = v.get<const QoreHashNode>()->getKeyValue("lang");
+                        if (kv.getType() == NT_STRING) {
+                            loc.lang = kv.get<const QoreStringNode>()->c_str();
+                        }
+                        kv = v.get<const QoreHashNode>()->getKeyValue("line");
+                        loc.start_line = kv.getAsBigInt();
+                        kv = v.get<const QoreHashNode>()->getKeyValue("endline");
+                        loc.end_line = kv.getAsBigInt();
+                        kv = v.get<const QoreHashNode>()->getKeyValue("offset");
+                        loc.offset = kv.getAsBigInt();
+                        return;
+                    }
+                }
+            }
+        }
+        loc = *this;
     }
 
     DLLLOCAL void del(ExceptionSink *xsink);

@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -376,12 +376,14 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                 found = true;
                 QoreStringNode* func = h->getKeyValue("function").get<QoreStringNode>();
                 QoreStringNode* type = h->getKeyValue("type").get<QoreStringNode>();
+                QoreExceptionLocation loc;
+                e->getLocation(loc);
 
                 printe(" in %s() (", func->c_str());
-                const char* fns = !e->file.empty() ? e->file.c_str() : nullptr;
-                const char* srcs = !e->source.empty() ? e->source.c_str() : nullptr;
-                const char* langs = !e->lang.empty() ? e->lang.c_str() : nullptr;
-                outputExceptionLocation(fns, e->start_line, e->end_line, srcs, e->offset, langs, type->c_str());
+                const char* fns = !loc.file.empty() ? loc.file.c_str() : nullptr;
+                const char* srcs = !loc.source.empty() ? loc.source.c_str() : nullptr;
+                const char* langs = !loc.lang.empty() ? loc.lang.c_str() : nullptr;
+                outputExceptionLocation(fns, loc.start_line, loc.end_line, srcs, loc.offset, langs, type->c_str());
                 printe(")\n");
             }
         }
