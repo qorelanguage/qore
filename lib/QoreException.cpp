@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -104,19 +104,22 @@ QoreException* QoreException::rethrow() {
     return e.release();
 }
 
-QoreHashNode* QoreException::makeExceptionObject() {
+QoreHashNode* QoreException::makeExceptionObject() const {
     QORE_TRACE("makeExceptionObject()");
 
     QoreHashNode* h = new QoreHashNode(hashdeclExceptionInfo, nullptr);
     auto ph = qore_hash_private::get(*h);
 
+    QoreExceptionLocation loc;
+    getLocation(loc);
+
     ph->setKeyValueIntern("type", new QoreStringNode(type == CT_USER ? "User" : "System"));
-    ph->setKeyValueIntern("file", new QoreStringNode(file));
-    ph->setKeyValueIntern("line", start_line);
-    ph->setKeyValueIntern("endline", end_line);
-    ph->setKeyValueIntern("source", new QoreStringNode(source));
-    ph->setKeyValueIntern("offset", offset);
-    ph->setKeyValueIntern("lang", new QoreStringNode(lang));
+    ph->setKeyValueIntern("file", new QoreStringNode(loc.file));
+    ph->setKeyValueIntern("line", loc.start_line);
+    ph->setKeyValueIntern("endline", loc.end_line);
+    ph->setKeyValueIntern("source", new QoreStringNode(loc.source));
+    ph->setKeyValueIntern("offset", loc.offset);
+    ph->setKeyValueIntern("lang", new QoreStringNode(loc.lang));
     ph->setKeyValueIntern("callstack", callStack->refSelf());
     if (err) {
         ph->setKeyValueIntern("err", err.refSelf());
