@@ -904,8 +904,10 @@ static QoreValue do_method_intern(QoreObject* self, const QoreMethod* meth, Clas
                 "class '%s' as the classes are not in the same hierarchy", name, self->getClassName());
         }
     }
-    return QoreValue(new RunTimeResolvedMethodReferenceNode(&loc_builtin, self, meth,
-        qore_class_private::get(*meth->getClass())));
+    if (self) {
+        return QoreValue(new RunTimeResolvedMethodReferenceNode(&loc_builtin, self, meth, qore_class_private::get(*meth->getClass())));
+    }
+    return QoreValue(new LocalStaticMethodCallReferenceNode(&loc_builtin, meth));
 }
 
 QoreValue get_call_reference_intern(QoreObject* self, const QoreStringNode* identifier, ExceptionSink* xsink) {
