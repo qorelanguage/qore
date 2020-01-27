@@ -223,9 +223,15 @@ class ProgramTest inherits QUnit::Test {
 
     callRefTest() {
         Program p(PO_NEW_STYLE);
-        p.parse("int sub get_int() { return 1; }", "");
+        p.parse("int sub get_int() { return 1; } class T { static int t() { return 2; }}", "");
         code ref = p.getCallReference("get_int");
         assertEq(1, ref());
+        ref = p.getCallReference("T::t");
+        assertEq(2, ref());
+        ref = get_call_reference("Serializable::deserialize");
+        assertEq(1, ref(Serializable::serialize(1)));
+        ref = p.getCallReference("Serializable::deserialize");
+        assertEq(1, ref(Serializable::serialize(1)));
         assertThrows("CALL-REFERENCE-ERROR", \get_call_reference(), "get_int");
     }
 
