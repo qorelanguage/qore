@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     NOTE that 2 copies of connection values are kept in case
     the values are changed while a connection is in use
@@ -42,19 +42,19 @@
 #include <cstring>
 
 void qore_ds_private::statementExecuted(int rc) {
-   // we always assume we are in a transaction after executing a transaction-relevant statement
-   // unless the connection was aborted
-   if (!in_transaction) {
-      if (!connection_aborted) {
-         assert(!active_transaction);
-         assert(isopen);
-         in_transaction = true;
-         active_transaction = true;
-         return;
-      }
-   }
-   else if (!rc && !active_transaction)
-      active_transaction = true;
+    // we always assume we are in a transaction after executing a transaction-relevant statement
+    // unless the connection was aborted
+    if (!in_transaction) {
+        if (!connection_aborted) {
+            assert(!active_transaction);
+            assert(isopen);
+            in_transaction = true;
+            active_transaction = true;
+            return;
+        }
+    }
+    else if (!rc && !active_transaction)
+        active_transaction = true;
 }
 
 QoreHashNode* qore_ds_private::getCurrentOptionHash(bool ensure_hash) const {
@@ -462,18 +462,20 @@ bool Datasource::wasConnectionAborted() const {
 
 // forces a close and open to reset a database connection
 void Datasource::reset(ExceptionSink* xsink) {
-   if (priv->isopen) {
-      // close the Datasource
-      qore_dbi_private::get(*priv->dsl)->close(this);
-      priv->isopen = false;
+    if (priv->isopen) {
+        // close the Datasource
+        qore_dbi_private::get(*priv->dsl)->close(this);
+        priv->isopen = false;
 
-      // open the connection
-      open(xsink);
+        // open the connection
+        open(xsink);
 
-      // close any open transaction(s)
-      priv->in_transaction = false;
-      priv->active_transaction = false;
-   }
+        //printd(5, "Datasource::reset() this: %p priv: %p in_transaction: %d active_transaction: %d\n", this, priv, priv->in_transaction, priv->active_transaction);
+
+        // close any open transaction(s)
+        priv->in_transaction = false;
+        priv->active_transaction = false;
+    }
 }
 
 void* Datasource::getPrivateData() const {

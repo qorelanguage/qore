@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,7 @@ DatasourceActionHelper::~DatasourceActionHelper() {
    if (ok) {
       if (cmd == DAH_NOCONN) {
          ds.releaseLock();
-      }
-      else {
+      } else {
          bool keep_lock = qore_ds_private::get(ds)->keepLock();
 
          // FIXME: check connection aborted handling if exec could have been executed after connection reset
@@ -59,14 +58,14 @@ DatasourceActionHelper::~DatasourceActionHelper() {
 }
 
 void ManagedDatasource::cleanup(ExceptionSink *xsink) {
-   // this thread has the transaction lock
-   AutoLocker al(&ds_lock);
-   assert(isInTransaction());
+    // this thread has the transaction lock
+    AutoLocker al(&ds_lock);
+    assert(isInTransaction());
 
-   xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
-   Datasource::rollback(xsink);
-   setTransactionStatus(false);
-   releaseLockIntern();
+    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
+    Datasource::rollback(xsink);
+    setTransactionStatus(false);
+    releaseLockIntern();
 }
 
 void ManagedDatasource::destructor(ExceptionSink* xsink) {
@@ -186,22 +185,23 @@ int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction
 }
 
 bool ManagedDatasource::endDBActionIntern(char cmd, bool new_transaction) {
-   if (cmd == DAH_ACQUIRE) {
-      // save thread resource if we just started a transaction
-      if (new_transaction)
-         set_thread_resource(this);
-   }
-   else if (cmd) {
-      assert(cmd == DAH_RELEASE);
+    if (cmd == DAH_ACQUIRE) {
+        // save thread resource if we just started a transaction
+        if (new_transaction) {
+            //printd(5, "ManagedDatasource::endDBActionIntern() this: %p priv: %p set_thread_resource()\n", this, qore_ds_private::get(*this));
+            set_thread_resource(this);
+        }
+    } else if (cmd) {
+        assert(cmd == DAH_RELEASE);
 
-      // transaction is complete, remove the transaction thread resource
-      if (!new_transaction)
-         remove_thread_resource(this);
+        // transaction is complete, remove the transaction thread resource
+        //printd(5, "ManagedDatasource::endDBActionIntern() this: %p priv: %p remove_thread_resource()\n", this, qore_ds_private::get(*this));
+        remove_thread_resource(this);
 
-      releaseLockIntern();
-   }
+        releaseLockIntern();
+    }
 
-   return tid == gettid();
+    return tid == gettid();
 }
 
 bool ManagedDatasource::endDBAction(char cmd, bool new_transaction) {
@@ -313,11 +313,11 @@ int ManagedDatasource::commit(ExceptionSink *xsink) {
 }
 
 int ManagedDatasource::rollback(ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_RELEASE);
-   if (!dbah)
-      return -1;
+    DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_RELEASE);
+    if (!dbah)
+        return -1;
 
-   return Datasource::rollback(xsink);
+    return Datasource::rollback(xsink);
 }
 
 int ManagedDatasource::open(ExceptionSink *xsink) {
@@ -330,29 +330,31 @@ int ManagedDatasource::open(ExceptionSink *xsink) {
 
 // returns 0 for OK, -1 for exception
 int ManagedDatasource::closeUnlocked(ExceptionSink *xsink) {
-   int rc = 0;
+    int rc = 0;
 
-   if (grabLock(xsink))
-      return -1;
+    if (grabLock(xsink))
+        return -1;
 
-   if (isOpen()) {
-      if (isInTransaction()) {
-         if (!wasConnectionAborted()) {
-            // FIXME: check for statement
-            xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str());
-            Datasource::rollback(xsink);
-         }
-         remove_thread_resource(this);
-         setTransactionStatus(false);
-         // force-exit the transaction lock
-         forceReleaseLockIntern();
-         rc = -1;
-      }
+    //printd(5, "ManagedDatasource::closeUnlocked() this: %p priv: %p %s:%s@%s open: %d trans: %d\n", this, qore_ds_private::get(*this), getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), isOpen(), isInTransaction());
 
-      Datasource::close();
-   }
+    if (isOpen()) {
+        if (isInTransaction()) {
+            if (!wasConnectionAborted()) {
+                // FIXME: check for statement
+                xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: Datasource closed while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str());
+                Datasource::rollback(xsink);
+            }
+            remove_thread_resource(this);
+            setTransactionStatus(false);
+            // force-exit the transaction lock
+            forceReleaseLockIntern();
+            rc = -1;
+        }
 
-   return rc;
+        Datasource::close();
+    }
+
+    return rc;
 }
 
 int ManagedDatasource::close(ExceptionSink *xsink) {
@@ -362,11 +364,11 @@ int ManagedDatasource::close(ExceptionSink *xsink) {
 
 // closes and re-opens to reset a database connection
 int ManagedDatasource::reset(ExceptionSink *xsink) {
-   AutoLocker al(&ds_lock);
-   if (closeUnlocked(xsink))
-      return -1;
-   // open the connection
-   return Datasource::open(xsink);
+    AutoLocker al(&ds_lock);
+    if (closeUnlocked(xsink))
+        return -1;
+    // open the connection
+    return Datasource::open(xsink);
 }
 
 void ManagedDatasource::setPendingUsername(const char *u) {
