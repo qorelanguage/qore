@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+/*  MysqlSqlUtil.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -92,6 +92,8 @@ module MysqlSqlUtil {
     @section mysql_relnotes Release Notes
 
     @subsection mysqlsqlutilv131 MysqlSqlUtil v1.3.2
+    - updated to work also with newer versions of MySQL / MariaDB that support sequences
+      (<a href="https://github.com/qorelanguage/qore/issues/3747">issue 3747</a>)
     - fixed a bug where the sequence table name was not respected in
       @ref MysqlSqlUtil::MysqlDatabase::getNextSequenceValueImpl() "MysqlDatabase::getNextSequenceValueImpl()"
       (<a href="https://github.com/qorelanguage/qore/issues/3641">issue 3641</a>)
@@ -1138,8 +1140,9 @@ end";
 
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
-            on_exit seqds.commit();
-            return seqds.selectRow("select %s(%v) nextval", sequence_function, name).nextval;
+            on_error seqds.rollback();
+            on_success seqds.commit();
+            return seqds.selectRow("select %s(%v) as my_nextval", sequence_function, name).my_nextval;
         }
 
         #! returns the last value issued for the given sequence in the current session

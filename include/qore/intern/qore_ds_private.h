@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -222,6 +222,7 @@ struct qore_ds_private {
     }
 
     DLLLOCAL int commitIntern(ExceptionSink* xsink) {
+        //printd(5, "qore_ds_private::commitIntern() this: %p in_transaction: %d active_transaction: %d\n", this, in_transaction, active_transaction);
         assert(isopen);
         in_transaction = false;
         active_transaction = false;
@@ -250,6 +251,7 @@ struct qore_ds_private {
 
     DLLLOCAL int close() {
         if (isopen) {
+            //printd(5, "qore_ds_private::close() this: %p in_transaction: %d active_transaction: %d\n", this, in_transaction, active_transaction);
             qore_dbi_private::get(*dsl)->close(ds);
             isopen = false;
             in_transaction = false;
