@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -190,8 +190,9 @@ protected:
 public:
     DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) :
         ds(n_ds), ok(n_cmd == DAH_NOCONN ? !ds.acquireLock(xsink) : !ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
-        if (cmd == DAH_NOCONN)
+        if (cmd == DAH_NOCONN || n_ds.getAutoCommit()) {
             new_transaction = false;
+        }
     }
 
     DLLLOCAL ~DatasourceActionHelper();
