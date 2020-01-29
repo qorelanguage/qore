@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Schema.qm Qore user module for working with SQL data
 
-/*  Schema.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
+/*  Schema.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -621,8 +621,16 @@ public namespace Schema {
                 sch.sql_cache = ();
             }
 
-            on_success ds.commit();
-            on_error ds.rollback();
+            #on_error ds.rollback();
+            #on_success ds.commit();
+            on_error {
+                ds.rollback();
+                printf("ALIGNMENT ROLLED BACK\n");
+            }
+            on_success {
+                ds.commit();
+                printf("COMMITTED ALIGNMENT\n");
+            }
 
             Tables table_cache();
 
@@ -669,10 +677,10 @@ public namespace Schema {
 
             doPostAlignment(table_cache, first_time_install, initial_schema_info, verbose);
 
-            *hash strict_data = getStrictReferenceDataHash();
-            *hash ref_data = getReferenceDataHash();
-            *hash insert_only_data = getInsertOnlyReferenceData();
-            *hash co_data = getCreateOnlyReferenceData();
+            *hash<auto> strict_data = getStrictReferenceDataHash();
+            *hash<auto> ref_data = getReferenceDataHash();
+            *hash<auto> insert_only_data = getInsertOnlyReferenceData();
+            *hash<auto> co_data = getCreateOnlyReferenceData();
 
             # change summary hash
             hash sh;

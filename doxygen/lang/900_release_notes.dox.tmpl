@@ -142,6 +142,21 @@
       @code{.py} *list<int> l = cast<*list<int>>(getList()); @endcode
       (<a href="https://github.com/qorelanguage/qore/issues/3331">issue 3331</a>)
 
+    @section qore_0933 Qore 0.9.3.3
+
+    @par Release Summary
+
+    Bugfix release; see details below
+
+    @subsection qore_0933_bug_fixes Bug Fixes in Qore
+
+    - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module fix: updated to work also with
+      newer versions of MySQL / MariaDB that support sequences
+      (<a href="https://github.com/qorelanguage/qore/issues/3747">issue 3747</a>)
+    - fixed a bug where the @ref Qore::SQL::Datasource "Datasource" class would not always remove the transaction
+      thread resource when rolling back transactions
+      (<a href="https://github.com/qorelanguage/qore/issues/3745">issue 3745</a>)
+
     @section qore_0932 Qore 0.9.3.2
 
     @par Release Summary
