@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -92,6 +92,8 @@ module MysqlSqlUtil {
     @section mysql_relnotes Release Notes
 
     @subsection mysqlsqlutilv14 MysqlSqlUtil v1.4
+    - fixed quoting reserved words with backticks
+      (<a href="https://github.com/qorelanguage/qore/issues/3750">issue 3750</a>)
     - added support for the DataProvider module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
@@ -1833,16 +1835,11 @@ end";
             }
         }
 
-        #! returns the column name for use in SQL strings in DDL
+        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
         /** MySQL/MariaDB etc require column names to be enclosed in backticks instead of double quotes
         */
-        string getColumnDdlSqlName(string col) {
-            return MysqlDatabase::MysqlReservedWords{col.lwr()} ? ("`" + col + "`") : col;
-        }
-
-        #! returns the column name for use in SQL strings; subclasses can return a special string in case the column name is a reserved word
         string getColumnSqlName(string col) {
-            return MysqlDatabase::MysqlReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+            return MysqlDatabase::MysqlReservedWords{col.lwr()} ? ("`" + col + "`") : col;
         }
 
         #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
