@@ -110,6 +110,14 @@
 
     @subsection qore_094_bug_fixes Bug Fixes in Qore
     - fixes in modules:
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> and
+        <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
+        - fixed the version number reported by the server
+      - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>:
+        - fixed a bug where the table collation could not be specified
+          (<a href="https://github.com/qorelanguage/qore/issues/3752">issue 3752</a>)
+        - fixed quoting reserved words with backticks
+          (<a href="https://github.com/qorelanguage/qore/issues/3750">issue 3750</a>)
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - fixed support for additional YAML MIME types
           (<a href="https://github.com/qorelanguage/qore/issues/3699">issue 3699</a>)
@@ -117,9 +125,6 @@
           (<a href="https://github.com/qorelanguage/qore/issues/3694">issue 3694</a>)
         - fixed a bug handling \c formData elements
           (<a href="https://github.com/qorelanguage/qore/issues/3692">issue 3692</a>)
-      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> and
-        <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
-        - fixed the version number reported by the server
     - fixed reporting the exception location when exceptions occur in builtin code
       (<a href="https://github.com/qorelanguage/qore/issues/3742">issue 3742</a>)
     - fixed type handling in list and hash evaluation with complex types that can only be determined at runtime

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractTable class definition
 
-/** AbstractTable.qc Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractTable.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -4236,8 +4236,7 @@ string sql = table.getSelectSql(sh, \args);
                         try {
                             string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
                             ce += val;
-                        }
-                        catch (hash<ExceptionInfo> ex) {
+                        } catch (hash<ExceptionInfo> ex) {
                             # rethrow exception with additional contextual information
                             throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
                         }
@@ -4252,8 +4251,7 @@ string sql = table.getSelectSql(sh, \args);
             }
             cstr = foldl $1 + ", " + $2, ce.iterator();
             coll = ce;
-        }
-        else
+        } else
             cstr = "*";
 
         # comment handling
@@ -4541,8 +4539,7 @@ string sql = table.getSelectSql(sh, \args);
                     arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
-        }
-        else if (cmd.columnargs) {
+        } else if (cmd.columnargs) {
             if (arg.args.typeCode() != NT_LIST)
                 throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
             foreach auto narg in (\arg.args) {
@@ -4603,7 +4600,7 @@ string sql = table.getSelectSql(sh, \args);
             if (cv == "*")
                 use_prefix = asteriskRequiresPrefix();
             else if (!columns.hasKey(cv) && !psch{cv})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y", getDesc(), tp, cv, columns.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; known column aliases: %y", getDesc(), tp, cv, keys columns, keys psch);
         }
 
         # ensure that reserved words are properly quoted
