@@ -92,6 +92,8 @@ module MysqlSqlUtil {
     @section mysql_relnotes Release Notes
 
     @subsection mysqlsqlutilv14 MysqlSqlUtil v1.4
+    - fixed a bug where the table collation could not be specified
+      (<a href="https://github.com/qorelanguage/qore/issues/3752">issue 3752</a>)
     - fixed quoting reserved words with backticks
       (<a href="https://github.com/qorelanguage/qore/issues/3750">issue 3750</a>)
     - added support for the DataProvider module
@@ -264,7 +266,7 @@ public namespace MysqlSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-my list $l = $col.getAddColumnSql($t);
+list l = col.getAddColumnSql(t);
             @endcode
 
             @param t the AbstractTable object to modify
@@ -287,7 +289,7 @@ my list $l = $col.getAddColumnSql($t);
         #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
         /** @par Example:
             @code{.py}
-my list $l = $col.getModifySql($t, $newcol);
+list l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
@@ -305,7 +307,7 @@ my list $l = $col.getModifySql($t, $newcol);
             if (ntd == getCreateSql(t))
                 return;
 
-            #printf("L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", getCreateSql(t), comment, ntd, c.comment);
+            #printf("%y (%d) <=> %y (%d): L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", self.className(), size, c.className(), c.size, getCreateSql(t), comment, ntd, c.comment);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
@@ -316,7 +318,7 @@ my list $l = $col.getModifySql($t, $newcol);
         #! returns a string that can be used to rename the column
         /** @par Example:
             @code{.py}
-my string $str = $col.getRenameSql($t, "new_name");
+string str = col.getRenameSql(t, "new_name");
             @endcode
 
             @param t the AbstractTable object to modify
@@ -373,6 +375,10 @@ my string $str = $col.getRenameSql($t, "new_name");
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
+            # default precision is 10
+            if (!sz) {
+                size = 10;
+            }
 
             validateConstructor();
         }
@@ -1296,9 +1302,14 @@ end";
                 SqlUtil::BLOB: "mediumblob",
             );
 
-            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "engine" for the DB engine behind the table (default: \c innodb)
+            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
+            /** the following options are added:
+                - \c "engine": for the DB engine behind the table (default: \c innodb)
+                - \c "collate": for the collation (default: \c latin1_general_cs)
+            */
             const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "engine": Type::String,
+                "collate": Type::String,
             );
 
             #! extends @ref SqlUtil::AbstractTable::ColumnDescOptions with MySQL-specific values
@@ -1408,6 +1419,7 @@ end";
         private {
             string schema;
             string engine = "innodb";
+            string collate = "latin1_general_cs";
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1421,8 +1433,12 @@ end";
             else
                 schema = ds.getDBName();
 
-            if (opts.engine)
+            if (opts.engine) {
                 engine = opts.engine;
+            }
+            if (opts.collate) {
+                collate = opts.collate;
+            }
         }
 
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
@@ -1507,7 +1523,9 @@ end";
                 }
 
                 MysqlColumn c;
-                auto defval = exists row.column_default && row.column_default !== NULL ? row.column_default : NOTHING;
+                auto defval = exists row.column_default && row.column_default !== NULL && row.column_default != "NULL"
+                    ? row.column_default
+                    : NOTHING;
                 if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
@@ -1517,12 +1535,18 @@ end";
                         case Type::Date: {
                             try {
                                 defval = date(defval);
-                            }
-                            catch (hash<ExceptionInfo> ex) {
+                            } catch (hash<ExceptionInfo> ex) {
                                 # ignore INVALID-DATE; keep text (ex: "CURRENT_TIMESTAMP")
                                 if (ex.err != "INVALID-DATE")
                                     rethrow;
                             }
+                        }
+                        case Type::String: {
+                            if (defval =~ /^'.*'$/) {
+                                defval = defval[1..(defval.size() - 2)];
+                                defval =~ s/''/'/g;
+                            }
+                            break;
                         }
                         # don't know what to do with Type::Binary ???
                         default: break;
@@ -1531,10 +1555,14 @@ end";
                 }
                 bool ai = row.extra == "auto_increment";
 
+                if (row.column_comment =~ /^'.*'$/) {
+                    row.column_comment = row.column_comment[1..(row.column_comment.size() - 2)];
+                    row.column_comment =~ s/''/'/g;
+                }
+
                 if (row.numeric_precision || unsigned || ai) {
                     c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai, row.column_key == "PRI");
-                }
-                else
+                } else
                     c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
 
                 rv.(row.column_name) = c;
@@ -1636,7 +1664,7 @@ end";
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            my *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
+            *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
             delete rv;
             foreach hash<auto> row in (qh.contextIterator()) {
                 reference<MysqlUniqueConstraint> ch = \rv.(row.constraint_name);
@@ -1670,6 +1698,7 @@ end";
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += sprintf("\n) engine %s", engine);
+            sql += sprintf(" collate %s", collate);
 
             return sql;
         }
@@ -1694,7 +1723,9 @@ end";
         }
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
-            if (opt.precision || opt.auto_increment || opt.unsigned)
+            if (opt.precision || opt.auto_increment || opt.unsigned
+                || (MysqlTypeMap{opt.native_type}.type == Type::Number)
+                || (opt.qore_type == Type::Number))
                 return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
             return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
         }
@@ -1850,7 +1881,7 @@ end";
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** @par Example:
             @code{.py}
-my string $str = $table.getSqlValue($date);
+string str = table.getSqlValue(date);
             @endcode
 
             @param v the value to convert to an SQL value
