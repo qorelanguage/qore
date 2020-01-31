@@ -155,6 +155,9 @@
 
     @subsection qore_0933_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug where a crash would result when calling
+      @ref Qore::SQL::Datasource::getOption() "Datasource::getOption()" when the connection was closed
+      (<a href="https://github.com/qorelanguage/qore/issues/3754">issue 3754</a>)
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module fix: updated to work also with
       newer versions of MySQL / MariaDB that support sequences
       (<a href="https://github.com/qorelanguage/qore/issues/3747">issue 3747</a>)
