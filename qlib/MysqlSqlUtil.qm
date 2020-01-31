@@ -1305,11 +1305,12 @@ end";
             #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
             /** the following options are added:
                 - \c "engine": for the DB engine behind the table (default: \c innodb)
-                - \c "collate": for the collation (default: \c latin1_general_cs)
+                - \c "collation": for the table collation (if not set, any \c "collation" option set in the datasource
+                  is used for the table collation)
             */
             const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "engine": Type::String,
-                "collate": Type::String,
+                "collation": Type::String,
             );
 
             #! extends @ref SqlUtil::AbstractTable::ColumnDescOptions with MySQL-specific values
@@ -1419,7 +1420,7 @@ end";
         private {
             string schema;
             string engine = "innodb";
-            string collate = "latin1_general_cs";
+            string collation;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1436,8 +1437,8 @@ end";
             if (opts.engine) {
                 engine = opts.engine;
             }
-            if (opts.collate) {
-                collate = opts.collate;
+            if (opts.collation) {
+                collation = opts.collation;
             }
         }
 
@@ -1698,7 +1699,11 @@ end";
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += sprintf("\n) engine %s", engine);
-            sql += sprintf(" collate %s", collate);
+            # get collation option or connection option, if any
+            *string collation = self.collation ?? ds.getOption("collation");
+            if (collation) {
+                sql += sprintf(" collate %s", collation);
+            }
 
             return sql;
         }
