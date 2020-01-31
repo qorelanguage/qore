@@ -1297,6 +1297,7 @@ hash<auto> Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
     @note in order to ensure atomicity when dealing with Datasource options, the transaction lock is acquired before executing this method if it was not already owned by the calling thread
 
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
+    @throw DATASOURCE-ERROR the datasource must be open for this call
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @since %Qore 0.8.6

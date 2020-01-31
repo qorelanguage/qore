@@ -40,6 +40,8 @@ public class DatasourceTest inherits QUnit::Test {
         Datasource ds("pgsql:u/p@db");
         assertEq(Type::String, ds.getConfigString().type());
         assertEq(Type::Hash, ds.getConfigHash().type());
+        assertEq({}, ds.getOptionHash());
+        assertThrows("DATASOURCE-ERROR", \ds.getOption(), "timezone");
     }
 
     invalidOptionTest() {
@@ -69,6 +71,8 @@ public class DatasourceTest inherits QUnit::Test {
         DatasourcePool dsp(ds.getConfigString());
         # this call will crash with Qore in debug mode without the fix
         assertEq(Type::String, dsp.getConfigString().type());
+        # negative test for #3754
+        assertThrows("DBI-OPTION-ERROR", \ds.getOption(), "xxx");
     }
 
     serializationTest() {
