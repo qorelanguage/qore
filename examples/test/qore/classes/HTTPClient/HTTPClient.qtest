@@ -368,9 +368,11 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         SSLCertificate x509_local(cert_data);
         binary sig_local = x509_local.getSignature();
 
-        Queue q();
         {
-            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, True);
+            Queue q();
+            Counter done(1);
+            on_exit done.dec();
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, True, done);
             # wait for server to be listening and get port
             int port = q.get();
 
@@ -386,7 +388,10 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq(sig_local, sig_remote);
         }
         {
-            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False);
+            Queue q();
+            Counter done(1);
+            on_exit done.dec();
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False, done);
 
             # wait for server to be listening and get port
             int port = q.get();
@@ -400,7 +405,10 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("SOCKET-SSL-ERROR", q.get().err);
         }
         {
-            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False);
+            Queue q();
+            Counter done(1);
+            on_exit done.dec();
+            background sslReadClientCertTest(q, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, False, done);
 
             # wait for server to be listening and get port
             int port = q.get();
@@ -714,7 +722,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         ns.bind(0);
     }
 
-    sslReadClientCertTest(Queue q, int verify_mode, bool accept_all) {
+    sslReadClientCertTest(Queue q, int verify_mode, bool accept_all, Counter done) {
         Socket s();
         s.setSslVerifyMode(verify_mode);
         if (accept_all) {
@@ -730,6 +738,8 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             Socket ns = s.acceptSSL(15s);
             q.push(ns.getRemoteCertificate());
             ns.send(NormalReply1);
+            # wait until reply has been received to delete the socket
+            done.waitForZero();
         } catch (hash<ExceptionInfo> ex) {
             q.push(ex);
         }
