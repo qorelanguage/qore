@@ -190,7 +190,7 @@ protected:
 public:
     DLLLOCAL DatasourceActionHelper(ManagedDatasource& n_ds, ExceptionSink* xsink, char n_cmd = DAH_NOCHANGE) :
         ds(n_ds), ok(n_cmd == DAH_NOCONN ? !ds.acquireLock(xsink) : !ds.startDBAction(xsink, new_transaction)), cmd(n_cmd) {
-        if (cmd == DAH_NOCONN || n_ds.getAutoCommit()) {
+        if (cmd == DAH_NOCONN) {
             new_transaction = false;
         }
     }
