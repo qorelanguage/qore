@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -418,8 +418,10 @@ bool AbstractDatasource::currentThreadInTransaction() {
 
 //! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
 /** @note
-    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()" and @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
-    - this method was added as a non-abstract method in Qore 0.9.0 to avoid breaking existing subclasses of AbstractDatasource
+    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()" and
+      @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
+    - this method was added as a non-abstract method in Qore 0.9.0 to avoid breaking existing subclasses of
+      AbstractDatasource
 
     @since Qore 0.9.0
 */
@@ -427,3 +429,33 @@ AbstractSQLStatement AbstractDatasource::getSQLStatement() {
     xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
     return QoreValue();
 }
+
+//! Returns the valid options for the driver associated with the AbstractDatasource with descriptions and current values for the current AbstractDatasource object
+/** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+    - \c "desc": a string description of the option
+    - \c "type": a string giving the data type restriction for the option
+    - \c "value": the current value of the option
+
+    @note this base class method always returns an empty hash
+
+    @since %Qore 0.9.4
+ */
+hash<auto> AbstractDatasource::getOptionHash() [flags=RET_VALUE_ONLY] {
+    return new QoreHashNode(autoTypeInfo);
+}
+
+//! Returns the current value for the given option
+/** @param opt the option to get
+    @return the value of the option
+
+    @note This base class method always throws an exception
+
+    @since %Qore 0.9.4
+*/
+auto AbstractDatasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
+    xsink->raiseException("DBI-OPTION-ERROR", "This method must be re-implemented in subclasses to provide the " \
+        "desired functionality; it is implemented in Datasource and DatasourcePool for example");
+    return QoreValue();
+}
+
+
