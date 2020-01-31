@@ -92,7 +92,7 @@ module MysqlSqlUtil {
     @section mysql_relnotes Release Notes
 
     @subsection mysqlsqlutilv14 MysqlSqlUtil v1.4
-    - fixed a bug where the table collation could not be specified
+    - fixed a bug where the table collation and character set (encoding) could not be specified
       (<a href="https://github.com/qorelanguage/qore/issues/3752">issue 3752</a>)
     - fixed quoting reserved words with backticks
       (<a href="https://github.com/qorelanguage/qore/issues/3750">issue 3750</a>)
@@ -1307,10 +1307,13 @@ end";
                 - \c "engine": for the DB engine behind the table (default: \c innodb)
                 - \c "collation": for the table collation (if not set, any \c "collation" option set in the datasource
                   is used for the table collation)
+                - \c "table_encoding": the "character set" value for "create table" DDL statements (if not set, the
+                  DB encoding value used for the datasource will be used)
             */
             const MysqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "engine": Type::String,
                 "collation": Type::String,
+                "table_encoding": Type::String,
             );
 
             #! extends @ref SqlUtil::AbstractTable::ColumnDescOptions with MySQL-specific values
@@ -1421,6 +1424,7 @@ end";
             string schema;
             string engine = "innodb";
             string collation;
+            string table_encoding;
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -1439,6 +1443,9 @@ end";
             }
             if (opts.collation) {
                 collation = opts.collation;
+            }
+            if (opts.table_encoding) {
+                table_encoding = opts.table_encoding;
             }
         }
 
@@ -1699,10 +1706,18 @@ end";
 
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += sprintf("\n) engine %s", engine);
-            # get collation option or connection option, if any
-            *string collation = self.collation ?? ds.getOption("collation");
-            if (collation) {
-                sql += sprintf(" collate %s", collation);
+            {
+                string encoding = self.table_encoding ?? ds.getDBEncoding();
+                if (encoding.val()) {
+                    sql += sprintf(" character set %s", encoding);
+                }
+            }
+            {
+                # get collation option or connection option, if any
+                *string collation = self.collation ?? ds.getOption("collation");
+                if (collation) {
+                    sql += sprintf(" collate %s", collation);
+                }
             }
 
             return sql;
