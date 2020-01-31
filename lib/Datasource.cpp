@@ -636,6 +636,11 @@ const QoreHashNode* Datasource::getConnectOptions() const {
 }
 
 QoreValue Datasource::getOption(const char* opt, ExceptionSink* xsink) {
+    if (!isOpen()) {
+        xsink->raiseException("DATASOURCE-ERROR", "cannot retrieve the value for option '%s' when the datasource is " \
+            "closed; use getOptionHash() to retrieve raw configuration option when the datasource is closed", opt);
+        return QoreValue();
+    }
     return qore_dbi_private::get(*priv->dsl)->opt_get(this, opt, xsink);
 }
 
