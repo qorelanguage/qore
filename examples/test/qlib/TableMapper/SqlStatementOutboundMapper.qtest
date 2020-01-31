@@ -127,7 +127,7 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource {
     *string getHostName() {}
     string getDriverName() { return ""; }
     any select(string sql) {}
-    string getDBEncoding() { return ""; }
+    *string getDBEncoding() { }
     any vselect(string sql, *softlist<auto> vargs) {}
     string getConfigString() { return ""; }
     any vselectRows(string sql, *softlist<auto> vargs) {}
