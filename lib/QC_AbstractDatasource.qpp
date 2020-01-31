@@ -299,12 +299,12 @@ abstract *string AbstractDatasource::getDBName();
 
     @par Example:
     @code{.py}
-string enc = db.getDBEncoding();
+*string enc = db.getDBEncoding();
     @endcode
 
     @see AbstractDatasource::getOSEncoding();
- */
-abstract string AbstractDatasource::getDBEncoding();
+*/
+abstract *string AbstractDatasource::getDBEncoding();
 
 //! Returns the %Qore character encoding name for the object as a string or @ref nothing if none is set
 /** @return the %Qore character encoding name for the object as a string or @ref nothing if none is set

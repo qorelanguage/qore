@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -682,7 +682,7 @@ nothing DatasourcePool::beginTransaction() {
 
     @par Example:
     @code{.py}
-string enc = db.getDBCharset();
+*string enc = db.getDBCharset();
     @endcode
  */
 *string DatasourcePool::getDBCharset() [flags=CONSTANT] {
@@ -694,12 +694,12 @@ string enc = db.getDBCharset();
 
     @par Example:
     @code{.py}
-string enc = db.getDBEncoding();
+*string enc = db.getDBEncoding();
     @endcode
 
     @see DatasourcePool::getOSEncoding()
  */
-string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
+*string DatasourcePool::getDBEncoding() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 

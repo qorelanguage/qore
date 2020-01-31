@@ -1087,10 +1087,10 @@ nothing Datasource::setPort(softint port = 0) {
 
     @par Example:
     @code{.py}
-string enc = db.getDBCharset();
+*string enc = db.getDBCharset();
     @endcode
  */
-string Datasource::getDBCharset() [flags=CONSTANT] {
+*string Datasource::getDBCharset() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
@@ -1099,12 +1099,12 @@ string Datasource::getDBCharset() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-string enc = db.getDBEncoding();
+*string enc = db.getDBEncoding();
     @endcode
 
     @see Datasource::getOSEncoding();
  */
-string Datasource::getDBEncoding() [flags=CONSTANT] {
+*string Datasource::getDBEncoding() [flags=CONSTANT] {
    return ds->getPendingDBEncoding();
 }
 
