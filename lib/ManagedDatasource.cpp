@@ -62,26 +62,29 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
     AutoLocker al(&ds_lock);
     assert(isInTransaction());
 
-    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; transaction will be automatically rolled back and the lock released", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
+    xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; " \
+        "transaction will be automatically rolled back and the lock released", getDriverName(),
+        getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
     Datasource::rollback(xsink);
     setTransactionStatus(false);
     releaseLockIntern();
 }
 
 void ManagedDatasource::destructor(ExceptionSink* xsink) {
-   AutoLocker al(&ds_lock);
-   if (tid == gettid() || tid == -1)
-      // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
-      closeUnlocked(xsink);
-   else
-      xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
+    AutoLocker al(&ds_lock);
+    if (tid == gettid() || tid == -1)
+        // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
+        closeUnlocked(xsink);
+    else
+        xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the " \
+            "transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
-   if (ROdereference()) {
-      close(xsink);
-      delete this;
-   }
+    if (ROdereference()) {
+        close(xsink);
+        delete this;
+    }
 }
 
 // this function is only called by remove_thread_resource()
