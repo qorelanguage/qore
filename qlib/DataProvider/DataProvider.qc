@@ -168,7 +168,7 @@ public class DataProvider {
     #! Returns a data provider object from the given factory with options given as string-formatted hash in curly brackets and child data providers separated by forward slashes
     /** @par Example:
         @code{.py}
-DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@db}/my_table");
+DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/password@db}/my_table");
         @endcode
 
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown

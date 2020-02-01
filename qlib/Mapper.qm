@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -933,6 +933,11 @@ Mapper mapv(DataMap);
             output_provider = opts.output_provider;
             output_do_request = True;
             output_request_options = opts.output_request_options;
+            *AbstractDataProviderType type = opts.output_provider.getRequestType();
+            if (type) {
+                type = type.getSoftType();
+                output = type.getFields();
+            }
         } else {
             error("\"output_provider\" %y passed to %s::constructor() does not support writing or the "
                 "request/response API", opts.output_provider.getName(), self.className());
@@ -2020,7 +2025,7 @@ Mapper mapv(DataMap);
         if (m.field.hasType()) {
             *AbstractDataProviderType type = m.field.getType();
             if (m.output_key_path) {
-                foreach string elem in (m.output_key_path) {
+                foreach string elem in (m.output_key_path[1..]) {
                     type = type.getFieldType(elem);
                     if (!type) {
                         break;
@@ -2049,7 +2054,7 @@ Mapper mapv(DataMap);
                 v = default_value;
         }
 
-        #printf("k: %y type: %y maxlen: %y size: %y\n", key, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"), v.size());
+        #printf("k: %y (okp: %y) type: %y maxlen: %y size: %y\n", key, m.output_key_path, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"), v.size());
 
         # check maximum length
         if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {
