@@ -1,0 +1,68 @@
+
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+/*
+  Qorus Integration Engine
+
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o., all rights reserved
+
+  **** NOTICE ****
+    All information contained herein is, and remains the property of Qore
+    Technologies, s.r.o. and its suppliers, if any.  The intellectual and
+    technical concepts contained herein are proprietary to Qore Technologies,
+    s.r.o. and its suppliers and may be covered by Czech, European, U.S. and
+    Foreign Patents, patents in process, and are protected by trade secret or
+    copyright law.  Dissemination of this information or reproduction of this
+    material is strictly forbidden unless prior written permission is obtained
+    from Qore Technologies, s.r.o..
+*/
+
+%new-style
+%require-types
+%strict-args
+
+#! A dummy request data provider that provides an empty hash as the request and response types
+class NullDataProvider inherits AbstractDataProvider {
+    private {
+        #! The default request and response type for this data provider
+        static HashDataType type();
+    }
+
+    #! Creates the object
+    constructor(*hash<auto> options) {
+        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
+    }
+
+    #! Returns the name of this data provider (\c "NullRequest")
+    string getName() {
+        return "NullRequest";
+    }
+
+    #! Returns data provider static info
+    hash<DataProviderInfo> getStaticInfoImpl() {
+        return <DataProviderInfo>{
+            "name": getName(),
+            "type": self.className(),
+            "supports_request": True,
+        };
+    }
+
+    #! Returns an empty hash
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return {};
+    }
+
+    #! Returns an empty hash type
+    private *AbstractDataProviderType getResponseTypeImpl() {
+        return type;
+    }
+
+    #! Returns an empty hash type
+    private *AbstractDataProviderType getRequestTypeImpl() {
+        return type;
+    }
+
+    #! Returns @ref NOTHING
+    private *hash<string, AbstractDataProviderType> getErrorResponseTypesImpl() {
+    }
+}

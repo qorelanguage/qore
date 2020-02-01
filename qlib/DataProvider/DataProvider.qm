@@ -43,6 +43,10 @@ module DataProvider {
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new NullDataProviderFactory());
+    };
 }
 
 /** @mainpage DataProvider Module
@@ -79,6 +83,8 @@ module DataProvider {
     - @ref DataProvider::HashDataType "HashDataType"
     - @ref DataProvider::HashDeclDataType "HashDeclDataType"
     - @ref DataProvider::ListDataType "ListDataType"
+    - @ref DataProvider::NullDataProvider "NullDataProvider"
+    - @ref DataProvider::NullDataProviderFactory "NullDataProviderFactory"
     - @ref DataProvider::QoreBoolDataType "QoreBoolDataType"
     - @ref DataProvider::QoreBoolDataTypeBase "QoreBoolDataTypeBase"
     - @ref DataProvider::QoreBoolOrNothingDataType "QoreBoolOrNothingDataType"
