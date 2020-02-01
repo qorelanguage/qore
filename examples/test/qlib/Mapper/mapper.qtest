@@ -13,6 +13,18 @@
 
 %exec-class MapperTest
 
+class TestOutputHashType inherits HashDataType {
+    constructor() {
+        addField(new QoreDataField("stringval", NOTHING, SoftStringType));
+    }
+}
+
+class TestHashType inherits HashDataType {
+    constructor() {
+        addField(new QoreDataField("output", NOTHING, new TestOutputHashType()));
+    }
+}
+
 public class MapperTest inherits QUnit::Test {
     public {
         const DataMap = {
@@ -240,6 +252,10 @@ public class MapperTest inherits QUnit::Test {
                     "desc": "output field 1",
                     "type": "any",
                 },
+                "output_2": {
+                    "desc": "field desc",
+                    "type": "*softstring",
+                },
             },
         };
 
@@ -449,7 +465,6 @@ public class MapperTest inherits QUnit::Test {
     listTest() {
         Mapper m(TypeMap0, TypeOpts0);
         assertEq((1, 2), m.mapData({"input_1": (1, 2)}).output_1);
-
     }
 
     runtimeKeys() {
@@ -488,6 +503,20 @@ public class MapperTest inherits QUnit::Test {
     }
 
     testTypes() {
+        {
+            hash<auto> map_desc = {
+                "input": {
+                    "input": {
+                        "desc": "input field",
+                        "type": "any",
+                    },
+                },
+                "output": (new TestHashType()).getFields(),
+            };
+
+            Mapper m({"output.stringval": {"name": "input"}}, map_desc);
+            assertEq("1", m.mapData({"input": 1}).output.stringval);
+        }
         {
             SomethingDataType something();
             assertEq(1, something.acceptsValue(1));
