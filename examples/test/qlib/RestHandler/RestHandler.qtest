@@ -725,4 +725,7 @@ class NullOutputProvider inherits AbstractDataProvider {
             "supports_request": True,
         };
     }
+
+    private *AbstractDataProviderType getRequestTypeImpl() {
+    }
 }
