@@ -1707,7 +1707,7 @@ end";
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += sprintf("\n) engine %s", engine);
             {
-                string encoding = self.table_encoding ?? ds.getDBEncoding();
+                *string encoding = self.table_encoding ?? ds.getDBEncoding();
                 if (encoding.val()) {
                     sql += sprintf(" character set %s", encoding);
                 }
