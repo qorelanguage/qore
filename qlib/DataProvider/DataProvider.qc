@@ -318,6 +318,9 @@ DbDataProvider db = DataProvider::getObjectFromString("db{oracle:user/password@d
 
     #! Registers all known data provider types
     static registerKnownTypes() {
+        # register basic qore types
+        DataProvider::registerType("qore/hash", new HashDataType());
+
         map DataProvider::tryLoad($1), TypeMap.iterator();
     }
 
