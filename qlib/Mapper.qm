@@ -871,7 +871,7 @@ Mapper mapv(DataMap);
                 "API", opts.input_provider.getName(), self.className());
         }
 
-        if (!input) {
+        if (!exists input) {
             error("\"input_provider\" %y passed to %s::constructor() has an empty record type",
                 input_provider.getName(), self.className());
         }
@@ -888,10 +888,10 @@ Mapper mapv(DataMap);
 
     private:internal *hash<string, AbstractDataField> getFields(string pfx, AbstractDataProviderType type) {
         *hash<string, AbstractDataField> fields = type.getFields();
-        if (!fields) {
+        if (!fields && pfx != "input") {
             error("%s provider provides type %y which cannot be mapped", pfx, type.getName());
         }
-        return fields;
+        return fields ?? {};
     }
 
     private setOutputProvider(hash<auto> opts) {
