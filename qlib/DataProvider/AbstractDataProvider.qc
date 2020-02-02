@@ -545,7 +545,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support read operations
     */
-    private checkRead() {
+    checkRead() {
         if (!supportsRead()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support reading records",
                 getName(), self.className());
@@ -556,7 +556,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support record creation
     */
-    private checkCreate() {
+    checkCreate() {
         if (!supportsCreate()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record creation",
                 getName(), self.className());
@@ -567,7 +567,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support upsert operations
     */
-    private checkUpsert() {
+    checkUpsert() {
         if (!supportsUpsert()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record upserts",
                 getName(), self.className());
@@ -578,7 +578,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support record updating
     */
-    private checkUpdate() {
+    checkUpdate() {
         if (!supportsUpdate()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record updating",
                 getName(), self.className());
@@ -589,7 +589,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support record deletion
     */
-    private checkDelete() {
+    checkDelete() {
         if (!supportsDelete()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support record deletion",
                 getName(), self.className());
@@ -600,7 +600,7 @@ public class AbstractDataProvider {
     /**
         @throw INVALID-OPERATION the data provider does not support the request API
     */
-    private checkRequest() {
+    checkRequest() {
         if (!supportsRequest()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support the request API",
                 getName(), self.className());
