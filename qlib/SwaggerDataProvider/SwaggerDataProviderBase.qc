@@ -72,7 +72,7 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         }
 
         foreach hash<auto> i in (params.pairIterator()) {
-            HashDataType type(req_map{i.key} ? AutoHashType : AutoHashOrNothingType, "i.key");
+            HashDataType type(req_map{i.key} ? AutoHashType : AutoHashOrNothingType);
             map type.addField($1), i.value.iterator();
             rv.addField(new QoreDataField(i.key, "Swagger " + i.key + " parameter", type));
         }
