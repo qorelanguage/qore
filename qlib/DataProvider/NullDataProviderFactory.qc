@@ -48,7 +48,7 @@ public class NullDataProviderFactory inherits AbstractDataProviderFactory {
 
     #! Returns static provider information
     hash<DataProviderInfo> getInfo() {
-        return <DataProviderInfo>{};
+        return NullDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

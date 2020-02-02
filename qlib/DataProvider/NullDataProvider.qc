@@ -4,7 +4,7 @@
 /*
   Qorus Integration Engine
 
-  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o., all rights reserved
+  Copyright (C) 2019 - 2020 Qore Technologies, s.r.o., all rights reserved
 
   **** NOTICE ****
     All information contained herein is, and remains the property of Qore
@@ -23,6 +23,14 @@
 
 #! A dummy request data provider that provides an empty hash as the request and response types
 class NullDataProvider inherits AbstractDataProvider {
+    public {
+       #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "NullDataProvider",
+            "supports_request": True,
+        };
+    }
+
     private {
         #! The default request and response type for this data provider
         static HashDataType type();
@@ -35,16 +43,12 @@ class NullDataProvider inherits AbstractDataProvider {
 
     #! Returns the name of this data provider (\c "NullRequest")
     string getName() {
-        return "NullRequest";
+        return "NullDataProvider";
     }
 
     #! Returns data provider static info
     hash<DataProviderInfo> getStaticInfoImpl() {
-        return <DataProviderInfo>{
-            "name": getName(),
-            "type": self.className(),
-            "supports_request": True,
-        };
+        return ProviderInfo;
     }
 
     #! Returns an empty hash

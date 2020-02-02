@@ -151,17 +151,18 @@ public class DataProvider {
     }
 
     #! Returns a data provider object from the given factory, created with the given constructor options
-    /**
+    /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
+        @param options factory creation options
+
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
     */
-    static AbstractDataProvider getFactoryObject(string name, *hash<auto> options) {
+    static AbstractDataProvider getFactoryObject(string path, *hash<auto> options) {
         AbstractDataProvider provider;
         {
-            list<string> path = name.split("/");
-            provider = DataProvider::getFactoryEx(shift path).create(options);
-            map provider = provider.getChildProvider($1), path;
+            list<string> path_list = path.split("/");
+            provider = DataProvider::getFactoryEx(shift path_list).create(options);
+            map provider = provider.getChildProvider($1), path_list;
         }
-
         return provider;
     }
 
