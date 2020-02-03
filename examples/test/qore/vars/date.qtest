@@ -26,6 +26,22 @@ class DateTest inherits QUnit::Test {
     }
 
     dateTests() {
+        # issue #3239: test invalid year masks
+        assertThrows("INVALID-DATE", \date(), ("01-03-218", "DD-MM-YYYY"));
+        assertThrows("INVALID-DATE", \date(), ("01-03-2", "DD-MM-YY"));
+        assertEq(2020-03-01, date("01-03-2020", "DD-MM-YYYY"));
+        assertEq(2020-03-01, date("01-03-20", "DD-MM-YY"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("01-1-2020", "DD-MM-YYYY"));
+        assertThrows("INVALID-DATE", "no more input", \date(), ("2020-01-1", "YYYY-MM-DD"));
+        assertThrows("INVALID-DATE", "no more input", \date(), ("2020-01-1", "YYYY-DD-MM"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("2020-01-1a", "YYYY-DD-MM"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("1-03-20", "DD-MM-YY"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("1a-03-20", "DD-MM-YY"));
+        assertThrows("INVALID-DATE", "no more input", \date(), ("10:0", "HH:MM"));
+        assertThrows("INVALID-DATE", "no more input", \date(), ("10:0", "MM:SS"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("10:0a", "HH:MM"));
+        assertThrows("INVALID-DATE", "invalid digit", \date(), ("10:0a", "MM:SS"));
+
         # here are the two formats for directly specifying date/time values:
         # ISO-8601 format (without timezone specification, currently qore does not support time zones)
         date date1  = 2004-02-01T12:30:00;

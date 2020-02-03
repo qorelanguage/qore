@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_time.qpp
+    ql_time.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -40,22 +40,23 @@
 #include <sys/time.h>
 
 static int qd_get_digit(unsigned& rv, const char*& p, unsigned factor) {
-   if (*p < '0' || *p > '9')
-      return -1;
+    if (*p < '0' || *p > '9') {
+        throw QoreStandardException("INVALID-DATE", "invalid digit '%c' found in date/time input", *p);
+    }
 
-   rv += (*p - '0') * factor;
-   ++p;
-   return 0;
+    rv += (*p - '0') * factor;
+    ++p;
+    return 0;
 }
 
 // returns 0 if invalid data is encountered
 static unsigned parse_int_2(const char *p) {
-   unsigned rv = 0;
-   if (qd_get_digit(rv, p, 10))
-      return 0;
-   if (qd_get_digit(rv, p, 1))
-      return 0;
-   return rv;
+    unsigned rv = 0;
+    if (qd_get_digit(rv, p, 10))
+        return 0;
+    if (qd_get_digit(rv, p, 1))
+        return 0;
+    return rv;
 }
 
 // returns 0 if invalid data is encountered
@@ -130,172 +131,174 @@ QoreHashNode* date_info(const DateTime& d) {
 }
 
 DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink) {
-   qore_tm dt;
-   dt.clear();
-   dt.month = 1;
-   dt.day = 1;
+    qore_tm dt;
+    dt.clear();
+    dt.month = 1;
+    dt.day = 1;
 
-   const char* d = dtstr.getBuffer();
-   const char* de = d + dtstr.strlen();
+    const char* d = dtstr.c_str();
+    const char* de = d + dtstr.strlen();
 
-   const char* s = mask.getBuffer();
-   const char* se = s + mask.strlen();
+    const char* s = mask.c_str();
+    const char* se = s + mask.strlen();
 
-   while (*s) {
-      // break if we run out of data in either the mask or the date string
-      if (s >= se)
-         break;
-      switch (*s) {
-         case 'Y':
-            if (s[1] != 'Y') {
-               xsink->raiseException("INVALID-DATE", "'Y' has to be used as 'YY' or 'YYYY'");
-               return 0;
-               break;
-            }
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for year mask");
-               return 0;
-            }
-            if (s[2] == 'Y' && s[3] == 'Y') {
-               dt.year = parse_int_4(d);
-               s += 3;
-               d += 3;
-            }
-            else {
-               ++s;
-               // obtain the current century
-               {
-                  DateTime tmpdt(q_epoch());
-                  dt.year = parse_int_2(d) + (tmpdt.getYear() / 100 * 100);
-               }
-               ++d;
-            }
-            break;
+    try {
+        while (*s) {
+            // break if we run out of data in either the mask or the date string
+            if (s >= se)
+                break;
+            switch (*s) {
+                case 'Y':
+                    if (s[1] != 'Y') {
+                        throw QoreStandardException("INVALID-DATE", "'Y' has to be used as 'YY' or 'YYYY'");
+                    }
+                    if (s[2] == 'Y' && s[3] == 'Y') {
+                        if ((de - d) < 4) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for year mask");
+                        }
 
-         case 'M':
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for month mask");
-               return 0;
-            }
-            if (s[1] == 'M') {
-               dt.month = parse_int_2(d);
-               s++;
-               d++;
-               break;
-            }
-            // 'M' is not supported because there is no clear way how to get eg. 1 or 11
-            if ((s[1] == 'o' || s[1] == 'O') && (s[2] == 'n' || s[2] == 'N')) {
-               QoreString str(d, 3);
-               dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
-               if (dt.month < 0 || dt.month > 11) {
-                  xsink->raiseException("INVALID-DATE", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
-                  return 0;
-               }
+                        dt.year = parse_int_4(d);
+                        s += 3;
+                        d += 3;
+                    } else {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for year mask");
+                        }
 
-               ++dt.month;
-               s += 2;
-               d += 2;
-               break;
-            }
-            break;
+                        ++s;
+                        // obtain the current century
+                        {
+                            DateTime tmpdt(q_epoch());
+                            dt.year = parse_int_2(d) + (tmpdt.getYear() / 100 * 100);
+                        }
+                        ++d;
+                    }
+                    break;
 
-         case 'm':
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for minute mask");
-               return 0;
-            }
-            if (s[1] == 'm') {
-               dt.minute = parse_int_2(d);
-               s++;
-               d++;
-               break;
-            }
-            if (s[1] == 's') {
-               dt.us = parse_int_3(d) * 1000;
-               ++s;
-               d += 2;
-               break;
-            }
-            break;
+                case 'M':
+                    if ((de - d) < 2) {
+                        throw QoreStandardException("INVALID-DATE", "no more input to process for month mask");
+                    }
+                    if (s[1] == 'M') {
+                        dt.month = parse_int_2(d);
+                        s++;
+                        d++;
+                        break;
+                    }
+                    // 'M' is not supported because there is no clear way how to get eg. 1 or 11
+                    if ((s[1] == 'o' || s[1] == 'O') && (s[2] == 'n' || s[2] == 'N')) {
+                        QoreString str(d, 3);
+                        dt.month = str.strlen() == 3 ? qore_date_info::getMonthIxFromAbbr(str.getBuffer()) : -1;
+                        if (dt.month < 0 || dt.month > 11) {
+                            throw QoreStandardException("INVALID-DATE", "Invalid 'Mon' string: '%s'", !str.empty() ? str.getBuffer() : "<none>");
+                        }
 
-         case 'D':
-         case 'd':
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for day mask");
-               return 0;
-            }
-            if (s[1] == 'D' || s[1] == 'd') {
-               dt.day = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
+                        ++dt.month;
+                        s += 2;
+                        d += 2;
+                        break;
+                    }
+                    break;
 
-         case 'H':
-         case 'h':
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for hour mask");
-               return 0;
-            }
-            if (s[1] == 'H' || s[1] == 'h') {
-               dt.hour = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
+                case 'm':
+                    if (s[1] == 'm') {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for minute mask");
+                        }
+                        dt.minute = parse_int_2(d);
+                        s++;
+                        d++;
+                        break;
+                    }
+                    if (s[1] == 's') {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for millisecond mask");
+                        }
+                        dt.us = parse_int_3(d) * 1000;
+                        ++s;
+                        d += 2;
+                        break;
+                    }
+                    break;
 
-         case 's':
-            if (s[1] == 's' && s[2] == 's') {
-               if (d >= de) {
-                  xsink->raiseException("INVALID-DATE", "no more input to process for sub-second mask");
-                  return 0;
-               }
-               if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
-                  dt.us = parse_int_6(d);
-                  s += 5;
-                  d += 5;
-               }
-               else {
-                  dt.us = parse_int_3(d) * 1000;
-                  s += 2;
-                  d += 2;
-               }
-            }
-            break;
+                case 'D':
+                case 'd':
+                    if (s[1] == 'D' || s[1] == 'd') {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for day mask");
+                        }
+                        dt.day = parse_int_2(d);
+                        s++;
+                        d++;
+                    }
+                    break;
 
-         case 'S':
-            if (d >= de) {
-               xsink->raiseException("INVALID-DATE", "no more input to process for second mask");
-               return 0;
-            }
-            if (s[1] == 'S') {
-               dt.second = parse_int_2(d);
-               s++;
-               d++;
-            }
-            break;
+                case 'H':
+                case 'h':
+                    if (s[1] == 'H' || s[1] == 'h') {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for hour mask");
+                        }
+                        dt.hour = parse_int_2(d);
+                        s++;
+                        d++;
+                    }
+                    break;
 
-         case 'u':
-            if (s[1] == 's') {
-               if (d >= de) {
-                  xsink->raiseException("INVALID-DATE", "no more input to process for microsecond mask");
-                  return 0;
-               }
-               dt.us = parse_int_6(d);
-               ++s;
-               d += 5;
-               break;
+                case 's':
+                    if (s[1] == 's' && s[2] == 's') {
+                        if (s[3] == 's' && s[4] == 's' && s[5] == 's') {
+                            if ((de - d) < 6) {
+                                throw QoreStandardException("INVALID-DATE", "no more input to process for second mask");
+                            }
+                            dt.us = parse_int_6(d);
+                            s += 5;
+                            d += 5;
+                        } else {
+                            if ((de - d) < 3) {
+                                throw QoreStandardException("INVALID-DATE", "no more input to process for second mask");
+                            }
+                            dt.us = parse_int_3(d) * 1000;
+                            s += 2;
+                            d += 2;
+                        }
+                    }
+                    break;
+
+                case 'S':
+                    if (s[1] == 'S') {
+                        if ((de - d) < 2) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for second mask");
+                        }
+                        dt.second = parse_int_2(d);
+                        s++;
+                        d++;
+                    }
+                    break;
+
+                case 'u':
+                    if (s[1] == 's') {
+                        if ((de - d) < 6) {
+                            throw QoreStandardException("INVALID-DATE", "no more input to process for microsecond mask");
+                        }
+                        dt.us = parse_int_6(d);
+                        ++s;
+                        d += 5;
+                        break;
+                    }
             }
-      }
-      s++;
-      d++;
-   }
+            ++s;
+            ++d;
+        }
+    } catch (AbstractException& e) {
+        e.convert(xsink);
+    }
 
-   if (*xsink)
-      return 0;
+    if (*xsink)
+        return nullptr;
 
-   SimpleRefHolder<DateTimeNode> rv(DateTimeNode::makeAbsolute(tz, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us, xsink));
-   return *xsink ? 0 : rv.release();
+    SimpleRefHolder<DateTimeNode> rv(DateTimeNode::makeAbsolute(tz, dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.us, xsink));
+    return *xsink ? nullptr : rv.release();
 }
 
 //! date/time information hash as returned by @ref Qore::date_info() "date_info()" and <date>::info()
