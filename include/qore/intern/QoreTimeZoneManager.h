@@ -81,6 +81,10 @@ protected:
     // returns the UTC offset and local time zone name for the given time given as seconds from the epoch (1970-01-01Z)
     DLLLOCAL virtual int getUTCOffsetImpl(int64 epoch_offset, bool &is_dst, const char *&zone_name) const = 0;
 
+    //! for creating offset zones
+    DLLLOCAL AbstractQoreZoneInfo(int n_utcoff, const std::string& n_name) : utcoff(n_utcoff), has_dst(false) {
+    }
+
 public:
     DLLLOCAL AbstractQoreZoneInfo() : utcoff(-1), has_dst(false) {
     }
@@ -179,9 +183,9 @@ protected:
       return utcoff;
    }
 public:
-   DLLLOCAL QoreOffsetZoneInfo(std::string &n_name, int seconds_east) : AbstractQoreZoneInfo(n_name, seconds_east) {
+   DLLLOCAL QoreOffsetZoneInfo(std::string &n_name, int seconds_east) : AbstractQoreZoneInfo(seconds_east, n_name) {
    }
-   DLLLOCAL QoreOffsetZoneInfo(const char *n_name, int seconds_east) : AbstractQoreZoneInfo(n_name, seconds_east) {
+   DLLLOCAL QoreOffsetZoneInfo(const char *n_name, int seconds_east) : AbstractQoreZoneInfo(seconds_east, n_name) {
    }
 };
 
