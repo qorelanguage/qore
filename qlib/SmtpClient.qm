@@ -81,6 +81,7 @@ module SmtpClient {
     |\c "smtps"|465|note that port 465 is currently assigned to source-specific multicast audio/video (<a href="http://www.iana.org/assignments/port-numbers">http://www.iana.org/assignments/port-numbers</a>); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated but is included in this module because many SMTP servers still operate this way
     |\c "smtptls"|25|a \c "STARTTLS" command is executed unconditionally after the connection to ensure a secure connection, even if the server does not declare support for this command in the login response.  It's normally not necessary to use this protocol as \c "STARTTLS" is used automatically when logging in to ESMTP servers that declare support for this command in the response to the \c "EHLO" command.
     |\c "esmtp"|587|like \c "smtp" just using port 587
+    |\c "esmtps"|465|like \c "smtps"
     |\c "esmtptls"|587|like \c "smtptls" just using port 587
 
     @par Example:
@@ -108,6 +109,10 @@ smtp.sendMessage(msg);@endcode
     - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 
     @section smtpclient_relnotes SmtpClient Release Notes
+
+    @subsection smtpclient_v1_9 SmtpClient 1.9
+    - added the \c "estmps" scheme for completeness
+      (<a href="https://github.com/qorelanguage/qore/issues/2833">issue 2833</a>)
 
     @subsection smtpclient_v1_8 SmtpClient 1.8
     - removed the \c SmtpConnection::getConstructorInfo() and \c SmtpConnection::getConstructorInfoImpl() methods
@@ -161,6 +166,15 @@ public namespace SmtpClient {
 
     #! 30 second connect timeout
     public const DefaultConnectTimeout = 30s;
+
+    #! internal response hash
+    public hashdecl SmtpResponseInfo {
+        #! The response code
+        int code;
+
+        #! The response string
+        string desc;
+    }
 
     #! for backwards-compatibility and convenience
     public class Message inherits MailMessage::Message {
@@ -226,7 +240,7 @@ public namespace SmtpClient {
             timeout connectTimeout = DefaultConnectTimeout;
 
             # HELO/EHLO reply
-            hash hello_reply;
+            hash<string, hash<SmtpResponseInfo>> hello_reply;
 
             const MaxDebugLine = 2048;
         }
@@ -243,7 +257,7 @@ public namespace SmtpClient {
             const EsmtpPort = 587;
 
             #! procotol config
-            const Protocols = (
+            const Protocols = {
                 "smtp": (
                     "port": SmtpPort,
                     "ssl": False,
@@ -264,12 +278,17 @@ public namespace SmtpClient {
                     "ssl": False,
                     "tls": False,
                 ),
+                "esmtps": (
+                    "port": SmtpsPort,
+                    "ssl": True,
+                    "tls": False,
+                ),
                 "esmtptls": (
                     "port": EsmtpPort,
                     "ssl": False,
                     "tls": True,
                 ),
-                );
+            };
         }
 
         #! creates the SmtpClient object
@@ -304,10 +323,10 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
             log_info = log;
             log_debug = dbglog;
 
-            hash uh = parse_url(url, True);
+            hash<UrlInfo> uh = parse_url(url, True);
 
             if (uh.protocol) {
-                *hash ph = Protocols.(uh.protocol);
+                *hash<auto> ph = Protocols.(uh.protocol);
                 if (!ph) {
                     throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y", uh.protocol, url, keys Protocols);
                 }
@@ -317,8 +336,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
                 }
 
                 self += ph.("tls", "ssl");
-            }
-            else if (!uh.port && uh.host[0] != "/") {
+            } else if (!uh.port && uh.host[0] != "/") {
                 uh.port = SmtpPort;
             }
 
@@ -332,8 +350,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
                 pass = uh.password;
 
                 logDbg("set authentication credentials to %s/xxx", user);
-            }
-            else if (uh.password)
+            } else if (uh.password)
                 throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", url);
         }
 
@@ -343,8 +360,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         destructor() {
             try {
                 disconnect();
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 logDbg("SmtpClient disconnect: %s: %s", ex.err, ex.desc);
             }
         }
@@ -474,7 +490,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
             @throw MESSAGE-ERROR the message is incomplete and cannot be sent
          */
-        hash sendMessage(MailMessage::Message message) {
+        hash<string, hash<SmtpResponseInfo>> sendMessage(MailMessage::Message message) {
             # throws a MESSAGE-ERROR exception if the message cannot be sent
             string mstr = message.serialize();
 
@@ -484,7 +500,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
             # lock for sending
             AutoLock am(mutex);
 
-            hash reply;
+            hash<string, hash<SmtpResponseInfo>> reply;
             try {
                 # send SMTP info for message
                 reply = sendMessageInfoIntern(message);
@@ -493,15 +509,14 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
                 sendData(mstr);
 
                 # end of data
-                hash rh = sendCommand(".");
+                hash<SmtpResponseInfo> rh = sendCommand(".");
                 reply.MSGID = rh;
 
                 # quit
                 rh = sendCommand("QUIT");
                 logged_in = False;
                 reply.QUIT = rh;
-            }
-            catch(ex) {
+            } catch(hash<ExceptionInfo> ex) {
                 logDbg("send error: %s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 forceDisconnectIntern();
                 rethrow;
@@ -672,7 +687,7 @@ smtp.setEventQueue();
 
                 # send HELO/EHLO string
                 string hello = esmtp ? "EHLO" : "HELO";
-                hash rh = sendCommand(hello + "  %s", gethostname());
+                hash<SmtpResponseInfo> rh = sendCommand(hello + "  %s", gethostname());
                 if (rh.code >= 500)
                     throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", hello, rh);
 
@@ -697,8 +712,7 @@ smtp.setEventQueue();
                 # issue login if credentials supplied and we have not already logged in
                 if (!logged_in && user)
                     loginIntern();
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 sock.close();
                 sock.shutdown();
                 rethrow;
@@ -706,7 +720,7 @@ smtp.setEventQueue();
         }
 
         private loginIntern() {
-            hash rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
+            hash<SmtpResponseInfo> rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
             if (rh.code != 235)
                 throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", rh);
             logged_in = True;
@@ -749,7 +763,7 @@ smtp.setEventQueue();
 
         # send a command over the socket and return the response as a hash
         # don't reimplement this method; fix/enhance it in the module
-        final private hash sendCommand(string str) {
+        final private hash<SmtpResponseInfo> sendCommand(string str) {
             # format additional arguments if necessary
             if (!argv.empty())
                 str = vsprintf(str, argv);
@@ -781,8 +795,7 @@ smtp.setEventQueue();
                         desc += "\n";
                     desc += extract l, 4;
                     continue;
-                }
-                else {
+                }  else {
                     if (l !~ /^[0-9]{3} /) {
                         log("cannot parse reply: %s\n", l);
                         desc += l;
@@ -799,7 +812,7 @@ smtp.setEventQueue();
                 }
             }
 
-            return ("code": code, "desc": desc);
+            return <SmtpResponseInfo>{"code": code, "desc": desc};
         }
 
         # read a line from the socket (terminated with \n)
@@ -816,7 +829,7 @@ smtp.setEventQueue();
 
         # sends the message header (without body & attachments) to the SMTP server
         # don't reimplement this method; fix/enhance it in the module
-        final private hash sendMessageInfoIntern(MailMessage::Message message) {
+        final private hash<string, hash<SmtpResponseInfo>> sendMessageInfoIntern(MailMessage::Message message) {
             # open connection to server
             if (!isConnected())
                 connectIntern();
@@ -825,8 +838,8 @@ smtp.setEventQueue();
             if (!logged_in && user)
                 loginIntern();
 
-            hash rh;
-            hash reply = hello_reply;
+            hash<SmtpResponseInfo> rh;
+            hash<string, hash<SmtpResponseInfo>> reply = hello_reply;
 
             rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
             if (rh.code >= 500)
@@ -852,8 +865,7 @@ smtp.setEventQueue();
             if (isConnected()) {
                 try {
                     disconnectIntern();
-                }
-                catch(ex) {
+                } catch() {
                     # ignore
                 }
             }
@@ -895,7 +907,7 @@ smtp.setEventQueue();
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : AbstractConnection(name, description, url, attributes, options) {
         }
 
@@ -909,11 +921,11 @@ smtp.setEventQueue();
             - \c "log": a closure accepting a single string for logging
             - \c "dbglog": a closure taking a single string for detailed technical connection logging
         */
-        *hash getRuntimeOptions() {
-            return (
+        *hash<auto> getRuntimeOptions() {
+            return {
                 "log": True,
                 "dbglog": True,
-                );
+            };
         }
 
         #! returns an @ref SmtpClient object
@@ -924,7 +936,7 @@ smtp.setEventQueue();
 
             @return an @ref SmtpClient object
         */
-        private SmtpClient getImpl(bool connect = True, *hash rtopts) {
+        private SmtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
             SmtpClient sc(url, rtopts.log, rtopts.dbglog);
             if (connect)
                 sc.connect();
