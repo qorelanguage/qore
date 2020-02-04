@@ -399,14 +399,15 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
             printe("\n");
         }
 
+        bool hdr = false;
         if (e->type == CT_BUILTIN) {
             QoreStringNode* err = e->err.get<QoreStringNode>();
             assert(!err->empty());
             QoreStringNode* desc = e->desc.get<QoreStringNode>();
             assert(!desc->empty());
-            printe("%s: %s\n", err->c_str(), desc->c_str());
+            printe("%s: %s", err->c_str(), desc->c_str());
+            hdr = true;
         } else {
-            bool hdr = false;
             if (!e->err.isNothing()) {
                 if (e->err.getType() == NT_STRING) {
                     QoreStringNode *err = e->err.get<QoreStringNode>();
@@ -432,18 +433,19 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                     }
                 }
             }
-
-            if (!e->arg.isNothing()) {
-                if (e->arg.getType() == NT_STRING) {
-                    QoreStringNode *arg = e->arg.get<QoreStringNode>();
-                    printe("%s%s", hdr ? ", arg: " : ": ", arg->c_str());
-                } else {
-                    QoreNodeAsStringHelper str(e->arg, FMT_NORMAL, &xsink);
-                    printe(", arg: %s", str->c_str());
-                }
-            }
-            printe("\n");
         }
+
+        // issue #3768: show "arg" unconditionally if present
+        if (!e->arg.isNothing()) {
+            if (e->arg.getType() == NT_STRING) {
+                QoreStringNode *arg = e->arg.get<QoreStringNode>();
+                printe("%s%s", hdr ? ", arg: " : ": ", arg->c_str());
+            } else {
+                QoreNodeAsStringHelper str(e->arg, FMT_NORMAL, &xsink);
+                printe(", arg: %s", str->c_str());
+            }
+        }
+        printe("\n");
 
         if (cs->size()) {
             printe("call stack:\n");
