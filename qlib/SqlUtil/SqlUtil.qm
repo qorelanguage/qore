@@ -106,6 +106,8 @@ module SqlUtil {
     @subsection sqlutilv1_6 SqlUtil v1.6
     - added support for the DataProvider module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
+    - implemented the @ref SqlUtil::op_in_select() "op_in_select()" function for @ref where_clauses
+      (<a href="https://github.com/qorelanguage/qore/issues/3371">issue 3371</a>)
 
     @subsection sqlutilv1_5_2 SqlUtil v1.5.2
     - implemented the @ref SqlUtil::AbstractDatabase::getPhysicalSize() functionality
@@ -3664,11 +3666,11 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public const JOP_RIGHT = "right";
 
     #! a hash of valid join operators
-    public const JopMap = (
+    public const JopMap = {
         JOP_INNER: "inner",
         JOP_LEFT: "left outer",
         JOP_RIGHT: "right outer",
-        );
+    };
     #@}
 
     /** @defgroup sql_jop_funcs SQL Join Operator Functions
@@ -4243,10 +4245,17 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public const OP_SUBSTR = "substr";
 
     #! to combine SQL expressions with \c "or" for use in @ref where_clauses
+    /** @see wop_or()
+    */
     public const OP_OR = "or";
 
+    #! the SQL \c "in" operator with a select query for use in @ref where_clauses
+    /** @see op_in_select()
+    */
+    public const OP_IN_SELECT = "in_select";
+
     #! a hash of valid operators for use in @ref where_clauses
-    public const DefaultOpMap = (
+    public const DefaultOpMap = {
         OP_LIKE: (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
@@ -4315,6 +4324,23 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
+        OP_IN_SELECT: {
+            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
+                bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+                object subtable;
+                if (arg.table.typeCode() == NT_STRING) {
+                    subtable = t.getSubtableFromString(arg.table, opt);
+                } else {
+                    subtable = arg.table;
+                }
+
+                list<auto> subargs;
+                string subsql = subtable.getSelectSql(arg.select_hash, \subargs);
+                args += subargs;
+                return sprintf("%s in (%s)", cn, subsql);
+            },
+            "withopt": True,
+        },
         OP_NOT: (
             "recursive": True,
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
@@ -4383,13 +4409,14 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return t.getOrClause(arg, \args, jch, join, ch, psch);
             },
         ),
-        );
+    };
     #@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
         These are the operators that can be used in where clauses; see @ref where_clauses for more information:
         - op_between(): for the \c "between" operator
         - op_in(): for the \c "in" operator
+        - op_in_select(): for the \c "in" operator with a query argument
         - op_like(): for the \c "like" operator
         - op_substr(): for the \c "substr" operator
         - op_ge(): for the \c ">=" operator when comparing column values to immediate values
@@ -4410,7 +4437,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #@{
     #! returns an @ref OperatorInfo hash
     public hash<OperatorInfo> sub make_op(string op, auto arg) {
-        return new hash<OperatorInfo>(("op": op, "arg": arg));
+        return new hash<OperatorInfo>({"op": op, "arg": arg});
     }
 
     #! returns an @ref OperatorInfo hash for the \c "like" operator with the given argument for use in @ref where_clauses "where clauses"
@@ -4560,6 +4587,51 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public hash<OperatorInfo> sub op_in() {
         return make_op(OP_IN, argv);
+    }
+
+    #! returns an @ref OperatorInfo hash for the \c "in" operator with a subquery as the argument; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list<auto> rows = table.selectRows({"where": {"name": op_in_select("other_table", {"columns": "name", "where": where_hash})}});
+        @endcode
+
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
+    */
+    public hash<OperatorInfo> sub op_in_select(string table, hash<auto> select_hash) {
+        return make_op(OP_IN_SELECT, {
+            "table": table,
+            "select_hash": select_hash,
+        });
+    }
+
+    #! returns an @ref OperatorInfo hash for the \c "in" operator with a subquery as the argument; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list<auto> rows = table.selectRows({"where": {"name": op_in_select(other_table, {"columns": "name", "where": where_hash})}});
+        @endcode
+
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
+    */
+    public hash<OperatorInfo> sub op_in_select(AbstractTable table, hash<auto> select_hash) {
+        return make_op(OP_IN_SELECT, {
+            "table": table,
+            "select_hash": select_hash,
+        });
+    }
+
+    #! returns an @ref OperatorInfo hash for the \c "in" operator with a subquery as the argument; for use in @ref where_clauses "where clauses"
+    /** @par Example:
+        @code{.py}
+*list<auto> rows = table.selectRows({"where": {"name": op_in_select(other_table, {"columns": "name", "where": where_hash})}});
+        @endcode
+
+        @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"
+    */
+    public hash<OperatorInfo> sub op_in_select(Table table, hash<auto> select_hash) {
+        return make_op(OP_IN_SELECT, {
+            "table": table.getTable(),
+            "select_hash": select_hash,
+        });
     }
 
     #! returns an @ref OperatorInfo hash for the \c "in" operator with the given argument list as the first argument; for use in @ref where_clauses "where clauses"
@@ -4884,7 +4956,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
         #! creates a "deep copy" of the object
         copy(AbstractHashContainer old) {
-            map h.$1 = old.h.$1.copy(), old.h.keyIterator();
+            map h.$1 = old.h.$1.copy(), keys old.h;
         }
 
         #! returns the value of the given key in the contained hash if it exists, otherwise throws a \c KEY-ERROR exception
@@ -4947,7 +5019,7 @@ bool b = c.matchKeys(h);
             if (h.size() != h1.size())
                 return False;
 
-            foreach string k in (h.keyIterator()) {
+            foreach string k in (keys h) {
                 if (!h1.hasKey(k))
                     return False;
             }
@@ -5005,7 +5077,7 @@ bool b = c.partialMatchKeys(h);
             if (h.size() > h1.size())
                 return False;
 
-            foreach string k in (h.keyIterator()) {
+            foreach string k in (keys h) {
                 if (!h1.hasKey(k))
                     return False;
             }
@@ -5340,10 +5412,10 @@ int num = l.size();
         }
 
         #! populates the object from a hash<auto> description
-        populate(AbstractDatasource ds, hash tables, *hash<auto> opt) {
+        populate(AbstractDatasource ds, hash<auto> tables, *hash<auto> opt) {
             delete h;
             AbstractDatabase::checkDriverOptions(\tables, ds.getDriverName());
-            foreach string name in (tables.keyIterator()) {
+            foreach string name in (keys tables) {
                 if (h.hasKey(name))
                     continue;
                 if (tables{name}.typeCode() != NT_HASH) {
@@ -5586,7 +5658,7 @@ tables.tableRenamed(old, newv);
                         l += t;
                         found = True;
                         remove th{t.getName()};
-                        map remove sdh.$1{t.getName()}, tdh{t.getName()}.keyIterator();
+                        map remove sdh.$1{t.getName()}, keys tdh{t.getName()};
                         remove tdh{t.getName()};
                     }
                 }
@@ -5634,7 +5706,7 @@ map $1.drop(), l;
                             l += t;
                         found = True;
                         remove th{t.getName()};
-                        map remove tdh.$1{t.getName()}, sdh{t.getName()}.keyIterator();
+                        map remove tdh.$1{t.getName()}, keys sdh{t.getName()};
                         remove sdh{t.getName()};
                     }
                 }
@@ -5678,7 +5750,7 @@ map $1.drop(), tables.getDropIterator();
             # process tables not in DB
             foreach string name in (nt) {
                 remove th{name};
-                map remove tdh.$1{name}, sdh{name}.keyIterator();
+                map remove tdh.$1{name}, keys sdh{name};
                 remove sdh{name};
             }
         }

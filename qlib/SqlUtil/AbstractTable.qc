@@ -37,7 +37,7 @@
 public namespace SqlUtil {
 #! the base abstract class for the table implementation
 /** Use @ref SqlUtil::Table if you need to construct table object directly
-    */
+*/
 public class AbstractTable inherits AbstractSqlUtilBase {
     public {
         #! table options
@@ -403,16 +403,18 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         #! manual edits
         bool manual = False;
 
-        hash m_customCopMap = hash();
+        hash m_customCopMap = {};
     }
 
     #! creates the object; private constructor
     /** @param nds the AbstractDatasource for the connection to the database
         @param nname the name of the table
-        @param nopts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+        @param nopts an optional hash of options for the table creation string; see
+        @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional
+        driver-specific options
 
         @throw OPTION-ERROR invalid or unsupported option passed
-        */
+    */
     private constructor(AbstractDatasource nds, string nname, *hash nopts) : AbstractSqlUtilBase(nds, nopts) {
         name = nname;
         doTableOptions(nopts);
@@ -836,7 +838,7 @@ bool b = table.empty();
             supported
         */
         if (desc.columns.driver) {
-            *hash h = remove desc.columns.driver{SqlUtilDrivers};
+            *hash<auto> h = remove desc.columns.driver{SqlUtilDrivers};
             if (h) {
                 # if we have driver-specific info, add it to the columns hash
                 if (h{drv})
@@ -4196,10 +4198,8 @@ string sql = table.getSelectSql(sh, \args);
             args = ();
 
         # resolve any table names in joins first
-        foreach string k in (keys qh.join) {
-            if (qh.join{k}.table.typeCode() == NT_STRING)
-                qh.join{k}.table = opt.tablecode ? opt.tablecode(ds, qh.join{k}.table) : new Table(ds, qh.join{k}.table).getTable();
-        }
+        map qh.join{$1.key}.table = getSubtableFromString($1.value.table, opt), qh.join.pairIterator(),
+            $1.value.table.typeCode() == NT_STRING;
 
         # make a hash of aliases to tables when using joins
         hash<auto> jch = map {$1.alias ?? $1.table.getName(): $1.table}, qh.join.iterator();
@@ -4388,7 +4388,7 @@ string sql = table.getSelectSql(sh, \args);
                 string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch, boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
                 if (psch_copy != psch)
                     throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause with column alias specifications", getDesc());
-                hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch);
+                hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch, NOTHING, opt);
             }
             if (hl)
                 sql += " having " + (foldl $1 + " and " + $2, hl);
@@ -4426,6 +4426,11 @@ string sql = table.getSelectSql(sh, \args);
         }
 
         return sql;
+    }
+
+    #! Returns the given table from the argument, using any \c "tablecode" option if present
+    AbstractTable getSubtableFromString(string table, *hash<auto> opt) {
+        return opt.tablecode ? opt.tablecode(ds, table) : new Table(ds, table).getTable();
     }
 
     private string getFromIntern(string from, *hash<auto> qh) {
@@ -4637,7 +4642,7 @@ string sql = table.getSelectSql(sh, \args);
         if (!exists args)
             args = ();
         foreach hash<auto> ch in (cond) {
-            *list wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
+            *list<string> wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
             if (wl)
                 al += "(" + (foldl $1 + " and " + $2, wl) + ")";
         }
@@ -4649,19 +4654,19 @@ string sql = table.getSelectSql(sh, \args);
         getColumnsUnlocked();
         if (!exists args)
             args = ();
-        *list wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
+        *list<string> wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
         if (wl)
             return " where " + (foldl $1 + " and " + $2, wl);
     }
 
-    private *list<auto> getWhereClauseIntern(*hash cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    private *list<string> getWhereClauseIntern(*hash cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
         if (!cond)
             return;
 
-        return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch), cond.pairIterator();
+        return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch, opt), cond.pairIterator();
     }
 
-    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
         int wt = we.typeCode();
         if (wt == NT_HASH) {
             if (we.hasKey("cop")) {
@@ -4675,19 +4680,21 @@ string sql = table.getSelectSql(sh, \args);
             if (!we.op)
                 throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(), cn, we);
 
-            hash wm = getWhereOperatorMap();
+            hash<auto> wm = getWhereOperatorMap();
 
-            *hash cmd = wm{we.op};
+            *hash<auto> cmd = wm{we.op};
             if (!cmd)
                 throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
 
             if (cmd.recursive) {
-                cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch);
+                cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch, opt);
                 delete we.arg;
             } else if (cmd.argcolumn) {
                 if (!we.arg || we.arg.typeCode() != NT_STRING)
                     throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got type %y instead", getDesc(), cn, we.arg.type());
                 we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
+            } else if (cmd.withopt) {
+                return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch, opt);
             }
 
             return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch);
@@ -4699,7 +4706,7 @@ string sql = table.getSelectSql(sh, \args);
     }
 
     string getOrClause(list<auto> arglist, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
-        list l = ();
+        list<string> l = ();
         foreach hash<auto> h in (arglist) {
             string str = getOrClause(h, \args, jch, join, ch, psch);
             if (str)
@@ -4708,8 +4715,8 @@ string sql = table.getSelectSql(sh, \args);
         return l ? ("(" + (foldl $1 + " or " + $2, l) + ")") : "";
     }
 
-    string getOrClause(hash arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
-        *list wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
+    string getOrClause(hash<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+        *list<string> wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
         return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
     }
 
@@ -5029,7 +5036,7 @@ int ucnt = table.update(("id": id), ("name": name));
 
     private bool emptyDataIntern() {
         list<auto> args;
-        string sql = getSelectSql(("limit": 1), \args);
+        string sql = getSelectSql({"limit": 1}, \args);
         return boolean(ds.vselectRow(sql, args));
     }
 
