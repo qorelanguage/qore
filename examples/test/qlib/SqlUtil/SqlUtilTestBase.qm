@@ -40,7 +40,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
     }
 
     private *hash<auto> doTables(hash<auto> tables, hash<auto> columns) {
-        foreach string table in (tables.keyIterator()) {
+        foreach string table in (keys tables) {
             foreach hash<auto> h in (columns.pairIterator()) {
                 string type = h.value.type ?? h.key;
                 hash<GenericColumnInfo> ch({
@@ -367,17 +367,33 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(("id", "id_1"), table.selectRow(sh).("id", "id_1").keys());
 
         # tests for issue #1909
-        sh = (
+        sh = {
             "columns": "t0.*",
             "join": join_inner(table, "t1", ("id": "id")),
             "limit": 1,
             "alias": "t0",
-        );
+        };
         {
-            list cols = table.describe().keys();
+            list<string> cols = table.describe().keys();
             assertEq(cols, table.select(sh).keys());
             assertEq(cols, table.selectRows(sh)[0].keys());
             assertEq(cols, table.selectRow(sh).keys());
+        }
+
+        # issue #3371
+        {
+            sh = {
+                "columns": "id",
+                "where": {
+                    "id": op_in_select(table, {
+                        "columns": "id",
+                        "where": {
+                            "id": 1,
+                        },
+                    }),
+                },
+            };
+            assertEq(1, table.selectRow(sh, \sql).id);
         }
     }
 
