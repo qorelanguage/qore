@@ -1754,7 +1754,7 @@ struct qore_socket_private {
         return str.release();
     }
 
-    DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL QoreStringNode* recvAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recv", xsink);
@@ -1873,7 +1873,7 @@ struct qore_socket_private {
         return b.release();
     }
 
-    DLLLOCAL BinaryNode* recvBinary(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL BinaryNode* recvBinaryAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recvBinary", xsink);
