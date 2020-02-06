@@ -145,7 +145,6 @@ public:
             while (i.next()) {
                 QoreValue v = i.getValue();
                 assert(v.getType() == NT_HASH);
-                const QoreHashNode* h = v.get<const QoreHashNode>();
                 QoreValue kv = v.get<const QoreHashNode>()->getKeyValue("file");
                 if (kv.getType() == NT_STRING) {
                     const QoreStringNode* str = kv.get<const QoreStringNode>();

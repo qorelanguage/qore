@@ -1572,22 +1572,22 @@ int QoreSocket::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* 
 }
 
 BinaryNode* QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, int *rc) {
-   assert(rc);
-   ExceptionSink xsink;
-   qore_offset_t nrc;
-   BinaryNode* b = priv->recvBinary(&xsink, bufsize, timeout, nrc);
-   *rc = (int)nrc;
-   // ignore exception; we just use a return code
-   if (xsink)
-      xsink.clear();
-   return b;
+    assert(rc);
+    ExceptionSink xsink;
+    qore_offset_t nrc;
+    BinaryNode* b = priv->recvBinary(&xsink, bufsize, timeout, nrc);
+    *rc = (int)nrc;
+    // ignore exception; we just use a return code
+    if (xsink)
+        xsink.clear();
+    return b;
 }
 
 BinaryNode* QoreSocket::recvBinary(int timeout, int *rc) {
    assert(rc);
    ExceptionSink xsink;
    qore_offset_t nrc;
-   BinaryNode* b = priv->recvBinary(&xsink, timeout, nrc);
+   BinaryNode* b = priv->recvBinaryAll(&xsink, timeout, nrc);
    *rc = (int)nrc;
    // ignore exception; we just use a return code
    if (xsink)
@@ -1605,7 +1605,7 @@ BinaryNode* QoreSocket::recvBinary(qore_offset_t bufsize, int timeout, Exception
 BinaryNode* QoreSocket::recvBinary(int timeout, ExceptionSink* xsink) {
    assert(xsink);
    qore_offset_t rc;
-   BinaryNodeHolder b(priv->recvBinary(xsink, timeout, rc));
+   BinaryNodeHolder b(priv->recvBinaryAll(xsink, timeout, rc));
    return *xsink ? 0 : b.release();
 }
 
@@ -1625,7 +1625,7 @@ QoreStringNode* QoreSocket::recv(int timeout, int *rc) {
    assert(rc);
    qore_offset_t nrc;
    ExceptionSink xsink;
-   QoreStringNode* str = priv->recv(&xsink, timeout, nrc);
+   QoreStringNode* str = priv->recvAll(&xsink, timeout, nrc);
    // ignore exceptions; we use only a return code
    if (xsink)
       xsink.clear();
@@ -1643,7 +1643,7 @@ QoreStringNode* QoreSocket::recv(qore_offset_t bufsize, int timeout, ExceptionSi
 QoreStringNode* QoreSocket::recv(int timeout, ExceptionSink* xsink) {
    assert(xsink);
    qore_offset_t rc;
-   QoreStringNodeHolder str(priv->recv(xsink, timeout, rc));
+   QoreStringNodeHolder str(priv->recvAll(xsink, timeout, rc));
    return *xsink ? 0 : str.release();
 }
 

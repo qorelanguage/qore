@@ -177,7 +177,7 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Tue Sep 7 2019 David Nichols <david@qore.org> 0.9.4-1
+* Sat Sep 7 2019 David Nichols <david@qore.org> 0.9.4-1
 - updated version to 0.9.4-1
 
 * Tue Mar 26 2019 David Nichols <david@qore.org> 0.9.3-1
