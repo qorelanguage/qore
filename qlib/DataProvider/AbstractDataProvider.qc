@@ -396,9 +396,18 @@ public class AbstractDataProvider {
         @return the response to the request
 
         @throw INVALID-OPERATION the data provider does not support the request API
+        @throw INVALID-REQUEST the request argument provided do not match the expected request type
     */
     auto doRequest(auto req, *hash<auto> request_options) {
         checkRequest();
+        *AbstractDataProviderType request_type = getRequestType();
+        if (request_type) {
+            try {
+                req = request_type.acceptsValue(req);
+            } catch (hash<ExceptionInfo> ex) {
+                throw "INVALID-REQUEST", sprintf("%s: %s", ex.err, ex.desc);
+            }
+        }
         return doRequestImpl(req, validateRequestOptions(request_options));
     }
 

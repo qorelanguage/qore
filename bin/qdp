@@ -323,6 +323,9 @@ class QdpCmd {
     }
 
     private AbstractDataProvider getDataProvider(string name) {
+        # load providers from environment
+        DataProvider::loadProvidersFromEnvironment();
+
         # see if there are options in the name
         {
             if (name =~ /{([^}]*)}/) {
@@ -386,6 +389,10 @@ class QdpCmd {
     }
 
     static listTypes() {
+        # load known data provider factories
+        DataProvider::registerKnownTypes();
+        # load types from environment
+        DataProvider::loadTypesFromEnvironment();
         *list<string> tlist = DataProvider::listTypes();
         if (opts.verbose) {
             map printf("%s: %N\n", $1, DataProvider::getType($1).getInfo()), tlist;
