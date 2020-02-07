@@ -60,6 +60,32 @@ public class HashDataType inherits QoreDataType {
         return name;
     }
 
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        value = QoreDataType::acceptsValue(value);
+        # check fields if any are defined
+        foreach AbstractDataField field in (fields.iterator()) {
+            string key = field.getName();
+            auto val = value{key};
+            if (!exists val && !field.isMandatory()) {
+                continue;
+            }
+            try {
+                value{key} = field.acceptsValue(val);
+            } catch (hash<ExceptionInfo> ex) {
+                throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y field %y: %s: %s", getName(), key, ex.err,
+                    ex.desc);
+            }
+        }
+        return value;
+    }
+
     #! adds a field to the type
     addField(AbstractDataField field) {
         fields{field.getName()} = field;
