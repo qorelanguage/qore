@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Swagger.qm Swagger: https://swagger.io/, OpenAPI: https://github.com/OAI/OpenAPI-Specification
 
-/*  Swagger.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
+/*  Swagger.qm Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "2.0";
+    version = "2.0.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_1 Swagger v2.0.1
+    - fixed support for types with no type declaration
+      (<a href="https://github.com/qorelanguage/qore/issues/3775">issue 3775</a>)
 
     @subsection swagger_2_0 Swagger v2.0
     - fixed support for additional YAML MIME types
@@ -437,6 +441,9 @@ class SchemaBase {
                 return True;
             case "null":
                 return NOTHING;
+            case "any": {
+                return "any value";
+            }
         }
     }
 
@@ -470,17 +477,17 @@ class SchemaBase {
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, list v, reference<list> value) {
-        if (type != "list")
+        if (type != "list" && type != "any")
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is list", name, path, method, type);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
-        if (type != "file")
+        if (type != "file" && type != "any")
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is file", name, path, method, type);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<int> value) {
-        if (type != "integer")
+        if (type != "integer" && type != "any")
             throwInvalidType(name, "integer", type, v);
         if (exists maximum) {
             if (exclusiveMax) {
@@ -518,7 +525,7 @@ class SchemaBase {
 
     # NOTE: "number" also accepts "float"
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, number v, reference<number> value) {
-        if (type != "number")
+        if (type != "number" && type != "any")
             throwInvalidType(name, "number", type, v);
         if (exists maximum) {
             if (exclusiveMax) {
@@ -556,7 +563,7 @@ class SchemaBase {
 
     #! converts binary values to strings for supported formats
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, binary v, reference value) {
-        if (type != "string")
+        if (type != "string" && type != "any")
             throwInvalidType(name, "string", type, v);
 
         if (serialize) {
@@ -576,7 +583,7 @@ class SchemaBase {
 
     #! validates string values
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, string v, reference value) {
-        if (type != "string")
+        if (type != "string" && type != "any")
             throwInvalidType(name, "string", type, v);
 
         if (serialize) {
@@ -630,7 +637,7 @@ class SchemaBase {
 
     #! converts strings to/from date/time values for supported formats
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, date v, reference value) {
-        if (type != "string")
+        if (type != "string" && type != "any")
             throwInvalidType(name, "string", type, v);
 
         if (serialize) {
@@ -654,12 +661,12 @@ class SchemaBase {
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, bool v, reference<bool> value) {
-        if (type != "boolean")
+        if (type != "boolean" && type != "any")
             throwInvalidType(name, "boolean", type, v);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, nothing v, reference<nothing> value) {
-        if (type != "null")
+        if (type != "null" && type != "any")
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is null, but the expected type is %y", name, path, method, type);
     }
 
@@ -705,6 +712,38 @@ class SchemaBase {
     static private throwInvalidType(string name, string actual, string expected, auto value) {
         throw "SCHEMA-VALIDATION-ERROR",
             sprintf("Parameter %y has invalid type %y (should be %y); value: %y", name, actual, expected, value);
+    }
+
+    #! Checks the value against the type
+    /** @return True if the value is OK, False if not
+    */
+    static bool checkValueType(reference<auto> value, string type) {
+        int vt = value.typeCode();
+
+        # check for string values
+        if (vt == NT_STRING) {
+            if (type == "boolean") {
+                if (value == "true") {
+                    value = True;
+                    return True;
+                } else if (value == "false") {
+                    value = False;
+                    return True;
+                }
+            } else if (type == "int" && value =~ /^[0-9]+$/) {
+                value = value.toInt();
+                return True;
+            }
+        }
+
+        if ((vt == NT_BOOLEAN && type != "boolean") ||
+            (vt == NT_INT && type != "integer") ||
+            (vt == NT_FLOAT && type != "number") ||
+            (vt == NT_STRING && (type != "string" && type != "file")) ||
+            (vt == NT_LIST && type != "array")) {
+            return False;
+        }
+        return True;
     }
 }
 
@@ -2983,7 +3022,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            OtherParameter::checkValueType(defaultVal, type, items);
+            OtherParameter::checkValueType(\defaultVal, type, items);
         }
     }
 
@@ -3054,19 +3093,17 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! validates default values
-    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(reference<auto> value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
                 throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
-            OtherParameter::checkValueType(value[0], items.type, items.items, loc + "[0]");
+            OtherParameter::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
-        if ((vt == NT_BOOLEAN && type != "boolean") ||
-            (vt == NT_INT && type != "integer") ||
-            (vt == NT_FLOAT && type != "number") ||
-            (vt == NT_STRING && (type != "string" && type != "file")) ||
-            (vt == NT_LIST && type != "array"))
+
+        if (!SchemaBase::checkValueType(\value, type)) {
             throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+        }
     }
 }
 
@@ -3268,24 +3305,21 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
 
         if (oh.hasKey("default")) {
             defaultVal = oh.default;
-            HeaderObject::checkValueType(defaultVal, type, items);
+            HeaderObject::checkValueType(\defaultVal, type, items);
         }
     }
 
     #! validates default values
-    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(reference<auto> value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
                 throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
             HeaderObject::checkValueType(value[0], items.type, items.items, loc + "[0]");
         }
-        if ((vt == NT_BOOLEAN && type != "boolean") ||
-            (vt == NT_INT && type != "integer") ||
-            (vt == NT_FLOAT && type != "number") ||
-            (vt == NT_STRING && (type != "string" && type != "file")) ||
-            (vt == NT_LIST && type != "array"))
+        if (!SchemaBase::checkValueType(\value, type)) {
             throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+        }
     }
 }
 
@@ -3463,15 +3497,20 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         self.name = name;
         string objType = "Schema";
 
-        required_field(objType, oh, "type", NT_STRING, \type);
-        if (!ReferenceTypes{type})
-            throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
-        if (type == "array")
-            items = newSchemaObject("items", oh.items, swagger);
+        if (optional_field(objType, oh, "type", NT_STRING, \type)) {
+            if (!ReferenceTypes{type})
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
+            if (type == "array")
+                items = newSchemaObject("items", oh.items, swagger);
 
-        if (oh.hasKey("default")) {
-            defaultVal = oh.default;
-            SchemaObject::checkValueType(defaultVal, type, items);
+            if (oh.hasKey("default")) {
+                defaultVal = oh."default";
+                SchemaObject::checkValueType(\defaultVal, type, items);
+            }
+        } else if (oh.properties) {
+            type = "object";
+        } else {
+            type = "any";
         }
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
@@ -3659,7 +3698,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
     #! validates a schema object against a value
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
-        if (type != "object")
+        if (type != "object" && type != "any")
             throwInvalidType(name, "object", type, v);
 
         # check "allOf" schemas, if any
@@ -3670,7 +3709,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         If additionalProperties is a schema, additional properties (beyond what are defined in ‘properties’) are allowed and must match the schema
         */
         # check properties in this schema definition
-        if (additionalProperties !== True) {
+        if (!additionalProperties && type != "any") {
             foreach string key in (keys value) {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
@@ -3691,19 +3730,16 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates default values
-    private static checkValueType(auto value, string type, *SchemaObject items, *string loc) {
+    private static checkValueType(reference<auto> value, string type, *SchemaObject items, *string loc) {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
                 throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
-            SchemaObject::checkValueType(value[0], items.type, items.items, loc + "[0]");
+            SchemaObject::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
-        if ((vt == NT_BOOLEAN && type != "boolean") ||
-            (vt == NT_INT && type != "integer") ||
-            (vt == NT_FLOAT && type != "number") ||
-            (vt == NT_STRING && (type != "string" && type != "file")) ||
-            (vt == NT_LIST && type != "array"))
+        if (!SchemaBase::checkValueType(\value, type)) {
             throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+        }
     }
 
     #! returns a SchemaObject for the schema definition; resolves references
