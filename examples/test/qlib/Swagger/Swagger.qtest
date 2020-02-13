@@ -647,10 +647,28 @@ public class SwaggerTest inherits QUnit::Test {
                         ),
                     ),
                 ),
+                "nobj": {
+                    "type": "object",
+                    "additionalProperties": True,
+                },
+                "pobj": {
+                },
             );
-            soh.paths."/test".get.responses."200".schema = (
+            soh.paths."/test".get.responses."200".schema = {
                 "$ref": "#/definitions/robj",
-            );
+            };
+            soh.paths."/test".get.responses."404" = {
+                "description": "test",
+                "schema": {
+                    "$ref": "#/definitions/nobj",
+                },
+            };
+            soh.paths."/test".get.responses."500" = {
+                "description": "test",
+                "schema": {
+                    "$ref": "#/definitions/pobj",
+                },
+            };
 
             {
                 SwaggerSchema so("", soh);
@@ -688,6 +706,39 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, cres.hdr."Content-Type");
                 assertEq("ERR", cres.body);
                 #printf("cres: %N\n", cres);
+
+                res = so.processResponse("get", "/test", 404, {"a": 1}, NOTHING, MimeTypeJson);
+                #printf("res: %N\n", res);
+                assertEq(404, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                #printf("cres: %N\n", cres);
+                assertEq(404, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq({"a": 1}, cres.body);
+
+                res = so.processResponse("get", "/test", 500, {"a": 1}, NOTHING, MimeTypeJson);
+                #printf("res: %N\n", res);
+                assertEq(500, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                #printf("cres: %N\n", cres);
+                assertEq(500, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq({"a": 1}, cres.body);
+
+                res = so.processResponse("get", "/test", 500, 123, NOTHING, MimeTypeJson);
+                #printf("res: %N\n", res);
+                assertEq(500, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                #printf("cres: %N\n", cres);
+                assertEq(500, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq(123, cres.body);
             }
         }
 
@@ -1114,7 +1165,7 @@ public class SwaggerTest inherits QUnit::Test {
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "array", "items": {"type": "string"}, "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));*/
 
-        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": True}};
+        p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": "true"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "boolean", "default": 5}};
         assertThrows("INVALID-FIELD-TYPE", "default", loadyaml, my_make_yaml(base + {"parameters": p}));
@@ -1150,7 +1201,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type checks
         p = base.parameters + {"a": paramBase + {"items": {}}};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, my_make_yaml(base + {"parameters": p}));
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": paramBase + {"items": {"type": 5}}};
         assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"parameters": p}));
         p = base.parameters + {"a": paramBase + {"items": {"type": "a"}}};
@@ -1429,7 +1480,7 @@ public class SwaggerTest inherits QUnit::Test {
 
         # type checks
         s = {};
-        assertThrows("REQUIRED-FIELD-MISSING", "\"type\".*missing", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
+        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
         s = {"type": 5};
         assertThrows("INVALID-FIELD-TYPE", "\"type\"", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
         s = {"type": "a"};
