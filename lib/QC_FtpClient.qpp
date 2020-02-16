@@ -104,7 +104,7 @@ FtpClient::constructor() {
 }
 
 //! Creates an FtpClient object and initializes it with a URL
-/** It accepts one  argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username, password, hostname and port are respected; additionally if the protocol (or scheme) is \c "ftps", the client will attempt to establish a secure connection to the server according to <a href="http://tools.ietf.org/html/rfc4217">RFC-4217</a> when the first connection is established.
+/** It accepts one argument that will set the URL for the FTP connection; the path is ignored in the URL, however the username, password, hostname and port are respected; additionally if the protocol (or scheme) is \c "ftps", the client will attempt to establish a secure connection to the server according to <a href="http://tools.ietf.org/html/rfc4217">RFC-4217</a> when the first connection is established.
 
     @param url The URL of the server to connect to; must have at least a hostname
 
