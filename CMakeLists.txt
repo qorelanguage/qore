@@ -804,6 +804,7 @@ qore_user_module("qlib/WebSocketUtil.qm" "")
 qore_user_module("qlib/MapperUtil.qm" "")
 
 # base 2 modules
+qore_user_module("qlib/FileLocationHandler" "Util")
 qore_user_module("qlib/DataProvider" "MapperUtil")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/FilePoller.qm" "Util")
@@ -853,7 +854,7 @@ qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator
 qore_user_module("qlib/VscDebugAdapter.qm" "DebugCmdLine;DebugUtil;Util")
 
 # base 6 modules
-qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger;FileLocationHandler")
 
 # base 7 modules
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient;DataProvider")
