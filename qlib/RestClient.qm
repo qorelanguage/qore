@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
+/*  RestClient.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -402,10 +402,12 @@ RestClient rest(("url": "http://localhost:8001/rest"));
                     throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of AbstractRestSchemaValidator; got %y instead", opts.validator.type());
                 validator = opts.validator;
             } else {
-                if (opts.swagger)
-                    validator = SwaggerLoader::fromFile(opts.swagger);
-                else
+                if (opts.swagger) {
+                    # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
+                    validator = SwaggerLoader::fromUrl(opts.swagger);
+                } else {
                     validator = new NullRestSchemaValidator();
+                }
             }
 
             if (!do_not_connect)

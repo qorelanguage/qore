@@ -1,0 +1,82 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file FileLocationHandler.qm module for returning file data from a URL-like location string
+/*  FileLocationHandler.qm Copyright 2020 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.9.4
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+module FileLocationHandler {
+    version = "1.0";
+    desc = "user module for returning file data based on URL-like location strings";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register default handlers
+        FileLocationHandler::registerHandler("file", \FileLocationHandlerFile::handler());
+        FileLocationHandler::registerHandler("http", \FileLocationHandlerHttp::handler());
+        FileLocationHandler::registerHandler("https", \FileLocationHandlerHttp::handler());
+        FileLocationHandler::registerHandler("ftp", \FileLocationHandlerFtp::handler());
+        FileLocationHandler::registerHandler("ftps", \FileLocationHandlerFtp::handler());
+        FileLocationHandler::registerHandler("sftp", \FileLocationHandlerSftp::handler());
+    };
+}
+
+/** @mainpage FileLocationHandler Module
+
+    @tableofcontents
+
+    @section filelocationhandlerintro Introduction to the FileLocationHandler Module
+
+    The %FileLocationHandler module provides an API for returning file data based on a URL-like location string.
+
+    To retrieve file data, call one of:
+    - @ref FileLocationHandler::FileLocationHandler::getTextFileFromLocation() "FileLocationHandler::getTextFileFromLocation()"
+    - @ref FileLocationHandler::FileLocationHandler::getBinaryFileFromLocation() "FileLocationHandler::getBinaryFileFromLocation()"
+
+    To register a location handler based on a scheme, call:
+    - @ref FileLocationHandler::FileLocationHandler::registerHandler() "FileLocationHandler::registerHandler()"
+
+    This module provides the following classes:
+    - @ref FileLocationHandler::FileLocationHandler "FileLocationHandler": the main API class
+    - @ref FileLocationHandler::FileLocationHandlerFile "FileLocationHandlerFile": class handling \c "file://"
+      locations (the default if no scheme is present in the location string)
+    - @ref FileLocationHandler::FileLocationHandlerHttp "FileLocationHandlerHttp": class handling \c "http://" and
+      \c "https://" locations
+
+    @section filelocationhandler_relnotes Release Notes
+
+    @subsection filelocationhandler_v1_0 FileLocationHandler v1.0
+    - initial release of the module
+*/
+
+#! Contains all public definitions in the FileLocationHandler module
+public namespace FileLocationHandler {
+}

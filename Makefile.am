@@ -33,7 +33,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider \
     qlib/SqlUtil \
     qlib/DataProvider \
-    qlib/DbDataProvider
+    qlib/DbDataProvider \
+    qlib/FileLocationHandler
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -79,6 +80,7 @@ DOX_SPLIT_MODULES = \
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
 DataProvider_modverdir = $(modverdir)/DataProvider
+FileLocationHandler_modverdir = $(modverdir)/FileLocationHandler
 DbDataProvider_modverdir = $(modverdir)/DbDataProvider
 BulkSqlUtil_modverdir = $(modverdir)/BulkSqlUtil
 CsvUtil_modverdir = $(modverdir)/CsvUtil
@@ -89,6 +91,7 @@ SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
 dist_DataProvider_modver_DATA = $(wildcard qlib/DataProvider/*.q[cm])
+dist_FileLocationHandler_modver_DATA = $(wildcard qlib/FileLocationHandler/*.q[cm])
 dist_DbDataProvider_modver_DATA = $(wildcard qlib/DbDataProvider/*.q[cm])
 dist_BulkSqlUtil_modver_DATA = $(wildcard qlib/BulkSqlUtil/*.q[cm])
 dist_CsvUtil_modver_DATA = $(wildcard qlib/CsvUtil/*.q[cm])
@@ -987,6 +990,9 @@ doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm $< $@
+
+doxygen/qlib/Doxyfile.FileLocationHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/FileLocationHandler:doxygen/qlib/FileLocationHandler.qm -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
