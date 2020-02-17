@@ -68,8 +68,12 @@ module FileLocationHandler {
     - @ref FileLocationHandler::FileLocationHandler "FileLocationHandler": the main API class
     - @ref FileLocationHandler::FileLocationHandlerFile "FileLocationHandlerFile": class handling \c "file://"
       locations (the default if no scheme is present in the location string)
+    - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerFtp": class handling \c "ftp://" and
+      \c "ftps://" locations
     - @ref FileLocationHandler::FileLocationHandlerHttp "FileLocationHandlerHttp": class handling \c "http://" and
       \c "https://" locations
+    - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerSftp": class handling \c "sftp://"
+      locations
 
     @section filelocationhandler_relnotes Release Notes
 
