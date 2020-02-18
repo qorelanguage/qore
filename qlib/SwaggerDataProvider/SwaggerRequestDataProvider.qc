@@ -111,21 +111,28 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     #! Returns the description of a successful request message, if any
     private *AbstractDataProviderType getRequestTypeImpl() {
         HashDataType rv(getName() + ": request");
+        bool required = False;
         if (op.parameters) {
-            addFieldsFromParameters(rv, op.parameters);
+            addFieldsFromParameters(rv, op.parameters, \required);
         }
         if (op.body) {
             rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema, op.body.required));
+            if (!required && op.body.required) {
+                required = True;
+            }
         }
         if (op.formData) {
             HashDataType formData(getName() + ": request formData");
             foreach hash<auto> i in (op.formData.pairIterator()) {
                 OtherParameter formData = cast<OtherParameter>(i.value);
                 rv.addField(new QoreDataField(i.key, "formData." + i.key, getType(i.value.type, i.value.items, i.value.required)));
+                if (!required && i.value.required) {
+                    required = True;
+                }
             }
             rv.addField(new QoreDataField("formData", "REST request form data", formData));
         }
-        return rv;
+        return required ? rv : rv.getOrNothingType();
     }
 
     #! Returns the description of a successful response message, if any
