@@ -150,6 +150,8 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_1 Swagger v2.0.1
+    - added support for the <tt>x-nullable</tt> attribute to allow for nullable values
+      (<a href="https://github.com/qorelanguage/qore/issues/3785">issue 3785</a>)
     - added location support from the @ref filelocationhandlerintro "FileLocationHandler" module
       (<a href="https://github.com/qorelanguage/qore/issues/3781">issue 3781</a>)
     - fixed support for types with no type declaration
@@ -1848,7 +1850,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     #! Processes a schema definition
     private:internal SchemaObject processDefinition(string key, auto value) {
         if (value.typeCode() != NT_HASH)
-            throw "INVALID-FIELD-TYPE", "Swagger Object: invalid definition datatype: " + value.type();
+            throw "INVALID-FIELD-TYPE", sprintf("Swagger Object: invalid definition datatype %y (val %y) for key %y",
+                value.type(), value, key);
         return definitions{key} = SchemaObject::newSchemaObject(key, value, self);
     }
 }
@@ -3388,6 +3391,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.2.
         *int minProperties;
 
+        #! extension that allows types to be nullable
+        /** the OpenAPI specification 2.0 otherwise does not allow for nullable types
+        */
+        bool nullable = False;
+
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.4.
         /**
             MUST be an object. Each value of this object MUST be an object,
@@ -3512,6 +3520,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         } else {
             type = "any";
         }
+
+        # check for x-nullable
+        optional_field(objType, oh, "x-nullable", NT_BOOLEAN, \nullable);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
@@ -3687,6 +3698,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     check(bool serialize, bool request, string path, string method, string name, reference value) {
         if (request && readOnly)
             throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
+        if (!exists value && nullable) {
+            return;
+        }
 
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
     }

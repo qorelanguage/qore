@@ -43,7 +43,7 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     }
 
     #! Returns a field definition from Swagger parameters
-    private addFieldsFromParameters(HashDataType rv, hash<string, AbstractParameterObject> parameters) {
+    private addFieldsFromParameters(HashDataType rv, hash<string, AbstractParameterObject> parameters, reference<bool> required) {
         # temporary hash for fields: loc -> name -> field
         hash<string, hash<string, AbstractDataField>> params;
         # required flag map for type: loc -> bool
@@ -63,8 +63,13 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                 case "header": {
                     params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
-                    if (i.value.required && !req_map{i.value.inLoc}) {
-                        req_map{i.value.inLoc} = True;
+                    if (i.value.required) {
+                        if (!req_map{i.value.inLoc}) {
+                            req_map{i.value.inLoc} = True;
+                        }
+                        if (!required) {
+                            required = True;
+                        }
                     }
                     break;
                 }
