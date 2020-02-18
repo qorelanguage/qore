@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore HashDataType class definition
 
-/** HashDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** HashDataType.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -111,6 +111,24 @@ public class HashDataType inherits QoreDataType {
         HashDataType rv(name);
         map rv.addField($1.getSoftType()), getFields().iterator();
         rv.soft_type = True;
+        return rv;
+    }
+
+    #! returns an "or nothing" type equivalent to the current type
+    /** @return an "or nothing" type equivalent to the current type
+    */
+    AbstractDataProviderType getOrNothingType() {
+        if (or_nothing_type) {
+            return self;
+        }
+        HashDataType rv = self.copy();
+        rv.or_nothing_type = True;
+        accept_type_hash{Type::NothingType} = True;
+        return_type_hash{Type::NothingType} = True;
+        if (!options."qore.no_null") {
+            accept_type_hash{Type::NullType} = True;
+        }
+        rv.type = type.getOrNothingType();
         return rv;
     }
 }

@@ -653,6 +653,15 @@ public class SwaggerTest inherits QUnit::Test {
                 },
                 "pobj": {
                 },
+                "nullableobj": {
+                    "type": "object",
+                    "properties": {
+                        "a": {
+                            "type": "string",
+                            "x-nullable": True,
+                        },
+                    },
+                },
             );
             soh.paths."/test".get.responses."200".schema = {
                 "$ref": "#/definitions/robj",
@@ -667,6 +676,12 @@ public class SwaggerTest inherits QUnit::Test {
                 "description": "test",
                 "schema": {
                     "$ref": "#/definitions/pobj",
+                },
+            };
+            soh.paths."/test".get.responses."501" = {
+                "description": "test",
+                "schema": {
+                    "$ref": "#/definitions/nullableobj",
                 },
             };
 
@@ -739,6 +754,28 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(500, cres.code);
                 assertEq(MimeTypeJson, cres.hdr."Content-Type");
                 assertEq(123, cres.body);
+
+                res = so.processResponse("get", "/test", 501, {"a": "abc"}, NOTHING, MimeTypeJson);
+                #printf("res: %N\n", res);
+                assertEq(501, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                #printf("cres: %N\n", cres);
+                assertEq(501, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq({"a": "abc"}, cres.body);
+
+                res = so.processResponse("get", "/test", 501, {"a": NOTHING}, NOTHING, MimeTypeJson);
+                #printf("res: %N\n", res);
+                assertEq(501, res.code);
+                assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+                cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
+                #printf("cres: %N\n", cres);
+                assertEq(501, cres.code);
+                assertEq(MimeTypeJson, cres.hdr."Content-Type");
+                assertEq({"a": NOTHING}, cres.body);
             }
         }
 
