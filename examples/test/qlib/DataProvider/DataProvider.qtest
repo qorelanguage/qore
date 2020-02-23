@@ -377,10 +377,15 @@ public class DataProviderTest inherits QUnit::Test {
             HashDeclDataType type0(TypedHash::forName("StatInfo"));
             assertTrue(type0.getFields().size instanceof QoreDataField);
 
-            HashDeclDataType type1 = type0.getSoftType();
+            AbstractDataProviderType type1 = type0.getSoftType();
             assertTrue(type1.getFields().size instanceof QoreDataField);
             assertEq("size", type1.getFields().size.getName());
             assertEq(1, type1.getFields().size.acceptsValue("1"));
+
+            AbstractDataProviderType type2 = type0.getOrNothingType();
+            assertTrue(type2.getFields().size instanceof QoreDataField);
+            assertEq("size", type2.getFields().size.getName());
+            assertNothing(type2.getFields().size.acceptsValue());
         }
 
         {

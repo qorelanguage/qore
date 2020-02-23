@@ -118,17 +118,9 @@ public class HashDataType inherits QoreDataType {
     /** @return an "or nothing" type equivalent to the current type
     */
     AbstractDataProviderType getOrNothingType() {
-        if (or_nothing_type) {
-            return self;
-        }
-        HashDataType rv = self.copy();
-        rv.or_nothing_type = True;
-        accept_type_hash{Type::NothingType} = True;
-        return_type_hash{Type::NothingType} = True;
-        if (!options."qore.no_null") {
-            accept_type_hash{Type::NullType} = True;
-        }
-        rv.type = type.getOrNothingType();
+        # recursively return "or nothing" typed fields in any case
+        HashDataType rv = QoreDataType::getOrNothingType();
+        map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
         return rv;
     }
 }

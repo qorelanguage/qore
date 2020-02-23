@@ -378,6 +378,18 @@ public class AbstractDataProviderType {
         return self;
     }
 
+    #! returns an "or nothing" type equivalent to the current type
+    /** The base class method returns the same type; this method must be overridden in child classes to return a
+        usable "or nothing" type
+
+        @return an "or nothing" type equivalent to the current type
+
+        @note recursively updates fields to "or nothing" types as well
+    */
+    AbstractDataProviderType getOrNothingType() {
+        return self;
+    }
+
     #! returns the type name
     abstract string getName();
 
