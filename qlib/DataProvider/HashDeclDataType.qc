@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore HashDeclDataType class definition
 
-/** HashDeclDataType.qc Copyright 2019 Qore Technologies, s.r.o.
+/** HashDeclDataType.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -83,11 +83,17 @@ public class HashDeclDataType inherits QoreDataType {
     /** @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {
-        if (soft_type) {
-            return self;
-        }
-        HashDeclDataType rv(hd, options);
-        rv.soft_type = True;
+        HashDataType rv(getName(), options);
+        map rv.addField($1.getSoftType()), getFields().iterator();
+        return rv;
+    }
+
+    #! returns an "or nothing" type equivalent to the current type
+    /** @return an "or nothing" type equivalent to the current type
+    */
+    AbstractDataProviderType getOrNothingType() {
+        HashDataType rv(getName(), options);
+        map rv.addField($1.getOrNothingType()), getFields().iterator();
         return rv;
     }
 }

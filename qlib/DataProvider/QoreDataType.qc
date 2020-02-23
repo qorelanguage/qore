@@ -184,6 +184,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         return rv;
     }
 
+    #! returns a "soft" type equivalent to the current type
     /** @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {
@@ -193,6 +194,24 @@ public class QoreDataType inherits AbstractDataProviderType {
             if (soft_type) {
                 return new QoreDataType(soft_type, options);
             }
+        }
+        return self;
+    }
+
+    #! returns an "or nothing" type equivalent to the current type
+    /** @return an "or nothing" type equivalent to the current type
+    */
+    AbstractDataProviderType getOrNothingType() {
+        if (!or_nothing_type) {
+            QoreDataType rv = self.copy();
+            rv.or_nothing_type = True;
+            rv.accept_type_hash{Type::NothingType} = True;
+            rv.return_type_hash{Type::NothingType} = True;
+            if (!options."qore.no_null") {
+                rv.accept_type_hash{Type::NullType} = True;
+            }
+            rv.type = type.getOrNothingType();
+            return rv;
         }
         return self;
     }

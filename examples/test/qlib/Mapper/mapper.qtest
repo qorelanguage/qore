@@ -437,6 +437,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("nullable output", \nullableOutputTest());
         addTestCase("list test", \listTest());
         addTestCase("runtime keys", \runtimeKeys());
         addTestCase("hash output", \hashOutputTest());
@@ -460,6 +461,53 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    # issue #3788
+    nullableOutputTest() {
+        {
+            Mapper m({"out0": "in0"}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", StringType)},
+            });
+            assertEq("str", m.mapData({"in0": "str"}).out0);
+        }
+        {
+            Mapper m({"out0": "in0"}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", StringType)},
+            });
+            assertThrows("RUNTIME-TYPE-ERROR", \m.mapData(), {"inp0": NOTHING});
+        }
+        {
+            Mapper m({"out0": "in0"}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", StringType)},
+            });
+            m.setNullableOutput();
+            assertNothing(m.mapData({"in0": NOTHING}).out0);
+        }
+        {
+            Mapper m({"out0": "in0"}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", StringType)},
+                "output_nullable": True,
+            });
+            assertNothing(m.mapData({"in0": NOTHING}).out0);
+        }
+        HashDataType h0();
+        h0.addField(new QoreDataField("id", "", IntType));
+        HashDataType h1();
+        h1.addField(new QoreDataField("rec", "", h0));
+        {
+            Mapper m({"out0.rec.id": {"name": "in0"}}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", h1)},
+            });
+            assertEq(1, m.mapData({"in0": 1}).out0.rec.id);
+        }
+        {
+            Mapper m({"out0.rec.id": {"name": "in0"}}, {
+                "output": {"out0": new QoreDataField("out0", "test output field", h1)},
+                "output_nullable": True,
+            });
+            assertNothing(m.mapData({"in0": NOTHING}).out0.rec.id);
+        }
     }
 
     listTest() {
