@@ -175,6 +175,16 @@ public class AbstractDataField {
         return self;
     }
 
+    #! returns a field with an "or nothing" type equivalent to the current type
+    /** The base class method returns the same fielf; this method must be overridden in child classes to return a
+        field with a usable "or nothing" type
+
+        @return a field with an "or nothing" type equivalent to the current type
+    */
+    AbstractDataField getOrNothingType() {
+        return self;
+    }
+
     #! returns the name of the field
     abstract string getName();
 

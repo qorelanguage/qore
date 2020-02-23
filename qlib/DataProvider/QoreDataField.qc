@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore QoreDataField class definition
 
-/** QoreDataField.qc Copyright 2019 Qore Technologies, s.r.o.
+/** QoreDataField.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -108,13 +108,26 @@ public class QoreDataField inherits AbstractDataField {
     /** @return a field with a "soft" type equivalent to the current type
     */
     AbstractDataField getSoftType() {
+        return getNewFieldType(type.getSoftType());
+    }
+
+    #! returns a field with an "or nothing" type equivalent to the current type
+    /** @return a field with an "or nothing" type equivalent to the current type
+    */
+    AbstractDataField getOrNothingType() {
+        return getNewFieldType(type.getOrNothingType());
+    }
+
+    #! returns a field with the new type
+    /** @return a field with the new type
+    */
+    private AbstractDataField getNewFieldType(AbstractDataProviderType new_type) {
         AbstractDataProviderType type = getType();
-        AbstractDataProviderType softtype = type.getSoftType();
-        if (softtype == type) {
+        if (new_type == type) {
             return self;
         }
         QoreDataField rv = copy();
-        rv.type = softtype;
+        rv.type = new_type;
         return rv;
     }
 }

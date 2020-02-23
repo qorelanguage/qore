@@ -798,10 +798,17 @@ public class AbstractDataProvider {
         return getRecordTypeImpl(recordRequiresSearchOptions() ? validateSearchOptions(search_options) : NOTHING);
     }
 
-    #! Returns the description of the record type, if any
+    #! Returns the description of the record type with soft types, if any
     *hash<string, AbstractDataField> getSoftRecordType(*hash<auto> search_options) {
         return map {
             $1.key: $1.value.getSoftType()
+        }, getRecordType(search_options).pairIterator();
+    }
+
+    #! Returns the description of the record type with "or nothing" types, if any
+    *hash<string, AbstractDataField> getOrNothingRecordType(*hash<auto> search_options) {
+        return map {
+            $1.key: $1.value.getOrNothingType(True)
         }, getRecordType(search_options).pairIterator();
     }
 
