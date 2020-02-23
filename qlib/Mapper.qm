@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.4
 
 # require type definitions everywhere
 %require-types
@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5";
+    version = "1.5.1";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -211,6 +211,7 @@ list: (2 elements)
         - \c "hash": field accepts hash values
         - \c "any": field accepts any value
     - \c "output_log": an optional output data logging callback; must accept a hash giving the output data hash
+    - \c "output_nullable": set all output fields as nullable
     - \c "output_provider": gives the output provider with an
       @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
       also location where the output data will be written.  If this option is set, then every mapped record will be
@@ -300,6 +301,11 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_1 Mapper v1.5.1
+    - added the @ref Mapper::Mapper::setNullableOutput() "Mapper::setNullableOutput()" method and the
+      \c output_nullable option
+      (<a href="https://github.com/qorelanguage/qore/issues/3788">issue 3788</a>)
 
     @subsection mapperv1_5 Mapper v1.5
     - added support for the DataProvider module to describe input and output records
@@ -426,6 +432,11 @@ public class Mapper {
             "input_search_options": <MapperOptionInfo>{
                 "type": "hash",
                 "desc": "the input provider search options",
+            },
+
+            "output_nullable": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "set output fields as nullable",
             },
 
             "output_provider_bulk": <MapperOptionInfo>{
@@ -566,6 +577,9 @@ public class Mapper {
 
         #! options for the request when using the request/response API for the output provider
         *hash<auto> output_request_options;
+
+        #! set output fields nullable
+        bool output_nullable = False;
 
         #! flag if the field descriptions were provided to the constructor
         /** if so then allow_dot cannot be set
@@ -1059,6 +1073,10 @@ Mapper mapv(DataMap);
             }
         }
 
+        if (opts.output_nullable) {
+            output_nullable = True;
+        }
+
         # set valid keys
         valid_keys = validKeys();
     }
@@ -1066,6 +1084,9 @@ Mapper mapv(DataMap);
     #! verifies the input map in the constructor
     private checkMap() {
         map checkMapField($1, \mapc{$1}), keys mapc;
+        if (output_nullable) {
+            setNullableOutput();
+        }
         mapd = mapc;
         if (identh) {
             identl = keys identh;
@@ -1398,7 +1419,7 @@ Mapper mapv(DataMap);
 
         @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                 processing the data.
-        */
+    */
     setRuntime(string key, auto value) {
         if (count > 0 && exists m_runtime{key} && m_runtime{key} != value) {
             throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime option %y "
@@ -1426,7 +1447,7 @@ Mapper mapv(DataMap);
 
         @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                 processing the data.
-        */
+    */
     setRuntime(hash<auto> runtime) {
         if (count > 0 && m_runtime + runtime != m_runtime) {
             throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
@@ -1454,7 +1475,7 @@ Mapper mapv(DataMap);
 
         @throw RUNTIME-OPTION-CHANGED the option has changed during while already
                 processing the data.
-        */
+    */
     replaceRuntime(*hash<auto> runtime) {
         if (count > 0 && runtime != m_runtime) {
             throw "RUNTIME-OPTION-CHANGED", sprintf("the runtime options "
@@ -1476,7 +1497,7 @@ Mapper mapv(DataMap);
         - setRuntime()
 
         @since %Mapper 1.1
-        */
+    */
     auto getRuntime(string key) {
         return m_runtime{key};
     }
@@ -1523,6 +1544,16 @@ Mapper mapv(DataMap);
     #! returns the value of the \c "output" option
     *hash<string, AbstractDataField> getOutputRecord() {
         return output;
+    }
+
+    #! sets all fields in the output record as nullable
+    /** @since %Mapper 1.5.1
+    */
+    setNullableOutput() {
+        # update output field types
+        output = map {$1.key: $1.value.getOrNothingType()}, output.pairIterator();
+        # update types in "mapc"
+        map mapc{$1}.field = mapc{$1}.field.getOrNothingType(), keys mapc;
     }
 
     #! returns an output record iterator that produces mapped data from the input data provider
