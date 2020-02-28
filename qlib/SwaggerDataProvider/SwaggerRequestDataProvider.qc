@@ -116,7 +116,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             addFieldsFromParameters(rv, op.parameters, \required);
         }
         if (op.body) {
-            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema, op.body.required));
+            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema, op.body.required ?? False));
             if (!required && op.body.required) {
                 required = True;
             }

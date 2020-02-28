@@ -101,7 +101,7 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     #! Returns the data type for the given schema
     private AbstractDataProviderType getSchemaDataType(SchemaObject schema, bool required = True) {
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
-        map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, schema.required{$1.key})), schema.properties.pairIterator();
+        map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, exists schema.required{$1.key})), schema.properties.pairIterator();
         return type;
     }
 
