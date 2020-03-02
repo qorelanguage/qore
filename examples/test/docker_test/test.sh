@@ -44,3 +44,6 @@ chown -R qore:qore ${QORE_SRC_DIR}
 export QORE_MODULE_DIR=${QORE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
 cd ${QORE_SRC_DIR}
 gosu qore:qore ./run_tests.sh
+
+# DELETEME
+sleep 7200

@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -280,13 +280,11 @@ qore_program_private::~qore_program_private() {
     deleteAllBreakpoints();
     QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
     qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-    if (i == qore_program_to_object_map.end()) {
-        assert(false);
-    } else {
-        assert(i->second == 0);
-        qore_program_to_object_map.erase(i);
-        printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p, pgmid: %d removed\n", this, pgm, programId);
-    }
+    assert(i != qore_program_to_object_map.end());
+    assert(i->second == 0);
+    qore_program_to_object_map.erase(i);
+    printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p, pgmid: %d removed\n", this, pgm, programId);
+
     statementByFileIndex.clear();
     statementIds.clear();
     reverseStatementIds.clear();
