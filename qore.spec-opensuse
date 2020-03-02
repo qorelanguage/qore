@@ -19,7 +19,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        0.9.4.1
+Version:        0.9.4.2
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -69,7 +69,7 @@ functionality.
 
 %files -n libqore6
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.6.1.1
+%{_libdir}/libqore.so.6.2.0
 %{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
@@ -193,7 +193,7 @@ cp addon/freedesktop/qore.xml %{buildroot}/%{_datadir}/mime/packages
 %{_bindir}/qdbg*
 %{module_dir}
 %dir %{_datadir}/qore-modules
-%{_datadir}/qore-modules/0.9.4
+%{_datadir}/qore-modules/%{version}
 %{_datadir}/mime/packages/qore.xml
 %{_mandir}/man1/qore.1.*
 

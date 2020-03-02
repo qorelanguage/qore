@@ -3,7 +3,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.4.1
+Version: 0.9.4.2
 Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
@@ -35,7 +35,7 @@ Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
 Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: libqore6 = %{version}
-Obsoletes: libqore6 < 0.9.4.1
+Obsoletes: libqore6 < 0.9.4.2
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -46,7 +46,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.6.1.1
+%{_libdir}/libqore.so.6.2.0
 %{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -177,6 +177,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Mar 2 2020 David Nichols <david@qore.org> 0.9.4.2-1
+- updated version to 0.9.4.2-1
+
 * Wed Feb 12 2020 David Nichols <david@qore.org> 0.9.4.1-1
 - updated version to 0.9.4.1-1
 

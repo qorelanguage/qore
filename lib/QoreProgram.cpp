@@ -438,6 +438,7 @@ void qore_program_private_base::newProgram() {
     dmap["QoreVersionMajor"] = qore_version_major;
     dmap["QoreVersionMinor"] = qore_version_minor;
     dmap["QoreVersionSub"] = qore_version_sub;
+    dmap["QoreVersionPatch"] = qore_version_patch;
     dmap["QoreVersionBuild"] = qore_build_number;
     dmap["QoreVersionBits"] = qore_target_bits;
     dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);

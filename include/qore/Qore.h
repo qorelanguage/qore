@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,9 @@ DLLEXPORT extern int qore_version_minor;
 
 //! the version number below the minor version number of the qore library
 DLLEXPORT extern int qore_version_sub;
+
+//! the version number below the sub version number of the qore library
+DLLEXPORT extern int qore_version_patch;
 
 //! the build number of the qore library
 /** @deprecated always assigned to 0 - no longer relevant with git
