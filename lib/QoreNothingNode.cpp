@@ -30,16 +30,9 @@
 
 #include <qore/Qore.h>
 
-#ifdef DEBUG
-static bool nothing_flag = false;
-#endif
-
 QoreString YamlNullString("null");
 
 QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
-#ifdef DEBUG
-    nothing_flag = true;
-#endif
 }
 
 QoreNothingNode::~QoreNothingNode() {
