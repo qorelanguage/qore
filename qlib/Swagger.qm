@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.1";
+    version = "2.0.2";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -148,6 +148,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_2 Swagger v2.0.2
+    - fixed support for query parameters of type object
+      (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
 
     @subsection swagger_2_0_1 Swagger v2.0.1
     - added support for the <tt>x-nullable</tt> attribute to allow for nullable values
@@ -2979,6 +2983,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         #! valid parameter types
         const ParameterTypes = SchemaObject::ScalarTypes + (
             "file": True,
+            "object": True,
         );
     }
 
