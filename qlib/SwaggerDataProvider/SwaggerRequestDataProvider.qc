@@ -96,7 +96,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     private *hash<string, AbstractDataField> getRecordTypeIntern() {
         *ResponseObject response = getSuccessResponse();
-        if (response) {
+        if (response.schema) {
             AbstractDataField response_field = getFieldFromSchema("body", "REST response body argument",
                 response.schema);
             AbstractDataProviderType type = response_field.getType();
