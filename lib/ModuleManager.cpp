@@ -615,11 +615,12 @@ static void try_add_module_context(QoreStringNode* desc) {
 }
 
 static void check_qore_version(const char* name, mod_op_e op, version_list_t& version, ExceptionSink& xsink) {
-    unsigned max = version.size() > 3 ? version.size() : 3;
+    unsigned max = version.size() > 4 ? version.size() : 4;
     for (unsigned i = 0; i < max; ++i) {
         int mv = (!i ? QORE_VERSION_MAJOR :
                     (i == 1 ? QORE_VERSION_MINOR :
-                    (i == 2 ? QORE_VERSION_SUB : 0)));
+                    (i == 2 ? QORE_VERSION_SUB :
+                    (i == 3 ? QORE_VERSION_PATCH : 0))));
         int rv = (i >= version.size() ? 0 : version[i]);
         int res = check_component(op, mv, rv, i == (max - 1));
         if (res == MVC_FAIL) {
