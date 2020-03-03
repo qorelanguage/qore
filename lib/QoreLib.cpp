@@ -74,6 +74,7 @@ const char* qore_version_string      = VERSION;
 int qore_version_major               = VERSION_MAJOR;
 int qore_version_minor               = VERSION_MINOR;
 int qore_version_sub                 = VERSION_SUB;
+int qore_version_patch               = VERSION_PATCH;
 int qore_target_bits                 = TARGET_BITS;
 
 // obsolete: no more svn
