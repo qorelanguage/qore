@@ -86,7 +86,15 @@ class ZeyosTest inherits QUnit::Test {
                           MimeTypeJson, new FakeZeyosRestHandler(MimeTypeJson, VALUE_JSON.input));
         port = m_http.addListener(0).port;
 
-        zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a"});
+        try {
+            zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a"});
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "REST-RESPONSE-ERROR") {
+                printf("no client support: %s: %s\n", ex.err, ex.desc);
+            } else {
+                rethrow;
+            }
+        }
     }
 
     globalTearDown() {
@@ -112,6 +120,10 @@ class ZeyosTest inherits QUnit::Test {
     }
 
     negativeTest() {
+        if (!zeyosRestClient) {
+            testSkip("no client support");
+        }
+
         assertThrows("ZEYOSRESTCLIENT-ERROR", sub () {new ZeyosRestClient({"url": "http://localhost:" + port});});
         ZeyosRestClient zeyosRest({"url": "http://localhost:" + port, "token": "asdsad"});
         assertThrows("REST-RESPONSE-ERROR", \zeyosRest.get(), "/api_json");

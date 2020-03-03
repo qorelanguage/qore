@@ -54,7 +54,15 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     invalidOptionTest() {
-        assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+        try {
+            assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "LOAD-MODULE-ERROR") {
+                testSkip("no pgsql module");
+            } else {
+                rethrow;
+            }
+        }
     }
 
     datasourceStringTest() {
