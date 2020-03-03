@@ -40,9 +40,6 @@ useradd -o -m -d /home/qore -u ${QORE_UID} -g ${QORE_GID} qore
 # own everything by the qore user
 chown -R qore:qore ${QORE_SRC_DIR}
 
-# DELETEME
-sleep 7200
-
 # run the tests
 export QORE_MODULE_DIR=${QORE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
 cd ${QORE_SRC_DIR}
