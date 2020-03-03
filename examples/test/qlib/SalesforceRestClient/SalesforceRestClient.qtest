@@ -11,6 +11,10 @@
 %requires ../../../../qlib/SalesforceRestClient.qm
 %requires ../../../../qlib/SalesforceRestDataProvider
 
+%try-module json
+%define NoJson
+%endtry
+
 %requires qore >= 0.9
 
 %new-style
@@ -163,6 +167,10 @@ class SalesforceTest inherits QUnit::Test {
         assertThrows("CONNECTION-ERROR", sub () {
             SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
         });
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
 
         SalesforceRestClient client = swsc.get(False);
         # issue #3321: check default timeouts

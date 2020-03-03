@@ -7,6 +7,10 @@
 %requires ../../../../qlib/ZeyosRestClient.qm
 %requires ../../../../qlib/HttpServer.qm
 
+%try-module json
+%define NoJson
+%endtry
+
 %requires qore >= 0.9
 
 %new-style
@@ -117,6 +121,10 @@ class ZeyosTest inherits QUnit::Test {
         string url = "http://user:pass@localhost:" + port;
         ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a"});
         assertEq(True, zeyosrc instanceof ZeyosRestConnection);
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
 
         ZeyosRestClient client = zeyosrc.get(False);
         assertEq(True, client instanceof ZeyosRestClient);
