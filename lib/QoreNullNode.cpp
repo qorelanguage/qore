@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,15 +30,7 @@
 
 #include <qore/Qore.h>
 
-#ifdef DEBUG
-static bool null_flag = 0;
-#endif
-
 QoreNullNode::QoreNullNode() : UniqueValueQoreNode(NT_NULL) {
-#ifdef DEBUG
-    assert(!null_flag);
-    null_flag = true;
-#endif
 }
 
 QoreNullNode::~QoreNullNode() {

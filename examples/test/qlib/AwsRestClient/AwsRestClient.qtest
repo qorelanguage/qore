@@ -84,10 +84,18 @@ class AwsTest inherits QUnit::Test {
     globalSetUp() {
         m_http = new HttpServer(\log(), \log());
         m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
-                          MimeTypeJson, new FakeAwsRestHandler(MimeTypeJson, VALUE_JSON.input));
+                        MimeTypeJson, new FakeAwsRestHandler(MimeTypeJson, VALUE_JSON.input));
         port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
-        client = new AwsRestClient({"url": "http://localhost:" + port} + FakeAwsOptions);
+        try {
+            client = new AwsRestClient({"url": "http://localhost:" + port} + FakeAwsOptions);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "RESTCLIENT-ERROR") {
+                printf("no REST client: %s: %s", ex.err, ex.desc);
+            } else {
+                rethrow;
+            }
+        }
     }
 
     globalTearDown() {
@@ -96,6 +104,10 @@ class AwsTest inherits QUnit::Test {
     }
 
     AwsRestClientRestTests() {
+        if (!client) {
+            testSkip("no client support");
+        }
+
         # https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08
         AwsRestTestClient client({"url": "https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08"} + FakeAwsOptions);
         # test the signature generation algorithm against a known good value for a certain request
@@ -113,6 +125,10 @@ class AwsTest inherits QUnit::Test {
     }
 
     negativeTest() {
+        if (!client) {
+            testSkip("no client support");
+        }
+
         assertThrows("AWSRESTCLIENT-ERROR", sub () {new AwsRestClient({"url": "http://localhost:" + port});});
         AwsRestClient new_client({"url": "http://localhost:" + port} + FakeAwsOptions);
         assertThrows("REST-RESPONSE-ERROR", \new_client.get(), "/api_json");
@@ -122,6 +138,10 @@ class AwsTest inherits QUnit::Test {
         string url = "http://localhost:" + port;
         AwsRestConnection conn("test", "test", url, NOTHING, FakeAwsOptions);
         assertEq(True, conn instanceof AwsRestConnection);
+
+        if (!client) {
+            testSkip("no client support");
+        }
 
         AwsRestClient new_client = conn.get(False);
         assertEq(True, new_client instanceof AwsRestClient);

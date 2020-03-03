@@ -335,7 +335,9 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     static SwaggerSchema getSwagger() {
+%ifndef NoJson
         return SwaggerLoader::fromString(make_json(TestSchema));
+%endif
     }
 
     globalSetUp() {

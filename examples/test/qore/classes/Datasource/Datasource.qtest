@@ -37,7 +37,16 @@ public class DatasourceTest inherits QUnit::Test {
 
     offlineOptionTest() {
         # issue #3247 ensure that we can get options for unconnected Datasources
-        Datasource ds("pgsql:u/p@db");
+        Datasource ds;
+        try {
+            ds = new Datasource("pgsql:u/p@db");
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "LOAD-MODULE-ERROR") {
+                testSkip("no pgsql module");
+            } else {
+                rethrow;
+            }
+        }
         assertEq(Type::String, ds.getConfigString().type());
         assertEq(Type::Hash, ds.getConfigHash().type());
         assertEq({}, ds.getOptionHash());
@@ -45,7 +54,15 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     invalidOptionTest() {
-        assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+        try {
+            assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "LOAD-MODULE-ERROR") {
+                testSkip("no pgsql module");
+            } else {
+                rethrow;
+            }
+        }
     }
 
     datasourceStringTest() {
@@ -62,7 +79,6 @@ public class DatasourceTest inherits QUnit::Test {
         string str = ds.getConfigString();
         assertEq(Type::String, str.type());
 
-        ds.open();
         # issue #3247: we have to get the config hash again after connecting as the DBI driver will set default option values
         h = ds.getConfigHash();
         assertEq(Type::Hash, h.type());
@@ -109,6 +125,7 @@ public class DatasourceTest inherits QUnit::Test {
                 testSkip(sprintf("skipping test: cannot execute these tests on a connection using driver %y; expecting "
                     "\"oracle\"", ds.getDriverName()));
             }
+            ds.open();
             return ds;
         } catch (hash<ExceptionInfo> ex) {
             testSkip("skipping test: " + ex.err + ": " + ex.desc);

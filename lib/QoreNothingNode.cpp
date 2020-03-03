@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,17 +30,9 @@
 
 #include <qore/Qore.h>
 
-#ifdef DEBUG
-static bool nothing_flag = false;
-#endif
-
 QoreString YamlNullString("null");
 
 QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
-#ifdef DEBUG
-    assert(!nothing_flag);
-    nothing_flag = true;
-#endif
 }
 
 QoreNothingNode::~QoreNothingNode() {
