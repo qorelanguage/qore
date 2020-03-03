@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.9.4.1],
+AC_INIT([qore], [0.9.4.2],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
@@ -1867,11 +1867,16 @@ AC_SUBST([mypkglibdir])
 VERSION_MAJOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f1 -d.`
 VERSION_MINOR=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f2 -d.`
 VERSION_SUB=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f3 -d.`
+VERSION_PATCH=`echo $PACKAGE_VERSION | cut -f3 -d\  | sed s/\"//g | cut -f4 -d.`
+if test -z "$VERSION_PATCH"; then
+   VERSION_PATCH=0
+fi
 
 # set version information
 AC_DEFINE_UNQUOTED([VERSION_MAJOR], $VERSION_MAJOR, [major version number])
 AC_DEFINE_UNQUOTED([VERSION_MINOR], $VERSION_MINOR, [minor version number])
 AC_DEFINE_UNQUOTED([VERSION_SUB], $VERSION_SUB, [sub version number])
+AC_DEFINE_UNQUOTED([VERSION_PATCH], $VERSION_PATCH, [patch version number])
 AC_DEFINE_UNQUOTED([TARGET_ARCH], "$ARCH", [host type])
 AC_DEFINE_UNQUOTED([TARGET_OS], "$OS", [host type])
 AC_DEFINE_UNQUOTED([TARGET_BITS], $bits, [32 or 64 bit build])
@@ -1941,14 +1946,14 @@ fi
 AC_SUBST([MODULE_DIR])
 AC_SUBST([USER_MODULE_DIR])
 
-mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
+mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}
 AC_SUBST([mymodverdir])
 
 # get version-dependent module path
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}"
+  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then
