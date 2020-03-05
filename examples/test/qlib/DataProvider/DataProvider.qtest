@@ -30,14 +30,41 @@ public class DataProviderTest inherits QUnit::Test {
         DataProviderTypeCache type_cache();
         assertEq(0, type_cache.size());
         assertTrue(type_cache.empty());
+
         type_cache.registerType("test/one", h1);
         assertEq(1, type_cache.size());
         assertFalse(type_cache.empty());
         assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/one", h2));
+        hash<DataProviderTypeEntryInfo> type_info = type_cache.getTypeInfo("test/one");
+        assertEq("one", type_info.name);
+        assertEq("/test/one", type_info.path);
+        assertFalse(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+        type_info = type_cache.getTypeInfo("/test/one");
+        assertEq("one", type_info.name);
+        assertEq("/test/one", type_info.path);
+        assertFalse(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+
         type_cache.registerType("test/two", h2);
         assertEq(2, type_cache.size());
         assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/two", h1));
-        type_cache.registerType("test/three", h3);
+        type_info = type_cache.getTypeInfo("test/two");
+        assertEq("two", type_info.name);
+        assertEq("/test/two", type_info.path);
+        assertFalse(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+        type_info = type_cache.getTypeInfo("/test/two");
+        assertEq("two", type_info.name);
+        assertEq("/test/two", type_info.path);
+        assertFalse(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+
+        type_cache.registerType("test/three", h3, True);
         assertEq(3, type_cache.size());
         assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/three", h1));
         assertEq(("/test/one", "/test/two", "/test/three"), type_cache.listTypes());
@@ -49,6 +76,19 @@ public class DataProviderTest inherits QUnit::Test {
         assertNothing(type_cache.getType("/test/xxx"));
         assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("test/xxx"));
         assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("/test/xxx"));
+        type_info = type_cache.getTypeInfo("test/three");
+        assertEq("three", type_info.name);
+        assertEq("/test/three", type_info.path);
+        assertTrue(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+        type_info = type_cache.getTypeInfo("/test/three");
+        assertEq("three", type_info.name);
+        assertEq("/test/three", type_info.path);
+        assertTrue(type_info.locked);
+        assertTrue(type_info.has_type);
+        assertNothing(type_info.children);
+
         HashDataType h2bis();
         assertTrue(type_cache.registerOrReplaceType("test/two", h2bis));
         assertEq(3, type_cache.size());
@@ -69,6 +109,9 @@ public class DataProviderTest inherits QUnit::Test {
         type_cache.registerType("test/one", h1);
         type_cache.registerType("/test/one", h1);
         assertEq(2, type_cache.size());
+        type_cache.clear();
+        assertEq(2, type_cache.size());
+        assertEq(("/test/three",), type_cache.listTypes());
 
         DataProviderTypeCache t2 = Serializable::deserialize(type_cache.serialize());
         assertEq(2, t2.size());
