@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
 #include "qore/intern/QoreSerializable.h"
 
 DLLEXPORT extern qore_classid_t CID_SERIALIZABLE;
-DLLLOCAL extern QoreClass* QC_SERIALIZABLE;
+DLLEXPORT extern QoreClass* QC_SERIALIZABLE;
 
 DLLLOCAL void preinitSerializableClass();
 DLLLOCAL QoreClass* initSerializableClass(QoreNamespace& ns);

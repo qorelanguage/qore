@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -66,12 +66,14 @@ DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAM;
 DLLEXPORT extern qore_classid_t CID_INPUTSTREAMBASE;
 DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAMBASE;
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
+DLLEXPORT extern qore_classid_t CID_SERIALIZABLE;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
 DLLEXPORT extern QoreClass* QC_SSLCERTIFICATE;
 DLLEXPORT extern QoreClass* QC_SSLPRIVATEKEY;
 DLLEXPORT extern QoreClass* QC_PROGRAM;
+DLLEXPORT extern QoreClass* QC_SERIALIZABLE;
 
 class BCList;
 class BCSMList;
