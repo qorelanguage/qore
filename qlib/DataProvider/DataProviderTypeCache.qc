@@ -54,13 +54,14 @@ public class DataProviderTypeCache inherits Serializable {
     #! Register a new data provider type in the cache
     /** @param path a \c "/" separated path for the type; this is the lookup index
         @param type the new data provider type
+        @param locked if the data type should be locked, prohibiting updates and deletions
 
         @throw PROVIDER-ERROR the given provider has already been registered
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    registerType(string path, AbstractDataProviderType type) {
+    registerType(string path, AbstractDataProviderType type, bool locked = False) {
         list<string> type_path = DataProvider::getPathList(path);
 
         DataProviderTypeEntry type_entry = root;
@@ -75,7 +76,7 @@ public class DataProviderTypeCache inherits Serializable {
 
         map type_entry = type_entry.getCreateChild($1), type_path;
 
-        if (type_entry.setType(type)) {
+        if (type_entry.setType(type, locked)) {
             ++size;
         }
     }
@@ -85,6 +86,8 @@ public class DataProviderTypeCache inherits Serializable {
         @param type the new data provider type
 
         @return True if the type was replaced or added
+
+        @throw TYPE-LOCK-ERROR type entry cannot be replaced, because it is locked
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
@@ -115,6 +118,8 @@ public class DataProviderTypeCache inherits Serializable {
     /** @param path a \c "/" separated path for the type; this is the lookup index
 
         @return the type removed or @ref NOTHING if the type was not present
+
+        @throw TYPE-LOCK-ERROR the given type cannot be removed, because it is locked
     */
     *AbstractDataProviderType removeType(string path) {
         list<string> type_path = DataProvider::getPathList(path);
@@ -141,11 +146,7 @@ public class DataProviderTypeCache inherits Serializable {
         }
 
         *AbstractDataProviderType type = type_entry.getType();
-        if (!type) {
-            return;
-        }
-
-        if (!prev) {
+        if (!type || !prev) {
             return;
         }
         prev.removeChild(node);
@@ -170,6 +171,19 @@ public class DataProviderTypeCache inherits Serializable {
         return root;
     }
 
+    #! Clears the type hierarchy of all non-locked types
+    clear() {
+        bool needs_lock = !rwlock.writeLockOwner();
+        if (needs_lock) {
+            rwlock.writeLock();
+        }
+        on_exit if (needs_lock) {
+            rwlock.writeUnlock();
+        }
+
+        root.clear();
+    }
+
     #! Returns a list of registered data provider type paths
     /**
         @note types are stored based on the path provided which may differ from their type names (which may be generic
@@ -177,6 +191,11 @@ public class DataProviderTypeCache inherits Serializable {
     */
     *list<string> listTypes() {
         return root.listTypes();
+    }
+
+    #! Locks all types
+    lockAll() {
+        root.lockAll();
     }
 
     #! Returns the given data provider type or @ref nothing if not present
@@ -203,6 +222,32 @@ public class DataProviderTypeCache inherits Serializable {
     */
     AbstractDataProviderType getTypeEx(string path) {
         return getTypeImpl(path, True);
+    }
+
+    #! Returns the given data provider type or @ref nothing if not present
+    /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
+
+        @return the given data provider type; @ref NOTHING is returned if the type cannot be resolved
+
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
+    */
+    *hash<DataProviderTypeEntryInfo> getTypeInfo(string path) {
+        return getTypeInfoImpl(path, False);
+    }
+
+    #! Returns the given data provider type or throws an exception if not present
+    /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
+
+        @return the given data provider type; an exception is thrown if the data provide is unknown
+
+        @throw PROVIDER-ERROR the given data provider type path is unknown
+
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
+    */
+    hash<DataProviderTypeEntryInfo> getTypeInfoEx(string path) {
+        return getTypeInfoImpl(path, True);
     }
 
     #! Returns the given data provider type and either throws an exception if not present or returns @ref NOTHING
@@ -273,6 +318,47 @@ public class DataProviderTypeCache inherits Serializable {
                 "intermediate node with children: %y", path, type_entry.getChildNames());
         }
         return type;
+    }
+
+    #! Returns information for the given data provider type and either throws an exception if not present or returns @ref NOTHING
+    /** @param path a \c "/" separated path for the type
+        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
+        @ref NOTHING is returned
+
+        @return information for the given data provider type or @ref NOTHING is returned if the path cannot be
+        resolved and the \a throw_exception argument is @ref False
+
+        @throw PROVIDER-ERROR the given data provider type path is unknown; only thrown if the \a throw_exception
+        argument is @ref True
+
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
+    */
+    *hash<DataProviderTypeEntryInfo> getTypeInfoImpl(string path, bool throw_exception) {
+        # we have to grab the write lock if there is a type_loader
+        bool need_lock = !rwlock.lockOwner();
+        if (need_lock) {
+            rwlock.readLock();
+        }
+        on_exit if (need_lock) {
+            rwlock.readUnlock();
+        }
+
+        list<string> type_path = DataProvider::getPathList(path);
+        DataProviderTypeEntry type_entry = root;
+        foreach string node in (type_path) {
+            *DataProviderTypeEntry next_entry = type_entry.getChild(node);
+            if (!next_entry) {
+                if (throw_exception) {
+                    throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known children: %y",
+                        path, node, type_entry.getPath(), type_entry.getChildNames());
+                }
+                return;
+            }
+            type_entry = next_entry;
+        }
+
+        return type_entry.getInfo();
     }
 
     #! Returns the RWLock to allow for external serialization

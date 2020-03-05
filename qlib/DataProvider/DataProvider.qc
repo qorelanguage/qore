@@ -265,6 +265,11 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         return type_cache.getRoot();
     }
 
+    #! Locks all types
+    static lockAllTypes() {
+        type_cache.lockAll();
+    }
+
     #! Returns a list of registered data provider type paths
     /**
         @note types are stored based on the path provided which may differ from their type names (which may be generic

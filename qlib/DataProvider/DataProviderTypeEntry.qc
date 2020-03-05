@@ -46,6 +46,11 @@ public hashdecl DataProviderTypeEntryInfo {
     */
     bool has_type;
 
+    #! @ref True if the entry is locked and therefore cannot be deleted or updated
+    /** @note only type entries can be locked
+    */
+    bool locked = False;
+
     #! The names of any children
     *list<string> children;
 }
@@ -64,6 +69,11 @@ public class DataProviderTypeEntry inherits Serializable {
 
         #! The type at this location
         *AbstractDataProviderType type;
+
+        #! @ref True if the entry is locked and therefore cannot be deleted or updated
+        /** @note only type entries can be locked
+        */
+        bool locked = False;
     }
 
     #! Creates the entry as a root node
@@ -96,6 +106,28 @@ public class DataProviderTypeEntry inherits Serializable {
         return path;
     }
 
+    #! Returns True if the entry has a type
+    bool hasType() {
+        return exists type;
+    }
+
+    #! Locks the entry, so it can't be removed or changed
+    /** @return the previous lock status
+
+        @throw TYPE-LOCK-ERROR the entry cannot be locked, because it does not have a type
+
+        @note Locking is a one-way operation
+    */
+    bool lock() {
+        if (!type) {
+            throw "TYPE-LOCK-ERROR", sprintf("type entry %y cannot be locked, because it does not have a type", path);
+        }
+
+        bool rv = locked;
+        locked = True;
+        return rv;
+    }
+
     #! Adds a child node to the entry
     /** @param child the name of the child node to add
 
@@ -110,12 +142,13 @@ public class DataProviderTypeEntry inherits Serializable {
 
     #! Sets the type for the entry
     /** @param type the type to set for this entry
+        @param locked if the data type should be locked, prohibiting updates and deletions
 
         @return True if a new type was added, False if not
 
         @throw TYPE-ERROR a type has already been set for this entry
     */
-    bool setType(AbstractDataProviderType type) {
+    bool setType(AbstractDataProviderType type, bool locked = False) {
         if (self.type) {
             if (self.type != type) {
                 throw "TYPE-ERROR", sprintf("%y already contains a type named %y; cannot set type %y", path,
@@ -125,6 +158,7 @@ public class DataProviderTypeEntry inherits Serializable {
         }
 
         self.type = type;
+        self.locked = locked;
         return True;
     }
 
@@ -132,8 +166,13 @@ public class DataProviderTypeEntry inherits Serializable {
     /** @param type the type to set for this entry
 
         @return True if a new type was added, False if not
+
+        @throw TYPE-LOCK-ERROR type entry cannot be replaced, because it is locked
     */
     *AbstractDataProviderType setOrReplaceType(AbstractDataProviderType type) {
+        if (locked && type != self.type) {
+            throw "TYPE-LOCK-ERROR", sprintf("type entry %y cannot be replaced, because it is locked", path);
+        }
         *AbstractDataProviderType rv = self.type;
         self.type = type;
         return rv;
@@ -147,6 +186,7 @@ public class DataProviderTypeEntry inherits Serializable {
             "name": name,
             "path": path,
             "has_type": exists type,
+            "locked": locked,
             "children": keys children,
         };
     }
@@ -219,8 +259,34 @@ public class DataProviderTypeEntry inherits Serializable {
     }
 
     #! Removes the given child, if it exists
+    /** @throw TYPE-LOCK-ERROR the given child cannot be removed because it is locked
+    */
     removeChild(string child) {
+        if (children{child}.locked) {
+            throw "TYPE-LOCK-ERROR", sprintf("%s/%s is locked and cannot be removed", path, child);
+        }
         remove children{child};
+    }
+
+    #! Locks all types
+    lockAll() {
+        if (type && !locked) {
+            locked = True;
+        }
+        map $1.lockAll(), children.iterator();
+    }
+
+    #! Clears the type hierarchy of all non-locked types
+    bool clear() {
+        if (!locked && type) {
+            remove type;
+        }
+        foreach DataProviderTypeEntry entry in (children.iterator()) {
+            if (entry.clear()) {
+                remove children{entry.getName()};
+            }
+        }
+        return !type && !children;
     }
 
     #! Returns the given child and creates it if necessary
