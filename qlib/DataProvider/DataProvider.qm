@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0";
+    version = "1.0.1";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -80,6 +80,7 @@ module DataProvider {
 
     The following supporting type classes are also provided:
     - @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType"
+    - @ref DataProvider::DataProviderTypeCache "DataProviderTypeCache"
     - @ref DataProvider::HashDataType "HashDataType"
     - @ref DataProvider::HashDeclDataType "HashDeclDataType"
     - @ref DataProvider::ListDataType "ListDataType"
@@ -165,6 +166,14 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_1 DataProvider v1.0.1
+    - @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType" and
+      @ref DataProvider::AbstractDataField "AbstractDataField" classes made serializable
+      (<a href="https://github.com/qorelanguage/qore/issues/3809">issue 3809</a>)
+    - implemented the @ref DataProvider::DataProviderTypeCache "DataProviderTypeCache" class to encapsulate reusable
+      type caching logic
+      (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
 
     @subsection dataprovider_v1_0 DataProvider v1.0
     - initial release of the module

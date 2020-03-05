@@ -51,7 +51,7 @@ public hashdecl DataFieldInfo {
 }
 
 #! describes a data type based on a hashdecl
-public class AbstractDataField {
+public class AbstractDataField inherits Serializable {
     private {
         #! the default value for the field, if any
         auto default_value;

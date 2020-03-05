@@ -8,6 +8,16 @@
 
     Bugfix release; see details below
 
+    @subsection qore_0942_new_features New Features in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
+      - \c AbstractDataProviderType and \c AbstractDataField classes made serializable
+        (<a href="https://github.com/qorelanguage/qore/issues/3809">issue 3809</a>)
+      - implemented the \c DataProviderTypeCache class to encapsulate reusable type caching logic
+        (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
+    - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
+      - \c Type class made serializable
+        (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
+
     @subsection qore_0942_bug_fixes Bug Fixes in Qore
 
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module:
@@ -64,7 +74,7 @@
       @ref nothing.  To get the old behavior, use the @ref broken-cast "%broken-cast" parse directive.
     - disallowed the use of the deprecated \c returns keyword by default.  To get the old behavior, use the
       @ref allow-returns "%allow-returns" parse directive.
-    - classes inheriting \c AbstractConneciton must be serializable; the \c AbstractConnection::getConstructorInfo()
+    - classes inheriting \c AbstractConnection must be serializable; the \c AbstractConnection::getConstructorInfo()
       and \c AbstractConnection::getConstructorInfoImpl() methods have been removed and are ignored in child classes
     - the following are now reserved words in Qore to prohibit them from being redefined:
       - @ref NULL
