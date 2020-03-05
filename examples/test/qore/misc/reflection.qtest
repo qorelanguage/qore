@@ -138,6 +138,12 @@ class ReflectionTest inherits QUnit::Test {
             assertFalse(IntType.isEqual(t.getElementType()));
             assertFalse(t.isTypedHash());
             assertNothing(StringType.getTypedHash());
+
+            t = Serializable::deserialize(t.serialize());
+            assertTrue(BoolType.isEqual(t.getElementType()));
+            assertFalse(IntType.isEqual(t.getElementType()));
+            assertFalse(t.isTypedHash());
+            assertNothing(StringType.getTypedHash());
         }
 
         assertFalse(AutoListType.isOutputCompatible(IntType));
@@ -164,12 +170,18 @@ class ReflectionTest inherits QUnit::Test {
             Type t("hash<StatInfo>");
             assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
             assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
+            t = Serializable::deserialize(t.serialize());
+            assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
             Type t1 = t.getOrNothingType();
             assertEq("hash<StatInfo>", t1.getAcceptTypeHash().firstKey());
             assertEq("hash<StatInfo>", t1.getReturnTypeHash().firstKey());
         }
         {
             Type t("Mutex");
+            assertEq("Mutex", t.getAcceptTypeHash().firstKey());
+            assertEq("Mutex", t.getReturnTypeHash().firstKey());
+            t = Serializable::deserialize(t.serialize());
             assertEq("Mutex", t.getAcceptTypeHash().firstKey());
             assertEq("Mutex", t.getReturnTypeHash().firstKey());
             Type t1 = t.getOrNothingType();
@@ -194,6 +206,10 @@ class ReflectionTest inherits QUnit::Test {
             Type t("reference<string>");
             assertEq(("reference<string>",), keys t.getAcceptTypeHash());
             assertEq(("reference<string>",), keys t.getReturnTypeHash());
+            t = Serializable::deserialize(t.serialize());
+            assertEq("reference<string>", t.getName());
+            assertEq(("reference<string>",), keys t.getAcceptTypeHash());
+            assertEq(("reference<string>",), keys t.getReturnTypeHash());
             Type t1 = t.getOrNothingType();
             assertEq("reference<string>", t1.getAcceptTypeHash().firstKey());
             assertEq("reference<string>", t1.getReturnTypeHash().firstKey());
@@ -202,12 +218,19 @@ class ReflectionTest inherits QUnit::Test {
             Type t("*hash<StatInfo>");
             assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
             assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
+            t = Serializable::deserialize(t.serialize());
+            assertEq("*hash<StatInfo>", t.getName());
+            assertEq("hash<StatInfo>", t.getAcceptTypeHash().firstKey());
+            assertEq("hash<StatInfo>", t.getReturnTypeHash().firstKey());
             Type t1 = t.getBaseType();
             assertEq("hash<StatInfo>", t1.getAcceptTypeHash().firstKey());
             assertEq("hash<StatInfo>", t1.getReturnTypeHash().firstKey());
         }
         {
             Type t("*Mutex");
+            assertEq("Mutex", (new Type("*Mutex")).getAcceptTypeHash().firstKey());
+            assertEq("Mutex", (new Type("*Mutex")).getReturnTypeHash().firstKey());
+            t = Serializable::deserialize(t.serialize());
             assertEq("Mutex", (new Type("*Mutex")).getAcceptTypeHash().firstKey());
             assertEq("Mutex", (new Type("*Mutex")).getReturnTypeHash().firstKey());
             Type t1 = t.getBaseType();

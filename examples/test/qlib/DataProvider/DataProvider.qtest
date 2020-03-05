@@ -16,10 +16,62 @@
 
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("type cache test", \typeCacheTest());
         addTestCase("test", \dataProviderTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    typeCacheTest() {
+        HashDataType h1();
+        HashDataType h2();
+        HashDataType h3();
+        DataProviderTypeCache type_cache();
+        assertEq(0, type_cache.size());
+        assertTrue(type_cache.empty());
+        type_cache.registerType("test/one", h1);
+        assertEq(1, type_cache.size());
+        assertFalse(type_cache.empty());
+        assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/one", h2));
+        type_cache.registerType("test/two", h2);
+        assertEq(2, type_cache.size());
+        assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/two", h1));
+        type_cache.registerType("test/three", h3);
+        assertEq(3, type_cache.size());
+        assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/three", h1));
+        assertEq(("/test/one", "/test/two", "/test/three"), type_cache.listTypes());
+        assertEq(h1, type_cache.getType("test/one"));
+        assertEq(h1, type_cache.getType("/test/one"));
+        assertEq(h2, type_cache.getType("test/two"));
+        assertEq(h3, type_cache.getType("test/three"));
+        assertNothing(type_cache.getType("test/xxx"));
+        assertNothing(type_cache.getType("/test/xxx"));
+        assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("test/xxx"));
+        assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("/test/xxx"));
+        HashDataType h2bis();
+        assertTrue(type_cache.registerOrReplaceType("test/two", h2bis));
+        assertEq(3, type_cache.size());
+        assertEq(h2bis, type_cache.getType("test/two"));
+        assertEq(h2bis, type_cache.removeType("test/two"));
+        assertEq(2, type_cache.size());
+        assertNothing(type_cache.getType("test/two"));
+        assertNothing(type_cache.getType("/test/two"));
+        assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("test/two"));
+        assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("/test/two"));
+        assertEq(("/test/one", "/test/three"), type_cache.listTypes());
+        assertEq(h1, type_cache.getType("test/one"));
+        assertEq(h1, type_cache.getType("/test/one"));
+        assertEq(h3, type_cache.getType("test/three"));
+        assertEq(h3, type_cache.getType("/test/three"));
+        assertFalse(type_cache.registerOrReplaceType("test/one", h1));
+        assertFalse(type_cache.registerOrReplaceType("/test/one", h1));
+        type_cache.registerType("test/one", h1);
+        type_cache.registerType("/test/one", h1);
+        assertEq(2, type_cache.size());
+
+        DataProviderTypeCache t2 = Serializable::deserialize(type_cache.serialize());
+        assertEq(2, t2.size());
     }
 
     dataProviderTest() {
@@ -27,6 +79,11 @@ public class DataProviderTest inherits QUnit::Test {
             AbstractDataProviderType type = DataProvider::getType("/qore/ftp/event");
             assertEq(AutoHashType, type.getValueType());
             type = DataProvider::getType("qore/ftp/event");
+            {
+                AbstractDataProviderType t = Serializable::deserialize(type.serialize());
+                assertEq("FtpPollerFileEventInfoDataType", t.className());
+                assertEq("data", t.getField("data").getType().getValueType().getName());
+            }
             assertEq(AutoHashType, type.getValueType());
             assertNothing(DataProvider::getType("xxx"));
             assertThrows("PROVIDER-ERROR", \DataProvider::getTypeEx(), "xxx");

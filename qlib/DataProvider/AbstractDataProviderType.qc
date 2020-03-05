@@ -163,7 +163,7 @@ public hashdecl DataTypeInfo {
 }
 
 #! describes a data type
-public class AbstractDataProviderType {
+public class AbstractDataProviderType inherits Serializable {
     public {
         static Type nothingType("nothing");
         static Type anyType("auto");
