@@ -77,13 +77,10 @@ public class DataProvider {
         static Mutex factory_cache_lock();
 
         #! data provider data type cache
-        static DataProviderTypeEntry type_cache();
+        static DataProviderTypeCache type_cache();
 
         #! data provider type module map
         static hash<string, string> type_module_map;
-
-        #! data provider type cache lock
-        static Mutex type_cache_lock();
 
         #! flag to allow automatic configuration from environment variables
         /** must be set before any requests for types or factories are made
@@ -199,6 +196,11 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         return keys factory_cache;
     }
 
+    #! Returns the data provider cache
+    static DataProviderTypeCache getTypeCache() {
+        return type_cache;
+    }
+
     #! Register a new data provider type
     /** @param path a \c "/" separated path for the type; this is the lookup index
         @param type the new data provider type
@@ -209,23 +211,16 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         and therefore not suitable for indexing)
     */
     static registerType(string path, AbstractDataProviderType type) {
-        list<string> type_path = DataProvider::getPathList(path);
-
-        DataProviderTypeEntry type_entry = type_cache;
-
-        type_cache_lock.lock();
-        on_exit type_cache_lock.unlock();
-
-        map type_entry = type_entry.getCreateChild($1), type_path;
-
         try {
-            type_entry.setType(type);
+            type_cache.registerType(path, type);
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "TYPE-ERROR") {
                 # check if type is being re-registered after module injection
                 if (!DataProvider::checkInjection(type, type_module_map)) {
                     throw "PROVIDER-ERROR", sprintf("provider type %y has already been registered", path);
                 }
+            } else {
+                rethrow;
             }
         }
 
@@ -246,7 +241,8 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         and therefore not suitable for indexing)
     */
     static *AbstractDataProviderType getType(string path) {
-        return DataProvider::getTypeIntern(path, False);
+        DataProvider::checkRequest();
+        return type_cache.getTypeImpl(path, False, \DataProvider::tryLoadTypeFromPath());
     }
 
     #! Returns the given data provider type or throws an exception if not present
@@ -260,12 +256,13 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         and therefore not suitable for indexing)
     */
     static AbstractDataProviderType getTypeEx(string path) {
-        return DataProvider::getTypeIntern(path, True);
+        DataProvider::checkRequest();
+        return type_cache.getTypeImpl(path, True, \DataProvider::tryLoadTypeFromPath());
     }
 
     #! Returns the root type entry
     static DataProviderTypeEntry getTypeRoot() {
-        return type_cache;
+        return type_cache.getRoot();
     }
 
     #! Returns a list of registered data provider type paths
@@ -343,85 +340,6 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         return path.split("/");
     }
 
-    #! Returns the given data provider type and either throws an exception if not present or returns @ref NOTHING
-    /** @param path a \c "/" separated path for the type
-        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
-        @ref NOTHING is returned
-
-        @return the given data provider type or @ref NOTHING is returned if the path cannot be resolved and the
-        \a throw_exception argument is @ref False
-
-        @throw PROVIDER-ERROR the given data provider type path is unknown; only thrown if the \a throw_exception
-        argument is @ref True
-
-        @note types are stored based on the path provided which may differ from their type names (which may be generic
-        and therefore not suitable for indexing)
-    */
-    private static *AbstractDataProviderType getTypeIntern(string path, bool throw_exception) {
-        DataProvider::checkRequest();
-        list<string> type_path = DataProvider::getPathList(path);
-        DataProviderTypeEntry type_entry = type_cache;
-        foreach string node in (type_path) {
-            *DataProviderTypeEntry next_entry = type_entry.getChild(node);
-            if (!next_entry) {
-                if (next_entry = DataProvider::tryLoadTypeFromPath(type_path)) {
-                    type_entry = next_entry;
-                    break;
-                }
-                # check for fields
-                *AbstractDataProviderType type = type_entry.getType();
-                if (type) {
-                    return DataProvider::getTypeFromFields(path, type, type_path[$#..], throw_exception);
-                }
-                if (throw_exception) {
-                    throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known children: %y",
-                        path, node, type_entry.getPath(), type_entry.getChildNames());
-                }
-                return;
-            }
-            type_entry = next_entry;
-        }
-
-        *AbstractDataProviderType type = type_entry.getType();
-        if (!type && throw_exception) {
-            throw "PROVIDER-ERROR", sprintf("data provider type path %y does not contain a type but rather is an "
-                "intermediate node with children: %y", path, type_entry.getChildNames());
-        }
-        return type;
-    }
-
-    #! Returns the given data provider type and either throws an exception if not present or returns @ref NOTHING
-    /** @param path a \c "/" separated path for the type
-        @param type the base type for the search
-        @param type_path the path in the type for fields leading to the final return type
-        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
-        @ref NOTHING is returned
-
-        @return the given data provider type or @ref NOTHING is returned if the path cannot be resolved and the
-        \a throw_exception argument is @ref False
-
-        @throw PROVIDER-ERROR the given data provider type path is unknown; only thrown if the \a throw_exception
-        argument is @ref True
-
-        @note types are stored based on the path provided which may differ from their type names (which may be generic
-        and therefore not suitable for indexing)
-    */
-    private static *AbstractDataProviderType getTypeFromFields(string path, AbstractDataProviderType type, list<string> type_path, bool throw_exception) {
-        AbstractDataProviderType curr = type;
-        foreach string elem in (type_path) {
-            *AbstractDataProviderType new_type = curr.getFieldType(elem);
-            if (!new_type) {
-                if (throw_exception) {
-                    throw "PROVIDER-ERROR", sprintf("%y: field %y is unknown in type %y; known fields: %y", path,
-                        elem, curr.getName(), keys curr.getFields());
-                }
-                return;
-            }
-            curr = new_type;
-        }
-        return curr;
-    }
-
     #! Sets the \a env_config_locked variable if not already set
     private static checkRequest() {
         if (!env_config_locked) {
@@ -479,7 +397,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
             return;
         }
         # now that the module has been loaded, try to return the type
-        *DataProviderTypeEntry type_entry = type_cache;
+        *DataProviderTypeEntry type_entry = type_cache.getRoot();
         map type_entry = type_entry.getChild($1), type_path, type_entry;
         return type_entry;
     }

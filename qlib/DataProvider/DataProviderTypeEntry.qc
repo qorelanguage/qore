@@ -51,7 +51,7 @@ public hashdecl DataProviderTypeEntryInfo {
 }
 
 #! the DataProviderTypeEntry class
-public class DataProviderTypeEntry {
+public class DataProviderTypeEntry inherits Serializable {
     private {
         #! The path to this entry
         string path;
@@ -111,17 +111,32 @@ public class DataProviderTypeEntry {
     #! Sets the type for the entry
     /** @param type the type to set for this entry
 
+        @return True if a new type was added, False if not
+
         @throw TYPE-ERROR a type has already been set for this entry
     */
-    setType(AbstractDataProviderType type) {
+    bool setType(AbstractDataProviderType type) {
         if (self.type) {
             if (self.type != type) {
                 throw "TYPE-ERROR", sprintf("%y already contains a type named %y; cannot set type %y", path,
                     self.type.getName(), type.getName());
             }
-        } else {
-            self.type = type;
+            return False;
         }
+
+        self.type = type;
+        return True;
+    }
+
+    #! Sets or replaces the type for the entry
+    /** @param type the type to set for this entry
+
+        @return True if a new type was added, False if not
+    */
+    *AbstractDataProviderType setOrReplaceType(AbstractDataProviderType type) {
+        *AbstractDataProviderType rv = self.type;
+        self.type = type;
+        return rv;
     }
 
     #! Returns information about this entry
@@ -201,6 +216,11 @@ public class DataProviderTypeEntry {
             throw "INVALID-CHILD", sprintf("%y has no child %y; known children: %y", path, child, keys children);
         }
         return rv;
+    }
+
+    #! Removes the given child, if it exists
+    removeChild(string child) {
+        remove children{child};
     }
 
     #! Returns the given child and creates it if necessary
