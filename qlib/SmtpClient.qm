@@ -244,7 +244,7 @@ public namespace SmtpClient {
             timeout connectTimeout = DefaultConnectTimeout;
 
             # HELO/EHLO reply
-            hash<string, hash<SmtpResponseInfo>> hello_reply;
+            hash<auto> hello_reply;
 
             const MaxDebugLine = 2048;
         }
