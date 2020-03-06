@@ -39,7 +39,7 @@
 %new-style
 
 module SmtpClient {
-    version = "1.8";
+    version = "1.9.1";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -109,6 +109,10 @@ smtp.sendMessage(msg);@endcode
     - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 
     @section smtpclient_relnotes SmtpClient Release Notes
+
+    @subsection smtpclient_v1_9_1 SmtpClient 1.9.1
+    - fixed type errors sending mails
+      (<a href="https://github.com/qorelanguage/qore/issues/3813">issue 3813</a>)
 
     @subsection smtpclient_v1_9 SmtpClient 1.9
     - added the \c "estmps" scheme for completeness
@@ -490,7 +494,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
             @throw MESSAGE-ERROR the message is incomplete and cannot be sent
          */
-        hash<string, hash<SmtpResponseInfo>> sendMessage(MailMessage::Message message) {
+        hash<auto> sendMessage(MailMessage::Message message) {
             # throws a MESSAGE-ERROR exception if the message cannot be sent
             string mstr = message.serialize();
 
@@ -500,7 +504,7 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
             # lock for sending
             AutoLock am(mutex);
 
-            hash<string, hash<SmtpResponseInfo>> reply;
+            hash<auto> reply;
             try {
                 # send SMTP info for message
                 reply = sendMessageInfoIntern(message);
@@ -829,7 +833,7 @@ smtp.setEventQueue();
 
         # sends the message header (without body & attachments) to the SMTP server
         # don't reimplement this method; fix/enhance it in the module
-        final private hash<string, hash<SmtpResponseInfo>> sendMessageInfoIntern(MailMessage::Message message) {
+        final private hash<auto> sendMessageInfoIntern(MailMessage::Message message) {
             # open connection to server
             if (!isConnected())
                 connectIntern();
@@ -839,7 +843,7 @@ smtp.setEventQueue();
                 loginIntern();
 
             hash<SmtpResponseInfo> rh;
-            hash<string, hash<SmtpResponseInfo>> reply = hello_reply;
+            hash<auto> reply = hello_reply;
 
             rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
             if (rh.code >= 500)
