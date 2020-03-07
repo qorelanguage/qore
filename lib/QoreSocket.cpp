@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -332,6 +332,8 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
         return -1;
     }
 
+    SSL_set_ex_data(ssl, qore_ssl_data_index, &qs);
+
     // turn on SSL_MODE_ENABLE_PARTIAL_WRITE
     SSL_set_mode(ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
 
@@ -343,7 +345,7 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
 
     // set verification mode
     if (qs.ssl_verify_mode != SSL_VERIFY_NONE) {
-        setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs);
+        setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs, qs.client_target);
     }
 
 #if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_2_VERSION)
@@ -497,7 +499,7 @@ long SSLSocketHelper::verifyPeerCertificate() const {
 thread_local qore_socket_private* qore_socket_private::current_socket;
 
 static int q_ssl_verify_accept_all(int preverify_ok, X509_STORE_CTX* x509_ctx) {
-    //printd(5, " q_ssl_verify_accept_all() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+    //printd(5, "q_ssl_verify_accept_all() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
     // issue #3512: get remote certificate if applicable
     qore_socket_private::captureRemoteCert(x509_ctx);
     // accept all certificates
@@ -505,14 +507,54 @@ static int q_ssl_verify_accept_all(int preverify_ok, X509_STORE_CTX* x509_ctx) {
 }
 
 static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ctx) {
-    //printd(5, " q_ssl_verify_accept_default() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+    printd(5, "q_ssl_verify_accept_default() preverify_ok: %d x509_ctx: %p\n", preverify_ok, x509_ctx);
+
     // issue #3512: get remote certificate if applicable
     qore_socket_private::captureRemoteCert(x509_ctx);
-    return preverify_ok;
+
+    // issue #3818: get verbose info for SSL error
+    if (!preverify_ok) {
+        SSL* ssl = reinterpret_cast<SSL*>(X509_STORE_CTX_get_ex_data(x509_ctx, SSL_get_ex_data_X509_STORE_CTX_idx()));
+        qore_socket_private* qs = reinterpret_cast<qore_socket_private*>(SSL_get_ex_data(ssl, qore_ssl_data_index));
+
+        X509* err_cert = X509_STORE_CTX_get_current_cert(x509_ctx);
+        int err = X509_STORE_CTX_get_error(x509_ctx);
+        int depth = X509_STORE_CTX_get_error_depth(x509_ctx);
+
+        char buf[256];
+        X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
+
+        SimpleRefHolder<QoreStringNode> ssl_err(new QoreStringNodeMaker("verify error %d depth %d: %s: %s", err, 
+            depth, X509_verify_cert_error_string(err), buf));
+        
+        // At this point, err contains the last verification error
+        if (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT) {
+            X509_NAME_oneline(X509_get_issuer_name(err_cert), buf, 256);
+            ssl_err->sprintf(", issuer: %s", buf);
+        }
+
+        qs->setSslErrorString(ssl_err.release());
+    }
+
+    return preverify_ok;    
 }
 
-void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs) {
-    printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d\n", mode, (int)accept_all_certs);
+void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs, const std::string& target) {
+    printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d target: %s\n", mode, (int)accept_all_certs, target.c_str());
+    if (!accept_all_certs) {
+        // issue #3818: load default CAs
+        SSL_CTX_set_default_verify_paths(ctx);
+
+        // issue #3808: enable hostname validation with certificate validation, otherwise all valid certificates are 
+        // accepted, even if the hostname does not match; see: 
+        // https://gist.github.com/theopolis/aeaa8e4808f6b09328dd6996a2ed6c34
+        SSL_set_hostflags(ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+        if (!SSL_set1_host(ssl, target.c_str())) {
+            // FIXME: openssl docs do not specify what can cause the SSL_set1_host() call to fail
+            printd(0, "DEBUG: SSL_set1_host() %s failed\n", target.c_str());
+        }
+    }
+
     SSL_set_verify(ssl, mode, accept_all_certs ? q_ssl_verify_accept_all : q_ssl_verify_accept_default);
 }
 
@@ -950,18 +992,26 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
                 qs.close();
                 xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
             }
-        }
-        else {
+        } else {
             char buf[121];
             ERR_error_string(e, buf);
-            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): %s(): %s", mname, func, buf);
-    #ifdef ECONNRESET
+            SimpleRefHolder<QoreStringNode> errstr(new QoreStringNodeMaker("error in Socket::%s(): %s(): %s", mname, 
+                func, buf));
+            // issue #3818: consume any ssl_err_str remaining
+            if (qs.ssl_err_str) {
+                errstr->concat(": ");
+                errstr->concat(qs.ssl_err_str);
+                qs.ssl_err_str->deref();
+                qs.ssl_err_str = nullptr;
+            }
+            xsink->raiseException("SOCKET-SSL-ERROR", errstr.release());
+#ifdef ECONNRESET
             // close the socket if connection reset received
             if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
                 //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
                 qs.close();
             }
-    #endif
+#endif
         }
     } while ((e = ERR_get_error()));
 

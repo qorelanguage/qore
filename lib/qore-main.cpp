@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,6 +64,9 @@ int qore_trace = 0;
 int debug = 0;
 int qore_library_options = QLO_NONE;
 
+// issue #3818: qore SSL app-specific data index
+int qore_ssl_data_index = -1;
+
 qore_license_t qore_license;
 
 const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
@@ -117,6 +120,8 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
         CRYPTO_set_locking_callback(q_openssl_locking_function);
 #endif
     }
+
+    qore_ssl_data_index = SSL_get_ex_new_index(0, (void*)"qore data index", NULL, NULL, NULL);
 
     if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION)
         q_disable_gc = true;
