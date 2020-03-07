@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -260,6 +260,9 @@ struct qore_socket_private {
     // issue #3512: the remote certificate captured
     QoreObject* remote_cert = nullptr;
 
+    // issue #3818: verbose certificate verification error info
+    QoreStringNode* ssl_err_str = nullptr;
+
     DLLLOCAL qore_socket_private(int n_sock = QORE_INVALID_SOCKET, int n_sfamily = AF_UNSPEC, int n_stype = SOCK_STREAM, int n_prot = 0, const QoreEncoding* n_enc = QCS_DEFAULT) :
         sock(n_sock), sfamily(n_sfamily), port(-1), stype(n_stype), sprot(n_prot), enc(n_enc) {
     }
@@ -319,6 +322,10 @@ struct qore_socket_private {
 
     DLLLOCAL int close_internal() {
         //printd(5, "qore_socket_private::close_internal(this: %p) sock: %d\n", this, sock);
+        if (ssl_err_str) {
+            ssl_err_str->deref();
+            ssl_err_str = nullptr;
+        }
         if (remote_cert) {
             remote_cert->deref(nullptr);
             remote_cert = nullptr;
@@ -3504,13 +3511,23 @@ struct qore_socket_private {
         //printd(5, "qore_socket_private::setSslVerifyMode() this: %p mode: %d\n", this, mode);
         ssl_verify_mode = mode;
         if (ssl)
-            ssl->setVerifyMode(ssl_verify_mode, ssl_accept_all_certs);
+            ssl->setVerifyMode(ssl_verify_mode, ssl_accept_all_certs, client_target);
     }
 
     DLLLOCAL void acceptAllCertificates(bool accept_all = true) {
         ssl_accept_all_certs = accept_all;
         if (ssl)
-            ssl->setVerifyMode(ssl_verify_mode, ssl_accept_all_certs);
+            ssl->setVerifyMode(ssl_verify_mode, ssl_accept_all_certs, client_target);
+    }
+
+    DLLLOCAL void setSslErrorString(QoreStringNode* err_str) {
+        if (ssl_err_str) {
+            ssl_err_str->concat("; ");
+            ssl_err_str->concat(err_str);
+            err_str->deref();
+        } else {
+            ssl_err_str = err_str;
+        }
     }
 
     DLLLOCAL static void getUsageInfo(const QoreSocket& sock, QoreHashNode& h, const QoreSocket& s) {
