@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -134,6 +134,9 @@ extern char* strcasestr(const char* s1, const char* s2);
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode
 
 typedef std::set<QoreObject*> obj_set_t;
+
+// issue #3818: Qore SSL app-specific data index
+DLLLOCAL extern int qore_ssl_data_index;
 
 //! for object import APIs to set the new public / private flag
 enum q_setpub_t : unsigned char {

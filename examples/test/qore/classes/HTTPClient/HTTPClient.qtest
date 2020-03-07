@@ -438,7 +438,21 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq(True, info.get_remote_certs);
             assertEq(True, info.ssl_accept_all_certs);
             assertEq(("SSL_VERIFY_PEER",), info.ssl_verify_flags);
+            assertFalse(hc.getAcceptAllCertificates());
+            hc.setSslVerifyMode(SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+            assertThrows("SOCKET-SSL-ERROR", "self signed cert", \hc.send(), ("", "PUT", NOTHING, {"Connection": "close"}));
         }
+
+        /* test disabled by default due to dependency on external resource ...
+        {
+            HTTPClient hc({
+                "url": "https://qoretechnologies.com",
+            });
+            assertFalse(hc.getAcceptAllCertificates());
+            hc.setSslVerifyMode(SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+            assertEq(Type::Hash, hc.send("", "GET", NOTHING, {"Connection": "close"}).type());
+        }
+        */
     }
 
     issue3472() {
