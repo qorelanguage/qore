@@ -1135,8 +1135,26 @@ else
     [[#include <openssl/ssl.h>]],
     [[SSL_set_max_proto_version(nullptr, 0x0303);]])],
        [AC_MSG_RESULT([ok])
-        AC_DEFINE([HAVE_SSL_SET_MAX_PROTO_VERSION], 1, [Define if SSL_set_max_proto_version is present])],
+        AC_DEFINE([HAVE_SSL_SET_MAX_PROTO_VERSION], 1, [Define if SSL_set_max_proto_version() is present])],
        [AC_MSG_RESULT([no SSL_set_max_proto_version() present])])
+
+    # check for SSL_set_hostflags()
+    AC_MSG_CHECKING([SSL_set_hostflags() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[SSL_set_hostflags(nullptr, 0x4);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_SSL_SET_HOSTFLAGS], 1, [Define if SSL_set_hostflags() is present])],
+       [AC_MSG_RESULT([no SSL_set_hostflags() present])])
+
+    # check for SSL_set1_hosts()
+    AC_MSG_CHECKING([SSL_set1_host() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[SSL_set1_host(nullptr, nullptr);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_SSL_SET1_HOST], 1, [Define if SSL_set1_host() is present])],
+       [AC_MSG_RESULT([no SSL_set1_host() present])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
