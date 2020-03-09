@@ -524,9 +524,9 @@ static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ct
         char buf[256];
         X509_NAME_oneline(X509_get_subject_name(err_cert), buf, 256);
 
-        SimpleRefHolder<QoreStringNode> ssl_err(new QoreStringNodeMaker("verify error %d depth %d: %s: %s", err, 
+        SimpleRefHolder<QoreStringNode> ssl_err(new QoreStringNodeMaker("verify error %d depth %d: %s: %s", err,
             depth, X509_verify_cert_error_string(err), buf));
-        
+
         // At this point, err contains the last verification error
         if (err == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT) {
             X509_NAME_oneline(X509_get_issuer_name(err_cert), buf, 256);
@@ -536,7 +536,7 @@ static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ct
         qs->setSslErrorString(ssl_err.release());
     }
 
-    return preverify_ok;    
+    return preverify_ok;
 }
 
 void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs, const std::string& target) {
@@ -545,14 +545,16 @@ void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs, const std::
         // issue #3818: load default CAs
         SSL_CTX_set_default_verify_paths(ctx);
 
-        // issue #3808: enable hostname validation with certificate validation, otherwise all valid certificates are 
-        // accepted, even if the hostname does not match; see: 
+#if defined(HAVE_SSL_SET_HOSTFLAGS) && defined(HAVE_SSL_SET1_HOST)
+        // issue #3808: enable hostname validation with certificate validation, otherwise all valid certificates are
+        // accepted, even if the hostname does not match; see:
         // https://gist.github.com/theopolis/aeaa8e4808f6b09328dd6996a2ed6c34
         SSL_set_hostflags(ssl, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
         if (!SSL_set1_host(ssl, target.c_str())) {
             // FIXME: openssl docs do not specify what can cause the SSL_set1_host() call to fail
             printd(0, "DEBUG: SSL_set1_host() %s failed\n", target.c_str());
         }
+#endif
     }
 
     SSL_set_verify(ssl, mode, accept_all_certs ? q_ssl_verify_accept_all : q_ssl_verify_accept_default);
@@ -995,7 +997,7 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
         } else {
             char buf[121];
             ERR_error_string(e, buf);
-            SimpleRefHolder<QoreStringNode> errstr(new QoreStringNodeMaker("error in Socket::%s(): %s(): %s", mname, 
+            SimpleRefHolder<QoreStringNode> errstr(new QoreStringNodeMaker("error in Socket::%s(): %s(): %s", mname,
                 func, buf));
             // issue #3818: consume any ssl_err_str remaining
             if (qs.ssl_err_str) {

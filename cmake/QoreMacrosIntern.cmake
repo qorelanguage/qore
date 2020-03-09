@@ -177,6 +177,24 @@ return 0;
 }"
 HAVE_SSL_SET_MAX_PROTO_VERSION)
 
+# check for SSL_set_hostflags()
+check_cxx_source_compiles("
+#include <openssl/ssl.h>
+int main(void) {
+SSL_set_hostflags(nullptr, 0x4);
+return 0;
+}"
+HAVE_SSL_SET_HOSTFLAGS)
+
+# check for SSL_set1_host()
+check_cxx_source_compiles("
+#include <openssl/ssl.h>
+int main(void) {
+SSL_set1_host(nullptr, nullptr);
+return 0;
+}"
+HAVE_SSL_SET1_HOST)
+
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
