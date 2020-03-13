@@ -303,6 +303,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_5_1 Mapper v1.5.1
+    - added support for the \c use_input_record output field mapping key
+      (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
     - added the @ref Mapper::Mapper::setNullableOutput() "Mapper::setNullableOutput()" method and the
       \c output_nullable option
       (<a href="https://github.com/qorelanguage/qore/issues/3788">issue 3788</a>)
@@ -667,7 +669,7 @@ Mapper mapv(DataMap);
         @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
         @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
-        */
+    */
     constructor(hash<auto> mapv, *hash<auto> opts) {
         setup(mapv, opts);
 
@@ -1161,10 +1163,21 @@ Mapper mapv(DataMap);
             fh = {} + fh;
         }
 
+        # do we have an output field providing a value?
+        bool have_output_value;
+        foreach string key in (keys fh) {
+            *hash<MapperRuntimeKeyInfo> mki = MapperKeyInfo{key} ?? runtime_keys{key};
+            if (mki.handler || mki.unique_roles[0] == "value" || mki.unique_roles[0] == "*") {
+                have_output_value = True;
+                break;
+            }
+        }
+
+        # process "name" key
         if (fh.name) {
             if (fh.struct)
                 error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-            if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index)
+            if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index && !exists fh.input_record)
                 checkInputField(k, fh.name);
             if (!allow_dot && fh.name =~ /\./)
                 fh.struct = (remove fh.name).split(".");
@@ -1176,17 +1189,8 @@ Mapper mapv(DataMap);
         } else if (fh.runtime) {
             if (!m_runtime.hasKey(fh.runtime))
                 error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
-        } else if (!fh.struct && input && !exists fh.constant && !fh.code && !exists fh.index && !runtime_independent_keys{keys fh})
+        } else if (!fh."code" && !have_output_value && input) {
             checkInputField(k, k);
-        if (exists fh.constant && exists fh.index) {
-            error("output field %y has both 'constant' and 'index' which is not valid", getFieldName(k));
-        }
-        if (exists fh.constant || exists fh.index) {
-            *list<string> cl = keys fh{ConstantConflictList};
-            string fieldType = exists fh.constant ? "constant" : "index";
-            if (cl) {
-                error("output field %y (value %y) has key %y which conflicts with following key(s): %y", getFieldName(k), fh{fieldType}, fieldType, cl);
-            }
         }
 
         switch (fh.struct.typeCode()) {
@@ -1208,6 +1212,9 @@ Mapper mapv(DataMap);
             default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
         }
 
+        bool explicit_type = exists fh.type;
+        string implicit_type_source;
+
         {
             *string date_format = fh.date_format ?? fh.type_options."date.format";
             if (date_format) {
@@ -1218,8 +1225,10 @@ Mapper mapv(DataMap);
                     if (fh.type != "date")
                         error("field %y has a 'date_format' key but the field's type is '%s'", getFieldName(k),
                             fh.type);
-                } else
+                } else {
                     fh.type = "date";
+                    implicit_type_source = "\"date_format\" key";
+                }
             }
         }
 
@@ -1233,8 +1242,34 @@ Mapper mapv(DataMap);
                     if (fh.type != "number")
                         error("field %y has a 'number_format' key but the field's type is '%s'", getFieldName(k),
                             fh.type);
-                } else
+                } else {
                     fh.type = "number";
+                    implicit_type_source = "\"number_format\" key";
+                }
+            }
+        }
+
+        # check declared type
+        {
+            foreach string key in (keys fh) {
+                *hash<MapperRuntimeKeyInfo> mki = MapperKeyInfo{key} ?? runtime_keys{key};
+                if (mki.returns_type) {
+                    if (fh.type) {
+                        string field_type = fh.type;
+                        if (field_type =~ /^\*/) {
+                            field_type = field_type[1..];
+                        }
+                        if (mki.returns_type != field_type) {
+                            error("field %y has an %s type %y%s, but output key %y implies incompatible type %y",
+                                getFieldName(k), explicit_type ? "explicit" : "implicit", fh.type,
+                                implicit_type_source ? sprintf(" (derived from the %s)", implicit_type_source) : "",
+                                key, mki.returns_type);
+                        }
+                    } else {
+                        fh.type = mki.returns_type;
+                        implicit_type_source = sprintf("%y key", key);
+                    }
+                }
             }
         }
 
@@ -1988,6 +2023,8 @@ Mapper mapv(DataMap);
         } else if (m.struct) {
             v = rec;
             map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
+        } else if (m.use_input_record) {
+            v = rec;
         } else {
             if (do_list && rec{name}.typeCode() == NT_LIST) {
                 # must make sure that v does not take a complex list restriction here
