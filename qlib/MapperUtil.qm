@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file MapperUtil.qm data mapping module common definitions
 
-/*  Mapper.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 %new-style
 
 module MapperUtil {
-    version = "1.0";
+    version = "1.0.1";
     desc = "user module providing definitions for basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -55,6 +55,10 @@ module MapperUtil {
 
     @section mapperutilrelnotes Release Notes
 
+    @subsection mapperutil_v1_0 MapperUtil v1.0.1
+    - added support for the \c use_input_record output field mapping key
+      (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
+
     @subsection mapperutil_v1_0 MapperUtil v1.0
     - initial release
 */
@@ -68,6 +72,13 @@ public namespace Mapper {
             "value_type": "string",
             "unique_roles": "value",
         },
+        "use_input_record": <MapperRuntimeKeyInfo>{
+            "desc": "The entire input record will be used for the output field mapping; only compatible with hash "
+                "output fields",
+            "value_type": "bool",
+            "unique_roles": "*",
+            "returns_type": "hash",
+        },
         "constant": <MapperRuntimeKeyInfo>{
             "desc": "a constant value for the output field",
             "value_type": "any",
@@ -78,7 +89,6 @@ public namespace Mapper {
             "desc": "the index number of the row",
             "value_type": "int",
             "unique_roles": "*",
-            "returns_type": "int",
         },
         "code": <MapperRuntimeKeyInfo>{
             "desc": "a code block for generating the field output programmatically",

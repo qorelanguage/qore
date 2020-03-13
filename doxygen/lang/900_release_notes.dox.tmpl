@@ -14,6 +14,12 @@
         (<a href="https://github.com/qorelanguage/qore/issues/3809">issue 3809</a>)
       - implemented the \c DataProviderTypeCache class to encapsulate reusable type caching logic
         (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
+      - added support for the \c use_input_record output field mapping key
+        (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
+    - <a href="../../modules/MapperUtil/html/index.html">MapperUtil</a> module updates:
+      - added support for the \c use_input_record output field mapping key
+        (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
     - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
       - \c Type class made serializable
         (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
@@ -29,9 +35,9 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module:
       - fixed support for query parameters of type object
         (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
-    - fixed certificate verification; openssl will now use default CA certs when 
-      @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates(False)" is set when 
-      @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" or similar is used with 
+    - fixed certificate verification; openssl will now use default CA certs when
+      @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates(False)" is set when
+      @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" or similar is used with
       @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
       (<a href="https://github.com/qorelanguage/qore/issues/3818">issue 3818</a>)
     - fixed hostname verification in X.508 certificate verification

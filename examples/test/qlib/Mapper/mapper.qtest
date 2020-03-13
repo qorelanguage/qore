@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/MapperUtil.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/Mapper.qm
 
@@ -437,6 +438,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("use_input_record test", \useInputRecordTest());
         addTestCase("nullable output", \nullableOutputTest());
         addTestCase("list test", \listTest());
         addTestCase("runtime keys", \runtimeKeys());
@@ -461,6 +463,71 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    # issue #3823
+    useInputRecordTest() {
+        {
+            Mapper m({
+                "out0": {
+                    "use_input_record": True,
+                },
+                "out1": "a.b",
+            }, {
+                "output": {
+                    "out0": new QoreDataField("out0", "test output field", HashType),
+                    "out1": new QoreDataField("out1", "test output field", StringType),
+                },
+            });
+            hash<auto> rec = {
+                "x": 1,
+                "a": {
+                    "b": "one",
+                },
+            };
+            assertEq({
+                "out0": rec,
+                "out1": rec.a.b,
+            }, m.mapData(rec));
+        }
+
+        {
+            Mapper m({
+                "out0": {
+                    "use_input_record": True,
+                },
+                "out1": "a.b",
+            }, {
+                "output": {
+                    "out0": new QoreDataField("out0", "test output field", HashType),
+                    "out1": new QoreDataField("out1", "test output field", SoftStringType),
+                },
+            });
+            hash<auto> rec = {
+                "x": 1,
+                "a": {
+                    "b": "one",
+                },
+            };
+            assertEq({
+                "out0": rec,
+                "out1": rec.a.b,
+            }, m.mapData(rec));
+        }
+
+        assertThrows("MAP-ERROR", sub () {
+            Mapper m({
+                "out0": {
+                    "use_input_record": True,
+                },
+                "out1": "a.b",
+            }, {
+                "output": {
+                    "out0": new QoreDataField("out0", "test output field", StringType),
+                    "out1": new QoreDataField("out1", "test output field", StringType),
+                },
+            });
+        });
     }
 
     # issue #3788
