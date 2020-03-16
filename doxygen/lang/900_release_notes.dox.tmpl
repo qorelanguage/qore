@@ -35,6 +35,8 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module:
       - fixed support for query parameters of type object
         (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
+    - fixed the \c Type object for \c "*hash<auto>" to return the correct name
+        (<a href="https://github.com/qorelanguage/qore/issues/3826">issue 3826</a>)
     - fixed certificate verification; openssl will now use default CA certs when
       @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates(False)" is set when
       @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" or similar is used with
