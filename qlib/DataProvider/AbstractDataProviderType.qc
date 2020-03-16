@@ -428,9 +428,11 @@ public class AbstractDataProviderType inherits Serializable {
     }
 
     #! returns an appropriate object for the given type
+    /** @param typename the name of the type; should be a valid Qore type string
+        @param options type options for the data type object
+    */
     static AbstractDataProviderType get(string typename, *hash<auto> options) {
-        return AbstractDataProviderType::get(DataTypeMap{typename}
-            ?? AbstractDataProviderType::anyType, options);
+        return AbstractDataProviderType::get(DataTypeMap{typename} ?? new Type(typename), options);
     }
 
     #! sets the given option without any validation of the option
