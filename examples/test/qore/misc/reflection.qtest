@@ -111,6 +111,13 @@ class ReflectionTest inherits QUnit::Test {
     }
 
     typeTests() {
+        {
+            Type type("hash<auto>");
+            assertEq("hash<auto>", type.getName());
+            type = new Type("*hash<auto>");
+            assertEq("*hash<auto>", type.getName());
+        }
+
         assertTrue(StringType.isAssignableFrom(StringOrNothingType));
         bool may_not_match;
         assertTrue(StringType.isAssignableFrom(StringOrNothingType, \may_not_match));
