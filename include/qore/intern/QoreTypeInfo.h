@@ -1623,7 +1623,11 @@ public:
             {NT_NOTHING, nullptr},
             {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
             }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
-        tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
+        if (vti == autoTypeInfo) {
+            tname = "*hash<auto>";
+        } else {
+            tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
+        }
     }
 
 protected:
