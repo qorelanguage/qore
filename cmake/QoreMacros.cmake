@@ -430,8 +430,9 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
             # we must use relative directories for tags; using absolute paths for tags will break the documentation
             # when used on any system except the one where it's generated
             #SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
-            SET(TAGFILES ${TAGFILES} ${i}.tag=../../${i}/html)
+            SET(TAGFILES ${TAGFILES} ${CMAKE_BINARY_DIR}/${i}.tag=../../${i}/html)
         endforeach(i)
+        string (REPLACE ";" " " TAGFILES "${TAGFILES}")
 
         set(_dox_output ${CMAKE_BINARY_DIR}/docs/${f})
         set(_dox_input ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
