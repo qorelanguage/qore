@@ -54,7 +54,10 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
             AbstractDataProviderType req = p0.getRequestType();
             assertEq(NT_HASH, req.getField("query").getType().getBaseTypeCode());
             AbstractDataProviderType resp = p0.getResponseType();
-            assertEq(("id", "category", "name", "photoUrls", "tags", "status"), keys resp.getField("body").getType().getElementType().getFields());
+            AbstractDataProviderType type = resp.getField("body").getType().getElementType();
+            assertEq("*softint", type.getFieldType("id").getName());
+            assertEq("softstring", type.getFieldType("name").getName());
+            assertEq(("id", "category", "name", "photoUrls", "tags", "status"), keys type.getFields());
         }
 
         {
