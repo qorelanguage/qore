@@ -303,6 +303,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_5_1 Mapper v1.5.1
+    - added the \c ignore_missing_input mapper option
+      (<a href="https://github.com/qorelanguage/qore/issues/3837">issue 3837</a>)
     - added support for the \c use_input_record output field mapping key
       (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
     - added the @ref Mapper::Mapper::setNullableOutput() "Mapper::setNullableOutput()" method and the
@@ -462,6 +464,14 @@ public class Mapper {
                 "type": "hash",
                 "desc": "defines key-value pairs lookups for the \"runtime\" field mapping key",
             },
+
+            "ignore_missing_input": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "if true and if an output field has an input mapping but the input hash has no such value, "
+                    "and the output field does not require a value, in this case, the output field is omitted "
+                    "entirely; this option is useful when the mapper output is used for delta updates with variable "
+                    "input, for example; this option cannot be used with bulk input",
+            },
         };
 
         #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -561,6 +571,9 @@ public class Mapper {
 
         #! a boolean flag that indicates that an input provider that supports both the record API and the request/response API should use the request search API to provide records
         bool input_request_search;
+
+        #! supresses the output field if the input field is missing and the output is optional
+        bool ignore_missing_input;
 
         #! an optional description of the output data structure
         *hash<string, AbstractDataField> output;
@@ -997,6 +1010,10 @@ Mapper mapv(DataMap);
         if (opts.trunc_all)
             trunc_all = parse_boolean(opts.trunc_all);
 
+        if (opts.ignore_missing_input) {
+            ignore_missing_input = True;
+        }
+
         if (!mapv)
             error("empty map passed to %s::constructor()", self.className());
 
@@ -1136,6 +1153,14 @@ Mapper mapv(DataMap);
     private checkMapField(string k, reference<auto> fh) {
         *AbstractDataField field;
 
+        # check field description
+        int t = fh.typeCode();
+        if (t != NT_HASH)
+            convertToHash(t, k, \fh);
+        else if (fh.fullType() != "hash<auto>") {
+            fh = {} + fh;
+        }
+
         # check output name
         if (output) {
             if (!output.hasKey(k)) {
@@ -1153,14 +1178,6 @@ Mapper mapv(DataMap);
                 # get output definition, if any
                 field = output{k};
             }
-        }
-
-        # check field description
-        int t = fh.typeCode();
-        if (t != NT_HASH)
-            convertToHash(t, k, \fh);
-        else if (fh.fullType() != "hash<auto>") {
-            fh = {} + fh;
         }
 
         # do we have an output field providing a value?
@@ -1921,6 +1938,8 @@ Mapper mapv(DataMap);
         # iterate through dynamic target fields
         map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
 
+        logOutput(h);
+
         # write to putput provider, if any
         if (output_provider_bulk_operation) {
             output_provider_bulk_operation.queueData(h);
@@ -2005,6 +2024,9 @@ Mapper mapv(DataMap);
         # get source field name
         string name = m.name ?? key;
 
+        # is the input missing?
+        bool missing;
+
         # get source record value
         auto v;
         if (exists m.constant)
@@ -2022,7 +2044,19 @@ Mapper mapv(DataMap);
             v = m_runtime{m.runtime};
         } else if (m.struct) {
             v = rec;
-            map v = v{m.struct[$1]}, xrange(0, m.struct.size() - 1);
+            if (ignore_missing_input) {
+                foreach string k in (m.struct) {
+                    if (!v.hasKey(k)) {
+                        missing = True;
+                        remove v;
+                        break;
+                    }
+                    v = v{k};
+                }
+                #printf("struct: %y v: %y missing: %y\n", m.struct, v, missing);
+            } else {
+                map v = v{$1}, m.struct;
+            }
         } else if (m.use_input_record) {
             v = rec;
         } else {
@@ -2030,7 +2064,11 @@ Mapper mapv(DataMap);
                 # must make sure that v does not take a complex list restriction here
                 v = () + rec{name};
             } else {
-                v += rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
+                if (ignore_missing_input && !rec.hasKey(name)) {
+                    missing = True;
+                } else {
+                    v += rec{name} ?? NOTHING; # mitigate NULL -> NOTHING
+                }
             }
         }
 
@@ -2040,6 +2078,10 @@ Mapper mapv(DataMap);
                 if (list_size != v.size()) {
                     error2("MAPPER-FIELD-LIST-ERROR", "field %y value passed is the list %y with length %d - the "
                         "input batch length expected is %d", key, v, v.size(), list_size);
+                }
+                if (ignore_missing_input) {
+                    error2("MAPPER-FIELD-LIST-ERROR", "cannot use the \"ignore_missing_input\" option with bulk "
+                        "input");
                 }
             } else {
                 v_is_list = False;
@@ -2057,10 +2099,18 @@ Mapper mapv(DataMap);
 
         # process any runtime keys if present in the current field mapping
         if (*hash<string, hash<auto>> current_runtime_keys = runtime_keys_with_handler{keys m}) {
-            map v = $1.value.requires_roles.value
-                ? $1.value.handler(m{$1.key}, v)
-                : $1.value.handler(m{$1.key}),
-                current_runtime_keys.pairIterator();
+            if (do_list) {
+                foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
+                    v = map i.value.requires_roles.value
+                    ? i.value.handler(m{i.key}, $1)
+                    : i.value.handler(m{i.key}), v;
+                }
+            } else {
+                map v = $1.value.requires_roles.value
+                    ? $1.value.handler(m{$1.key}, v, \missing)
+                    : $1.value.handler(m{$1.key}, \missing),
+                    current_runtime_keys.pairIterator();
+            }
         }
 
         # execute any field filter if necessary
@@ -2150,6 +2200,14 @@ Mapper mapv(DataMap);
             } else if (!exists v)
                 error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y",
                     getFieldName(key), rec);
+        } else if (ignore_missing_input && !exists v && missing) {
+            # supressing output for field
+            if (m.output_key_path) {
+                removeHashOutputKey(\h, m.output_key_path, 0);
+            } else {
+                remove h{key};
+            }
+            return;
         }
 
         # add value to row list
@@ -2181,6 +2239,15 @@ Mapper mapv(DataMap);
             writeHashOutput(\h, v, m.output_key_path, 0);
         } else {
             h{key} = v;
+        }
+    }
+
+    # recursively remove a key from the output
+    private removeHashOutputKey(reference<auto> output, list<auto> path, int offset) {
+        if (offset == path.size() - 1) {
+            remove output{path[offset - 1]};
+        } else {
+            removeHashOutputKey(\output{path[offset]}, path, offset + 1);
         }
     }
 
