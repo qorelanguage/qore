@@ -47,6 +47,9 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         #! The current URI path
         string uri_path;
 
+        #! The URI needs dynamic resolution
+        bool resolve_uri;
+
         #! The operation object
         OperationObject op;
 
@@ -64,6 +67,10 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         self.uri_path = uri_path;
         self.op = op;
 
+        if (cb_value_needs_resolution) {
+            resolve_uri = cb_value_needs_resolution(uri_path);
+        }
+
         # check for any successful response data structure
         foreach hash<auto> i in (op.responses.responses.pairIterator()) {
             if (i.key =~ /^2/ && i.value) {
@@ -75,7 +82,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     #! Returns the data provider name
     string getName() {
-        return schema.info.title + uri_path + "/" + op.method.upr();
+        return schema.info.title + getUriPath() + "/" + op.method.upr();
     }
 
     #! Returns data provider info
@@ -235,7 +242,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     private hash<auto> doRequestIntern(auto req, *hash<auto> options) {
         RestClient rest = getRestClient();
         # make URI path with any query args
-        string uri_path = self.uri_path;
+        string uri_path = getUriPath();
         if (req.query) {
             uri_path += "?" +
                 (foldl $1 + "&" + $1,
@@ -244,8 +251,23 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         }
         # make the call
         hash<auto> info;
-        hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
-        return resp + {"info": info};
+        try {
+            hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
+            return resp + {"info": info};
+        } catch (hash<ExceptionInfo> ex) {
+            #throw ex.err, ex.desc, info;
+            throw ex.err, sprintf("uri: %y resolve_uri: %y (X %y): %s", uri_path, resolve_uri,
+                cb_value_needs_resolution ? cb_value_needs_resolution(uri_path) : "NOT SET!", ex.desc), info;
+        }
+    }
+
+    #! Returns the URI path to use in requests
+    private string getUriPath() {
+        string uri_path = self.uri_path;
+        if (resolve_uri) {
+            uri_path = cb_resolve_value(uri_path);
+        }
+        return uri_path;
     }
 
     #! Returns a REST client for HTTP operations

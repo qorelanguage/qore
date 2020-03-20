@@ -364,13 +364,13 @@ public class MapperTest inherits QUnit::Test {
             },
             "runtime_keys": {
                 "context0": <MapperRuntimeKeyInfo>{
-                    "handler": auto sub (auto arg) {
+                    "handler": auto sub (auto arg, reference<bool> missing) {
                         return arg + "-ctx";
                     },
                 },
                 "context1": <MapperRuntimeKeyInfo>{
                     "requires_roles": "value",
-                    "handler": auto sub (auto arg, auto val) {
+                    "handler": auto sub (auto arg, auto val, reference<bool> missing) {
                         return val + "-" + arg + "-ctx";
                     },
                 },
@@ -403,7 +403,7 @@ public class MapperTest inherits QUnit::Test {
                 # test auto cast from hash
                 "context0": {
                     "unique_roles": "context",
-                    "handler": auto sub (auto arg) {
+                    "handler": auto sub (auto arg, reference<bool> missing) {
                         return arg + "-ctx";
                     },
                 },
@@ -411,7 +411,7 @@ public class MapperTest inherits QUnit::Test {
                     "unique_roles": "context",
                     "requires_roles": "value",
                     "value_type": Type::Int,
-                    "handler": auto sub (int arg, auto val) {
+                    "handler": auto sub (int arg, auto val, reference<bool> missing) {
                         return val + "-" + arg + "-ctx";
                     },
                 },
@@ -438,6 +438,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("ignore_missing_input test", \ignoreMissingInputTest());
         addTestCase("use_input_record test", \useInputRecordTest());
         addTestCase("nullable output", \nullableOutputTest());
         addTestCase("list test", \listTest());
@@ -463,6 +464,46 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    # issue #3837
+    ignoreMissingInputTest() {
+        {
+            Mapper m({
+                "out0.x": "a",
+                "out1": "a.b",
+            }, {
+                "ignore_missing_input": True,
+                "output": {
+                    "out0": new QoreDataField("out0", "test output field", HashOrNothingType),
+                    "out1": new QoreDataField("out1", "test output field", StringOrNothingType),
+                },
+            });
+            hash<auto> rec = {
+                "x": 1,
+                "a": {
+                    "b": "one",
+                },
+            };
+            assertEq({
+                "out0": {
+                    "x": rec.a,
+                },
+                "out1": rec.a.b,
+            }, m.mapData(rec));
+
+            rec.a = {"c": 2};
+            assertEq({
+                "out0": {
+                    "x": rec.a,
+                },
+            }, m.mapData(rec));
+
+            rec = {};
+            assertEq({
+                "out0": NOTHING,
+            }, m.mapData(rec));
+        }
     }
 
     # issue #3823
