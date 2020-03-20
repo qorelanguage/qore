@@ -44,6 +44,12 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
     testSwaggerDataProvider() {
         checkModules();
 
+        bool set = AbstractDataProvider::setDynamicValueCallbacks(
+            bool sub (auto uri_path) { return uri_path =~ /\$/; },
+            auto sub (auto uri_path) { uri_path =~ s/\$id/1/; return uri_path; });
+        assertTrue(set);
+        assertFalse(AbstractDataProvider::setDynamicValueCallbacks());
+
         hash<auto> opts = {
             "schema": get_script_dir() + "/PetStore.swagger.yaml",
         };
@@ -61,7 +67,8 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
         }
 
         {
-            AbstractDataProvider p0 = provider.getChildProviderPath("pet/id/POST");
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/$id/POST");
+            assertEq("Swagger Petstore/pet/1/POST", p0.getInfo().name);
             AbstractDataProviderType req = p0.getRequestType();
             assertEq(NT_HASH, req.getField("formData").getType().getBaseTypeCode());
         }

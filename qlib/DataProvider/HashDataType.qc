@@ -108,7 +108,7 @@ public class HashDataType inherits QoreDataType {
         if (soft_type) {
             return self;
         }
-        HashDataType rv(name);
+        HashDataType rv(type, name, options);
         map rv.addField($1.getSoftType()), getFields().iterator();
         rv.soft_type = True;
         return rv;

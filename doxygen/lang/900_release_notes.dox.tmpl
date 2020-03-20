@@ -10,11 +10,16 @@
 
     @subsection qore_0942_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
+      - implemented callbacks to allow for dynamic elements of request-response data providers (such as URI paths) to
+        be resolved at runtime
+        (<a href="https://github.com/qorelanguage/qore/issues/3838">issue 3838</a>)
       - \c AbstractDataProviderType and \c AbstractDataField classes made serializable
         (<a href="https://github.com/qorelanguage/qore/issues/3809">issue 3809</a>)
       - implemented the \c DataProviderTypeCache class to encapsulate reusable type caching logic
         (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
+      - added the \c ignore_missing_input mapper option
+        (<a href="https://github.com/qorelanguage/qore/issues/3837">issue 3837</a>)
       - added support for the \c use_input_record output field mapping key
         (<a href="https://github.com/qorelanguage/qore/issues/3823">issue 3823</a>)
     - <a href="../../modules/MapperUtil/html/index.html">MapperUtil</a> module updates:
