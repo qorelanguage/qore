@@ -199,6 +199,17 @@ public class AbstractDataProvider {
     public {
     }
 
+    private {
+        #! flag if callbacks are locked
+        static bool callbacks_locked = False;
+
+        #! static callback the returns a bool if the value needs dynamic resolution
+        static code cb_value_needs_resolution;
+
+        #! static callback for dynamic value resolution
+        static code cb_resolve_value;
+    }
+
     #! Returns static provider information as data; no objects are returned
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
@@ -614,6 +625,46 @@ public class AbstractDataProvider {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support the request API",
                 getName(), self.className());
         }
+    }
+
+    #! Ensures that no callbacks can be set for dynamic URI resolution
+    /** @return False if this call was ignored because callbacks are locked, True if the call was successful
+
+        @note after this call, callbacks cannot be changed
+    */
+    static bool setDynamicValueCallbacks() {
+        if (!AbstractDataProvider::checkCallbacks()) {
+            return !exists cb_resolve_value;
+        }
+        return True;
+    }
+
+    #! Set callbacks for dynamic URI resolution to allow for variable URI path elements to be resolved at runtime
+    /** @param value_needs_resolution signature <tt>bool sub (string value) { ... }</tt>; this callback will be used
+        to check if a URI path needs dynamic resolution
+        @param resolve_value signature <tt>auto sub (auto value) { ... }</tt>; if \c value_needs_resolution returns
+        @ref True on a URI path, then this callback will be called at runtime for each request to resolve the URI path
+        to the final path
+
+        @return False if this call was ignored because callbacks are locked, True if the call was successful
+
+        @note after this call, callbacks cannot be changed
+    */
+    static bool setDynamicValueCallbacks(code value_needs_resolution, code resolve_value) {
+        if (!AbstractDataProvider::checkCallbacks()) {
+            return value_needs_resolution == cb_value_needs_resolution && resolve_value == cb_resolve_value;
+        }
+        cb_value_needs_resolution = value_needs_resolution;
+        cb_resolve_value = resolve_value;
+        return True;
+    }
+
+    #! Checks if callbacks have already been set or locked
+    private static bool checkCallbacks() {
+        if (callbacks_locked) {
+            return False;
+        }
+        return callbacks_locked = True;
     }
 
     #! validates create options
