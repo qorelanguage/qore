@@ -275,7 +275,7 @@ public const MimeDataTypes = {
 };
 
 #! modules available for data serialization and/or deserialization
-public const SerializationModules = map $1.module, MimeDataTypes.iterator(), $1;
+public const SerializationModules = keys (map {$1.module: True}, MimeDataTypes.iterator(), $1.module);
 
 #! MIME types for data serialization
 public const MimeContentTypes = keys MimeDataTypes;
@@ -491,7 +491,12 @@ class SchemaBase {
             throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is file", name, path, method, type);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<int> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<auto> value) {
+        # NOTE: "number" also accepts "int"
+        if (type == "number") {
+            checkIntern(serialize, request, type, format, path, method, name, v.toNumber(), \value);
+            return;
+        }
         if (type != "integer" && type != "any")
             throwInvalidType(name, "integer", type, v);
         if (exists maximum) {
@@ -528,7 +533,6 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    # NOTE: "number" also accepts "float"
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, number v, reference<number> value) {
         if (type != "number" && type != "any")
             throwInvalidType(name, "number", type, v);
@@ -3716,7 +3720,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates a schema object against a value
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash<auto> v, reference<hash<auto>> value) {
         if (type != "object" && type != "any")
             throwInvalidType(name, "object", type, v);
 
