@@ -800,8 +800,9 @@ hash<auto> ans = rest.del("/orders/1");
         }
 
         #! sets up the Content-Type header and encodes any body for sending
-        private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr, string ct = "Content-Type") {
-            hdr = headers + hdr;
+private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr, string ct = "Content-Type") {
+            # use {} + ... here to ensure that hdr stays "hash<auto>"
+            hdr = {} + headers + hdr;
 
             # must get the path from the HTTPClient object if not given in the request
             if (!path.val() && (*string p = getConnectionPath()))
