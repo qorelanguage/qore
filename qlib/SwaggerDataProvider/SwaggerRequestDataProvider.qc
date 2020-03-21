@@ -255,9 +255,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
-            #throw ex.err, ex.desc, info;
-            throw ex.err, sprintf("uri: %y resolve_uri: %y (X %y): %s", uri_path, resolve_uri,
-                cb_value_needs_resolution ? cb_value_needs_resolution(uri_path) : "NOT SET!", ex.desc), info;
+            printf("XXX %s\n", get_exception_string(ex));
+            throw ex.err, ex.desc, info;
         }
     }
 
