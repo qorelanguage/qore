@@ -127,7 +127,13 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                 return new ListDataType(getSchemaDataType(arrayItems), !required);
         }
 
-        return AbstractDataProviderType::get(new Type((!required ? "*" : "") + OptimalQoreSoftDataTypeMap{typestr} ?? typestr), type_options);
+        if (*string newname = OptimalQoreSoftDataTypeMap{typestr}) {
+            typestr = newname;
+        }
+        if (!required && (typestr != "any" && typestr != "auto")) {
+            typestr = "*" + typestr;
+        }
+        return AbstractDataProviderType::get(new Type(typestr), type_options);
     }
 
     #! Returns a field of header fields

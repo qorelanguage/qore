@@ -68,7 +68,8 @@ public class HashDataType inherits QoreDataType {
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
     */
     auto acceptsValue(auto value) {
-        value = QoreDataType::acceptsValue(value);
+        # {} + ensure that the hash value is "hash<auto>"
+        value = {} + QoreDataType::acceptsValue(value);
         # check fields if any are defined
         foreach AbstractDataField field in (fields.iterator()) {
             string key = field.getName();
