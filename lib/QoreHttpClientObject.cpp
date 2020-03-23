@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -719,6 +719,18 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         while (hi.next()) {
             http_priv->addHttpMethod(hi.getKey(), hi.get().getAsBool());
         }
+    }
+
+    // issue #3693: assume HTTP encoding
+    n = opts->getKeyValue("assume_encoding");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_STRING) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string as value for the \"assume_encoding\" "\
+                "key in the options hash; got type \"%s\" instead", n.getTypeName());
+            return -1;
+        }
+        const QoreStringNode* val = n.get<const QoreStringNode>();
+        qore_socket_private::get(*priv->socket)->setAssumedEncoding(!val->empty() ? val->c_str() : nullptr);
     }
 
     n = opts->getKeyValue("ssl_cert_path");
@@ -1867,3 +1879,14 @@ bool QoreHttpClientObject::getRedirectPassthru() const {
 QoreStringNode* QoreHttpClientObject::getHostHeaderValue() const {
     return http_priv->getHostHeaderValue();
 }
+
+void QoreHttpClientObject::setAssumedEncoding(const char* enc) {
+    AutoLocker al(priv->m);
+    qore_socket_private::get(*priv->socket)->setAssumedEncoding(enc);
+}
+
+QoreStringNode* QoreHttpClientObject::getAssumedEncoding() const {
+    AutoLocker al(priv->m);
+    return new QoreStringNode(qore_socket_private::get(*priv->socket)->getAssumedEncoding());
+}
+
