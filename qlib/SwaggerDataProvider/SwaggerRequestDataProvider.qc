@@ -245,8 +245,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         string uri_path = getUriPath();
         if (req.query) {
             uri_path += "?" +
-                (foldl $1 + "&" + $1,
-                    (map sprintf("%s=%s", $1.key, $1.value), req.query.pairIterator()));
+                (foldl $1 + "&" + $2,
+                    (map sprintf("%s=%s", $1.key, getUriValue($1.value)), req.query.pairIterator()));
             remove req.query;
         }
         # make the call
@@ -257,6 +257,16 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         } catch (hash<ExceptionInfo> ex) {
             #printf("XXX %s\n", get_exception_string(ex));
             throw ex.err, ex.desc, info;
+        }
+    }
+
+    #! Returns the value for the given query argument
+    string getUriValue(auto v) {
+        switch (v.typeCode()) {
+            case NT_BOOLEAN:
+                return v ? "true" : "false";
+            default:
+                return v.toString();
         }
     }
 
