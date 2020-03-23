@@ -150,6 +150,8 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_2 Swagger v2.0.2
+    - fixed \c date-time value handling
+      (<a href="https://github.com/qorelanguage/qore/issues/3847">issue 3847</a>)
     - fixed a bug where sibling elements to a \c "$ref" were not ignored (see
       <a href="https://swagger.io/docs/specification/using-ref/">https://swagger.io/docs/specification/using-ref/</a>)
       (<a href="https://github.com/qorelanguage/qore/issues/3843">issue 3843</a>)
@@ -608,7 +610,9 @@ class SchemaBase {
                     break;
                 case "date":
                 case "date-time":
-                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a string value to a string value with format %y; a date/time value is required", method.upr(), path, name, format);
+                    # issue #3847: with non-YAML serialization, this will always be a string
+                    value = date(v);
+                    break;
             }
         } else {
             switch (format) {

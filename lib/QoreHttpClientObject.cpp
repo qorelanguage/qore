@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1867,3 +1867,14 @@ bool QoreHttpClientObject::getRedirectPassthru() const {
 QoreStringNode* QoreHttpClientObject::getHostHeaderValue() const {
     return http_priv->getHostHeaderValue();
 }
+
+void QoreHttpClientObject::setAssumedEncoding(const char* enc) {
+    AutoLocker al(priv->m);
+    qore_socket_private::get(*priv->socket)->setAssumedEncoding(enc);
+}
+
+QoreStringNode* QoreHttpClientObject::getAssumedEncoding() const {
+    AutoLocker al(priv->m);
+    return new QoreStringNode(qore_socket_private::get(*priv->socket)->getAssumedEncoding());
+}
+

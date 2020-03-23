@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -428,6 +428,16 @@ public:
     /** @since %Qore 0.9.3
      */
     DLLEXPORT QoreStringNode* getHostHeaderValue() const;
+
+    //! sets the assumed encoding
+    /** @since %Qore 0.9.4.2
+    */
+    DLLEXPORT void setAssumedEncoding(const char* enc);
+
+    //! gets the assumed encoding
+    /** @since %Qore 0.9.4.2
+    */
+    DLLEXPORT QoreStringNode* getAssumedEncoding() const;
 
     DLLLOCAL static void static_init();
 

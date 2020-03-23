@@ -68,6 +68,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/VscDebugAdapter.qm \
 	qlib/WebUtil.qm \
 	qlib/ZeyosRestClient.qm \
+	qlib/BillwerkRestClient.qm \
     qlib/AwsRestClient.qm
 
 DOX_SPLIT_MODULES = \

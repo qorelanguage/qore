@@ -255,7 +255,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
-            printf("XXX %s\n", get_exception_string(ex));
+            #printf("XXX %s\n", get_exception_string(ex));
             throw ex.err, ex.desc, info;
         }
     }

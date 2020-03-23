@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1775,4 +1775,33 @@ string host = httpclient.getHostHeaderValue();
 */
 string HTTPClient::getHostHeaderValue() [flags=CONSTANT] {
     return client->getHostHeaderValue();
+}
+
+//! sets the assumed character encoding for messages from the HTTP server without any charset indicator
+/** @par Example:
+    @code{.py}
+httpclient.setAssumedEncoding("utf-8");
+    @endcode
+
+    @param encoding the encoding to set; if empty or not present, the default \c "ISO-8859-1" will be set
+
+    @since %Qore 0.9.4.2
+*/
+HTTPClient::setAssumedEncoding(*string encoding) {
+    client->setAssumedEncoding(encoding && !encoding->empty() ? encoding->c_str() : "ISO-8859-1");
+}
+
+//! returns the assumed character encoding for messages from the HTTP server without any charset indicator
+/** @par Example:
+    @code{.py}
+string str = httpclient.getAssumedEncoding();
+    @endcode
+
+    @return the assumed character encoding for messages from the HTTP server without any charset indicator; by default
+    this is \c "ISO-8859-1"
+
+    @since %Qore 0.9.4.2
+*/
+string HTTPClient::getAssumedEncoding() [flags=RET_VALUE_ONLY] {
+    return client->getAssumedEncoding();
 }
