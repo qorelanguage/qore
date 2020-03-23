@@ -150,6 +150,9 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_2 Swagger v2.0.2
+    - fixed a bug where sibling elements to a \c "$ref" were not ignored (see
+      <a href="https://swagger.io/docs/specification/using-ref/">https://swagger.io/docs/specification/using-ref/</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3843">issue 3843</a>)
     - fixed support for query parameters of type object
       (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
 
@@ -1175,9 +1178,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             ref = ref.copy();
             ref.xml = new XmlObject(xmlObj);
         }
-        if (attr) {
-            throw "INVALID-REFERENCE", sprintf("Invalid attribute(s) in reference: %y", keys attr);
-        }
+        # additional subling elements are ignored...
         return ref;
     }
 

@@ -1512,8 +1512,9 @@ public class SwaggerTest inherits QUnit::Test {
 
         s = {"$ref": "#/definitions/y"};
         assertThrows("INVALID-REFERENCE", "cannot resolve", loadyaml, my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+        # issue #3843: sibling elements to a $ref must be ignored
         s = {"$ref": "#/definitions/x", "a": 1};
-        assertThrows("INVALID-REFERENCE", "Invalid attribute", loadyaml, my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}}));
+        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"x": ("type": "string"), "a": s}})));
 
         # type checks
         s = {};
