@@ -150,6 +150,8 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_2 Swagger v2.0.2
+    - fixed \c date-time value handling
+      (<a href="https://github.com/qorelanguage/qore/issues/3847">issue 3847</a>)
     - fixed a bug where sibling elements to a \c "$ref" were not ignored (see
       <a href="https://swagger.io/docs/specification/using-ref/">https://swagger.io/docs/specification/using-ref/</a>)
       (<a href="https://github.com/qorelanguage/qore/issues/3843">issue 3843</a>)
@@ -456,7 +458,7 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path, string method, string name, reference value) {
+    private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path, string method, string name, reference<auto> value) {
         # accept a single value for an array (= one-element list)
         if (type == "array")
             checkArrayParam(serialize, request, items, path, method, name, \value);
@@ -484,14 +486,14 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, list v, reference<list> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, list<auto> v, reference<list> value) {
         if (type != "list" && type != "any")
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is list", name, path, method, type);
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an array (%y), but the expected type is %y", name, path, method, v, type);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash<auto> v, reference<hash> value) {
         if (type != "file" && type != "any")
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is file", name, path, method, type);
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an object (%y), but the expected type is %y", name, path, method, v, type);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<auto> value) {
@@ -594,9 +596,10 @@ class SchemaBase {
     }
 
     #! validates string values
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, string v, reference value) {
-        if (type != "string" && type != "any")
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, string v, reference<auto> value) {
+        if (type != "string" && type != "any") {
             throwInvalidType(name, "string", type, v);
+        }
 
         if (serialize) {
             switch (format) {
@@ -608,7 +611,9 @@ class SchemaBase {
                     break;
                 case "date":
                 case "date-time":
-                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a string value to a string value with format %y; a date/time value is required", method.upr(), path, name, format);
+                    # issue #3847: with non-YAML serialization, this will always be a string
+                    value = date(v);
+                    break;
             }
         } else {
             switch (format) {
@@ -3040,7 +3045,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    check(bool serialize, bool request, string path, string method, string name, reference value) {
+    check(bool serialize, bool request, string path, string method, string name, reference<auto> value) {
         # issue #2388 ensure that query parameters are converted to their target type first
         if (inLoc == "query") {
             switch (type) {
@@ -3081,6 +3086,9 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                             break;
                     }
                     break;
+                case "boolean":
+                   value = parse_boolean(value);
+                   break;
             }
         }
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
