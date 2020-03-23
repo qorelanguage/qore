@@ -1,0 +1,141 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/BillwerkRestClient.qm
+%requires ../../../../qlib/HttpServer.qm
+
+%try-module json
+%define NoJson
+%endtry
+
+%requires qore >= 0.9.4
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%disable-warning deprecated
+
+%exec-class BillwerkTest
+
+class FakeBillwerkRestHandler inherits AbstractHttpRequestHandler {
+    private {
+        string input;
+        string mime;
+    }
+
+    constructor(string mime, string input) {
+        self.mime = mime;
+        self.input = input;
+    }
+
+    hash handleRequest(hash cx, hash hdr, *data body) {
+        #printf("cx: %N\nhdr: %N\nbody: %N\n", cx, hdr, body);
+        if (cx.raw_path =~ /^\/?oauth\/token$/) {
+            return makeResponse({"Content-Type": MimeTypeJson}, 200, "{\"access_token\": \"token\"}");
+        }
+        if (!hdr."authorization") {
+            return makeResponse(400, "Missing authorization header");
+        }
+        if (hdr."authorization" != "Bearer token") {
+            return makeResponse(401, "Unauthorized, invalid token");
+        }
+        if (hdr.method == "GET") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+        if (hdr.method == "PUT") {
+            return makeResponse(("Content-Type": mime), 200, input);
+        }
+    }
+}
+
+sub log(string str) {
+    delete argv;
+}
+
+const VALUE_JSON = {
+    "input": "{\"foo\":{\"bar\":1}}",
+    "output": {"foo": {"bar": 1}},
+};
+
+class BillwerkTest inherits QUnit::Test {
+    private {
+        HttpServer m_http;
+        int port;
+
+        BillwerkRestClient billwerkRestClient;
+    }
+
+    constructor() : Test("BillwerkTest", "1.0") {
+        addTestCase("billwerk.com REST", \billwerkRestClientRestTests());
+        addTestCase("negative tests", \negativeTest());
+        addTestCase("connection tests", \connectionTest());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        m_http = new HttpServer(\log(), \log());
+        m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
+                          (MimeTypeJson, MimeTypeFormUrlEncoded), new FakeBillwerkRestHandler(MimeTypeJson, VALUE_JSON.input));
+        port = m_http.addListener(0).port;
+
+        try {
+            billwerkRestClient = new BillwerkRestClient({"url": "http://test1:test2@localhost:" + port, "client_id": "a"});
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "REST-RESPONSE-ERROR") {
+                printf("no client support: %s: %s\n", ex.err, ex.desc);
+            } else {
+                rethrow;
+            }
+        }
+    }
+
+    globalTearDown() {
+        delete billwerkRestClient;
+        delete m_http;
+    }
+
+    billwerkRestClientRestTests() {
+        if (!billwerkRestClient) {
+            testSkip("no billwerk.com connection");
+        }
+
+        hash<auto> action_data = {
+            "name": "Action name 1",
+            "description": "description",
+            "effort": 48,
+            "actionnum": 7771,
+            "status": 0,
+        };
+
+        hash<auto> response = billwerkRestClient.put("/api/v1/actionsteps", action_data);
+        testAssertionValue("/api/v1/actionsteps", response.body, VALUE_JSON.output);
+    }
+
+    negativeTest() {
+        if (!billwerkRestClient) {
+            testSkip("no client support");
+        }
+
+        assertThrows("BILLWERKRESTCLIENT-ERROR", sub () {new BillwerkRestClient({"url": "http://localhost:" + port});});
+        BillwerkRestClient billwerkRest({"url": "http://localhost:" + port, "token": "asdsad"});
+        assertThrows("REST-RESPONSE-ERROR", \billwerkRest.get(), "/api_json");
+    }
+
+    connectionTest() {
+        string url = "http://user:pass@localhost:" + port;
+        BillwerkRestConnection billwerkrc("test", "test", url, NOTHING, {"client_id": "a"});
+        assertEq(True, billwerkrc instanceof BillwerkRestConnection);
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        BillwerkRestClient client = billwerkrc.get(False);
+        assertEq(True, client instanceof BillwerkRestClient);
+    }
+}

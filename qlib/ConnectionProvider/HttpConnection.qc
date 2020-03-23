@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore HttpConnection class definition
 
-/*  HttpConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  HttpConnection.qc Copyright 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 public namespace ConnectionProvider {
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
+        - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
         - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
         - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
           \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
@@ -52,6 +53,7 @@ public namespace ConnectionProvider {
         public {
             #! HttpConnection object connection options
             const Options = {
+                "assume_encoding": True,
                 "error_passthru": True,
                 "http_version": True,
                 "max_redirects": True,
@@ -116,6 +118,7 @@ public namespace ConnectionProvider {
 
         #! gets options
         /** @return returns a hash with the following supported options:
+            - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
             - \c "connect_timeout": connection timeout to use in milliseconds
             - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
               \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
@@ -133,7 +136,7 @@ public namespace ConnectionProvider {
 
             @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options
         */
-        hash getOptions() {
+        hash<auto> getOptions() {
             return Options;
         }
 
@@ -142,7 +145,7 @@ public namespace ConnectionProvider {
             - \c "connect_timeout": (@ref relative_dates "relative date/time value") 45 seconds
             - \c "timeout": (@ref relative_dates "relative date/time value") 45 seconds
         */
-        *hash getDefaultOptions() {
+        *hash<auto> getDefaultOptions() {
             return DefaultOptions;
         }
 

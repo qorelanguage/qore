@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -135,6 +135,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     # add two new HTTP methods for WebDAV; both require message bodies
     HTTPClient httpclient(("url": url, "additional_methods": ("PROPFIND": True, "MKCOL": True )));
     @endcode
+    - \c assume_encoding: assumes the given encoding if the server does not send a charset value
     - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
@@ -175,6 +176,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c encoding_passthru
       - \c error_passthru
       - \c redirect_passthru
+    - %Qore 0.9.4.2 added the following option:
+      - \c assume_encoding
  */
 HTTPClient::constructor(hash<auto> opts) {
    ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -1775,4 +1778,33 @@ string host = httpclient.getHostHeaderValue();
 */
 string HTTPClient::getHostHeaderValue() [flags=CONSTANT] {
     return client->getHostHeaderValue();
+}
+
+//! sets the assumed character encoding for messages from the HTTP server without any charset indicator
+/** @par Example:
+    @code{.py}
+httpclient.setAssumedEncoding("utf-8");
+    @endcode
+
+    @param encoding the encoding to set; if empty or not present, the default \c "ISO-8859-1" will be set
+
+    @since %Qore 0.9.4.2
+*/
+HTTPClient::setAssumedEncoding(*string encoding) {
+    client->setAssumedEncoding(encoding && !encoding->empty() ? encoding->c_str() : "ISO-8859-1");
+}
+
+//! returns the assumed character encoding for messages from the HTTP server without any charset indicator
+/** @par Example:
+    @code{.py}
+string str = httpclient.getAssumedEncoding();
+    @endcode
+
+    @return the assumed character encoding for messages from the HTTP server without any charset indicator; by default
+    this is \c "ISO-8859-1"
+
+    @since %Qore 0.9.4.2
+*/
+string HTTPClient::getAssumedEncoding() [flags=RET_VALUE_ONLY] {
+    return client->getAssumedEncoding();
 }

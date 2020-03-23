@@ -229,6 +229,9 @@ struct qore_socket_private {
     Queue* event_queue = nullptr,   //!< event queue
         * warn_queue = nullptr;     //!< warning queue
 
+    // issue #3633: HTTP encoding to assume
+    std::string assume_http_encoding = "ISO-8859-1";
+
     // socket buffer for buffered reads
     char rbuf[DEFAULT_SOCKET_BUFSIZE];
 
@@ -352,6 +355,14 @@ struct qore_socket_private {
         } else {
             return 0;
         }
+    }
+
+    DLLLOCAL void setAssumedEncoding(const char* str) {
+        assume_http_encoding = str;
+    }
+
+    DLLLOCAL const char* getAssumedEncoding() const {
+        return assume_http_encoding.c_str();
     }
 
     DLLLOCAL int getSendTimeout() const {
@@ -3198,7 +3209,7 @@ struct qore_socket_private {
         bool* chunked = nullptr, const char* headers_raw_key = "headers-raw") {
         bool close = !(flags & CHF_HTTP11);
         // socket encoding
-        const char* senc = 0;
+        const char* senc = nullptr;
         // accept-charset
         bool acceptcharset = false;
 
@@ -3234,7 +3245,7 @@ struct qore_socket_private {
             if (raw_hdr) {
                 raw_key = buf;
             }
-           strtolower(buf);
+            strtolower(buf);
             //printd(5, "setting %s = '%s'\n", buf, t);
 
             ReferenceHolder<> val(new QoreStringNode(t), nullptr);
@@ -3290,9 +3301,12 @@ struct qore_socket_private {
                             if (!ct->empty())
                                 info->setKeyValue("body-content-type", ct.release(), nullptr);
                         }
-                    } else if (info) {
-                        info->setKeyValue("charset", new QoreStringNode("iso-8859-1"), nullptr);
-                        info->setKeyValue("body-content-type", val->refSelf(), nullptr);
+                    } else {
+                        enc = QEM.findCreate(assume_http_encoding.c_str());
+                        if (info) {
+                            info->setKeyValue("charset", new QoreStringNode(assume_http_encoding), nullptr);
+                            info->setKeyValue("body-content-type", val->refSelf(), nullptr);
+                        }
                     }
                 } else if (chunked && !strcmp(buf, "transfer-encoding") && !strcasecmp(t, "chunked")) {
                     *chunked = true;
@@ -3342,7 +3356,7 @@ struct qore_socket_private {
 
         if ((flags & CHF_PROCESS)) {
             if (!senc)
-                enc = QEM.findCreate("iso-8859-1");
+                enc = QEM.findCreate(assume_http_encoding.c_str());
             // according to RFC-2616 section 14.2, "If no Accept-Charset header is present, the default is that any character set is acceptable" so we will use utf-8
             if (info && !acceptcharset)
                 info->setKeyValue("accept-charset", new QoreStringNode("utf8"), nullptr);

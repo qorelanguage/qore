@@ -2589,7 +2589,12 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq(MimeTypeJson, res.hdr."Content-Type");
 
             body.shipDate = "1990-01-01";
-            assertThrows("SCHEMA-VALIDATION-ERROR", "shipDate.*date-time", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
+            res = so.processResponse("post", "/store/order", 200, body, NOTHING, MimeTypeJson);
+            assertEq(200, res.code);
+            assertEq(MimeTypeJson, res.hdr."Content-Type");
+
+            body.shipDate = 200;
+            assertThrows("SCHEMA-VALIDATION-ERROR", "shipDate", \so.processResponse(), ("post", "/store/order", 200, body, NOTHING, MimeTypeJson));
         }
     }
 

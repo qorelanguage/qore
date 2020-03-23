@@ -9,6 +9,10 @@
     Bugfix release; see details below
 
     @subsection qore_0942_new_features New Features in Qore
+    - new user modules:
+      - <a href="../../modules/BillwerkRestClient/html/index.html">BillwerkRestClient</a>
+        - added this new module providing APIs for communicating with
+          <a href="http://www.billwerk.com">billwerk.com</a>'s REST API
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
       - implemented callbacks to allow for dynamic elements of request-response data providers (such as URI paths) to
         be resolved at runtime
@@ -28,6 +32,9 @@
     - <a href="../../modules/reflection/html/index.html">reflection</a> module updates:
       - \c Type class made serializable
         (<a href="https://github.com/qorelanguage/qore/issues/3810">issue 3810</a>)
+    - new methods:
+      - @ref Qore::HTTPClient::getAssumedEncoding() "HTTPClient::getAssumedEncoding()"
+      - @ref Qore::HTTPClient::setAssumedEncoding() "HTTPClient::setAssumedEncoding()"
 
     @subsection qore_0942_bug_fixes Bug Fixes in Qore
 
@@ -41,6 +48,8 @@
       - fixed support empty responses
         (<a href="https://github.com/qorelanguage/qore/issues/3801">issue 3801</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module:
+      - fixed \c date-time value handling
+        (<a href="https://github.com/qorelanguage/qore/issues/3847">issue 3847</a>)
       - fixed a bug where sibling elements to a \c "$ref" were not ignored (see
         <a href="https://swagger.io/docs/specification/using-ref">https://swagger.io/docs/specification/using-ref</a>)
         (<a href="https://github.com/qorelanguage/qore/issues/3843">issue 3843</a>)
