@@ -344,12 +344,21 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
     }
 
     assumedEncoding() {
-        HTTPClient hc({
-            "url": "http://example.com",
-        });
-        assertEq("ISO-8859-1", hc.getAssumedEncoding());
-        hc.setAssumedEncoding("UTF-8");
-        assertEq("UTF-8", hc.getAssumedEncoding());
+        {
+            HTTPClient hc({
+                "url": "http://example.com",
+                "assume_encoding": "utf-8",
+            });
+            assertEq("utf-8", hc.getAssumedEncoding());
+        }
+        {
+            HTTPClient hc({
+                "url": "http://example.com",
+            });
+            assertEq("ISO-8859-1", hc.getAssumedEncoding());
+            hc.setAssumedEncoding("UTF-8");
+            assertEq("UTF-8", hc.getAssumedEncoding());
+        }
     }
 
     chunkedDisconnectTest() {

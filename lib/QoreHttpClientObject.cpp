@@ -721,6 +721,18 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         }
     }
 
+    // issue #3693: assume HTTP encoding
+    n = opts->getKeyValue("assume_encoding");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_STRING) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string as value for the \"assume_encoding\" "\
+                "key in the options hash; got type \"%s\" instead", n.getTypeName());
+            return -1;
+        }
+        const QoreStringNode* val = n.get<const QoreStringNode>();
+        qore_socket_private::get(*priv->socket)->setAssumedEncoding(!val->empty() ? val->c_str() : nullptr);
+    }
+
     n = opts->getKeyValue("ssl_cert_path");
     if (*xsink)
         return -1;
