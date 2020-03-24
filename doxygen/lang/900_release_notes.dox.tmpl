@@ -61,6 +61,9 @@
         (<a href="https://github.com/qorelanguage/qore/issues/3851">issue 3851</a>)
     - fixed the \c Type object for \c "*hash<auto>" to return the correct name
         (<a href="https://github.com/qorelanguage/qore/issues/3826">issue 3826</a>)
+    - added additional accept and returns keys for base type that accept and return integers; now they return both
+      \c int and \c integer to ensure that they match for logic that does standard comparisons with \c "integer"
+      (<a href="https://github.com/qorelanguage/qore/issues/3854">issue 3854</a>)
     - fixed certificate verification; openssl will now use default CA certs when
       @ref Qore::Socket::acceptAllCertificates() "Socket::acceptAllCertificates(False)" is set when
       @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" or similar is used with
