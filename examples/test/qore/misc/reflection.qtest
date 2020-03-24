@@ -197,8 +197,8 @@ class ReflectionTest inherits QUnit::Test {
         }
         assertEq(("string", "binary"), keys (new Type("data")).getAcceptTypeHash());
         assertEq(("string", "binary"), keys (new Type("data")).getReturnTypeHash());
-        assertEq(("int",), keys (new Type("int")).getAcceptTypeHash());
-        assertEq(("int",), keys (new Type("int")).getReturnTypeHash());
+        assertEq(("int", "integer"), keys (new Type("int")).getAcceptTypeHash());
+        assertEq(("int", "integer"), keys (new Type("int")).getReturnTypeHash());
         {
             Type t("hash<string, bool>");
             assertEq(("hash<string, bool>",), keys t.getAcceptTypeHash());
@@ -246,8 +246,8 @@ class ReflectionTest inherits QUnit::Test {
         }
         assertEq(("string", "binary", "nothing", "null"), keys (new Type("*data")).getAcceptTypeHash());
         assertEq(("string", "binary", "nothing"), keys (new Type("*data")).getReturnTypeHash());
-        assertEq(("int", "nothing", "null"), keys (new Type("*int")).getAcceptTypeHash());
-        assertEq(("int", "nothing"), keys (new Type("*int")).getReturnTypeHash());
+        assertEq(("int", "integer", "nothing", "null"), keys (new Type("*int")).getAcceptTypeHash());
+        assertEq(("int", "integer", "nothing"), keys (new Type("*int")).getReturnTypeHash());
         assertEq(("hash<string, bool>", "nothing", "null"), keys (new Type("*hash<string, bool>")).getAcceptTypeHash());
         assertEq(("hash<string, bool>", "nothing"), keys (new Type("*hash<string, bool>")).getReturnTypeHash());
         assertEq(("list<string>", "nothing", "null"), keys (new Type("*list<string>")).getAcceptTypeHash());
