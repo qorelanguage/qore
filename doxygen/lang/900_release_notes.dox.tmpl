@@ -55,6 +55,10 @@
         (<a href="https://github.com/qorelanguage/qore/issues/3843">issue 3843</a>)
       - fixed support for query parameters of type object
         (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module:
+      - fixed bugs in \c %EVAL= expressions in @ref Util::parse_to_qore_value() "parse_to_qore_value()" where
+        expressions that evaluated to integer 0 or floating-point values were returned as @ref NOTHING
+        (<a href="https://github.com/qorelanguage/qore/issues/3851">issue 3851</a>)
     - fixed the \c Type object for \c "*hash<auto>" to return the correct name
         (<a href="https://github.com/qorelanguage/qore/issues/3826">issue 3826</a>)
     - fixed certificate verification; openssl will now use default CA certs when

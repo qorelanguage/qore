@@ -88,6 +88,9 @@ module Util {
     @section utilrelnotes Release Notes
 
     @subsection util_1_5_1 Util 1.5.1
+    - fixed bugs in \c %EVAL= expressions in @ref Util::parse_to_qore_value() "parse_to_qore_value()" where
+      expressions that evaluated to integer 0 or floating-point values were returned as @ref NOTHING
+      (<a href="https://github.com/qorelanguage/qore/issues/3851">issue 3851</a>)
     - added the get_file_from_url() function
 
     @subsection util_1_5 Util 1.5
@@ -521,12 +524,10 @@ bool abs = absolute_path_windows(path);
         # use a sandboxed Program object
         Program prog(PO_LOCKDOWN);
         try {
-            prog.setScriptPath(sprintf("Qore::Util::eval_text"));
+            prog.setScriptPath("Qore::Util::eval_text");
             prog.parse(str, "main");
             auto rv = prog.callFunction("get");
-            # if it's a float, then return a string to preseve formatting
-            if (rv.typeCode() != NT_FLOAT && rv.val())
-                return ("valid": True, "value": rv);
+            return ("valid": True, "value": rv);
         } catch (hash<ExceptionInfo> ex) {
             if (err)
                 throw "EVAL-ERROR", sprintf("error in EVAL cmd: %s: %s (arg: %s)\n", ex.err, ex.desc, arg);
