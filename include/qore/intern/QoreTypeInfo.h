@@ -913,13 +913,21 @@ public:
 
     DLLLOCAL void getAcceptTypes(ReferenceHolder<QoreHashNode>& h) const {
         for (auto& i : accept_vec) {
-            h->setKeyValue(i.spec.getSimpleName(), true, nullptr);
+            const char* simple_type_name = i.spec.getSimpleName();
+            h->setKeyValue(simple_type_name, true, nullptr);
+            if (!strcmp(simple_type_name, "int")) {
+                h->setKeyValue("integer", true, nullptr);
+            }
         }
     }
 
     DLLLOCAL void getReturnTypes(ReferenceHolder<QoreHashNode>& h) const {
         for (auto& i : return_vec) {
-            h->setKeyValue(i.spec.getSimpleName(), true, nullptr);
+            const char* simple_type_name = i.spec.getSimpleName();
+            h->setKeyValue(simple_type_name, true, nullptr);
+            if (!strcmp(simple_type_name, "int")) {
+                h->setKeyValue("integer", true, nullptr);
+            }
         }
     }
 
