@@ -58,6 +58,7 @@ make_version() {
     major=`grep define.VERSION_MAJOR "$unix_config"|cut -f3 -d\ `
     minor=`grep define.VERSION_MINOR "$unix_config"|cut -f3 -d\ `
     sub=`grep define.VERSION_SUB "$unix_config"|cut -f3 -d\ `
+    patch=`grep define.VERSION_PATCH "$unix_config"|cut -f3 -d\ `
 
     if [ "$major" -gt 0 ]; then
         qore_ver=`printf %d%02d%02d $major $minor $sub`
@@ -65,7 +66,7 @@ make_version() {
         qore_ver=`printf %d%02d $minor $sub`
     fi
 
-    printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION \"%s.%s.%s\"\n#define QORE_VERSION_CODE %s\n#endif\n" $major $minor $sub $major $minor $sub $qore_ver > "$version_tmp"
+    printf "#ifndef _QORE_VERSION_H\n#define _QORE_VERSION_H\n#define QORE_VERSION_MAJOR %s\n#define QORE_VERSION_MINOR %s\n#define QORE_VERSION_SUB %s\n#define QORE_VERSION_PATCH %s\n#define QORE_VERSION \"%s.%s.%s\"\n#define QORE_VERSION_CODE %s\n#endif\n" $major $minor $sub $patch $major $minor $sub $qore_ver > "$version_tmp"
     create=yes
     if [ -f "$version_file" ]; then
         diff "$version_tmp" "$version_file" >/dev/null 2>/dev/null
