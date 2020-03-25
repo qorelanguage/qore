@@ -36,7 +36,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.4.1";
+    version = "0.4.2";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -160,6 +160,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section qunit_relnotes Release Notes
+
+    @subsection qunit_v0_4_2 Version 0.4.2
+    - allow %QUnit to be used from other languages like Java
+      (<a href="https://github.com/qorelanguage/qore/issues/3857">issue 3857</a>)
 
     @subsection qunit_v0_4_1 Version 0.4.1
     - allow binary modules to be subjected to dependency injections
@@ -728,8 +732,10 @@ public class QUnit::TestReporter {
     constructor(string name, string version, *reference<list<string>> p_argv, hash<auto> opts = Opts) {
         m_name = name;
         m_version = version;
-        if (!p_argv)
-            p_argv = cast<list<string>>(ARGV);
+        if (!p_argv) {
+            # issue #3857: there is no ARGV when Qore is initialized from other languages like Java
+            p_argv = cast<list<string>>(ARGV ?? ());
+        }
         m_options = new GetOpt(opts).parse2(\p_argv);
         processOptions(\p_argv);
 
