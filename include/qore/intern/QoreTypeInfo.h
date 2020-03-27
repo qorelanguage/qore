@@ -1442,7 +1442,7 @@ private:
             return true;
         }
         // issue #3861: check if they could potentially refer to the same declaration; if the shorter string is the same as the
-        // longer string, and the longer string has
+        // longer string, and the longer string is prefixed by "::", then the declarations are ambiguous and must be rechecked
         if (tname.size() > typeInfo->tname.size()) {
             recheck = checkAmbiguous(tname, typeInfo->tname);
         } else if (typeInfo->tname.size() > tname.size()) {
