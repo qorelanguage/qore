@@ -126,6 +126,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("issue 3861", \issue3861());
         addTestCase("issue 3441", \issue3441());
         addTestCase("Values test", \testValues());
         addTestCase("Variables test", \testVariables());
@@ -134,6 +135,36 @@ public class OverloadTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3861() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertNothing(p.parse("namespace A { class A {} }
+    namespace B { class A {} }
+    string sub t(A::A a) {return 'A';}
+    string sub t(B::A a) {return 'B';}
+    string sub t() {return t(new A());}
+    ", "issue 3861"));
+            assertEq("A", p.callFunction("t"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("DUPLICATE-SIGNATURE", \p.parse(), ("namespace A { class A {} }
+    string sub t(A::A a) {return 'A';}
+    string sub t(A a) {return 'A1';}
+    ", "issue 3861"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertNothing(p.parse("namespace A { class A {} }
+    namespace B { class AA {} }
+    string sub t(A a) {return 'A';}
+    string sub t(AA a) {return 'B';}
+    string sub t() {return t(new A());}
+    ", "issue 3861"));
+            assertEq("A", p.callFunction("t"));
+        }
     }
 
     issue1928() {
