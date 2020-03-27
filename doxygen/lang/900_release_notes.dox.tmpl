@@ -62,6 +62,9 @@
       - fixed bugs in \c %EVAL= expressions in @ref Util::parse_to_qore_value() "parse_to_qore_value()" where
         expressions that evaluated to integer 0 or floating-point values were returned as @ref NOTHING
         (<a href="https://github.com/qorelanguage/qore/issues/3851">issue 3851</a>)
+    - fixed a bug where spurious \c DUPLICATE-SIGNATURE parse errors were raised with signatures that referred to
+      classes that differed only in their namespace paths
+      (<a href="https://github.com/qorelanguage/qore/issues/3861">issue 3861</a>)
     - fixed the \c Type object for \c "*hash<auto>" to return the correct name
         (<a href="https://github.com/qorelanguage/qore/issues/3826">issue 3826</a>)
     - added additional accept and returns keys for base type that accept and return integers; now they return both
