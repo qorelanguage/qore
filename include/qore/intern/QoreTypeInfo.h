@@ -1303,7 +1303,7 @@ protected:
     DLLLOCAL void setName() {
         if (or_nothing)
             tname = "*";
-        tname += cscope->getIdentifier();
+        tname += cscope->ostr;
         if (!subtypes.empty()) {
             tname += '<';
             tname += subtypes[0]->getName();
@@ -1356,9 +1356,9 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo) {
+    DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo, bool& recheck) {
         if (pti && typeInfo)
-            return pti->parseStageOneIdentical(typeInfo);
+            return pti->parseStageOneIdentical(typeInfo, recheck);
         else
             return !(pti || typeInfo);
     }
@@ -1436,8 +1436,30 @@ private:
     }
 
     // used when parsing user code to find duplicate signatures
-    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo) const {
-        return tname == typeInfo->tname;
+    DLLLOCAL bool parseStageOneIdentical(const QoreParseTypeInfo* typeInfo, bool& recheck) const {
+        //printd(5, "QoreParseTypeInfo::parseStageOneIdentical() this: %p '%s' == %p '%s'\n", this, tname.c_str(), typeInfo, typeInfo->tname.c_str());
+        if (tname == typeInfo->tname) {
+            return true;
+        }
+        // issue #3861: check if they could potentially refer to the same declaration; if the shorter string is the same as the
+        // longer string, and the longer string has
+        if (tname.size() > typeInfo->tname.size()) {
+            recheck = checkAmbiguous(tname, typeInfo->tname);
+        } else if (typeInfo->tname.size() > tname.size()) {
+            recheck = checkAmbiguous(typeInfo->tname, tname);
+        }
+        return false;
+    }
+
+    DLLLOCAL static bool checkAmbiguous(const std::string& longer, const std::string& shorter) {
+        // if the previous two character in longer are not '::', then the strings are not ambiguous
+        if (longer.size() - shorter.size() < 2) {
+            return false;
+        }
+        if (longer.compare(longer.size() - shorter.size() - 2, 2, "::")) {
+            return false;
+        }
+        return !longer.compare(longer.size() - shorter.size(), shorter.size(), shorter);
     }
 
     // resolves complex types (classes, hashdecls, etc)

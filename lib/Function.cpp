@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1911,7 +1911,6 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
             bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
             // FIXME: this is a horribly-complicated if/then/else structure
-
             //printd(5, "QoreFunction::parseCheckDuplicateSignature() ti: '%s' pti: '%s' vti: '%s' vpti: '%s' ident: %d\n", QoreTypeInfo::getName(typeInfo), QoreParseTypeInfo::getName(parseTypeInfo), QoreTypeInfo::getName(variantTypeInfo), QoreParseTypeInfo::getName(variantParseTypeInfo), QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo));
 
             // check for ambiguous matches
@@ -1926,27 +1925,23 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
                                 dup = false;
                                 break;
                             }
-                        }
-                        else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
+                        } else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
                             dup = false;
                             break;
                         }
-                    }
-                    else {
+                    } else {
                         if (variantTypeInfo) {
                             if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(parseTypeInfo, variantTypeInfo, recheck)) {
                                 dup = false;
                                 break;
                             }
-                        }
-                        else if (!QoreParseTypeInfo::parseStageOneIdentical(parseTypeInfo, variantParseTypeInfo)) {
+                        } else if (!QoreParseTypeInfo::parseStageOneIdentical(parseTypeInfo, variantParseTypeInfo, recheck)) {
                             dup = false;
                             break;
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 if ((QoreTypeInfo::hasType(variantTypeInfo) || variantParseTypeInfo) && variantHasDefaultArg)
                     ambiguous = true;
                 else if (variantTypeInfo) {
@@ -1954,8 +1949,7 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
                         dup = false;
                         break;
                     }
-                }
-                else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
+                } else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(variantParseTypeInfo, typeInfo, recheck)) {
                     dup = false;
                     break;
                 }
