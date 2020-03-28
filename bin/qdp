@@ -212,7 +212,7 @@ class QdpCmd {
 
     static update(AbstractDataProvider provider) {
         hash<auto> set = QdpCmd::getHash("update 'set'", True);
-        hash<auto> where_cond = QdpCmd::getHash("update 'where'", True);
+        *hash<auto> where_cond = QdpCmd::getHash("update 'where'", True);
         int rec_count = provider.updateRecords(set, where_cond);
         printf("%d record%s updated\n", rec_count, rec_count == 1 ? "" : "s");
     }
@@ -306,7 +306,7 @@ class QdpCmd {
                 QdpCmd::error("invalid %s argument %y; expecting type \"hash\"; got type %y instead", action, arg, arg.type());
             }
         }
-        if (required && !arg) {
+        if (required && !exists arg) {
             QdpCmd::error("missing required %s argument; expecting type \"hash\"", action);
         }
         return arg;

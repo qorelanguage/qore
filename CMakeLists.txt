@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_SUB 4)
-set(VERSION_PATCH 2)
+set(VERSION_PATCH 3)
 
 # support <pkg>_ROOT in find_package
 if (POLICY CMP0074)
