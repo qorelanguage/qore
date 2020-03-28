@@ -754,6 +754,10 @@ void qore_socket_private::captureRemoteCert(X509_STORE_CTX* x509_ctx) {
 
     X509* x509 = X509_STORE_CTX_get_current_cert(x509_ctx);
     assert(x509);
+    // issue #3665: deref any current client cert before assigning
+    if (current_socket->remote_cert) {
+        current_socket->remote_cert->deref(nullptr);
+    }
     current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(), new QoreSSLCertificate(X509_dup(x509)));
 }
 
