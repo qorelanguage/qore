@@ -10,6 +10,39 @@
 
 %exec-class ClassesTest
 
+class Issue3869_A {
+    test(reference<int> i) {
+        ++i;
+    }
+
+    code get() {
+        return \test();
+    }
+}
+
+class Issue3869_B {
+    private:internal {
+        int i = 0;
+        code ctest;
+        Counter cnt;
+    }
+
+    constructor(Counter cnt, Issue3869_A a) {
+        ctest = a.get();
+        self.cnt = cnt;
+        background test();
+    }
+
+    test() {
+        ctest(\i);
+        cnt.dec();
+    }
+
+    int get() {
+        return i;
+    }
+}
+
 class Issue3644_B {
     abstract t(bool c = True, *hash h);
 }
@@ -606,6 +639,7 @@ class Issue3368 {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 3869", \issue3869());
         addTestCase("issue 3644", \issue3644());
         addTestCase("issue 3637", \issue3637());
         addTestCase("issue 3368", \issue3368());
@@ -628,6 +662,14 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3869() {
+        Issue3869_A a();
+        Counter cnt(1);
+        Issue3869_B b(cnt, a);
+        cnt.waitForZero();
+        assertEq(1, b.get());
     }
 
     issue3644() {
@@ -840,7 +882,7 @@ public class ClassesTest inherits QUnit::Test {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(438, ex.callstack[0].line);
+        assertEq(471, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
