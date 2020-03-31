@@ -4,7 +4,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -196,14 +196,12 @@ LValueHelper::~LValueHelper() {
                     if (!obj_chg)
                         obj_chg = true;
                     inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
-                }
-                else {
+                } else {
                     bool after = needs_scan(*qv);
                     if (before) {
                         if (!after)
                             inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
-                    }
-                    else if (after) {
+                    } else if (after) {
                         if (!obj_chg)
                             obj_chg = true;
                         inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
@@ -290,8 +288,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
     if (getType() == NT_LIST) {
         ensureUnique();
         l = getValue().get<QoreListNode>();
-    }
-    else {
+    } else {
         if (for_remove)
             return -1;
 
@@ -342,8 +339,7 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
     if (t == NT_HASH) {
         ensureUnique();
         h = getValue().get<QoreHashNode>();
-    }
-    else {
+    } else {
         if (for_remove)
             return -1;
 
@@ -477,8 +473,7 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
             clearPtr();
             return -1;
         }
-    }
-    else if (ntype == NT_SELF_VARREF) {
+    } else if (ntype == NT_SELF_VARREF) {
         const SelfVarrefNode* v = n.get<const SelfVarrefNode>();
         // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
         QoreObject* obj = runtime_get_stack_object();
@@ -495,8 +490,7 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
 
         robj = qore_object_private::get(*obj);
         ocvec.push_back(ObjCountRec(obj));
-    }
-    else if (ntype == NT_CLASS_VARREF)
+    } else if (ntype == NT_CLASS_VARREF)
         n.get<const StaticClassVarRefNode>()->getLValue(*this);
     else if (ntype == NT_REFERENCE) {
         if (doLValue(n.get<const ReferenceNode>(), for_remove)) {
@@ -504,8 +498,7 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
             clearPtr();
             return -1;
         }
-    }
-    else {
+    } else {
         assert(ntype == NT_OPERATOR);
         const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n.getInternalNode());
         if (op) {
@@ -514,8 +507,7 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
                 clearPtr();
                 return -1;
             }
-        }
-        else {
+        } else {
             assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
             const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
             if (doHashObjLValue(hop, for_remove)) {
