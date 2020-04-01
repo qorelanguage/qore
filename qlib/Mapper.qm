@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.1";
+    version = "1.6.0";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -1806,6 +1806,33 @@ Mapper mapv(DataMap);
         hash<auto> h = mapDataIntern(rec);
         logOutput(h);
         return h;
+    }
+
+    #! maps all input record(s) automatically and returns the mapped data
+    /** this method applies the @ref mapAll() method if the input records are given as list or hash of lists
+        @param recs input records (one record or more), can be represented by list or hash
+
+        @return the mapped data as of output records (type depends on the given records' type)
+
+        @throw MISSING-INPUT a field marked mandatory is missing
+        @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+        @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        @throw MAPPER-INPUT-TYPE-ERROR records input type is not acceptable
+    */
+    auto mapAuto(auto recs) {
+        if (recs.typeCode() == NT_LIST) {
+            return mapAll(recs);
+        } else if (recs.typeCode() == NT_HASH) {
+            if (recs.firstValue().typeCode() == NT_LIST) {
+                # there are more records (hash of lists)
+                return mapAll(recs);
+            }
+            # only one record (simple hash)
+            return mapData(recs);
+        }
+
+        error2("MAPPER-INPUT-TYPE-ERROR", "mapAuto() does not accept the given type: %s,
+            acceptable types are 'hash' or 'list'", recs.type());
     }
 
     #! maps a set of records in hash of lists format; returns mapped data in a hash of lists format
