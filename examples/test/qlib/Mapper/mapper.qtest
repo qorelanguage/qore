@@ -447,6 +447,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("test types", \testTypes());
         addTestCase("Test mapAll()", \testMapperMapAll());
         addTestCase("Test mapData()", \testMapperMapData());
+        addTestCase("Test mapAuto()", \testMapperMapAuto());
         addTestCase("Runtime test", \testMapperRuntime());
         addTestCase("Test 'input' option", \testMapperOptionInput());
         addTestCase("Bulk Test", \testMapperBulk());
@@ -729,6 +730,50 @@ public class MapperTest inherits QUnit::Test {
         list l = map m.mapData($1), MapInput;
         testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
         testAssertion("Verify item count", \equals(), (m.getCount(), 2));
+    }
+
+    testMapperMapAuto() {
+        # test list of hashes
+        Mapper m1(DataMap, m_opts);
+        auto res = m1.mapAuto(MapInput);
+        testAssertion("Verify mapped list", \equalsIterated(), (MapOutput.iterator(), res.iterator()));
+        testAssertion("Verify item count", \equals(), (m1.getCount(), 2));
+
+        # test hash of lists with disabled bulk
+        Mapper m2(DataMap, m_opts + {"disable_bulk": True});
+        res = m2.mapAuto(MapInput2);
+        testAssertion("Verify mapped hash of lists", \equalsIterated(), (MapOutput.iterator(), res.iterator()));
+        testAssertion("Verify item count", \equals(), (m2.getCount(), 2));
+
+        # # test hash of lists with enabled bulk
+        Mapper m3(DataMap2, m_opts + {
+            "output": {
+                "int_field": {},
+                "date_field": {
+                    "type": "date",
+                },
+            },
+            "global_type_options": {
+                "date.format": "DD.MM.YYYY",
+            }
+        });
+        res = m3.mapAuto(MapInput3);
+        testAssertion("Verify mapped hash of lists", \equalsIterated(), (MapOutput2.iterator(), res.contextIterator()));
+        testAssertion("Verify item count", \equals(), (m3.getCount(), 3));
+
+        # test one record hash
+        Mapper m4(TypeMap2, TypeOpts2);
+        res = m4.mapAuto({"input_0": {"k1": 213, "k2": 453}, "input_1": "sdfj"});
+        assertEq({
+            "output_0": {
+                "key1": 213,
+                "key2": 453,
+            },
+            "output_1": "sdfj",
+        }, res);
+
+        # test invalid input type
+        assertThrows("MAPPER-INPUT-TYPE-ERROR", \m4.mapAuto(), "asdsadmn");
     }
 
     testMapperRuntime() {
