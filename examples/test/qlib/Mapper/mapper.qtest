@@ -447,6 +447,7 @@ public class MapperTest inherits QUnit::Test {
         addTestCase("test types", \testTypes());
         addTestCase("Test mapAll()", \testMapperMapAll());
         addTestCase("Test mapData()", \testMapperMapData());
+        addTestCase("Test mapAuto()", \testMapperMapAuto());
         addTestCase("Runtime test", \testMapperRuntime());
         addTestCase("Test 'input' option", \testMapperOptionInput());
         addTestCase("Bulk Test", \testMapperBulk());
@@ -729,6 +730,34 @@ public class MapperTest inherits QUnit::Test {
         list l = map m.mapData($1), MapInput;
         testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
         testAssertion("Verify item count", \equals(), (m.getCount(), 2));
+    }
+
+    testMapperMapAuto() {
+        # test list of hashes
+        Mapper m1(DataMap, m_opts);
+        list l = m1.mapAuto(MapInput);
+        testAssertion("Verify mapped list", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
+        testAssertion("Verify item count", \equals(), (m1.getCount(), 2));
+
+        # test hash of lists
+        Mapper m2(DataMap, m_opts);
+        l = m2.mapAuto(MapInput2);
+        testAssertion("Verify mapped hash of lists", \equalsIterated(), (l.iterator(), MapOutput.iterator()));
+        testAssertion("Verify item count", \equals(), (m2.getCount(), 2));
+
+        # test one record hash
+        Mapper m3(TypeMap2, TypeOpts2);
+        hash<auto> h = m3.mapAuto({"input_0": {"k1": 213, "k2": 453}, "input_1": "sdfj"});
+        assertEq({
+            "output_0": {
+                "key1": 213,
+                "key2": 453,
+            },
+            "output_1": "sdfj",
+        }, h);
+
+        # test invalid input type
+        assertThrows("MAPPER-INPUT-TYPE-ERROR", \m3.mapAuto(), "asdsadmn");
     }
 
     testMapperRuntime() {
