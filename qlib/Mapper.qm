@@ -472,6 +472,12 @@ public class Mapper {
                     "entirely; this option is useful when the mapper output is used for delta updates with variable "
                     "input, for example; this option cannot be used with bulk input",
             },
+
+            "disable_bulk": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
+                    "mapAuto",
+            },
         };
 
         #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -574,6 +580,9 @@ public class Mapper {
 
         #! supresses the output field if the input field is missing and the output is optional
         bool ignore_missing_input;
+
+        #! disable bulk operations when there is a hash of lists as input when calling mapAuto
+        bool disable_bulk;
 
         #! an optional description of the output data structure
         *hash<string, AbstractDataField> output;
@@ -1012,6 +1021,10 @@ Mapper mapv(DataMap);
 
         if (opts.ignore_missing_input) {
             ignore_missing_input = True;
+        }
+
+        if (opts.disable_bulk) {
+            disable_bulk = True;
         }
 
         if (!mapv)
@@ -1809,8 +1822,10 @@ Mapper mapv(DataMap);
     }
 
     #! maps all input record(s) automatically and returns the mapped data
-    /** this method applies the @ref mapAll() method if the input records are given as list or hash of lists
+    /** this method applies the @ref mapAll() method if the input records are given as list and the @ref mapBulk() method if the input is a hash of lists.
+        For a simple hash (one record) it calls the @ref mapData() method.
         @param recs input records (one record or more), can be represented by list or hash
+        @param crec an optional simple hash of data to be added to each input row before mapping (only when the input is a hash of lists)
 
         @return the mapped data as of output records (type depends on the given records' type)
 
@@ -1818,14 +1833,16 @@ Mapper mapv(DataMap);
         @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         @throw MAPPER-INPUT-TYPE-ERROR records input type is not acceptable
+
+        /** @since Mapper 1.6
     */
-    auto mapAuto(auto recs) {
+    auto mapAuto(auto recs, *hash<auto> crec) {
         if (recs.typeCode() == NT_LIST) {
             return mapAll(recs);
         } else if (recs.typeCode() == NT_HASH) {
             if (recs.firstValue().typeCode() == NT_LIST) {
                 # there are more records (hash of lists)
-                return mapAll(recs);
+                return disable_bulk ? mapAll(recs) : mapBulk(recs, crec);
             }
             # only one record (simple hash)
             return mapData(recs);
