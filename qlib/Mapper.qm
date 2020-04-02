@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.1";
+    version = "1.6.0";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -472,6 +472,12 @@ public class Mapper {
                     "entirely; this option is useful when the mapper output is used for delta updates with variable "
                     "input, for example; this option cannot be used with bulk input",
             },
+
+            "disable_bulk": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
+                    "mapAuto",
+            },
         };
 
         #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -574,6 +580,9 @@ public class Mapper {
 
         #! supresses the output field if the input field is missing and the output is optional
         bool ignore_missing_input;
+
+        #! disable bulk operations when there is a hash of lists as input when calling mapAuto
+        bool disable_bulk;
 
         #! an optional description of the output data structure
         *hash<string, AbstractDataField> output;
@@ -1012,6 +1021,10 @@ Mapper mapv(DataMap);
 
         if (opts.ignore_missing_input) {
             ignore_missing_input = True;
+        }
+
+        if (opts.disable_bulk) {
+            disable_bulk = True;
         }
 
         if (!mapv)
@@ -1808,6 +1821,36 @@ Mapper mapv(DataMap);
         return h;
     }
 
+    #! maps all input record(s) automatically and returns the mapped data
+    /** this method applies the @ref mapAll() method if the input records are given as list and the @ref mapBulk() method if the input is a hash of lists.
+        For a simple hash (one record) it calls the @ref mapData() method.
+        @param recs input records (one record or more), can be represented by list or hash
+
+        @return the mapped data as of output records (type depends on the given records' type)
+
+        @throw MISSING-INPUT a field marked mandatory is missing
+        @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+        @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+        @throw MAPPER-INPUT-TYPE-ERROR records input type is not acceptable
+
+        @since %Mapper 1.6
+    */
+    auto mapAuto(auto recs) {
+        if (recs.typeCode() == NT_LIST) {
+            return mapAll(recs);
+        } else if (recs.typeCode() == NT_HASH) {
+            if (recs.firstValue().typeCode() == NT_LIST) {
+                # there are more records (hash of lists)
+                return disable_bulk ? mapAll(recs) : mapBulk(recs);
+            }
+            # only one record (simple hash)
+            return mapData(recs);
+        }
+
+        error2("MAPPER-INPUT-TYPE-ERROR", "mapAuto() does not accept the given type: %s,
+            acceptable types are 'hash' or 'list'", recs.type());
+    }
+
     #! maps a set of records in hash of lists format; returns mapped data in a hash of lists format
     /** @par Example:
         @code{.py}
@@ -1821,7 +1864,7 @@ Mapper mapv(DataMap);
 
         @note
         - using a hash of lists in \a rec; note that this provides very high performance when used with data
-            provider output that support bulk bulk write operations
+            provider output that support bulk write operations
         - in case a hash of empty lists is passed, Qore::NOTHING is returned
         - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of
             a column \c C and 'crec = {"C": "mystring"}' then the output will be as if there was 'N' rows with
