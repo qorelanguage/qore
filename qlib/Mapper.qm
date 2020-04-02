@@ -1834,7 +1834,7 @@ Mapper mapv(DataMap);
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         @throw MAPPER-INPUT-TYPE-ERROR records input type is not acceptable
 
-        /** @since Mapper 1.6
+        @since %Mapper 1.6
     */
     auto mapAuto(auto recs, *hash<auto> crec) {
         if (recs.typeCode() == NT_LIST) {
@@ -1865,7 +1865,7 @@ Mapper mapv(DataMap);
 
         @note
         - using a hash of lists in \a rec; note that this provides very high performance when used with data
-            provider output that support bulk bulk write operations
+            provider output that support bulk write operations
         - in case a hash of empty lists is passed, Qore::NOTHING is returned
         - 'crec' does not affect the number of output lines; in particular, if 'rec' is a batch with \c N rows of
             a column \c C and 'crec = {"C": "mystring"}' then the output will be as if there was 'N' rows with
