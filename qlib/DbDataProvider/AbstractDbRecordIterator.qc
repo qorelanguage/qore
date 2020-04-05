@@ -91,5 +91,12 @@ public class AbstractDbRecordIterator inherits AbstractDataProviderRecordIterato
     keepTransactionLock() {
         release_transaction = False;
     }
+
+    #! Returns the record description, if available
+    /** @return the record type of the query results
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        return DbDataProvider::getRecordTypeFromDescribeHash(stmt.describe());
+    }
 }
 }

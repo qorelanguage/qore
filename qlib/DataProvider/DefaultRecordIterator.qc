@@ -39,6 +39,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         AbstractIterator i;
         *hash<auto> where_cond;
         *hash<auto> search_options;
+        *hash<string, AbstractDataField> record_type;
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -46,10 +47,11 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
-    constructor(AbstractIterator i, *hash<auto> where_cond, *hash<auto> search_options) {
+    constructor(AbstractIterator i, *hash<auto> where_cond, *hash<auto> search_options, *hash<string, AbstractDataField> record_type) {
         self.i = i;
         self.where_cond = where_cond;
         self.search_options = search_options;
+        self.record_type = record_type;
     }
 
     #! Moves the current position to the next element; returns @ref False if there are no more elements
@@ -93,6 +95,13 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     */
     auto memberGate(string key) {
         return doMemberGate(key);
+    }
+
+    #! Returns the record description, if available
+    /** @return the record type of the iterator
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        return record_type;
     }
 }
 }

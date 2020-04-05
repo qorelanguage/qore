@@ -14,15 +14,16 @@
         - \c AbstractDataProviderRecordProcessor
         - \c DataProviderBulkRecordIterator
         - \c DataProviderRecordPipeline
-        .
-        (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - added the @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" method and the
         \c disable_bulk option
         (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
+      - \c Mapper now inherits \c DataProvider::AbstractDataProviderRecordProcessor
+        (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection qore_0943_bug_fixes Bug Fixes in Qore
-
     - fixed a crash in handling reference arguments in call references in mixed class contexts
       (<a href="https://github.com/qorelanguage/qore/issues/3869">issue 3869</a>)
     - fixed a memory leak in the code that manages remote client certificates in the @ref Qore::Socket "Socket" class

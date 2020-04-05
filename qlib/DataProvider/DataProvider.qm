@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0.1";
+    version = "1.0.2";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -169,6 +169,13 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_2 DataProvider v1.0.2
+    - implemented the following classes:
+      - @ref DataProvider::AbstractDataProviderRecordProcessor "AbstractDataProviderRecordProcessor"
+      - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
+      - @ref DataProvider::DataProviderRecordPipeline "DataProviderRecordPipeline"
+      (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection dataprovider_v1_0_1 DataProvider v1.0.1
     - implemented callbacks to allow for dynamic elements of request-response data providers (such as URI paths) to be

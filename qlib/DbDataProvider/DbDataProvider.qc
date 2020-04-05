@@ -145,6 +145,39 @@ public class DbDataProvider inherits AbstractDataProvider {
         db.rollback();
     }
 
+    #! Returns the record type description from a describe hash
+    /** @param describe_hash a hash as returned by
+        @ref Qore::SQL::AbstractSQLStatement::describe() "AbstractSQLStatement::describe()"
+
+        @return the record type of the query results
+    */
+    static *hash<string, AbstractDataField> getRecordTypeFromDescribeHash(hash<auto> describe_hash) {
+        HashDataType input_data();
+        foreach hash<auto> i in (describe_hash.pairIterator()) {
+            # get input column name
+            string key = i.key.lwr();
+            string desc = i.value.native_type.lwr();
+            # add DB maximum size to desc
+            if (i.value.maxsize) {
+                desc += sprintf("(%d)", i.value.maxsize);
+            }
+            #printf("i: %y\n", i);
+            *string type = DataProvider::OptimalQoreDataTypeMap{TypeCodeMap{i.value.type}};
+            AbstractDataProviderType data_type;
+            if (!type.val() || type == "any") {
+                data_type = AbstractDataProviderType::get(AutoType);
+            } else {
+                # maps standard types to auto types to avoid type stripping
+                if (type =~ /(hash|list)$/) {
+                    type += "<auto>";
+                }
+                data_type = AbstractDataProviderType::get(type);
+            }
+            input_data.addField(new QoreDataField(key, desc, data_type));
+        }
+        return input_data.getFields();
+    }
+
     #! Returns the description of the record type, if any
     /** @param search_options to be included and processed by validateSearchOptions() if
         \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
@@ -169,30 +202,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         if (search_options.args) {
             stmt.bindArgs(search_options.args);
         }
-        HashDataType input_data();
-        foreach hash<auto> i in (stmt.describe().pairIterator()) {
-            # get input column name
-            string key = i.key.lwr();
-            string desc = i.value.native_type.lwr();
-            # add DB maximum size to desc
-            if (i.value.maxsize) {
-                desc += sprintf("(%d)", i.value.maxsize);
-            }
-            #printf("i: %y\n", i);
-            *string type = DataProvider::OptimalQoreDataTypeMap{TypeCodeMap{i.value.type}};
-            AbstractDataProviderType data_type;
-            if (!type.val() || type == "any") {
-                data_type = AbstractDataProviderType::get(AutoType);
-            } else {
-                # maps standard types to auto types to avoid type stripping
-                if (type =~ /(hash|list)$/) {
-                    type += "<auto>";
-                }
-                data_type = AbstractDataProviderType::get(type);
-            }
-            input_data.addField(new QoreDataField(key, desc, data_type));
-        }
-        return input_data.getFields();
+        return getRecordTypeFromDescribeHash(stmt.describe());
     }
 
     #! Returns an iterator for zero or more records matching the search options

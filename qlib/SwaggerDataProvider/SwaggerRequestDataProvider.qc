@@ -235,7 +235,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                     resp.body.type());
                 break;
         }
-        return new DefaultRecordIterator(i, where_cond);
+        return new DefaultRecordIterator(i, where_cond, NOTHING, record_type);
     }
 
     #! Makes a REST request and returns the response
