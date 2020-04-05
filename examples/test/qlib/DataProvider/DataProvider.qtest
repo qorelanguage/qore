@@ -14,13 +14,107 @@
 
 %exec-class DataProviderTest
 
+class TestRecordProvider inherits AbstractDataProviderRecordIterator {
+    private {
+        bool ok = False;
+    }
+
+    bool next() {
+        return ok = !ok;
+    }
+
+    bool valid() {
+        return ok;
+    }
+
+    hash<auto> getValue() {
+        if (!ok) {
+            throw "INVALID-ITERATOR", "error";
+        }
+
+        return {
+            "a": 1,
+            "b": 2,
+        };
+    }
+}
+
+class TestRecordProcessor inherits AbstractDataProviderRecordProcessor {
+    public {
+        string pfx;
+        list<hash<auto>> recs;
+    }
+
+    constructor(string pfx) {
+        self.pfx = pfx;
+    }
+
+    clear() {
+        remove recs;
+    }
+
+    private hash<auto> submitImpl(hash<auto> rec) {
+        hash<auto> new_rec = map {pfx + "-" + $1.key: $1.value}, rec.pairIterator();
+        recs += new_rec;
+        return new_rec;
+    }
+
+    private bool supportsBulkApiImpl() {
+        return False;
+    }
+}
+
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("pipeline test", \pipelineTest());
         addTestCase("type cache test", \typeCacheTest());
         addTestCase("test", \dataProviderTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    pipelineTest() {
+        {
+            TestRecordProvider record_provider();
+            DataProviderRecordPipeline pipe(record_provider);
+            assertThrows("PIPELINE-ERROR", \pipe.run());
+
+            TestRecordProcessor record_processor0("A");
+            pipe.append(record_processor0);
+            pipe.run();
+            assertEq({"A-a": 1, "A-b": 2}, record_processor0.recs[0]);
+
+            TestRecordProcessor record_processor1("B");
+            pipe.append(record_processor1);
+            pipe.run();
+            assertEq({"B-A-a": 1, "B-A-b": 2}, record_processor1.recs[0]);
+        }
+
+        {
+            TestRecordProvider record_provider();
+            DataProviderRecordPipeline pipe(record_provider);
+
+            TestRecordProcessor record_processorA0("A");
+            TestRecordProcessor record_processorA1("B");
+
+            TestRecordProcessor record_processorB0("A");
+            TestRecordProcessor record_processorB1("B");
+
+            # run pipelines in parallel
+            int p0 = pipe.appendPipeline(0);
+            int p1 = pipe.appendPipeline(0);
+
+            pipe.append(p0, record_processorA0);
+            pipe.append(p0, record_processorA1);
+
+            pipe.append(p1, record_processorB1);
+            pipe.append(p1, record_processorB0);
+
+            pipe.run();
+            assertEq({"B-A-a": 1, "B-A-b": 2}, record_processorA1.recs[0]);
+            assertEq({"A-B-a": 1, "A-B-b": 2}, record_processorB0.recs[0]);
+        }
     }
 
     typeCacheTest() {

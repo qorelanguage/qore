@@ -373,7 +373,7 @@ public hashdecl MapperOptionInfo {
 }
 
 #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
-public class Mapper {
+public class Mapper inherits AbstractDataProviderRecordProcessor {
     public {
         #! field keys that conflict with "constant" and "index"
         const ConstantConflictList = ("name", "struct", "code", "default");
@@ -715,6 +715,34 @@ Mapper mapv(DataMap);
             return cast<hash<string, AbstractDataField>>(output);
         }
         return Mapper::getOutputFromHashIntern(output, mapv, global_options);
+    }
+
+    #! Submits the record for processing
+    /** @param rec the record to process
+    */
+    private hash<auto> submitImpl(hash<auto> rec) {
+        return mapAuto(rec);
+    }
+
+    #! Returns @ref True if the record processor supports bulk operation
+    /** @return @ref True if the record processor supports bulk operation
+    */
+    private bool supportsBulkApiImpl() {
+        return True;
+    }
+
+    #! Returns the expected type of records to be submitted, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    */
+    private *hash<string, AbstractDataField> getExpectedRecordTypeImpl() {
+        return input;
+    }
+
+    #! Returns the type of records that will be returned, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    */
+    private *hash<string, AbstractDataField> getReturnRecordTypeImpl() {
+        return output;
     }
 
     private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
