@@ -175,6 +175,7 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
       - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
       - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
+      .
       (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection dataprovider_v1_0_1 DataProvider v1.0.1
