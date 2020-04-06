@@ -39,24 +39,113 @@ class TestRecordProvider inherits AbstractDataProviderRecordIterator {
     }
 }
 
-class TestRecordProcessor inherits AbstractDataProviderRecordProcessor {
+class InfiniteRecordProvider inherits AbstractDataProviderRecordIterator {
+    bool next() {
+        return True;
+    }
+
+    bool valid() {
+        return True;
+    }
+
+    hash<auto> getValue() {
+        return {"a": 1, "b": 2};
+    }
+}
+
+class TestRecordProcessor inherits AbstractDataProcessor {
     public {
         string pfx;
         list<hash<auto>> recs;
+        *hash<auto> crec;
+        *bool raise_error;
     }
 
-    constructor(string pfx) {
+    constructor(string pfx, *hash<auto> crec, *bool raise_error) {
         self.pfx = pfx;
+        self.crec = crec;
+        self.raise_error = raise_error;
     }
 
     clear() {
         remove recs;
     }
 
-    private hash<auto> submitImpl(hash<auto> rec) {
-        hash<auto> new_rec = map {pfx + "-" + $1.key: $1.value}, rec.pairIterator();
+    private auto submitImpl(auto rec) {
+        if (raise_error) {
+            remove raise_error;
+            throw "ERROR", "error";
+        }
+        hash<auto> new_rec = (map {pfx + "-" + $1.key: $1.value}, rec.pairIterator()) + crec;
         recs += new_rec;
         return new_rec;
+    }
+
+    private bool supportsBulkApiImpl() {
+        return True;
+    }
+}
+
+class TestBulkRecordIterator inherits AbstractDataProviderRecordIterator {
+    bool next() {
+        return False;
+    }
+
+    bool valid() {
+        return False;
+    }
+
+    hash<auto> getValue() {
+        throw "INVALID-ITERATOR", "error";
+    }
+
+    bool supportsBulkApi() {
+        return True;
+    }
+
+    *AbstractDataProviderBulkRecordInterface getBulkApi() {
+        return new TestBulkRecordProvider();
+    }
+}
+
+class TestBulkRecordProvider inherits AbstractDataProviderBulkRecordInterface {
+    private {
+        bool ok = True;
+    }
+
+    constructor() : AbstractDataProviderBulkRecordInterface(2) {
+    }
+
+    hash<string, auto> getValueImpl() {
+        if (ok) {
+            ok = False;
+            return {
+                "a": (1, 2),
+                "b": ("one", "two"),
+            };
+        }
+        return {};
+    }
+}
+
+class TestIntProcessor inherits AbstractDataProcessor {
+    private {
+        int inc;
+        int sum;
+    }
+
+    constructor(int inc) {
+        self.inc = inc;
+    }
+
+    int getSum() {
+        return sum;
+    }
+
+    private auto submitImpl(auto rec) {
+        rec += inc;
+        sum += rec;
+        return rec;
     }
 
     private bool supportsBulkApiImpl() {
@@ -77,23 +166,33 @@ public class DataProviderTest inherits QUnit::Test {
     pipelineTest() {
         {
             TestRecordProvider record_provider();
-            DataProviderRecordPipeline pipe(record_provider);
-            assertThrows("PIPELINE-ERROR", \pipe.run());
+            DataProviderPipeline pipe();
+            assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
 
             TestRecordProcessor record_processor0("A");
             pipe.append(record_processor0);
-            pipe.run();
+            pipe.submit(record_provider);
+            pipe.waitDone();
             assertEq({"A-a": 1, "A-b": 2}, record_processor0.recs[0]);
+
+            hash<PipelineInfo> info = pipe.getInfo();
+            assertEq(1, info.record_count);
+            assertTrue(info.bulk);
 
             TestRecordProcessor record_processor1("B");
             pipe.append(record_processor1);
-            pipe.run();
+            pipe.submit(record_provider);
+            pipe.waitDone();
             assertEq({"B-A-a": 1, "B-A-b": 2}, record_processor1.recs[0]);
+
+            info = pipe.getInfo();
+            assertEq(2, info.record_count);
+            assertTrue(info.bulk);
         }
 
         {
             TestRecordProvider record_provider();
-            DataProviderRecordPipeline pipe(record_provider);
+            DataProviderPipeline pipe();
 
             TestRecordProcessor record_processorA0("A");
             TestRecordProcessor record_processorA1("B");
@@ -101,9 +200,9 @@ public class DataProviderTest inherits QUnit::Test {
             TestRecordProcessor record_processorB0("A");
             TestRecordProcessor record_processorB1("B");
 
-            # run pipelines in parallel
-            int p0 = pipe.appendPipeline(0);
-            int p1 = pipe.appendPipeline(0);
+            # run pipeline in parallel
+            int p0 = pipe.appendQueue(0);
+            int p1 = pipe.appendQueue(0);
 
             pipe.append(p0, record_processorA0);
             pipe.append(p0, record_processorA1);
@@ -111,9 +210,159 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.append(p1, record_processorB1);
             pipe.append(p1, record_processorB0);
 
-            pipe.run();
+            pipe.submit(record_provider);
+            pipe.waitDone();
             assertEq({"B-A-a": 1, "B-A-b": 2}, record_processorA1.recs[0]);
             assertEq({"A-B-a": 1, "A-B-b": 2}, record_processorB0.recs[0]);
+
+            hash<PipelineInfo> info = pipe.getInfo();
+            assertEq(1, info.record_count);
+            assertTrue(info.bulk);
+            #printf("info: %N\n", info);
+        }
+
+        {
+            TestBulkRecordIterator record_provider();
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                "name": "test-pipeline-3",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+
+            TestRecordProcessor record_processorA0("A", {"A0": 1});
+            TestRecordProcessor record_processorA1("B", {"A1": 1});
+
+            TestRecordProcessor record_processorB0("A", {"B0": 1});
+            TestRecordProcessor record_processorB1("B", {"B1": 1});
+
+            # run pipeline in parallel
+            int p0 = pipe.appendQueue(0);
+            int p1 = pipe.appendQueue(0);
+
+            pipe.append(p0, record_processorA0);
+            pipe.append(p0, record_processorA1);
+
+            pipe.append(p1, record_processorB1);
+            pipe.append(p1, record_processorB0);
+
+            pipe.submit(record_provider);
+            pipe.waitDone();
+            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.recs[0]);
+            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.recs[0]);
+
+            hash<PipelineInfo> info = pipe.getInfo();
+            assertEq(2, info.record_count);
+            assertTrue(info.bulk);
+
+            pipe.submit(record_provider);
+            pipe.waitDone();
+
+            info = pipe.getInfo();
+            assertEq(4, info.record_count);
+            assertEq(PS_IDLE, info.status);
+
+            pipe.reset();
+            pipe.submit(record_provider);
+            pipe.waitDone();
+
+            info = pipe.getInfo();
+            assertEq(PS_IDLE, info.status);
+            assertEq(2, info.record_count);
+        }
+
+        # verify pipeline abort
+        {
+            InfiniteRecordProvider record_provider();
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+
+            TestRecordProcessor record_processor0("A");
+            pipe.append(record_processor0);
+            hash<PipelineInfo> info = pipe.getInfo();
+            assertNothing(info.start_time);
+            assertNothing(info.stop_time);
+            assertEq(PS_IDLE, info.status);
+            assertEq(0, info.record_count);
+            assertEq(1, info.num_queues);
+            assertEq(True, info.bulk);
+            assertEq(0s, info.duration);
+            assertEq(0.0, info.duration_secs);
+            assertEq(0.0, info.recs_per_sec);
+            pipe.submit({"a": 1});
+            assertEq(PS_RUNNING, pipe.getInfo().status);
+
+            Counter thread_cnt(1);
+            background sub () { try { thread_cnt.dec(); pipe.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}}();
+            thread_cnt.waitForZero();
+            sleep(500ms);
+            pipe.abort();
+            assertEq(PS_ABORTED, pipe.getInfo().status);
+            #printf("%N\n", pipe.getInfo());
+            assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
+            pipe.reset();
+            pipe.submit({"a": 1});
+            pipe.waitDone();
+            assertEq(PS_IDLE, pipe.getInfo().status);
+        }
+
+        # verify pipeline error handling
+        {
+            TestBulkRecordIterator record_provider();
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                "name": "test-pipeline-4",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+
+            TestRecordProcessor record_processorA0("A", {"A0": 1});
+            TestRecordProcessor record_processorA1("B", {"A1": 1});
+
+            TestRecordProcessor record_processorB0("A", {"B0": 1});
+            TestRecordProcessor record_processorB1("B", {"B1": 1}, True);
+
+            # run pipeline in parallel
+            int p0 = pipe.appendQueue(0);
+            int p1 = pipe.appendQueue(0);
+
+            pipe.append(p0, record_processorA0);
+            pipe.append(p0, record_processorA1);
+
+            pipe.append(p1, record_processorB1);
+            pipe.append(p1, record_processorB0);
+
+            pipe.submit(record_provider);
+            assertThrows("PIPELINE-FAILED", \pipe.waitDone());
+            assertEq(PS_ABORTED, pipe.getInfo().status);
+            pipe.reset();
+            pipe.submit({"a": 1});
+            pipe.waitDone();
+            assertEq(PS_IDLE, pipe.getInfo().status);
+        }
+
+        # test non-record-based pipeline processing
+        {
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                #"name": "test-pipeline-5",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+            TestIntProcessor int_processor0(1);
+            TestIntProcessor int_processor1(2);
+
+            # run pipeline in parallel
+            int q0 = pipe.appendQueue(0);
+            int q1 = pipe.appendQueue(0);
+
+            pipe.append(q0, int_processor0);
+            pipe.append(q0, int_processor0);
+
+            pipe.append(q1, int_processor1);
+            pipe.append(q1, int_processor1);
+
+            pipe.submit(1);
+            pipe.waitDone();
+            assertEq(5, int_processor0.getSum());
+            assertEq(8, int_processor1.getSum());
         }
     }
 

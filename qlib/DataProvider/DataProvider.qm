@@ -66,15 +66,15 @@ module DataProvider {
 
     This module provides the following primary classes:
     - @ref DataProvider::AbstractDataField "AbstractDataField"
+    - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
     - @ref DataProvider::AbstractDataProvider "AbstractDataProvider"
     - @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation"
     - @ref DataProvider::AbstractDataProviderBulkRecordInterface "AbstractDataProviderBulkRecordInterface"
     - @ref DataProvider::AbstractDataProviderFactory "AbstractDataProviderFactory"
     - @ref DataProvider::AbstractDataProviderRecordIterator "AbstractDataProviderRecordIterator"
-    - @ref DataProvider::AbstractDataProviderRecordProcessor "AbstractDataProviderRecordProcessor"
     - @ref DataProvider::DataProvider "DataProvider"
     - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
-    - @ref DataProvider::DataProviderRecordPipeline "DataProviderRecordPipeline"
+    - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
     - @ref DataProvider::DefaultBulkInserter "DefaultBulkInserter"
     - @ref DataProvider::DefaultBulkUpserter "DefaultBulkUpserter"
     - @ref DataProvider::DefaultBulkRecordIterface "DefaultBulkRecordIterface"
@@ -172,9 +172,9 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @subsection dataprovider_v1_0_2 DataProvider v1.0.2
     - implemented the following classes:
-      - @ref DataProvider::AbstractDataProviderRecordProcessor "AbstractDataProviderRecordProcessor"
+      - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
       - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
-      - @ref DataProvider::DataProviderRecordPipeline "DataProviderRecordPipeline"
+      - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
       (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection dataprovider_v1_0_1 DataProvider v1.0.1

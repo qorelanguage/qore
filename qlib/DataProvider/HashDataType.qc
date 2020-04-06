@@ -55,6 +55,13 @@ public class HashDataType inherits QoreDataType {
         self.name = name ?? base_type.getName();
     }
 
+    #! creates the object from the given record description and assigns the name as the type
+    constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options)
+        : QoreDataType(AutoHashType, options) {
+        self.name = name;
+        self.fields = fields;
+    }
+
     #! returns the type name
     string getName() {
         return name;
