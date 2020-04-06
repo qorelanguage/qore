@@ -35,6 +35,9 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup pipeline_status_codes Pipeline Status Codes
+*/
+#@{
 #! Pipeline status: ABORTED
 public const PS_ABORTED = "ABORTED";
 
@@ -43,6 +46,17 @@ public const PS_RUNNING = "RUNNING";
 
 #! Pipeline status: IDLE
 public const PS_IDLE = "IDLE";
+#@}
+
+/** @defgroup pipeline_processing_exceptions Pipeline Processing Exceptions
+*/
+#@{
+#! Skips processing a record
+/** Throw this exception in the @ref DataProvider::AbstractDataProcessor::submit() "AbstractDataProcessor::submit()"
+    method to skip processing a data record (the record is not passed forward to further processors in the queue).
+*/
+public const DPE_SKIP_DATA = "DPE-SKIP-DATA";
+#@}
 
 #! Pipeline info
 public hashdecl PipelineInfo {
@@ -53,6 +67,8 @@ public hashdecl PipelineInfo {
     *date stop_time;
 
     #! Pipeline status
+    /** @see @ref pipeline_status_codes for possible values
+    */
     string status;
 
     #! Number of input records submitted
@@ -218,12 +234,19 @@ class PipelineQueue {
 
             try {
                 foreach auto elem in (elems) {
-                    if (elem instanceof AbstractDataProcessor) {
-                        _data = elem.submit(_data);
-                        parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), _data);
-                    } else {
-                        # must be the last entry in the list
-                        map $1.submit(_data), elem;
+                    try {
+                        if (elem instanceof AbstractDataProcessor) {
+                            _data = elem.submit(_data);
+                            parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), _data);
+                        } else {
+                            # must be the last entry in the list
+                            map $1.submit(_data), elem;
+                        }
+                    } catch (hash<ExceptionInfo> ex) {
+                        if (ex.err == DPE_SKIP_DATA) {
+                            continue;
+                        }
+                        rethrow;
                     }
                 }
             } catch (hash<ExceptionInfo> ex) {

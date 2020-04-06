@@ -33,12 +33,12 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! Defines an abstract class for accepting records and outputting a result
+#! Defines an abstract class for accepting data and outputting optionally transformed or filtered data
 public class AbstractDataProcessor {
     #! Returns the expected type of data to be submitted, if available
     /** @return the expected type of data to be submitted, if available
 
-        @note Calls getExpectedRecordTypeImpl() to provide the return value
+        @note Calls getExpectedTypeImpl() to provide the return value
     */
     AbstractDataProviderType getExpectedType() {
         return getExpectedTypeImpl() ?? AbstractDataProviderType::anyType;
@@ -47,7 +47,7 @@ public class AbstractDataProcessor {
     #! Returns the type of data that will be returned, if available
     /** @return the type of data that will be returned, if available
 
-        @note Calls getReturnRecordTypeImpl() to provide the return value
+        @note Calls getReturnTypeImpl() to provide the return value
     */
     AbstractDataProviderType getReturnType() {
         return getReturnTypeImpl() ?? AbstractDataProviderType::anyType;
@@ -65,8 +65,12 @@ public class AbstractDataProcessor {
     #! Submits the data for processing
     /** @param _data the data to process
 
+        @throw DPE-SKIP-DATA throw this exception to tell the
+        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" skip processing the data for the rest of the
+        queue
+
         @note
-        - Calls submitImpl() on the record to do the actual processing
+        - Calls submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
     */
     auto submit(auto _data) {
@@ -87,6 +91,10 @@ public class AbstractDataProcessor {
 
     #! Submits the data for processing
     /** @param _data the data to process
+
+        @throw DPE-SKIP-DATA throw this exception to tell the
+        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" to skip processing the data for the rest of the
+        queue
     */
     private abstract auto submitImpl(auto _data);
 

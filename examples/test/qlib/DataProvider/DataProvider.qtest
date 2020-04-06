@@ -131,11 +131,13 @@ class TestBulkRecordProvider inherits AbstractDataProviderBulkRecordInterface {
 class TestIntProcessor inherits AbstractDataProcessor {
     private {
         int inc;
-        int sum;
+        int sum = 0;
+        *bool skip_odd;
     }
 
-    constructor(int inc) {
+    constructor(int inc, *bool skip_odd) {
         self.inc = inc;
+        self.skip_odd = skip_odd;
     }
 
     int getSum() {
@@ -143,6 +145,9 @@ class TestIntProcessor inherits AbstractDataProcessor {
     }
 
     private auto submitImpl(auto rec) {
+        if (skip_odd && rec > inc && (rec % 2)) {
+            throw DPE_SKIP_DATA;
+        }
         rec += inc;
         sum += rec;
         return rec;
@@ -363,6 +368,31 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.waitDone();
             assertEq(5, int_processor0.getSum());
             assertEq(8, int_processor1.getSum());
+        }
+
+        # test data skipping
+        {
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                #"name": "test-pipeline-5",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+            TestIntProcessor int_processor0(1);
+            TestIntProcessor int_processor1(2, True);
+
+            # run pipeline in parallel
+            int q0 = pipe.appendQueue(0);
+            int q1 = pipe.appendQueue(0);
+
+            pipe.append(q0, int_processor0);
+            pipe.append(q0, int_processor0);
+
+            pipe.append(q1, int_processor1);
+            pipe.append(q1, int_processor1);
+
+            pipe.submit(1);
+            pipe.waitDone();
+            assertEq(5, int_processor0.getSum());
+            assertEq(3, int_processor1.getSum());
         }
     }
 
