@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractDataProviderRecordProcessor class definition
+#! Qore AbstractDataProcessor class definition
 
-/** AbstractDataProviderRecordProcessor.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** AbstractDataProcessor.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,27 +34,27 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Defines an abstract class for accepting records and outputting a result
-public class AbstractDataProviderRecordProcessor {
-    #! Returns the expected type of records to be submitted, if available
-    /** @return the expected type of records to be submitted, if available
+public class AbstractDataProcessor {
+    #! Returns the expected type of data to be submitted, if available
+    /** @return the expected type of data to be submitted, if available
 
         @note Calls getExpectedRecordTypeImpl() to provide the return value
     */
-    *hash<string, AbstractDataField> getExpectedRecordType() {
-        return getExpectedRecordTypeImpl();
+    AbstractDataProviderType getExpectedType() {
+        return getExpectedTypeImpl() ?? AbstractDataProviderType::anyType;
     }
 
-    #! Returns the type of records that will be returned, if available
-    /** @return the type of records that will be returned, if available
+    #! Returns the type of data that will be returned, if available
+    /** @return the type of data that will be returned, if available
 
         @note Calls getReturnRecordTypeImpl() to provide the return value
     */
-    *hash<string, AbstractDataField> getReturnRecordType() {
-        return getReturnRecordTypeImpl();
+    AbstractDataProviderType getReturnType() {
+        return getReturnTypeImpl() ?? AbstractDataProviderType::anyType;
     }
 
-    #! Returns @ref True if the record processor supports bulk operation
-    /** @return @ref True if the record processor supports bulk operation
+    #! Returns @ref True if the data processor supports bulk operation
+    /** @return @ref True if the data processor supports bulk operation
 
         @note Calls supportsBulkApiImpl() to return the answer
     */
@@ -62,34 +62,36 @@ public class AbstractDataProviderRecordProcessor {
         return supportsBulkApiImpl();
     }
 
-    #! Submits the record for processing
-    /** @param rec the record to process
+    #! Submits the data for processing
+    /** @param _data the data to process
 
-        @note Calls submitImpl() on the record to do the actual processing
+        @note
+        - Calls submitImpl() on the record to do the actual processing
+        - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
     */
-    hash<auto> submit(hash<auto> rec) {
-        return submitImpl(rec);
+    auto submit(auto _data) {
+        return submitImpl(_data);
     }
 
-    #! Returns the expected type of records to be submitted, if available
-    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    #! Returns the expected type of data to be submitted, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a type
     */
-    private *hash<string, AbstractDataField> getExpectedRecordTypeImpl() {
+    private *AbstractDataProviderType getExpectedTypeImpl() {
     }
 
-    #! Returns the type of records that will be returned, if available
-    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    #! Returns the type of data that will be returned, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a type
     */
-    private *hash<string, AbstractDataField> getReturnRecordTypeImpl() {
+    private *AbstractDataProviderType getReturnTypeImpl() {
     }
 
-    #! Submits the record for processing
-    /** @param rec the record to process
+    #! Submits the data for processing
+    /** @param _data the data to process
     */
-    private abstract hash<auto> submitImpl(hash<auto> rec);
+    private abstract auto submitImpl(auto _data);
 
-    #! Returns @ref True if the record processor supports bulk operation
-    /** @return @ref True if the record processor supports bulk operation
+    #! Returns @ref True if the data processor supports bulk operation
+    /** @return @ref True if the data processor supports bulk operation
     */
     private abstract bool supportsBulkApiImpl();
 }

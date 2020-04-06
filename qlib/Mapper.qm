@@ -373,7 +373,7 @@ public hashdecl MapperOptionInfo {
 }
 
 #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
-public class Mapper inherits AbstractDataProviderRecordProcessor {
+public class Mapper inherits AbstractDataProcessor {
     public {
         #! field keys that conflict with "constant" and "index"
         const ConstantConflictList = ("name", "struct", "code", "default");
@@ -717,11 +717,11 @@ Mapper mapv(DataMap);
         return Mapper::getOutputFromHashIntern(output, mapv, global_options);
     }
 
-    #! Submits the record for processing
-    /** @param rec the record to process
+    #! Submits the data for processing
+    /** @param _data the data to process
     */
-    private hash<auto> submitImpl(hash<auto> rec) {
-        return mapAuto(rec);
+    private hash<auto> submitImpl(auto _data) {
+        return mapAuto(_data);
     }
 
     #! Returns @ref True if the record processor supports bulk operation
@@ -731,18 +731,18 @@ Mapper mapv(DataMap);
         return True;
     }
 
-    #! Returns the expected type of records to be submitted, if available
-    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
-    */
-    private *hash<string, AbstractDataField> getExpectedRecordTypeImpl() {
-        return input;
+    #! Returns the expected type of data to be submitted, if available
+    private *AbstractDataProviderType getExpectedTypeImpl() {
+        if (input) {
+            return new HashDataType(sprintf("mapper %y input record", name ?? "<unnamed>"), input);
+        }
     }
 
-    #! Returns the type of records that will be returned, if available
-    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
-    */
-    private *hash<string, AbstractDataField> getReturnRecordTypeImpl() {
-        return output;
+    #! Returns the type of data that will be returned, if available
+    private *AbstractDataProviderType getReturnTypeImpl() {
+        if (output) {
+            return new HashDataType(sprintf("mapper %y output record", name ?? "<unnamed>"), output);
+        }
     }
 
     private AbstractDataProviderType getOutputType(hash<auto> hdesc, *hash<auto> mapdesc) {
