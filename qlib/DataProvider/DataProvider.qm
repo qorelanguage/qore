@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0.1";
+    version = "1.0.2";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -66,12 +66,15 @@ module DataProvider {
 
     This module provides the following primary classes:
     - @ref DataProvider::AbstractDataField "AbstractDataField"
+    - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
     - @ref DataProvider::AbstractDataProvider "AbstractDataProvider"
     - @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation"
     - @ref DataProvider::AbstractDataProviderBulkRecordInterface "AbstractDataProviderBulkRecordInterface"
     - @ref DataProvider::AbstractDataProviderFactory "AbstractDataProviderFactory"
     - @ref DataProvider::AbstractDataProviderRecordIterator "AbstractDataProviderRecordIterator"
     - @ref DataProvider::DataProvider "DataProvider"
+    - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
+    - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
     - @ref DataProvider::DefaultBulkInserter "DefaultBulkInserter"
     - @ref DataProvider::DefaultBulkUpserter "DefaultBulkUpserter"
     - @ref DataProvider::DefaultBulkRecordIterface "DefaultBulkRecordIterface"
@@ -166,6 +169,14 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_2 DataProvider v1.0.2
+    - implemented the following classes:
+      - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
+      - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
+      - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
+      .
+      (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection dataprovider_v1_0_1 DataProvider v1.0.1
     - implemented callbacks to allow for dynamic elements of request-response data providers (such as URI paths) to be

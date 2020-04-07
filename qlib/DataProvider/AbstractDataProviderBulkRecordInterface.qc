@@ -60,17 +60,23 @@ public class AbstractDataProviderBulkRecordInterface {
         return valid;
     }
 
-    #! Returns a hash of lists according to the block size or @ref nothing if no more data is available
-    /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+    #! Returns a hash of lists (or constant values) according to the block size or @ref nothing if no more data is available
+    /** @return a hash of lists (or constant values) according to the block size or @ref nothing if no more data is
+        available
 
-        @note This call moves the internal record pointer forward, therefore multiple calls of this methods will
-        return different results as long as data is available
+        @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+
+        @note
+        - This call moves the internal record pointer forward, therefore multiple calls of this methods will
+          return different results as long as data is available
+        - A short read from getValueImpl() indicates that the final block is being delivered
+        - The first hash key must be assigned to a list and cannot be assigned to a constant value
     */
-    *hash<string, list<auto>> getValue() {
+    *hash<string, auto> getValue() {
         if (!valid) {
             return;
         }
-        hash<string, list<auto>> rv = getValueImpl();
+        hash<string, auto> rv = getValueImpl();
         if ((int size = rv.firstValue().size()) < block_size) {
             valid = False;
             if (!size) {
@@ -80,12 +86,30 @@ public class AbstractDataProviderBulkRecordInterface {
         return rv;
     }
 
-    #! Returns a hash of lists according to the block size
-    /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-
-        @note This call moves the internal record pointer forward, therefore multiple calls of this methods will
-        return different results as long as data is available
+    #! Returns a standard record iterator for this bulk iterator
+    /** @return a standard record iterator for this bulk iterator
     */
-    abstract private hash<string, list<auto>> getValueImpl();
+    AbstractDataProviderRecordIterator getRecordIterator() {
+        return new DataProviderBulkRecordIterator(self);
+    }
+
+    #! Returns the record description, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+    }
+
+    #! Returns a hash of lists (or constant values) according to the block size or @ref nothing if no more data is available
+    /** @return a hash of lists (or constant values) according to the block size or @ref nothing if no more data is
+        available
+
+        @throw INVALID-ITERATOR the iterator is not pointing at a valid element
+
+        @note
+        - This call moves the internal record pointer forward, therefore multiple calls of this methods will
+          return different results as long as data is available
+        - The first hash key must be assigned to a list and cannot be assigned to a constant value
+    */
+    abstract private hash<string, auto> getValueImpl();
 }
 }

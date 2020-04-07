@@ -166,6 +166,36 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         return soql;
     }
 
+    #! Returns the record description, if available
+    /** @return the record type of the iterator
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        return record_info.record_type;
+    }
+
+    string getArgValue(string key, auto value) {
+        switch (record_info.field_types{key}) {
+            case "datetime":
+            case "date":
+            case "time":
+                return doDateTimeValue(key, value);
+
+            case "int":
+                return sprintf("%d", value);
+
+            case "double":
+                return sprintf("%g", value);
+
+            case "boolean":
+                return value ? "true" : "false";
+
+            default:
+                break;
+        }
+
+        return sprintf("'%s'", value);
+    }
+
     private string getOrderBy(softlist<string> coll) {
         return foldl $1 + "," + $2, (map $1, coll, checkColumnName($1));
     }
@@ -295,29 +325,6 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
         }
 
         return sprintf("%s = %s", key, getArgValue(key, value));
-    }
-
-    string getArgValue(string key, auto value) {
-        switch (record_info.field_types{key}) {
-            case "datetime":
-            case "date":
-            case "time":
-                return doDateTimeValue(key, value);
-
-            case "int":
-                return sprintf("%d", value);
-
-            case "double":
-                return sprintf("%g", value);
-
-            case "boolean":
-                return value ? "true" : "false";
-
-            default:
-                break;
-        }
-
-        return sprintf("'%s'", value);
     }
 
     private string doDateTimeValue(string key, auto value) {
