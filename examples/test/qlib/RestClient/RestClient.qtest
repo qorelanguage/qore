@@ -76,6 +76,8 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
             return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         } else if (hdr.method == "DELETE") {
             return makeResponse(404, m_data ?? binary(body), {"Content-Type": m_mime});
+        } else if (hdr.method == "OPTIONS") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         }
     }
 }
@@ -94,6 +96,7 @@ public class Main inherits QUnit::Test {
     constructor() : Test("RestClientTest", "1.0") {
         addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
+        addTestCase("OPTIONS tests", \methodOptionsTest());
         addTestCase("DELETE tests", \methodDeleteTest());
         addTestCase("GET tests", \methodGetTest());
         addTestCase("PUT tests", \methodPutTest());
@@ -125,6 +128,13 @@ public class Main inherits QUnit::Test {
         hash<auto> msg = rest.get("/api_text", NOTHING, NOTHING, {"Do-Error": True});
         assertEq(404, msg.status_code);
         assertEq("test error", msg.body);
+    }
+
+    methodOptionsTest() {
+        RestClient rest({"url": "http://localhost:" + port});
+        hash<auto> info;
+        rest.doRequest("OPTIONS", "/api_bin", NOTHING, \info);
+        assertEq("0", info."response-headers"."content-length");
     }
 
     methodDeleteTest() {
