@@ -24,6 +24,10 @@
         (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection qore_0943_bug_fixes Bug Fixes in Qore
+    - fixed HTTP responses with no message body and no \c Transfer-Encoding header to include a
+      <tt>Content-Length: 0</tt> header to correctly support
+      <a href="http://tools.ietf.org/html/rfc2616#section-4.4">RFC-2616</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/3879">issue 3879</a>)
     - fixed a crash in handling reference arguments in call references in mixed class contexts
       (<a href="https://github.com/qorelanguage/qore/issues/3869">issue 3869</a>)
     - fixed a memory leak in the code that manages remote client certificates in the @ref Qore::Socket "Socket" class
