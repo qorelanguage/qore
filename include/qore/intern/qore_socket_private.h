@@ -449,7 +449,10 @@ struct qore_socket_private {
         }
     }
 
-    DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = false) {
+    // issue #3879: must add Content-Length if not present, even if there is no message body
+    /** see https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+    */
+    DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = true) {
         // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
         // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
         if (headers) {
@@ -466,14 +469,14 @@ struct qore_socket_private {
                     ConstListIterator li(v.get<const QoreListNode>());
                     while (li.next())
                         do_header(key, hdr, li.getValue());
-                }
-                else
+                } else
                     do_header(key, hdr, v);
             }
         }
         // add data and content-length header if necessary
-        if (size || addsize)
+        if (size || addsize) {
             hdr.sprintf("Content-Length: " QSD "\r\n", size);
+        }
 
         hdr.concat("\r\n");
     }
@@ -2620,7 +2623,7 @@ struct qore_socket_private {
                     return;
                 if (h) {
                     str.clear();
-                    do_headers(str, *h, 0);
+                    do_headers(str, *h, 0, false);
 
                     rc = sendIntern(xsink, "Socket", "sendHttpChunkedBodyFromInputStream", str.c_str(), str.size(), timeout, total, true);
                     if (rc < 0)
