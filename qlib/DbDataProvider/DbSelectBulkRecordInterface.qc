@@ -92,5 +92,12 @@ public class DbSelectBulkRecordInterface inherits AbstractDataProviderBulkRecord
     private hash<string, list<auto>> getValueImpl() {
         return stmt.fetchColumns(block_size);
     }
+
+    #! Returns the record description, if available
+    /** @return the record type of the query results
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        return DbDataProvider::getRecordTypeFromDescribeHash(stmt.describe());
+    }
 }
 }

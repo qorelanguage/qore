@@ -35,6 +35,29 @@
 public namespace DataProvider {
 #! Defines the abstract class for data provider iterators; the destructor releases the iterator
 public class AbstractDataProviderRecordIterator inherits AbstractIterator {
+    #! Returns @ref True if the iterator supports bulk operation
+    /** @return @ref True if the iterator supports bulk operation
+
+        @note This base class method returns @ref False by default
+    */
+    bool supportsBulkApi() {
+        return False;
+    }
+
+    #! Returns the bulk data interface if supported
+    /** @return the bulk data interface if supported
+
+        @note This base class method returns @ref NOTHING by default
+    */
+    *AbstractDataProviderBulkRecordInterface getBulkApi() {
+    }
+
+    #! Returns the record description, if available
+    /** This base class method returns @ref nothing; reimplement in subclasses to provide a record type
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+    }
+
     #! returns a single record if the iterator is valid
     /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     */

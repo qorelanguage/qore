@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbTableBulkRecordInterface class definition
 
-/** DbTableBulkRecordInterface.qc Copyright 2019 Qore Technologies, s.r.o.
+/** DbTableBulkRecordInterface.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,9 @@ public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
 public class DbTableBulkRecordInterface inherits AbstractDataProviderBulkRecordInterface {
     private:internal {
+        #! The table being iterated
+        AbstractTable table;
+
         #! the statement being iterated
         AbstractSQLStatement stmt;
 
@@ -53,6 +56,7 @@ public class DbTableBulkRecordInterface inherits AbstractDataProviderBulkRecordI
     */
     constructor(int block_size, AbstractTable table, *hash<auto> where_cond, *hash<auto> search_options)
         : AbstractDataProviderBulkRecordInterface(block_size) {
+        self.table = table;
         # release the transaction with a rollback in the destructor by default if we do not already have a transaction
         # lock
         release_transaction = !table.getDatasource().currentThreadInTransaction();
@@ -79,6 +83,13 @@ public class DbTableBulkRecordInterface inherits AbstractDataProviderBulkRecordI
     */
     private hash<string, list<auto>> getValueImpl() {
         return stmt.fetchColumns(block_size);
+    }
+
+    #! Returns the record description, if available
+    /** @return the record type of the table
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        return table.getRecordType();
     }
 }
 }

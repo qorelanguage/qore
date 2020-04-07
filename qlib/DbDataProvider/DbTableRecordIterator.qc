@@ -37,6 +37,11 @@
 public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
 public class DbTableRecordIterator inherits AbstractDbRecordIterator {
+    private {
+        #! The table being iterated
+        AbstractTable table;
+    }
+
     #! creates the iterator
     /** @param table the table to iteratate
         @param search_options search options; assumed to have already been processed for validity before this call
@@ -44,6 +49,7 @@ public class DbTableRecordIterator inherits AbstractDbRecordIterator {
     constructor(AbstractTable table, *hash<auto> where_cond, *hash<auto> search_options)
         : AbstractDbRecordIterator(!table.getDatasource().currentThreadInTransaction(),
             table.getStatement(search_options + {"where": where_cond})) {
+        self.table = table;
     }
 
     #! Returns the value of the given field in the current record, if the iterator is valid
@@ -55,6 +61,13 @@ public class DbTableRecordIterator inherits AbstractDbRecordIterator {
     */
     auto memberGate(string key) {
         return doMemberGate(key);
+    }
+
+    #! Returns the record description, if available
+    /** @return the record type of the iterator
+    */
+    *hash<string, AbstractDataField> getRecordType() {
+        table.getRecordType();
     }
 }
 }
