@@ -2623,7 +2623,7 @@ struct qore_socket_private {
                     return;
                 if (h) {
                     str.clear();
-                    do_headers(str, *h, 0);
+                    do_headers(str, *h, 0, false);
 
                     rc = sendIntern(xsink, "Socket", "sendHttpChunkedBodyFromInputStream", str.c_str(), str.size(), timeout, total, true);
                     if (rc < 0)
