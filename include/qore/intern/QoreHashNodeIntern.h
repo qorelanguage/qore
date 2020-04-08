@@ -341,7 +341,7 @@ public:
     DLLLOCAL QoreHashNode* copyCheckNewType(const qore_hash_private& other) const {
         QoreHashNode* rv = copy();
         if (hashdecl || other.hashdecl) {
-            if (hashdecl != other.hashdecl) {
+            if (!hashdecl || !other.hashdecl || !hashdecl->equal(other.hashdecl)) {
                 rv->priv->hashdecl = nullptr;
                 rv->priv->complexTypeInfo = autoHashTypeInfo;
             }
