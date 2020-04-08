@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -514,7 +514,7 @@ int <date>::getEpochSecondsLocalTime() [flags=CONSTANT] {
 //! Returns a @ref DateTimeInfo hash for the date (can be either a @ref relative_dates "relative" or @ref absolute_dates "absolute" date)
 /** @par Example:
     @code{.py}
-hash<DateTimeInfo> h = date_info(date);
+hash<DateTimeInfo> h = d.info(date);
     @endcode
 
     @return a @ref DateTimeInfo hash for the given date argument
