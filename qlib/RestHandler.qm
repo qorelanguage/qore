@@ -1335,12 +1335,12 @@ public namespace RestHandler {
                     throw ex.err, ex.desc, ex.arg;
                 }
 
-                rv += (
+                rv += {
                     "body": res.body,
                     "hdr": res.hdr,
-                );
+                };
 
-                logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv.code, rv.hdr."Content-Type", rv.body.size());
+                logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv.code, rv.hdr."Content-Type" ?? "n/a", rv.body.size());
             }
 
             #logDebug("REST DBG: rv: %N", rv);
