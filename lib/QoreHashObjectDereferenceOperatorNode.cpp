@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
 
     bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
 
-    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s (%s) r: %p %s\n", lti, QoreTypeInfo::getName(lti), QoreTypeInfo::getUniqueReturnClass(lti) ? QoreTypeInfo::getUniqueReturnClass(lti)->getName() : "n/a", rti, QoreTypeInfo::getName(rti));
+    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s r: %p %s\n", lti, QoreTypeInfo::getName(lti), rti, QoreTypeInfo::getName(rti));
 
     if (for_assignment && check_lvalue(left))
         parse_error(*loc, "expression used for assignment requires an lvalue, got '%s' instead", left.getTypeName());
@@ -106,7 +106,8 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                                 typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
                             }
                         }
-                        returnTypeInfo = only_hashdecl ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
+                        // issue #3882: taking a slice of a hashdecl returns a hashdecl
+                        returnTypeInfo = hd->getTypeInfo(!only_hashdecl);
                     }
                 }
             } else {
@@ -116,7 +117,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
         }
 
         // if we are taking a slice of an object or a hash, then the return type is a hash
-        if (QoreTypeInfo::hasType(rti)) {
+        if (!returnTypeInfo && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(rti, NT_LIST) && (is_obj || is_hash))
                 returnTypeInfo = complexKeyTypeInfo ? lti : autoHashTypeInfo;
             else if (complexKeyTypeInfo && !QoreTypeInfo::parseReturns(rti, NT_LIST))
