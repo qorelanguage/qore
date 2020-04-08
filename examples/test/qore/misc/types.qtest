@@ -38,6 +38,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("hashdecl slice", \hashdeclSliceTest());
         addTestCase("<string>::toBinary()", \stringToBinary());
         addTestCase("issue 3448", \issue3448());
         addTestCase("issue 3438", \issue3438());
@@ -59,6 +60,12 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    hashdeclSliceTest() {
+        # issue #3882
+        hash<DateTimeInfo> h = now().info(){"month", "day"};
+        assertEq("hash<DateTimeInfo>", h.fullType());
     }
 
     stringToBinary() {
