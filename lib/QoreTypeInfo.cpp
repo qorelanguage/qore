@@ -775,7 +775,8 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
         case QTS_EMPTYHASH: {
             qore_type_t ot = t.getType();
             if (u.t == NT_ALL) {
-                return QTI_WILDCARD;
+                // issue #3887 if both sides are "ALL" then the match is "NEAR" and not "WILDCARD"
+                return ot == NT_ALL ? QTI_NEAR : QTI_WILDCARD;
             }
             if (ot == NT_ALL) {
                 // if the type may not match at runtime, then return no match with %strict-types
@@ -1109,14 +1110,15 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                 return exact ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             if (u.t == NT_LIST && ot == NT_LIST) {
-                    const qore_list_private* l = qore_list_private::get(*n.get<const QoreListNode>());
-                    if (l->complexTypeInfo)
+                const qore_list_private* l = qore_list_private::get(*n.get<const QoreListNode>());
+                if (l->complexTypeInfo)
                     return QTI_NEAR;
-                    return exact ? QTI_IDENT : QTI_AMBIGUOUS;
-                }
-
-            if (u.t == NT_ALL || u.t == ot)
                 return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+            }
+
+            if (u.t == NT_ALL || u.t == ot) {
+                return exact ? QTI_IDENT : QTI_AMBIGUOUS;
+            }
             break;
 
         default:
@@ -1492,30 +1494,31 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
             n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
          }
       },
-   }, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+   }, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}, QoreStringMaker("softlist<%s>", QoreTypeInfo::getName(vti))) {
    assert(vti);
-   tname.sprintf("softlist<%s>", QoreTypeInfo::getName(vti));
 }
 
-QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListOrNothingTypeInfo(q_accept_vec_t {
-      {QoreComplexListTypeSpec(vti), nullptr},
-      {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
-            QoreValue val;
-            n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
-         }
-      },
-      {NT_NOTHING, nullptr},
-      {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
-            QoreValue val;
-            n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
-         }
-      },
-      }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti)
+    : QoreComplexListOrNothingTypeInfo(q_accept_vec_t {
+            {QoreComplexListTypeSpec(vti), nullptr},
+            {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
+                    QoreValue val;
+                    n.swap(val);
+                    n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
+                    QoreValue val;
+                    n.swap(val);
+                    n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
+                }
+            },
+        },
+        q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}},
+        QoreStringMaker("*softlist<%s>", QoreTypeInfo::getName(vti))) {
    assert(vti);
-   tname.sprintf("*softlist<%s>", QoreTypeInfo::getName(vti));
 }
 
 void map_get_plain_hash_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {

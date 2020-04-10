@@ -36,8 +36,12 @@ int sub rt(reference<list<string>> r) {
 
 const TestList = (1, 2, 3);
 
+class Issue3887_Base { abstract int test(softlist<auto> l); }
+class Issue3887_Child inherits Issue3887_Base { int test(softlist l) { return 1; } }
+
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3887", \issue3887());
         addTestCase("hashdecl types", \hashdeclTypeTest());
         addTestCase("<string>::toBinary()", \stringToBinary());
         addTestCase("issue 3448", \issue3448());
@@ -60,6 +64,10 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue3887() {
+        assertEq(1, (new Issue3887_Child()).test());
     }
 
     hashdeclTypeTest() {
