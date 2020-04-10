@@ -72,6 +72,7 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
     return rv;
 }
 
+static void breakit() {}
 bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig) const {
     if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
         //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
@@ -97,6 +98,7 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
         //printd(5, "AbstractFunctionSignature::operator==() param %d (%s =~ %s) %d\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(ti), QoreTypeInfo::runtimeTypeMatch(typeList[i], ti));
 
         if (!match) {
+            breakit();
             //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
             return false;
         }
@@ -515,8 +517,8 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
         else
             QoreTypeInfo::concatName(ti, str);
     } else {
-        parseTypeList.push_back(0);
-        typeList.push_back(0);
+        parseTypeList.push_back(nullptr);
+        typeList.push_back(nullptr);
         str.append(NO_TYPE_INFO);
     }
 
@@ -533,6 +535,8 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
         else if (v->getType() == VT_GLOBAL)
             parse_error(*loc, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
     }
+
+    //printd(5, "UserSignature::UserSignature() %p '%s'\n", this, str.c_str());
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
