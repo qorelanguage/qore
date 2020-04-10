@@ -344,7 +344,8 @@ class QoreTypeInfo {
 protected:
     QoreString tname;
 
-    DLLLOCAL QoreTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : accept_vec(a_vec), return_vec(r_vec) {
+    DLLLOCAL QoreTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec, const QoreString& tname)
+        : tname(tname), accept_vec(a_vec), return_vec(r_vec) {
     }
 
 public:
@@ -1520,33 +1521,34 @@ protected:
 
 class QoreClassTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreClassTypeInfo(const QoreClass* qc, const char* name) : QoreTypeInfo(q_accept_vec_t {{qc, nullptr, true}}, q_return_vec_t {{qc, true}}) {
-       tname.sprintf("object<%s>", name);
-   }
+    DLLLOCAL QoreClassTypeInfo(const QoreClass* qc, const char* name)
+        : QoreTypeInfo(q_accept_vec_t {{qc, nullptr, true}}, q_return_vec_t {{qc, true}},
+            QoreStringMaker("object<%s>", name)) {
+    }
 
 protected:
-   DLLLOCAL QoreClassTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreClassTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec, const QoreString& tname)
+        : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 };
 
 class QoreClassOrNothingTypeInfo : public QoreClassTypeInfo {
 public:
-   DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(q_accept_vec_t {
-         {qc, nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      }, q_return_vec_t {{qc}, {NT_NOTHING}}) {
-       tname.sprintf("*object<%s>", name);
-   }
+    DLLLOCAL QoreClassOrNothingTypeInfo(const QoreClass* qc, const char* name) : QoreClassTypeInfo(q_accept_vec_t {
+            {qc, nullptr},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+        }, q_return_vec_t {{qc}, {NT_NOTHING}}, QoreStringMaker("*object<%s>", name)) {
+    }
 
 protected:
    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
@@ -1561,12 +1563,14 @@ protected:
 
 class QoreHashDeclTypeInfo : public QoreTypeInfo {
 public:
-    DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
-        tname.sprintf("hash<%s>", name);
+    DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name)
+        : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}},
+        QoreStringMaker("hash<%s>", name)) {
     }
 
 protected:
-    DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec, const QoreString& tname)
+        : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 
     DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
@@ -1591,8 +1595,7 @@ public:
             {hd, nullptr},
             {NT_NOTHING, nullptr},
             {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-        }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
-        tname.sprintf("*hash<%s>", name);
+        }, q_return_vec_t {{hd}, {NT_NOTHING}}, QoreStringMaker("*hash<%s>", name)) {
     }
 
 protected:
@@ -1616,16 +1619,17 @@ protected:
 
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
-    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
-        if (vti == autoTypeInfo) {
-            tname = "hash<auto>";
-        } else {
-            tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
-        }
+    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti)
+        : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}},
+            q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}},
+            vti == autoTypeInfo
+                ? QoreString("hash<auto>")
+                : QoreStringMaker("hash<string, %s>", QoreTypeInfo::getName(vti))) {
     }
 
 protected:
-    DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname) : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 
     DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
@@ -1652,12 +1656,10 @@ public:
             {QoreComplexHashTypeSpec(vti), nullptr, true},
             {NT_NOTHING, nullptr},
             {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-            }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
-        if (vti == autoTypeInfo) {
-            tname = "*hash<auto>";
-        } else {
-            tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
-        }
+            }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}},
+            vti == autoTypeInfo
+                ? QoreString("*hash<auto>")
+                : QoreStringMaker("*hash<string, %s>", QoreTypeInfo::getName(vti))) {
     }
 
 protected:
@@ -1693,13 +1695,16 @@ public:
 
 class QoreComplexListTypeInfo : public QoreTypeInfo {
 public:
-    DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+    DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti)
+        : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}},
+            q_return_vec_t {{QoreComplexListTypeSpec(vti), true}},
+            QoreStringMaker("list<%s>", QoreTypeInfo::getName(vti))) {
         assert(vti);
-        tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
     }
 
 protected:
-    DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname) : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 
     DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
@@ -1726,13 +1731,14 @@ public:
             {QoreComplexListTypeSpec(vti), nullptr},
             {NT_NOTHING, nullptr},
             {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-            }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+            }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}},
+            QoreStringMaker("*list<%s>", QoreTypeInfo::getName(vti))) {
         assert(vti);
-        tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
     }
 
 protected:
-    DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 
     DLLLOCAL virtual bool hasDefaultValueImpl() const {
@@ -1761,7 +1767,9 @@ public:
     DLLLOCAL QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti);
 
 protected:
-    DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname)
+        : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 };
 
@@ -1770,51 +1778,58 @@ public:
     DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
 
 protected:
-    DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListOrNothingTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname)
+         : QoreComplexListOrNothingTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 };
 
 class QoreComplexReferenceTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexReferenceTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexReferenceTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexReferenceTypeSpec(vti), true}}) {
-       assert(vti);
-       tname.sprintf("reference<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexReferenceTypeInfo(const QoreTypeInfo* vti)
+        : QoreTypeInfo(q_accept_vec_t {{QoreComplexReferenceTypeSpec(vti), nullptr, true}},
+            q_return_vec_t {{QoreComplexReferenceTypeSpec(vti), true}},
+            QoreStringMaker("reference<%s>", QoreTypeInfo::getName(vti))) {
+        assert(vti);
+    }
 
 protected:
-   DLLLOCAL QoreComplexReferenceTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexReferenceTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
+        const QoreString& tname) : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 };
 
 class QoreComplexReferenceOrNothingTypeInfo : public QoreComplexReferenceTypeInfo {
 public:
-   DLLLOCAL QoreComplexReferenceOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexReferenceTypeInfo(q_accept_vec_t {
-         {QoreComplexReferenceTypeSpec(vti), nullptr, true},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-         }, q_return_vec_t {{QoreComplexReferenceTypeSpec(vti)}, {NT_NOTHING}}) {
-       assert(vti);
-       tname.sprintf("*reference<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexReferenceOrNothingTypeInfo(const QoreTypeInfo* vti)
+        : QoreComplexReferenceTypeInfo(q_accept_vec_t {
+                {QoreComplexReferenceTypeSpec(vti), nullptr, true},
+                {NT_NOTHING, nullptr},
+                {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            },
+            q_return_vec_t {{QoreComplexReferenceTypeSpec(vti)}, {NT_NOTHING}},
+            QoreStringMaker("*reference<%s>", QoreTypeInfo::getName(vti))) {
+        assert(vti);
+    }
 
 protected:
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.sprintf("reference<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexReference()));
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("reference<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexReference()));
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 };
 
 class QoreBaseTypeInfo : public QoreTypeInfo {
@@ -3135,7 +3150,7 @@ public:
                n.assign(l);
             }
          },
-      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo), true}}) {
+      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo), true}}, QoreString("softlist<auto>")) {
    }
 };
 
@@ -3151,7 +3166,7 @@ public:
                n.assign(l);
             }
          },
-      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo)}, {NT_NOTHING}}) {
+      }, q_return_vec_t {{QoreComplexListTypeSpec(autoTypeInfo)}, {NT_NOTHING}}, QoreString("*softlist<auto>")) {
    }
 };
 
