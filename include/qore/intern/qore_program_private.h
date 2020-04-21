@@ -97,7 +97,7 @@ public:
 typedef safe_dslist<LocalVar*> local_var_list_t;
 
 // expression type
-typedef ReturnStatement* q_exp_t;
+typedef StatementBlock* q_exp_t;
 
 class LocalVariableList : public local_var_list_t {
 public:
@@ -1773,31 +1773,7 @@ public:
         i->second->clearTZ();
     }
 
-    DLLLOCAL void addStatement(AbstractStatement* s) {
-        if (expression_mode) {
-            if (new_expression) {
-                parse_error(*s->loc, "invalid expression; only a single expression can be parsed");
-                delete s;
-                return;
-            }
-            q_exp_t exp = dynamic_cast<ReturnStatement*>(s);
-            if (!exp) {
-                parse_error(*s->loc, "invalid expression; check expression syntax");
-                delete s;
-                return;
-            }
-            new_expression = exp;
-            assert(exp_set.find(exp) == exp_set.end());
-            exp_set.insert(exp);
-            return;
-        }
-
-        sb.addStatement(s);
-
-        // see if top level statements are allowed
-        if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
-            parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
-    }
+    DLLLOCAL void addStatement(AbstractStatement* s);
 
     DLLLOCAL q_exp_t createExpression(const QoreStringNode& source, const QoreStringNode& label, ExceptionSink* xsink) {
         return parseExpression(source, label, xsink);
@@ -1814,8 +1790,7 @@ public:
         }
         ThreadFrameBoundaryHelper tfbh(true);
 
-        ValueHolder rv(xsink);
-        exp->exec(*rv, xsink);
+        ValueHolder rv(exp->exec(xsink), xsink);
         if (*xsink) {
             return QoreValue();
         }

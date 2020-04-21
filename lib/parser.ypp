@@ -289,10 +289,12 @@ struct GVarSingleDecl : public GVarDecl {
         if (bare) {
             if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error(*loc, "global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
-        }
-        else {
+        } else {
             if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error(*loc, "reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", n);
+        }
+        if (qore_program_private::get(*getProgram())->expression_mode) {
+            parse_error(*loc, "global variable declaration '%s' not allowed in expressions' is set", n);
         }
     }
 
