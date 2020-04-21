@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_Program.h
+  QC_Expression.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,15 +29,37 @@
   information.
 */
 
-#ifndef _QORE_CLASS_PROGRAM_H
+#ifndef _QORE_CLASS_EXPRESSION_H
+#define _QORE_CLASS_EXPRESSION_H
 
-#define _QORE_CLASS_PROGRAM_H
+#include "qore/intern/qore_program_private.h"
 
-DLLEXPORT extern qore_classid_t CID_PROGRAM;
-DLLEXPORT extern QoreClass* QC_PROGRAM;
-DLLLOCAL void preinitProgramClass();
-DLLLOCAL QoreClass *initProgramClass(QoreNamespace& ns);
+class QoreExpression : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreExpression(QoreProgram& qore_pgm, const QoreStringNode& source, const QoreStringNode& label, ExceptionSink* xsink)
+        : pgm(qore_program_private::get(qore_pgm)) {
+        pgm->depRef();
+        exp = pgm->createExpression(source, label, xsink);
+    }
 
-#include <qore/QoreProgram.h>
+    DLLLOCAL ~QoreExpression() {
+        if (exp) {
+            pgm->deleteExpression(exp);
+        }
+        pgm->depDeref();
+    }
 
-#endif // _QORE_CLASS_PROGRAM_H
+    DLLLOCAL QoreValue eval(ExceptionSink* xsink) const {
+        return pgm->evalExpression(exp, xsink);
+    }
+
+protected:
+    qore_program_private* pgm;
+    q_exp_t exp;
+};
+
+DLLEXPORT extern qore_classid_t CID_EXPRESSION;
+DLLEXPORT extern QoreClass* QC_EXPRESSION;
+DLLLOCAL QoreClass *initExpressionClass(QoreNamespace& ns);
+
+#endif

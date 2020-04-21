@@ -51,6 +51,7 @@
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_DebugProgram.h"
 #include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/QC_Expression.h"
 #include "qore/intern/QC_File.h"
 #include "qore/intern/QC_Dir.h"
 #include "qore/intern/QC_GetOpt.h"
@@ -1033,6 +1034,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qns.addSystemClass(initSSLCertificateClass(qns));
     qns.addSystemClass(initSSLPrivateKeyClass(qns));
     qns.addSystemClass(initSocketClass(qns));
+    preinitProgramClass();  // to resolve circular dependency Program/Expression class
+    qns.addSystemClass(initExpressionClass(qns));
     preinitBreakpointClass();  // to resolve circular dependency Program/Breakpoint class
     qns.addSystemClass(initProgramControlClass(qns));
     qns.addSystemClass(initProgramClass(qns));
