@@ -678,10 +678,6 @@ int qore_program_private::internParseCommit(bool standard_parse) {
     QORE_TRACE("qore_program_private::internParseCommit()");
     printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d standard_parse: %d parsing_done: %d\n", pgm, parseSink->isEvent(), standard_parse, parsing_done);
 
-    if (!standard_parse) {
-        printd(0, "qore_program_private::internParseCommit() pgm: %p isEvent: %d standard_parse: %d parsing_done: %d\n", pgm, parseSink->isEvent(), standard_parse, parsing_done);
-    }
-
     // if a parse exception has occurred, then back out all new
     // changes to the QoreProgram atomically
     int rc;
@@ -735,6 +731,39 @@ int qore_program_private::internParseCommit(bool standard_parse) {
     }
 
     return rc;
+}
+
+void qore_program_private::addStatement(AbstractStatement* s) {
+    if (expression_mode) {
+        if (new_expression) {
+            parse_error(*s->loc, "invalid expression; only a single expression can be parsed");
+            delete s;
+            return;
+        }
+        ReturnStatement* exp = dynamic_cast<ReturnStatement*>(s);
+        if (!exp) {
+            parse_error(*s->loc, "invalid expression; check expression syntax");
+            delete s;
+            return;
+        }
+
+        unique_ptr<StatementBlock> block(new StatementBlock(0, 0));
+        block->addStatement(exp);
+
+        // initialize expression
+        block->parseInit(nullptr, 0);
+
+        assert(exp_set.find(block.get()) == exp_set.end());
+        new_expression = block.get();
+        exp_set.insert(block.release());
+        return;
+    }
+
+    sb.addStatement(s);
+
+    // see if top level statements are allowed
+    if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
+        parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
 }
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink) {

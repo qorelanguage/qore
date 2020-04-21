@@ -228,8 +228,16 @@ class ProgramTest inherits QUnit::Test {
         assertEq(1, p.callFunction("t"));
         Expression exp0 = p.getExpression("1", "exp1");
         assertEq(1, exp0.eval());
+        assertEq(1, exp0.eval());
         Expression exp1 = p.getExpression("round(nlog(1000) + 500).toString()", "exp1");
         assertEq("507", exp1.eval());
+        Expression exp2 = p.getExpression("(int x = (rand() % 200)) + x * 2", "exp2");
+        assertEq(Type::Int, exp2.eval().type());
+
+        # only a single expression is allowed
+        assertThrows("PARSE-EXCEPTION", \p.getExpression(), ("1); namespace X { sub t() {} } our int x = (3", "exp3"));
+        # global variables may not be declared
+        assertThrows("PARSE-EXCEPTION", \p.getExpression(), ("our int x = (rand() % 200)", "exp4"));
 
         delete p;
         assertThrows("PROGRAM-ERROR", \exp0.eval());
