@@ -924,8 +924,7 @@ public:
             // add new member to list
             mmap.addNoCheck(member->getPair());
             delete member;
-        }
-        else if (member->type == MI_Constant) {
+        } else if (member->type == MI_Constant) {
             if (cmap.inList(member->name)) {
                 parse_error(*member->loc, "duplicate constant declaration '%s'", member->name);
                 delete member;
@@ -940,8 +939,7 @@ public:
             // add new constant to list
             cmap.parseAdd(member->loc, member->name, member->takeExp());
             delete member;
-        }
-        else {
+        } else {
             assert(member->type == MI_Var);
             if (vmap.find(member->name)) {
                 parse_error(*member->loc, "duplicate static class variable declaration '%s'", member->name);
@@ -1403,8 +1401,7 @@ static AbstractQoreNode* processCall(int sline, int eline, QoreValue $1, QoreVal
         b->deref();
         printd(5, "parsing call %s() args: %s\n", str, $3.getTypeName());
         $$ = new FunctionCallNode(loc, str, make_args(argloc, $3));
-    }
-    else if (t == NT_CONSTANT) {
+    } else if (t == NT_CONSTANT) {
         ScopedRefNode* c = $1.get<ScopedRefNode>();
         // take NamedScope from node and delete node
         NamedScope *ns = c->takeName();
@@ -1412,16 +1409,14 @@ static AbstractQoreNode* processCall(int sline, int eline, QoreValue $1, QoreVal
         assert(ns->size() > 1);
         printd(5, "parsing scoped call (static method, new object call, or program function call) %s()\n", ns->ostr);
         $$ = new StaticMethodCallNode(loc, ns, make_args(argloc, $3));
-    }
-    else if (t == NT_SELF_VARREF) {
+    } else if (t == NT_SELF_VARREF) {
         SelfVarrefNode* v = $1.get<SelfVarrefNode>();
         // take string from node and delete node
         char* str = v->takeString();
         v->deref();
         //printd(5, "parsing in-object method call %s()\n", str);
         $$ = new SelfFunctionCallNode(loc, str, make_args(argloc, $3));
-    }
-    else {
+    } else {
         QoreHashObjectDereferenceOperatorNode* hodon;
 
         if (t == NT_OPERATOR) {
@@ -1431,8 +1426,7 @@ static AbstractQoreNode* processCall(int sline, int eline, QoreValue $1, QoreVal
                 if (r.getType() != NT_STRING)
                     hodon = nullptr;
             }
-        }
-        else
+        } else
             hodon = nullptr;
 
         if (hodon) {
@@ -1452,8 +1446,7 @@ static AbstractQoreNode* processCall(int sline, int eline, QoreValue $1, QoreVal
             hodon->deref(nullptr);
 
             $$ = new QoreDotEvalOperatorNode(loc, l, mc);
-        }
-        else {
+        } else {
             $$ = nullptr;
             if ($1.getType() == NT_VARREF) {
                 VarRefNode* r = $1.get<VarRefNode>();
@@ -1506,7 +1499,7 @@ static void check_operator_bin_xor(const QoreProgramLocation* loc, QoreValue n, 
 
 // remove this and use the following line when bison is updated on all build environments enough to support api.pure
 %pure-parser
-//%define api.pure
+//%define api.pure full
 %lex-param {yyscan_t yyscanner}
 %parse-param {yyscan_t yyscanner}
 %locations
@@ -1906,8 +1899,7 @@ top_level_command:
                 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS)) {
                     parse_error(*loc, "%%try-module variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", $1->var);
                 }
-            }
-            else {
+            } else {
                 $1->fixName();
                 if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
                     parse_error(*loc, "%%try-module variable '%s' declared with '$' prefix, but parse option 'allow-bare-refs' is set", $1->var);
@@ -1915,8 +1907,7 @@ top_level_command:
 
             if (parse_check_parse_option(PO_NO_TOP_LEVEL_STATEMENTS)) {
                 parse_error(*loc, "'%%try-module' with exception variable cannot be used with parse option NO_TOP_LEVEL_STATEMENTS; use %%try-module without an exception variable instead");
-            }
-            else {
+            } else {
                 VarRefTryModuleErrorNode* left = new VarRefTryModuleErrorNode(loc, $1->takeName());
                 QoreAssignmentOperatorNode* exp = new QoreAssignmentOperatorNode(loc, left, $1->takeExceptionHash());
                 qore_program_private::addStatement(*(getProgram()), new ExpressionStatement(loc, exp));
@@ -2132,6 +2123,7 @@ optname:
 statement:
         ';' { $$ = new StatementBlock(@1.first_line, @1.last_line); }
         | exp_n ';' {
+            qore_program_private* pgm = qore_program_private::get(*getProgram());
             // if the expression has no effect and it's not a variable declaration
             qore_type_t t = $1.getType();
             bool ok = false;
@@ -2144,7 +2136,7 @@ statement:
                     ok = true;
             }
 
-            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
+            const QoreProgramLocation* loc = pgm->getLocation(@1.first_line, @1.last_line);
 
             if (!ok) {
                 if (!value_has_effect_as_root($1) && (t != NT_VARREF || !$1.get<VarRefNode>()->parseIsDecl())) {

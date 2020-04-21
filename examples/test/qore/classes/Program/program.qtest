@@ -200,6 +200,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("expression test", \expressionTest());
         addTestCase("call ref", \callRefTest());
         addTestCase("issue 2993", \issue2993());
         addTestCase("issue 3136", \issue3136());
@@ -219,6 +220,19 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    expressionTest() {
+        Program p(PO_NEW_STYLE);
+        p.parse("int sub t() { return 1; }", "");
+        assertEq(1, p.callFunction("t"));
+        Expression exp0 = p.getExpression("1", "exp1");
+        assertEq(1, exp0.eval());
+        Expression exp1 = p.getExpression("round(nlog(1000) + 500).toString()", "exp1");
+        assertEq("507", exp1.eval());
+
+        delete p;
+        assertThrows("PROGRAM-ERROR", \exp0.eval());
     }
 
     callRefTest() {
@@ -828,7 +842,7 @@ class ProgramTest inherits QUnit::Test {
         assertEq(1, v.size());
         try {
             assertEq(
-                "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, *object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, *reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, *softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, *softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, Test test, TestNS testns, TestNS nsttestns)",
+                "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, *object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, *reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, *softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, *softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, Test test, TestNS testns, NS::TestNS nsttestns)",
                 v[0].desc # TODO: class: Test ????, *softlist,  namespaces ignored, closure, callref as code
             );
         } catch (hash<ExceptionInfo> ex) {
