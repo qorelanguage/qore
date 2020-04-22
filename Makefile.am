@@ -184,6 +184,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_ProgramControl.qpp \
 	lib/QC_DebugProgram.qpp \
 	lib/QC_Breakpoint.qpp \
+	lib/QC_Expression.qpp \
 	lib/QC_Queue.qpp \
 	lib/QC_RWLock.qpp \
 	lib/QC_SQLStatement.qpp \
@@ -799,6 +800,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_ProgramControl.h \
 	include/qore/intern/QC_DebugProgram.h \
 	include/qore/intern/QC_Breakpoint.h \
+	include/qore/intern/QC_Expression.h \
 	include/qore/intern/QC_Mutex.h \
 	include/qore/intern/QC_Condition.h \
 	include/qore/intern/QC_Gate.h \

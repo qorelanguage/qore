@@ -1,7 +1,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -270,6 +270,7 @@
 #include "QC_Program.cpp"
 #include "QC_DebugProgram.cpp"
 #include "QC_Breakpoint.cpp"
+#include "QC_Expression.cpp"
 #include "QC_ReadOnlyFile.cpp"
 #include "QC_File.cpp"
 #include "QC_Dir.cpp"

@@ -655,6 +655,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         sb.del();
         //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
+        // clear expressions
+        for (auto& i : exp_set) {
+            delete i;
+        }
+        exp_set.clear();
+
         del(xsink);
 
         // clear program location
@@ -668,51 +674,96 @@ void qore_program_private::clear(ExceptionSink* xsink) {
     depDeref();
 }
 
-int qore_program_private::internParseCommit() {
+int qore_program_private::internParseCommit(bool standard_parse) {
     QORE_TRACE("qore_program_private::internParseCommit()");
-    printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d\n", pgm, parseSink->isEvent());
-
-    assert(!parsing_done);
-
-    // if the first stage of parsing has already failed,
-    // then don't go forward
-    if (!parseSink->isEvent()) {
-        // initialize new statements second (for "our" and "my" declarations)
-        // also initializes namespaces, constants, etc
-        sb.parseInit();
-
-        printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
-    }
+    printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d standard_parse: %d parsing_done: %d\n", pgm, parseSink->isEvent(), standard_parse, parsing_done);
 
     // if a parse exception has occurred, then back out all new
     // changes to the QoreProgram atomically
     int rc;
-    if (parseSink->isEvent()) {
-        internParseRollback(parseSink);
-        requires_exception = false;
-        rc = -1;
-    }
-    else { // otherwise commit them
-        parsing_done = true;
+    if (standard_parse) {
+        assert(!parsing_done);
+
+        // if the first stage of parsing has already failed,
+        // then don't go forward
+        if (!parseSink->isEvent()) {
+            // initialize new statements second (for "our" and "my" declarations)
+            // also initializes namespaces, constants, etc
+            sb.parseInit();
+
+            printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
+        }
+
+        if (parseSink->isEvent()) {
+            internParseRollback(parseSink);
+            requires_exception = false;
+            rc = -1;
+        } else { // otherwise commit them
+            parsing_in_progress = false;
+            parsing_done = true;
+
+            // merge pending namespace additions
+            qore_root_ns_private::parseCommit(*RootNS);
+
+            // commit pending statements
+            sb.parseCommit(pgm);
+
+            // commit pending domain
+            dom |= pend_dom;
+            pend_dom = 0;
+
+            // free temporary data structures
+            str_set.clear();
+            loc_set.clear();
+
+            rc = 0;
+        }
+    } else if (!*parseSink) {
         parsing_in_progress = false;
-
-        // merge pending namespace additions
-        qore_root_ns_private::parseCommit(*RootNS);
-
-        // commit pending statements
-        sb.parseCommit(pgm);
-
-        // commit pending domain
-        dom |= pend_dom;
         pend_dom = 0;
 
         // free temporary data structures
         str_set.clear();
         loc_set.clear();
-
         rc = 0;
+    } else {
+        rc = -1;
     }
+
     return rc;
+}
+
+void qore_program_private::addStatement(AbstractStatement* s) {
+    if (expression_mode) {
+        if (new_expression) {
+            parse_error(*s->loc, "invalid expression; only a single expression can be parsed");
+            delete s;
+            return;
+        }
+        ReturnStatement* exp = dynamic_cast<ReturnStatement*>(s);
+        if (!exp) {
+            parse_error(*s->loc, "invalid expression; check expression syntax");
+            delete s;
+            return;
+        }
+
+        unique_ptr<StatementBlock> block(new StatementBlock(0, 0));
+        block->addStatement(exp);
+
+        // initialize expression
+        block->parseInit(nullptr, 0);
+
+        assert(exp_set.find(block.get()) == exp_set.end());
+        new_expression = block.get();
+        exp_set.insert(block.release());
+        return;
+    }
+
+    sb.addStatement(s);
+
+    // see if top level statements are allowed
+    if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
+        parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
 }
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink) {
@@ -1025,6 +1076,12 @@ void qore_program_private::del(ExceptionSink* xsink) {
     // delete all root code
     // method call can be repeated
     sb.del();
+
+    // clear expressions
+    for (auto& i : exp_set) {
+        delete i;
+    }
+    exp_set.clear();
 
     //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
