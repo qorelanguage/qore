@@ -34,6 +34,7 @@
 #include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/QC_Expression.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/ModuleInfo.h"
@@ -2356,4 +2357,18 @@ nothing Program::issueModuleCmd(string module, string cmd) {
 code Program::getCallReference(string identifier) [flags=RET_VALUE_ONLY] {
     QoreProgramContextHelper pch(p);
     return get_call_reference_intern(runtime_get_stack_object(), identifier, xsink);
+}
+
+//! returns an expression object for the given source code
+/** @param source The source to the expression
+    @param label the label for the expression
+
+    @since %Qore 0.9.5
+*/
+Expression Program::getExpression(string source, string label) {
+    ReferenceHolder<QoreExpression> exp(new QoreExpression(*p, *source, *label, xsink), xsink);
+    if (!*xsink) {
+        return new QoreObject(QC_EXPRESSION, p, exp.release());
+    }
+    return QoreValue();
 }

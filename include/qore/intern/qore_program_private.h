@@ -43,6 +43,7 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_AutoWriteLock.h"
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_ProgramControl.h"
+#include "qore/intern/ReturnStatement.h"
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 #include "qore/vector_map"
@@ -94,6 +95,9 @@ public:
 
 // local variable container
 typedef safe_dslist<LocalVar*> local_var_list_t;
+
+// expression type
+typedef StatementBlock* q_exp_t;
 
 class LocalVariableList : public local_var_list_t {
 public:
@@ -388,8 +392,13 @@ public:
         parsing_done : 1,
         parsing_in_progress : 1,
         ns_const : 1,
-        ns_vars : 1
+        ns_vars : 1,
+        expression_mode : 1
         ;
+
+    typedef std::set<q_exp_t> q_exp_set_t;
+    q_exp_set_t exp_set;
+    q_exp_t new_expression = nullptr;
 
     int tclear;   // clearing thread-local variables in progress? if so, this is the TID
 
@@ -440,6 +449,7 @@ public:
             parsing_in_progress(false),
             ns_const(false),
             ns_vars(false),
+            expression_mode(false),
             tclear(0),
             exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
             thr_init(nullptr), pgm(n_pgm) {
@@ -898,7 +908,7 @@ public:
     DLLLOCAL void internParseRollback(ExceptionSink* xsink);
 
     // call must push the current program on the stack and pop it afterwards
-    DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
+    DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label, const char* orig_src = nullptr, int offset = 0, bool standard_parse = true) {
         //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
         assert(code && code[0]);
@@ -941,9 +951,11 @@ public:
         int rc = 0;
         if (parseSink->isException()) {
             rc = -1;
-            printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
-            internParseRollback(xsink);
-            requires_exception = false;
+            if (standard_parse) {
+                printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
+                internParseRollback(xsink);
+                requires_exception = false;
+            }
         }
 
         printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
@@ -995,7 +1007,7 @@ public:
     }
 
    // caller must have grabbed the lock and put the current program on the program stack
-   DLLLOCAL int internParseCommit();
+   DLLLOCAL int internParseCommit(bool standard_parse = true);
 
     DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
@@ -1146,6 +1158,73 @@ public:
         parseSink = nullptr;
 #endif
         warnSink = nullptr;
+    }
+
+    DLLLOCAL q_exp_t parseExpression(const QoreString& str, const QoreString& lstr, ExceptionSink* xsink,
+        ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
+        assert(xsink);
+        if (!str.strlen()) {
+            xsink->raiseException("EXPRESSION-ERROR", "the expression cannot be empty");
+            return nullptr;
+        }
+
+        // ensure code string has correct character set encoding
+        TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+        if (*xsink)
+            return nullptr;
+
+        // ensure label string has correct character set encoding
+        TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+        if (*xsink)
+            return nullptr;
+
+        TempEncodingHelper src;
+        if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
+            return nullptr;
+
+        return parseExpression(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
+    }
+
+    DLLLOCAL q_exp_t parseExpression(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
+        //printd(5, "qore_program_private::parse(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
+
+        assert(code && code[0]);
+        assert(xsink);
+
+        ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        assert(!expression_mode);
+        assert(!new_expression);
+        expression_mode = true;
+
+        QoreStringMaker exp_code("return (%s);", code);
+
+        startParsing(xsink, wS, wm);
+
+        // parse text given
+        if (!internParsePending(xsink, exp_code.c_str(), label, orig_src, offset, false)) {
+            internParseCommit(false);   // finalize parsing, back out or commit all changes
+        }
+
+#ifdef DEBUG
+        parseSink = nullptr;
+#endif
+        warnSink = nullptr;
+
+        expression_mode = false;
+        q_exp_t rv = new_expression;
+        if (new_expression) {
+            if (*xsink) {
+                exp_set.erase(new_expression);
+                delete new_expression;
+                rv = nullptr;
+            }
+            new_expression = nullptr;
+        }
+        return rv;
     }
 
     DLLLOCAL void parseFile(const char* filename, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
@@ -1694,12 +1773,37 @@ public:
         i->second->clearTZ();
     }
 
-    DLLLOCAL void addStatement(AbstractStatement* s) {
-        sb.addStatement(s);
+    DLLLOCAL void addStatement(AbstractStatement* s);
 
-        // see if top level statements are allowed
-        if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
-            parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+    DLLLOCAL q_exp_t createExpression(const QoreStringNode& source, const QoreStringNode& label, ExceptionSink* xsink) {
+        return parseExpression(source, label, xsink);
+    }
+
+    DLLLOCAL QoreValue evalExpression(q_exp_t exp, ExceptionSink* xsink) {
+        ProgramThreadCountContextHelper pch(xsink, pgm, true);
+        if (*xsink) {
+            return QoreValue();
+        }
+        if (exp_set.find(exp) == exp_set.end()) {
+            xsink->raiseException("INVALID-EXPRESSION", "expression not registered to this Program object");
+            return QoreValue();
+        }
+        ThreadFrameBoundaryHelper tfbh(true);
+
+        ValueHolder rv(exp->exec(xsink), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+        return rv.release();
+    }
+
+    DLLLOCAL void deleteExpression(q_exp_t exp) {
+        AutoLocker al(plock);
+        q_exp_set_t::iterator i = exp_set.find(exp);
+        if (i != exp_set.end()) {
+            exp_set.erase(exp);
+            delete exp;
+        }
     }
 
     DLLLOCAL void importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr, bool inject = false, q_setpub_t set_pub = CSP_UNCHANGED);

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_SUB 4)
-set(VERSION_PATCH 3)
+set(VERSION_PATCH 4)
 
 # support <pkg>_ROOT in find_package
 if (POLICY CMP0074)
@@ -138,6 +138,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_ProgramControl.qpp
     lib/QC_DebugProgram.qpp
     lib/QC_Breakpoint.qpp
+    lib/QC_Expression.qpp
     lib/QC_Queue.qpp
     lib/QC_RWLock.qpp
     lib/QC_SQLStatement.qpp
