@@ -142,14 +142,24 @@ public namespace Mapper {
         *string returns_type;
 
         #! The code to handle the key at runtime
-        /** the signature of this closure or call reference depends on \a requires_input:
-            - \a requires_roles contains \a value: <tt>auto sub (auto arg, auto val) {}</tt>
+        /** the signature of this closure or call reference depends on \a requires_roles:
+            - \a requires_roles contains \a value:
+              <tt>auto sub (auto arg, auto val, hash<auto> ctx, *reference<bool> missing_input) {}</tt>
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
                 - \c val: the current value of the mapping, if any
-            - \a requires_roles does not contain \a value: <tt>auto sub (auto arg) {}</tt>
+                - \c ctx: mapper context info; will contain at least a string \c "output-key" field giving the name of
+                  the output field currently being mapped
+                - \c missing_input: an output variable; set to True if the handler could not resolve the value because
+                  input was missing
+            - \a requires_roles does not contain \a value:
+              <tt>auto sub (auto arg, hash<auto> ctx, *reference<bool> missing_input) {}</tt>
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
+                - \c ctx: mapper context info; will contain at least a string \c "output-key" field giving the name of
+                  the output field currently being mapped
+                - \c missing_input: an output variable; set to True if the handler could not resolve the value because
+                  input was missing
 
             In both cases the return value is the value to use for the field
         */
