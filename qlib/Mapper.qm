@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.6.0";
+    version = "1.5.2";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -302,6 +302,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
     @section mapperrelnotes Release Notes
 
+    @subsection mapperv1_5_2 Mapper v1.5.2
+    - added support for mapper context in mapper field key handlers
+      (<a href="https://github.com/qorelanguage/qore/issues/3893">issue 3893</a>)
+
     @subsection mapperv1_5_1 Mapper v1.5.1
     - added the \c ignore_missing_input mapper option
       (<a href="https://github.com/qorelanguage/qore/issues/3837">issue 3837</a>)
@@ -392,6 +396,7 @@ public class Mapper inherits AbstractDataProcessor {
             "input_log": "a call reference / closure for input record logging",
             "input_provider": "the input provider (mutually exclusive with input)",
             "input_timezone": "DEPRECATED: the default timezone to assume when parsing input dates",
+            "mapper_thread_context": "an optional thread context hash",
             "name": "the name of the Mapper object",
             "number_format": "DEPRECATED: the default number format when parsing number fields from strings; ex: "
                 "\".,\"",
@@ -477,6 +482,11 @@ public class Mapper inherits AbstractDataProcessor {
                 "type": "bool",
                 "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
                     "mapAuto",
+            },
+
+            "mapper_handler_context": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "a hash that will be passed to any field handlers as the context argument",
             },
         };
 
@@ -647,6 +657,12 @@ public class Mapper inherits AbstractDataProcessor {
         #! hash of valid keys
         hash<string, bool> valid_keys;
 
+        #! mapper handler context hash; to be passed to handlers
+        hash<auto> mapper_handler_context = {};
+
+        #! mapper static thread context hash
+        *hash<auto> mapper_thread_context;
+
         #! maps standard types to auto types to avoid type stripping
         const TypeMap = {
             "hash": "hash<auto>",
@@ -666,6 +682,9 @@ public class Mapper inherits AbstractDataProcessor {
             "input_timezone": "date.input_timezone",
             "number_format": "number.format",
         };
+
+        #! Thread key for mapper thread context while mapping
+        const _Mapper_Thread_Key = "_Mapper_Thread_Key";
     }
 
     #! builds the object based on a hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -1053,6 +1072,11 @@ Mapper mapv(DataMap);
 
         if (opts.disable_bulk) {
             disable_bulk = True;
+        }
+
+        # setup mapper handler context
+        if (opts.mapper_handler_context) {
+            mapper_handler_context = opts.mapper_handler_context;
         }
 
         if (!mapv)
@@ -1923,6 +1947,9 @@ Mapper mapv(DataMap);
         }
 
         if (rec_list_size > 0) {
+            *hash<auto> old_ctx = swapMapperThreadContext(mapper_thread_context);
+            on_exit swapMapperThreadContext(old_ctx);
+
             hash<auto> dh;
 
             if (crec) {
@@ -1977,6 +2004,11 @@ Mapper mapv(DataMap);
         } # else no input, no work, not even for constant mappers
     }
 
+    #! Get mapper thread context
+    static *hash<auto> getMapperThreadContext() {
+        return get_thread_data(_Mapper_Thread_Key);
+    }
+
     #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
     /** @param rec the record to translate
 
@@ -1991,6 +2023,9 @@ Mapper mapv(DataMap);
         - this is the same as mapData() except no output logging is performed
     */
     private hash<auto> mapDataIntern(hash<auto> rec) {
+        *hash<auto> old_ctx = swapMapperThreadContext(mapper_thread_context);
+        on_exit swapMapperThreadContext(old_ctx);
+
         if (input_log)
             input_log(rec);
 
@@ -2028,6 +2063,13 @@ Mapper mapv(DataMap);
         ++count;
 
         return h;
+    }
+
+    #! Swap the mapper thread context
+    private static *hash<auto> swapMapperThreadContext(*hash<auto> new_ctx) {
+        *hash<auto> rv = get_thread_data(_Mapper_Thread_Key);
+        save_thread_data(_Mapper_Thread_Key, new_ctx);
+        return rv;
     }
 
     /** For a possible hash of lists (bulk data) returns the size of
@@ -2168,16 +2210,19 @@ Mapper mapv(DataMap);
 
         # process any runtime keys if present in the current field mapping
         if (*hash<string, hash<auto>> current_runtime_keys = runtime_keys_with_handler{keys m}) {
+            hash<auto> ctx = mapper_handler_context + {
+                "output-key": key,
+            };
             if (do_list) {
                 foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
                     v = map i.value.requires_roles.value
-                    ? i.value.handler(m{i.key}, $1)
-                    : i.value.handler(m{i.key}), v;
+                    ? i.value.handler(m{i.key}, $1, ctx)
+                    : i.value.handler(m{i.key}, ctx), v;
                 }
             } else {
                 map v = $1.value.requires_roles.value
-                    ? $1.value.handler(m{$1.key}, v, \missing)
-                    : $1.value.handler(m{$1.key}, \missing),
+                    ? $1.value.handler(m{$1.key}, v, ctx, \missing)
+                    : $1.value.handler(m{$1.key}, ctx, \missing),
                     current_runtime_keys.pairIterator();
             }
         }
