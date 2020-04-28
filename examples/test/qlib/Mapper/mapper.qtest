@@ -364,13 +364,13 @@ public class MapperTest inherits QUnit::Test {
             },
             "runtime_keys": {
                 "context0": <MapperRuntimeKeyInfo>{
-                    "handler": auto sub (auto arg, reference<bool> missing) {
+                    "handler": auto sub (auto arg, hash<auto> ctx, *reference<bool> missing) {
                         return arg + "-ctx";
                     },
                 },
                 "context1": <MapperRuntimeKeyInfo>{
                     "requires_roles": "value",
-                    "handler": auto sub (auto arg, auto val, reference<bool> missing) {
+                    "handler": auto sub (auto arg, auto val, hash<auto> ctx, *reference<bool> missing) {
                         return val + "-" + arg + "-ctx";
                     },
                 },
@@ -403,7 +403,7 @@ public class MapperTest inherits QUnit::Test {
                 # test auto cast from hash
                 "context0": {
                     "unique_roles": "context",
-                    "handler": auto sub (auto arg, reference<bool> missing) {
+                    "handler": auto sub (auto arg, hash<auto> ctx, *reference<bool> missing) {
                         return arg + "-ctx";
                     },
                 },
@@ -411,7 +411,7 @@ public class MapperTest inherits QUnit::Test {
                     "unique_roles": "context",
                     "requires_roles": "value",
                     "value_type": Type::Int,
-                    "handler": auto sub (int arg, auto val, reference<bool> missing) {
+                    "handler": auto sub (int arg, auto val, hash<auto> ctx, *reference<bool> missing) {
                         return val + "-" + arg + "-ctx";
                     },
                 },
