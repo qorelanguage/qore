@@ -102,83 +102,84 @@ class ThreadPool;
 
 class ThreadPoolThread {
 protected:
-   int id;
-   ThreadPool& tp;
-   ThreadTask* task;
-   QoreCondition c,
-      *stopCond;
-   QoreThreadLock m;
-   tplist_t::iterator pos;
-   bool stopflag,
-      stopped;
+    int id;
+    ThreadPool& tp;
+    ThreadTask* task = nullptr;
+    QoreCondition c,
+        *stopCond = nullptr;
+    QoreThreadLock m;
+    tplist_t::iterator pos;
+    bool stopflag = false,
+        stopped = false;
 
-   DLLLOCAL void finalize(ExceptionSink* xsink);
+    DLLLOCAL void finalize(ExceptionSink* xsink);
 
 public:
-   DLLLOCAL ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink);
+    DLLLOCAL ThreadPoolThread(ThreadPool& n_tp, ExceptionSink* xsink);
 
-   DLLLOCAL ~ThreadPoolThread() {
-      delete stopCond;
-      assert(!task);
-   }
+    DLLLOCAL ~ThreadPoolThread() {
+        delete stopCond;
+        assert(!task);
+    }
 
-   DLLLOCAL void setPos(tplist_t::iterator p) {
-      pos = p;
-   }
+    DLLLOCAL void setPos(tplist_t::iterator p) {
+        pos = p;
+    }
 
-   DLLLOCAL bool valid() const {
-      return id != -1;
-   }
+    DLLLOCAL bool valid() const {
+        return id != -1;
+    }
 
-   DLLLOCAL void worker(ExceptionSink* xsink);
+    DLLLOCAL void worker(ExceptionSink* xsink);
 
-   DLLLOCAL void stop() {
-      AutoLocker al(m);
-      assert(!stopflag);
-      stopflag = true;
-      c.signal();
-      //printd(5, "ThreadPoolThread::stop() signaling stop for id %d\n", id);
-   }
+    DLLLOCAL void stop() {
+        AutoLocker al(m);
+        assert(!stopflag);
+        stopflag = true;
+        c.signal();
+        //printd(5, "ThreadPoolThread::stop() signaling stop for id %d\n", id);
+    }
 
-   DLLLOCAL void stopWait() {
-      //printd(5, "ThreadPoolThread::stopWait() stopping id %d\n", id);
-      assert(!stopCond);
-      stopCond = new QoreCondition;
+    DLLLOCAL void stopWait() {
+        assert(!stopCond);
+        stopCond = new QoreCondition;
 
-      AutoLocker al(m);
-      assert(!stopflag);
-      stopflag = true;
-      c.signal();
-   }
+        //printd(5, "ThreadPoolThread::stopWait() stopping id %d\n", id);
+        AutoLocker al(m);
 
-   DLLLOCAL void stopConfirm(ExceptionSink* xsink) {
-      {
-         AutoLocker al(m);
-         assert(stopflag);
-         assert(stopCond);
-         while (!stopped)
-            stopCond->wait(m);
-      }
+        assert(!stopflag);
+        stopflag = true;
+        c.signal();
+    }
 
-      //printd(5, "ThreadPoolThread::stopConfirm() stopped id %d\n", id);
-      finalize(xsink);
-   }
+    DLLLOCAL void stopConfirm(ExceptionSink* xsink) {
+        {
+            AutoLocker al(m);
+            assert(stopflag);
+            assert(stopCond);
+            while (!stopped)
+                stopCond->wait(m);
+        }
 
-   DLLLOCAL void submit(ThreadTask* t) {
-      AutoLocker al(m);
-      assert(!stopflag);
-      assert(!task);
-      task = t;
-      c.signal();
-   }
+        //printd(5, "ThreadPoolThread::stopConfirm() stopped id %d\n", id);
+        finalize(xsink);
+    }
 
-   DLLLOCAL int getId() const {
-      return id;
-   }
+    DLLLOCAL void submit(ThreadTask* t) {
+        AutoLocker al(m);
+        assert(!stopflag);
+        assert(!task);
+        task = t;
+        c.signal();
+    }
 
-   DLLLOCAL tplist_t::iterator getPos() const {
-      return pos;
-   }
+    DLLLOCAL int getId() const {
+        return id;
+    }
+
+    DLLLOCAL tplist_t::iterator getPos() const {
+        return pos;
+    }
 };
 
 class ThreadPool : public AbstractPrivateData {
@@ -201,20 +202,21 @@ protected:
         fh;        // free thread list
 
     // quit flag
-    bool quit;
+    bool quit = false;
 
     // master task queue
     taskq_t q;
 
     // task waiting flag
-    bool waiting;
+    bool waiting = false;
 
-    bool stopflag,   // stop flag
-        stopped,      // stopped flag
-        confirm;      // confirm member thread stop
+    bool shutdown = false,     // shutdown flag
+        stopflag = false,      // stop flag
+        stopped = false,       // stopped flag
+        detach = false;        // detach flag
 
     DLLLOCAL int checkStopUnlocked(const char* m, ExceptionSink* xsink) {
-        if (stopflag) {
+        if (shutdown) {
             xsink->raiseException("THREADPOOL-ERROR", "ThreadPool::%s() cannot be executed because the ThreadPool " \
                 "is being destroyed", m);
             return -1;
@@ -248,7 +250,7 @@ protected:
         }
 
         if (stopflag)
-            return 0;
+            return nullptr;
 
         ThreadPoolThread* tpt;
 
@@ -259,7 +261,7 @@ protected:
             std::unique_ptr<ThreadPoolThread> tpt_pt(new ThreadPoolThread(*this, xsink));
             if (!tpt_pt->valid()) {
                 assert(*xsink);
-                return 0;
+                return nullptr;
             }
             tpt = tpt_pt.release();
         }
@@ -307,29 +309,33 @@ public:
     DLLLOCAL void stop() {
         AutoLocker al(m);
         if (!stopflag) {
+            detach = true;
+            shutdown = true;
             stopflag = true;
             cond.signal();
         }
 
-        while (!stopped)
+        while (!stopped) {
             stopCond.wait(m);
+        }
     }
 
     DLLLOCAL int stopWait(ExceptionSink* xsink) {
         AutoLocker al(m);
-        if (stopflag && !confirm) {
-            xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ()ThreadPool::stop() has been called since child threads have been detached and can no longer be traced");
+        if (detach && !stopped) {
+            xsink->raiseException("THREADPOOL-ERROR", "cannot call ThreadPool::stopWait() after ThreadPool::stop() " \
+                "has been called since worker threads have been detached and can no longer be traced");
             return -1;
         }
 
-        if (!stopflag) {
-            stopflag = true;
-            confirm = true;
+        if (!shutdown) {
+            shutdown = true;
             cond.signal();
         }
 
-        while (!stopped)
+        while (!stopped) {
             stopCond.wait(m);
+        }
 
         return 0;
     }
@@ -359,20 +365,19 @@ public:
         {
             AutoLocker al(m);
             // allow the thread to be removed from the active list by ThreadPool::worker() to avoid race conditions
-            if (stopflag)
+            if (stopflag) {
                 return 0;
+            }
 
-            if (!confirm) {
-                tplist_t::iterator i = tpt->getPos();
-                ah.erase(i);
+            tplist_t::iterator i = tpt->getPos();
+            ah.erase(i);
 
-                // requeue thread if possible
-                if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
-                    fh.push_back(tpt);
-                    if (waiting || (release_ms && (int)fh.size() > minidle))
-                        cond.signal();
-                    return 0;
-                }
+            // requeue thread if possible
+            if ((!maxidle && release_ms) || ((int)fh.size() < maxidle) || q.size() > fh.size()) {
+                fh.push_back(tpt);
+                if (waiting || (release_ms && (int)fh.size() > minidle))
+                    cond.signal();
+                return 0;
             }
         }
 
