@@ -14,8 +14,20 @@
 
 class ThreadPoolTest inherits QUnit::Test {
     constructor() : QUnit::Test("ThreadPool", "1.0") {
+        addTestCase("stopWait() test", \stopWaitTest());
         addTestCase("ThreadPoolTest", \ThreadPoolTest());
         set_return_value(main());
+    }
+
+    # issue #3897
+    stopWaitTest() {
+        int c;
+        ThreadPool tp();
+        code job = sub () { ++c; };
+        tp.submit(job);
+        tp.submit(job);
+        tp.stopWait();
+        assertEq(2, c);
     }
 
     ThreadPoolTest() {

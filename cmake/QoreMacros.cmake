@@ -306,7 +306,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
         set(qm_install_subdir "${f}") # install files into a subdir
-        message(STATUS "_mod_targets ${_mod_targets}")
+        #message(STATUS "_mod_targets ${_mod_targets}")
     else()
         set(_mod_targets ${_module_file})
         set(qm_install_subdir "") # common qm file
@@ -314,7 +314,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
 
     if (DOXYGEN_FOUND)
         # get module name
-        message(STATUS "Preparing generation of documentation for module: ${f}")
+        #message(STATUS "Preparing generation of documentation for module: ${f}")
 
         # prepare directories for the documentation
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
@@ -408,7 +408,7 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
         set(qm_install_subdir "${f}") # install files into a subdir
-        message(STATUS "_mod_targets ${_mod_targets}")
+        #message(STATUS "_mod_targets ${_mod_targets}")
     else()
         set(_mod_targets ${_module_file})
         set(qm_install_subdir "") # common qm file
@@ -416,7 +416,7 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
 
     if (DOXYGEN_FOUND)
         # get module name
-        message(STATUS "Preparing generation of documentation for module: ${f}")
+        #message(STATUS "Preparing generation of documentation for module: ${f}")
 
         # prepare directories for the documentation
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
@@ -443,7 +443,7 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # add CMake target for the documentation
-        message(STATUS "Doxyfile for ${f}")
+        #message(STATUS "Doxyfile for ${f}")
         set(QORE_QMOD_FNAME ${f}) # used for configure_file line below
 
         file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/docs/${f}/${qm_install_subdir}/)
@@ -490,11 +490,11 @@ MACRO (QORE_USER_MODULES _inputs)
 
                 file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
                 set(qm_install_subdir "${new_f}") # install files into a subdir
-                message(STATUS "_mod_targets ${_mod_targets}")
+                #message(STATUS "_mod_targets ${_mod_targets}")
             else()
                 file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/${f}/*.qm" "${CMAKE_SOURCE_DIR}/${f}/*.qc")
                 set(qm_install_subdir "${f}") # install files into a subdir
-                message(STATUS "_mod_targets ${_mod_targets}")
+                #message(STATUS "_mod_targets ${_mod_targets}")
             endif()
         else()
             set(_mod_targets ${f})
@@ -503,7 +503,7 @@ MACRO (QORE_USER_MODULES _inputs)
 
         if (xDOXYGEN_FOUND)
             get_filename_component(file ${f} NAME_WE)
-            message(STATUS "Doxyfile for ${file}")
+            #message(STATUS "Doxyfile for ${file}")
             set(CURRENT_MODULE_NAME ${_file}) # used for configure_file line below
             set(_dox_input ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} ${MODULE_DOX_INPUT})
             configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${file} @ONLY)
