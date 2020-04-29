@@ -71,6 +71,10 @@ class TestRecordProcessor inherits AbstractDataProcessor {
         remove recs;
     }
 
+    setRaiseError() {
+        raise_error = True;
+    }
+
     private auto submitImpl(auto rec) {
         if (raise_error) {
             remove raise_error;
@@ -144,6 +148,10 @@ class TestIntProcessor inherits AbstractDataProcessor {
         return sum;
     }
 
+    reset() {
+        sum = 0;
+    }
+
     private auto submitImpl(auto rec) {
         if (skip_odd && rec > inc && (rec % 2)) {
             throw DPE_SKIP_DATA;
@@ -193,11 +201,28 @@ public class DataProviderTest inherits QUnit::Test {
             info = pipe.getInfo();
             assertEq(2, info.record_count);
             assertTrue(info.bulk);
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            record_processor0.clear();
+            record_processor1.clear();
+
+            pipe1.submit(record_provider);
+            pipe1.waitDone();
+            assertEq({"A-a": 1, "A-b": 2}, record_processor0.recs[0]);
+            assertEq({"B-A-a": 1, "B-A-b": 2}, record_processor1.recs[0]);
+
+            info = pipe1.getInfo();
+            assertEq(1, info.record_count);
+            assertTrue(info.bulk);
         }
 
         {
             TestRecordProvider record_provider();
-            DataProviderPipeline pipe();
+            DataProviderPipeline pipe(<PipelineOptionInfo>{
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
 
             TestRecordProcessor record_processorA0("A");
             TestRecordProcessor record_processorA1("B");
@@ -223,7 +248,20 @@ public class DataProviderTest inherits QUnit::Test {
             hash<PipelineInfo> info = pipe.getInfo();
             assertEq(1, info.record_count);
             assertTrue(info.bulk);
-            #printf("info: %N\n", info);
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            record_processorA0.clear();
+            record_processorA1.clear();
+            record_processorB0.clear();
+            record_processorB1.clear();
+            pipe1.submit(record_provider);
+            pipe1.waitDone();
+            assertEq({"B-A-a": 1, "B-A-b": 2}, record_processorA1.recs[0]);
+            assertEq({"A-B-a": 1, "A-B-b": 2}, record_processorB0.recs[0]);
+
+            info = pipe1.getInfo();
+            assertEq(1, info.record_count);
+            assertTrue(info.bulk);
         }
 
         {
@@ -272,6 +310,36 @@ public class DataProviderTest inherits QUnit::Test {
             info = pipe.getInfo();
             assertEq(PS_IDLE, info.status);
             assertEq(2, info.record_count);
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            record_processorA0.clear();
+            record_processorA1.clear();
+            record_processorB0.clear();
+            record_processorB1.clear();
+
+            pipe1.submit(record_provider);
+            pipe1.waitDone();
+            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.recs[0]);
+            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.recs[0]);
+
+            info = pipe1.getInfo();
+            assertEq(2, info.record_count);
+            assertTrue(info.bulk);
+
+            pipe1.submit(record_provider);
+            pipe1.waitDone();
+
+            info = pipe1.getInfo();
+            assertEq(4, info.record_count);
+            assertEq(PS_IDLE, info.status);
+
+            pipe1.reset();
+            pipe1.submit(record_provider);
+            pipe1.waitDone();
+
+            info = pipe1.getInfo();
+            assertEq(PS_IDLE, info.status);
+            assertEq(2, info.record_count);
         }
 
         # verify pipeline abort
@@ -299,7 +367,8 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(PS_RUNNING, pipe.getInfo().status);
 
             Counter thread_cnt(1);
-            background sub () { try { thread_cnt.dec(); pipe.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}}();
+            code submit = sub () { try { thread_cnt.dec(); pipe.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            background submit();
             thread_cnt.waitForZero();
             sleep(500ms);
             pipe.abort();
@@ -310,6 +379,36 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.submit({"a": 1});
             pipe.waitDone();
             assertEq(PS_IDLE, pipe.getInfo().status);
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            hash<PipelineInfo> info2 = pipe1.getInfo();
+            assertEq(info, info2);
+            assertNothing(info2.start_time);
+            assertNothing(info2.stop_time);
+            assertEq(PS_IDLE, info2.status);
+            assertEq(0, info2.record_count);
+            assertEq(1, info2.num_queues);
+            assertEq(True, info2.bulk);
+            assertEq(0s, info2.duration);
+            assertEq(0.0, info2.duration_secs);
+            assertEq(0.0, info2.recs_per_sec);
+            pipe1.submit({"a": 1});
+            assertEq(PS_RUNNING, pipe1.getInfo().status);
+
+            assertEq(0, thread_cnt.getCount());
+            thread_cnt.inc();
+            submit = sub () { try { thread_cnt.dec(); pipe1.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            background submit();
+            thread_cnt.waitForZero();
+            sleep(500ms);
+            pipe1.abort();
+            assertEq(PS_ABORTED, pipe1.getInfo().status);
+            #printf("%N\n", pipe.getInfo());
+            assertThrows("PIPELINE-ERROR", \pipe1.submit(), {});
+            pipe1.reset();
+            pipe1.submit({"a": 1});
+            pipe1.waitDone();
+            assertEq(PS_IDLE, pipe1.getInfo().status);
         }
 
         # verify pipeline error handling
@@ -318,6 +417,8 @@ public class DataProviderTest inherits QUnit::Test {
             DataProviderPipeline pipe(<PipelineOptionInfo>{
                 "name": "test-pipeline-4",
                 #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
             });
 
             TestRecordProcessor record_processorA0("A", {"A0": 1});
@@ -343,6 +444,21 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.submit({"a": 1});
             pipe.waitDone();
             assertEq(PS_IDLE, pipe.getInfo().status);
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            record_processorA0.clear();
+            record_processorA1.clear();
+            record_processorB0.clear();
+            record_processorB1.clear();
+            record_processorB1.setRaiseError();
+
+            pipe1.submit(record_provider);
+            assertThrows("PIPELINE-FAILED", \pipe1.waitDone());
+            assertEq(PS_ABORTED, pipe1.getInfo().status);
+            pipe1.reset();
+            pipe1.submit({"a": 1});
+            pipe1.waitDone();
+            assertEq(PS_IDLE, pipe1.getInfo().status);
         }
 
         # test non-record-based pipeline processing
@@ -364,8 +480,22 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.append(q1, int_processor1);
             pipe.append(q1, int_processor1);
 
+            hash<PipelineInfo> info = pipe.getInfo();
+
             pipe.submit(1);
             pipe.waitDone();
+            assertEq(5, int_processor0.getSum());
+            assertEq(8, int_processor1.getSum());
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            hash<PipelineInfo> info1 = pipe1.getInfo();
+            assertEq(info, info1);
+
+            int_processor0.reset();
+            int_processor1.reset();
+
+            pipe1.submit(1);
+            pipe1.waitDone();
             assertEq(5, int_processor0.getSum());
             assertEq(8, int_processor1.getSum());
         }
@@ -391,6 +521,15 @@ public class DataProviderTest inherits QUnit::Test {
 
             pipe.submit(1);
             pipe.waitDone();
+            assertEq(5, int_processor0.getSum());
+            assertEq(3, int_processor1.getSum());
+
+            DataProviderPipeline pipe1 = pipe.copy();
+            int_processor0.reset();
+            int_processor1.reset();
+
+            pipe1.submit(1);
+            pipe1.waitDone();
             assertEq(5, int_processor0.getSum());
             assertEq(3, int_processor1.getSum());
         }
