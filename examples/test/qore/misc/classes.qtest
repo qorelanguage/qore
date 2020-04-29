@@ -10,6 +10,16 @@
 
 %exec-class ClassesTest
 
+class Issue_3901 {
+    private:internal {
+        int i = 1;
+    }
+
+    *int get() {
+        return i;
+    }
+}
+
 class Issue3869_A {
     test(reference<int> i) {
         ++i;
@@ -639,6 +649,7 @@ class Issue3368 {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 3901", \issue3901());
         addTestCase("issue 3869", \issue3869());
         addTestCase("issue 3644", \issue3644());
         addTestCase("issue 3637", \issue3637());
@@ -662,6 +673,12 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3901() {
+        Issue_3901 o0();
+        Issue_3901 o1 = o0.copy();
+        assertEq(1, o1.get());
     }
 
     issue3869() {
@@ -882,7 +899,7 @@ public class ClassesTest inherits QUnit::Test {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(471, ex.callstack[0].line);
+        assertEq(481, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

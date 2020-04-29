@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -317,13 +317,24 @@ public:
             cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
             if (i != cdmap->end())
                 return i->second;
-        }
-        else
+        } else
             cdmap = new cdmap_t;
 
         QoreHashNode* id = new QoreHashNode(autoTypeInfo);
         cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
         return id;
+    }
+
+    // issue #3901: perform a shallow copy of private:internal data when executing a copy method
+    DLLLOCAL void copyInternalData(const qore_object_private& old) {
+        assert(!cdmap);
+        if (!old.cdmap) {
+            return;
+        }
+        cdmap = new cdmap_t;
+        for (auto& i : *old.cdmap) {
+            cdmap->insert(cdmap_t::value_type(i.first, i.second->copy()));
+        }
     }
 
     DLLLOCAL void setValue(const char* key, QoreValue val, ExceptionSink* xsink);

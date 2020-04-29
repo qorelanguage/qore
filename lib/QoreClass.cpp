@@ -3495,26 +3495,28 @@ QoreObject* QoreClass::execCopy(QoreObject* old, ExceptionSink* xsink) const {
 }
 
 QoreObject* qore_class_private::execCopy(QoreObject* old, ExceptionSink* xsink) const {
-   // check for illegal private calls
-   if (copyMethod && copyMethod->isPrivate() && cls != getStackClass()) {
-      xsink->raiseException("METHOD-IS-PRIVATE", "%s::copy() is private and cannot be accessed externally", name.c_str());
-      return 0;
-   }
+    // check for illegal private calls
+    if (copyMethod && copyMethod->isPrivate() && cls != getStackClass()) {
+        xsink->raiseException("METHOD-IS-PRIVATE", "%s::copy() is private and cannot be accessed externally", name.c_str());
+        return 0;
+    }
 
-   QoreHashNode* h = old->copyData(xsink);
-   if (*xsink) {
-      assert(!h);
-      return 0;
-   }
+    QoreHashNode* h = old->copyData(xsink);
+    if (*xsink) {
+        assert(!h);
+        return nullptr;
+    }
 
-   ReferenceHolder<QoreObject> self(new QoreObject(cls, getProgram(), h), xsink);
+    ReferenceHolder<QoreObject> self(new QoreObject(cls, getProgram(), h), xsink);
+    // issue #3901: perform a shallow copy of internal members when executing a copy method
+    qore_object_private::get(**self)->copyInternalData(*qore_object_private::get(*old));
 
-   if (copyMethod)
-      copyMethod->priv->evalCopy(*self, old, xsink);
-   else if (scl) // execute superclass copy methods
-      scl->sml.execCopyMethods(*self, old, xsink);
+    if (copyMethod)
+        copyMethod->priv->evalCopy(*self, old, xsink);
+    else if (scl) // execute superclass copy methods
+        scl->sml.execCopyMethods(*self, old, xsink);
 
-   return *xsink ? 0 : self.release();
+    return *xsink ? nullptr : self.release();
 }
 
 int qore_class_private::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
