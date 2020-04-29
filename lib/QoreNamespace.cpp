@@ -663,7 +663,7 @@ QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, con
         QoreNamespace* ns = i->second->copy(po);
         ns->priv->parent = &parent;
         assert(!ns->priv->root);
-        assert(ns->priv->depth);
+        // do not assert() ns->priv->depth > 0 here; we may be in an unattached namespace tree
         last = nsmap.insert(last, nsmap_t::value_type(i->first, ns));
     }
 }
