@@ -43,6 +43,9 @@
         (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
 
     @subsection qore_0943_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the @ref Qore::Thread::ThreadPool "ThreadPool" class where queued tasks were discarded without
+      being executed when @ref Qore::Thread::ThreadPool::stopWait() "ThreadPool::stopWait()" was called
+      (<a href="https://github.com/qorelanguage/qore/issues/3897">issue 3897</a>)
     - fixed a bug determining method signature compatibility with variants of the @ref softlist_type "softlist" type
       (<a href="https://github.com/qorelanguage/qore/issues/3887">issue 3887</a>)
     - fixed a parse-time type error taking a slice of a hashdecl value
