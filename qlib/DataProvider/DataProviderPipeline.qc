@@ -117,6 +117,12 @@ class PipelineQueue {
         #! Pipeline ID
         int id;
 
+        #! Parent lock
+        Mutex lck;
+
+        #! Parent counter
+        Counter cnt;
+
         #! Queue condition variable
         Condition cond();
 
@@ -147,13 +153,15 @@ class PipelineQueue {
     }
 
     #! Creates the object
-    constructor(DataProviderPipeline parent, int id, int size) {
+    constructor(DataProviderPipeline parent, Mutex lck, Counter cnt, int id, int size) {
         self.size = size;
         self.parent := parent;
+        self.lck = lck;
+        self.cnt = cnt;
 
-        parent.cnt.inc();
+        cnt.inc();
         on_error {
-            parent.cnt.dec();
+            cnt.dec();
         }
         self.id = id;
         Counter run_cnt(1);
@@ -173,26 +181,26 @@ class PipelineQueue {
         @throw PIPELINE-SUBMISSION-ABORTED cannot submit data; the pipeline is shutting down or has aborted
     */
     submit(auto record) {
-        if (parent.abort_flag) {
+        if (parent.aborting()) {
             throw "PIPELINE-SUBMISSION-ABORTED", sprintf("pipeline %y has aborted", parent.getName());
         }
 
         parent.logDebug("queue %d data submission: %y", id, record);
-        bool lock = !parent.lck.lockOwner();
+        bool lock = !lck.lockOwner();
         if (lock) {
-            parent.lck.lock();
+            lck.lock();
         }
         on_exit if (lock) {
-            parent.lck.unlock();
+            lck.unlock();
         }
 
-        while (!parent.stop_flag && queue.lsize() == size) {
+        while (!parent.stopping() && queue.lsize() == size) {
             ++queue_waiting;
-            cond.wait(parent.lck);
+            cond.wait(lck);
             --queue_waiting;
         }
 
-        if (parent.stop_flag) {
+        if (parent.stopping()) {
             throw "PIPELINE-SUBMISSION-ABORTED", sprintf("pipeline %y: cannot submit data; the pipeline is shutting "
                 "down", parent.getName());
         }
@@ -206,18 +214,18 @@ class PipelineQueue {
     #! Processing thread
     run(Counter run_cnt) {
         on_exit {
-            parent.cnt.dec();
+            cnt.dec();
         }
         run_cnt.dec();
 
-        parent.lck.lock();
-        on_exit parent.lck.unlock();
+        lck.lock();
+        on_exit lck.unlock();
 
         #! wait for an event
-        while (!parent.stop_flag) {
+        while (!parent.stopping()) {
             if (!queue) {
                 ++data_waiting;
-                cond.wait(parent.lck);
+                cond.wait(lck);
                 --data_waiting;
                 continue;
             }
@@ -227,7 +235,7 @@ class PipelineQueue {
                 cond.broadcast();
             }
 
-            if (parent.abort_flag) {
+            if (parent.aborting()) {
                 # discard data;
                 continue;
             }
@@ -259,9 +267,9 @@ class PipelineQueue {
     /** @note Called in the pipeline lock
     */
     waitDone() {
-        while (!parent.stop_flag && queue) {
+        while (!parent.stopping() && queue) {
             ++queue_waiting;
-            cond.wait(parent.lck);
+            cond.wait(lck);
             --queue_waiting;
         }
 
@@ -276,19 +284,7 @@ class PipelineQueue {
     ID 0 is created by default as the initial pipeline.
 */
 public class DataProviderPipeline {
-    public {
-        #! Atomic lock
-        Mutex lck();
-
-        #! Stop flag
-        bool stop_flag;
-
-        #! Abort flag
-        bool abort_flag;
-
-        #! Thread counter
-        Counter cnt();
-    }
+    public {}
 
     private {
         #! A descriptive name for logging purposes
@@ -326,6 +322,18 @@ public class DataProviderPipeline {
 
         #! Debug log closure; takes a single format string and then arguments for format placeholders
         *code debug_log;
+
+        #! Atomic lock
+        Mutex lck();
+
+        #! Stop flag
+        bool stop_flag;
+
+        #! Abort flag
+        bool abort_flag;
+
+        #! Thread counter
+        Counter cnt();
     }
 
     #! Creates the object with the given input iterator
@@ -337,12 +345,38 @@ public class DataProviderPipeline {
         info_log = opts.info_log;
         error_log = opts.error_log;
         debug_log = opts.debug_log;
-        name = opts.name ?? sprintf("unnamed pipeline %s", self.uniqueHash());
+        name = opts.name ?? sprintf("unnamed pipeline %y", self.uniqueHash());
 
         lck.lock();
         on_exit lck.unlock();
 
-        pmap."0" = new PipelineQueue(self, 0, 1);
+        pmap."0" = new PipelineQueue(self, lck, cnt, 0, 1);
+    }
+
+    #! Copy constructor; creates an empty pipeline with the same configuration as the original
+    /**
+    */
+    copy() {
+        # create new synchronization objects
+        lck = new Mutex();
+        seq = new Sequence();
+        cnt = new Counter();
+
+        # ensure the copy is reset
+        resetIntern();
+
+        # create new pipeline queues
+        pmap = map {$1.key: copyPipeline($1.value)}, (remove pmap).pairIterator();
+    }
+
+    #! Returns True if the object is stopping
+    bool stopping() {
+        return stop_flag ?? False;
+    }
+
+    #! Returns True if the object is aborting
+    bool aborting() {
+        return abort_flag ?? False;
     }
 
     #! Destroys the object
@@ -418,7 +452,7 @@ public class DataProviderPipeline {
         checkUpdatePipelineIntern(id);
 
         int new_id = seq.next();
-        PipelineQueue queue(self, new_id, 1);
+        PipelineQueue queue(self, lck, cnt, new_id, 1);
         pmap{new_id} = queue;
 
         if (!pmap{id}.elems || (pmap{id}.elems.last() instanceof AbstractDataProcessor)) {
@@ -647,10 +681,26 @@ public class DataProviderPipeline {
         }
     }
 
+    #! Called by the copy constructor to copy the queues
+    private:internal PipelineQueue copyPipeline(PipelineQueue old_queue) {
+        *PipelineQueue queue = pmap{old_queue.id};
+        if (!queue) {
+            queue = new PipelineQueue(self, lck, cnt, old_queue.id, old_queue.size);
+            pmap{old_queue.id} = queue;
+        }
+
+        queue.elems = old_queue.elems;
+        auto last = queue.elems.last();
+        if (last.typeCode() == NT_LIST) {
+            queue.elems[queue.elems.size() - 1] = map copyPipeline($1), last;
+        }
+        return queue;
+    }
+
     #! Submits data for processing
     /** Must be called with the lock held
     */
-    private submitIntern(auto _data) {
+    private:internal submitIntern(auto _data) {
         if (do_bulk && _data.typeCode() == NT_HASH && ((int rec_cnt = _data.firstValue().lsize()) > 1)) {
             logInfo("pipeline %y: bulk input records: %d", name, rec_cnt);
             record_count += rec_cnt;
@@ -663,7 +713,7 @@ public class DataProviderPipeline {
     #! Submits a single record for processing
     /** Must be called with the lock held
     */
-    private submitDataIntern(auto _data) {
+    private:internal submitDataIntern(auto _data) {
         ++record_count;
         pmap."0".submit(_data);
     }
@@ -671,7 +721,7 @@ public class DataProviderPipeline {
     #! Submits bulk data for processing
     /** Must be called with the lock held
     */
-    private submitBulkIntern(AbstractDataProviderBulkRecordInterface i) {
+    private:internal submitBulkIntern(AbstractDataProviderBulkRecordInterface i) {
         while (*hash<auto> recs = i.getValue()) {
             int rec_cnt = recs.firstValue().lsize();
             logInfo("pipeline %y: bulk input records: %d", name, rec_cnt);
@@ -683,7 +733,7 @@ public class DataProviderPipeline {
     #! Resets the pipeline
     /** Must be called with the lock held
     */
-    private resetIntern() {
+    private:internal resetIntern() {
         if (record_count) {
             record_count = 0;
         }
@@ -696,6 +746,10 @@ public class DataProviderPipeline {
             remove stop_time;
         }
 
+        if (stop_flag) {
+            delete stop_flag;
+        }
+
         if (abort_flag) {
             delete abort_flag;
         }
@@ -704,7 +758,7 @@ public class DataProviderPipeline {
     #! Throws an exception if the pipeline cannot be used; locks the pipeline for changes otherwise
     /** Must be called with the lock held
     */
-    private checkSubmitIntern() {
+    private:internal checkSubmitIntern() {
         if (!locked) {
             if (!pmap."0".elems) {
                 throw "PIPELINE-ERROR", sprintf("pipeline %y has no elements", name);
@@ -718,7 +772,7 @@ public class DataProviderPipeline {
             remove stop_time;
             locked = True;
             if (!start_time) {
-                logInfo("pipeline %y: started processing %d queue%s", pmap.size(), name, pmap.size() == 1 ? "" : "s");
+                logInfo("started processing %d queue%s", pmap.size(), pmap.size() == 1 ? "" : "s");
                 start_time = now_us();
             }
         }
@@ -727,7 +781,7 @@ public class DataProviderPipeline {
     #! Throws an exception if the pipeline is locked
     /** Must be called with the lock held
     */
-    private checkLockedIntern() {
+    private:internal checkLockedIntern() {
         if (locked) {
             throw "PIPELINE-ERROR", sprintf("pipeline %y is running and cannot be changed or reset; call waitDone() "
                 "or abort() before making changes to a running pipeline", name);
@@ -737,7 +791,7 @@ public class DataProviderPipeline {
     #! Throws an exception if errors occured in background pipeline processing
     /** Must be called with the lock held
     */
-    private throwPipelineException() {
+    private:internal throwPipelineException() {
         # throw exceptions
         if (*list<hash<ExceptionInfo>> errs = remove error_list) {
             throw "PIPELINE-FAILED", sprintf("pipeline %y: %d pipeline%s threw exceptions in processing", name,
@@ -746,7 +800,7 @@ public class DataProviderPipeline {
     }
 
     #! Check if the given queue exists
-    private checkUpdatePipelineIntern(int id) {
+    private:internal checkUpdatePipelineIntern(int id) {
         checkLockedIntern();
         if (!pmap{id}) {
             throw "PIPELINE-ERROR", sprintf("pileine %y: queue ID %d does not exist; known pipelines: %y", name, id,
@@ -755,7 +809,7 @@ public class DataProviderPipeline {
     }
 
     #! Stops all background pipeline queues
-    private stopIntern() {
+    private:internal stopIntern() {
         lck.lock();
         on_exit lck.unlock();
 
@@ -763,7 +817,7 @@ public class DataProviderPipeline {
     }
 
     #! Stops all background pipeline queues; lock must be held
-    private stopInternUnlocked() {
+    private:internal stopInternUnlocked() {
         if (!stop_flag) {
             stop_flag = True;
             logDebug("pipeline %y stopping %d queue thread%s", name, pmap.size(), pmap.size() == 1 ? "" : "s");

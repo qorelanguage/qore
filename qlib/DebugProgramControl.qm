@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DebugProgramControl.qm Debug common code
 
-/*  DebugProgramControl.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+/*  DebugProgramControl.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -190,7 +190,8 @@ public namespace DebugProgramControl {
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
             log(DUV_DEBUG_1, "create program: %y", fileName);
-            Program pgm = new Program(PO_DEFAULT);
+            # must set PO_NO_CHILD_PO_RESTRICTIONS in order to avoid parse options being locked in the child
+            Program pgm(PO_NO_CHILD_PO_RESTRICTIONS);
             # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
             # note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
             #pgm.replaceParseOptions(PO_DEFAULT);

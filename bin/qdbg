@@ -9,6 +9,8 @@
 %requires DebugCmdLine
 %requires DebugLinenoiseCmdLine
 %requires DebugProgramControl
+%requires Util
+
 %allow-debugger
 %no-debugging
 
@@ -135,11 +137,10 @@ class DebugWrapper {
 
             # resume any blocked debug threads
             dpcl.shutdown();
-        } catch (hash e) {
-            stderr.printf("%s: %s\n", e.err, e.desc);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.print(get_exception_string(ex) + "\n");
             exit(-1);
         }
-
     }
 
     private help(int exCode=1) {

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,25 +34,25 @@
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int SelfVarrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("in-object variable reference '%s' (%p)", str ? str : "<null>", this);
-   return 0;
+int SelfVarrefNode::getAsString(QoreString& qstr, int foff, ExceptionSink* xsink) const {
+    qstr.sprintf("in-object variable reference '%s' (%p)", str ? str : "<null>", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *SelfVarrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+QoreString* SelfVarrefNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    del = true;
+    QoreString* rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // returns the type name as a c string
-const char *SelfVarrefNode::getTypeName() const {
-   return "in-object variable reference";
+const char* SelfVarrefNode::getTypeName() const {
+    return "in-object variable reference";
 }
 
-QoreValue SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue SelfVarrefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(runtime_get_stack_object());
     assert(needs_deref);
     // issue 3523: evaluate in case the value is a reference
@@ -63,12 +63,12 @@ QoreValue SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) cons
 
 char* SelfVarrefNode::takeString() {
     assert(str);
-    char *p = str;
+    char* p = str;
     str = nullptr;
     return p;
 }
 
-void SelfVarrefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void SelfVarrefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
     if (pflag & PF_CONST_EXPRESSION)
         parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
