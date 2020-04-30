@@ -60,6 +60,9 @@ public const DPE_SKIP_DATA = "DPE-SKIP-DATA";
 
 #! Pipeline info
 public hashdecl PipelineInfo {
+    #! The name of the pipeline
+    string name;
+
     #! Start of processing
     *date start_time;
 
@@ -178,7 +181,7 @@ class PipelineQueue {
     #! Submits data for processing
     /** @param record the record to process
 
-        @throw PIPELINE-SUBMISSION-ABORTED cannot submit data; the pipeline is shutting down or has aborted
+        @throws PIPELINE-SUBMISSION-ABORTED cannot submit data; the pipeline is shutting down or has aborted
     */
     submit(auto record) {
         if (parent.aborting()) {
@@ -336,7 +339,7 @@ public class DataProviderPipeline {
         Counter cnt();
     }
 
-    #! Creates the object with the given input iterator
+    #! Creates the object with the given options
     /** @param opts any options for the pipeline; see @ref PipelineOptionInfo for more information
 
         @Note The object is created with an initial queue with ID 0
@@ -383,7 +386,7 @@ public class DataProviderPipeline {
     /** To ensure that the destructor does not throw a \c PIPELINE-FAILED exception, call run() or runAsync() and
         waitDone()
 
-        @throw PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
+        @throws PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
         argument will have a list of exception arguments thrown by pipeline threads
     */
     destructor() {
@@ -397,9 +400,16 @@ public class DataProviderPipeline {
         return name;
     }
 
+    #! Returns True if the given queue exists, False if not
+    bool hasQueue(int id) {
+        return exists pmap{id};
+    }
+
     #! Appends a data processor to the default pipeline
     /**
         @note The initial queue is queue 0
+
+        @see appendQueue()
     */
     append(AbstractDataProcessor processor) {
         append(0, processor);
@@ -409,9 +419,12 @@ public class DataProviderPipeline {
     /** @param id the queue ID as returned from appendQueue()
         @param processor the data processor to append to the pipeline
 
+        @throws PIPELINE-ERROR invalid queue ID or the queue already terminates in additional queues; the pipeline is
+        locked
+
         @note The initial queue is queue 0
 
-        @see appendPipeline()
+        @see appendQueue()
     */
     append(int id, AbstractDataProcessor processor) {
         lck.lock();
@@ -420,13 +433,13 @@ public class DataProviderPipeline {
         checkUpdatePipelineIntern(id);
 
         if (pmap{id}.elems.last() instanceof list<PipelineQueue>) {
-            throw "PIPELINE-ERROR", sprintf("pipeline %d already terminated in a pipeline; no more elements can be "
-                "added after a pipeline terminates in a pipeline", id);
+            throw "PIPELINE-ERROR", sprintf("queue %d already terminated in additional queues; no more elements can "
+                "be added after a queue terminates in additional queues", id);
         }
 
         pmap{id}.elems += processor;
 
-        logDebug("added data processor %y to pipeline %d (%d element%s)", processor.className(), id,
+        logDebug("added data processor %y to queue %d (%d element%s)", processor.className(), id,
             pmap{id}.elems.size(), pmap{id}.elems.size() == 1 ? "" : "s");
 
         if (do_bulk && !processor.supportsBulkApi()) {
@@ -439,7 +452,7 @@ public class DataProviderPipeline {
 
         @return the new queue ID
 
-        @throw PIPELINE-ERROR the pipeline is locked, or the given queue does not exist
+        @throws PIPELINE-ERROR the pipeline is locked, or the given queue does not exist
 
         @note The initial queue is queue 0
 
@@ -521,7 +534,7 @@ public class DataProviderPipeline {
     }
 
     #! Resets the pipeline
-    /** @throw PIPELINE-ERROR this method cannot be called while the pipeline is processing data; call abort() or
+    /** @throws PIPELINE-ERROR this method cannot be called while the pipeline is processing data; call abort() or
         waitDone() before resetting if the pipeline is processing data
     */
     reset() {
@@ -534,7 +547,7 @@ public class DataProviderPipeline {
     }
 
     #! Waits for all queues in all pipelines to have processed remaining data
-    /** @throw PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
+    /** @throws PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
         argument will have a list of exception arguments thrown by pipeline threads
     */
     waitDone() {
@@ -566,7 +579,7 @@ public class DataProviderPipeline {
     #! Aborts execution of a pipeline in progress
     /** @param ignore_exceptions if True then any processing exceptions are ignored
 
-        @throw PIPELINE-FAILED thrown if ignore_exceptions is not True and there are any errors in pipeline
+        @throws PIPELINE-FAILED thrown if ignore_exceptions is not True and there are any errors in pipeline
         processing, in which case the exception argument will have a list of exception arguments thrown by pipeline
         threads
 
@@ -620,6 +633,7 @@ public class DataProviderPipeline {
         float recs_per_sec = duration_secs ? (record_count / duration_secs) : 0.0;
 
         return <PipelineInfo>{
+            "name": name,
             "start_time": start_time,
             "stop_time": stop_time,
             "status": status,
