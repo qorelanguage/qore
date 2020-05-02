@@ -37,7 +37,7 @@
 %requires(reexport) SalesforceRestClient
 
 module SalesforceRestDataProvider {
-    version = "1.0";
+    version = "1.0.1";
     desc = "user module providing a data provider API for Salesforce instances through the REST API";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -88,6 +88,10 @@ module SalesforceRestDataProvider {
     - @ref soql_op_funcs
 
     @section salesforcerestdataprovider_relnotes Release Notes
+
+    @subsection salesforcerestdataprovider_v1_0 SalesforceRestDataProvider v1.0.1
+    - fixed serializing \c DATE fields
+      (<a href="https://github.com/qorelanguage/qore/issues/3908">issue 3908</a>)
 
     @subsection salesforcerestdataprovider_v1_0 SalesforceRestDataProvider v1.0
     - initial release of the module

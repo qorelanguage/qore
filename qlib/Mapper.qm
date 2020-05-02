@@ -303,6 +303,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_5_2 Mapper v1.5.2
+    - fixed a bug where mapper output data was not logged in case of an error in an output provider
+      (<a href="https://github.com/qorelanguage/qore/issues/3909">issue 3909</a>)
     - added support for mapper context in mapper field key handlers
       (<a href="https://github.com/qorelanguage/qore/issues/3893">issue 3893</a>)
 
@@ -1868,9 +1870,7 @@ Mapper mapv(DataMap);
         - uses mapDataIntern() to map the data, then logOutput() is called for each output row
     */
     hash<auto> mapData(hash<auto> rec) {
-        hash<auto> h = mapDataIntern(rec);
-        logOutput(h);
-        return h;
+        return mapDataIntern(rec, True);
     }
 
     #! maps all input record(s) automatically and returns the mapped data
@@ -2022,7 +2022,7 @@ Mapper mapv(DataMap);
         - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
         - this is the same as mapData() except no output logging is performed
     */
-    private hash<auto> mapDataIntern(hash<auto> rec) {
+    private hash<auto> mapDataIntern(hash<auto> rec, *bool do_log_output) {
         *hash<auto> old_ctx = swapMapperThreadContext(mapper_thread_context);
         on_exit swapMapperThreadContext(old_ctx);
 
@@ -2043,6 +2043,10 @@ Mapper mapv(DataMap);
 
         # iterate through dynamic target fields
         map mapFieldIntern(\h, $1, rec, False, 0), keys mapd;
+
+        if (do_log_output) {
+            logOutput(h);
+        }
 
         # write to putput provider, if any
         if (output_provider_bulk_operation) {
