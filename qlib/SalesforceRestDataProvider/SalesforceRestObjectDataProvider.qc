@@ -98,6 +98,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         @see requestSearchRecordsImpl()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        where_cond = fixSalesforceRecord(where_cond);
         return new SalesforceRestRecordIterator(rest, name, record_info, where_cond, search_options);
     }
 
@@ -183,6 +184,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         @return the data written to the data provider with the \c "id" field of the new record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
+        rec = fixSalesforceRecord(rec);
         string url = sprintf("sobjects/%s", name);
         hash<auto> info;
         # the id is returned in the "id" field in the response
@@ -214,6 +216,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             throw "UPSERT-ERROR", sprintf("upsert request requires a value for the %y field, but none was given",
             extid);
         }
+        rec = fixSalesforceRecord(rec);
         string url = sprintf("sobjects/%s/%s/%s", name, extid, extid_value);
         hash<auto> info;
         # the id is returned in the "id" field in the response
@@ -247,6 +250,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             updateSingleRecord(where_cond.Id, set);
             return 1;
         }
+        where_cond = fixSalesforceRecord(where_cond);
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options);
         int count = 0;
         map (updateSingleRecord(i.getValue().Id, set), ++count), i;
@@ -265,6 +269,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             deleteSingleRecord(where_cond.Id);
             return 1;
         }
+        where_cond = fixSalesforceRecord(where_cond);
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options);
         int count;
         map (deleteSingleRecord(i.getValue().Id), ++count), i;
@@ -373,6 +378,27 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             }
             record_info.record_type{field.name} = new QoreDataField(field.name, field.label, type);
         }
+    }
+
+    #! Fix salesforce records for serialization
+    /** Ensure that:
+        - \c DATE fields are serialized as YYYY-MM-DD strings
+        - \c TIME fields are serialized as HH:mm:SS.xx strings
+    */
+    private *hash<auto> fixSalesforceRecord(*hash<auto> rec) {
+        hash<auto> rv;
+        foreach hash<auto> i in (rec.pairIterator()) {
+            if (i.value.typeCode() == NT_DATE) {
+                if (record_info.field_types{i.key} == "date") {
+                    rv{i.key} = i.value.format("YYYY-MM-DD");
+                } else if (record_info.field_types{i.key} == "time") {
+                    rv{i.key} = i.value.format("HH:mm:SS.xxZ");
+                }
+            } else {
+                rv{i.key} = i.value;
+            }
+        }
+        return rv;
     }
 }
 }
