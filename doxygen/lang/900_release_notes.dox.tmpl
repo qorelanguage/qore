@@ -18,10 +18,15 @@
 
     @subsection qore_0944_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
+      - fixed a bug where mapper output data was not logged in case of an error in an output provider
+        (<a href="https://github.com/qorelanguage/qore/issues/3909">issue 3909</a>)
       - updated mapper key handler calling convertion + docs
         (<a href="https://github.com/qorelanguage/qore/issues/3894">issue 3894</a>)
       - fixed \c Mapper::mapAuto() to return @ref NOTHING with no input
         (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
+    - <a href="../../modules/SalesforceRestDataProvider/html/index.html">SalesforceRestDataProvider</a> module updates:
+      - fixed serializing \c DATE fields
+        (<a href="https://github.com/qorelanguage/qore/issues/3908">issue 3908</a>)
     - fixed a bug in class copy methods with \c private:internal members
       (<a href="https://github.com/qorelanguage/qore/issues/3901">issue 3901</a>)
     - fixed bugs running \c qdbg

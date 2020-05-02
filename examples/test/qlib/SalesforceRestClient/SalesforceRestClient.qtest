@@ -117,8 +117,24 @@ class SalesforceTest inherits QUnit::Test {
         {
             AbstractDataProvider account = dp.getChildProvider("Account");
 
-            # create new account
-            string id = account.createRecord({"Name": "deleteme", "Type": "test-delete"}).id;
+            string id;
+            {
+                # create new account
+                hash<auto> rec += {
+                    "Name": "deleteme",
+                    "Type": "test-delete",
+                };
+                if (account.getRecordType().SLAExpirationDate__c) {
+                    rec += {
+                        "SLAExpirationDate__c": now_us(),
+                    };
+                }
+                id = account.createRecord(rec).id;
+            }
+            on_exit {
+                # delete the record
+                assertEq(1, account.deleteRecords({"Name": "deleteme"}));
+            }
 
             # search the record
             recs = map $1, account.searchRecords({"Id": id}, {"limit": 1});
@@ -131,9 +147,6 @@ class SalesforceTest inherits QUnit::Test {
 
             # update the record
             assertEq(1, account.updateRecords({"Type": "delete"}, {"Id": id}));
-
-            # delete the record
-            assertEq(1, account.deleteRecords({"Id": id}));
         }
     }
 
