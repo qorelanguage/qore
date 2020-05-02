@@ -307,6 +307,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
       (<a href="https://github.com/qorelanguage/qore/issues/3909">issue 3909</a>)
     - added support for mapper context in mapper field key handlers
       (<a href="https://github.com/qorelanguage/qore/issues/3893">issue 3893</a>)
+    - fixed @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" to return @ref NOTHING with no input
+      (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
 
     @subsection mapperv1_5_1 Mapper v1.5.1
     - added the \c ignore_missing_input mapper option
@@ -1876,6 +1878,9 @@ Mapper mapv(DataMap);
     #! maps all input record(s) automatically and returns the mapped data
     /** this method applies the @ref mapAll() method if the input records are given as list and the @ref mapBulk() method if the input is a hash of lists.
         For a simple hash (one record) it calls the @ref mapData() method.
+
+        If @ref NOTHING is passed, then @ref NOTHING is returned with no mapping performed
+
         @param recs input records (one record or more), can be represented by list or hash
 
         @return the mapped data as of output records (type depends on the given records' type)
@@ -1888,19 +1893,25 @@ Mapper mapv(DataMap);
         @since %Mapper 1.6
     */
     auto mapAuto(auto recs) {
-        if (recs.typeCode() == NT_LIST) {
-            return mapAll(recs);
-        } else if (recs.typeCode() == NT_HASH) {
-            if (recs.firstValue().typeCode() == NT_LIST) {
-                # there are more records (hash of lists)
-                return disable_bulk ? mapAll(recs) : mapBulk(recs);
-            }
-            # only one record (simple hash)
-            return mapData(recs);
+        switch (recs.typeCode()) {
+            case NT_LIST:
+                return mapAll(recs);
+
+            case NT_HASH:
+                if (recs.firstValue().typeCode() == NT_LIST) {
+                    # there are more records (hash of lists)
+                    return disable_bulk ? mapAll(recs) : mapBulk(recs);
+                }
+                # only one record (simple hash)
+                return mapData(recs);
+
+            case NT_NOTHING:
+                # do nothing in case no input was received
+                return;
         }
 
         error2("MAPPER-INPUT-TYPE-ERROR", "mapAuto() does not accept the given type: %s,
-            acceptable types are 'hash' or 'list'", recs.type());
+            acceptable types are 'hash', 'list', or 'nothing'", recs.type());
     }
 
     #! maps a set of records in hash of lists format; returns mapped data in a hash of lists format

@@ -735,6 +735,7 @@ public class MapperTest inherits QUnit::Test {
     testMapperMapAuto() {
         # test list of hashes
         Mapper m1(DataMap, m_opts);
+        assertNothing(m1.mapAuto(NOTHING));
         auto res = m1.mapAuto(MapInput);
         testAssertion("Verify mapped list", \equalsIterated(), (MapOutput.iterator(), res.iterator()));
         testAssertion("Verify item count", \equals(), (m1.getCount(), 2));
