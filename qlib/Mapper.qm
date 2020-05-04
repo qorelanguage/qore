@@ -303,12 +303,15 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_5_2 Mapper v1.5.2
+    - added the @ref Mapper::Mapper::mapAutoInput() "Mapper::mapAutoInput()" method
     - fixed a bug where mapper output data was not logged in case of an error in an output provider
       (<a href="https://github.com/qorelanguage/qore/issues/3909">issue 3909</a>)
     - added support for mapper context in mapper field key handlers
       (<a href="https://github.com/qorelanguage/qore/issues/3893">issue 3893</a>)
     - fixed @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" to return @ref NOTHING with no input
       (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
+    - implemented support for nested mappers
+      (<a href="https://github.com/qorelanguage/qore/issues/3414">issue 3414</a>)
 
     @subsection mapperv1_5_1 Mapper v1.5.1
     - added the \c ignore_missing_input mapper option
@@ -394,6 +397,7 @@ public class Mapper inherits AbstractDataProcessor {
                 "structured format",
             "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: "
                 "\"MM/DD/YYYY HH:mm:SS\"",
+            "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
             "encoding": "DEPRECATED: gives the default output character encoding for string fields",
             "info_log": "a call reference / closure for informational logging",
             "input": "the input record description (mutually exclusive with input_provider)",
@@ -409,16 +413,33 @@ public class Mapper inherits AbstractDataProcessor {
             "output_provider": "the output data provider (mutually exclusive with output)",
             "runtime_keys": "field key support provided as a Mapper option; format: "
                 "hash<string, hash<MapperRuntimeKeyInfo>>",
+            "submapper_get": "a call reference / closure for retriving submappers "
+                "(sig: sub (string name, *hash<auto> opts) {})",
+            "template_subst": "a clal reference / closure for template substitution; used and required for the "
+                "\"submapper_options\" mapper key",
             "timezone": "DEPRECATED: the default output timezone for date/time values",
-            "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
         };
 
         #! User options
         const UserOptions = {
+            "disable_bulk": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
+                    "mapAuto",
+            },
+
             "global_type_options": <MapperOptionInfo>{
                 "type": "type-option-hash",
                 "desc": "a hash of global type options to be used by applicable fields if they do not override the "
                     "option",
+            },
+
+            "ignore_missing_input": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "if true and if an output field has an input mapping but the input hash has no such value, "
+                    "and the output field does not require a value, in this case, the output field is omitted "
+                    "entirely; this option is useful when the mapper output is used for delta updates with variable "
+                    "input, for example; this option cannot be used with bulk input",
             },
 
             "input_provider_search": <MapperOptionInfo>{
@@ -447,6 +468,11 @@ public class Mapper inherits AbstractDataProcessor {
                 "desc": "the input provider search options",
             },
 
+            "mapper_handler_context": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "a hash that will be passed to any field handlers as the context argument",
+            },
+
             "output_nullable": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "set output fields as nullable",
@@ -472,25 +498,6 @@ public class Mapper inherits AbstractDataProcessor {
             "runtime": <MapperOptionInfo>{
                 "type": "hash",
                 "desc": "defines key-value pairs lookups for the \"runtime\" field mapping key",
-            },
-
-            "ignore_missing_input": <MapperOptionInfo>{
-                "type": "bool",
-                "desc": "if true and if an output field has an input mapping but the input hash has no such value, "
-                    "and the output field does not require a value, in this case, the output field is omitted "
-                    "entirely; this option is useful when the mapper output is used for delta updates with variable "
-                    "input, for example; this option cannot be used with bulk input",
-            },
-
-            "disable_bulk": <MapperOptionInfo>{
-                "type": "bool",
-                "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
-                    "mapAuto",
-            },
-
-            "mapper_handler_context": <MapperOptionInfo>{
-                "type": "hash",
-                "desc": "a hash that will be passed to any field handlers as the context argument",
             },
         };
 
@@ -545,6 +552,12 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! an optional output data logging callback; must accept a hash giving the output data hash
         *code output_log;
+
+        #! an optional callback for retrieving a nested mapper; sig: <tt>sub (string name, *hash<auto> opts) {}</tt>
+        *code submapper_get;
+
+        #! an optional callback for substituting templated values
+        *code template_subst;
 
         #! global transformation options; can be overridden on a per-field basis
         hash<auto> global_transform_opts = {} + {
@@ -1039,6 +1052,8 @@ Mapper mapv(DataMap);
         info_log = opts.info_log;
         input_log = opts.input_log;
         output_log = opts.output_log;
+        submapper_get = opts.submapper_get;
+        template_subst = opts.template_subst;
 
         # set global transform options
         global_transform_opts += (map {
@@ -1229,6 +1244,8 @@ Mapper mapv(DataMap);
         else if (fh.fullType() != "hash<auto>") {
             fh = {} + fh;
         }
+        # save a copy of the original field has to use when checking field keys
+        hash<auto> orig_fh = fh;
 
         # check output name
         if (output) {
@@ -1431,12 +1448,14 @@ Mapper mapv(DataMap);
         # check runtime keys
         {
             hash<string, string> conflicts;
-            foreach hash<auto> i in (runtime_keys{keys fh}.pairIterator()) {
+            hash<auto> key_config = runtime_keys + MapperKeyInfo;
+
+            foreach hash<auto> i in (key_config{keys orig_fh}.pairIterator()) {
                 # check for conflicts
                 foreach string role in (i.value.unique_roles) {
-                    if (role == "*" && fh.size() > 1) {
+                    if (role == "*" && orig_fh.size() > 1) {
                         error("output field %y key %y must be the only field in the output field mapping hash, "
-                            "however the following keys are present: %y", getFieldName(k), i.key, keys fh);
+                            "however the following keys are present: %y", getFieldName(k), i.key, keys (orig_fh - i.key));
                     }
                     if (conflicts{role}) {
                         error("output field %y has key %y with unique role %y, but key %y with the same unique "
@@ -1451,7 +1470,7 @@ Mapper mapv(DataMap);
                 if (i.value.value_type != "any") {
                     string type = i.value.value_type;
                     if (type[0] == "*") {
-                        if (!exists fh{i.key}) {
+                        if (!exists orig_fh{i.key}) {
                             continue;
                         }
                         type = type[1..];
@@ -1461,16 +1480,26 @@ Mapper mapv(DataMap);
                     } else if (type == "option_hash") {
                         type = Type::Hash;
                     }
-                    string vtype = fh{i.key}.type();
+                    string vtype = orig_fh{i.key}.type();
                     if (type != vtype) {
                         # code == "closure" and "call reference"
                         if (type != "mapper-code" || (vtype != "closure" && vtype != "call reference")) {
                             error("output field %y key %y has value %y with type %y which is not compatible with the "
-                                "expected type %y", getFieldName(k), i.key, fh{i.key}, fh{i.key}.type(), type);
+                                "expected type %y", getFieldName(k), i.key, orig_fh{i.key}, orig_fh{i.key}.type(), type);
                         }
                     }
                 }
             }
+
+            # check required roles
+            foreach hash<auto> i in (key_config{keys orig_fh}.pairIterator()) {
+                map error("output field %y key %y requires missing role/key %y", getFieldName(k), i.key, $1), i.value.requires_roles, !exists conflicts{$1};
+            }
+        }
+
+        if (fh.submapper && !submapper_get) {
+            error("output field %y requires submapper %y, but no \"submapper_get\" option was provided to the mapper",
+                getFieldName(k), fh.submapper);
         }
 
         # convert old "number" tag to new "type" tag
@@ -1816,6 +1845,69 @@ Mapper mapv(DataMap);
             } else {
                 # bulk output with normal input
                 map mapData($1), getInputProviderRecordIterator();
+            }
+        }
+    }
+
+    #! Runs the input data provider through the mapper and returns the output
+    /**
+        @throw MAPPER-INPUT-PROVIDER-ERROR no input provider available in this mapper
+
+        @since %Mapper 1.5.2
+    */
+    *softlist<hash<auto>> mapAutoInput() {
+        checkInputProvider();
+
+        # first process autonomous mappings using the request/response API
+        if (input_do_request) {
+            if (info_log) {
+                info_log("autonomous input mapping %y request -> %y", input_provider.getName(), output_provider ? output_provider.getName() : "<no output provider>");
+            }
+
+            auto response = input_provider.doRequest(input_request, input_request_options);
+            return mapData(response);
+        }
+
+        if (info_log) {
+            if (input_request_search) {
+                info_log("autonomous input mapping %y request/search", input_provider.getName());
+            } else {
+                info_log("autonomous input mapping %y records (bulk: %y)", input_provider.getName(),
+                    input_provider.supportsBulkRead());
+            }
+        }
+
+        if (output_provider_bulk_operation) {
+            on_error {
+                output_provider_bulk_operation.discard();
+            }
+            on_success {
+                output_provider_bulk_operation.flush();
+            }
+            if (input_provider.supportsBulkRead()) {
+                # bulk read + bulk write for high performance mapping
+                AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
+                    input_provider_search, input_search_options);
+                list<hash<auto>> rv;
+                while (*hash<auto> records = i.getValue()) {
+                    map rv += $1, mapBulk(records).contextItertor();
+                }
+                return rv;
+            } else {
+                # bulk output with normal input
+                return map mapData($1), getInputProviderRecordIterator();
+            }
+        } else {
+            if (input_provider.supportsBulkRead()) {
+                # bulk read + bulk write for high performance mapping
+                AbstractDataProviderBulkRecordInterface i = input_provider.searchRecordsBulk(NOTHING,
+                    input_provider_search, input_search_options);
+                while (*hash<auto> records = i.getValue()) {
+                    return map mapData($1), records.contextIterator();
+                }
+            } else {
+                # bulk output with normal input
+                return map mapData($1), getInputProviderRecordIterator();
             }
         }
     }
@@ -2214,6 +2306,34 @@ Mapper mapv(DataMap);
             }
         }
 
+        if (m.submapper) {
+            if (v_is_list) {
+                error2("MAPPER-FIELD-LIST-ERROR", "cannot use the \"submapper\" option with bulk input");
+            }
+            if (info_log) {
+                info_log("field %y retrieving submapper %y (opts: %y auto input: %y)", key, m.submapper, m.submapper_options, m.submapper_auto_input ?? False);
+            }
+            *hash<auto> submapper_options;
+            if (input_log) {
+                submapper_options.input_log = input_log;
+            }
+            if (output_log) {
+                submapper_options.output_log = output_log;
+            }
+            if (info_log) {
+                submapper_options.info_log = info_log;
+            }
+            if (m.submapper_options) {
+                submapper_options += getOptionsFromTemplate(m.submapper_options, rec);
+            }
+            Mapper submapper = submapper_get(m.submapper, submapper_options);
+            if (m.submapper_auto_input) {
+                v = submapper.mapAutoInput();
+            } else {
+                v = submapper.mapAll(v);
+            }
+        }
+
         # move any XML CDATA into the field value
         # do not access "^cdata^" directly in case it's a hashdecl
         if (v.typeCode() == NT_HASH && v.hasKey("^cdata^") && v."^cdata^".val())
@@ -2369,6 +2489,39 @@ Mapper mapv(DataMap);
         } else {
             h{key} = v;
         }
+    }
+
+    #! Returns options from a template hash
+    hash<auto> getOptionsFromTemplate(hash<auto> opts, hash<auto> rec) {
+        if (template_subst) {
+            return template_subst(opts, {"local": rec});
+        }
+        hash<auto> new_opts();
+        # do simple default template substitution
+        foreach hash<auto> i in (opts.pairIterator()) {
+            switch (i.value.typeCode()) {
+                case NT_HASH:
+                    new_opts{i.key} = getOptionsFromTemplate(i.value, rec);
+                    break;
+
+                case NT_LIST:
+                    new_opts{i.key} = map getOptionsFromTemplate($1, rec), i.value;
+                    break;
+
+                case NT_STRING:
+                    if (*list<string> vl = (i.value =~ x/\$local:([a-z0-9_]+)/)) {
+                        new_opts{i.key} = i.value;
+                        map new_opts{i.key} = replace(new_opts{i.key}, "$local:" + $1, rec{$1}), vl;
+                        break;
+                    }
+                    # fall down to next case
+
+                default:
+                    new_opts{i.key} = i.value;
+                    break;
+            }
+        }
+        return new_opts;
     }
 
     # recursively remove a key from the output

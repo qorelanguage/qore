@@ -67,17 +67,9 @@ module MapperUtil {
 public namespace Mapper {
     #! Mapper standard field key info hash
     public const MapperKeyInfo = {
-        "name": <MapperRuntimeKeyInfo>{
-            "desc": "the name of the input field; dot notation accepted",
-            "value_type": "string",
-            "unique_roles": "value",
-        },
-        "use_input_record": <MapperRuntimeKeyInfo>{
-            "desc": "The entire input record will be used for the output field mapping; only compatible with hash "
-                "output fields",
-            "value_type": "bool",
-            "unique_roles": "*",
-            "returns_type": "hash",
+        "code": <MapperRuntimeKeyInfo>{
+            "desc": "a code block for generating the field output programmatically",
+            "value_type": "mapper-code",
         },
         "constant": <MapperRuntimeKeyInfo>{
             "desc": "a constant value for the output field",
@@ -85,33 +77,62 @@ public namespace Mapper {
             "requires_field_type": True,
             "unique_roles": "*",
         },
-        "index": <MapperRuntimeKeyInfo>{
-            "desc": "the index number of the row",
-            "value_type": "int",
-            "unique_roles": "*",
-        },
-        "code": <MapperRuntimeKeyInfo>{
-            "desc": "a code block for generating the field output programmatically",
-            "value_type": "mapper-code",
-        },
         "default": <MapperRuntimeKeyInfo>{
             "desc": "the default value for the field if no input is provided",
             "value_type": "any",
             "requires_field_type": True,
         },
-        "trunc": <MapperRuntimeKeyInfo>{
-            "desc": "if True and the input is longer than the output field permits, the input will be "
-                "silently truncated",
-            "value_type": "bool",
+        "index": <MapperRuntimeKeyInfo>{
+            "desc": "the index number of the row; an integer value will be added to the current row number, a string "
+                "will be prepended to the current row number",
+            "value_type": "any",
+            "unique_roles": "*",
+        },
+        "name": <MapperRuntimeKeyInfo>{
+            "desc": "the name of the input field; dot notation accepted",
+            "value_type": "string",
+            "unique_roles": "value",
         },
         "runtime": <MapperRuntimeKeyInfo>{
             "desc": "the name of the field in the runtime hash where to take the value from",
             "value_type": "string",
             "unique_roles": "*",
         },
+        "submapper": <MapperRuntimeKeyInfo>{
+            "desc": "the name or identifier of a submapper that will provide a list of values for this field (cannot "
+                "be used with bulk APIs)",
+            "value_type": "string",
+            "unique_roles": "submapper",
+        },
+        "submapper_auto_input": <MapperRuntimeKeyInfo>{
+            "desc": "use the input provider from the submapper for the output of the field; requires "
+            "\"submapper_options\" to provide input configuration for the submapper",
+            "value_type": "bool",
+            "requires_roles": ("submapper", "submapper_options"),
+        },
+        "submapper_options": <MapperRuntimeKeyInfo>{
+            "desc": "allows a parent mapper to affect the options of the submapper based on current data; use "
+                "\"$rec:<field>\" to refer to mapped data in the current parent mapper row to affect submapper "
+                "options",
+            "value_type": "hash",
+            "unique_roles": ("submapper_options"),
+            "requires_roles": "submapper",
+        },
+        "trunc": <MapperRuntimeKeyInfo>{
+            "desc": "if True and the input is longer than the output field permits, the input will be "
+                "silently truncated",
+            "value_type": "bool",
+        },
         "type_options": <MapperRuntimeKeyInfo>{
             "desc": "a hash of type options; this must correspond to option values for the output data type",
             "value_type": "option_hash",
+        },
+        "use_input_record": <MapperRuntimeKeyInfo>{
+            "desc": "The entire input record will be used for the output field mapping; only compatible with hash "
+                "output fields",
+            "value_type": "bool",
+            "unique_roles": "*",
+            "returns_type": "hash",
         },
     };
 
