@@ -2382,6 +2382,7 @@ Mapper mapv(DataMap);
         if (*hash<string, hash<auto>> current_runtime_keys = runtime_keys_with_handler{keys m}) {
             hash<auto> ctx = mapper_handler_context + {
                 "output-key": key,
+                "input": rec,
             };
             if (do_list) {
                 foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
