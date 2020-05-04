@@ -128,6 +128,7 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         writer.write(rec);
+        return rec;
     }
 
     #! Returns data provider static info

@@ -560,7 +560,7 @@ public class MapperTest inherits QUnit::Test {
                     "submapper": "test",
                     "submapper_options": {
                         "input_provider_search": {
-                            "sub-a": "$local:a",
+                            "sub-a": "$local:input.a",
                         },
                     },
                     "submapper_auto_input": True,
