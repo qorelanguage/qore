@@ -1185,8 +1185,12 @@ public class TableMapperTest inherits QUnit::Test {
     }
 
     Datasource getDatasource() {
-        if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? ENV.QORE_DB_CONNSTR_PGSQL ?? ENV.QORE_DB_CONNSTR_MYSQL ?? ENV.QORE_DB_CONNSTR_FREETDS ?? ENV.QORE_DB_CONNSTR_SYBASE;
+        if (!m_options.connstr) {
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?* ENV.QORE_DB_CONNSTR_PGSQL ?* ENV.QORE_DB_CONNSTR_MYSQL ?* ENV.QORE_DB_CONNSTR_FREETDS ?* ENV.QORE_DB_CONNSTR_SYBASE;
+            if (m_options.verbose) {
+                printf("using connection string %y\n", m_options.connstr);
+            }
+        }
         Datasource ds(m_options.connstr);
         ds.open();
         return ds;
