@@ -121,6 +121,7 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         writer.writeLine(rec);
+        return rec;
     }
 
     #! Returns data provider static info
