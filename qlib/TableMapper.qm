@@ -596,6 +596,7 @@ InboundTableMapper mapper(table, DbMapper);
                         fh.type = "number";
                 } else {
                     fh.constant = iop_seq(fh.sequence);
+                    fh -= "sequence";
                     ret_args += k;
                 }
             }
@@ -614,6 +615,7 @@ InboundTableMapper mapper(table, DbMapper);
                         fh.type = "number";
                 } else {
                     fh.constant = iop_seq_currval(fh.sequence_currval);
+                    fh -= "sequence_currval";
                     ret_args += k;
                 }
             }
