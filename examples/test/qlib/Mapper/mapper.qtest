@@ -26,6 +26,45 @@ class TestHashType inherits HashDataType {
     }
 }
 
+class TestInputProvider inherits AbstractDataProvider {
+    private {
+        *hash<auto> last_where_cond;
+        *hash<auto> last_search_options;
+    }
+
+    string getName() {
+        return "TestInputProvider";
+    }
+
+    hash<DataProviderInfo> getStaticInfoImpl() {
+        return <DataProviderInfo>{
+            "supports_read": True,
+            "has_record": True,
+        };
+    }
+
+    *hash<auto> getLastWhereCond() {
+        return last_where_cond;
+    }
+
+    *hash<auto> getLastSearchOptions() {
+        return last_search_options;
+    }
+
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        return {
+            "sub-a": new QoreDataField("sub-a", "a", AbstractDataProviderType::get("string")),
+            "sub-b": new QoreDataField("sub-b", "b", AbstractDataProviderType::get("string")),
+        };
+    }
+
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        last_where_cond = where_cond;
+        last_search_options = search_options;
+        return new DefaultRecordIterator(new HashListIterator({"sub-a": ("a-0", "a-1",), "sub-b": ("b-0", "b-1",)}), where_cond, search_options, getRecordTypeImpl());
+    }
+}
+
 public class MapperTest inherits QUnit::Test {
     public {
         const DataMap = {
@@ -55,9 +94,9 @@ public class MapperTest inherits QUnit::Test {
             "sr0.sr1.key1": ("constant": "key1"),
             "sr0.store_name": "StoreInfo.StoreName",
             "runtimetest": ("runtime" : "runtimetest"),
-            "indextest1": ("index" : 0),
-            "indextest2": ("index" : 1),
-            "indextest3": ("index" : "a"),
+            "indextest1": ("index": 0),
+            "indextest2": ("index": 1),
+            "indextest3": ("index": "a"),
             "empty_string": "EmptyString",
             "length_test": ("maxlen": 5, "default": ""),
         };
@@ -438,6 +477,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("submapper test", \submapperTest());
         addTestCase("ignore_missing_input test", \ignoreMissingInputTest());
         addTestCase("use_input_record test", \useInputRecordTest());
         addTestCase("nullable output", \nullableOutputTest());
@@ -465,6 +505,123 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    # issue #3414
+    submapperTest() {
+        assertThrows("MAP-ERROR", sub () { Mapper m({
+            "f": {
+                "submapper": "test",
+            },
+        },); });
+
+        assertThrows("MAP-ERROR", sub () { Mapper m({
+            "f": {
+                "submapper_options": {},
+            },
+        },); });
+
+        {
+            code submapper_get_err = Mapper sub (string name, *hash<auto> opts) {
+                throw "MAPPER-ERROR", sprintf("no such mapper %y", name);
+            };
+
+            Mapper m({
+                "f": {
+                    "submapper": "test",
+                },
+            }, {
+                "submapper_get": submapper_get_err,
+            });
+
+            assertThrows("MAPPER-ERROR", \m.mapData(), {"a": 1});
+        }
+
+        {
+            TestInputProvider input_provider();
+            code log_input = sub (hash<auto> rec) {if (m_options.verbose > 2) { printf("input: %y\n", rec); }};
+            code log_output = sub (hash<auto> rec) {if (m_options.verbose > 2) { printf("output: %y\n", rec); }};
+
+            code submapper_get = Mapper sub (string name, *hash<auto> opts) {
+                return new Mapper({
+                    "sub-a": {
+                        "name": "sub-a",
+                    },
+                    "sub-b": {
+                        "name": "sub-b",
+                    },
+                }, {
+                    "input_provider": input_provider,
+                } + opts);
+            };
+
+            Mapper m({
+                "f": {
+                    "submapper": "test",
+                    "submapper_options": {
+                        "input_provider_search": {
+                            "sub-a": "$local:a",
+                        },
+                    },
+                    "submapper_auto_input": True,
+                },
+            }, {
+                "submapper_get": submapper_get,
+                "input_log": log_input,
+                "output_log": log_output,
+            });
+
+            assertEq({"f": (
+                {"sub-a": "a-1", "sub-b": "b-1"},
+            )}, m.mapData({"a": "a-1"}));
+
+            assertEq({"sub-a": "a-1"}, input_provider.getLastWhereCond());
+            assertNothing(input_provider.getLastSearchOptions());
+        }
+
+        {
+            code log_input = sub (hash<auto> rec) {if (m_options.verbose > 2) { printf("input: %y\n", rec); }};
+            code log_output = sub (hash<auto> rec) {if (m_options.verbose > 2) { printf("output: %y\n", rec); }};
+
+            code submapper_get = Mapper sub (string name, *hash<auto> opts) {
+                return new Mapper({
+                    "sub-a": {
+                        "name": "sub-a",
+                    },
+                    "sub-b": {
+                        "name": "sub-b",
+                    },
+                }, opts);
+            };
+
+            Mapper m({
+                "_a": {
+                    "name": "a",
+                },
+                "f": {
+                    "name": "sub",
+                    "submapper": "test",
+                },
+            }, {
+                "submapper_get": submapper_get,
+                "input_log": log_input,
+                "output_log": log_output,
+            });
+
+            assertEq({
+                "_a": "a-1",
+                "f": (
+                    {"sub-a": "a-0", "sub-b": "b-0"},
+                    {"sub-a": "a-1", "sub-b": "b-1"},
+                ),
+            }, m.mapData({
+                "a": "a-1",
+                "sub": (
+                    {"sub-a": "a-0", "sub-b": "b-0"},
+                    {"sub-a": "a-1", "sub-b": "b-1"},
+                ),
+            }));
+        }
     }
 
     # issue #3837
@@ -746,7 +903,7 @@ public class MapperTest inherits QUnit::Test {
         testAssertion("Verify mapped hash of lists", \equalsIterated(), (MapOutput.iterator(), res.iterator()));
         testAssertion("Verify item count", \equals(), (m2.getCount(), 2));
 
-        # # test hash of lists with enabled bulk
+        # test hash of lists with enabled bulk
         Mapper m3(DataMap2, m_opts + {
             "output": {
                 "int_field": {},
