@@ -413,9 +413,9 @@ public class Mapper inherits AbstractDataProcessor {
             "output_provider": "the output data provider (mutually exclusive with output)",
             "runtime_keys": "field key support provided as a Mapper option; format: "
                 "hash<string, hash<MapperRuntimeKeyInfo>>",
-            "submapper_get": "a call reference / closure for retriving submappers "
+            "submapper_get": "a call reference / closure for retrieving submappers "
                 "(sig: sub (string name, *hash<auto> opts) {})",
-            "template_subst": "a clal reference / closure for template substitution; used and required for the "
+            "template_subst": "a call reference / closure for template substitution; used and required for the "
                 "\"submapper_options\" mapper key",
             "timezone": "DEPRECATED: the default output timezone for date/time values",
         };

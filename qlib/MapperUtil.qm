@@ -112,7 +112,7 @@ public namespace Mapper {
         },
         "submapper_options": <MapperRuntimeKeyInfo>{
             "desc": "allows a parent mapper to affect the options of the submapper based on current data; use "
-                "\"$rec:<field>\" to refer to mapped data in the current parent mapper row to affect submapper "
+                "\"$local:<field>\" to refer to mapped data in the current parent mapper row to affect submapper "
                 "options",
             "value_type": "hash",
             "unique_roles": ("submapper_options"),
