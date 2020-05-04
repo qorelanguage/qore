@@ -499,6 +499,12 @@ public class Mapper inherits AbstractDataProcessor {
                 "type": "hash",
                 "desc": "defines key-value pairs lookups for the \"runtime\" field mapping key",
             },
+
+            "submappers": <MapperOptionInfo>{
+                "type": "hash",
+                "desc": "each hash key is the name of a global submapper and must have a hash value giving the "
+                    "options for submapper as a value; requires the \"submapper_get\" option as well",
+            },
         };
 
         #! default known mapper hash field keys (can be extended by subclassing and reimplementing validKeys())
@@ -679,6 +685,9 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! mapper static thread context hash
         *hash<auto> mapper_thread_context;
+
+        #! global submapper hash
+        *hash<auto> global_submappers;
 
         #! maps standard types to auto types to avoid type stripping
         const TypeMap = {
@@ -1022,7 +1031,7 @@ Mapper mapv(DataMap);
                     error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
                         output_provider.getName(), self.className());
                 }
-                if (opts.output_provider_bulk) {
+                if (opts.output_provider_bulk && !disable_bulk) {
                     output_provider_bulk_operation = output_provider.getBulkUpserter();
                 }
                 output_provider_upsert = True;
@@ -1055,6 +1064,21 @@ Mapper mapv(DataMap);
         submapper_get = opts.submapper_get;
         template_subst = opts.template_subst;
 
+        if (opts.submappers) {
+            if (opts.submappers.typeCode() != NT_HASH) {
+                error("the \"submappers\" option was provided as type %y; expecting \"hash\"",
+                    opts.submappers.type());
+            }
+            if (!submapper_get) {
+                error("the \"submappers\" option was provided without the \"submapper_get\" option (%y)",
+                    opts.submappers);
+            }
+            map error("submappers option key %y has a value of type %y; expecting \"hash\" (%y)", $1.key,
+                $1.value.type(), $1.value), opts.submappers.pairIterator(), $1.value.typeCode() != NT_HASH;
+
+            global_submappers = opts.submappers;
+        }
+
         # set global transform options
         global_transform_opts += (map {
             DeprecatedGlobalTransformOptionMap{$1.key}: $1.value,
@@ -1064,6 +1088,11 @@ Mapper mapv(DataMap);
         if (opts) {
             checkTimezoneOption("input_timezone");
             checkTimezoneOption("output_timezone");
+        }
+
+        # set this before setting the output provider
+        if (opts.disable_bulk) {
+            disable_bulk = True;
         }
 
         # validate input record definition
@@ -1087,10 +1116,6 @@ Mapper mapv(DataMap);
 
         if (opts.ignore_missing_input) {
             ignore_missing_input = True;
-        }
-
-        if (opts.disable_bulk) {
-            disable_bulk = True;
         }
 
         # setup mapper handler context
@@ -2034,6 +2059,10 @@ Mapper mapv(DataMap);
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
     */
     *hash<auto> mapBulk(hash<auto> rec, *hash<auto> crec) {
+        if (global_submappers) {
+            error2("MAP-BULK-ERROR", "bulk mapping cannot be performed with mappers with global submappers");
+        }
+
         if (crec) {
             if (exists getRecListSize(crec)) {
                 throw "MAPPER-BATCH-ERROR", sprintf("%s::queueData() does not accept a batch as its 2nd "
@@ -2161,9 +2190,15 @@ Mapper mapv(DataMap);
                 if (output_do_request) {
                     output_provider.doRequest(h, output_request_options);
                 } else {
-                    output_provider.createRecord(h);
+                    h = output_provider.createRecord(h);
                 }
             }
+        }
+
+        # execute global submappers; if any
+        foreach hash<auto> i in (global_submappers.pairIterator()) {
+            Mapper submapper = submapper_get(i.key, getOptionsFromTemplate(i.value, rec, h));
+            submapper.mapAutoInput();
         }
 
         # increment record count
@@ -2492,29 +2527,44 @@ Mapper mapv(DataMap);
     }
 
     #! Returns options from a template hash
-    hash<auto> getOptionsFromTemplate(hash<auto> opts, hash<auto> rec) {
+    hash<auto> getOptionsFromTemplate(hash<auto> opts, hash<auto> input_rec, *hash<auto> output_rec) {
         if (template_subst) {
-            return template_subst(opts, {"local": rec});
+            return template_subst(opts, {
+                "local": {
+                    "input": input_rec,
+                    "output": output_rec,
+                },
+            });
         }
         hash<auto> new_opts();
         # do simple default template substitution
         foreach hash<auto> i in (opts.pairIterator()) {
             switch (i.value.typeCode()) {
                 case NT_HASH:
-                    new_opts{i.key} = getOptionsFromTemplate(i.value, rec);
+                    new_opts{i.key} = getOptionsFromTemplate(i.value, input_rec, output_rec);
                     break;
 
                 case NT_LIST:
-                    new_opts{i.key} = map getOptionsFromTemplate($1, rec), i.value;
+                    new_opts{i.key} = map getOptionsFromTemplate($1, input_rec, output_rec), i.value;
                     break;
 
-                case NT_STRING:
-                    if (*list<string> vl = (i.value =~ x/\$local:([a-z0-9_]+)/)) {
+                case NT_STRING: {
+                    bool found;
+                    if (*list<string> vl = (i.value =~ x/\$local:input\.([a-z0-9_]+)/)) {
+                        found = True;
                         new_opts{i.key} = i.value;
-                        map new_opts{i.key} = replace(new_opts{i.key}, "$local:" + $1, rec{$1}), vl;
+                        map new_opts{i.key} = replace(new_opts{i.key}, "$local:input." + $1, input_rec{$1}), vl;
+                    }
+                    if (output_rec && (*list<string> vl = (i.value =~ x/\$local:output\.([a-z0-9_]+)/))) {
+                        found = True;
+                        new_opts{i.key} = i.value;
+                        map new_opts{i.key} = replace(new_opts{i.key}, "$local:output." + $1, output_rec{$1}), vl;
+                    }
+                    if (found) {
                         break;
                     }
                     # fall down to next case
+                }
 
                 default:
                     new_opts{i.key} = i.value;
