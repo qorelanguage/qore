@@ -1207,6 +1207,8 @@ public:
         // parse text given
         if (!internParsePending(xsink, exp_code.c_str(), label, orig_src, offset, false)) {
             internParseCommit(false);   // finalize parsing, back out or commit all changes
+        } else {
+            parsing_in_progress = false;
         }
 
 #ifdef DEBUG
