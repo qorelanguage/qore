@@ -169,16 +169,18 @@ public namespace Mapper {
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
                 - \c val: the current value of the mapping, if any
-                - \c ctx: mapper context info; will contain at least a string \c "output-key" field giving the name of
-                  the output field currently being mapped
+                - \c ctx: mapper context info; will contain at least the following fields:
+                  - \c output-key: (string) provides the name of the output field currently being mapped
+                  - \c input: (hash) the current input record
                 - \c missing_input: an output variable; set to True if the handler could not resolve the value because
                   input was missing
             - \a requires_roles does not contain \a value:
               <tt>auto sub (auto arg, hash<auto> ctx, *reference<bool> missing_input) {}</tt>
               - parameters:
                 - \c arg: the argument to the runtime key in the mapping
-                - \c ctx: mapper context info; will contain at least a string \c "output-key" field giving the name of
-                  the output field currently being mapped
+                - \c ctx: mapper context info; will contain at least the following fields:
+                  - \c output-key: (string) provides the name of the output field currently being mapped
+                  - \c input: (hash) the current input record
                 - \c missing_input: an output variable; set to True if the handler could not resolve the value because
                   input was missing
 

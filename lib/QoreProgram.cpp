@@ -718,16 +718,15 @@ int qore_program_private::internParseCommit(bool standard_parse) {
 
             rc = 0;
         }
-    } else if (!*parseSink) {
+    } else {
         parsing_in_progress = false;
+        assert(!*parseSink);
         pend_dom = 0;
 
         // free temporary data structures
         str_set.clear();
         loc_set.clear();
         rc = 0;
-    } else {
-        rc = -1;
     }
 
     return rc;

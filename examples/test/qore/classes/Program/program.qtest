@@ -239,6 +239,9 @@ class ProgramTest inherits QUnit::Test {
         # global variables may not be declared
         assertThrows("PARSE-EXCEPTION", \p.getExpression(), ("our int x = (rand() % 200)", "exp4"));
 
+        # make sure the Program object is still usable after a parse error
+        assertEq(Type::Int, exp2.eval().type());
+
         delete p;
         assertThrows("PROGRAM-ERROR", \exp0.eval());
     }
