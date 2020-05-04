@@ -1317,7 +1317,7 @@ Mapper mapv(DataMap);
         } else if (fh.runtime) {
             if (!m_runtime.hasKey(fh.runtime))
                 error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
-        } else if (!fh."code" && !have_output_value && input) {
+        } else if (!fh."code" && !have_output_value && input && !fh.output_key_path) {
             checkInputField(k, k);
         }
 
@@ -2345,10 +2345,13 @@ Mapper mapv(DataMap);
             if (v_is_list) {
                 error2("MAPPER-FIELD-LIST-ERROR", "cannot use the \"submapper\" option with bulk input");
             }
-            if (info_log) {
-                info_log("field %y retrieving submapper %y (opts: %y auto input: %y)", key, m.submapper, m.submapper_options, m.submapper_auto_input ?? False);
-            }
             *hash<auto> submapper_options;
+            if (m.submapper_options) {
+                submapper_options += getOptionsFromTemplate(m.submapper_options, rec);
+            }
+            if (info_log) {
+                info_log("field %y retrieving submapper %y (opts: %y auto input: %y)", key, m.submapper, submapper_options, m.submapper_auto_input ?? False);
+            }
             if (input_log) {
                 submapper_options.input_log = input_log;
             }
@@ -2357,9 +2360,6 @@ Mapper mapv(DataMap);
             }
             if (info_log) {
                 submapper_options.info_log = info_log;
-            }
-            if (m.submapper_options) {
-                submapper_options += getOptionsFromTemplate(m.submapper_options, rec);
             }
             Mapper submapper = submapper_get(m.submapper, submapper_options);
             if (m.submapper_auto_input) {
@@ -2531,10 +2531,8 @@ Mapper mapv(DataMap);
     hash<auto> getOptionsFromTemplate(hash<auto> opts, hash<auto> input_rec, *hash<auto> output_rec) {
         if (template_subst) {
             return template_subst(opts, {
-                "local": {
-                    "input": input_rec,
-                    "output": output_rec,
-                },
+                "input": input_rec,
+                "output": output_rec,
             });
         }
         hash<auto> new_opts();

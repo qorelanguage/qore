@@ -141,7 +141,11 @@ public class AbstractDataField inherits Serializable {
         if (!exists value && exists default_value) {
             return default_value;
         }
-        return getType().acceptsValue(value);
+        try {
+            return getType().acceptsValue(value);
+        } catch (hash<ExceptionInfo> ex) {
+            throw ex.err, sprintf("%s (while setting field %y)", ex.desc, getName()), ex.arg;
+        }
     }
 
     #! returns information about the field as an input field
