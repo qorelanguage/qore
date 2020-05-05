@@ -416,7 +416,8 @@ public class AbstractDataProvider {
             try {
                 req = request_type.acceptsValue(req);
             } catch (hash<ExceptionInfo> ex) {
-                throw "INVALID-REQUEST", sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                throw "INVALID-REQUEST", sprintf("invalid request argument for request %y: %s: %s: %s", getName(),
+                    get_ex_pos(ex), ex.err, ex.desc);
             }
         }
         return doRequestImpl(req, validateRequestOptions(request_options));
