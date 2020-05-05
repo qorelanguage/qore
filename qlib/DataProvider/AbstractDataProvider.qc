@@ -238,6 +238,8 @@ public class AbstractDataProvider {
         @return the data written to the data provider
 
         @throw INVALID-OPERATION the data provider does not support record creation
+        @throw DUPLICATE-RECORD this exception should be thrown if the provider fails due to an attempt to create a
+        duplicate record
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         checkCreate();
@@ -1029,6 +1031,9 @@ public class AbstractDataProvider {
         @param create_options the create options after processing by validateCreateOptions()
 
         @return the data written to the data provider
+
+        @throw DUPLICATE-RECORD this exception should be thrown if the provider fails due to an attempt to create a
+        duplicate record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         throwUnimplementedException();

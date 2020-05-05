@@ -12,8 +12,9 @@
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
       - added support for mapper context in mapper field key handlers
         (<a href="https://github.com/qorelanguage/qore/issues/3893">issue 3893</a>)
-      - added support for nested mappers
+      - added support for nested mappers and the \c submappers option
         (<a href="https://github.com/qorelanguage/qore/issues/3414">issue 3414</a>)
+      - implemented the \c output_create_ignore_duplicates option
     - added support for freestanding expression evaluation:
       - @ref Qore::Expression "Expression" class
       - @ref Qore::Program::getExpression() "Program::getExpression()" method
@@ -22,6 +23,8 @@
     - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
       - fixed \c FixedLengthWriteDataProvider to return the record created with the \c createRecord() call
         (<a href="https://github.com/qorelanguage/qore/issues/3914">issue 3914</a>)
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
+      - added the \c DUPLICATE-RECORD exception documentation for \c AbstractDataProvider::createRecord()
     - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module updates:
       - fixed \c CsvWriteDataProvider to return the record created with the \c createRecord() call
         (<a href="https://github.com/qorelanguage/qore/issues/3914">issue 3914</a>)
@@ -33,6 +36,8 @@
       - fixed \c Mapper::mapAuto() to return @ref NOTHING with no input
         (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
     - <a href="../../modules/SalesforceRestDataProvider/html/index.html">SalesforceRestDataProvider</a> module updates:
+      - fixed a bug deleting records with no matches
+        (<a href="https://github.com/qorelanguage/qore/issues/3921">issue 3921</a>)
       - fixed serializing \c DATE fields
         (<a href="https://github.com/qorelanguage/qore/issues/3908">issue 3908</a>)
     - fixed a bug in class copy methods with \c private:internal members
