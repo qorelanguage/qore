@@ -182,6 +182,9 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         @param create_options the create options after processing by validateCreateOptions()
 
         @return the data written to the data provider with the \c "id" field of the new record
+
+        @throw DUPLICATE-RECORD this exception should be thrown if the provider fails due to an attempt to create a
+        duplicate record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         rec = fixSalesforceRecord(rec);
@@ -194,6 +197,13 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            # check for duplicate record error
+            if (info."response-body"[0].errorCode == "DUPLICATE_VALUE"
+                && (*string id = (info."response-body"[0].message =~ x/record with id: ([0-9a-zA-Z]+)/)[0])) {
+                ex.desc = sprintf("%s: %s", ex.err, ex.desc);
+                ex.err = "DUPLICATE-RECORD";
+                ex_arg.id = id;
+            }
             throw ex.err, ex.desc, ex_arg;
         }
         if (!resp.body.success) {
@@ -271,7 +281,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         }
         where_cond = fixSalesforceRecord(where_cond);
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options);
-        int count;
+        int count = 0;
         map (deleteSingleRecord(i.getValue().Id), ++count), i;
         return count;
     }
