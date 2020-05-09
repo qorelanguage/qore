@@ -746,7 +746,7 @@ void qore_program_private::addStatement(AbstractStatement* s) {
             return;
         }
 
-        unique_ptr<StatementBlock> block(new StatementBlock(0, 0));
+        std::unique_ptr<StatementBlock> block(new StatementBlock(0, 0));
         block->addStatement(exp);
 
         // initialize expression
