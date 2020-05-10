@@ -452,7 +452,7 @@ hash<auto> AbstractDatasource::getOptionHash() [flags=RET_VALUE_ONLY] {
 
     @since %Qore 0.9.4
 */
-auto AbstractDatasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
+auto AbstractDatasource::getOption(string[doc] opt) [flags=RET_VALUE_ONLY] {
     xsink->raiseException("DBI-OPTION-ERROR", "This method must be re-implemented in subclasses to provide the " \
         "desired functionality; it is implemented in Datasource and DatasourcePool for example");
     return QoreValue();

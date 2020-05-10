@@ -1043,7 +1043,6 @@ void do_redirect_event(Queue *event_queue, qore_socket_private* priv, const Qore
 void do_event(Queue *event_queue, qore_socket_private* priv, int event) {
     if (event_queue) {
         QoreHashNode* h = priv->getEvent(event, QORE_SOURCE_HTTPCLIENT);
-        qore_hash_private* hh = qore_hash_private::get(*h);
         event_queue->pushAndTakeRef(h);
     }
 }
