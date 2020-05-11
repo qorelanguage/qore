@@ -736,7 +736,11 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(5, int_processor0.getSum());
             assertEq(3, int_processor1.getSum());
 
+            int count = 0;
+            code thread_callback = sub () { ++count; };
+            opts.thread_callback = thread_callback;
             DataProviderPipelineFactory factory(opts);
+
             # run pipeline in parallel
             q0 = factory.appendQueue(0);
             q1 = factory.appendQueue(0);
@@ -755,6 +759,7 @@ public class DataProviderTest inherits QUnit::Test {
             pipe2.waitDone();
             assertEq(5, int_processor0.getSum());
             assertEq(3, int_processor1.getSum());
+            assertEq(3, count);
         }
     }
 
