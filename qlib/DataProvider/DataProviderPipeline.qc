@@ -100,15 +100,20 @@ public hashdecl PipelineOptionInfo {
     */
     *code debug_log;
 
-    #! error_log: a closure or call reference for error logging
+    #! a closure or call reference for error logging
     /** it must take a single format string and then optional arguments corresponding to the placeholders in the format string
     */
     *code error_log;
 
-    #! info_log: a closure or call reference for info logging
+    #! a closure or call reference for info logging
     /** it must take a single format string and then optional arguments corresponding to the placeholders in the format string
     */
     *code info_log;
+
+    #! a closure or call reference for setting thread-local data in new pipeline threads
+    /* it is called in the new pipeline thread with no arguments
+    */
+    *code thread_callback;
 
     #! the name of the pipeline for logging purposes; if this key is not included, a generic name will be generated
     *string name;
@@ -221,6 +226,8 @@ class PipelineQueue {
         }
         run_cnt.dec();
 
+        parent.registerThread(self);
+
         lck.lock();
         on_exit lck.unlock();
 
@@ -326,6 +333,11 @@ public class DataProviderPipeline {
         #! Debug log closure; takes a single format string and then arguments for format placeholders
         *code debug_log;
 
+        #! a closure or call reference for setting thread-local data in new pipeline threads
+        /* it is called in the new pipeline thread with no arguments
+        */
+        *code thread_callback;
+
         #! Atomic lock
         Mutex lck();
 
@@ -348,6 +360,7 @@ public class DataProviderPipeline {
         info_log = opts.info_log;
         error_log = opts.error_log;
         debug_log = opts.debug_log;
+        thread_callback = opts.thread_callback;
         name = opts.name ?? sprintf("unnamed pipeline %y", self.uniqueHash());
 
         lck.lock();
@@ -372,16 +385,6 @@ public class DataProviderPipeline {
         pmap = map {$1.key: copyPipeline($1.value)}, (remove pmap).pairIterator();
     }
 
-    #! Returns True if the object is stopping
-    bool stopping() {
-        return stop_flag ?? False;
-    }
-
-    #! Returns True if the object is aborting
-    bool aborting() {
-        return abort_flag ?? False;
-    }
-
     #! Destroys the object
     /** To ensure that the destructor does not throw a \c PIPELINE-FAILED exception, call run() or runAsync() and
         waitDone()
@@ -403,6 +406,27 @@ public class DataProviderPipeline {
     #! Returns True if the given queue exists, False if not
     bool hasQueue(int id) {
         return exists pmap{id};
+    }
+
+    #! Returns True if the object is stopping
+    bool stopping() {
+        return stop_flag ?? False;
+    }
+
+    #! Returns True if the object is aborting
+    bool aborting() {
+        return abort_flag ?? False;
+    }
+
+    #! Registers a new thread
+    registerThread(PipelineQueue queue) {
+        if (thread_callback) {
+            try {
+                thread_callback();
+            } catch (hash<ExceptionInfo> ex) {
+                reportError(queue, ex);
+            }
+        }
     }
 
     #! Appends a data processor to the default pipeline
