@@ -104,7 +104,7 @@ public class DataProviderPipelineFactory {
     /** @param opts override any options given in the constructor
     */
     DataProviderPipeline create(*hash<PipelineOptionInfo> opts) {
-        DataProviderPipeline pipe(opts ?? self.opts);
+        DataProviderPipeline pipe(self.opts + opts);
         map processQueue(pipe, $1.key.toInt(), $1.value), pmap.pairIterator();
         return pipe;
     }
