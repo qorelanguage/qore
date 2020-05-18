@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.2";
+    version = "1.5.3";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -301,6 +301,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_3 Mapper v1.5.3
+    - fixed a bug handling external runtime keys with bulk input for keys that do not require the current input value
+      (<a href="https://github.com/qorelanguage/qore/issues/3931">issue 3931</a>)
 
     @subsection mapperv1_5_2 Mapper v1.5.2
     - added the @ref Mapper::Mapper::mapAutoInput() "Mapper::mapAutoInput()" method
@@ -2414,21 +2418,32 @@ Mapper mapv(DataMap);
                 "output-key": key,
                 "input": rec,
             };
-            try {
-                if (do_list) {
-                    foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
-                        v = map i.value.requires_roles.value
-                        ? i.value.handler(m{i.key}, $1, ctx)
-                        : i.value.handler(m{i.key}, ctx), v;
-                    }
-                } else {
+            if (!do_list) {
+                # optimized version in one expression
+                try {
                     map v = $1.value.requires_roles.value
                         ? $1.value.handler(m{$1.key}, v, ctx, \missing)
                         : $1.value.handler(m{$1.key}, ctx, \missing),
                         current_runtime_keys.pairIterator();
+                } catch (hash<ExceptionInfo> ex) {
+                    error2(ex.err, "%s (field %y)", ex.desc, key);
                 }
-            } catch (hash<ExceptionInfo> ex) {
-                error2(ex.err, "%s (field %y)", ex.desc, key);
+            } else {
+                foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
+                    try {
+                        if (do_list && (exists v || i.value.requires_roles.value)) {
+                            v = map i.value.requires_roles.value
+                                ? i.value.handler(m{i.key}, $1, ctx)
+                                : i.value.handler(m{i.key}, ctx), v;
+                        } else {
+                            v = i.value.requires_roles.value
+                                ? i.value.handler(m{i.key}, v, ctx)
+                                : i.value.handler(m{i.key}, ctx);
+                        }
+                    } catch (hash<ExceptionInfo> ex) {
+                        error2(ex.err, "%s (field %y mapping key %y)", ex.desc, key, i.key);
+                    }
+                }
             }
         }
 
