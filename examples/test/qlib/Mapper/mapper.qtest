@@ -932,6 +932,68 @@ public class MapperTest inherits QUnit::Test {
 
         # test invalid input type
         assertThrows("MAPPER-INPUT-TYPE-ERROR", \m4.mapAuto(), "asdsadmn");
+
+        # issue #3931: test with bulk APIs and context
+        Mapper m5(DataMap2 + {
+            "ctx0": {
+                "context0": "c0",
+            },
+            "ctx1": {
+                "name": "count",
+                "context1": "c1",
+            },
+            "ctx2": {
+                "constant": "x",
+            },
+        }, {
+            "output": {
+                "int_field": {},
+                "date_field": {
+                    "type": "date",
+                },
+                "ctx0": {
+                    "type": "string",
+                },
+                "ctx1": {
+                    "type": "string",
+                },
+                "ctx2": {
+                    "type": "string",
+                },
+            },
+            "global_type_options": {
+                "date.format": "DD.MM.YYYY",
+            },
+            "runtime_keys": {
+                "context0": <MapperRuntimeKeyInfo>{
+                    "handler": auto sub (auto arg, hash<auto> ctx, *reference<bool> missing) {
+                        return arg + "-ctx";
+                    },
+                },
+                "context1": <MapperRuntimeKeyInfo>{
+                    "requires_roles": "value",
+                    "handler": auto sub (auto arg, auto val, hash<auto> ctx, *reference<bool> missing) {
+                        return val + "-" + arg + "-ctx";
+                    },
+                },
+            },
+        });
+        res = m5.mapAuto({"count": 11, "idate": "10.12.2019"});
+        assertEq({
+            "int_field": 11,
+            "date_field": 2019-12-10,
+            "ctx0": "c0-ctx",
+            "ctx1": "11-c1-ctx",
+            "ctx2": "x",
+        }, res);
+        res = m5.mapAuto(MapInput3);
+        assertEq({
+            "int_field": (11, 10, NOTHING),
+            "date_field": (2019-12-10, 2019-12-11, 2019-12-12),
+            "ctx0": "c0-ctx",
+            "ctx1": ("11-c1-ctx", "10-c1-ctx", "-c1-ctx"),
+            "ctx2": "x",
+        }, res);
     }
 
     testMapperRuntime() {
