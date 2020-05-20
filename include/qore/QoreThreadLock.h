@@ -113,7 +113,7 @@ private:
 //! Implements a recursive lock
 /** @since %Qore 0.9.5
 */
-class QoreRecursiveThreadLock : QoreThreadLock {
+class QoreRecursiveThreadLock : public QoreThreadLock {
 public:
     //! Creates the object
     DLLEXPORT QoreRecursiveThreadLock();
