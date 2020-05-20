@@ -116,7 +116,7 @@ private:
 class QoreRecursiveThreadLock : QoreThreadLock {
 public:
     //! Creates the object
-    DLLLOCAL QoreRecursiveThreadLock();
+    DLLEXPORT QoreRecursiveThreadLock();
 
     //! Creates a new object (not based on the original lock status)
     DLLLOCAL QoreRecursiveThreadLock(const QoreRecursiveThreadLock&) : QoreRecursiveThreadLock() {
