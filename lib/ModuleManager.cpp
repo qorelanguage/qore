@@ -60,7 +60,7 @@
 #include <sys/types.h>
 #include <vector>
 
-static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 23}, {0, 22}};
+static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 24}, {0, 23}, {0, 22}};
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
 // public symbols

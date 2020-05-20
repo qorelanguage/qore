@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.4.4
+Version: 0.9.5
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -93,6 +93,7 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.24
 Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: qore-module(abi)%{?_isa} = 0.22
 %if %{libname} == "libqore"
@@ -113,7 +114,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.6.2.0
+%{_libdir}/libqore.so.6.3.0
 %{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -127,7 +128,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.23
+Requires: qore-module(abi)%{?_isa} = 0.24
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -276,6 +277,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed May 20 2020 David Nichols <david@qore.org> 0.9.5
+- updated version to 0.9.5
+
 * Sun May 10 2020 David Nichols <david@qore.org> 0.9.4.4
 - updated version to 0.9.4.4
 
