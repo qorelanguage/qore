@@ -2628,6 +2628,9 @@ void init_qore_threads() {
     threads_initialized = true;
 }
 
+QoreRecursiveThreadLock::QoreRecursiveThreadLock() : QoreThreadLock(&ma_recursive) {
+}
+
 QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
    // create Qore::Thread namespace
    QoreNamespace* Thread = new QoreNamespace("Thread");

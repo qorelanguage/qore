@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,45 +43,33 @@
 //! provides a mutually-exclusive thread lock
 /** This class is just a simple wrapper for pthread_mutex_t.  It does not provide any special
     logic for checking for correct usage, etc.
+
+    @see QoreRecursiveThreadLock
 */
 class QoreThreadLock {
     friend class QoreCondition;
 
-private:
-    //! the actual locking primitive wrapped in this class
-    pthread_mutex_t ptm_lock;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&);
-
-    //! internal initialization
-    DLLLOCAL void init(const pthread_mutexattr_t* pma = 0) {
-#ifndef NDEBUG
-        int rc =
-#endif
-        pthread_mutex_init(&ptm_lock, pma);
-        assert(!rc);
-    }
-
 public:
     //! creates the lock
-    DLLLOCAL QoreThreadLock() {
-        init();
+    DLLLOCAL QoreThreadLock() : QoreThreadLock(nullptr) {
     }
 
     //! creates the lock with the given attributes
     DLLLOCAL QoreThreadLock(const pthread_mutexattr_t* ma) {
-        init(ma);
+#ifndef NDEBUG
+        int rc =
+#endif
+        pthread_mutex_init(&ptm_lock, ma);
+        assert(!rc);
+    }
+
+    //! creates a new object (not based on the original lock status)
+    DLLLOCAL QoreThreadLock(const QoreThreadLock&) : QoreThreadLock(nullptr) {
     }
 
     //! destroys the lock
     DLLLOCAL ~QoreThreadLock() {
         pthread_mutex_destroy(&ptm_lock);
-    }
-
-    //! creates a new object (not based on the original lock status)
-    DLLLOCAL QoreThreadLock(const QoreThreadLock&) {
-        init();
     }
 
     //! grabs the lock (assumes that the lock is unlocked)
@@ -97,7 +85,7 @@ public:
 
     //! releases the lock (assumes that the lock is locked)
     /** no error checking is implemented here
-        */
+    */
     DLLLOCAL void unlock() {
 #ifndef NDEBUG
         int rc =
@@ -112,6 +100,26 @@ public:
     */
     DLLLOCAL int trylock() {
         return pthread_mutex_trylock(&ptm_lock);
+    }
+
+private:
+    //! the actual locking primitive wrapped in this class
+    pthread_mutex_t ptm_lock;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreThreadLock& operator=(const QoreThreadLock&) = delete;
+};
+
+//! Implements a recursive lock
+/** @since %Qore 0.9.5
+*/
+class QoreRecursiveThreadLock : QoreThreadLock {
+public:
+    //! Creates the object
+    DLLLOCAL QoreRecursiveThreadLock();
+
+    //! Creates a new object (not based on the original lock status)
+    DLLLOCAL QoreRecursiveThreadLock(const QoreRecursiveThreadLock&) : QoreRecursiveThreadLock() {
     }
 };
 
@@ -299,31 +307,31 @@ public:
 */
 class OptLocker {
 private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL OptLocker(const OptLocker&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL OptLocker(const OptLocker&);
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL OptLocker& operator=(const OptLocker&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL OptLocker& operator=(const OptLocker&);
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL void *operator new(size_t);
 
 protected:
-   //! the pointer to the lock that will be managed
-   QoreThreadLock* lck;
+    //! the pointer to the lock that will be managed
+    QoreThreadLock* lck;
 
 public:
-   //! creates the object and grabs the lock if the argument is not NULL
-   DLLLOCAL OptLocker(QoreThreadLock* l) : lck(l) {
-      if (lck)
-         lck->lock();
-   }
+    //! creates the object and grabs the lock if the argument is not NULL
+    DLLLOCAL OptLocker(QoreThreadLock* l) : lck(l) {
+        if (lck)
+            lck->lock();
+    }
 
-   //! releases the lock if there is a lock pointer being managed and destroys the object
-   DLLLOCAL ~OptLocker() {
-      if (lck)
-         lck->unlock();
-   }
+    //! releases the lock if there is a lock pointer being managed and destroys the object
+    DLLLOCAL ~OptLocker() {
+        if (lck)
+            lck->unlock();
+    }
 };
 
 #endif // _QORE_QORETHREADLOCK_H
