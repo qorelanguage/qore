@@ -951,7 +951,7 @@ public:
 
 protected:
     //! deletes the object and frees all memory
-    DLLEXPORT ~QoreClass();
+    DLLEXPORT virtual ~QoreClass();
 
 private:
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
