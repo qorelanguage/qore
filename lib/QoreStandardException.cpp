@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2007 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2007 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,32 +30,41 @@
 
 #include <qore/Qore.h>
 
-QoreStandardException::QoreStandardException(const char* err, const char* desc_fmt, ...) : err(new QoreStringNode(err)), desc(new QoreStringNode) {
-   if (desc_fmt) {
-      va_list args;
+QoreStandardException::QoreStandardException(const char* err, const char* desc_fmt, ...)
+    : err(new QoreStringNode(err)), desc(new QoreStringNode) {
+    if (desc_fmt) {
+        va_list args;
 
-      while (true) {
-         va_start(args, desc_fmt);
-         int rc = desc->vsprintf(desc_fmt, args);
-         va_end(args);
-         if (!rc)
-            break;
-      }
-   }
+        while (true) {
+            va_start(args, desc_fmt);
+            int rc = desc->vsprintf(desc_fmt, args);
+            va_end(args);
+            if (!rc)
+                break;
+        }
+    }
+}
+
+QoreStandardException::QoreStandardException(const char* err, QoreStringNode* desc, QoreValue arg)
+    : err(new QoreStringNode(err)), desc(desc), arg(arg) {
 }
 
 QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc) : err(err), desc(desc) {
 }
 
+QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc, QoreValue arg) : err(err),
+    desc(desc), arg(arg) {
+}
+
 QoreStandardException::~QoreStandardException() {
-   if (err)
-      err->deref();
-   if (desc)
-      desc->deref();
+    if (err)
+        err->deref();
+    if (desc)
+        desc->deref();
 }
 
 void QoreStandardException::convert(ExceptionSink* xsink) {
-   xsink->raiseException(err, desc);
-   err = 0;
-   desc = 0;
+    xsink->raiseException(err, desc, arg);
+    err = nullptr;
+    desc = nullptr;
 }

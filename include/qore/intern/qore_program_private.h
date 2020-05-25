@@ -1889,6 +1889,17 @@ public:
         return i == extmap.end() ? nullptr : i->second;
     }
 
+    DLLLOCAL AbstractQoreProgramExternalData* removeExternalData(const char* owner) {
+        AutoLocker al(plock);
+        extmap_t::iterator i = extmap.find(owner);
+        if (i == extmap.end()) {
+            return nullptr;
+        }
+        AbstractQoreProgramExternalData* rv = i->second;
+        extmap.erase(i);
+        return rv;
+    }
+
     DLLLOCAL QoreHashNode* getGlobalVars() const {
         return qore_root_ns_private::getGlobalVars(*RootNS);
     }

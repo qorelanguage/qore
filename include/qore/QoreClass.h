@@ -257,6 +257,17 @@ public:
 
         @see QoreProgram
 
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreClass(std::string&& n_name, int64 n_domain = QDOM_DEFAULT);
+
+    //! creates the QoreClass object and assigns the name and the functional domain
+    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
+        @param n_name the name of the class
+        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+
+        @see QoreProgram
+
         @since %Qore 0.8.13
     */
     DLLEXPORT QoreClass(const char* n_name, int64 n_domain = QDOM_DEFAULT);
@@ -284,7 +295,22 @@ public:
     //! copy constructor
     /** should be only called under the appropriate lock (ex: program parse lock while parsing)
     */
-    DLLEXPORT QoreClass(const QoreClass &old);
+    DLLEXPORT QoreClass(const QoreClass& old);
+
+    //! Called when a class is copied for import
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT virtual QoreClass* copyImport();
+
+    //! Called when a class is copied
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT virtual QoreClass* copy();
+
+    //! Returns the owning QoreProgram object (if not the static system namespace)
+    /** @since Qore 0.9.5
+    */
+    DLLEXPORT QoreProgram* getProgram() const;
 
     //! adds a builtin method variant to a class
     /** @par Example:
@@ -916,9 +942,6 @@ public:
     */
     DLLEXPORT const char* getModuleName() const;
 
-    //! constructor not exported in library's API
-    DLLLOCAL QoreClass();
-
     // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
     DLLLOCAL const QoreMethod* parseFindCommittedMethod(const char* nme);
 
@@ -950,8 +973,11 @@ public:
     DLLLOCAL void unsetPublicMemberFlag();
 
 protected:
-    //! deletes the object and frees all memory
-    DLLEXPORT ~QoreClass();
+    //! Deletes the object and frees all memory
+    DLLEXPORT virtual ~QoreClass();
+
+    //! For use with QoreClass::copyImport()
+    DLLEXPORT QoreClass();
 
 private:
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
@@ -960,9 +986,6 @@ private:
     //! private implementation of the class
     class qore_class_private* priv;
 
-    // private constructor only called when the class is copied
-    DLLLOCAL QoreClass(qore_class_private* priv);
-
     DLLLOCAL void insertMethod(QoreMethod* o);
     DLLLOCAL void insertStaticMethod(QoreMethod* o);
     DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
@@ -970,12 +993,14 @@ private:
 
     //! evaluates a method on an object and returns the result
     /** if the method name is not valid or is private (and the call is made outside the object)
-        then an exception will be raised and 0 will be returned.
+        then an exception will be raised and no value (NOTHING) will be returned.
         This function must only be called from QoreObject!
+
         @param self the object to execute the method on
         @param method_name the name of the method to execute
         @param args the arguments for the method
         @param xsink Qore-language exception information is added here
+
         @return the value returned by the method, can be 0
     */
     DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
@@ -1051,6 +1076,10 @@ public:
 
     //! copies the object
     DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
+
+protected:
+    //! for use with QoreClass::copyImport()
+    DLLEXPORT QoreBuiltinClass();
 };
 
 //! iterates parent classes for a class with inheritance access information

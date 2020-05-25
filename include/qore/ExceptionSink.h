@@ -4,7 +4,7 @@
 
     Qore Programming Language ExceptionSink class definition
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -186,6 +186,19 @@ public:
         @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseException(QoreStringNode *err, QoreStringNode* desc);
+
+    //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
+    /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+
+        @param err the exception code string for the exception; the ExceptionSink object takes ownership of the reference count
+        @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
+        @param arg the exception argument
+
+        @return always returns nullptr
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT AbstractQoreNode* raiseException(QoreStringNode *err, QoreStringNode* desc, QoreValue arg);
 
     //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
     /**

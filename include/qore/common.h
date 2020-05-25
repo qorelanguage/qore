@@ -306,6 +306,18 @@ private:
  */
 typedef QoreValue (*q_func_n_t)(const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
 
+//! the type used for builtin function signatures for external functions
+/** @param ptr  a pointer to user-defined data set when the variant is added to the function
+    @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
+    @param flags runtime flags
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
+    @return the return value of the function; the caller owns any reference returned in the return value
+
+    @since %Qore 0.9.5
+ */
+typedef QoreValue (*q_external_func_t)(const void* ptr, const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink);
+
 //! the type used for builtin QoreClass method signatures
 /** @param self the QoreObject that the function is being executed on
     @param private_data the object's private data representing the state of the object

@@ -486,8 +486,8 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 
 // only called while the parse lock for the QoreProgram owning "old" is held
 qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub)
-   // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
-   : name(new_name ? new_name : old.name.c_str()),
+    // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
+    : name(new_name ? new_name : old.name.c_str()),
      ns(ns),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
@@ -538,7 +538,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
     has_delete_blocker = old.has_delete_blocker;
 
     // create new class object
-    cls = new QoreClass(this);
+    cls = old.cls->copyImport();
+    cls->priv = this;
 
     //printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys);
 
@@ -2260,6 +2261,10 @@ int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink)
    return 0;
 }
 
+QoreProgram* QoreClass::getProgram() const {
+    return priv->ns->getProgram();
+}
+
 const QoreMethod* QoreClass::parseGetConstructor() const {
    const_cast<QoreClass*>(this)->priv->initialize();
    if (priv->constructor)
@@ -3030,8 +3035,7 @@ void BCSMList::resolveCopy() {
    }
 }
 
-QoreClass::QoreClass(qore_class_private* priv) : priv(priv) {
-    priv->cls = this;
+QoreClass::QoreClass() : priv(nullptr) {
 }
 
 QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
@@ -3040,6 +3044,11 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     // ensure atomicity when writing to qcset
     AutoLocker al(priv->gate.asl_lock);
     priv->qcset.insert(this);
+}
+
+QoreClass::QoreClass(std::string&& nme, int64 dom) : priv(new qore_class_private(this, std::move(nme), dom)) {
+    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
+    priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
@@ -3066,9 +3075,12 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) :
     }
 }
 
-QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
-    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
-    priv->owns_ornothingtypeinfo = true;
+QoreClass* QoreClass::copyImport() {
+    return new QoreClass;
+}
+
+QoreClass* QoreClass::copy() {
+    return new QoreClass(*this);
 }
 
 QoreClass::~QoreClass() {
@@ -3296,16 +3308,15 @@ QoreValue qore_class_private::evalMethodGate(QoreObject* self, const char* nme, 
         if (*xsink) {
             return QoreValue();
         }
-    }
-    else {
+    } else {
         args_holder = new QoreListNode(autoTypeInfo);
     }
-
-    args_holder->insert(new QoreStringNode(nme), nullptr);
 
     if (gate_access) {
         args_holder->insert(runtimeCheckPrivateClassAccess() ? true : false, nullptr);
     }
+
+    args_holder->insert(new QoreStringNode(nme), nullptr);
 
     return self->evalMethod(*methodGate, *args_holder, xsink);
 }
@@ -5123,16 +5134,19 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
 }
 
 QoreClassHolder::~QoreClassHolder() {
-   if (c) {
-      qore_class_private::get(*c)->deref(true, true);
-   }
+    if (c) {
+        qore_class_private::get(*c)->deref(true, true);
+    }
 }
 
 QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass(name, n_domain) {
-   setSystem();
+    setSystem();
 }
 
 QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old) {
+}
+
+QoreBuiltinClass::QoreBuiltinClass() {
 }
 
 class qore_parent_class_iterator_private {

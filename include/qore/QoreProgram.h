@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -650,6 +650,13 @@ public:
         @since %Qore 0.8.13
     */
     DLLEXPORT AbstractQoreProgramExternalData* getExternalData(const char* owner) const;
+
+    //! removes a pointer to external data in the Program; does not dereference the data
+    /** @param owner a unique string identifying the owner of the data; for modules this should be the module name
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT AbstractQoreProgramExternalData* removeExternalData(const char* owner);
 
     //! retrieves a hash of global variables and their values
     /** @return a hash of global variable information; keys are namespace-justified global variable names, values are the values

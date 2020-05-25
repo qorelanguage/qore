@@ -208,6 +208,13 @@ AbstractQoreNode* ExceptionSink::raiseException(QoreStringNode *err, QoreStringN
     return nullptr;
 }
 
+// returns nullptr, takes ownership of the "desc" argument
+AbstractQoreNode* ExceptionSink::raiseException(QoreStringNode *err, QoreStringNode *desc, QoreValue arg) {
+    printd(5, "ExceptionSink::raiseException(%s, %s)\n", err->c_str(), desc->c_str());
+    priv->insert(new QoreException(err, desc, arg));
+    return nullptr;
+}
+
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode *desc) {
     printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
     QoreException* exc = new QoreException(err, desc);

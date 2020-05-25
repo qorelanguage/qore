@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,7 @@
 class QoreExternalFunction;
 class QoreExternalConstant;
 class QoreExternalGlobalVar;
+class QoreProgram;
 
 //! namespace class handler function type
 /** called when a class cannot be found in the namespace
@@ -177,13 +178,32 @@ public:
     //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
     /** can only be called in the parse lock
 
-        @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
+        @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in
+        this namespace; the last element of the path is ignored
 
         @return the namespace found or created according to the path
 
-        @note namespaces are created private by default
+        @note
+        - namespaces are created private by default
+        - the last element of the path is assumed to be the new symbol to be added and is ignored when creating the
+          namespaces; use @ref findCreateNamespacePathAll() to create namespaces for all elements of the path
     */
     DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath);
+
+    //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
+    /** can only be called in the parse lock
+
+        @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in
+        this namespace; the last element of the path is not ignored and the final namespace is created with this name
+
+        @return the namespace found or created according to the path
+
+        @note
+        - namespaces are created private by default
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreNamespace* findCreateNamespacePathAll(const char* nspath);
 
     //! finds a class in this namespace, does not search child namespaces
     /** can only be called in the parse lock
@@ -216,6 +236,13 @@ public:
 
     //! adds a function variant
     DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QCF_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    //! adds a function variant
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT void addBuiltinVariant(void* ptr, const char* name, q_external_func_t f,
+        int64 code_flags = QCF_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT,
+        const QoreTypeInfo* returnTypeInfo = nullptr, unsigned num_params = 0, ...);
 
     //! find a function in the current namespace; returns nullptr if not found
     /** @since %Qore 0.9
@@ -264,6 +291,11 @@ public:
     */
     DLLEXPORT bool isRoot() const;
 
+    //! Returns the owning QoreProgram object (if not the static system namespace)
+    /** @since Qore 0.9.5
+    */
+    DLLEXPORT QoreProgram* getProgram() const;
+
 private:
     //! this function is not implemented
     QoreNamespace(const QoreNamespace&) = delete;
@@ -297,6 +329,11 @@ public:
 
     //! destructor is not exported in the library's public API
     DLLLOCAL virtual ~RootQoreNamespace();
+
+    //! Returns the owning QoreProgram object (if not the static system namespace)
+    /** @since Qore 0.9.5
+    */
+    DLLEXPORT QoreProgram* getProgram() const;
 
 protected:
     // private implementation
