@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -115,6 +115,32 @@ public:
         CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
         return func(ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+    }
+};
+
+//! External function variable
+/** @since %Qore 0.9.5
+*/
+class BuiltinFunctionExternalVariant : public AbstractQoreFunctionVariant, public BuiltinFunctionVariantBase {
+protected:
+    q_external_func_t func;
+    void* ptr;
+
+public:
+    DLLLOCAL BuiltinFunctionExternalVariant(void* ptr, q_external_func_t m, int64 n_flags, int64 n_functionality,
+        const QoreTypeInfo* n_returnTypeInfo = nullptr, const type_vec_t& n_typeList = type_vec_t(),
+        const arg_vec_t& n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
+        AbstractQoreFunctionVariant(n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo,
+            n_typeList, n_defaultArgList, n_names), func(m), ptr(ptr) {
+    }
+
+    // the following defines the pure virtual functions that are common to all builtin variants
+    COMMON_BUILTIN_VARIANT_FUNCTIONS
+
+    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+        CodeContextHelper cch(xsink, CT_BUILTIN, name);
+
+        return func(ptr, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
     }
 };
 

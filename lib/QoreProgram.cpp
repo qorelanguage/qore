@@ -426,7 +426,7 @@ void qore_program_private_base::newProgram() {
     QoreProgramContextHelper pch(pgm);
 
     // setup namespaces
-    RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
+    RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options, pgm);
     QoreNS = RootNS->rootGetQoreNamespace();
     assert(QoreNS);
 
@@ -497,7 +497,7 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
         // make sure no parsing is running in the parent while we copy namespaces
         ProgramRuntimeParseAccessHelper rah(0, p_pgm);
         // setup derived namespaces
-        RootNS = qore_root_ns_private::copy(*p_pgm->priv->RootNS, n_parse_options);
+        RootNS = qore_root_ns_private::copy(*p_pgm->priv->RootNS, n_parse_options, pgm);
     }
     QoreNS = RootNS->rootGetQoreNamespace();
 
@@ -2029,6 +2029,10 @@ void QoreProgram::setExternalData(const char* owner, AbstractQoreProgramExternal
 
 AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner) const {
    return priv->getExternalData(owner);
+}
+
+AbstractQoreProgramExternalData* QoreProgram::removeExternalData(const char* owner) {
+   return priv->removeExternalData(owner);
 }
 
 QoreHashNode* QoreProgram::getGlobalVars() const {

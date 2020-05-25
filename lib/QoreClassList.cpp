@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
                 continue;
             }
         }
-        QoreClass* qc = new QoreClass(*i->second.cls);
+        QoreClass* qc = i->second.cls->copy();
         // do not update namespace; the class always points to the same namespace
         addInternal(qc, true);
     }
@@ -121,7 +121,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
             continue;
         }
 
-        qc = new QoreClass(*i->second.cls);
+        qc = i->second.cls->copy();
         // do not update namespace; the class always points to the same namespace
         addInternal(qc, true);
     }
@@ -140,7 +140,7 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
                 continue;
             }
             //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
-            QoreClass* qc = new QoreClass(*i->second.cls);
+            QoreClass* qc = i->second.cls->copy();
             // we do not update the namespace in the class; the class always points to the original namespace
             addInternal(qc, true);
             ++cnt;
@@ -208,20 +208,16 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
         if (ns.hashDeclList.find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
-        }
-        else if (ns.classList.find(i->first)) {
+        } else if (ns.classList.find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
-        }
-        else if (find(i->first)) {
+        } else if (find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
-        }
-        else if (ns.nsl.find(i->first)) {
+        } else if (ns.nsl.find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
             n.remove(i);
-        }
-        else {
+        } else {
             //printd(5, "QoreClassList::assimilate() this: %p adding: %p '%s::%s'\n", this, i->second, ns.name.c_str(), i->second->getName());
 
             // "move" data to new list
@@ -235,7 +231,7 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 }
 
 QoreHashNode* QoreClassList::getInfo() {
-    QoreHashNode *h = new QoreHashNode(autoTypeInfo);
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
         h->setKeyValue(i->first, i->second.cls->getMethodList(), nullptr);
     return h;

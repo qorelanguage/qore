@@ -220,6 +220,10 @@ QoreNamespace::~QoreNamespace() {
     delete priv;
 }
 
+QoreProgram* QoreNamespace::getProgram() const {
+    return priv->getProgram();
+}
+
 const char* QoreNamespace::getName() const {
    return priv->name.c_str();
 }
@@ -297,6 +301,11 @@ void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
 qore_ns_private::qore_ns_private(const QoreProgramLocation* loc) : loc(loc), constant(this), pub(false), builtin(false), ns(nullptr) {
     new QoreNamespace(this);
     name = parse_pop_name();
+}
+
+QoreProgram* qore_ns_private::getProgram() const {
+    const qore_root_ns_private* rns = getRoot();
+    return rns ? rns->pgm : nullptr;
 }
 
 void qore_ns_private::setPublic() {
@@ -760,7 +769,13 @@ void QoreNamespace::addConstant(const char* cname, QoreValue val, const QoreType
 QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
     NamedScope nscope(nspath);
     bool is_new = false;
-    return priv->findCreateNamespacePath(nscope, false, false, is_new);
+    return priv->findCreateNamespacePath(nscope, false, false, is_new, 1);
+}
+
+QoreNamespace* QoreNamespace::findCreateNamespacePathAll(const char* nspath) {
+    NamedScope nscope(nspath);
+    bool is_new = false;
+    return priv->findCreateNamespacePath(nscope, false, false, is_new, 0);
 }
 
 QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, q_setpub_t set_pub, const char* new_name, bool inject, const qore_class_private* injectedClass) {
@@ -800,7 +815,7 @@ TypedHashDecl* qore_ns_private::runtimeImportHashDecl(ExceptionSink* xsink, cons
     return nhd;
 }
 
-QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool user, bool& is_new) {
+QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool user, bool& is_new, int ignore_end) {
     assert(!is_new);
 
     // get root ns to add to namespace map if attached
@@ -808,7 +823,7 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
 
     // iterate through each level of the namespace path and find/create namespaces as needed
     QoreNamespace* nns = ns;
-    for (unsigned i = 0; i < nscope.size() - 1; ++i) {
+    for (unsigned i = 0; i < nscope.size() - ignore_end; ++i) {
         nns = nns->priv->findCreateNamespace(nscope[i], user, is_new, rns);
         if (pub)
             nns->priv->pub = true;
@@ -918,6 +933,15 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_n_t f, int64 code
     va_end(args);
 }
 
+void QoreNamespace::addBuiltinVariant(void* ptr, const char* name, q_external_func_t f, int64 code_flags,
+    int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+    va_list args;
+    va_start(args, num_params);
+    priv->addBuiltinVariant<q_external_func_t, BuiltinFunctionExternalVariant>(ptr, name, f, code_flags,
+        functional_domain, returnTypeInfo, num_params, args);
+    va_end(args);
+}
+
 const QoreExternalFunction* QoreNamespace::findLocalFunction(const char* name) const {
     return reinterpret_cast<const QoreExternalFunction*>(priv->func_list.find(name, true));
 }
@@ -964,6 +988,10 @@ RootQoreNamespace::~RootQoreNamespace() {
     delete rpriv;
     // make sure priv is not deleted (again)
     priv = nullptr;
+}
+
+QoreProgram* RootQoreNamespace::getProgram() const {
+    return rpriv->pgm;
 }
 
 QoreNamespace* RootQoreNamespace::rootGetQoreNamespace() const {

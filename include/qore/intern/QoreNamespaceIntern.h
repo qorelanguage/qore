@@ -159,11 +159,23 @@ public:
 
     DLLLOCAL qore_root_ns_private* getRoot() {
         qore_ns_private* w = this;
-        while (w->parent)
+        while (w->parent) {
             w = (qore_ns_private*)w->parent;
+        }
 
-        return w->root ? reinterpret_cast<qore_root_ns_private*>(w) : 0;
+        return w->root ? reinterpret_cast<qore_root_ns_private*>(w) : nullptr;
     }
+
+    DLLLOCAL const qore_root_ns_private* getRoot() const {
+        const qore_ns_private* w = this;
+        while (w->parent) {
+            w = (qore_ns_private*)w->parent;
+        }
+
+        return w->root ? reinterpret_cast<const qore_root_ns_private*>(w) : nullptr;
+    }
+
+    DLLLOCAL QoreProgram* getProgram() const;
 
     DLLLOCAL void setClassHandler(q_ns_class_handler_t n_class_handler);
 
@@ -278,7 +290,7 @@ public:
 
     DLLLOCAL QoreNamespace* findCreateNamespace(const char* nme, bool user, bool& is_new, qore_root_ns_private* rns);
     DLLLOCAL QoreNamespace* findCreateNamespacePath(const nslist_t& nsl, bool user, bool& is_new);
-    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool user, bool& is_new);
+    DLLLOCAL QoreNamespace* findCreateNamespacePath(const NamedScope& nspath, bool pub, bool user, bool& is_new, int ignore_end = 1);
 
     DLLLOCAL TypedHashDecl* parseFindLocalHashDecl(const char* name) {
         return hashDeclList.find(name);
@@ -351,6 +363,19 @@ public:
 
         //printd(5, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, QoreTypeInfo::getName(returnTypeInfo), num_params);
         addBuiltinVariant(name, new B(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));
+    }
+
+    template <typename T, class B>
+    DLLLOCAL void addBuiltinVariant(void* ptr, const char* name, T f, int64 flags, int64 functional_domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, va_list args) {
+        //printd(5, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld) BEFORE\n", name, f, flags);
+        type_vec_t typeList;
+        arg_vec_t defaultArgList;
+        name_vec_t nameList;
+        if (num_params)
+            qore_process_params(num_params, typeList, defaultArgList, nameList, args);
+
+        //printd(5, "qore_ns_private::addBuiltinVariant('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, QoreTypeInfo::getName(returnTypeInfo), num_params);
+        addBuiltinVariant(name, new B(ptr, f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList, nameList));
     }
 
     DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
@@ -1457,6 +1482,10 @@ protected:
 public:
     RootQoreNamespace* rns;
     QoreNamespace* qoreNS;
+    //! owning program object
+    /** this is nullptr for the static system namespace; only set for root namespaces in Program objects
+    */
+    QoreProgram* pgm = nullptr;
 
     fmap_t fmap,         // root function map
         pend_fmap;       // root pending function map (only used during parsing)
@@ -1476,14 +1505,16 @@ public:
     // unresolved pending global variable list - only used in the 1st stage of parsing (data read in to tree)
     gvlist_t pend_gvlist;
 
-    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(0) {
+    DLLLOCAL qore_root_ns_private(RootQoreNamespace* n_rns) : qore_ns_private(n_rns), rns(n_rns), qoreNS(nullptr) {
         assert(root);
         assert(pub);
         // add initial namespace to committed map
         nsmap.update(this);
     }
 
-    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po) : qore_ns_private(old, po) {
+    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po, QoreProgram* pgm)
+        : qore_ns_private(old, po), pgm(pgm) {
+        assert(pgm);
         if ((po & PO_NO_API) == PO_NO_API) {
             // create empty Qore namespace
             qoreNS = new QoreNamespace("Qore");
@@ -1503,8 +1534,8 @@ public:
     DLLLOCAL ~qore_root_ns_private() {
     }
 
-    DLLLOCAL RootQoreNamespace* copy(int64 po) {
-        qore_root_ns_private* p = new qore_root_ns_private(*this, po);
+    DLLLOCAL RootQoreNamespace* copy(int64 po, QoreProgram* pgm) {
+        qore_root_ns_private* p = new qore_root_ns_private(*this, po, pgm);
         RootQoreNamespace* rv = new RootQoreNamespace(p);
         return rv;
     }
@@ -1694,8 +1725,8 @@ public:
         return rns.rpriv->runtimeFindCreateNamespacePath(nspath, pub, user);
     }
 
-    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po) {
-        return rns.rpriv->copy(po);
+    DLLLOCAL static RootQoreNamespace* copy(const RootQoreNamespace& rns, int64 po, QoreProgram* pgm) {
+        return rns.rpriv->copy(po, pgm);
     }
 
     DLLLOCAL static int addPendingVariant(qore_ns_private& nsp, const char* name, AbstractQoreFunctionVariant* v) {
