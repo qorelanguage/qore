@@ -1787,7 +1787,6 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeI
 
 void LocalVarValue::remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo) {
     if (val.getType() == NT_REFERENCE) {
-        VarStackPointerHelper<LocalVarValue> helper(const_cast<LocalVarValue*>(this));
         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
         lvrh.doRemove(lvalue_ref::get(ref)->vexp);
         return;
@@ -1830,8 +1829,6 @@ void ClosureVarValue::remove(LValueRemoveHelper& lvrh) {
     if (val.getType() == NT_REFERENCE) {
         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvrh.getExceptionSink());
         sl.unlock();
-        // skip this entry in case it's a recursive reference
-        VarStackPointerHelper<ClosureVarValue> helper(const_cast<ClosureVarValue*>(this));
         lvrh.doRemove(lvalue_ref::get(*ref)->vexp);
         return;
     }
