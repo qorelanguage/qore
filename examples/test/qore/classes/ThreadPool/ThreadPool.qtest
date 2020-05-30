@@ -12,11 +12,62 @@
 
 %exec-class ThreadPoolTest
 
+class RefTest {
+    test(reference<hash<auto>> val) {
+        ThreadPool thread_pool();
+        foreach string key in (keys val) {
+            string ckey = key;
+            thread_pool.submit(sub() {
+                ++val{ckey};
+                ++val.i;
+            });
+        }
+        thread_pool.stopWait();
+        check(\val);
+    }
+
+    private check(reference<hash<auto>> val) {
+        val.other = 3;
+    }
+}
+
 class ThreadPoolTest inherits QUnit::Test {
+    private {
+        hash<auto> val;
+    }
+
     constructor() : QUnit::Test("ThreadPool", "1.0") {
+        addTestCase("ref test", \refTest());
         addTestCase("stopWait() test", \stopWaitTest());
         addTestCase("ThreadPoolTest", \ThreadPoolTest());
         set_return_value(main());
+    }
+
+    # issue #3939
+    refTest() {
+        val = {
+            "test-1": 1,
+            "test-2": 1,
+        };
+        RefTest rt();
+        rt.test(\val);
+        assertEq(2, val.i);
+    }
+
+    private doRef(reference<hash<auto>> val) {
+        ThreadPool thread_pool();
+        foreach string key in (keys val) {
+            thread_pool.submit(sub() {
+                ++val{key};
+                ++val.i;
+            });
+        }
+        thread_pool.stopWait();
+        check(\val);
+    }
+
+    private check(reference<hash<auto>> val) {
+        val.other = 3;
     }
 
     # issue #3897

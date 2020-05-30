@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -101,16 +101,16 @@ public:
             while (p) {
                 --p;
                 LocalVarValue* var = &w->var[p];
-                if (var->id == id && !var->skip && !var->frame_boundary)
+                if (var->id == id && !var->frame_boundary)
                     return var;
             }
             w = w->prev;
 #ifdef DEBUG
             if (!w) {
-                printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
                 p = curr->pos - 1;
+                printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
                 while (p >= 0) {
-                    printd(0, "var p: %d: %s (%p) (skip: %d frame_boundary: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].skip, curr->var[p].frame_boundary);
+                    printd(0, "var p: %d: %s (%p) (frame_boundary: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].frame_boundary);
                     --p;
                 }
             }

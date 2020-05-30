@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,89 +34,87 @@
 #include "qore/intern/LocalVar.h"
 
 int ThreadClosureVariableStack::getFrame(int frame, Block*& w, int& p) {
-  assert(frame >= 0);
+    assert(frame >= 0);
 
-  if (!frame) {
-     w = curr;
-     p = w->pos;
-     return 0;
-  }
+    if (!frame) {
+        w = curr;
+        p = w->pos;
+        return 0;
+    }
 
-  // find requested frame
-  int cframe = 0;
+    // find requested frame
+    int cframe = 0;
 
-  w = curr;
-  while (true) {
-     p = w->pos;
-     while (p) {
-        --p;
-        const ClosureVarValue* var = w->var[p];
-        if (!var) {
-           if (frame == ++cframe)
-              return 0;
-           continue;
+    w = curr;
+    while (true) {
+        p = w->pos;
+        while (p) {
+            --p;
+            const ClosureVarValue* var = w->var[p];
+            if (!var) {
+                if (frame == ++cframe)
+                    return 0;
+                continue;
+            }
         }
-     }
-     w = w->prev;
-     if (!w)
-        break;
-  }
-  return -1;
+        w = w->prev;
+        if (!w)
+            break;
+    }
+    return -1;
 }
 
 void ThreadClosureVariableStack::getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
-   Block* w;
-   int p;
-   if (getFrame(frame, w, p))
-      return;
+    Block* w;
+    int p;
+    if (getFrame(frame, w, p))
+        return;
 
-   while (true) {
-      while (p) {
-         --p;
-         const ClosureVarValue* var = w->var[p];
-         if (!var)
-            return;
+    while (true) {
+        while (p) {
+            --p;
+            const ClosureVarValue* var = w->var[p];
+            if (!var)
+                return;
 
-         if (!var->skip) {
             ReferenceHolder<QoreHashNode> v(new QoreHashNode(autoTypeInfo), xsink);
             v->setKeyValue("type", new QoreStringNode("closure"), xsink);
             v->setKeyValue("value", var->eval(xsink), xsink);
             h.setKeyValue(var->id, v.release(), xsink);
-         }
-      }
-      w = w->prev;
-      if (!w)
-         break;
-      p = w->pos;
-   }
+        }
+        w = w->prev;
+        if (!w)
+            break;
+        p = w->pos;
+    }
 }
 
 // returns 0 = OK, 1 = no such variable, -1 exception setting variable
 int ThreadClosureVariableStack::setVarValue(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   Block* w;
-   int p;
-   if (getFrame(frame, w, p))
-      return 1;
+    Block* w;
+    int p;
+    if (getFrame(frame, w, p))
+        return 1;
 
-   while (true) {
-      while (p) {
-         --p;
-         const ClosureVarValue* var = w->var[p];
-         if (!var)
-            return 1;
+    while (true) {
+        while (p) {
+            --p;
+            const ClosureVarValue* var = w->var[p];
+            if (!var)
+                return 1;
 
-         if (!var->skip && !strcmp(var->id, name)) {
-            LValueHelper lvh(xsink);
-            if (var->getLValue(lvh, false))
-               return -1;
+            if (!strcmp(var->id, name)) {
+                LValueHelper lvh(xsink);
+                if (var->getLValue(lvh, false))
+                    return -1;
 
-            return lvh.assign(val.refSelf(), "<API assignment>");
-         }
-      }
-      w = w->prev;
-      if (!w)
-         break;
-      p = w->pos;
-   }
-   return 1;
+                return lvh.assign(val.refSelf(), "<API assignment>");
+            }
+        }
+        w = w->prev;
+        if (!w)
+            break;
+        p = w->pos;
+    }
+    return 1;
 }
