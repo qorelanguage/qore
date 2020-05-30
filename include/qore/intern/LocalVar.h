@@ -43,54 +43,42 @@
 #include <atomic>
 
 template <class T>
-class VarStackPointerHelper {
-   const T* orig;
-
-public:
-   DLLLOCAL VarStackPointerHelper(const T* v) : orig(v) {
-      v->skip = true;
-   }
-   DLLLOCAL ~VarStackPointerHelper() {
-      orig->skip = false;
-   }
-};
-
-template <class T>
 class LocalRefHelper : public RuntimeReferenceHelper {
 protected:
-   // used to skip the var entry in case it's a recursive reference
-   VarStackPointerHelper<T> helper;
-   bool valid;
+    // used to skip the var entry in case it's a recursive reference
+    bool valid;
 
 public:
-   DLLLOCAL LocalRefHelper(const T* val, ReferenceNode& ref, ExceptionSink* xsink) : RuntimeReferenceHelper(ref, xsink), helper(val), valid(!*xsink) {
-   }
+    DLLLOCAL LocalRefHelper(const T* val, ReferenceNode& ref, ExceptionSink* xsink)
+        : RuntimeReferenceHelper(ref, xsink),
+            valid(!*xsink) {
+    }
 
-   DLLLOCAL operator bool() const {
-      return valid;
-   }
+    DLLLOCAL operator bool() const {
+        return valid;
+    }
 };
 
 template <class T>
 class LValueRefHelper : public LocalRefHelper<T> {
 protected:
-   LValueHelper* valp;
+    LValueHelper* valp;
 
 public:
-   DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
-   }
+    DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
+    }
 
-   DLLLOCAL ~LValueRefHelper() {
-      delete valp;
-   }
+    DLLLOCAL ~LValueRefHelper() {
+        delete valp;
+    }
 
-   DLLLOCAL operator bool() const {
-      return valp;
-   }
+    DLLLOCAL operator bool() const {
+        return valp;
+    }
 
-   DLLLOCAL LValueHelper* operator->() {
-      return valp;
-   }
+    DLLLOCAL LValueHelper* operator->() {
+        return valp;
+    }
 };
 
 class VarValueBase {
@@ -106,17 +94,16 @@ protected:
 public:
     QoreLValueGeneric val;
     const char* id;
-    mutable bool skip : 1;
     bool finalized : 1;
     bool frame_boundary : 1;
 
-    DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false), frame_boundary(false) {
+    DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node) : val(t), id(n_id), finalized(false), frame_boundary(false) {
     }
 
-    DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
+    DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), finalized(false), frame_boundary(false) {
     }
 
-    DLLLOCAL VarValueBase() : val(QV_Bool), id(0), skip(false), finalized(false), frame_boundary(false) {
+    DLLLOCAL VarValueBase() : val(QV_Bool), id(nullptr), finalized(false), frame_boundary(false) {
     }
 
     DLLLOCAL void setFrameBoundary() {
@@ -142,26 +129,12 @@ public:
     }
 };
 
-struct SkipHelper {
-    VarValueBase* vvb;
-
-    DLLLOCAL SkipHelper(VarValueBase* n_vvb) : vvb(n_vvb) {
-        assert(!vvb->skip);
-        vvb->skip = true;
-    }
-
-    DLLLOCAL ~SkipHelper() {
-        vvb->skip = false;
-    }
-};
-
 class LocalVarValue : public VarValueBase {
 public:
     DLLLOCAL void set(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue nval, bool assign, bool static_assignment) {
         //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
         assert(!finalized);
 
-        skip = false;
         id = n_id;
 
         // try to set an optimized value type for the value holder if possible
