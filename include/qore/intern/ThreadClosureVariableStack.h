@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -113,9 +113,9 @@ public:
             while (p) {
                 --p;
                 ClosureVarValue* rv = w->var[p];
-                printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s' skip: %d\n", id, id, this, rv ? rv->id : nullptr, rv ? rv->id : "n/a", rv ? rv->skip : false);
-                if (rv && rv->id == id && !rv->skip) {
-                    printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, rv);
+                //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p checking %p '%s'\n", id, id, this, rv ? rv->id : nullptr, rv ? rv->id : "n/a");
+                if (rv && rv->id == id) {
+                    //printd(5, "ThreadClosureVariableStack::find(%p '%s') this: %p returning: %p\n", id, id, this, rv);
                     return rv;
                 }
             }
@@ -123,18 +123,22 @@ public:
 #ifdef DEBUG
             if (!w) {
                 printd(0, "ThreadClosureVariableStack::find() this: %p no closure-bound local variable '%s' (%p) on stack (pgm: %p) p: %d curr->prev: %p\n", this, id, id, getProgram(), p, curr->prev);
-                p = curr->pos - 1;
-                while (p >= 0) {
-                    ClosureVarValue* cvv = w->var[p];
-                    printd(0, "var p: %d: %s (%p) (skip: %d)\n", p, cvv ? cvv->id : "frame boundary", cvv ? cvv->id : nullptr, cvv ? cvv->skip : false);
-                    --p;
+                w = curr;
+                while (w) {
+                    p = w->pos;
+                    while (p) {
+                        --p;
+                        ClosureVarValue* cvv = w->var[p];
+                        printd(0, "var p: %d: %s (%p)\n", p, cvv ? cvv->id : "frame boundary", cvv ? cvv->id : nullptr);
+                    }
+                    w = w->prev;
                 }
             }
 #endif
             assert(w);
         }
         // to avoid a warning on most compilers - note that this generates a warning on aCC!
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL cvv_vec_t* getAll() const {
