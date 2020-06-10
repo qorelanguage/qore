@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.5
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.4";
+    version = "1.4.1";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,10 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv141 MysqlSqlUtil v1.4.1
+    - fixed a bug generating literal date/time values for SQL queries
+      (<a href="https://github.com/qorelanguage/qore/issues/3948">issue 3948</a>)
 
     @subsection mysqlsqlutilv14 MysqlSqlUtil v1.4
     - fixed a bug where the table collation and character set (encoding) could not be specified
@@ -1882,7 +1886,12 @@ end";
 
                 case NT_BOOLEAN: return v ? "true" : "false";
 
-                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+                case NT_DATE: {
+                    # MySQL does not allow us to specify the UTC offset in the timestamp literal :(
+                    TimeZone tz = TimeZone::get();
+                    v = tz.date(v);
+                    return "timestamp " + v.format("'YYYY-MM-DDTHH:mm:SS.us'");
+                }
             }
         }
 

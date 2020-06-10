@@ -28,7 +28,7 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
     private {
         const GenericOptions = (
             "replace": True,
-            );
+        );
 
         const IndexOptions = {};
 
@@ -43,11 +43,11 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
                 "clob_f": c_clob(True),
             ),
             "primary_key": ("name": "pk_mysql_test", "columns": ("id")),
-            );
+        );
 
         const Tables = (
             "mysql_test": T_MysqlTest,
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -80,9 +80,9 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
 
 class MysqlTestAutoIncrementNegativeSchema inherits AbstractSchema {
     constructor(AbstractDatasource ds, *string dts, *string its)
-        : AbstractSchema(ds, dts, its)
-    {
+        : AbstractSchema(ds, dts, its) {
     }
+
     string getNameImpl() { return "MysqlTestAutoIncrementNegativeSchema"; }
     string getVersionImpl() { return "1.0"; }
 
@@ -176,15 +176,14 @@ class MysqlTest inherits SqlTestBase {
             #"longtext": "test",
 
             #"bit": 100,
-            );
+        );
     }
 
     constructor() : SqlTestBase("MysqlTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
-        }
-        catch (hash ex) {
+        } catch (hash ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
