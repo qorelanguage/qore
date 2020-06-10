@@ -2518,7 +2518,7 @@ public namespace SqlUtil {
                 return "row_number()";
             },
         ),
-        );
+    );
     #@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
