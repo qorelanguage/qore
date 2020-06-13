@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -63,26 +63,26 @@ extern "C" {
 //! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
 struct version_list_t : public std::vector<int> {
 protected:
-   QoreString ver;
+    QoreString ver;
 
 public:
-   DLLLOCAL version_list_t() {
-   }
+    DLLLOCAL version_list_t() {
+    }
 
-   DLLLOCAL version_list_t(const char* v) {
-      set(v);
-   }
+    DLLLOCAL version_list_t(const char* v) {
+        set(v);
+    }
 
-   DLLLOCAL char set(const char* v);
+    DLLLOCAL char set(const char* v);
 
-   DLLLOCAL version_list_t& operator=(const char* v) {
-      set(v);
-      return *this;
-   }
+    DLLLOCAL version_list_t& operator=(const char* v) {
+        set(v);
+        return *this;
+    }
 
-   DLLLOCAL const char* operator*() const {
-      return ver.getBuffer();
-   }
+    DLLLOCAL const char* operator*() const {
+        return ver.getBuffer();
+    }
 };
 
 class QoreAbstractModule {
@@ -260,65 +260,65 @@ typedef std::deque<std::string> strdeque_t;
  */
 class UniqueDirectoryList {
 protected:
-   typedef std::set<std::string> strset_t;
+    typedef std::set<std::string> strset_t;
 
-   strdeque_t dlist;
-   strset_t dset;
+    strdeque_t dlist;
+    strset_t dset;
 
 public:
-   DLLLOCAL void addDirList(const char* str);
+    DLLLOCAL void addDirList(const char* str);
 
     DLLLOCAL bool push_back(const std::string &str) {
         if (dset.find(str) != dset.end()) {
-	    return false;
-	}
-	dlist.push_back(str);
-	dset.insert(str);
-	return true;
+            return false;
+        }
+        dlist.push_back(str);
+        dset.insert(str);
+        return true;
     }
 
-   DLLLOCAL bool empty() const {
-      return dlist.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return dlist.empty();
+    }
 
-   DLLLOCAL strdeque_t::const_iterator begin() const {
-      return dlist.begin();
-   }
+    DLLLOCAL strdeque_t::const_iterator begin() const {
+        return dlist.begin();
+    }
 
-   DLLLOCAL strdeque_t::const_iterator end() const {
-      return dlist.end();
-   }
+    DLLLOCAL strdeque_t::const_iterator end() const {
+        return dlist.end();
+    }
 
-   DLLLOCAL void appendPath(QoreString& str) const {
-      if (dlist.empty()) {
-         str.concat("<empty>");
-         return;
-      }
-      for (strdeque_t::const_iterator i = dlist.begin(), e = dlist.end(); i != e; ++i) {
-         str.concat((*i).c_str());
-         str.concat(':');
-      }
-      str.terminate(str.size() - 1);
-   }
+    DLLLOCAL void appendPath(QoreString& str) const {
+        if (dlist.empty()) {
+            str.concat("<empty>");
+            return;
+        }
+        for (strdeque_t::const_iterator i = dlist.begin(), e = dlist.end(); i != e; ++i) {
+            str.concat((*i).c_str());
+            str.concat(':');
+        }
+        str.terminate(str.size() - 1);
+    }
 };
 
 class QoreModuleContextHelper : public QoreModuleContext {
 public:
-   DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink);
-   DLLLOCAL ~QoreModuleContextHelper();
+    DLLLOCAL QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink);
+    DLLLOCAL ~QoreModuleContextHelper();
 };
 
 class QoreModuleDefContextHelper : public QoreModuleDefContext {
 protected:
-   QoreModuleDefContext* old;
+    QoreModuleDefContext* old;
 
 public:
-   DLLLOCAL QoreModuleDefContextHelper() : old(set_module_def_context(this)) {
-   }
+    DLLLOCAL QoreModuleDefContextHelper() : old(set_module_def_context(this)) {
+    }
 
-   DLLLOCAL ~QoreModuleDefContextHelper() {
-      set_module_def_context(old);
-   }
+    DLLLOCAL ~QoreModuleDefContextHelper() {
+        set_module_def_context(old);
+    }
 };
 
 class QoreUserModuleDefContextHelper;
@@ -329,70 +329,88 @@ typedef std::map<std::string, strset_t> md_map_t;
 
 class ModMap {
 private:
-   DLLLOCAL ModMap(const ModMap &);
-   DLLLOCAL ModMap& operator=(const ModMap&);
+    DLLLOCAL ModMap(const ModMap &);
+    DLLLOCAL ModMap& operator=(const ModMap&);
 
 protected:
-   md_map_t map;
+    md_map_t map;
 
 public:
-   DLLLOCAL ModMap() {
-   }
+    DLLLOCAL ModMap() {
+    }
 
-   DLLLOCAL ~ModMap() {
-   }
+    DLLLOCAL ~ModMap() {
+    }
 
-   DLLLOCAL bool addDep(const char* l, const char* r) {
-      md_map_t::iterator i = map.lower_bound(l);
-      if (i == map.end() || i->first != l)
-         i = map.insert(i, md_map_t::value_type(l, strset_t()));
-      else if (i->second.find(r) != i->second.end())
-         return true;
-      i->second.insert(r);
-      return false;
-   }
+    DLLLOCAL bool addDep(const char* l, const char* r) {
+        md_map_t::iterator i = map.lower_bound(l);
+        if (i == map.end() || i->first != l)
+            i = map.insert(i, md_map_t::value_type(l, strset_t()));
+        else if (i->second.find(r) != i->second.end())
+            return true;
+        i->second.insert(r);
+        return false;
+    }
 
-   DLLLOCAL md_map_t::iterator begin() {
-      return map.begin();
-   }
+    DLLLOCAL md_map_t::iterator begin() {
+        return map.begin();
+    }
 
-   DLLLOCAL md_map_t::iterator end() {
-      return map.end();
-   }
+    DLLLOCAL md_map_t::iterator end() {
+        return map.end();
+    }
 
-   DLLLOCAL md_map_t::iterator find(const char* n) {
-      return map.find(n);
-   }
+    DLLLOCAL md_map_t::iterator find(const char* n) {
+        return map.find(n);
+    }
 
-   DLLLOCAL md_map_t::iterator find(const std::string& n) {
-      return map.find(n);
-   }
+    DLLLOCAL md_map_t::iterator find(const std::string& n) {
+        return map.find(n);
+    }
 
-   DLLLOCAL void erase(md_map_t::iterator i) {
-      map.erase(i);
-   }
+    DLLLOCAL void erase(md_map_t::iterator i) {
+        map.erase(i);
+    }
 
-   DLLLOCAL void clear() {
-      map.clear();
-   }
+    DLLLOCAL void clear() {
+        map.clear();
+    }
 
-   DLLLOCAL bool empty() const {
-      return map.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return map.empty();
+    }
 
 #ifdef DEBUG
-   DLLLOCAL void show(const char* name) {
-      printf("ModMap '%s':\n", name);
-      for (md_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
-         QoreString str("[");
-         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-            str.sprintf("'%s',", (*si).c_str());
-         str.concat("]");
+    DLLLOCAL void show(const char* name) {
+        printf("ModMap '%s':\n", name);
+        for (md_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+            QoreString str("[");
+            for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+                str.sprintf("'%s',", (*si).c_str());
+            str.concat("]");
 
-         printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.getBuffer());
-      }
-   }
+            printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.getBuffer());
+        }
+    }
 #endif
+};
+
+struct DLHelper {
+    void* ptr;
+
+    DLLLOCAL DLHelper(void* p) : ptr(p) {
+    }
+
+    DLLLOCAL ~DLHelper() {
+        if (ptr)
+            dlclose(ptr);
+    }
+
+    DLLLOCAL void* release() {
+        void* rv = ptr;
+        ptr = nullptr;
+        return rv;
+    }
 };
 
 class QoreModuleManager {
@@ -455,13 +473,21 @@ protected:
         const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
         int warning_mask = QP_WARN_MODULES);
 
-    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
+    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
+        const char* feature = nullptr, QoreProgram* pgm = nullptr, bool reexport = false);
+
+    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
+        QoreModuleInfo& mod_info, const char* path, const char* feature = nullptr, QoreProgram* pgm = nullptr,
+        bool reexport = false);
+
     DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
         const char* feature = nullptr, QoreProgram* tpgm = nullptr, bool reexport = false, QoreProgram* pgm = nullptr,
         QoreProgram* path_pgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
+
     DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
         const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = nullptr,
         int warning_mask = QP_WARN_MODULES);
+
     DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi,
         QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
 
@@ -610,7 +636,11 @@ protected:
     DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const override;
 
 public:
-    DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
+    DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v,
+        const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init,
+        qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p)
+        : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init),
+            module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
     }
 
     DLLLOCAL virtual ~QoreBuiltinModule() {
