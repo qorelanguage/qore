@@ -618,6 +618,11 @@ DLLEXPORT int q_env_subst(QoreString& str);
  */
 DLLEXPORT double q_strtod(const char* str);
 
+//! returns true if the Qore library has been initialized
+/** @since %Qore 0.9.5
+ */
+DLLEXPORT bool q_libqore_initalized();
+
 //! returns true if the Qore library has been shut down
 /** @since %Qore 0.8.13
  */

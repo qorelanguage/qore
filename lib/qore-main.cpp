@@ -50,6 +50,9 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
+// initialized flag
+std::atomic<bool> qore_initialized = {false};
+
 // shutdown flag
 std::atomic<bool> qore_shutdown = {false};
 
@@ -179,6 +182,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
         printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
     _set_output_format(_TWO_DIGIT_EXPONENT);
 #endif
+
+    // set initialized flag for external modules
+    qore_initialized.store(true, std::memory_order_relaxed);
 }
 
 // NOTE: we do not cleanup in reverse initialization order

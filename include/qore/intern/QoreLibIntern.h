@@ -503,6 +503,7 @@ class QoreParseListNode;
 #include "qore/intern/ParseReferenceNode.h"
 #include "qore/intern/WeakReferenceNode.h"
 
+DLLLOCAL extern std::atomic<bool> qore_initialized;
 DLLLOCAL extern std::atomic<bool> qore_shutdown;
 
 DLLLOCAL extern int qore_library_options;

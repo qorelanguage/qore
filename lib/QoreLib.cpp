@@ -2711,6 +2711,10 @@ bool q_libqore_shutdown() {
    return qore_shutdown.load(std::memory_order_relaxed);
 }
 
+bool q_libqore_initalized() {
+    return qore_initialized.load(std::memory_order_relaxed);
+}
+
 QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink) {
    return thread_get_local_vars(frame, xsink);
 }
