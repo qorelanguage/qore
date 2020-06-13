@@ -152,7 +152,7 @@ public:
         @param name can be either a feature name or the full path to the module file
         @param pgm the QoreProgram object in which to include all module additions (namespaces, classes, constants, etc) immediately
     */
-    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = 0);
+    DLLEXPORT static QoreStringNode *parseLoadModule(const char *name, QoreProgram *pgm = nullptr);
 
     //! registers the given user module from the module source given as an argument
     DLLEXPORT void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink* xsink);
@@ -166,6 +166,34 @@ public:
 
 //! the global ModuleManager object
 DLLEXPORT extern ModuleManager MM;
+
+typedef std::vector<std::string> strvec_t;
+
+//! Qore module info
+/** @since %Qore 0.9.5
+*/
+struct QoreModuleInfo {
+    QoreString name;
+    QoreString version;
+    QoreString desc;
+    QoreString author;
+    QoreString url;
+    int api_major = -1;
+    int api_minor = -1;
+    qore_module_init_t init = nullptr;
+    qore_module_ns_init_t ns_init = nullptr;
+    qore_module_delete_t del = nullptr;
+    qore_module_parse_cmd_t parse_cmd = nullptr;
+
+    qore_license_t license;
+    QoreString license_str;
+
+    //! list of binary modules that this binary module depends on
+    strvec_t dependencies;
+};
+
+//! Module description function
+typedef void (*qore_binary_module_desc_t)(QoreModuleInfo& mod_info);
 
 static inline bool is_module_api_supported(int major, int minor) {
     for (unsigned i = 0; i < qore_mod_api_list_len; ++i)

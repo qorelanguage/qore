@@ -1279,26 +1279,17 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
     return setupUserModule(xsink, mi, qmd);
 }
 
-struct DLHelper {
-    void* ptr;
-
-    DLLLOCAL DLHelper(void* p) : ptr(p) {
-    }
-
-    DLLLOCAL ~DLHelper() {
-        if (ptr)
-            dlclose(ptr);
-    }
-
-    DLLLOCAL void* release() {
-        void* rv = ptr;
-        ptr = nullptr;
-        return rv;
-    }
-};
-
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
-    QoreAbstractModule* mi = nullptr;
+    QoreModuleInfo mod_info;
+
+    // check for new-style module declaration
+    QoreStringMaker sym("%s_qore_module_desc", feature);
+    qore_binary_module_desc_t mod_desc = (qore_binary_module_desc_t)dlsym(RTLD_DEFAULT, sym.c_str());
+    //printd(5, "QoreModuleManager::loadBinaryModuleFromPath() mod_desc (%s -> %s): %p\n", feature, path, mod_desc);
+    if (mod_desc) {
+        mod_desc(mod_info);
+        return loadBinaryModuleFromDesc(xsink, nullptr, mod_info, path, feature, pgm, reexport);
+    }
 
     void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
     if (!ptr) {
@@ -1308,51 +1299,209 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     DLHelper dlh(ptr);
 
+    mod_desc = (qore_binary_module_desc_t)dlsym(ptr, sym.c_str());
+    if (mod_desc) {
+        mod_desc(mod_info);
+        return loadBinaryModuleFromDesc(xsink, &dlh, mod_info, path, feature, pgm, reexport);
+    }
+
     // get module name
     const char* name = (const char*)dlsym(ptr, "qore_module_name");
-    if (!name) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "module '%s': no feature name present in module", path);
+    if (name) {
+        mod_info.name = name;
+    }
+
+    // get qore module API major number
+    int* api_major = (int*)dlsym(ptr, "qore_module_api_major");
+    if (api_major) {
+        mod_info.api_major = *api_major;
+    }
+
+    // get qore module API minor number
+    int* api_minor = (int*)dlsym(ptr, "qore_module_api_minor");
+    if (api_minor) {
+        mod_info.api_minor = *api_minor;
+    }
+
+    // get license type
+    qore_license_t* module_license = (qore_license_t*)dlsym(ptr, "qore_module_license");
+    if (module_license) {
+        mod_info.license = *module_license;
+    }
+
+    // get optional license string
+    const char* module_license_str = (const char*)dlsym(ptr, "qore_module_license_str");
+    if (module_license_str) {
+        mod_info.license_str = module_license_str;
+    }
+
+    // get initialization function
+    qore_module_init_t* module_init = (qore_module_init_t*)dlsym(ptr, "qore_module_init");
+    if (module_init) {
+        mod_info.init = *module_init;
+    }
+
+    // get namespace initialization function
+    qore_module_ns_init_t* module_ns_init = (qore_module_ns_init_t*)dlsym(ptr, "qore_module_ns_init");
+    if (module_ns_init) {
+        mod_info.ns_init = *module_ns_init;
+    }
+
+    // get deletion function
+    qore_module_delete_t* module_delete = (qore_module_delete_t*)dlsym(ptr, "qore_module_delete");
+    if (module_delete) {
+        mod_info.del = *module_delete;
+    }
+
+    // get parse command function
+    qore_module_parse_cmd_t* pcmd = (qore_module_parse_cmd_t*)dlsym(ptr, "qore_module_parse_cmd");
+    if (pcmd) {
+        mod_info.parse_cmd = *pcmd;
+    }
+
+    // get qore module description
+    const char* desc = (const char*)dlsym(ptr, "qore_module_description");
+    if (desc) {
+        mod_info.desc = desc;
+    }
+
+    // get qore module version
+    const char* version = (const char*)dlsym(ptr, "qore_module_version");
+    if (version) {
+        mod_info.version = version;
+    }
+
+    // get qore module author
+    const char* author = (const char*)dlsym(ptr, "qore_module_author");
+    if (author) {
+        mod_info.author = author;
+    }
+
+    // get qore module URL (optional)
+    const char* url = (const char*)dlsym(ptr, "qore_module_url");
+    if (url) {
+        mod_info.url = url;
+    }
+
+    const char** dep_list = (const char**)dlsym(ptr, "qore_module_dependencies");
+    if (dep_list) {
+        const char* dep = dep_list[0];
+        //printd(5, "dep_list=%p (0=%s)\n", dep_list, dep);
+        for (int j = 0; dep; dep = dep_list[++j]) {
+            mod_info.dependencies.push_back(dep);
+        }
+    }
+
+    return loadBinaryModuleFromDesc(xsink, &dlh, mod_info, path, feature, pgm, reexport);
+}
+
+QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
+    QoreModuleInfo& mod_info, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
+
+    // get module name
+    if (mod_info.name.empty()) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "module '%s': no feature name " \
+            "present in module", path);
         return nullptr;
     }
 
+    const char* name = mod_info.name.c_str();
+
     // ensure provided feature matches with expected feature
-    if (feature && strcmp(feature, name)) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': provides feature '%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name, feature, name);
+    if (feature && mod_info.name != feature) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': provides feature " \
+            "'%s', expecting feature '%s', skipping, rename module to %s.qmod to load", path, name,
+            feature, name);
         return nullptr;
+    }
+
+    // get qore module API major number
+    if (mod_info.api_major < 0) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': no qore " \
+            "module API major number", path, name);
+        return nullptr;
+    }
+
+    // get qore module API minor number
+    if (mod_info.api_minor < 0) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': no qore " \
+            "module API minor number", path, name);
+        return nullptr;
+    }
+
+    // get initialization function
+    if (!mod_info.init) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "module init method", path, name);
+        return nullptr;
+    }
+
+    // get namespace initialization function
+    if (!mod_info.ns_init) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "namespace init method", path, name);
+        return nullptr;
+    }
+
+    // get deletion function
+    if (!mod_info.del) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "delete method", path, name);
+        return nullptr;
+    }
+
+    // get qore module description
+    if (mod_info.desc.empty()) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "description", path, name);
+        return nullptr;
+    }
+
+    // get qore module version
+    if (mod_info.version.empty()) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "version", path, name);
+        return nullptr;
+    }
+
+    // get qore module author
+    if (mod_info.author.empty()) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing " \
+            "author", path, name);
+        return nullptr;
+    }
+
+    // load dependencies
+    for (std::string& dep : mod_info.dependencies) {
+        //printd(5, "loading module dependency=%s\n", dep);
+        loadModuleIntern(xsink, xsink, dep.c_str(), pgm);
+        if (xsink) {
+            return nullptr;
+        }
     }
 
     // see if a module with this name is already registered
-    if ((mi = findModuleUnlocked(name))) {
+    QoreAbstractModule* mi = findModuleUnlocked(name);
+    if (mi) {
         // if the module is the same, then do not return an error
         if (mi->isPath(path))
             return mi;
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already registered by '%s'", path, name, mi->getFileName());
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s' already " \
+            "registered by '%s'", path, name, mi->getFileName());
         return nullptr;
     }
 
     // check if it's been blacklisted
     bl_map_t::const_iterator i = mod_blacklist.find(name);
     if (i != mod_blacklist.end()) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': '%s' is blacklisted %s", path, name, i->second);
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': '%s' is blacklisted %s",
+            path, name, i->second);
         return nullptr;
     }
 
-    // get qore module API major number
-    int* api_major = (int*)dlsym(ptr, "qore_module_api_major");
-    if (!api_major) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': no qore module API major number", path, name);
-        return nullptr;
-    }
-
-    // get qore module API minor number
-    int* api_minor = (int*)dlsym(ptr, "qore_module_api_minor");
-    if (!api_minor) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': no qore module API minor number", path, name);
-        return nullptr;
-    }
-
-    if (!is_module_api_supported(*api_major, *api_minor)) {
-        QoreStringNode* str = new QoreStringNodeMaker("module '%s': feature '%s': API mismatch, module supports API %d.%d, however only version", path, name, *api_major, *api_minor);
+    if (!is_module_api_supported(mod_info.api_major, mod_info.api_minor)) {
+        QoreStringNode* str = new QoreStringNodeMaker("module '%s': feature '%s': API mismatch, module supports " \
+            "API %d.%d, however only version", path, name, mod_info.api_major, mod_info.api_minor);
 
         if (qore_mod_api_list_len > 1)
             str->concat('s');
@@ -1381,113 +1530,42 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
             }
         }
 
-        printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->getBuffer());
+        printd(5, "QoreModuleManager::loadBinaryModuleFromPath() error: %s\n", str->c_str());
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), str);
         return nullptr;
     }
 
-    // get license type
-    qore_license_t* module_license = (qore_license_t*)dlsym(ptr, "qore_module_license");
-    if (!module_license) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing qore_module_license symbol", path, name);
-        return nullptr;
-    }
-
-    // get optional license string
-    const char* module_license_str = (const char*)dlsym(ptr, "qore_module_license_str");
-
-    qore_license_t license = *module_license;
-    QoreString license_str;
-    if (module_license_str)
-        license_str = module_license_str;
-
     //printd(5, "module_license_str: '%s' license_str: '%s'\n", module_license_str ? module_license_str : "n/a", license_str.getBuffer());
 
-    switch (license) {
-        case QL_GPL: if (!module_license_str) license_str = "GPL"; break;
-        case QL_LGPL: if (!module_license_str) license_str = "LGPL"; break;
-        case QL_MIT: if (!module_license_str) license_str = "MIT"; break;
+    switch (mod_info.license) {
+        case QL_GPL: if (mod_info.license_str.empty()) mod_info.license_str = "GPL"; break;
+        case QL_LGPL: if (mod_info.license_str.empty()) mod_info.license_str = "LGPL"; break;
+        case QL_MIT: if (mod_info.license_str.empty()) mod_info.license_str = "MIT"; break;
         default:
-            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': invalid qore_module_license symbol (%d)", path, name, license);
+            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': " \
+                "invalid qore_module_license symbol (%d)", path, name, mod_info.license);
             return nullptr;
     }
 
-    if (qore_license != QL_GPL && license == QL_GPL) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': qore library initialized with non-GPL license, but module requires GPL", path, name);
-        return 0;
-    }
-
-    // get initialization function
-    qore_module_init_t* module_init = (qore_module_init_t*)dlsym(ptr, "qore_module_init");
-    if (!module_init) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing module init method", path, name);
+    if (qore_license != QL_GPL && mod_info.license == QL_GPL) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': qore " \
+            "library initialized with non-GPL license, but module requires GPL", path, name);
         return nullptr;
     }
 
-    // get namespace initialization function
-    qore_module_ns_init_t* module_ns_init = (qore_module_ns_init_t*)dlsym(ptr, "qore_module_ns_init");
-    if (!module_ns_init) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing namespace init method", path, name);
-        return nullptr;
-    }
-
-    // get deletion function
-    qore_module_delete_t* module_delete = (qore_module_delete_t*)dlsym(ptr, "qore_module_delete");
-    if (!module_delete) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing delete method", path, name);
-        return nullptr;
-    }
-
-    // get parse command function
-    qore_module_parse_cmd_t* pcmd = (qore_module_parse_cmd_t*)dlsym(ptr, "qore_module_parse_cmd");
-
-    // get qore module description
-    const char* desc = (const char*)dlsym(ptr, "qore_module_description");
-    if (!desc) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing description", path, name);
-        return nullptr;
-    }
-
-    // get qore module version
-    const char* version = (const char*)dlsym(ptr, "qore_module_version");
-    if (!version) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing version", path, name);
-        return nullptr;
-    }
-
-    // get qore module author
-    const char* author = (const char*)dlsym(ptr, "qore_module_author");
-    if (!author) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': missing author", path, name);
-        return nullptr;
-    }
-
-    // get qore module URL (optional)
-    const char* url = (const char*)dlsym(ptr, "qore_module_url");
-
-    const char** dep_list = (const char**)dlsym(ptr, "qore_module_dependencies");
-    if (dep_list) {
-        const char* dep = dep_list[0];
-        //printd(5, "dep_list=%p (0=%s)\n", dep_list, dep);
-        for (int j = 0; dep; dep = dep_list[++j]) {
-            //printd(5, "loading module dependency=%s\n", dep);
-            loadModuleIntern(xsink, xsink, dep, pgm);
-            if (xsink)
-                return nullptr;
-        }
-    }
-
-    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path, name, *module_init);
+    printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p\n", path,
+        name, *mod_info.init);
 
     // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
     QoreModuleContextHelper qmc(name, pgm, xsink);
     try {
-        QoreStringNode* str = (*module_init)();
+        QoreStringNode* str = (*mod_info.init)();
         if (str) {
             // rollback all module changes
             qmc.rollback();
 
-            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': initialization error: %s", path, name, str->getBuffer());
+            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': feature '%s': " \
+                "initialization error: %s", path, name, str->c_str());
             str->deref();
             return nullptr;
         }
@@ -1507,8 +1585,10 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
     // commit all module changes - to the current program or to the static namespace
     qmc.commit();
 
-    mi = new QoreBuiltinModule(nullptr, path, name, desc, version, author, url, license_str, *api_major, *api_minor,
-        *module_init, *module_ns_init, *module_delete, pcmd ? *pcmd : 0, dlh.release());
+    mi = new QoreBuiltinModule(nullptr, path, name, mod_info.desc.c_str(), mod_info.version.c_str(),
+        mod_info.author.c_str(), mod_info.url.c_str(), mod_info.license_str.c_str(), mod_info.api_major,
+        mod_info.api_minor, *mod_info.init, *mod_info.ns_init, *mod_info.del, mod_info.parse_cmd,
+        dlh ? dlh->release() : nullptr);
     QMM.addModule(mi);
 
     ModuleReExportHelper mrh(mi, reexport);
