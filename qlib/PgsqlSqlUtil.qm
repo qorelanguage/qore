@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.4";
+    version = "1.4.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.4.1
+    - fixed a bug generating literal date/time values for SQL queries
+      (<a href="https://github.com/qorelanguage/qore/issues/3948">issue 3948</a>)
 
     @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.4
     - added support for the DataProvider module
@@ -1503,7 +1507,7 @@ auto v = c.name;
                 "timestamptz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
                 "varchar": ("qore": Type::String, "size": SZ_OPT,),
-                );
+            );
 
             #! maps from verbose type names to simple type names
             const PgsqlNameMap = (
@@ -1516,7 +1520,7 @@ auto v = c.name;
                 "time without time zone": "time",
                 "timestamp with time zone": "timestamptz",
                 "timestamp without time zone": "timestamp",
-                );
+            );
 
             #! maps qore type names to PostgreSQL type names
             const QoreTypeMap = (
@@ -1530,12 +1534,12 @@ auto v = c.name;
                 SqlUtil::CHAR: "char",
                 SqlUtil::CLOB: "text",
                 SqlUtil::BLOB: "bytea",
-                );
+            );
 
             #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
             const PgsqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "functions": Type::Hash,
-                );
+            );
 
             const PgsqlColumnDescOptions = AbstractTable::ColumnDescOptions;
 
@@ -1543,16 +1547,16 @@ auto v = c.name;
 
             const PgsqlConstraintOptions = AbstractTable::ConstraintOptions + PgsqlIndexOptions + (
                 "index": Type::String,
-                );
+            );
 
             const PgsqlTableCreationOptions = AbstractTable::TableCreationOptions + PgsqlConstraintOptions + (
                 "omit_trigger_functions": Type::Boolean,
-                );
+            );
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
             #! column operator specializations for PostgreSQL
-            const PgsqlCopMap = (
+            const PgsqlCopMap = {
                 COP_CAST: (
                     "code": string sub (string cve, list<auto> args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1628,8 +1632,8 @@ auto v = c.name;
                         }
                         return sprintf("date_trunc(%s, %s)", PgsqlTruncDate{arg}, arg1);
                     }
-                )
-                );
+                ),
+            };
 
             #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
             const PgsqlTruncDate = (
@@ -1651,7 +1655,7 @@ auto v = c.name;
                     "arg": Type::String,
                     "placeholder": "currval(%v)",
                 ),
-                );
+            );
 
             #! a hash of default update operator definitions for PostgreSQL
             const PgsqlUopMap = DefaultUopMap + (
@@ -1668,7 +1672,7 @@ auto v = c.name;
                         return sprintf("currval('%s')", arg);
                     }
                 ),
-                );
+            );
         }
 
         private {
@@ -2176,7 +2180,7 @@ auto v = c.name;
 
                 case NT_BOOLEAN: return v ? "true" : "false";
 
-                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+                case NT_DATE: return "timestamptz " + v.format("'YYYY-MM-DD HH:mm:SS.usZ'");
             }
         }
 

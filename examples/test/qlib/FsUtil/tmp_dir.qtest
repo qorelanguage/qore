@@ -40,6 +40,7 @@ public class TmpDirTest inherits QUnit::Test {
 
             {
                 TmpDir tmp_dir = new TmpDir(p[0], p[1]);
+                assertTrue(tmp_dir instanceof Dir);
                 path = tmp_dir.path;   # to check that it's removed automatically outside of this block later
                 assertTrue(is_dir(tmp_dir.path));
                 assertTrue(is_writable(tmp_dir.path));

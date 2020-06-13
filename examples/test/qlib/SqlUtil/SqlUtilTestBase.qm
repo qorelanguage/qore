@@ -334,8 +334,19 @@ public class SqlTestBase inherits QUnit::Test {
         string sql;
         on_error printf ("SQL: %s\n", sql);
 
-        *list rows = table.selectRows({}, \sql);
+        *list<auto> rows = table.selectRows({}, \sql);
         assertEq(2, rows.size());
+
+        # check date/time literals
+        {
+            date now = now_us();
+            hash<auto> date_check = {
+                "columns": (cop_as(cop_value(now), "now")),
+                "limit": 1,
+            };
+            date dbnow = table.selectRow(date_check, \sql).now;
+            assertEq(now, dbnow);
+        }
 
         foreach hash e in (expect_data.pairIterator()) {
             # printf("* %s\n", e.key);

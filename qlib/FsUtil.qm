@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FsUtil.qm Qore user module providing file system related functionality
 
-/*  FsUtil.qm Copyright 2018 Qore Technologies, s.r.o.
+/*  FsUtil.qm Copyright 2018 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.5
 
 %requires Util
 
@@ -34,7 +34,7 @@
 %enable-all-warnings
 
 module FsUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing file system related functionality";
     author = "Tomas Heger";
     url = "http://qore.org";
@@ -83,12 +83,16 @@ module FsUtil {
 
     @section fsutil_relnotes Release Notes
 
+    @subsection fsutil_v1_1 Version 1.1
+    - added @ref Qore::Dir "Dir" as a parent class of @ref FsUtil::TmpDir "TmpDir"
+      (<a href="https://github.com/qorelanguage/qore/issues/3945">issue 3945</a>)
+
     @subsection fsutil_v1_0 Version 1.0
     - initial version of module
 */
 
+# private namespace
 namespace Init {
-
     sub init() {
         #! handler for the current platform
         our FsUtil::PathHandler local_handler;
@@ -104,14 +108,12 @@ namespace Init {
 
 #! the FsUtil namespace contains all the objects in the FsUtil module
 public namespace FsUtil {
-
     #! generic path handler implementing functionality common for both platforms
     class PathHandler {
         public {
             #! path delimiters - to be set by platform specific path handlers
             list<string> delimiters;
         }
-
 
         public string joinPaths(list<string> paths) {
             if (!paths) {
@@ -133,7 +135,6 @@ public namespace FsUtil {
 
     #! path handler implementing Windows specific functionality
     public class WinPathHandler inherits PathHandler {
-
         #! creates the object and sets the delimiter
         constructor() {
             # both slashes can be used as path delimiters on Windows
@@ -414,20 +415,23 @@ public namespace FsUtil {
         throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
-    #! Class implementing a user friendly temporary directory creation - users don't need to care about removing it
-    public class TmpDir {
+    #! Class implementing a user friendly temporary directory creation; the directory and all its contents are removed in the destructor
+    /** @since %FsUtil 1.1 inherits @ref Qore::Dir
+    */
+    public class TmpDir inherits Qore::Dir {
         public {
+            #! The path to the temporary directory created in the constructor
             string path;
         }
 
         #! Creates a unique temporary directory and returns its absolute path
         /** @param prefix prefix to be used in the newly created directory name
             @param suffix suffix to be used in the newly created directory name
-            @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
-                        location will be used
+            @param path path to a dir in which the caller wants to create the new directory; if not provided, the standard temp location will be used
         */
         public constructor(*string prefix, *string suffix, *string path) {
             self.path = make_tmp_dir(prefix, suffix, path);
+            chdir(self.path);
         }
 
         public destructor() {
@@ -435,7 +439,7 @@ public namespace FsUtil {
         }
     }
 
-    #! Class implementing a user friendly temporary file creation - users don't need to care about removing it
+    #! Class implementing a user friendly temporary file creation; the file is removed in the destructor
     public class TmpFile {
         public {
             string path;

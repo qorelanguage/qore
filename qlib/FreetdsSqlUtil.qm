@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FreetdsSqlUtil.qm Qore user module for working with FreeTDS SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2019 Qore Technologies, s.r.o.
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1999,7 +1999,8 @@ order by
 
                 case NT_BOOLEAN: return v ? "true" : "false";
 
-                case NT_DATE: return v.format("'YYYY-MM-DD HH:mm:SS.us'");
+                case NT_DATE: return sprintf("cast('%s' as datetimeoffset(6))",
+                    v.format("YYYY-MM-DD HH:mm:SS.us Z"));
             }
         }
 
