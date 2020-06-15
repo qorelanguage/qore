@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,28 @@ string Namespace::getName() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     return new QoreStringNode(n->ns->getName());
+}
+
+//! Returns the module name providing the namespace or @ref nothing if the namespace was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = ns.getModuleName();
+    @endcode
+
+    @return the module name providing the namespace or @ref nothing if the namespace was not provided by a module
+
+    @since %Qore 0.9.5
+*/
+*string Namespace::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    const char* mod = n->ns->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
 }
 
 //! returns the namespace's full namespace-justified path name

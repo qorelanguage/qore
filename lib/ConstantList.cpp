@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,12 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old) :
     access(old.access) {
     assert(!old.in_init);
     assert(old.init);
+
+    if (!old.from_module.empty()) {
+        from_module = old.from_module;
+    } else {
+        setModuleName();
+    }
 
     //printd(5, "ConstantEntry::ConstantEntry() this: %p copy '%s' ti: '%s' nti: '%s'\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }
@@ -201,8 +207,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
             val.discard(&xsink);
             val = nv;
             typeInfo = val.getTypeInfo();
-        }
-        else {
+        } else {
             typeInfo = nothingTypeInfo;
         }
     }
@@ -239,7 +244,12 @@ ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p
         }
 
         ConstantEntry* ce = i->second;
-        ce->ref();
+
+        if (ce->getModuleName() || !get_module_context_name()) {
+            ce->ref();
+        } else {
+            ce = new ConstantEntry(*ce);
+        }
 
         last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
         //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -52,18 +52,17 @@ FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 p
         if (!f->hasBuiltin()) {
             if (no_user || !f->hasUserPublic())
                 continue;
-        }
-        else if (no_builtin && !f->hasUserPublic())
+        } else if (no_builtin && !f->hasUserPublic())
             continue;
 
         // copy by reference if possible
         FunctionEntry* fe;
-        if (!f->hasPrivate() && (!no_user || !f->hasUser()) && (!no_builtin || !f->hasBuiltin())) {
+        if (!f->hasPrivate() && (!no_user || !f->hasUser()) && (!no_builtin || !f->hasBuiltin())
+            && (f->getModuleName() || !get_module_context_name())) {
             QoreFunction* func = i->second->getFunction();
             func->ref();
             fe = new FunctionEntry(i->first, func, ns);;
-        }
-        else {
+        } else {
             // otherwise we have to make a new function object with only the desired visible variants
             fe = new FunctionEntry(i->first, new QoreFunction(*f, po), ns);
         }
@@ -203,4 +202,3 @@ int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private
     }
     return cnt;
 }
-

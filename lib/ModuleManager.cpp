@@ -250,7 +250,7 @@ QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* 
 }
 
 QoreModuleContextHelper::~QoreModuleContextHelper() {
-    set_module_context(0);
+    set_module_context(nullptr);
 }
 
 QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
