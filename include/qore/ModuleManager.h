@@ -55,7 +55,7 @@ struct qore_mod_api_compat_s {
 };
 
 //! list of module APIs this library supports
-DLLEXPORT extern const qore_mod_api_compat_s *qore_mod_api_list;
+DLLEXPORT extern const qore_mod_api_compat_s* qore_mod_api_list;
 
 //! number of elements in qore_mod_api_list;
 DLLEXPORT extern const unsigned qore_mod_api_list_len;
@@ -189,7 +189,8 @@ public:
 
         @since %Qore 0.9.5
     */
-    DLLEXPORT static int runTimeLoadModule(ExceptionSink* xsink, const char* name, QoreProgram* pgm = nullptr, qore_binary_module_desc_t mod_desc_func = nullptr);
+    DLLEXPORT static int runTimeLoadModule(ExceptionSink* xsink, const char* name, QoreProgram* pgm = nullptr,
+        qore_binary_module_desc_t mod_desc_func = nullptr);
 
     //! loads the named module at parse time (or before run time, even if parsing is not active), returns a non-0 QoreStringNode pointer if an error occured, caller owns the QoreStringNode pointer's reference count returned if non-0
     /** if the feature is already loaded, then the function returns immediately without raising an error

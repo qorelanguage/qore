@@ -1402,7 +1402,6 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
     QoreModuleInfo& mod_info, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
-
     // get module name
     if (mod_info.name.empty()) {
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "module '%s': no feature name " \
