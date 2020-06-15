@@ -242,6 +242,10 @@ const char* QoreExternalConstant::getName() const {
     return reinterpret_cast<const ConstantEntry*>(this)->name.c_str();
 }
 
+const char* QoreExternalConstant::getModuleName() const {
+    return reinterpret_cast<const ConstantEntry*>(this)->getModuleName();
+}
+
 bool QoreExternalConstant::isModulePublic() const {
     return reinterpret_cast<const ConstantEntry*>(this)->pub;
 }
@@ -269,6 +273,10 @@ ClassAccess QoreExternalConstant::getAccess() const {
 
 const char* QoreExternalFunction::getName() const {
     return reinterpret_cast<const QoreFunction*>(this)->getName();
+}
+
+const char* QoreExternalFunction::getModuleName() const {
+    return reinterpret_cast<const QoreFunction*>(this)->getModuleName();
 }
 
 const QoreClass* QoreExternalFunction::getClass() const {

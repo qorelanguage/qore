@@ -172,6 +172,27 @@ string AbstractReflectionFunction::getName() [flags=RET_VALUE_ONLY] {
     return new QoreStringNode(f->f->getName());
 }
 
+//! Returns the module name providing the function or method or @ref nothing if the function or method was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = f.getModuleName();
+    @endcode
+
+    @return the module name providing the function or method or @ref nothing if the function or method was not provided by a module
+
+    @since %Qore 0.9.5
+*/
+*string AbstractReflectionFunction::getModuleName() [flags=RET_VALUE_ONLY] {
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    const char* mod = f->f->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
+}
+
 //! returns @ref True if the function or method is a builtin function or method
 /** @par Example:
     @code{.py}

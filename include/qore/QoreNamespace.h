@@ -296,6 +296,11 @@ public:
     */
     DLLEXPORT QoreProgram* getProgram() const;
 
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin namespace
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT const char* getModuleName() const;
+
 private:
     //! this function is not implemented
     QoreNamespace(const QoreNamespace&) = delete;

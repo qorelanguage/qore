@@ -51,17 +51,6 @@ class qore_ns_private;
 typedef std::list<const qore_ns_private*> nslist_t;
 
 class qore_ns_private {
-private:
-    // not implemented
-    DLLLOCAL qore_ns_private(const qore_ns_private&) = delete;
-    // not implemented
-    DLLLOCAL qore_ns_private& operator=(const qore_ns_private&) = delete;
-
-protected:
-    // called from the root namespace constructor only
-    DLLLOCAL qore_ns_private(QoreNamespace* n_ns) : constant(this), depth(0), root(true), pub(true), builtin(true), parent(0), class_handler(0), ns(n_ns) {
-    }
-
 public:
     const QoreProgramLocation* loc;
     std::string name;
@@ -110,7 +99,12 @@ public:
             pub(old.builtin ? true : false),
             builtin(old.builtin),
             imported(old.imported),
-            parent(nullptr), class_handler(old.class_handler), ns(nullptr) {
+            class_handler(old.class_handler), ns(nullptr) {
+        if (!old.from_module.empty()) {
+            from_module = old.from_module;
+        } else {
+            setModuleName();
+        }
     }
 
     DLLLOCAL ~qore_ns_private() {
@@ -127,6 +121,10 @@ public:
 
         // append this namespace's name
         str += name;
+    }
+
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
     }
 
     DLLLOCAL void getNsList(nslist_t& nsl) const {
@@ -449,6 +447,30 @@ public:
 
     DLLLOCAL static bool isUserPublic(const QoreNamespace& ns) {
         return ns.priv->pub && !ns.priv->builtin;
+    }
+
+private:
+    // not implemented
+    DLLLOCAL qore_ns_private(const qore_ns_private&) = delete;
+    // not implemented
+    DLLLOCAL qore_ns_private& operator=(const qore_ns_private&) = delete;
+
+protected:
+    // the module that defined this class, if any
+    std::string from_module;
+
+    // called from the root namespace constructor only
+    DLLLOCAL qore_ns_private(QoreNamespace* n_ns) : constant(this), root(true), pub(true), builtin(true),
+        ns(n_ns) {
+    }
+
+    DLLLOCAL void setModuleName() {
+        assert(from_module.empty());
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
+        //printd(5, "qore_ns_private::setModuleName() this: %p mod: %s\n", this, mod_name ? mod_name : "n/a");
     }
 };
 

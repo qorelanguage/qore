@@ -96,56 +96,56 @@ class AbstractQoreZoneInfo;
 class ThreadData;
 
 struct ModuleContextNamespaceCommit {
-   qore_ns_private* parent;
-   qore_ns_private* nns;
+    qore_ns_private* parent;
+    qore_ns_private* nns;
 
-   DLLLOCAL ModuleContextNamespaceCommit(qore_ns_private* n_parent, qore_ns_private* n_nns) : parent(n_parent), nns(n_nns) {
-   }
+    DLLLOCAL ModuleContextNamespaceCommit(qore_ns_private* n_parent, qore_ns_private* n_nns) : parent(n_parent), nns(n_nns) {
+    }
 };
 
 typedef std::vector<ModuleContextNamespaceCommit> mcnl_t;
 
 class ModuleContextNamespaceList : public mcnl_t {
 private:
-   // not implemented
-   DLLLOCAL ModuleContextNamespaceList(const ModuleContextNamespaceList&);
+    // not implemented
+    DLLLOCAL ModuleContextNamespaceList(const ModuleContextNamespaceList&);
 
 public:
-   DLLLOCAL ModuleContextNamespaceList() {
-   }
+    DLLLOCAL ModuleContextNamespaceList() {
+    }
 
-   DLLLOCAL ~ModuleContextNamespaceList() {
-      assert(empty());
-   }
+    DLLLOCAL ~ModuleContextNamespaceList() {
+        assert(empty());
+    }
 
-   DLLLOCAL void clear();
+    DLLLOCAL void clear();
 };
 
 struct ModuleContextFunctionCommit {
-   qore_ns_private* parent;
-   const char* name;
-   AbstractQoreFunctionVariant* v;
+    qore_ns_private* parent;
+    const char* name;
+    AbstractQoreFunctionVariant* v;
 
-   DLLLOCAL ModuleContextFunctionCommit(qore_ns_private* n_parent, const char* n_name, AbstractQoreFunctionVariant* n_v) : parent(n_parent), name(n_name), v(n_v) {
-   }
+    DLLLOCAL ModuleContextFunctionCommit(qore_ns_private* n_parent, const char* n_name, AbstractQoreFunctionVariant* n_v) : parent(n_parent), name(n_name), v(n_v) {
+    }
 };
 
 typedef std::vector<ModuleContextFunctionCommit> mcfl_t;
 
 class ModuleContextFunctionList : public mcfl_t {
 private:
-   // not implemented
-   DLLLOCAL ModuleContextFunctionList(const ModuleContextFunctionList&);
+    // not implemented
+    DLLLOCAL ModuleContextFunctionList(const ModuleContextFunctionList&);
 
 public:
-   DLLLOCAL ModuleContextFunctionList() {
-   }
+    DLLLOCAL ModuleContextFunctionList() {
+    }
 
-   DLLLOCAL ~ModuleContextFunctionList() {
-      assert(empty());
-   }
+    DLLLOCAL ~ModuleContextFunctionList() {
+        assert(empty());
+    }
 
-   DLLLOCAL void clear();
+    DLLLOCAL void clear();
 };
 
 class QoreModuleContext {

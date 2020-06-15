@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,8 @@ public:
     DLLLOCAL FunctionEntry(QoreFunction* u, qore_ns_private* ns) : func(u), ns(ns) {
     }
 
-    DLLLOCAL FunctionEntry(const char* new_name, QoreFunction* u, qore_ns_private* ns) : func(u), name(new_name), ns(ns) {
+    DLLLOCAL FunctionEntry(const char* new_name, QoreFunction* u, qore_ns_private* ns)
+        : func(u), name(new_name), ns(ns) {
     }
 
     DLLLOCAL void ref() {

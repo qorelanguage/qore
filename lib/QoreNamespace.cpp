@@ -201,19 +201,19 @@ GVEntryBase::GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreType
 }
 
 void GVEntryBase::clear() {
-   //printd(5, "GVEntryBase::clear() name: '%s' var: %p '%s'\n", name->ostr, var, var ? var->getName() : "n/a");
-   delete name;
-   if (var) {
-      var->deref(0);
-      var = 0;
-   }
+    //printd(5, "GVEntryBase::clear() name: '%s' var: %p '%s'\n", name->ostr, var, var ? var->getName() : "n/a");
+    delete name;
+    if (var) {
+        var->deref(nullptr);
+        var = nullptr;
+    }
 }
 
 QoreNamespace::QoreNamespace(const char* n) : priv(new qore_ns_private(this, n)) {
 }
 
 QoreNamespace::QoreNamespace(qore_ns_private* p) : priv(p) {
-   p->ns = this;
+    p->ns = this;
 }
 
 QoreNamespace::~QoreNamespace() {
@@ -222,6 +222,10 @@ QoreNamespace::~QoreNamespace() {
 
 QoreProgram* QoreNamespace::getProgram() const {
     return priv->getProgram();
+}
+
+const char* QoreNamespace::getModuleName() const {
+    return priv->getModuleName();
 }
 
 const char* QoreNamespace::getName() const {

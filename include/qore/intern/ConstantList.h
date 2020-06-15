@@ -102,7 +102,10 @@ public:
         builtin : 1     // builtin vs user
         ;
 
-    DLLLOCAL ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+    DLLLOCAL ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue v,
+        const QoreTypeInfo* ti = nullptr, bool n_pub = false, bool n_init = false, bool n_builtin = false,
+        ClassAccess n_access = Public);
+
     DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
@@ -174,18 +177,32 @@ public:
         return access;
     }
 
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
 protected:
     AbstractQoreNode* saved_node = nullptr;
     ClassAccess access;
+    std::string from_module;
+
+    DLLLOCAL ~ConstantEntry() {
+        assert(!saved_node);
+        assert(val.isNothing());
+    }
 
     DLLLOCAL int scanValue(const QoreValue& n) const;
 
     DLLLOCAL void del(ExceptionSink* xsink);
     DLLLOCAL void del(QoreListNode& l);
 
-    DLLLOCAL ~ConstantEntry() {
-        assert(!saved_node);
-        assert(val.isNothing());
+    DLLLOCAL void setModuleName() {
+        assert(from_module.empty());
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
+        //printd(5, "qore_ns_private::setModuleName() this: %p mod: %s\n", this, mod_name ? mod_name : "n/a");
     }
 };
 

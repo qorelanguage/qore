@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -202,6 +202,11 @@ public:
     //! returns the constant name
     DLLEXPORT const char* getName() const;
 
+    //! returns the module name, if any, otherwise returns nullptr
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT const char* getModuleName() const;
+
     //! returns true if the constant has the module public flag set
     DLLEXPORT bool isModulePublic() const;
 
@@ -229,6 +234,11 @@ class QoreExternalFunction {
 public:
     //! returns the function name
     DLLEXPORT const char* getName() const;
+
+    //! returns the module name, if any, otherwise returns nullptr
+    /** @since %Qore 0.9.5
+    */
+    DLLEXPORT const char* getModuleName() const;
 
     //! returns the class for the function if the function belongs to a class method or nullptr if not
     DLLEXPORT const QoreClass* getClass() const;

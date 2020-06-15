@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,6 +64,28 @@ string AbstractConstant::getName() [flags=RET_VALUE_ONLY] {
 
     // the constant ptr must be valid
     return new QoreStringNode(c->ce->getName());
+}
+
+//! Returns the module name providing the constant or @ref nothing if the constant was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = f.getModuleName();
+    @endcode
+
+    @return the module name providing the constant or @ref nothing if the constant was not provided by a module
+
+    @since %Qore 0.9.5
+*/
+*string AbstractConstant::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    const char* mod = c->ce->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
 }
 
 //! Returns @ref True if the AbstractConstant object passed as an argument is equal to the current object; @ref False if not
