@@ -471,10 +471,11 @@ protected:
     DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr,
         const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
-        int warning_mask = QP_WARN_MODULES);
+        int warning_mask = QP_WARN_MODULES, qore_binary_module_desc_t mod_desc_func = nullptr);
 
     DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
-        const char* feature = nullptr, QoreProgram* pgm = nullptr, bool reexport = false);
+        const char* feature = nullptr, QoreProgram* pgm = nullptr, bool reexport = false,
+        qore_binary_module_desc_t mod_desc = nullptr);
 
     DLLLOCAL QoreAbstractModule* loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
         QoreModuleInfo& mod_info, const char* path, const char* feature = nullptr, QoreProgram* pgm = nullptr,
@@ -525,7 +526,7 @@ public:
         bool reexport = false);
     DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES,
-        bool reexport = false);
+        bool reexport = false, qore_binary_module_desc_t mod_desc_func = nullptr);
 
     DLLLOCAL QoreHashNode* getModuleHash();
     DLLLOCAL QoreListNode* getModuleList();

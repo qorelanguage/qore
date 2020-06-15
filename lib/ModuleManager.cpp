@@ -564,15 +564,24 @@ int ModuleManager::runTimeLoadModule(const char* name, QoreProgram* pgm, Excepti
     return QMM.runTimeLoadModule(*xsink, *xsink, name, pgm);
 }
 
+int ModuleManager::runTimeLoadModule(ExceptionSink* xsink, const char* name, QoreProgram* pgm,
+    qore_binary_module_desc_t mod_desc_func) {
+    assert(name);
+    assert(xsink);
+    return QMM.runTimeLoadModule(*xsink, *xsink, name, pgm, nullptr, QMLO_NONE, QP_WARN_MODULES, false, mod_desc_func);
+}
+
 int QoreModuleManager::runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
-    QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask, bool reexport) {
+    QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask, bool reexport,
+    qore_binary_module_desc_t mod_desc_func) {
     // grab the parse lock
     ProgramRuntimeParseContextHelper pah(&xsink, pgm);
     if (xsink)
         return -1;
 
     AutoLocker al2(mutex); // grab global module lock
-    loadModuleIntern(xsink, wsink, name, pgm, reexport, MOD_OP_NONE, 0, 0, mpgm, load_opt, warning_mask);
+    loadModuleIntern(xsink, wsink, name, pgm, reexport, MOD_OP_NONE, 0, 0, mpgm, load_opt, warning_mask,
+        mod_desc_func);
     return xsink ? -1 : 0;
 }
 
@@ -695,7 +704,7 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
 
 void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
     QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
-    unsigned load_opt, int warning_mask) {
+    unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
     assert(!version || (version && op != MOD_OP_NONE));
 
     //printd(5, "QoreModuleManager::loadModuleIntern() '%s' reexport: %d pgm: %p\n", name, reexport, pgm);
@@ -831,7 +840,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
                 return;
             }
 
-            mi = loadBinaryModuleFromPath(xsink, name, 0, pgm, reexport);
+            mi = loadBinaryModuleFromPath(xsink, name, 0, pgm, reexport, mod_desc_func);
         } else if (QoreDir::folder_exists(modulePath, xsink)) {
             qore_offset_t i = modulePath.rfind(QORE_DIR_SEP);
             // "feature" means pure module name (e.g. "Mime", "CsvUtil" etc.)
@@ -885,7 +894,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
                     return;
                 }
 
-                mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport);
+                mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport, mod_desc_func);
                 qore_check_load_module_intern(mi, op, version, pgm, xsink);
                 return;
             }
@@ -1279,17 +1288,9 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
     return setupUserModule(xsink, mi, qmd);
 }
 
-QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
+QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
+    const char* feature, QoreProgram* pgm, bool reexport, qore_binary_module_desc_t mod_desc) {
     QoreModuleInfo mod_info;
-
-    // check for new-style module declaration
-    QoreStringMaker sym("%s_qore_module_desc", feature);
-    qore_binary_module_desc_t mod_desc = (qore_binary_module_desc_t)dlsym(RTLD_DEFAULT, sym.c_str());
-    //printd(5, "QoreModuleManager::loadBinaryModuleFromPath() mod_desc (%s -> %s): %p\n", feature, path, mod_desc);
-    if (mod_desc) {
-        mod_desc(mod_info);
-        return loadBinaryModuleFromDesc(xsink, nullptr, mod_info, path, feature, pgm, reexport);
-    }
 
     void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
     if (!ptr) {
@@ -1299,7 +1300,11 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     DLHelper dlh(ptr);
 
-    mod_desc = (qore_binary_module_desc_t)dlsym(ptr, sym.c_str());
+    if (!mod_desc) {
+        // check for new-style module declaration
+        QoreStringMaker sym("%s_qore_module_desc", feature);
+        mod_desc = (qore_binary_module_desc_t)dlsym(ptr, sym.c_str());
+    }
     if (mod_desc) {
         mod_desc(mod_info);
         return loadBinaryModuleFromDesc(xsink, &dlh, mod_info, path, feature, pgm, reexport);
