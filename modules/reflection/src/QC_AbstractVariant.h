@@ -53,4 +53,6 @@ DLLLOCAL extern QoreClass* QC_ABSTRACTVARIANT;
 DLLLOCAL void preinitAbstractVariantClass();
 DLLLOCAL QoreClass* initAbstractVariantClass(QoreNamespace& ns);
 
+DLLLOCAL QoreListNode* get_code_flag_list(int64 c);
+
 #endif

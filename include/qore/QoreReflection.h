@@ -261,6 +261,20 @@ public:
     //! returns the first declared variant in the variant list
     DLLEXPORT const QoreExternalVariant* getFirstVariant() const;
 
+    //! returns capabilities common to all variants
+    /** Check variants for specific capabilities
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT int64 getDomain() const;
+
+    //! returns flags common to all variants
+    /** Check variants for specific flags
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT int64 getCodeFlags() const;
+
 private:
     //! not implemented
     DLLLOCAL QoreExternalFunction();

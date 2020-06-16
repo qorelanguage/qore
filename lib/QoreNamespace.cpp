@@ -3294,8 +3294,7 @@ public:
     DLLLOCAL bool next() {
         if (i == ns->func_list.end()) {
             i = ns->func_list.begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return (i != ns->func_list.end());
