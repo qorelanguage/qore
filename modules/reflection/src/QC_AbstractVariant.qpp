@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,36 @@
 #include "QC_AbstractReflectionFunction.h"
 #include "QC_Type.h"
 #include "QC_Class.h"
+
+QoreListNode* get_code_flag_list(int64 c) {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), nullptr);
+
+    if (c & QCF_NOOP) {
+        rv->push(new QoreStringNode("NOOP"), nullptr);
+    }
+
+    if (c & QCF_USES_EXTRA_ARGS) {
+        rv->push(new QoreStringNode("USES_EXTRA_ARGS"), nullptr);
+    }
+
+    if (c & QCF_CONSTANT_INTERN) {
+        rv->push(new QoreStringNode("CONSTANT"), nullptr);
+    }
+
+    if (c & QCF_DEPRECATED) {
+        rv->push(new QoreStringNode("DEPRECATED"), nullptr);
+    }
+
+    if (c & QCF_RET_VALUE_ONLY) {
+        rv->push(new QoreStringNode("RET_VALUE_ONLY"), nullptr);
+    }
+
+    if (c & QCF_RUNTIME_NOOP) {
+        rv->push(new QoreStringNode("RUNTIME_NOOP"), nullptr);
+    }
+
+    return rv.release();
+}
 
 //! The abstract base class for %Qore class variants
 /**
@@ -119,34 +149,7 @@ list<string> AbstractVariant::getCodeFlagList() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    int64 c = v->variant->getCodeFlags();
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-
-    if (c & QCF_NOOP) {
-        rv->push(new QoreStringNode("NOOP"), xsink);
-    }
-
-    if (c & QCF_USES_EXTRA_ARGS) {
-        rv->push(new QoreStringNode("USES_EXTRA_ARGS"), xsink);
-    }
-
-    if (c & QCF_CONSTANT_INTERN) {
-        rv->push(new QoreStringNode("CONSTANT"), xsink);
-    }
-
-    if (c & QCF_DEPRECATED) {
-        rv->push(new QoreStringNode("DEPRECATED"), xsink);
-    }
-
-    if (c & QCF_RET_VALUE_ONLY) {
-        rv->push(new QoreStringNode("RET_VALUE_ONLY"), xsink);
-    }
-
-    if (c & QCF_RUNTIME_NOOP) {
-        rv->push(new QoreStringNode("RUNTIME_NOOP"), xsink);
-    }
-
-    return rv.release();
+    return get_code_flag_list(v->variant->getCodeFlags());
 }
 
 //! returns a bitfield of @ref modifier_constants "modifiers" describing the variant
@@ -189,8 +192,7 @@ int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
         if (mv->isStatic()) {
             rc |= MC_STATIC;
         }
-    }
-    else {
+    } else {
         if (v->variant->isModulePublic()) {
             rc |= MC_PUBLIC;
         }
@@ -243,8 +245,7 @@ list<string> AbstractVariant::getModifierList() [flags=RET_VALUE_ONLY] {
         if (mv->isStatic()) {
             rv->push(new QoreStringNode("static"), xsink);
         }
-    }
-    else {
+    } else {
         if (v->variant->isModulePublic()) {
             rv->push(new QoreStringNode("public"), xsink);
         }

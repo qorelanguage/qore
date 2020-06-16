@@ -309,6 +309,14 @@ const QoreExternalVariant* QoreExternalFunction::getFirstVariant() const {
     return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->first());
 }
 
+int64 QoreExternalFunction::getDomain() const {
+    return reinterpret_cast<const QoreFunction*>(this)->parseGetUniqueFunctionality();
+}
+
+int64 QoreExternalFunction::getCodeFlags() const {
+    return reinterpret_cast<const QoreFunction*>(this)->parseGetUniqueFlags();
+}
+
 class qore_external_function_iterator_private {
 public:
     DLLLOCAL qore_external_function_iterator_private(const QoreExternalFunction& func) : f(reinterpret_cast<const QoreFunction&>(func)) {
@@ -318,8 +326,7 @@ public:
     DLLLOCAL bool next() {
         if (i == f.vlist.end()) {
             i = f.vlist.begin();
-        }
-        else {
+        } else {
             ++i;
         }
 

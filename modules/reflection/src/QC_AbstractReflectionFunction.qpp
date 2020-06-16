@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -322,3 +322,110 @@ int AbstractReflectionFunction::numVariants() [flags=RET_VALUE_ONLY] {
     // the function ptr must be valid
     return f->f->numVariants();
 }
+
+//! returns a bitfield of @ref code_flag_constants "code flags" common to all variants for this function
+/** @par Example:
+    @code{.py}
+int i = f.getCodeFlags();
+    @endcode
+
+    @return a bitfield of @ref code_flag_constants "code flags" common to all variants for this function
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlagList()
+
+    @since %Qore 0.9.5
+*/
+int AbstractReflectionFunction::getCodeFlags() [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->getCodeFlags();
+}
+
+//! returns a list of strings of code flags common to all variants for this function
+/** @par Example:
+    @code{.py}
+list<string> l = f.getCodeFlagList();
+    @endcode
+
+    @return list of strings of code flags common to all variants for this function; possible values are:
+    - \c "NOOP": the variant has the @ref Qore::Reflection::CF_NOOP "CF_NOOP" flag set
+    - \c "USES_EXTRA_ARGS": the variant has the @ref Qore::Reflection::CF_USES_EXTRA_ARGS "CF_USES_EXTRA_ARGS" flag set
+    - \c "CONSTANT": the variant has the @ref Qore::Reflection::CF_CONSTANT "CF_CONSTANT" flag set
+    - \c "DEPRECATED": the variant has the @ref Qore::Reflection::CF_DEPRECATED "CF_DEPRECATED" flag set
+    - \c "RET_VALUE_ONLY": the variant has the @ref Qore::Reflection::CF_RET_VALUE_ONLY "CF_RET_VALUE_ONLY" flag set
+    - \c "RUNTIME_NOOP": the variant has the @ref Qore::Reflection::CF_RUNTIME_NOOP "CF_RUNTIME_NOOP" flag set
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlags()
+
+    @since %Qore 0.9.5
+*/
+list<string> AbstractReflectionFunction::getCodeFlagList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return get_code_flag_list(f->f->getCodeFlags());
+}
+
+//! returns the functional domain common to all variants for this function (for builtin functions only) as a bitfield of @ref functional_domain_constants
+/** @par Example:
+    @code{.py}
+int i = f.getDomain();
+    @endcode
+
+    @return the functional domain common to all variants for this function (for builtin functions only) as a bitfield of @ref functional_domain_constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user functions always return 0 here; a value is only returned by builtin functions
+
+    @since %Qore 0.9.5
+*/
+int AbstractReflectionFunction::getDomain() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->getDomain();
+}
+
+//! returns a list of functional domain strings common to all variants for this function (for builtin functions only); an empty list is returned for user functions
+/** @par Example:
+    @code{.py}
+list<string> l = f.getDomainStringList();
+    @endcode
+
+    @return a list of functional domain strings common to all variants for this function (for builtin functions only)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user functions always return an empty list here
+
+    @since %Qore 0.9.5
+*/
+list<string> AbstractReflectionFunction::getDomainStringList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return domain_bitfield_to_string_list(f->f->getDomain(), xsink);
+}
+

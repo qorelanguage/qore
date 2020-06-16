@@ -1004,7 +1004,6 @@ protected:
     // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
     IList ilist;
 
-    // if true means all variants have the same return value
     int64 unique_functionality = QDOM_DEFAULT;
     int64 unique_flags = QCF_NO_FLAGS;
 
@@ -1013,6 +1012,7 @@ protected:
     int64 nn_unique_flags = QCF_NO_FLAGS;
     int nn_count = 0;
 
+    // if true means all variants have the same return value
     bool same_return_type : 1;
     bool nn_same_return_type : 1;
     bool parse_rt_done : 1;
