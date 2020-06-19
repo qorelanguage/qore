@@ -80,7 +80,8 @@ public:
     }
 
     // called when assimilating
-    DLLLOCAL qore_ns_private(const char* n, bool pub) : name(n), constant(this), pub(pub), builtin(false), ns(new QoreNamespace(this)) {
+    DLLLOCAL qore_ns_private(const char* n, const qore_ns_private& old) : name(n), constant(this), pub(old.pub),
+        builtin(false), ns(new QoreNamespace(this)), from_module(old.from_module) {
     }
 
     // called when parsing

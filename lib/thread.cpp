@@ -1498,7 +1498,14 @@ const char* get_user_module_context_name() {
 
 const char* get_module_context_name() {
     ThreadData* td = thread_data.get();
-    return td->qmc ? td->qmc->getName() : td->user_module_context_name;
+    const char* rv = nullptr;
+    if (td->qmc) {
+        rv = td->qmc->getName();
+    }
+    if (!rv) {
+        rv = td->user_module_context_name;
+    }
+    return rv;
 }
 
 void ModuleContextNamespaceList::clear() {
