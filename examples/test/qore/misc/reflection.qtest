@@ -115,8 +115,12 @@ class ReflectionTest inherits QUnit::Test {
     modNameTests() {
         Class cls = Class::forName("Class");
         assertEq("reflection", cls.getModuleName());
+
         Namespace ns = Namespace::forName("Reflection");
         assertEq("reflection", ns.getModuleName());
+        ns = Namespace::forName("Util");
+        assertEq("Util", ns.getModuleName());
+
         AbstractReflectionFunction f = Function::forName("get_random_string");
         assertEq("Util", f.getModuleName());
 

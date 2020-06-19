@@ -72,7 +72,6 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
     return rv;
 }
 
-static void breakit() {}
 bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig) const {
     if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
         //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
@@ -98,7 +97,6 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
         //printd(5, "AbstractFunctionSignature::operator==() param %d (%s =~ %s) %d\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(ti), QoreTypeInfo::runtimeTypeMatch(typeList[i], ti));
 
         if (!match) {
-            breakit();
             //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
             return false;
         }
