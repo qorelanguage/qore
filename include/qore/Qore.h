@@ -45,6 +45,7 @@
 #include <qore/common.h>
 #include <qore/AbstractException.h>
 #include <qore/QoreStandardException.h>
+#include <qore/QoreXSinkException.h>
 #include <qore/QoreCounter.h>
 
 //! global background thread counter (for threads started explicitly by Qore)

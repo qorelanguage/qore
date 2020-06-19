@@ -166,6 +166,7 @@ libqore_la_SOURCES = \
 	QoreException.cpp \
 	ExceptionSink.cpp \
 	QoreStandardException.cpp \
+	QoreXSinkException.cpp \
 	QoreClass.cpp \
 	TypedHashDecl.cpp \
 	QoreReflection.cpp \

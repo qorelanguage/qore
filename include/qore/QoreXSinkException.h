@@ -1,9 +1,10 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QoreStandardException.h
+    QoreXSinkException.h
 
-    Qore Programming language
+    Qore Programming Language
 
-    Copyright (C) 2007 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,43 +29,48 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_QOREXSINKEXCEPTION_H
 
-QoreStandardException::QoreStandardException(const char* err, const char* desc_fmt, ...)
-    : err(new QoreStringNode(err)), desc(new QoreStringNode) {
-    if (desc_fmt) {
-        va_list args;
+#define _QORE_QOREXSINKEXCEPTION_H
 
-        while (true) {
-            va_start(args, desc_fmt);
-            int rc = desc->vsprintf(desc_fmt, args);
-            va_end(args);
-            if (!rc)
-                break;
-        }
-    }
-}
+/** @file QoreXSinkException.h
+    Defines a class for C++ exception based on an ExceptionSink object
+*/
 
-QoreStandardException::QoreStandardException(const char* err, QoreStringNode* desc, QoreValue arg)
-    : err(new QoreStringNode(err)), desc(desc), arg(arg) {
-}
+#include "QoreValue.h"
 
-QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc) : err(err), desc(desc) {
-}
+#include <cstdarg>
+#include <string>
 
-QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc, QoreValue arg) : err(err),
-    desc(desc), arg(arg) {
-}
+// forward references
+class QoreStringNode;
 
-QoreStandardException::~QoreStandardException() {
-    if (err)
-        err->deref();
-    if (desc)
-        desc->deref();
-}
+//! class for C++ exception based on an ExceptionSink object
+/**
+*/
+class QoreXSinkException : public AbstractException {
+public:
+    //! creates the exception object
+    /** after this call, the xsink argument can no longer be used
+    */
+    DLLEXPORT QoreXSinkException(ExceptionSink& xsink);
 
-void QoreStandardException::convert(ExceptionSink* xsink) {
-    xsink->raiseException(err, desc, arg);
-    err = nullptr;
-    desc = nullptr;
-}
+    //! copy constructor
+    DLLEXPORT QoreXSinkException(QoreXSinkException&& xsink) = default;
+
+    //! Destroys the object
+    DLLEXPORT virtual ~QoreXSinkException();
+
+    //! Default assignment operator
+    DLLEXPORT QoreXSinkException& operator=(QoreXSinkException&&) = default;
+
+    //! Raises the corresponding Qore exception in the ExceptionSink.
+    /** @param xsink the exception sink
+    */
+    virtual void convert(ExceptionSink* xsink);
+
+private:
+    struct qore_es_private* priv;
+};
+
+#endif

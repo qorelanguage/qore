@@ -643,9 +643,6 @@ qore_class_private::~qore_class_private() {
 
     if (owns_ornothingtypeinfo)
         delete orNothingTypeInfo;
-
-    if (mud)
-        mud->doDeref();
 }
 
 void qore_class_private::addBuiltinStaticVar(const char* vname, QoreValue value, ClassAccess access, const QoreTypeInfo* vTypeInfo) {
@@ -3438,61 +3435,69 @@ void QoreClass::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
 }
 
 void qore_class_private::execDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p, self: %p, destructor: %p, isSystemObject: %d\n", name.c_str(), self, scl, scl ? &scl->sml : 0, self, destructor, self->isSystemObject());
+    //printd(5, "qore_class_private::execDestructor() %s::destructor() o: %p scl: %p sml: %p, self: %p, destructor: %p, isSystemObject: %d\n", name.c_str(), self, scl, scl ? &scl->sml : 0, self, destructor, self->isSystemObject());
 
-   // we use a new, blank exception sink to ensure all destructor code gets executed
-   // in case there were already exceptions in the current exceptionsink
-   ExceptionSink de;
+    // we use a new, blank exception sink to ensure all destructor code gets executed
+    // in case there were already exceptions in the current exceptionsink
+    ExceptionSink de;
 
-   if (self->isSystemObject()) {
-      if (destructor) {
-         destructor->priv->evalSystemDestructor(self, &de);
-      } else {
-         self->defaultSystemDestructor(classID, &de);
-      }
-      // execute superclass destructors
-      if (scl) {
-         scl->sml.execSystemDestructors(self, &de);
-      }
-   }
-   else {
-      if (destructor) {
-         destructor->priv->evalDestructor(self, &de);
-      } else if (sys) {
-         self->defaultSystemDestructor(classID, &de);
-      }
-      // execute superclass destructors
-      if (scl) {
-         scl->sml.execDestructors(self, &de);
-      }
-   }
+    if (self->isSystemObject()) {
+        if (destructor) {
+            destructor->priv->evalSystemDestructor(self, &de);
+        } else {
+            self->defaultSystemDestructor(classID, &de);
+        }
+        // execute superclass destructors
+        if (scl) {
+            scl->sml.execSystemDestructors(self, &de);
+        }
+    } else {
+        if (destructor) {
+            destructor->priv->evalDestructor(self, &de);
+        } else if (sys) {
+            self->defaultSystemDestructor(classID, &de);
+        }
+        // execute superclass destructors
+        if (scl) {
+            scl->sml.execDestructors(self, &de);
+        }
+    }
 
-   xsink->assimilate(de);
+    assert(xsink || !de);
+    if (xsink) {
+        xsink->assimilate(de);
+    }
 }
 
 void qore_class_private::execBaseClassDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   // we use a new, blank exception sink to ensure all destructor code gets executed
-   // in case there were already exceptions in the current exceptionsink
-   ExceptionSink de;
-   //printd(5, "qore_class_private::execBaseClassDestructor() %s::destructor(), destructor: %p, sys: %d\n", name.c_str(), destructor, sys);
-   if (destructor)
-      destructor->priv->evalDestructor(self, &de);
-   else if (sys)
-      self->defaultSystemDestructor(classID, &de);
+    // we use a new, blank exception sink to ensure all destructor code gets executed
+    // in case there were already exceptions in the current exceptionsink
+    ExceptionSink de;
+    //printd(5, "qore_class_private::execBaseClassDestructor() %s::destructor(), destructor: %p, sys: %d\n", name.c_str(), destructor, sys);
+    if (destructor)
+        destructor->priv->evalDestructor(self, &de);
+    else if (sys)
+        self->defaultSystemDestructor(classID, &de);
 
-   xsink->assimilate(de);
+    assert(xsink || !de);
+    if (xsink) {
+        xsink->assimilate(de);
+    }
 }
 
 void qore_class_private::execBaseClassSystemDestructor(QoreObject* self, ExceptionSink* xsink) const {
-   // we use a new, blank exception sink to ensure all destructor code gets executed
-   // in case there were already exceptions in the current exceptionsink
-   ExceptionSink de;
-   if (destructor)
-      destructor->priv->evalSystemDestructor(self, &de);
-   else if (sys)
-      self->defaultSystemDestructor(classID, &de);
+    // we use a new, blank exception sink to ensure all destructor code gets executed
+    // in case there were already exceptions in the current exceptionsink
+    ExceptionSink de;
+    if (destructor)
+        destructor->priv->evalSystemDestructor(self, &de);
+    else if (sys)
+        self->defaultSystemDestructor(classID, &de);
 
-   xsink->assimilate(de);
+    assert(xsink || !de);
+    if (xsink) {
+        xsink->assimilate(de);
+    }
 }
 
 void qore_class_private::execBaseClassCopy(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {

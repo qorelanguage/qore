@@ -1034,7 +1034,11 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
     // dereference all external data
     for (auto& i : extmap) {
-        i.second->doDeref();
+        try {
+            i.second->doDeref();
+        } catch (AbstractException& e) {
+            e.convert(xsink);
+        }
     }
     extmap.clear();
 

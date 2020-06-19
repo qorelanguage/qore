@@ -87,6 +87,7 @@
 #include "QoreException.cpp"
 #include "ExceptionSink.cpp"
 #include "QoreStandardException.cpp"
+#include "QoreXSinkException.cpp"
 #include "QoreClass.cpp"
 #include "TypedHashDecl.cpp"
 #include "QoreReflection.cpp"
