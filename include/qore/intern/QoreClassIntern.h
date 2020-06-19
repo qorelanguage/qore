@@ -2553,8 +2553,7 @@ public:
         if (deref_vars && var_refs.ROdereference()) {
             vars.clear(xsink);
             vars.del(xsink);
-        }
-        else if (!var_refs.reference_count()) {
+        } else if (!var_refs.reference_count()) {
             // delete vars again if possible
             vars.del(xsink);
         }
@@ -2569,6 +2568,15 @@ public:
                 spgm->deref(xsink);
             }
             spgm = nullptr;
+        }
+
+        if (mud) {
+            try {
+                mud->doDeref();
+            } catch (AbstractException& e) {
+                e.convert(xsink);
+            }
+            mud = nullptr;
         }
     }
 

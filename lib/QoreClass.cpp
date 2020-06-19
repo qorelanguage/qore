@@ -643,9 +643,6 @@ qore_class_private::~qore_class_private() {
 
     if (owns_ornothingtypeinfo)
         delete orNothingTypeInfo;
-
-    if (mud)
-        mud->doDeref();
 }
 
 void qore_class_private::addBuiltinStaticVar(const char* vname, QoreValue value, ClassAccess access, const QoreTypeInfo* vTypeInfo) {

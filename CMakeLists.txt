@@ -447,6 +447,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreException.cpp
     lib/ExceptionSink.cpp
     lib/QoreStandardException.cpp
+    lib/QoreXSinkException.cpp
     lib/QoreClass.cpp
     lib/TypedHashDecl.cpp
     lib/QoreReflection.cpp

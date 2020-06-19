@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "intern/QoreException.h"
 
 #include <cstdlib>
 
@@ -40,12 +41,30 @@ static bool qore_check_this(const void* p) {
     return p;
 }
 
+void qore_es_private::assimilate(qore_es_private& xs) {
+    if (xs.thread_exit) {
+        thread_exit = xs.thread_exit;
+        xs.thread_exit = false;
+    }
+    if (xs.tail) {
+        if (tail) {
+            tail->next = xs.head;
+        } else {
+            head = xs.head;
+        }
+        tail = xs.tail;
+    }
+    xs.head = xs.tail = nullptr;
+}
+
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
 }
 
 ExceptionSink::~ExceptionSink() {
-    handleExceptions();
-    delete priv;
+    if (priv) {
+        handleExceptions();
+        delete priv;
+    }
 }
 
 void ExceptionSink::raiseThreadExit() {
@@ -310,19 +329,7 @@ void ExceptionSink::assimilate(ExceptionSink* xs) {
 }
 
 void ExceptionSink::assimilate(ExceptionSink& xs) {
-    if (xs.priv->thread_exit) {
-        priv->thread_exit = xs.priv->thread_exit;
-        xs.priv->thread_exit = false;
-    }
-    if (xs.priv->tail) {
-        if (priv->tail) {
-            priv->tail->next = xs.priv->head;
-        } else {
-            priv->head = xs.priv->head;
-        }
-        priv->tail = xs.priv->tail;
-    }
-    xs.priv->head = xs.priv->tail = nullptr;
+    priv->assimilate(*xs.priv);
 }
 
 void ExceptionSink::outOfMemory() {

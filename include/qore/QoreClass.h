@@ -142,17 +142,17 @@ private:
 public:
     //! returns true if all variants of the method are user variants
     /** @return true if all variants of the method are user variants
-        */
+    */
     DLLEXPORT bool isUser() const;
 
     //! returns true if all variants of the method are builtin variants
     /** @return true if all variants of the method are builtin variants
-        */
+    */
     DLLEXPORT bool isBuiltin() const;
 
     //! returns true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
     /** @return true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
-        */
+    */
     DLLEXPORT bool isPrivate() const;
 
     //! returns the lowest access code of all variants in the method

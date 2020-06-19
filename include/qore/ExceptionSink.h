@@ -38,17 +38,20 @@
 #include <string>
 #include <vector>
 
+// forward references
 class QoreException;
+class QoreXSinkException;
 struct QoreProgramLocation;
 struct QoreCallStack;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {
     friend struct qore_es_private;
+    friend QoreXSinkException;
 
 private:
     //! private implementation of the class
-    struct qore_es_private *priv;
+    struct qore_es_private* priv;
 
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
     DLLLOCAL ExceptionSink(const ExceptionSink&);

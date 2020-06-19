@@ -1,5 +1,5 @@
 /*
-    QoreStandardException.h
+    QoreXSinkException.cpp
 
     Qore Programming language
 
@@ -29,42 +29,16 @@
 */
 
 #include <qore/Qore.h>
+#include "intern/QoreException.h"
 
-QoreStandardException::QoreStandardException(const char* err, const char* desc_fmt, ...)
-    : err(new QoreStringNode(err)), desc(new QoreStringNode) {
-    if (desc_fmt) {
-        va_list args;
-
-        while (true) {
-            va_start(args, desc_fmt);
-            int rc = desc->vsprintf(desc_fmt, args);
-            va_end(args);
-            if (!rc)
-                break;
-        }
-    }
+QoreXSinkException::QoreXSinkException(ExceptionSink& xsink) : priv(xsink.priv) {
+    xsink.priv = nullptr;
 }
 
-QoreStandardException::QoreStandardException(const char* err, QoreStringNode* desc, QoreValue arg)
-    : err(new QoreStringNode(err)), desc(desc), arg(arg) {
+QoreXSinkException::~QoreXSinkException() {
+    delete priv;
 }
 
-QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc) : err(err), desc(desc) {
-}
-
-QoreStandardException::QoreStandardException(QoreStringNode* err, QoreStringNode* desc, QoreValue arg) : err(err),
-    desc(desc), arg(arg) {
-}
-
-QoreStandardException::~QoreStandardException() {
-    if (err)
-        err->deref();
-    if (desc)
-        desc->deref();
-}
-
-void QoreStandardException::convert(ExceptionSink* xsink) {
-    xsink->raiseException(err, desc, arg);
-    err = nullptr;
-    desc = nullptr;
+void QoreXSinkException::convert(ExceptionSink* xsink) {
+    xsink->priv->assimilate(*priv);
 }

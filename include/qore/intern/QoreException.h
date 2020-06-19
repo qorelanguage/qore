@@ -275,6 +275,8 @@ struct qore_es_private {
             addStackInfo(i);
     }
 
+    DLLLOCAL void assimilate(qore_es_private& es);
+
     DLLLOCAL static void addStackInfo(ExceptionSink& xsink, qore_call_t type, const char* class_name,
         const char* code, const QoreProgramLocation& loc) {
         xsink.priv->addStackInfo(type, class_name, code, loc);

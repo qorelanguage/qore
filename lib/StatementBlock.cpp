@@ -523,13 +523,12 @@ void TopLevelStatementBlock::parseInit() {
         // this call will pop all local vars off the stack
         setupLVList(lvids);
         first = false;
-    }
-    else if (lvars) {
+    } else if (lvars) {
         for (unsigned i = 0; i < lvars->size(); ++i)
             pop_local_var();
     }
 
-    assert(!getVStack());
+    //assert(!getVStack());
 
     //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
     return;
