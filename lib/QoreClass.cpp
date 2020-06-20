@@ -643,6 +643,19 @@ qore_class_private::~qore_class_private() {
 
     if (owns_ornothingtypeinfo)
         delete orNothingTypeInfo;
+
+    if (mud) {
+        try {
+            mud->doDeref();
+        } catch (AbstractException& e) {
+            // there is currently no way to handle these exceptions
+#ifdef DEBUG
+            // this will result in the exception being printed out on the console
+            ExceptionSink xsink;
+            e.convert(&xsink);
+#endif
+        }
+    }
 }
 
 void qore_class_private::addBuiltinStaticVar(const char* vname, QoreValue value, ClassAccess access, const QoreTypeInfo* vTypeInfo) {

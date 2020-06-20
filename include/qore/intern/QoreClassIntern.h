@@ -2569,15 +2569,6 @@ public:
             }
             spgm = nullptr;
         }
-
-        if (mud) {
-            try {
-                mud->doDeref();
-            } catch (AbstractException& e) {
-                e.convert(xsink);
-            }
-            mud = nullptr;
-        }
     }
 
     /*
