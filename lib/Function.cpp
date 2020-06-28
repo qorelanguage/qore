@@ -965,7 +965,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             desc->sprintf("%s::", class_name);
         desc->sprintf("%s(", getName());
         add_args(*desc, args);
-        desc->concat(") can be found; ");
+        desc->concat(")' can be found; ");
         if (!cnt) {
             desc->concat("no variants were accessible in this execution context");
         } else {
@@ -1478,7 +1478,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     else if (!variant && !runtime_match && pmatch == -1 && getProgram()->getParseExceptionSink()) {
         QoreStringNode* desc = new QoreStringNode("no variant matching '");
         do_call_str(*desc, this, argTypeInfo);
-        desc->concat(" can be found; ");
+        desc->concat("' can be found; ");
         if (!cnt) {
             desc->concat("no variants were accessible in this context");
         }

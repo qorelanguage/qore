@@ -628,6 +628,11 @@ DLLEXPORT bool q_libqore_initalized();
  */
 DLLEXPORT bool q_libqore_shutdown();
 
+//! returns true if the Qore library is exiting without a shutdown
+/** @since %Qore 0.9.5
+ */
+DLLEXPORT bool q_libqore_exiting();
+
 //! retrieves a hash of all thread local variables and their values for the given stack frame in the current thread's QoreProgram object
 /** @param frame the stack frame starting from 0 (the current frame)
     @param xsink for Qore-language exceptions

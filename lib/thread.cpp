@@ -2103,6 +2103,8 @@ QoreException* catchGetException() {
 }
 
 void qore_exit_process(int rc) {
+    qore_exiting.store(true, std::memory_order_relaxed);
+
     // call exit() in a single-threaded process; flushes file buffers, etc
     if (thread_list.getNumThreads() <= 1)
         exit(rc);

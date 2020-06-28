@@ -505,6 +505,7 @@ class QoreParseListNode;
 
 DLLLOCAL extern std::atomic<bool> qore_initialized;
 DLLLOCAL extern std::atomic<bool> qore_shutdown;
+DLLLOCAL extern std::atomic<bool> qore_exiting;
 
 DLLLOCAL extern int qore_library_options;
 
