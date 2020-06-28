@@ -56,6 +56,9 @@ std::atomic<bool> qore_initialized = {false};
 // shutdown flag
 std::atomic<bool> qore_shutdown = {false};
 
+// exiting flag
+std::atomic<bool> qore_exiting = {false};
+
 #ifdef DARWIN
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())

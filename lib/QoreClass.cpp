@@ -5181,8 +5181,7 @@ public:
         }
         if (i == qc->scl->end()) {
             i = qc->scl->begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return i != qc->scl->end();
@@ -5350,8 +5349,7 @@ public:
                 return false;
             }
             i = qc.scl->sml.begin();
-        }
-        else {
+        } else {
             ++i;
             if (i == qc.scl->sml.end()) {
                 if (!do_class) {
@@ -5433,8 +5431,7 @@ public:
 
         if (i == qc->scl->sml.rend()) {
             i = qc->scl->sml.rbegin();
-        }
-        else {
+        } else {
             ++i;
         }
         return i != qc->scl->sml.rend();
