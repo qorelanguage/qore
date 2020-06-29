@@ -41,6 +41,8 @@
 #include <cstdio>
 #include <pthread.h>
 
+#include <functional>
+
 class QoreProgram;
 class AbstractQoreZoneInfo;
 class ThreadCleanupNode;
@@ -239,7 +241,7 @@ DLLEXPORT int q_deregister_reserved_foreign_thread();
 
     @since %Qore 0.8.8
  */
-int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg = 0);
+int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg = nullptr);
 
 //! use this class to temporarily register and deregister a foreign thread to allow Qore code to be executed and the Qore library to be used from threads not created by the Qore library
 /** @since %Qore 0.8.7
@@ -264,5 +266,70 @@ public:
    //! deregisters the current thread if the registration was successful using either q_deregister_foreign_thread() or q_reserve_foreign_thread_id(), depending on the constructor used
    DLLEXPORT ~QoreForeignThreadHelper();
 };
+
+typedef std::function<void(void*)> q_thread_local_destructor;
+
+//! data structure for user thread-local data
+/** @since %Qore 0.9.5
+*/
+struct q_user_tld {
+    void* data;
+    q_thread_local_destructor destructor;
+
+    DLLLOCAL q_user_tld(void* data, q_thread_local_destructor destructor);
+    DLLLOCAL q_user_tld(q_user_tld&& old) = default;
+    DLLLOCAL q_user_tld(const q_user_tld& old) = default;
+    DLLLOCAL q_user_tld& operator=(const q_user_tld& other) = default;
+};
+
+//! returns a unique ID to use with thread_local_data APIs
+/** @since %Qore 0.9.5
+*/
+DLLEXPORT int q_get_unique_thread_local_data_key();
+
+//! saves thread-local data
+/** can only be called in a registered %Qore thread
+
+    @since %Qore 0.9.5
+*/
+DLLEXPORT void q_save_thread_local_data(int key, void* data, q_thread_local_destructor destructor = nullptr);
+
+//! swaps thread-local data
+/** can only be called in a registered %Qore thread
+
+    @since %Qore 0.9.5
+*/
+DLLEXPORT void* q_swap_thread_local_data(int key, void* new_data, q_thread_local_destructor destructor = nullptr, bool run_destructor = true);
+
+//! returns thread-local data
+/** @note can only be called in a registered %Qore thread
+
+    @since %Qore 0.9.5
+*/
+DLLEXPORT void* q_get_thread_local_data(int key);
+
+//! returns thread-local data
+/** @param key the key used to save the data
+
+    @return nullptr if the data was not found, otherwise a pointer to the data structure holding the data
+
+    @note can only be called in a registered %Qore thread
+
+    @since %Qore 0.9.5
+*/
+DLLEXPORT q_user_tld* q_get_thread_local_data_all(int key);
+
+//! returns and removes thread-local data
+/** @param key the key used to save the data
+    @param data the data structure, if found (output variable)
+    @param run_destructor if true then the destructor is run when the data is removed; if false, it is not
+
+    @return -1 if the data was not found, 0 if found and returned
+
+    @note can only be called in a registered %Qore thread
+
+    @since %Qore 0.9.5
+*/
+DLLEXPORT int q_remove_thread_local_data(int key, q_user_tld& data, bool run_destructor = true);
 
 #endif  // ifndef _QORE_THREAD_H

@@ -41,6 +41,7 @@
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/StatementBlock.h"
+#include "qore/intern/Sequence.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -247,6 +248,10 @@ public:
 // for detecting circular references at runtime
 typedef std::set<const lvalue_ref*> ref_set_t;
 
+// for user TLD
+typedef std::map<int, q_user_tld> u_tld_map_t;
+static Sequence u_tld_seq;
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -366,6 +371,9 @@ public:
     // AbstractQoreModule* with boolean ptr in bit 0
     uintptr_t qmi = 0;
 
+    // user thread-local data
+    u_tld_map_t u_tld_map;
+
     bool
         foreign : 1, // true if the thread is a foreign thread
         try_reexport : 1;
@@ -396,6 +404,13 @@ public:
     }
 
     DLLLOCAL ~ThreadData() {
+        // delete all user TLD
+        for (auto& i : u_tld_map) {
+            if (i.second.destructor) {
+                i.second.destructor(i.second.data);
+            }
+        }
+
         assert(on_block_exit_list.empty());
         assert(!tpd);
         assert(!trlist->prev);
@@ -2864,14 +2879,74 @@ unsigned QoreThreadList::cancelAllActiveThreads() {
             int trc = pthread_cancel(entry[*i].ptid);
             if (!trc) {
                 ++tcc;
-            }
 #ifdef DEBUG
-            else {
+            } else {
                 printd(0, "pthread_cancel() returned %d (%s) on tid %d (%p)\n", trc, strerror(trc), tid, entry[*i].ptid);
-            }
 #endif
+            }
         }
     }
 
     return tcc;
+}
+
+q_user_tld::q_user_tld(void* data, q_thread_local_destructor destructor) : data(data), destructor(destructor) {
+}
+
+int q_get_unique_thread_local_data_key() {
+    return u_tld_seq.next();
+}
+
+void q_save_thread_local_data(int key, void* data, q_thread_local_destructor destructor) {
+    ThreadData* td = thread_data.get();
+    u_tld_map_t::iterator i = td->u_tld_map.lower_bound(key);
+    if (i != td->u_tld_map.end() && i->first == key) {
+        if (i->second.destructor) {
+            i->second.destructor(i->second.data);
+        }
+    }
+    td->u_tld_map.insert(i, u_tld_map_t::value_type(key, {data, destructor}));
+}
+
+void* q_swap_thread_local_data(int key, void* new_data, q_thread_local_destructor destructor, bool run_destructor) {
+    void* rv;
+    ThreadData* td = thread_data.get();
+    u_tld_map_t::iterator i = td->u_tld_map.lower_bound(key);
+    if (i != td->u_tld_map.end() && i->first == key) {
+        rv = i->second.data;
+        if (i->second.destructor && run_destructor) {
+            i->second.destructor(i->second.data);
+        }
+        i->second = {new_data, destructor};
+    } else {
+        rv = nullptr;
+        td->u_tld_map.insert(i, u_tld_map_t::value_type(key, {new_data, destructor}));
+    }
+    return rv;
+}
+
+void* q_get_thread_local_data(int key) {
+    ThreadData* td = thread_data.get();
+    u_tld_map_t::iterator i = td->u_tld_map.find(key);
+    return i == td->u_tld_map.end() ? nullptr : i->second.data;
+}
+
+q_user_tld* q_get_thread_local_data_all(int key) {
+    ThreadData* td = thread_data.get();
+    u_tld_map_t::iterator i = td->u_tld_map.find(key);
+    return i == td->u_tld_map.end() ? nullptr : &i->second;
+}
+
+int q_remove_thread_local_data(int key, q_user_tld& data, bool run_destructor) {
+    ThreadData* td = thread_data.get();
+    u_tld_map_t::iterator i = td->u_tld_map.find(key);
+    if (i == td->u_tld_map.end()) {
+        return -1;
+    }
+    data = i->second;
+    td->u_tld_map.erase(i);
+    if (run_destructor && data.destructor) {
+        data.destructor(data.data);
+    }
+    return 0;
 }
