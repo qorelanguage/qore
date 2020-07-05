@@ -5060,10 +5060,6 @@ int ucnt = table.update(("id": id), ("name": name));
         if (cl.size() != cols.size())
             throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, cols.keys(), cl);
 
-        # use UpsertSelectFirst if the row size == the key size (ie only key values are used)
-        if (cols.size() == row.size())
-            upsert_strategy = UpsertSelectFirst;
-
         return cols;
     }
 
@@ -5137,7 +5133,7 @@ int ucnt = table.update(("id": id), ("name": name));
         };
     }
 
-    private Columns getUpsertColumns(reference csrc) {
+    private Columns getUpsertColumns(reference<string> csrc) {
         l.lock();
         on_exit l.unlock();
 
@@ -5149,8 +5145,7 @@ int ucnt = table.update(("id": id), ("name": name));
         if (!primaryKey.empty()) {
             cols = primaryKey;
             csrc = sprintf("primary key %s", primaryKey.getName());
-        }
-        else {
+        } else {
             getConstraintsUnlocked();
             # find first unique constraint
             foreach AbstractConstraint c in (constraints.iterator()) {
