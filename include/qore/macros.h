@@ -2,7 +2,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2020 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,10 @@
 #ifdef __ia64
 #include <qore/macros-ia64.h>
 #endif // #ifdef __ia64
+
+#ifdef __arm__
+#include <qore/macros-arm.h>
+#endif // #ifdef __arm__
 
 #endif // #ifndef _QORE_MACROS_H
 
