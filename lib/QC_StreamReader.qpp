@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -58,20 +58,20 @@ qclass StreamReader [arg=StreamReader* sr; ns=Qore; internal_members=InputStream
     @param encoding character encoding of the data from the @ref InputStream; if not present, the @ref default_encoding "default character encoding" is assumed
  */
 StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
-   SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
-   if (*xsink)
-      return;
-   self->setPrivate(CID_STREAMREADER, reader.release());
-   qore_object_private* o = qore_object_private::get(*self);
-   const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
-   o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
+    SimpleRefHolder<StreamReader> reader(new StreamReader(xsink, is, encoding ? QEM.findCreate(encoding) : QCS_DEFAULT));
+    if (*xsink)
+        return;
+    self->setPrivate(CID_STREAMREADER, reader.release());
+    qore_object_private* o = qore_object_private::get(*self);
+    const qore_class_private* cls = qore_class_private::get(*QC_STREAMREADER);
+    o->setValueIntern(cls, "is", static_cast<QoreObject*>(obj_is->refSelf()), xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the StreamReader.
 /** @return the @ref character_encoding "character encoding" for the StreamReader
  */
 string StreamReader::getEncoding() [flags=CONSTANT] {
-   return new QoreStringNode(sr->getEncoding()->getCode());
+    return new QoreStringNode(sr->getEncoding()->getCode());
 }
 
 //! Returns the @ref InputStream for the StreamReader.
@@ -82,7 +82,7 @@ string StreamReader::getEncoding() [flags=CONSTANT] {
     @since 0.9.0
  */
 InputStream StreamReader::getInputStream() {
-	return self->getReferencedMemberNoMethod("is", xsink);
+    return self->getReferencedMemberNoMethod("is", xsink);
 }
 
 //! Reads a string from the input stream
@@ -102,7 +102,7 @@ string str = sr.read(len);
     - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *string StreamReader::readString(int limit = -1) {
-   return sr->readString(limit, xsink);
+    return sr->readString(limit, xsink);
 }
 
 //! Reads a text line from the input stream.
@@ -121,7 +121,7 @@ string line = sr.readLine("\n");
     @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *string StreamReader::readLine(*string eol, bool trim = True) {
-   return sr->readLine(eol, trim, xsink);
+    return sr->readLine(eol, trim, xsink);
 }
 
 //! Reads binary data from the input stream up to a given limit.
@@ -139,7 +139,7 @@ string line = sr.readLine("\n");
     - other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 *binary StreamReader::readBinary(int limit = -1) {
-   return sr->readBinary(limit, xsink);
+    return sr->readBinary(limit, xsink);
 }
 
 //! Reads a 1-byte signed integer from the input stream.
@@ -155,7 +155,7 @@ int i = sr.readi1();
     @note other stream read errors could be thrown here depending on the underlying @ref InputStream implementation
  */
 int StreamReader::readi1() {
-   return sr->readi1(xsink);
+    return sr->readi1(xsink);
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the input stream in binary big-endian format.

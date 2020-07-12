@@ -324,20 +324,22 @@ AC_ARG_WITH([libsuffix],
 if test "$enable_64bit" = "yes"; then
    case "${host_os}" in
       *linux*)	if test "$GXX" = "yes" -a "$ARCH" != "aarch64"; then
-		   CXXFLAGS="$CXXFLAGS -m64"
-		fi
-		# only set LIBSUFFIX=64 if /usr/lib64 exists
-		if test "$LIBSUFFIX_SET" != "yes"; then
-		  if test -d /usr/lib64; then
-		     LIBSUFFIX=64
-                  fi
-		  target="${host_cpu}-${host_os}"
-		  if test -d /usr/lib/$target; then
-		     LIBSUFFIX=/$target
-                  fi
-		  AC_SUBST(LIBSUFFIX)
-		fi
-		;;
+                    CXXFLAGS="$CXXFLAGS -m64"
+                fi
+                # multiarch
+                if test "$LIBSUFFIX_SET" != "yes"; then
+                    if test -d /usr/lib64; then
+                        LIBSUFFIX=64
+                    fi
+                    if test "$GXX" = "yes"; then
+                        multiarch=`${CXX} --print-multiarch 2> /dev/null`
+                        if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
+                            LIBSUFFIX=/${multiarch}
+                        fi
+                    fi
+                    AC_SUBST(LIBSUFFIX)
+                fi
+                ;;
       *hpux*)	if test "$host_cpu" = "ia64"; then
                     if test -n "`echo $CXX|grep aCC`"; then
                         CXXFLAGS="$CXXFLAGS +DD64"
@@ -382,23 +384,32 @@ if test "$enable_64bit" = "yes"; then
 else
    case "${host_os}" in
      *linux*)	if test "$GXX" = "yes"; then
-     		   case "${host_cpu}" in
-   		      arm*) ;;
-		      *) CXXFLAGS="$CXXFLAGS -m32" ;;
- 		   esac
-		fi
-		# multiarch
-		if test "$LIBSUFFIX_SET" != "yes"; then
-		   if test -a "$host_cpu" = "x86_64" -a -d /usr/lib32; then
-		      LIBSUFFIX=32
-                   fi
-		   AC_SUBST(LIBSUFFIX)
-		fi
-		;;
-     *darwin*)	if test "$GXX" = "yes"; then
-		   CXXFLAGS="$CXXFLAGS -m32"
-		fi
-		;;
+                    case "$host_cpu" in
+                        arm*) ;;
+                        *) CXXFLAGS="$CXXFLAGS -m32" ;;
+                    esac
+                fi
+                # multiarch
+                if test "$LIBSUFFIX_SET" != "yes"; then
+                    if test "$host_cpu" = "x86_64" -a -d /usr/lib32; then
+                        LIBSUFFIX=32
+                    fi
+                    if test "$GXX" = "yes"; then
+                        multiarch=`${CXX} --print-multiarch 2> /dev/null`
+                        if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
+                            LIBSUFFIX=/${multiarch}
+                        fi
+                    fi
+                    AC_SUBST(LIBSUFFIX)
+                fi
+                ;;
+     *darwin*)  if test "$GXX" = "yes"; then
+                    case "$host_cpu" in
+                        arm*) ;;
+                        *) CXXFLAGS="$CXXFLAGS -m32" ;;
+                    esac
+                fi
+                ;;
      *hpux*)	if test "$host_cpu" != "ia64"; then
 		    if test "$GXX" = "yes"; then
 		        CXXFLAGS="$CXXFLAGS -march=2.0"
