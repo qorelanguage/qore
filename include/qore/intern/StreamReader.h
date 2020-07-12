@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -84,8 +84,7 @@ public:
                     break;
                 b->append(buffer, rc);
             }
-        }
-        else {
+        } else {
             while (limit > 0) {
                 int rc = readData(xsink, buffer, QORE_MIN(limit, STREAMREADER_BUFFER_SIZE), false);
                 if (*xsink)
@@ -137,7 +136,7 @@ public:
         qore_size_t eolpos = 0;
 
         while (true) {
-            char c;
+            signed char c;
             int64 rc = readData(xsink, &c, 1, false);
             //printd(5, "StreamReader::readLineEol() eolpos: %d/%d rc: %d c: %d str: '%s' (%s)\n", eolpos, eolstr->size(), rc, c, str->c_str(), enc->getCode());
             if (*xsink)
@@ -155,8 +154,7 @@ public:
                         str->terminate(str->size() - eolpos);
                     return q_remove_bom_utf16(str.release(), enc);
                 }
-            }
-            else if (eolpos) {
+            } else if (eolpos) {
                 // check all positions to see if the string matches
                 bool found = false;
                 for (size_t i = eolpos; i; --i) {
@@ -170,7 +168,7 @@ public:
                     }
                 }
                 if (!found)
-                eolpos = 0;
+                    eolpos = 0;
             }
         }
     }
@@ -179,7 +177,7 @@ public:
         SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
 
         while (true) {
-            char c;
+            signed char c;
             int64 rc = readData(xsink, &c, 1, false);
             if (*xsink)
                 return 0;
@@ -191,8 +189,7 @@ public:
                 if (!trim)
                 str->concat(c);
                 return str.release();
-            }
-            else if (c == '\r') {
+            } else if (c == '\r') {
                 if (!trim)
                     str->concat(c);
                 int64 p = peek(xsink);
@@ -210,14 +207,14 @@ public:
     }
 
     DLLLOCAL int64 readi1(ExceptionSink* xsink) {
-        char i = 0;
+        signed char i = 0;
         if (readData(xsink, &i, 1) < 0)
             return 0;
         return i;
     }
 
     DLLLOCAL int64 readi2(ExceptionSink* xsink) {
-        short i = 0;
+        signed short i = 0;
         if (readData(xsink, &i, 2) < 0)
             return 0;
         i = ntohs(i);
@@ -241,7 +238,7 @@ public:
     }
 
     DLLLOCAL int64 readi2LSB(ExceptionSink* xsink) {
-        short i = 0;
+        signed short i = 0;
         if (readData(xsink, &i, 2) < 0)
             return 0;
         i = i2LSB(i);
