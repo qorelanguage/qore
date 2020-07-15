@@ -1210,6 +1210,70 @@ auto Program::callFunctionArgs(string name, *softlist<auto> vargs) {
    return p->callFunction(tmp->getBuffer(), vargs, xsink);
 }
 
+//! Calls a static method of an object, passing the arguments to the function as arguments to the method
+/** @par Example:
+    @code{.py}
+auto result = p.callStaticMethod("Namespace::Class::method", arg1, arg2);
+    @endcode
+
+    @param class_name the with an optional namespace prefix
+    @param method the static method to call
+    @param ... any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @see
+    - call_static_method()
+    - @ref Qore::Program::callStaticMethodArgs() "Program::callStaticMethodArgs()"
+
+    @since %Qore 0.9.5
+*/
+auto Program::callStaticMethod(string class_name, string method, ...) {
+    ReferenceHolder<QoreListNode> call_args(xsink);
+    // if there are arguments to pass
+    if (num_args(args) > 2) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(2);
+    }
+    return q_call_static_method_args(p, class_name, method, *call_args, xsink);
+}
+
+//! Calls a static method of an object, passing the arguments to the function as arguments to the method
+/** @par Example:
+    @code{.py}
+auto result = p.callStaticMethodArgs("Namespace::Class::method", (arg1, arg2));
+    @endcode
+
+    @param class_name the with an optional namespace prefix
+    @param method the static method to call
+    @param call_args any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @see
+    - call_static_method_args()
+    - @ref Qore::Program::callStaticMethod() "Program::callStaticMethod()"
+
+    @since %Qore 0.9.5
+*/
+auto Program::callStaticMethodArgs(string class_name, string method, *softlist<auto> call_args) {
+    return q_call_static_method_args(p, class_name, method, call_args, xsink);
+}
+
 //! Checks if a user function exists in the program object
 /** @param name The name of the function to check
 
