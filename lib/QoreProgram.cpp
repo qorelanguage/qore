@@ -1719,7 +1719,7 @@ QoreValue QoreProgram::callFunction(const char* name, const QoreListNode* args, 
     }
 
     if (!fe) {
-        xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
+        xsink->raiseException("NO-FUNCTION", "function '%s' does not exist", name);
         return QoreValue();
     }
 
