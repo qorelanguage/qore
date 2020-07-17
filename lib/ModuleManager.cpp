@@ -1281,7 +1281,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
     // issue #3592: add feature to module container program immediately
     qore_program_private::get(*pgm)->addUserFeature(feature);
 
-    std::unique_ptr<QoreUserModule> mi(new QoreUserModule(0, path, feature, pgm, QMLO_NONE));
+    std::unique_ptr<QoreUserModule> mi(new QoreUserModule(nullptr, path, feature, pgm, QMLO_NONE));
 
     ModuleReExportHelper mrh(mi.get(), reexport);
 
@@ -1304,7 +1304,22 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     DLHelper dlh(ptr);
 
+    QoreString feature_str;
+
     if (!mod_desc) {
+        if (!feature) {
+            feature = q_basenameptr(path);
+            const char* p = strchr(feature, '-');
+            if (!p) {
+                p = strchr(feature, '.');
+            }
+            if (p) {
+                feature_str.concat(feature, p - feature);
+            } else {
+                feature_str.set(feature);
+            }
+            feature = feature_str.c_str();
+        }
         // check for new-style module declaration
         QoreStringMaker sym("%s_qore_module_desc", feature);
         mod_desc = (qore_binary_module_desc_t)dlsym(ptr, sym.c_str());
