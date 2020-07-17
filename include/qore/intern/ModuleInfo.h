@@ -632,6 +632,7 @@ protected:
     qore_module_ns_init_t module_ns_init;
     qore_module_delete_t module_delete;
     qore_module_parse_cmd_t module_parse_cmd;
+    QoreHashNode* info;
     const void* dlptr;
 
     DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const override;
@@ -639,9 +640,10 @@ protected:
 public:
     DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v,
         const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init,
-        qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p)
+        qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p,
+        QoreHashNode* info = nullptr)
         : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init),
-            module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
+            module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), info(info), dlptr(p) {
     }
 
     DLLLOCAL virtual ~QoreBuiltinModule() {

@@ -103,6 +103,9 @@ struct QoreModuleInfo {
 
     //! list of binary modules that this binary module depends on
     strvec_t dependencies;
+
+    //! extra information to appear in the module info hash
+    QoreHashNode* info = nullptr;
 };
 
 //! Module description function
