@@ -341,6 +341,10 @@ QoreHashNode* QoreBuiltinModule::getHash(bool with_filename) const {
     ph->setKeyValueIntern("api_major", api_major);
     ph->setKeyValueIntern("api_minor", api_minor);
 
+    if (info) {
+        ph->setKeyValueIntern("info", info->hashRefSelf());
+    }
+
     return h;
 }
 
@@ -1402,6 +1406,9 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
     QoreModuleInfo& mod_info, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
+    // take info hash immediately, if any
+    ReferenceHolder<QoreHashNode> info(mod_info.info, &xsink);
+
     // get module name
     if (mod_info.name.empty()) {
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "module '%s': no feature name " \
@@ -1592,7 +1599,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& x
     mi = new QoreBuiltinModule(nullptr, path, name, mod_info.desc.c_str(), mod_info.version.c_str(),
         mod_info.author.c_str(), mod_info.url.c_str(), mod_info.license_str.c_str(), mod_info.api_major,
         mod_info.api_minor, *mod_info.init, *mod_info.ns_init, *mod_info.del, mod_info.parse_cmd,
-        dlh ? dlh->release() : nullptr);
+        dlh ? dlh->release() : nullptr, info.release());
     QMM.addModule(mi);
 
     ModuleReExportHelper mrh(mi, reexport);
