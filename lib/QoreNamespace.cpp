@@ -269,15 +269,14 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
         std::string path;
         priv->getPath(path);
         qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
-    }
-    else {
+    } else {
         assert(qore_class_private::get(*oc)->initialized);
     }
 
 #ifdef DEBUG
-    if (priv->classList.add(oc))
+    if (priv->classList.add(oc)) {
         assert(false);
-    else {
+    } else {
         assert(!priv->hashDeclList.find(oc->getName()));
     }
 #else

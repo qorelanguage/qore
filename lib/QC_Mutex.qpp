@@ -71,7 +71,7 @@ Mutex mutex();
     @endcode
  */
 Mutex::constructor() {
-   self->setPrivate(CID_MUTEX, new SmartMutex);
+    self->setPrivate(CID_MUTEX, new SmartMutex);
 }
 
 //! Destroys the object
@@ -85,8 +85,8 @@ delete mutex;
     @throw LOCK-ERROR Object deleted while other threads blocked on it
  */
 Mutex::destructor() {
-   m->destructor(xsink);
-   m->deref(xsink);
+    m->destructor(xsink);
+    m->deref(xsink);
 }
 
 //! Creates a new Mutex object, not based on the original
@@ -96,7 +96,7 @@ Mutex nm = m.copy();
     @endcode
 */
 Mutex::copy() {
-   self->setPrivate(CID_MUTEX, new SmartMutex);
+    self->setPrivate(CID_MUTEX, new SmartMutex);
 }
 
 //! Locks the Mutex object; blocks if the lock is already held
@@ -111,7 +111,7 @@ mutex.lock();
     @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
 */
 nothing Mutex::lock() {
-   m->grab(xsink);
+    m->grab(xsink);
 }
 
 //! Locks the Mutex object; blocks if the lock is already held
@@ -133,7 +133,7 @@ if (mutex.lock(1250ms))
     @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
 */
 int Mutex::lock(timeout timeout_ms) {
-   return m->grab(xsink, timeout_ms);
+    return m->grab(xsink, timeout_ms);
 }
 
 //! Acquires the lock only if it is not already held; returns 0 for success (lock acquired) or -1 if the call would block
@@ -149,7 +149,7 @@ int i = mutex.trylock();
     @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
 */
 int Mutex::trylock() {
-   return m->tryGrab();
+    return m->tryGrab();
 }
 
 //! Unlocks the Mutex object; wakes up one thread if any threads are blocked on this lock
@@ -162,5 +162,5 @@ mutex.unlock();
     @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc
 */
 nothing Mutex::unlock() {
-   m->release(xsink);
+    m->release(xsink);
 }

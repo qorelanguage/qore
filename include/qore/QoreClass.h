@@ -529,6 +529,19 @@ public:
     */
     DLLEXPORT QoreObject* execConstructor(const QoreListNode* args, ExceptionSink* xsink) const;
 
+    //! Creates a new object and executes the constructor and returns the new object
+    /** The object created will be an instance of the first argument, which may be a different class than the current
+        class.
+
+        @param obj_cls the class for the object to be returned
+        @param args the arguments for the method
+        @param xsink Qore-language exception information is added here
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreObject* execConstructor(const QoreClass& obj_cls, const QoreListNode* args,
+        ExceptionSink* xsink) const;
+
     //! creates a new object and executes the constructor on it and returns the new object
     /** if a Qore-language exception occurs, 0 is returned.
         @param mv the constructor variant to use; must belong to a constructor method of the current class
@@ -757,6 +770,11 @@ public:
         @param qc the base class to add
     */
     DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass* qc);
+
+    //! Adds a base class to the current class
+    /** @param qc,
+    */
+    DLLEXPORT void addBaseClass(QoreClass* qc, bool virt = false);
 
     //! call this function if your builtin class requires *all* methods (except the constructor) to be run in an RMutex lock
     /** use this for classes that require exclusive access to the private data in all functions
@@ -1005,8 +1023,6 @@ private:
     */
     DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
 
-    // This function must only be called from QoreObject
-    DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
     // This function must only be called from QoreObject
     DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
     // This function must only be called from QoreObject and BCList
