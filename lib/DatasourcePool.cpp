@@ -521,6 +521,8 @@ int DatasourcePool::beginTransaction(ExceptionSink* xsink) {
     if (rc) {
         assert(*xsink);
         dpah.releaseNew();
+    } else {
+        assert(!*xsink);
     }
     return rc;
 }
