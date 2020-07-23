@@ -1822,6 +1822,12 @@ public:
     DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub);
 
 public:
+    // add a base class to this class
+    DLLLOCAL void addBaseClass(QoreClass* qc, bool virt);
+
+    // This function must only be called from QoreObject
+    DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const char* nme, ExceptionSink* xsink) const;
+
     DLLLOCAL const char* getModuleName() const {
         return from_module.empty() ? nullptr : from_module.c_str();
     }
@@ -2141,8 +2147,7 @@ public:
             if (info && info->isLocalInternal()) {
                 return info;
             }
-        }
-        else {
+        } else {
             info = nullptr;
         }
 
@@ -2594,7 +2599,8 @@ public:
     DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm,
         const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
-    DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
+    DLLLOCAL QoreObject* execConstructor(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
+        const QoreListNode* args, const QoreClass* obj_cls = nullptr) const;
 
     DLLLOCAL void addBuiltinMethod(const char* mname, MethodVariantBase* variant);
     DLLLOCAL void addBuiltinStaticMethod(const char* mname, MethodVariantBase* variant);
@@ -3030,8 +3036,9 @@ public:
         return &qc.priv->selfid;
     }
 
-    DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
-        return qc.priv->execConstructor(variant, args, xsink);
+    DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant,
+        const QoreListNode* args, ExceptionSink* xsink) {
+        return qc.priv->execConstructor(xsink, variant, args);
     }
 
     DLLLOCAL static bool injected(const QoreClass& qc) {

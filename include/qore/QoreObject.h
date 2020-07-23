@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -512,14 +512,26 @@ protected:
     */
     DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
-    DLLLOCAL int getStatus() const;
-
     //! returns the value of the member with an incremented reference count, or executes the memberGate() method and returns the value
     /**
         @param member the name of the member to get the value for (or evaluate the memberGate() method against)
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @since %Qore 0.9.5 part of the public API
     */
-    DLLLOCAL QoreValue evalMember(const QoreString* member, ExceptionSink* xsink);
+    DLLEXPORT QoreValue evalMember(const QoreString* member, ExceptionSink* xsink);
+
+    //! returns the value of the member with an incremented reference count, or executes the memberGate() method and returns the value
+    /**
+        @param member the name of the member to get the value for (or evaluate the memberGate() method against); must
+        be in the default encoding (normally UTF-8)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreValue evalMember(const char* member, ExceptionSink* xsink);
+
+    DLLLOCAL int getStatus() const;
 
     DLLLOCAL class KeyNode* getReferencedPrivateDataNode(qore_classid_t key);
 

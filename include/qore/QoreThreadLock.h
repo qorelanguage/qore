@@ -74,7 +74,7 @@ public:
 
     //! grabs the lock (assumes that the lock is unlocked)
     /** no error checking happens here; if you grab the lock twice it will deadlock
-        */
+    */
     DLLLOCAL void lock() {
 #ifndef NDEBUG
         int rc =
