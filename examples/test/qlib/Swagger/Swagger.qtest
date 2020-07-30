@@ -829,6 +829,60 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("SCHEMA-VALIDATION-ERROR", "should not have any body", c);
             }
         }
+
+        {
+            hash<auto> soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "parameters": (
+                                {
+                                    "name": "float",
+                                    "in": "query",
+                                    "description": "desc",
+                                    "required": False,
+                                    "type": "number",
+                                    "format": "float",
+                                },
+                            ),
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                ),
+                                "400": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "consumes": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                            "produces": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                        ),
+                    ),
+                ),
+            );
+
+            {
+                SwaggerSchema so("", soh);
+                string uri_path = "/test?float=1.1";
+                hash<auto> hdr = {"Test-Header": "Test"};
+                hash<RestRequestServerInfo> req = so.parseRequest("GET", uri_path, NOTHING, \hdr);
+                assertEq(Type::Float, req.query.float.type());
+            }
+
+            {
+                soh.paths."/test".get.parameters[0].format = "xxx";
+                assertThrows("INVALID-FIELD-VALUE", sub () { SwaggerSchema so("", soh); });
+            }
+        }
     }
 
     testInfoObject() {
