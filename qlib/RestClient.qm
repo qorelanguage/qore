@@ -821,15 +821,6 @@ hash<auto> ans = rest.del("/orders/1");
                     body = seh.func(body);
                 }
             }
-            /*
-            if (req.response_content) {
-                hdr.Accept = foldl $1 + "," + $2, (map $1, req.response_content, AcceptMap{$1});
-                if (!hdr.Accept) {
-                    throw "REST-ACCEPT-ERROR", sprintf("%s %s returns types %y; none of which are currently "
-                        "supported; supported response types: %y", method, path, req.response_content, AcceptList);
-                }
-            }
-            */
         }
 
         #! sets up the path for the HTTP request URI
