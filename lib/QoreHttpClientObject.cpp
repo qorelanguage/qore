@@ -63,6 +63,9 @@ struct qore_httpclient_priv {
 
     con_info connection, proxy_connection;
 
+    // issue #3978: default output encoding
+    const QoreEncoding* enc = nullptr;
+
     bool
         // are we using http 1.1 or 1.0?
         http11 = true,
@@ -380,6 +383,20 @@ struct qore_httpclient_priv {
         return encoding_passthru;
     }
 
+    DLLLOCAL void setEncoding(const QoreEncoding* qe) {
+        SafeLocker sl(msock->m);
+        msock->socket->setEncoding(qe);
+        enc = qe;
+    }
+
+    DLLLOCAL const QoreEncoding* getEncoding() const {
+        SafeLocker sl(msock->m);
+        if (enc) {
+            return enc;
+        }
+        return msock->socket->getEncoding();
+    }
+
     DLLLOCAL void addHttpMethod(const char* method, bool enable) {
         additional_methods_map.insert(method_map_t::value_type(method, enable));
     }
@@ -613,12 +630,12 @@ int QoreHttpClientObject::getTimeout() const {
     return http_priv->timeout;
 }
 
-void QoreHttpClientObject::setEncoding(const QoreEncoding *qe) {
-   priv->socket->setEncoding(qe);
+void QoreHttpClientObject::setEncoding(const QoreEncoding* qe) {
+    http_priv->setEncoding(qe);
 }
 
-const QoreEncoding *QoreHttpClientObject::getEncoding() const {
-   return priv->socket->getEncoding();
+const QoreEncoding* QoreHttpClientObject::getEncoding() const {
+    return http_priv->getEncoding();
 }
 
 int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xsink) {
@@ -823,6 +840,20 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         http_priv->encoding_passthru = true;
     }
 
+    // issue #3978: allow the output encoding to be set as an option
+    n = opts->getKeyValue("encoding");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_STRING) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting a string encoding as the value for the " \
+                "\"encoding\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+            return -1;
+        }
+        const QoreStringNode* enc_str = n.get<const QoreStringNode>();
+        const QoreEncoding* enc = QEM.findCreate(enc_str);
+        priv->socket->setEncoding(enc);
+        http_priv->enc = enc;
+    }
+
     return 0;
 }
 
@@ -939,6 +970,11 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size,
     const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms,
     int& code, bool& aborted, ExceptionSink* xsink) {
+    // issue #3978: make sure and reset output encoding if any is set
+    if (enc) {
+        msock->socket->setEncoding(enc);
+    }
+
     QoreString pathstr(msock->socket->getEncoding());
     const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
@@ -1325,7 +1361,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 tmp.sprintf("redirect-%d", redirect_count);
                 info->setKeyValue(tmp.getBuffer(), loc->refSelf(), xsink);
                 if (*xsink)
-                return nullptr;
+                    return nullptr;
 
                 tmp.clear();
                 tmp.sprintf("redirect-message-%d", redirect_count);
@@ -1664,7 +1700,8 @@ QoreHashNode* QoreHttpClientObject::send(const char* meth, const char* new_path,
 
 QoreHashNode* QoreHttpClientObject::send(const char* meth, const char* new_path, const QoreHashNode* headers,
     const QoreStringNode& body, bool getbody, QoreHashNode* info, ExceptionSink* xsink) {
-    QoreStringNodeValueHelper tstr(&body, priv->socket->getEncoding(), xsink);
+    const QoreEncoding* enc = http_priv->getEncoding();
+    QoreStringNodeValueHelper tstr(&body, enc, xsink);
     if (*xsink) {
         return nullptr;
     }
@@ -1684,7 +1721,8 @@ void QoreHttpClientObject::sendWithRecvCallback(const char* meth, const char* mp
 void QoreHttpClientObject::sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
     const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
     const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink) {
-    QoreStringNodeValueHelper tstr(&body, priv->socket->getEncoding(), xsink);
+    const QoreEncoding* enc = http_priv->getEncoding();
+    QoreStringNodeValueHelper tstr(&body, enc, xsink);
     if (*xsink) {
         return;
     }
@@ -1702,7 +1740,8 @@ void QoreHttpClientObject::sendWithOutputStream(const char* meth, const char* mp
 void QoreHttpClientObject::sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers,
     const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
     const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink) {
-    QoreStringNodeValueHelper tstr(&body, priv->socket->getEncoding(), xsink);
+    const QoreEncoding* enc = http_priv->getEncoding();
+    QoreStringNodeValueHelper tstr(&body, enc, xsink);
     if (*xsink) {
         return;
     }
@@ -1746,7 +1785,8 @@ AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHas
 // @since Qore 0.9.4: do not send getbody = true which only works with completely broken HTTP servers and small messages and causes deadlocks on correct HTTP servers
 AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHashNode* headers,
     const QoreStringNode& body, QoreHashNode* info, ExceptionSink* xsink) {
-    QoreStringNodeValueHelper tstr(&body, priv->socket->getEncoding(), xsink);
+    const QoreEncoding* enc = http_priv->getEncoding();
+    QoreStringNodeValueHelper tstr(&body, enc, xsink);
     if (*xsink) {
         return nullptr;
     }
