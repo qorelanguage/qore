@@ -10,6 +10,7 @@ Group: Development/Languages
 URL: http://qore.org
 Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
 Requires: /usr/bin/env
+BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison
 BuildRequires: openssl-devel
@@ -178,6 +179,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Thu Jul 30 2020 David Nichols <david@qore.org> 0.9.5-1
+- added required BuildRequires for gcc-c++
+
 * Wed May 20 2020 David Nichols <david@qore.org> 0.9.5-1
 - updated version to 0.9.5-1
 
