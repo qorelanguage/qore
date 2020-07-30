@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.2";
+    version = "2.0.3";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -148,6 +148,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_3 Swagger v2.0.3
+    - fixed a bug supporting number formats
+      (<a href="https://github.com/qorelanguage/qore/issues/3979">issue 3979</a>)
 
     @subsection swagger_2_0_2 Swagger v2.0.2
     - fixed \c date-time value handling
@@ -539,6 +543,14 @@ class SchemaBase {
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, number v, reference<number> value) {
+        checkInternNumber(serialize, request, type, format, path, method, name, v, \value);
+    }
+
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, float v, reference<number> value) {
+        checkInternNumber(serialize, request, type, format, path, method, name, v, \value);
+    }
+
+    private checkInternNumber(bool serialize, bool request, string type, *string format, string path, string method, string name, auto v, reference<auto> value) {
         if (type != "number" && type != "any")
             throwInvalidType(name, "number", type, v);
         if (exists maximum) {
@@ -573,6 +585,19 @@ class SchemaBase {
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y does not fit the enumerated values (enum: %y, actual: %f)",
                     name, path, method, keys enum, value);
+
+        switch (format) {
+            case "float":
+            case "double":
+            case NOTHING:
+                value = v.toFloat();
+                break;
+
+            default:
+                throw "SCHEMA-VALIDATION-ERROR",
+                sprintf("Parameter %y for path %y and method %y has an invalid format: %y; expecting (\"float\", "
+                    "\"double\", or no value; value provided: %y)", name, path, method, format, value);
+        }
     }
 
     #! converts binary values to strings for supported formats

@@ -707,6 +707,17 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             hc.setConnectionPath();
             assertNothing(hc.getConnectionPath());
         }
+
+        {
+            # test receiving a normal HTTP message with ISO-8859-1 encoding when the client specifies UTF-8
+            HttpTestServer serv(NormalReply1);
+            on_exit serv.done();
+            HTTPClient hc({"url": "http://localhost:" + serv.port, "encoding": "utf-8"});
+            assertEq("UTF-8", hc.getEncoding());
+            hc.post("/something", Utf8Str, {"Content-Type": MimeTypeText + ";charset=utf-8"});
+            assertEq(Iso88591Str, serv.getBody());
+            assertEq("UTF-8", hc.getEncoding());
+        }
     }
 
     sslReadTest() {
