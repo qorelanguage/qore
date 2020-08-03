@@ -3,7 +3,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.4.5
+Version: 0.9.4.6
 Release: 1%{?dist}
 License: LGPLv2+ or GPLv2+ or MIT
 Group: Development/Languages
@@ -178,6 +178,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Aug 3 2020 David Nichols <david@qore.org> 0.9.4.6-1
+- updated version to 0.9.4.6-1
+
 * Thu Jul 30 2020 David Nichols <david@qore.org> 0.9.4.5-1
 - added required BuildRequires for gcc-c++
 
