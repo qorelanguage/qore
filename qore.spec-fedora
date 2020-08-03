@@ -1,29 +1,29 @@
-%global module_dir %{_libdir}/qore-modules
-%global user_module_dir %{_datarootdir}/qore-modules/
+%global module_dir %{_libdir}/qore-modules/
+%global user_module_dir %{_datadir}/qore-modules/
 
-Summary: Multithreaded Programming Language
 Name: qore
 Version: 0.9.4.6
 Release: 1%{?dist}
+Summary: Multithreaded Programming Language
+
+# see https://github.com/qorelanguage/qore/blob/develop/README-LICENSE for license info
 License: LGPLv2+ or GPLv2+ or MIT
-Group: Development/Languages
 URL: http://qore.org
 Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
-Requires: /usr/bin/env
+
+Requires: %{name}-libqore%{?_isa} = %{version}-%{release}
+Requires: %{name}-stdlib%{?_isa} = %{version}-%{release}
 BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
 BuildRequires: bison
-BuildRequires: openssl-devel
 BuildRequires: pcre-devel
-BuildRequires: zlib-devel
 BuildRequires: gmp-devel
-BuildRequires: mpfr-devel
-BuildRequires: doxygen
 BuildRequires: pkgconfig
-BuildRequires: bzip2-devel
-%if 0%{?redhat} >= 8 || 0%{?centos} >= 8
-BuildRequires: gdb-headless
-%endif
+BuildRequires: pkgconfig(openssl)
+BuildRequires: pkgconfig(zlib)
+BuildRequires: pkgconfig(mpfr)
+BuildRequires: pkgconfig(bzip2)
+BuildRequires: doxygen
 
 %description
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -32,11 +32,8 @@ development but is also useful as a general purpose language.
 
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
-Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: qore-module(abi)%{?_isa} = 0.22
-Provides: libqore6 = %{version}
-Obsoletes: libqore6 < %{version}
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -47,19 +44,14 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.6.2.0
+%{_libdir}/libqore.so.6.2.1
 %{_libdir}/libqore.so.6
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
-
-%post -n libqore -p /sbin/ldconfig
-
-%postun -n libqore -p /sbin/ldconfig
+%license COPYING.LGPL COPYING.GPL COPYING.MIT
+%doc README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %package stdlib
 Summary: Standard library modules
-Group: System Environment/Libraries
-Requires: libqore = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.23
+Requires: lib%{name}%{?_isa} = %{version}-%{release}
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -72,11 +64,11 @@ modules.
 %files stdlib
 %{user_module_dir}
 %{module_dir}
-%doc COPYING.MIT README-LICENSE
+%license COPYING.MIT
+%doc README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
-Group: Documentation
 BuildArch: noarch
 
 %description doc
@@ -88,11 +80,11 @@ This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
 
 %files doc
-%doc docs/lang docs/modules/* examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%license COPYING.LGPL COPYING.GPL COPYING.MIT
+%doc docs/lang docs/modules/* examples/ README-LICENSE
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
-Group: Development/Libraries
 Requires: libqore%{?_isa} = %{version}-%{release}
 
 %description devel
@@ -109,14 +101,13 @@ Qore library.
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
 %dir %{_libdir}/cmake
-%{_libdir}/cmake/Qore
-%{_includedir}/*
+%{_libdir}/cmake/Qore/
+%{_includedir}/qore/
 %{_datarootdir}/qore/Doxyfile.in
 %{_datarootdir}/qore/qore-logo-55x200.png
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
-Group: Documentation
 BuildArch: noarch
 
 %description devel-doc
@@ -127,13 +118,13 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
-%doc docs/library/html/* COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%license COPYING.LGPL COPYING.GPL COPYING.MIT
+%doc docs/library/html/* README-LICENSE
 
 %package misc-tools
 Summary: Miscellaneous user tools writen in Qore Programming Language
-License: LGPL-2.0+ or GPL-2.0+ or MIT
-Group: Development/Tools/Other
-Requires: qore = %{version}-%{release}
+License: LGPLv2+ or GPLv2+ or MIT
+Requires: %{name}%{?_isa} = %{version}-%{release}
 BuildArch: noarch
 
 %description misc-tools
@@ -142,7 +133,6 @@ This package contains tool for working with:
  - SQL Databases
 
 %files misc-tools
-%defattr(-,root,root,-)
 %{_bindir}/qdp
 %{_bindir}/qget
 %{_bindir}/rest
@@ -159,10 +149,10 @@ find examples -type f -exec chmod -x {} \;
 %build
 export CXXFLAGS="%{optflags}"
 %configure --disable-debug --disable-dependency-tracking
-make %{?_smp_mflags}
+%make_build
 
 %install
-make install prefix=%{_prefix} DESTDIR=$RPM_BUILD_ROOT
+%make_install -p
 mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
 
@@ -180,6 +170,23 @@ make check
 %changelog
 * Mon Aug 3 2020 David Nichols <david@qore.org> 0.9.4.6-1
 - updated version to 0.9.4.6-1
+- updated libqore version to 6.2.1
+- replaced %{_datarootdir} with ${_datadir}
+- reorganized initial tags
+- added a commend about licensing
+- removed /usr/bin/env requirement as it's provided by coreutils
+- replaced BuildRequires lines with -devel with pkgconfig(foo)
+- added requires for libqore and stdlib to main package
+- removed Group tags
+- removed Provides and Obsoletes tags for the libqore pkg
+- use %license for all license files
+- added a fully-qualified file for Requires
+- removed the abi requirement from the stdlib pkg
+- fixed ownership of the module_dir and the cmake config dir
+- fixed license definitions in subpkg
+- removed obsolete references to %defattr and ldconfig
+- use %make_build instead of a hardcoded make line
+- use %make_install -p instead of a hardcoded make install line
 
 * Thu Jul 30 2020 David Nichols <david@qore.org> 0.9.4.5-1
 - added required BuildRequires for gcc-c++
