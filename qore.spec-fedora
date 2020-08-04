@@ -124,7 +124,7 @@ This package provides HTML documentation for the C++ API for the Qore library.
 %package misc-tools
 Summary: Miscellaneous user tools writen in Qore Programming Language
 License: LGPLv2+ or GPLv2+ or MIT
-Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name} = %{version}-%{release}
 BuildArch: noarch
 
 %description misc-tools
