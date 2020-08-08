@@ -35,6 +35,20 @@
 public namespace DataProvider {
 #! Defines an abstract class for accepting data and outputting optionally transformed or filtered data
 public class AbstractDataProcessor {
+    private {
+        #! Thread-local data to set before running the processor
+        *hash<auto> thread_local_data;
+
+        #! Thread-local data keys from \a thread_local_data
+        *list<string> thread_local_data_keys;
+    }
+
+    #! Sets thread-local data to set before running the processor
+    setThreadLocalData(*hash<auto> thread_local_data) {
+        self.thread_local_data = thread_local_data;
+        self.thread_local_data_keys = keys thread_local_data;
+    }
+
     #! Returns the expected type of data to be submitted, if available
     /** @return the expected type of data to be submitted, if available
 
@@ -69,11 +83,22 @@ public class AbstractDataProcessor {
         @ref DataProvider::DataProviderPipeline "DataProviderPipeline" skip processing the data for the rest of the
         queue
 
+        Sets thread-local data before running and clears on exit if any is set
+
         @note
         - Calls submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
     */
     auto submit(auto _data) {
+        *hash<auto> tld;
+        if (thread_local_data) {
+            tld = get_all_thread_data();
+            save_thread_data(thread_local_data);
+        }
+        on_exit if (thread_local_data) {
+            delete_thread_data(thread_local_data_keys);
+            save_thread_data(tld);
+        }
         return submitImpl(_data);
     }
 
