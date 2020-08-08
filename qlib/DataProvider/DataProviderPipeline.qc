@@ -110,8 +110,8 @@ public hashdecl PipelineOptionInfo {
     */
     *code info_log;
 
-    #! a closure or call reference for setting thread-local data in new pipeline threads
-    /* it is called in the new pipeline thread with no arguments
+    #! a closure or call reference for setting thread-local data in new pipeline queue threads
+    /* it is called in the new pipeline queue thread with no arguments
     */
     *code thread_callback;
 
@@ -290,8 +290,8 @@ class PipelineQueue {
 }
 
 #! Defines a class for passing data through record processors
-/** Record processing pipelines run in background threads.  Each pipeline has an integer pipeline ID; a pipeline with
-    ID 0 is created by default as the initial pipeline.
+/** Record processing pipelines run in background threads.  Each queue has an integer queue ID; a queue with
+    ID 0 is created by default as the initial queue.
 */
 public class DataProviderPipeline {
     public {}
@@ -333,8 +333,8 @@ public class DataProviderPipeline {
         #! Debug log closure; takes a single format string and then arguments for format placeholders
         *code debug_log;
 
-        #! a closure or call reference for setting thread-local data in new pipeline threads
-        /* it is called in the new pipeline thread with no arguments
+        #! a closure or call reference for setting thread-local data in new pipeline queue threads
+        /* it is called in the new pipeline queue thread with no arguments
         */
         *code thread_callback;
 
@@ -390,7 +390,7 @@ public class DataProviderPipeline {
         waitDone()
 
         @throws PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
-        argument will have a list of exception arguments thrown by pipeline threads
+        argument will have a list of exception arguments thrown by pipeline queue threads
     */
     destructor() {
         stopIntern();
@@ -429,7 +429,7 @@ public class DataProviderPipeline {
         }
     }
 
-    #! Appends a data processor to the default pipeline
+    #! Appends a data processor to the default queue
     /**
         @note The initial queue is queue 0
 
@@ -439,9 +439,9 @@ public class DataProviderPipeline {
         append(0, processor);
     }
 
-    #! Appends a data processor to a pipeline
+    #! Appends a data processor to a queue
     /** @param id the queue ID as returned from appendQueue()
-        @param processor the data processor to append to the pipeline
+        @param processor the data processor to append to the pipeline queue
 
         @throws PIPELINE-ERROR invalid queue ID or the queue already terminates in additional queues; the pipeline is
         locked
@@ -472,7 +472,7 @@ public class DataProviderPipeline {
     }
 
     #! Appends a new queue to an existing pipeline and returns the new queue ID
-    /** @param id the queue to which the new pipeline will be appended
+    /** @param id the queue to which the new queue will be appended
 
         @return the new queue ID
 
@@ -570,9 +570,9 @@ public class DataProviderPipeline {
         resetIntern();
     }
 
-    #! Waits for all queues in all pipelines to have processed remaining data
+    #! Waits for all queues to have processed remaining data
     /** @throws PIPELINE-FAILED thrown if there are any errors in pipeline processing, in which case the exception
-        argument will have a list of exception arguments thrown by pipeline threads
+        argument will have a list of exception arguments thrown by pipeline queue threads
     */
     waitDone() {
         lck.lock();

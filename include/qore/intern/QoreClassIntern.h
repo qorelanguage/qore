@@ -2339,39 +2339,39 @@ public:
         constlist.parseAdd(loc, cname, val_holder.release(), access, name.c_str());
     }
 
-   DLLLOCAL bool parseHasVar(const char* vn) {
-      return vars.inList(vn);
-   }
+    DLLLOCAL bool parseHasVar(const char* vn) {
+        return vars.inList(vn);
+    }
 
-   DLLLOCAL bool parseHasConstant(const std::string &cname) const {
-      return constlist.inList(cname);
-   }
+    DLLLOCAL bool parseHasConstant(const std::string &cname) const {
+        return constlist.inList(cname);
+    }
 
-   DLLLOCAL QoreValue parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found) {
-      parseInitPartial();
+    DLLLOCAL QoreValue parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found) {
+        parseInitPartial();
 
-      // first check committed constants
-      ClassAccess access = Public;
-      QoreValue rv = constlist.find(cname, cTypeInfo, access, found);
+        // first check committed constants
+        ClassAccess access = Public;
+        QoreValue rv = constlist.find(cname, cTypeInfo, access, found);
 
-      // check for accessibility to private constants
-      if (found && (access > Public)) {
-         qore_class_private* class_ctx = parse_get_class_priv();
-         if ((access == Internal && class_ctx != this) || !parseCheckPrivateClassAccess(class_ctx)) {
-            rv.clear();
-            cTypeInfo = nullptr;
-            found = false;
-         }
-      }
+        // check for accessibility to private constants
+        if (found && (access > Public)) {
+            qore_class_private* class_ctx = parse_get_class_priv();
+            if ((access == Internal && class_ctx != this) || !parseCheckPrivateClassAccess(class_ctx)) {
+                rv.clear();
+                cTypeInfo = nullptr;
+                found = false;
+            }
+        }
 
-      //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this: %p (cls: %p %s) rv: %p\n", cname, this, cls, name.c_str(), rv);
-      return rv;
-   }
+        //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this: %p (cls: %p %s) rv: %p\n", cname, this, cls, name.c_str(), rv);
+        return rv;
+    }
 
-   DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found, const qore_class_private* class_ctx) {
-      found = false;
-      return parseFindConstantValueIntern(cname, cTypeInfo, found, class_ctx);
-   }
+    DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found, const qore_class_private* class_ctx) {
+        found = false;
+        return parseFindConstantValueIntern(cname, cTypeInfo, found, class_ctx);
+    }
 
     DLLLOCAL QoreValue parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found, const qore_class_private* class_ctx) {
         parseInitPartial();
