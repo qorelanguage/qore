@@ -3,15 +3,15 @@
 
 Name: qore
 Version: 0.9.4.6
-Release: 1%{?dist}
+Release: 3%{?dist}
 Summary: Multithreaded Programming Language
 
 # see https://github.com/qorelanguage/qore/blob/develop/README-LICENSE for license info
 License: LGPLv2+ or GPLv2+ or MIT
-URL: http://qore.org
+URL: https://qore.org
 Source0: https://github.com/qorelanguage/qore/releases/download/release-%{version}/%{name}-%{version}.tar.bz2
 
-Requires: %{name}-libqore%{?_isa} = %{version}-%{release}
+Requires: libqore%{?_isa} = %{version}-%{release}
 Requires: %{name}-stdlib%{?_isa} = %{version}-%{release}
 BuildRequires: gcc-c++
 BuildRequires: flex >= 2.5.31
@@ -46,12 +46,13 @@ functionality.
 %files -n libqore
 %{_libdir}/libqore.so.6.2.1
 %{_libdir}/libqore.so.6
-%license COPYING.LGPL COPYING.GPL COPYING.MIT
-%doc README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
+%license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %package stdlib
 Summary: Standard library modules
-Requires: lib%{name}%{?_isa} = %{version}-%{release}
+Requires: libqore%{?_isa} = %{version}-%{release}
+Recommends: %{name} = %{version}
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -64,12 +65,12 @@ modules.
 %files stdlib
 %{user_module_dir}
 %{module_dir}
-%license COPYING.MIT
-%doc README-LICENSE
+%license COPYING.MIT README-LICENSE
 
 %package doc
 Summary: API documentation, programming language reference, and Qore example programs
 BuildArch: noarch
+Recommends: %{name} = %{version}
 
 %description doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -80,12 +81,13 @@ This package provides the HTML documentation for the Qore programming language
 and also for user modules delivered with Qore and also example programs.
 
 %files doc
-%license COPYING.LGPL COPYING.GPL COPYING.MIT
-%doc docs/lang docs/modules/* examples/ README-LICENSE
+%license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc docs/lang docs/modules/* examples/
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
 Requires: libqore%{?_isa} = %{version}-%{release}
+Recommends: %{name}%{?_isa} = %{version}
 
 %description devel
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -105,10 +107,12 @@ Qore library.
 %{_includedir}/qore/
 %{_datarootdir}/qore/Doxyfile.in
 %{_datarootdir}/qore/qore-logo-55x200.png
+%license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
 BuildArch: noarch
+Recommends: %{name}-devel = %{version}
 
 %description devel-doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -118,8 +122,8 @@ development but is also useful as a general purpose language.
 This package provides HTML documentation for the C++ API for the Qore library.
 
 %files devel-doc
-%license COPYING.LGPL COPYING.GPL COPYING.MIT
-%doc docs/library/html/* README-LICENSE
+%license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
+%doc docs/library/html/*
 
 %package misc-tools
 Summary: Miscellaneous user tools writen in Qore Programming Language
@@ -140,6 +144,7 @@ This package contains tool for working with:
 %{_bindir}/saprest
 %{_bindir}/sqlutil
 %{_bindir}/schema-reverse
+%license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %prep
 %setup -q
@@ -153,8 +158,8 @@ export CXXFLAGS="%{optflags}"
 
 %install
 %make_install -p
-mkdir -p $RPM_BUILD_ROOT/%{module_dir}
-rm $RPM_BUILD_ROOT/%{_libdir}/libqore.la
+mkdir -p $RPM_BUILD_ROOT%{module_dir}
+rm $RPM_BUILD_ROOT%{_libdir}/libqore.la
 
 %check
 make check
@@ -168,10 +173,19 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Aug 10 2020 David Nichols <david@qore.org> 0.9.4.6-3
+- added Recommends: tags to libqore, doc, devel, devel-doc packages
+
+* Wed Aug 5 2020 David Nichols <david@qore.org> 0.9.4.6-2
+- updated version to 0.9.4.6-2
+- fixed raw macros in the changelog
+- removed duplicate slashes after $RPM_BUILD_ROOT
+- added README-LICENSE to %%license entries; added license files to the qore-devel and qore-misc-tools packages
+
 * Mon Aug 3 2020 David Nichols <david@qore.org> 0.9.4.6-1
 - updated version to 0.9.4.6-1
 - updated libqore version to 6.2.1
-- replaced %{_datarootdir} with ${_datadir}
+- replaced %%{_datarootdir} with %%{_datadir}
 - reorganized initial tags
 - added a commend about licensing
 - removed /usr/bin/env requirement as it's provided by coreutils
@@ -179,19 +193,17 @@ make check
 - added requires for libqore and stdlib to main package
 - removed Group tags
 - removed Provides and Obsoletes tags for the libqore pkg
-- use %license for all license files
+- use %%license for all license files
 - added a fully-qualified file for Requires
 - removed the abi requirement from the stdlib pkg
 - fixed ownership of the module_dir and the cmake config dir
 - fixed license definitions in subpkg
-- removed obsolete references to %defattr and ldconfig
-- use %make_build instead of a hardcoded make line
-- use %make_install -p instead of a hardcoded make install line
+- removed obsolete references to %%defattr and ldconfig
+- use %%make_build instead of a hardcoded make line
+- use %%make_install -p instead of a hardcoded make install line
 
 * Thu Jul 30 2020 David Nichols <david@qore.org> 0.9.4.5-1
 - added required BuildRequires for gcc-c++
-
-* Wed May 20 2020 David Nichols <david@qore.org> 0.9.4.5-1
 - updated version to 0.9.4.5-1
 
 * Sun May 10 2020 David Nichols <david@qore.org> 0.9.4.4-1
