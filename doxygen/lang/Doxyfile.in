@@ -45,14 +45,14 @@ PROJECT_BRIEF          =
 # exceed 55 pixels and the maximum width should not exceed 200 pixels.
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           = @CMAKE_CURRENT_SOURCE_DIR@/doxygen/qore-logo-55x200.png
+PROJECT_LOGO           = "@CMAKE_CURRENT_SOURCE_DIR@/doxygen/qore-logo-55x200.png"
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs/lang
+OUTPUT_DIRECTORY       = "@CMAKE_BINARY_DIR@/docs/lang"
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -575,7 +575,7 @@ SHOW_NAMESPACES        = YES
 # is used as the file version. See the manual for examples.
 
 # do not retrieve revisions; it slows down dox generation dramatically and provides no benefit
-#FILE_VERSION_FILTER    = @CMAKE_CURRENT_SOURCE_DIR@/getrev.sh
+#FILE_VERSION_FILTER    = "@CMAKE_CURRENT_SOURCE_DIR@/getrev.sh"
 
 # The LAYOUT_FILE tag can be used to specify a layout file which will be parsed
 # by doxygen. The layout file controls the global structure of the generated
@@ -892,7 +892,7 @@ HTML_HEADER            =
 # each generated HTML page. If it is left blank doxygen will generate a
 # standard footer.
 
-HTML_FOOTER            = @CMAKE_CURRENT_SOURCE_DIR@/doxygen/footer_template.html
+HTML_FOOTER            = "@CMAKE_CURRENT_SOURCE_DIR@/doxygen/footer_template.html"
 
 # The HTML_STYLESHEET tag can be used to specify a user-defined cascading
 # style sheet that is used by each HTML page. It can be used to
@@ -1260,7 +1260,7 @@ COMPACT_LATEX          = NO
 # by the printer. Possible values are: a4, letter, legal and
 # executive. If left blank a4wide will be used.
 
-PAPER_TYPE             = a4wide
+PAPER_TYPE             = a4
 
 # The EXTRA_PACKAGES tag can be to specify one or more names of LaTeX
 # packages that should be included in the LaTeX output.
@@ -1728,7 +1728,7 @@ INTERACTIVE_SVG        = NO
 # The tag DOT_PATH can be used to specify the path where the dot tool can be
 # found. If left blank, it is assumed the dot tool can be found in the path.
 
-DOT_PATH               = @CMAKE_CURRENT_SOURCE_DIR@/doxygen/dot
+DOT_PATH               = "@CMAKE_CURRENT_SOURCE_DIR@/doxygen/dot"
 
 # The DOTFILE_DIRS tag can be used to specify one or more directories that
 # contain dot files that are included in the documentation (see the

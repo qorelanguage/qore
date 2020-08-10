@@ -772,7 +772,10 @@ public:
     DLLEXPORT void addBuiltinVirtualBaseClass(QoreClass* qc);
 
     //! Adds a base class to the current class
-    /** @param qc,
+    /** @param qc the class to add
+        @param virt if the base class is "virtual", meaning that the current class's binary object is also compatible
+        with this base class's data (meaning that the base class's private data object is also a base class of this
+        class's private data object)
     */
     DLLEXPORT void addBaseClass(QoreClass* qc, bool virt = false);
 
