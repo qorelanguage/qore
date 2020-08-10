@@ -54,7 +54,7 @@ PROJECT_LOGO           = "@CMAKE_INSTALL_PREFIX@/share/qore/qore-logo-55x200.png
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = @_dox_output@
+OUTPUT_DIRECTORY       = "@_dox_output@"
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
