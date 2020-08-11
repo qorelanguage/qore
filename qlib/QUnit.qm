@@ -751,7 +751,7 @@ public class QUnit::TestReporter {
     }
 
     #! common constructor code
-    private init(string name, string version, *list<string> p_argv, hash<auto> opts = Opts) {
+    private init(string name, string version, *reference<list<string>> p_argv, hash<auto> opts = Opts) {
         m_name = name;
         m_version = version;
         if (!p_argv) {
@@ -958,6 +958,10 @@ public class QUnit::Test inherits QUnit::TestReporter {
 
     #! creates the object and sets the name of the test
     constructor(string name, string version, *reference<list<string>> p_argv, *hash<auto> opts) : QUnit::TestReporter(name, version, \p_argv, opts) {
+    }
+
+    #! creates the object and sets the name of the test
+    constructor(string name, string version, *list<string> p_argv, *hash<auto> opts) : QUnit::TestReporter(name, version, p_argv, opts) {
     }
 
     #! global setup; will be called once before tests are run
@@ -2118,6 +2122,15 @@ public class QUnit::DependencyInjectedTest inherits QUnit::Test {
 
     #! creates the injected test object
     constructor(string name, string version, *reference<list<string>> p_argv, *hash<auto> opts) : QUnit::Test(name, version, \p_argv, opts) {
+        init();
+    }
+
+    #! creates the injected test object
+    constructor(string name, string version, *list<string> p_argv, *hash<auto> opts) : QUnit::Test(name, version, \p_argv, opts) {
+        init();
+    }
+
+    private init() {
         if (instantiated) {
             throw "TESTING-EXCEPTION", "Only one instance of DependencyInjectedTest per program allowed";
         }
@@ -2252,5 +2265,8 @@ public class QUnit::DependencyInjectedTestRunner inherits QUnit::Test {
     private injectUserModule(string module, *code custom_setup, *code custom_parsing) {}
 
     constructor(string name, string version, *reference<list<string>> p_argv, *hash<auto> opts) : QUnit::Test(name, version, \p_argv, opts) {
+    }
+
+    constructor(string name, string version, *list<string> p_argv, *hash<auto> opts) : QUnit::Test(name, version, \p_argv, opts) {
     }
 }
