@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file QUnit.qm Qore user module for automatic testing
 
-/*  QUnit.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
+/*  QUnit.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.4.2";
+    version = "0.4.3";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -160,6 +160,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section qunit_relnotes Release Notes
+
+    @subsection qunit_v0_4_3 Version 0.4.3
+    - added constructors for use with languages that don't support lvalue references (ex: %Python)
+      (<a href="https://github.com/qorelanguage/qore/issues/3934">issue 3934</a>)
 
     @subsection qunit_v0_4_2 Version 0.4.2
     - allow %QUnit to be used from other languages like Java
@@ -654,6 +658,9 @@ public class QUnit::TestReporter {
 
         #! total number of skipped assertions in script
         int num_asserts_skip = 0;
+
+        #! new ARGV for languages that don't support lvalue references
+        *list<auto> new_argv;
     }
 
     public {
@@ -730,6 +737,21 @@ public class QUnit::TestReporter {
         @param opts the option hash to be passed to @ref Qore::GetOpt::constructor()
     */
     constructor(string name, string version, *reference<list<string>> p_argv, hash<auto> opts = Opts) {
+        init(name, version, \p_argv, opts);
+    }
+
+    #! creates the object from the arguments
+    /** @param name the name of the test
+        @param version the version of the test
+        @param p_argv an optional reference to a list of command-line arguments
+        @param opts the option hash to be passed to @ref Qore::GetOpt::constructor()
+    */
+    constructor(string name, string version, *list<string> p_argv, hash<auto> opts = Opts) {
+        init(name, version, \p_argv, opts);
+    }
+
+    #! common constructor code
+    private init(string name, string version, *list<string> p_argv, hash<auto> opts = Opts) {
         m_name = name;
         m_version = version;
         if (!p_argv) {
@@ -755,6 +777,7 @@ public class QUnit::TestReporter {
                 "summary" : \self.printJunitSummary(),
             )
         );
+        new_argv = p_argv;
     }
 
     private callPrinterFunction(string type, *softlist<auto> args) {
