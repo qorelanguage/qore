@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Qdx.qm Qore user module for documentation generation with doxygen
 
-/*  Qdx.qm Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  Qdx.qm Copyright 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 %requires Util
 
 module Qdx {
-    version = "1.0";
+    version = "1.1";
     desc    = "module providing support for documentation generation with doxygen";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -57,6 +57,10 @@ module Qdx {
     - @ref Qdx::QorePostProcessingTexInputStreamLineIterator "QorePostProcessingTexInputStreamLineIterator"
 
     @section qdxrelnotes Release Notes
+
+    @subsection qdx_1_1 Qdx v1.1
+    - do not apply %Qore-specific post-processing doc fixes to non-Qore docs
+      (<a href="https://github.com/qorelanguage/qore/issues/3985>issue 3985</a>)
 
     @subsection qdx_1_0 Qdx v1.0
     - the initial version of the Qdx module
@@ -124,15 +128,24 @@ public namespace Qdx {
 
     #! a line-based input stream iterator that converts specially-formatted input line text to HTML table output
     public class DocumentTableInputStreamLineIterator inherits Qore::InputStreamLineIterator, private:internal DocumentTableHelper {
-        /** Creates the DocumentTableInputStreamLineIterator for iterating over the given @ref Qore::InputStream "InputStream"
+        /** Creates the DocumentTableInputStreamLineIterator for iterating over the given
+            @ref Qore::InputStream "InputStream"
 
             @param is the @ref Qore::InputStream "InputStream" to iterate over
-            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
-            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will
+            be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
+            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not
+            passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r",
+            or \c "\r\n"
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the
+            \a eol bytes
 
-            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
-         */
+            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different
+            @ref character_encoding "character encoding" from the data's and an error occurs during encoding
+            conversion
+
+            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+        */
         constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = True) : InputStreamLineIterator(is, encoding, eol, do_trim) {
         }
 
@@ -145,10 +158,14 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
+            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (\c "\")
 
             @see getValue()
-         */
+
+            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+        */
         string getLine() {
             return getValue();
         }
@@ -162,25 +179,48 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
+            @throw LINE-CONTINUATION-ERROR thrown if the last line ends in a line continuation character (\c "\")
 
             @see getLine()
-         */
+
+            @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
+        */
         string getValue() {
-            return process(InputStreamLineIterator::getValue());
+            string line = InputStreamLineIterator::getValue();
+            while (line =~ /\\$/) {
+                if (!next()) {
+                    throw "LINE-CONTINUATION-ERROR", "line ends in '\\' at the end of the input stream";
+                }
+
+                splice line, -1, 1;
+                line += InputStreamLineIterator::getValue();
+            }
+            return process(line);
         }
     }
 
     #! a line-based input stream iterator for post-processing HTML and JS files created for Qore documentation
     public class QorePostProcessingInputStreamLineIterator inherits Qore::InputStreamLineIterator {
+        private:internal {
+            bool isQore = True;
+        }
+
         /** Creates the object for iterating over the given @ref Qore::InputStream "InputStream"
 
             @param is the @ref Qore::InputStream "InputStream" to iterate over
-            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
-            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will
+            be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
+            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not
+            passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r",
+            or \c "\r\n"
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the
+            \a eol bytes
 
-            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different
+            @ref character_encoding "character encoding" from the data's and an error occurs during encoding
+            conversion
          */
         constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = False) : InputStreamLineIterator(is, encoding, eol, do_trim) {
         }
@@ -188,10 +228,15 @@ public namespace Qdx {
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
 
             @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
-            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not
+            passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r",
+            or \c "\r\n"
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the
+            \a eol bytes
 
-            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different
+            @ref character_encoding "character encoding" from the data's and an error occurs during encoding
+            conversion
          */
         constructor(Qore::StreamReader sr, *string eol, bool do_trim = False) : InputStreamLineIterator(sr, eol, do_trim) {
         }
@@ -205,7 +250,8 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
 
             @see getValue()
          */
@@ -222,47 +268,54 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
 
             @see getLine()
          */
         string getValue() {
             string line = InputStreamLineIterator::getValue();
 
-            line =~ s/__1_/[/g;
-            line =~ s/__2_/]/g;
-            line =~ s/__3_/*/g; #//;
-            line =~ s/__4_/./g;
-            line =~ s/__5_/-/g;
-            line =~ s/__6_//g;
-            line =~ s/__7_ /*/g; #//;
-            line =~ s/__8_/$/g;
+            if (isQore && line =~ /\w+_1_1[a-z]/) {
+                isQore = False;
+            }
 
-            # remove "inline" tags
-            line =~ s/\[inline\]//g;
-            line =~ s/, inline\]/]/g;
-            line =~ s/\[inline, /[/g;
+            if (isQore) {
+                line =~ s/__1_/[/g;
+                line =~ s/__2_/]/g;
+                line =~ s/__3_/*/g; #//;
+                line =~ s/__4_/./g;
+                line =~ s/__5_/-/g;
+                line =~ s/__6_//g;
+                line =~ s/__7_ /*/g; #//;
+                line =~ s/__8_/$/g;
 
-            line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//>$1&lt;$2&gt;$3<\//g;
-            line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//>$1&lt;$2&gt;$3<\//g;
-            line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::&lt;$1&gt;:/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9'/'&lt;$1&gt;'/g;
-            line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
-            line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::&lt;$1&gt;::$2($3)'/g;
-            line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
-            line =~ s/([^a-zA-Z0-9_])[Ss]truct /$1hashdecl /g;
+                # remove "inline" tags
+                line =~ s/\[inline\]//g;
+                line =~ s/, inline\]/]/g;
+                line =~ s/\[inline, /[/g;
 
-            # rename "Member Functions" to "Member Methods"
-            line =~ s/Member Functions/Member Methods/g;
+                line =~ s/"Qore::zzz8([a-z]+)zzz9"/"<$1>"/g;
+                line =~ s/>([^<>]*)Qore::zzz8([a-z]+)zzz9([^<>]*)<\//>$1&lt;$2&gt;$3<\//g;
+                line =~ s/>([^<>]*)zzz8([a-z]+)zzz9([^<>]*)<\//>$1&lt;$2&gt;$3<\//g;
+                line =~ s/for Qore::zzz8([a-z]+)zzz9:/for Qore::&lt;$1&gt;:/g;
+                line =~ s/'Qore::zzz8([a-z]+)zzz9'/'&lt;$1&gt;'/g;
+                line =~ s/"zzz8([a-z]+)zzz9"/"<$1>"/g;
+                line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::&lt;$1&gt;::$2($3)'/g;
+                line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
+                line =~ s/([^a-zA-Z0-9_])[Ss]truct /$1hashdecl /g;
 
-            # convert private -> private:internal
-            line =~ s/<span class="mlabel">private<\/span>/<span class="mlabel">private:internal<\/span>/g;
-            line =~ s/Private (Member|Attribute)/Private:Internal $1/g;
+                # rename "Member Functions" to "Member Methods"
+                line =~ s/Member Functions/Member Methods/g;
 
-            # convert protected -> private
-            line =~ s/<span class="mlabel">protected<\/span>/<span class="mlabel">private<\/span>/g;
-            line =~ s/Protected (Member|Attribute)/Private $1/g;
+                # convert private -> private:internal
+                line =~ s/<span class="mlabel">private<\/span>/<span class="mlabel">private:internal<\/span>/g;
+                line =~ s/Private (Member|Attribute)/Private:Internal $1/g;
+
+                # convert protected -> private
+                line =~ s/<span class="mlabel">protected<\/span>/<span class="mlabel">private<\/span>/g;
+                line =~ s/Protected (Member|Attribute)/Private $1/g;
+            }
 
             # remove <%-- ... --%> comments to allow for invisible spacing, to allow for "*/" to be output in
             # particular places, for example
@@ -278,11 +331,16 @@ public namespace Qdx {
         /** Creates the object for iterating over the given @ref Qore::InputStream "InputStream"
 
             @param is the @ref Qore::InputStream "InputStream" to iterate over
-            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
-            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param encoding character encoding of the data from input stream; if not ASCII-compatible, all data will
+            be converted to UTF-8; if not present, the @ref default_encoding "default character encoding" is assumed
+            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not
+            passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r",
+            or \c "\r\n"
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the
+             \a eol bytes
 
-            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different
+            @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
          */
         constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = False) : QorePostProcessingInputStreamLineIterator(is, encoding, eol, do_trim) {
         }
@@ -290,10 +348,15 @@ public namespace Qdx {
         /** Creates the object for iterating over the given @ref Qore::StreamReader "StreamReader"
 
             @param sr the @ref Qore::StreamReader "StreamReader" to iterate over
-            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"
-            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the \a eol bytes
+            @param eol the optional end of line character(s) to use to detect lines in the data; if this string is not
+            passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r",
+            or \c "\r\n"
+            @param do_trim if @ref True "True" the string return values for the lines iterated will be trimmed of the
+            \a eol bytes
 
-            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different @ref character_encoding "character encoding" from the data's and an error occurs during encoding conversion
+            @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the \a eol argument has a different
+            @ref character_encoding "character encoding" from the data's and an error occurs during encoding
+            conversion
          */
         constructor(Qore::StreamReader sr, *string eol, bool do_trim = False) : QorePostProcessingInputStreamLineIterator(sr, eol, do_trim) {
         }
@@ -307,7 +370,8 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
 
             @see getValue()
          */
@@ -324,7 +388,8 @@ public namespace Qdx {
             @return the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
 
             @throw ITERATOR-ERROR the iterator is not pointing at a valid element
-            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+            @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than
+            the thread that created the object
 
             @see getLine()
          */
