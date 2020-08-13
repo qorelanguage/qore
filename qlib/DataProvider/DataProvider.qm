@@ -168,6 +168,29 @@ set QORE_DATA_PROVIDERS=MyConnectionProvider;OtherConnectionProvider
 $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
+    @section dataprovider_pipelines Data Provider Pipelines
+
+    Data provider pipelines allow for efficient processing of record or other data in multiple streams and, if
+    desired, in multiple threads.
+
+    Pipeline data can be any data type except a list, as list values are interpreted as multiple output values in
+    @ref DataProvider::AbstractDataProcessor "pipeline procesor objects".
+
+    @section dataprovider_pipeline_bulk_processing Data Provider Pipeline Bulk Processing
+
+    Bulk processing is processing of record data that is in "hash of lists" form, so a single hash, where each key
+    value is a list of values for that key.  Records can be formed as by taking each hash key and then using each
+    list value in order for the values of each record.  In case a key is assigned a single value instead of a
+    list, it's interpreted as constant value for all records.  Note that the first key value for bulk data must be a
+    list of values in order for the bulk data to be properly detected.
+
+    Each pipeline processor element must declare if it is compatible with bulk processing by implementing the
+    @ref DataProvider::AbstractDataProcessor::supportsBulkApiImpl() "AbstractDataProcessor::supportsBulkApiImpl()"
+    method.
+
+    If a processor does not support the bulk API, but bulk data is submitted, then the bulk data will be separately
+    iterated, and each record will be passed separately to the processor.
+
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v1_0_2 DataProvider v1.0.2

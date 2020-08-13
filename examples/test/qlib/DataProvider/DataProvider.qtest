@@ -90,6 +90,42 @@ class TestRecordProcessor inherits AbstractDataProcessor {
     }
 }
 
+class DuplicateRecordProcessor inherits AbstractDataProcessor {
+    public {
+        string pfx1;
+        string pfx2;
+    }
+
+    constructor(string pfx1, string pfx2) {
+        self.pfx1 = pfx1;
+        self.pfx2 = pfx2;
+    }
+
+    private auto submitImpl(auto rec) {
+        hash<auto> rec1 = (map {pfx1 + "-" + $1.key: $1.value}, rec.pairIterator());
+        hash<auto> rec2 = (map {pfx2 + "-" + $1.key: $1.value}, rec.pairIterator());
+        return (rec1, rec2);
+    }
+
+    private bool supportsBulkApiImpl() {
+        return True;
+    }
+}
+
+class RecordProcessorSink inherits AbstractDataProcessor {
+    public {
+        list<auto> recs;
+    }
+
+    private auto submitImpl(auto rec) {
+        recs += rec;
+    }
+
+    private bool supportsBulkApiImpl() {
+        return True;
+    }
+}
+
 class TestBulkRecordIterator inherits AbstractDataProviderRecordIterator {
     bool next() {
         return False;
@@ -760,6 +796,33 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(5, int_processor0.getSum());
             assertEq(3, int_processor1.getSum());
             assertEq(3, count);
+        }
+
+        {
+            hash<PipelineOptionInfo> opts({
+                "name": "test-pipeline-6",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+            DataProviderPipeline pipe(opts);
+            DuplicateRecordProcessor proc1("x", "y");
+            pipe.append(proc1);
+            RecordProcessorSink proc2();
+            pipe.append(proc2);
+            TestRecordProvider record_provider();
+            pipe.submit(record_provider);
+            pipe.waitDone();
+            assertEq((
+                {
+                    "x-a": 1,
+                    "x-b": 2,
+                },
+                {
+                    "y-a": 1,
+                    "y-b": 2,
+                },
+            ), proc2.recs);
         }
     }
 

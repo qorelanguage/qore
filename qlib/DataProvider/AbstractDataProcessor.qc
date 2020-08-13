@@ -79,15 +79,20 @@ public class AbstractDataProcessor {
     #! Submits the data for processing
     /** @param _data the data to process
 
+        @return the record after processing; to skip processing for the rest of queue, call skipProcessing(), to
+        create multiple records for downstream processing, return a list of records
+
         @throw DPE-SKIP-DATA throw this exception to tell the
         @ref DataProvider::DataProviderPipeline "DataProviderPipeline" skip processing the data for the rest of the
-        queue
+        queue; this exception can also be thrown by calling skipProcessing()
 
         Sets thread-local data before running and clears on exit if any is set
 
         @note
         - Calls submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
+        - Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
+          list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
     */
     auto submit(auto _data) {
         *hash<auto> tld;
@@ -100,6 +105,11 @@ public class AbstractDataProcessor {
             save_thread_data(tld);
         }
         return submitImpl(_data);
+    }
+
+    #! Call this method in the submitImpl() method to skip processing for this record for the rest of the queue
+    static private skipProcessing() {
+        throw "DPE-SKIP-DATA";
     }
 
     #! Returns the expected type of data to be submitted, if available
@@ -120,11 +130,16 @@ public class AbstractDataProcessor {
         @throw DPE-SKIP-DATA throw this exception to tell the
         @ref DataProvider::DataProviderPipeline "DataProviderPipeline" to skip processing the data for the rest of the
         queue
+
+        @note Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
+        list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
     */
     private abstract auto submitImpl(auto _data);
 
     #! Returns @ref True if the data processor supports bulk operation
     /** @return @ref True if the data processor supports bulk operation
+
+        @see dataprovider_pipeline_bulk_processing
     */
     private abstract bool supportsBulkApiImpl();
 }
