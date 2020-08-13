@@ -252,7 +252,8 @@ class PipelineQueue {
                 continue;
             }
 
-            softlist<auto> data_recs = _data;
+            softlist<auto> data_recs;
+            data_recs += _data;
 
             try {
                 foreach auto elem in (elems) {
