@@ -81,6 +81,8 @@ public hashdecl PipelineInfo {
     int num_queues;
 
     #! Flag that indicates if the pipeline is capable of bulk record processing
+    /** @see dataprovider_pipeline_bulk_processing
+    */
     bool bulk;
 
     #! Total time processing end to end
@@ -250,22 +252,30 @@ class PipelineQueue {
                 continue;
             }
 
+            softlist<auto> data_recs = _data;
+
             try {
                 foreach auto elem in (elems) {
+                    softlist<auto> new_recs;
                     try {
-                        if (elem instanceof AbstractDataProcessor) {
-                            _data = elem.submit(_data);
-                            parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), _data);
-                        } else {
-                            # must be the last entry in the list
-                            map $1.submit(_data), elem;
+                        foreach auto data_elem in (data_recs) {
+                            if (elem instanceof AbstractDataProcessor) {
+                                auto new_elem_recs = elem.submit(data_elem);
+                                new_recs += new_elem_recs;
+                                parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), _data);
+                            } else {
+                                # must be the last entry in the list
+                                map $1.submit(data_elem), elem;
+                            }
                         }
                     } catch (hash<ExceptionInfo> ex) {
                         if (ex.err == DPE_SKIP_DATA) {
+                            parent.logDebug("queue %d data processor %y skip queue processing for record", id, elem.className());
                             continue;
                         }
                         rethrow;
                     }
+                    data_recs = new_recs;
                 }
             } catch (hash<ExceptionInfo> ex) {
                 parent.reportError(self, ex);
@@ -292,6 +302,9 @@ class PipelineQueue {
 #! Defines a class for passing data through record processors
 /** Record processing pipelines run in background threads.  Each queue has an integer queue ID; a queue with
     ID 0 is created by default as the initial queue.
+
+    @note Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
+    list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
 */
 public class DataProviderPipeline {
     public {}
@@ -304,6 +317,8 @@ public class DataProviderPipeline {
         hash<string, PipelineQueue> pmap;
 
         #! Bulk flag
+        /** @see dataprovider_pipeline_bulk_processing
+        */
         bool do_bulk = True;
 
         #! Locked flag
@@ -758,6 +773,8 @@ public class DataProviderPipeline {
 
     #! Submits bulk data for processing
     /** Must be called with the lock held
+
+        @see dataprovider_pipeline_bulk_processing
     */
     private:internal submitBulkIntern(AbstractDataProviderBulkRecordInterface i) {
         while (*hash<auto> recs = i.getValue()) {
