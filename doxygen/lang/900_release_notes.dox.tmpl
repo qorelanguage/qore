@@ -5,7 +5,14 @@
     @section qore_095 Qore 0.9.5
 
     @par Release Summary
-    TBD
+    Bugfix release with minor new features; including full ARM CPU support; see below for more information
+
+    @subsection qore_095_compatibility Fixes That Can Affect Backwards-Compatibility
+    - the @ref Qore::mkdir() "mkdir()" function was modified to provide consistent behavior and a consistent return
+      value with and without the \a parents argument; this function never throws an exception now, and always returns
+      either \c 0 (meaning no error occurred) or \c 1 (meaning an error occurred) and no longer returns the number of
+      directories created when \a parents = @ref True.  Use @ref Qore::Dir::create() "Dir::create()" to get the number
+      of directories created as in previous versions of %Qore; @see Qore::mkdir_ex()
 
     @subsection qore_095_new_features New Features in Qore
     - <a href="../../modules/FsUtil/html/index.html">FsUtil</a> module updates:
@@ -22,6 +29,8 @@
     - new methods:
       - @ref Qore::Program::callStaticMethod() "Program::callStaticMethod()"
       - @ref Qore::Program::callStaticMethodArgs() "Program::callStaticMethodArgs()"
+    - new functions:
+      - @ref Qore::mkdir_ex() "mkdir_ex()"
     - added stack guard support for ARM processors
       (<a href="https://github.com/qorelanguage/qore/issues/3965">issue 3965</a>)
 
@@ -43,6 +52,8 @@
     - <a href="../../modules/QUnit/html/index.html">QUnit</a> module updates:
       - updated to allow tests to be run with argument handling from languages that do not support lvalue references
         (<a href="https://github.com/qorelanguage/qore/issues/3934">issue 3934</a>)
+    - fixed a bug in @ref Qore::mkdir() with \c parents = @ref True
+      (<a href="https://github.com/qorelanguage/qore/issues/3992">issue 3992</a>)
 
     @section qore_0947 Qore 0.9.4.7
 

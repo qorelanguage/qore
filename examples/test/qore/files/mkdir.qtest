@@ -40,6 +40,9 @@ class MkdirTest inherits QUnit::Test {
         on_exit rmdir(dir);
         int ret = mkdir(dir);
         assertEq(-1, ret);
+
+        assertEq(-1, mkdir("/err/invalid", 0700, True));
+        assertThrows("DIR-CREATE-FAILURE", \mkdir_ex(), ("/err/invalid", 0700, True));
     }
 
     mkdirParentTest() {
@@ -56,6 +59,6 @@ class MkdirTest inherits QUnit::Test {
         assertEq("DIRECTORY", hstat(dir2).type);
         assertEq("DIRECTORY", hstat(dir1).type);
 
-        assertEq(3, ret);
+        assertEq(0, ret);
     }
 }

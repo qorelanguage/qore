@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file VscDebugAdapter Visual Studio Code debug adapter
 
-/*  VscDebugAdapter.qm Copyright 2013 - 2019 Qore Technologies, s.r.o.
+/*  VscDebugAdapter.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -93,7 +93,7 @@ public namespace VscDebugAdapter {
             if (exists m_filename) {
                 try {
                     m_file = new File();
-                    mkdir(dirname(m_filename), 0755, True);
+                    mkdir_ex(dirname(m_filename), 0755, True);
                     if (appendToLog) {
                         if (m_file.open(m_filename, O_APPEND | O_WRONLY) == -1) {
                             if (errno() == Qore::Err::ENOENT) {
@@ -553,7 +553,7 @@ public namespace VscDebugAdapter {
                             ls = m_programState{pgmId}.loadedSourceByName{lsn};
                             if (!exists ls) {
                                 ls = (
-                                    'id': m_source.next(), 
+                                    'id': m_source.next(),
                                     'file': l,
                                     'source': f,
                                 );
