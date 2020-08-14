@@ -148,22 +148,22 @@ public:
 
     //! returns the type name as a c string
     /** @return the type name as a c string
-        */
+    */
     DLLEXPORT virtual const char* getTypeName() const;
 
     //! returns "this" with an incremented reference count
     /** @return "this" with an incremented reference count
-        */
+    */
     DLLEXPORT QoreHashNode* hashRefSelf() const;
 
     //! returns the cstring value of the first key in the hash
     /** @return the cstring value of the first key in the hash
-        */
+    */
     DLLEXPORT const char* getFirstKey() const;
 
     //! returns the cstring value of the last key in the hash
     /** @return the cstring value of the last key in the hash
-        */
+    */
     DLLEXPORT const char* getLastKey() const;
 
     //! returns the value of the given key

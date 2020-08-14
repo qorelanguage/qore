@@ -45,6 +45,11 @@ class DirTest inherits QUnit::Test {
         assertEq(2, rc);
         assertEq("DIRECTORY", hstat(path3).type);
         assertEq("DIRECTORY", hstat(path2).type);
+
+%ifdef HAVE_STATVFS
+        hash<auto> h = d.statvfs();
+        assertEq("hash<FilesystemInfo>", h.fullType());
+%endif
     }
 
     issue3192Test() {

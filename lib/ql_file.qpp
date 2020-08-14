@@ -480,13 +480,13 @@ nothing rename(string old_path, string new_path) [dom=FILESYSTEM] {
  */
 *hash<FilesystemInfo> statvfs(string path) [dom=FILESYSTEM] {
 #ifdef Q_HAVE_STATVFS
-   struct statvfs vfs;
-   if (statvfs(path->getBuffer(), &vfs))
-      return QoreValue();
+    struct statvfs vfs;
+    if (statvfs(path->getBuffer(), &vfs))
+        return QoreValue();
 
-   return statvfs_to_hash(vfs);
+    return statvfs_to_hash(vfs);
 #else
-   return missing_function_error("statvfs", xsink);
+    return missing_function_error("statvfs", xsink);
 #endif
 }
 

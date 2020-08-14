@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_SUB 4)
-set(VERSION_PATCH 6)
+set(VERSION_PATCH 7)
 
 # support <pkg>_ROOT in find_package
 if (POLICY CMP0074)
@@ -662,7 +662,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 6.2.1)
+    set_target_properties(libqore PROPERTIES VERSION 6.2.2)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
