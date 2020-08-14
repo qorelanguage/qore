@@ -1,34 +1,34 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
-  QoreDir.cpp
+    QoreDir.cpp
 
-  Directory functions
+    Directory functions
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -38,8 +38,8 @@
 
 #include "qore/intern/qore_qd_private.h"
 
-const QoreEncoding *QoreDir::getEncoding() const {
-   return priv->getEncoding();
+const QoreEncoding* QoreDir::getEncoding() const {
+    return priv->getEncoding();
 }
 
 /* static */
@@ -70,75 +70,75 @@ std::string QoreDir::get_file_content(const QoreString& fullPath) {
     return buffer.str();
 }
 
-QoreDir::QoreDir(ExceptionSink *xsink, const QoreEncoding *cs, const char *dir) : priv(new qore_qd_private(xsink, cs, dir)) {}
+QoreDir::QoreDir(ExceptionSink* xsink, const QoreEncoding* cs, const char* dir) : priv(new qore_qd_private(xsink, cs, dir)) {}
 
-QoreDir::QoreDir(ExceptionSink *xsink, const QoreDir &old) : priv(new qore_qd_private(xsink, *old.priv)) {
+QoreDir::QoreDir(ExceptionSink* xsink, const QoreDir &old) : priv(new qore_qd_private(xsink, *old.priv)) {
 }
 
 QoreDir::~QoreDir() {
-   delete priv;
+    delete priv;
 }
 
 // return the actual dirname
 QoreStringNode *QoreDir::dirname() const {
-   return priv->get_dir_string();
+    return priv->get_dir_string();
 }
 
 // change directory from current location on
 // return 0 if directory exists and is openable
-int QoreDir::chdir(const char* ndir, ExceptionSink *xsink) {
-   return priv->chdir(ndir, xsink);
+int QoreDir::chdir(const char* ndir, ExceptionSink* xsink) {
+    return priv->chdir(ndir, xsink);
 }
 
 // create the directory with all the parent directories if they do not exist
 // return amount of created directories, -1 if error
-int QoreDir::create(int mode, ExceptionSink *xsink) const {
-   return priv->create(mode, xsink);
+int QoreDir::create(int mode, ExceptionSink* xsink) const {
+    return priv->create(mode, xsink);
 }
 
 // list entries of the directory where d points to
 // the filter will be applied to the file's mode for filtering.
 // directories '.' and '..' will be skipped
-QoreListNode* QoreDir::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
-   return priv->list(xsink, stat_filter, regex, regex_options, full);
+QoreListNode* QoreDir::list(ExceptionSink* xsink, int stat_filter, const QoreString* regex, int regex_options, bool full) const {
+    return priv->list(xsink, stat_filter, regex, regex_options, full);
 }
 
-int QoreDir::mkdir(ExceptionSink *xsink, const char *subdir, int mode) const {
-   return priv->mkdir(subdir, mode, xsink);
+int QoreDir::mkdir(ExceptionSink* xsink, const char* subdir, int mode) const {
+    return priv->mkdir(subdir, mode, xsink);
 }
 
-int QoreDir::rmdir(const char *subdir, ExceptionSink *xsink) const {
-   return priv->rmdir(subdir, xsink);
+int QoreDir::rmdir(const char* subdir, ExceptionSink* xsink) const {
+    return priv->rmdir(subdir, xsink);
 }
 
-std::string QoreDir::getPath(const char *sub) const {
-   return priv->getPath(sub);
+std::string QoreDir::getPath(const char* sub) const {
+    return priv->getPath(sub);
 }
 
 int QoreDir::checkPath() const {
-   return priv->checkPath();
+    return priv->checkPath();
 }
 
-int QoreDir::chmod(int mode, ExceptionSink *xsink) const {
-   return priv->chmod(mode, xsink);
+int QoreDir::chmod(int mode, ExceptionSink* xsink) const {
+    return priv->chmod(mode, xsink);
 }
 
 #ifdef HAVE_PWD_H
-int QoreDir::chown(uid_t uid, gid_t gid, ExceptionSink *xsink) const {
-   return priv->chown(uid, gid, xsink);
+int QoreDir::chown(uid_t uid, gid_t gid, ExceptionSink* xsink) const {
+    return priv->chown(uid, gid, xsink);
 }
 #endif
 
-QoreListNode *QoreDir::stat(ExceptionSink *xsink) const {
-   return priv->stat(xsink);
+QoreListNode *QoreDir::stat(ExceptionSink* xsink) const {
+    return priv->stat(xsink);
 }
 
-QoreHashNode *QoreDir::hstat(ExceptionSink *xsink) const {
-   return priv->hstat(xsink);
+QoreHashNode *QoreDir::hstat(ExceptionSink* xsink) const {
+    return priv->hstat(xsink);
 }
 
 #ifdef Q_HAVE_STATVFS
-QoreHashNode *QoreDir::statvfs(ExceptionSink *xsink) const {
-   return priv->statvfs(xsink);
+QoreHashNode *QoreDir::statvfs(ExceptionSink* xsink) const {
+    return priv->statvfs(xsink);
 }
 #endif

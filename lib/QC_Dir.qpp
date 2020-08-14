@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -869,7 +869,7 @@ try {
     @throw DIR-HSTAT-FAILURE error stat'ing directory (\c arg will be assigned to the errno value)
  */
 hash<StatInfo> Dir::hstat() {
-   return d->hstat(xsink);
+    return d->hstat(xsink);
 }
 
 //! Returns a @ref FilesystemInfo hash for the current directory
@@ -895,8 +895,8 @@ try {
  */
 hash<FilesystemInfo> Dir::statvfs() {
 #ifdef Q_HAVE_STATVFS
-   return d->statvfs(xsink);
+    return d->statvfs(xsink);
 #else
-   return missing_method_error("Dir::statvfs", "STATVFS", xsink);
+    return missing_method_error("Dir::statvfs", "STATVFS", xsink);
 #endif
 }
