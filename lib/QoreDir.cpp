@@ -90,10 +90,22 @@ int QoreDir::chdir(const char* ndir, ExceptionSink* xsink) {
     return priv->chdir(ndir, xsink);
 }
 
+// change directory from current location on
+// return 0 if directory exists and is openable
+int QoreDir::chdir(const char* ndir) {
+    return priv->chdir(ndir);
+}
+
 // create the directory with all the parent directories if they do not exist
 // return amount of created directories, -1 if error
 int QoreDir::create(int mode, ExceptionSink* xsink) const {
     return priv->create(mode, xsink);
+}
+
+// create the directory with all the parent directories if they do not exist
+// return amount of created directories, -1 if error
+int QoreDir::create(int mode) const {
+    return priv->create(mode);
 }
 
 // list entries of the directory where d points to

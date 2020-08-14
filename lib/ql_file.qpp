@@ -702,29 +702,85 @@ nothing umask() [flags=RUNTIME_NOOP;dom=PROCESS] {
     @param mode the file mode of the new directory (which will be AND'ed with the umask)
     @param parents if True then parent directories are created
 
-    @return if no error occurred returns 0 or the count of newly created directory when parents = @ref True "True"; -1 if an error occurred, in which case errno() and/or strerror() can be used to retrieve the error
+    @return if no error occurred returns 0; -1 if an error occurred, in which case errno() and/or strerror() can be
+    used to retrieve the error
 
     @par Example:
     @code{.py}
-if (mkdir("/tmp/newdir", 0755))
+if (mkdir("/tmp/newdir", 0755)) {
     printf("mkdir /tmp/newdir: %s\n", strerror());
+}
     @endcode
 
-    @see umask()
+    @see
+    - mkdir_ex()
+    - umask()
 
-    @since %Qore 0.8.13 added the <i>parents</i> parameter
+    @since
+    - %Qore 0.8.13 added the <i>parents</i> parameter
+    - %Qore 0.9.5 fixed error-handling and the return value to be sane and consistent independently of the args
  */
 int mkdir(string path, softint mode = 0777, bool parents = False) [dom=FILESYSTEM] {
     if (parents) {
         QoreDir dir(xsink);
-        dir.chdir(path->getBuffer(), xsink);
-        return dir.create((int) mode, xsink);
+        if (dir.chdir(path->c_str()) == -1) {
+            if (!errno) {
+                errno = EPERM;
+            }
+            return -1;
+        }
+
+        // issue #3992: return an error code on failure, do not throw an exception
+        int rc = dir.create((int)mode);
+        if (rc < 0 && !errno) {
+            errno = EPERM;
+        }
+        return rc < 0 ? -1 : 0;
     }
 #ifdef _Q_WINDOWS
-   return _mkdir(path->getBuffer());
+    return _mkdir(path->c_str());
 #else
-   return mkdir(path->getBuffer(), mode);
+    return mkdir(path->c_str(), mode);
 #endif
+}
+
+//! Creates a directory, optionally specifying the mode; throws an exception on error
+/** @param path the path to the directory to create
+    @param mode the file mode of the new directory (which will be AND'ed with the umask)
+    @param parents if True then parent directories are created
+
+    @par Example:
+    @code{.py}
+mkdir_ex("/tmp/newdir", 0755);
+    @endcode
+
+    @see
+    - mkdir()
+    - @ref Qore::Dir::create() "Dir::create()" for a similar method that will return the number of directories created
+    - umask()
+
+    @since %Qore 0.9.5
+ */
+nothing mkdir_ex(string path, softint mode = 0777, bool parents = False) [dom=FILESYSTEM] {
+    if (parents) {
+        QoreDir dir(xsink);
+        if (dir.chdir(path->c_str(), xsink) == -1) {
+            assert(*xsink);
+            return -1;
+        }
+
+        dir.create((int)mode, xsink);
+        return QoreValue();
+    }
+#ifdef _Q_WINDOWS
+    int rc = _mkdir(path->c_str());
+#else
+    int rc = mkdir(path->c_str(), mode);
+#endif
+    if (rc) {
+        xsink->raiseErrnoException("DIR-CREATE-FAILURE", errno, "cannot mkdir '%s'", path->c_str());
+    }
+    return QoreValue();
 }
 
 //! Removes a directory

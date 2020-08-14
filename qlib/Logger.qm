@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 - 2019 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1864,7 +1864,7 @@ public namespace Logger {
                         while (True) {
                             push fn, getArchiveFileName(i+1);
                             if (!is_dir(dirname(fn[i]))) {
-                                mkdir(dirname(fn[i]), 0777, True);
+                                mkdir_ex(dirname(fn[i]), 0777, True);
                             }
                             if (i >= count-1 || !is_file(fn[i])) {
                                 # find a gap in chain or stop at the last file
@@ -2154,7 +2154,7 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_ARCHIVE:
-                    mkdir(dirname(params), 0777, True);
+                    mkdir_ex(dirname(params), 0777, True);
                     if (isOpen()) {
                         file.close();
                         rename(fileName, params);

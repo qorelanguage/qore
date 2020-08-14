@@ -226,11 +226,11 @@ Dir dir("utf-8");
     @endcode
  */
 Dir::constructor(*string encoding) {
-   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
-   SimpleRefHolder<Dir> d(new Dir(xsink, qe));
-   if (*xsink)
-      return;
-   self->setPrivate(CID_DIR, d.release());
+    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+    SimpleRefHolder<Dir> d(new Dir(xsink, qe));
+    if (*xsink)
+        return;
+    self->setPrivate(CID_DIR, d.release());
 }
 
 //! Creates a new directory object with the same character encoding specification and the same path as the original
@@ -241,11 +241,11 @@ Dir nd = dir.copy();
     @endcode
  */
 Dir::copy() {
-   SimpleRefHolder<Dir> nd(new Dir(xsink, *d));
-   if (*xsink)
-      return;
+    SimpleRefHolder<Dir> nd(new Dir(xsink, *d));
+    if (*xsink)
+        return;
 
-   self->setPrivate(CID_DIR, nd.release());
+    self->setPrivate(CID_DIR, nd.release());
 }
 
 //! Changes the current directory of the Dir object to the path given
@@ -267,7 +267,7 @@ if (!d.chdir("../doc")) {
     @throw DIR-CHDIR-ERROR cannot change to relative directory because no current directory is set
  */
 bool Dir::chdir(string path) {
-   return !d->chdir(path->getBuffer(), xsink);
+    return !d->chdir(path->getBuffer(), xsink);
 }
 
 //! Returns the path of the Dir object or @ref nothing if no path is set
@@ -281,7 +281,7 @@ bool Dir::chdir(string path) {
     @endcode
  */
 *string Dir::path() {
-   return d->dirname();
+    return d->dirname();
 }
 
 //! Returns @ref True if the path in the Dir object points to a directory that already exists and is openable by the current user, @ref False otherwise
@@ -294,7 +294,7 @@ if (!d.exists())
     @endcode
  */
 bool Dir::exists() {
-   return !d->checkPath();
+    return !d->checkPath();
 }
 
 //! Creates the directory tree the Dir object points to, if it does not exist
@@ -303,24 +303,21 @@ bool Dir::exists() {
 
     @par Example:
     @code{.py}
-try {
-    if (!d.exists()) {
+if (!d.exists()) {
+    try {
         printf("%y: does not exist; creating...\n", d.path());
         cnt = d.create(0755);
+    } catch (hash<ExceptionInfo> ex) {
+        stderr.printf("%s: %s", ex.err, ex.desc);
     }
-} catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
     @throw DIR-CREATE-ERROR cannot create directory; no directory is set
     @throw DIR-CREATE-FAILURE error creating directory (\c arg will be assigned to the errno value)
- */
+*/
 int Dir::create(softint mode = 0777) {
-   return d->create((int)mode, xsink); // throws exception
+    return d->create((int)mode, xsink);
 }
 
 //! Changes the mode of the directory
@@ -331,10 +328,7 @@ int Dir::create(softint mode = 0777) {
 try {
     dir.chmod(0750);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -342,7 +336,7 @@ try {
     @throw DIR-CHMOD-FAILURE error changing directory's mode (\c arg will be assigned to the errno value)
  */
 nothing Dir::chmod(softint mode) {
-   d->chmod((int)mode, xsink);
+    d->chmod((int)mode, xsink);
 }
 
 //! Change the ownership of the directory from the userid
@@ -356,10 +350,7 @@ nothing Dir::chmod(softint mode) {
 try {
     dir.chown(uid);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -371,7 +362,7 @@ nothing Dir::chown(int uid) {
     d->chown((uid_t)uid, (gid_t)-1, xsink);
     return QoreValue();
 #else
-   return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
+    return missing_method_error("Dir::chown", "UNIX_FILEMGT", xsink);
 #endif
 }
 
@@ -386,10 +377,7 @@ nothing Dir::chown(int uid) {
 try {
     dir.chown(username);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -424,10 +412,7 @@ nothing Dir::chown(string username) {
 try {
     dir.chgrp(gid);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -454,10 +439,7 @@ nothing Dir::chgrp(int gid) {
 try {
     dir.chgrp(groupname);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -490,10 +472,7 @@ nothing Dir::chgrp(string groupname) {
 try {
     dir.mkdir("subdir", 0750);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -516,10 +495,7 @@ nothing Dir::mkdir(string subdir, softint mode = 0777) {
 try {
     dir.rmdir("subdir");
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -549,9 +525,6 @@ try {
     map printf("entry: %s\n", $1), d.list();
 } catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
-    if (ex.arg)
-        stderr.printf(": %s", strerror(ex.arg));
-    stderr.printf("\n");
 }
     @endcode
 
@@ -581,9 +554,6 @@ try {
     }
 } catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
-    if (ex.arg)
-        stderr.printf(": %s", strerror(ex.arg));
-    stderr.printf("\n");
 }
     @endcode
 
@@ -613,9 +583,6 @@ try {
     }
 } catch (hash<ExceptionInfo> ex) {
     stderr.printf("%s: %s", ex.err, ex.desc);
-    if (ex.arg)
-        stderr.printf(": %s", strerror(ex.arg));
-    stderr.printf("\n");
 }
     @endcode
 
@@ -644,10 +611,7 @@ try {
         printf("entry: %s\n");
     }
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -676,10 +640,7 @@ try {
         printf("entry: %s\n");
     }
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -708,10 +669,7 @@ try {
         printf("entry: %s\n");
     }
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -799,10 +757,7 @@ Dir Dir::openDir(string subdir, *string encoding) {
 try {
     bool b = dir.removeFile(filename);
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -834,10 +789,7 @@ bool Dir::removeFile(string file) {
 try {
     list<auto> l = dir.stat();
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -858,10 +810,7 @@ list<auto> Dir::stat() {
 try {
     hash<StatInfo> h = dir.hstat();
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
@@ -883,10 +832,7 @@ hash<StatInfo> Dir::hstat() {
 try {
     hash<FilesystemInfo> h = dir.statvfs();
 } catch (hash<ExceptionInfo> ex) {
-    if (ex.arg)
-        printf("%s: %s: %s", ex.err, ex.desc, strerror(ex.arg));
-    else
-        printf("%s: %s", ex.err, ex.desc);
+    stderr.printf("%s: %s", ex.err, ex.desc);
 }
     @endcode
 
