@@ -75,14 +75,14 @@ class TestRecordProcessor inherits AbstractDataProcessor {
         raise_error = True;
     }
 
-    private auto submitImpl(auto rec) {
+    private submitImpl(code enqueue, auto rec) {
         if (raise_error) {
             remove raise_error;
             throw "ERROR", "error";
         }
         hash<auto> new_rec = (map {pfx + "-" + $1.key: $1.value}, rec.pairIterator()) + crec;
         recs += new_rec;
-        return new_rec;
+        enqueue(new_rec);
     }
 
     private bool supportsBulkApiImpl() {
@@ -101,10 +101,11 @@ class DuplicateRecordProcessor inherits AbstractDataProcessor {
         self.pfx2 = pfx2;
     }
 
-    private auto submitImpl(auto rec) {
+    private submitImpl(code enqueue, auto rec) {
         hash<auto> rec1 = (map {pfx1 + "-" + $1.key: $1.value}, rec.pairIterator());
+        enqueue(rec1);
         hash<auto> rec2 = (map {pfx2 + "-" + $1.key: $1.value}, rec.pairIterator());
-        return (rec1, rec2);
+        enqueue(rec2);
     }
 
     private bool supportsBulkApiImpl() {
@@ -117,8 +118,9 @@ class RecordProcessorSink inherits AbstractDataProcessor {
         list<auto> recs;
     }
 
-    private auto submitImpl(auto rec) {
-        recs += rec;
+    private submitImpl(code enqueue, auto rec) {
+        push recs, rec;
+        enqueue(rec);
     }
 
     private bool supportsBulkApiImpl() {
@@ -127,8 +129,8 @@ class RecordProcessorSink inherits AbstractDataProcessor {
 }
 
 class DummyRecordProcessor inherits AbstractDataProcessor {
-    private auto submitImpl(auto rec) {
-        return {"x": 1};
+    private submitImpl(code enqueue, auto rec) {
+        enqueue({"x": 1});
     }
 
     private bool supportsBulkApiImpl() {
@@ -198,13 +200,13 @@ class TestIntProcessor inherits AbstractDataProcessor {
         sum = 0;
     }
 
-    private auto submitImpl(auto rec) {
+    private submitImpl(code enqueue, auto rec) {
         if (skip_odd && rec > inc && (rec % 2)) {
-            throw DPE_SKIP_DATA;
+            return;
         }
         rec += inc;
         sum += rec;
-        return rec;
+        enqueue(rec);
     }
 
     private bool supportsBulkApiImpl() {
@@ -810,7 +812,7 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             hash<PipelineOptionInfo> opts({
-                "name": "test-pipeline-6",
+                "name": "test-pipeline-7",
                 #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
                 #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
                 #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
@@ -837,7 +839,7 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             hash<PipelineOptionInfo> opts({
-                "name": "test-pipeline-6",
+                "name": "test-pipeline-8",
                 #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
                 #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
                 #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
@@ -850,6 +852,25 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.submit();
             pipe.waitDone();
             assertEq(({"x": 1,},), proc2.recs);
+        }
+
+        {
+            hash<PipelineOptionInfo> opts({
+                "name": "test-pipeline-9",
+                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+            });
+            DataProviderPipeline pipe(opts);
+            RecordProcessorSink proc1();
+            pipe.append(proc1);
+            RecordProcessorSink proc2();
+            pipe.append(proc2);
+            list<auto> l = (0, "one");
+            pipe.submit(l);
+            pipe.waitDone();
+            assertEq((l,), proc1.recs);
+            assertEq((l,), proc2.recs);
         }
     }
 

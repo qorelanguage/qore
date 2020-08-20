@@ -776,11 +776,15 @@ Mapper mapv(DataMap);
         return Mapper::getOutputFromHashIntern(output, mapv, global_options);
     }
 
-    #! Submits the data for processing
-    /** @param _data the data to process
+    #! Submits the data for processing by the mapper
+    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
+        then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+        @param _data the data to process
     */
-    private hash<auto> submitImpl(auto _data) {
-        return mapAuto(_data);
+    private submitImpl(code enqueue, auto _data) {
+        enqueue(mapAuto(_data));
     }
 
     #! Returns @ref True if the record processor supports bulk operation

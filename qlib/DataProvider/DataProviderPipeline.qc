@@ -48,16 +48,6 @@ public const PS_RUNNING = "RUNNING";
 public const PS_IDLE = "IDLE";
 #@}
 
-/** @defgroup pipeline_processing_exceptions Pipeline Processing Exceptions
-*/
-#@{
-#! Skips processing a record
-/** Throw this exception in the @ref DataProvider::AbstractDataProcessor::submit() "AbstractDataProcessor::submit()"
-    method to skip processing a data record (the record is not passed forward to further processors in the queue).
-*/
-public const DPE_SKIP_DATA = "DPE-SKIP-DATA";
-#@}
-
 #! Pipeline info
 public hashdecl PipelineInfo {
     #! The name of the pipeline
@@ -186,16 +176,16 @@ class PipelineQueue {
     }
 
     #! Submits data for processing
-    /** @param record the record to process
+    /** @param qdata the data to process
 
         @throws PIPELINE-SUBMISSION-ABORTED cannot submit data; the pipeline is shutting down or has aborted
     */
-    submit(auto record) {
+    submit(auto qdata) {
         if (parent.aborting()) {
             throw "PIPELINE-SUBMISSION-ABORTED", sprintf("pipeline %y has aborted", parent.getName());
         }
 
-        parent.logDebug("queue %d data submission: %y", id, record);
+        parent.logDebug("queue %d data submission: %y", id, qdata);
         bool lock = !lck.lockOwner();
         if (lock) {
             lck.lock();
@@ -215,7 +205,8 @@ class PipelineQueue {
                 "down", parent.getName());
         }
 
-        queue += record;
+        # do not use the += operator in case the data is a list
+        push queue, qdata;
         if (data_waiting) {
             cond.broadcast();
         }
@@ -242,7 +233,7 @@ class PipelineQueue {
                 continue;
             }
 
-            auto _data = shift queue;
+            auto qdata = shift queue;
             if (queue_waiting) {
                 cond.broadcast();
             }
@@ -253,28 +244,27 @@ class PipelineQueue {
             }
 
             softlist<auto> data_recs;
-            data_recs += _data;
+            push data_recs, qdata;
 
             try {
                 foreach auto elem in (elems) {
                     softlist<auto> new_recs;
-                    try {
-                        foreach auto data_elem in (data_recs) {
-                            if (elem instanceof AbstractDataProcessor) {
-                                auto new_elem_recs = elem.submit(data_elem);
+                    foreach auto data_elem in (data_recs) {
+                        if (elem instanceof AbstractDataProcessor) {
+                            *softlist<auto> new_elem_recs;
+                            code enqueue = sub (auto new_qdata) {
+                                push new_elem_recs, new_qdata;
+                            };
+                            elem.submit(enqueue, data_elem);
+                            if (new_elem_recs) {
+                                # here we need to use += to concatenate lists
                                 new_recs += new_elem_recs;
-                                parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), _data);
-                            } else {
-                                # must be the last entry in the list
-                                map $1.submit(data_elem), elem;
                             }
+                            parent.logDebug("queue %d data processor %y output: %y", id, elem.className(), new_elem_recs);
+                        } else {
+                            # must be the last entry in the list
+                            map $1.submit(data_elem), elem;
                         }
-                    } catch (hash<ExceptionInfo> ex) {
-                        if (ex.err == DPE_SKIP_DATA) {
-                            parent.logDebug("queue %d data processor %y skip queue processing for record", id, elem.className());
-                            continue;
-                        }
-                        rethrow;
                     }
                     data_recs = new_recs;
                 }
@@ -304,8 +294,7 @@ class PipelineQueue {
 /** Record processing pipelines run in background threads.  Each queue has an integer queue ID; a queue with
     ID 0 is created by default as the initial queue.
 
-    @note Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
-    list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
+    @note Pipeline data can be of any type
 */
 public class DataProviderPipeline {
     public {}

@@ -77,24 +77,19 @@ public class AbstractDataProcessor {
     }
 
     #! Submits the data for processing
-    /** @param _data the data to process
-
-        @return the record after processing; to skip processing for the rest of queue, call skipProcessing(), to
-        create multiple records for downstream processing, return a list of records
-
-        @throw DPE-SKIP-DATA throw this exception to tell the
-        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" skip processing the data for the rest of the
-        queue; this exception can also be thrown by calling skipProcessing()
+    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
+        then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+        @param _data the data to process
 
         Sets thread-local data before running and clears on exit if any is set
 
         @note
         - Calls submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
-        - Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
-          list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
     */
-    auto submit(auto _data) {
+    auto submit(code enqueue, auto _data) {
         *hash<auto> tld;
         if (thread_local_data) {
             tld = get_all_thread_data();
@@ -104,12 +99,7 @@ public class AbstractDataProcessor {
             delete_thread_data(thread_local_data_keys);
             save_thread_data(tld);
         }
-        return submitImpl(_data);
-    }
-
-    #! Call this method in the submitImpl() method to skip processing for this record for the rest of the queue
-    static private skipProcessing() {
-        throw "DPE-SKIP-DATA";
+        return submitImpl(enqueue, _data);
     }
 
     #! Returns the expected type of data to be submitted, if available
@@ -125,16 +115,13 @@ public class AbstractDataProcessor {
     }
 
     #! Submits the data for processing
-    /** @param _data the data to process
-
-        @throw DPE-SKIP-DATA throw this exception to tell the
-        @ref DataProvider::DataProviderPipeline "DataProviderPipeline" to skip processing the data for the rest of the
-        queue
-
-        @note Pipeline data can be of any type, however if a processor returns a list of data, then each element in the
-        list is interpreted as a new data item, therefore lists cannot be used as pipeline queue data elements.
+    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
+        then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+        @param _data the data to process
     */
-    private abstract auto submitImpl(auto _data);
+    private abstract auto submitImpl(code enqueue, auto _data);
 
     #! Returns @ref True if the data processor supports bulk operation
     /** @return @ref True if the data processor supports bulk operation
