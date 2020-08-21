@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.3.1";
+    version = "1.4";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -70,6 +70,10 @@ module Schema {
     - @ref Schema::AbstractVersionedSchema "AbstractVersionedSchema": base class for versioned schema representation and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_4 Schema Module v1.4
+    - allow schema operations to be executed with no output (verbose < 0)
+      (<a href="https://github.com/qorelanguage/qore/issues/3996">issue 3996</a>)
 
     @subsection schema_v1_3_1 Schema Module v1.3.1
     - fixed a bug where too little information was passed to post schema alignment code
@@ -381,7 +385,7 @@ public namespace Schema {
 
         #! creates the callback object from the given arguments
         /** @param sc the Schema::AbstractSchema "AbstractSchema" object for output logging and SQL execution
-            @param v the verbosity level; larger numbers mean more output
+            @param v the verbosity level; larger numbers mean more output; negative numbers mean no output
         */
         constructor(AbstractSchema sc, int v = 0) {
             schema = sc;
@@ -396,14 +400,16 @@ public namespace Schema {
                 ++change_count;
             else
                 t = 1;
+            if (verbose < 0) {
+                return;
+            }
             if (verbose > t) {
                 if (dot_count) {
                     schema.logProgress("\n");
                     dot_count = 0;
                 }
                 schema.log("%s %s", t ? "+++" : "***", str);
-            }
-            else {
+            } else {
                 ++dot_count;
                 schema.logProgress(AbstractDatabase::ActionLetterMap{ac});
             }
@@ -424,21 +430,32 @@ public namespace Schema {
                 schema.log("%s", str);
             try {
                 schema.getDatabase().tryExecRaw(str);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 schema.log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 ++error_count;
             }
         }
 
         #! returns a callback option hash usable with <a href="../../SqlUtil/html/index.html">SqlUtil</a> schema operations
-        hash getCallbacks(bool force = False) {
+        hash<auto> getCallbacks(bool force = False) {
             return (
                 "info_callback": \infoCallback(),
                 "sql_callback": force ? \sqlForceCallback() : \sqlCallback(),
                 "sql_callback_executed": True,
-                );
+            );
         }
+    }
+
+    #! Schema option hash definitions
+    public hashdecl SchemaOptionInfo {
+        #! explicit data tablespace name
+        *string data_ts;
+
+        #! explicit index tablespace name
+        *string index_ts;
+
+        #! options for @ref SqlUtil::Database::constructor()
+        *hash<auto> db_opts;
     }
 
     #! the AbstractSchema class is a base class to assist with automatic schema management
@@ -517,37 +534,27 @@ public namespace Schema {
         }
 
         #! creates the object from the arguments
-        /** @param n_ds the datasource for the schema
+        /** @param ds the datasource for the schema
             @param dts an optional data tablespace name for the schema
             @param its an optional index tablespace name for the schema
             @param opts options for @ref SqlUtil::Database::constructor()
         */
-        constructor(Qore::SQL::AbstractDatasource n_ds, *string dts, *string its, *hash opts) {
-            ds = n_ds;
-            name = getName();
-            version = getVersion();
-            data_ts = dts;
-            index_ts = its;
+        constructor(Qore::SQL::AbstractDatasource ds, *string dts, *string its, *hash opts) {
+            init(ds, <SchemaOptionInfo>{
+                "data_ts": dts,
+                "index_ts": its,
+                "db_opts": opts,
+            });
+        }
 
-            drv = ds.getDriverName();
-
-            db = new Database(ds, opts);
-
-            index_options = getIndexOptions();
-            creation_options = getCreationOptions();
-            column_options = getColumnOptions();
-
-            all_options = AbstractSchema::combineOptions(creation_options, column_options);
-
-            schema = {
-                "tables": getTables(),
-                "sequences": getSequences(),
-                "types": getTypes(),
-                "functions": getFunctions(),
-                "procedures": getProcedures(),
-                "packages": getPackages(),
-                "materialized_views": getMaterializedViews(),
-            };
+        #! creates the object from the arguments
+        /** @param ds the datasource for the schema
+            @param dts an optional data tablespace name for the schema
+            @param its an optional index tablespace name for the schema
+            @param opts options for @ref SqlUtil::Database::constructor()
+        */
+        constructor(Qore::SQL::AbstractDatasource ds, *hash<SchemaOptionInfo> opts) {
+            init(ds, opts);
         }
 
         #! returns the name of the schema
@@ -606,7 +613,12 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             pure_callback_opts = sch.getCallbacks();
-            info_callback = pure_callback_opts.info_callback;
+            if (verbose >= 0) {
+                info_callback = pure_callback_opts.info_callback;
+            } else {
+                info_callback = sub () { remove argv; };
+                pure_callback_opts.info_callback = info_callback;
+            }
             callback_opts = all_options + pure_callback_opts;
 
             bool first_time_install = checkFirstTimeInstall();
@@ -614,22 +626,26 @@ public namespace Schema {
             *hash<auto> initial_schema_info;
 
             if (first_time_install)
-                logpf("creating %s schema %s", name, version);
+                if (verbose >= 0) {
+                    logpf("creating %s schema %s", name, version);
+                }
             else {
                 if (!checkUpdateSchema(force, \initial_schema_info))
                     return 0;
                 sch.sql_cache = ();
             }
 
-            #on_error ds.rollback();
-            #on_success ds.commit();
             on_error {
                 ds.rollback();
-                printf("ALIGNMENT ROLLED BACK\n");
+                if (verbose >= 0) {
+                    logpf("ALIGNMENT ROLLED BACK");
+                }
             }
             on_success {
                 ds.commit();
-                printf("COMMITTED ALIGNMENT\n");
+                if (verbose >= 0) {
+                    logpf("COMMITTED ALIGNMENT");
+                }
             }
 
             Tables table_cache();
@@ -637,10 +653,12 @@ public namespace Schema {
 %ifndef QoreDebug
             db.getAlignSql(schema, callback_opts + ("force": True), table_cache);
 %else
-            list al = db.getAlignSql(schema, callback_opts + ("force": True), table_cache);
+            list<string> al = db.getAlignSql(schema, callback_opts + ("force": True), table_cache);
 
             if (al.size() != sch.sql_cache.size()) {
-                printf("callback had %d lines, getAlignSql() had %d lines\n", sch.sql_cache.size(), al.size());
+                if (verbose >= 0) {
+                    printf("callback had %d lines, getAlignSql() had %d lines\n", sch.sql_cache.size(), al.size());
+                }
 
                 hash<string, bool> schh;
 
@@ -649,15 +667,17 @@ public namespace Schema {
                     map schh.$1 = True, sch.sql_cache;
 
                     foreach string sql in (al) {
-                        if (!schh{sql})
+                        if (!schh{sql} && verbose >= 0) {
                             printf("MISSING IN CALLBACK %d: %s\n", $#, sql);
+                        }
                     }
                 } else {
                     map schh.$1 = True, al;
 
                     foreach string sql in (sch.sql_cache) {
-                        if (!schh{sql})
+                        if (!schh{sql} && verbose >= 0) {
                             printf("MISSING IN ALIGN %d: %s\n", $#, sql);
+                        }
                     }
                 }
 
@@ -665,14 +685,16 @@ public namespace Schema {
             }
 %endif
 
-            if (sch.dot_count) {
-                logProgress("\n");
-                sch.dot_count = 0;
-            }
-            if (sch.change_count) {
-                log("%d change%s made; schema is now at version %s", sch.change_count, sch.change_count == 1 ? "" : "s", version);
-            } else {
-                log("no changes made to schema version %s", version);
+            if (verbose >= 0) {
+                if (sch.dot_count) {
+                    logProgress("\n");
+                    sch.dot_count = 0;
+                }
+                if (sch.change_count) {
+                    log("%d change%s made; schema is now at version %s", sch.change_count, sch.change_count == 1 ? "" : "s", version);
+                } else {
+                    log("no changes made to schema version %s", version);
+                }
             }
 
             doPostAlignment(table_cache, first_time_install, initial_schema_info, verbose);
@@ -686,10 +708,12 @@ public namespace Schema {
             hash sh;
 
             if (strict_data || ref_data || co_data || insert_only_data) {
-                if (verbose != 1) {
-                    log("verifying reference data");
-                } else {
-                    logProgress("verifying reference data: ");
+                if (verbose >= 0) {
+                    if (verbose != 1) {
+                        log("verifying reference data");
+                    } else {
+                        logProgress("verifying reference data: ");
+                    }
                 }
 
                 int upsert_strategy = getUpsertStrategy(first_time_install);
@@ -716,14 +740,16 @@ public namespace Schema {
 
                 postDataActions(table_cache, first_time_install, initial_schema_info, verbose);
 
-                if (!verbose) {
-                    logProgress("\n");
-                }
+                if (verbose >= 0) {
+                    if (!verbose) {
+                        logProgress("\n");
+                    }
 
-                if (!sh) {
-                    log("reference data: OK (no changes)");
-                } else {
-                    log("reference data: %s", (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
+                    if (!sh) {
+                        log("reference data: OK (no changes)");
+                    } else {
+                        log("reference data: %s", (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
+                    }
                 }
             }
 
@@ -735,16 +761,24 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             callback_opts = sch.getCallbacks(force);
-            info_callback = callback_opts.info_callback;
+            if (verbose >= 0) {
+                info_callback = callback_opts.info_callback;
+            } else {
+                info_callback = sub () { remove argv; };
+                callback_opts.info_callback = info_callback;
+            }
 
             if (!checkExistence()) {
                 if (!force) {
-                    logpf("schema appears to be empty: use -f to force the drop");
+                    if (verbose >= 0) {
+                        logpf("schema appears to be empty: use -f to force the drop");
+                    }
                     return;
                 }
-                logpf("schema appears to be empty: drop forced");
-            }
-            else {
+                if (verbose >= 0) {
+                    logpf("schema appears to be empty: drop forced");
+                }
+            } else {
                 if (!checkDropSchema(force))
                     return;
                 sch.sql_cache = ();
@@ -756,10 +790,10 @@ public namespace Schema {
 %ifndef QoreDebug
             db.getDropSchemaSql(schema, callback_opts);
 %else
-            list al = db.getDropSchemaSql(schema, callback_opts);
+            list<auto> al = db.getDropSchemaSql(schema, callback_opts);
 
             if (al.size() != sch.sql_cache.size()) {
-                printf("callback had %d lines, getDropSchemaSql() had %d lines\n", sch.sql_cache.size(), al.size());
+                printf("ERROR: callback had %d lines, getDropSchemaSql() had %d lines\n", sch.sql_cache.size(), al.size());
 
                 # make a hash of each
                 hash<string, bool> schh = map {$1: True}, sch.sql_cache;
@@ -772,9 +806,12 @@ public namespace Schema {
             }
 %endif
 
-            if (sch.dot_count)
-                logProgress("\n");
-            log("%d object%s dropped (%d error%s); schema has been dropped", sch.change_count, sch.change_count == 1 ? "" : "s", sch.error_count, sch.error_count == 1 ? "" : "s");
+            if (verbose >= 0) {
+                if (sch.dot_count)
+                    logProgress("\n");
+                log("%d object%s dropped (%d error%s); schema has been dropped", sch.change_count,
+                    sch.change_count == 1 ? "" : "s", sch.error_count, sch.error_count == 1 ? "" : "s");
+            }
         }
 
         #! returns index options
@@ -782,8 +819,8 @@ public namespace Schema {
             name as an index option automatically if set in the constructor() if not
             already set
         */
-        *hash getIndexOptions() {
-            *hash h = getIndexOptionsImpl();
+        *hash<auto> getIndexOptions() {
+            *hash<auto> h = getIndexOptionsImpl();
             if (index_ts && !h.index_tablespace)
                 h.index_tablespace = index_ts;
             return h;
@@ -794,8 +831,8 @@ public namespace Schema {
             and sets the data and index tablespace names as creation options
             automatically if set in the constructor() if not already set
         */
-        *hash getCreationOptions() {
-            *hash h = combineOptions(getGenericOptionsImpl(), getIndexOptionsImpl());
+        *hash<auto> getCreationOptions() {
+            *hash<auto> h = combineOptions(getGenericOptionsImpl(), getIndexOptionsImpl());
             if (data_ts && !h.data_tablespace)
                 h.data_tablespace = data_ts;
             if (index_ts && !h.index_tablespace)
@@ -807,7 +844,7 @@ public namespace Schema {
         /** this function wraps getColumnOptionsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getColumnOptionsImpl()
         */
-        *hash getColumnOptions() {
+        *hash<auto> getColumnOptions() {
             return getColumnOptionsImpl();
         }
 
@@ -815,7 +852,7 @@ public namespace Schema {
         /** this function wraps getTablesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getTablesImpl()
         */
-        *hash getTables() {
+        *hash<auto> getTables() {
             return getTablesImpl();
         }
 
@@ -823,7 +860,7 @@ public namespace Schema {
         /** this function wraps getSequencesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getSequencesImpl()
         */
-        *hash getSequences() {
+        *hash<auto> getSequences() {
             return getSequencesImpl();
         }
 
@@ -831,7 +868,7 @@ public namespace Schema {
         /** this function wraps getTypesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getTypesImpl()
         */
-        *hash getTypes() {
+        *hash<auto> getTypes() {
             return getTypesImpl();
         }
 
@@ -839,7 +876,7 @@ public namespace Schema {
         /** this function wraps getFunctionsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getFunctionsImpl()
         */
-        *hash getFunctions() {
+        *hash<auto> getFunctions() {
             return getFunctionsImpl();
         }
 
@@ -847,7 +884,7 @@ public namespace Schema {
         /** this function wraps getProceduresImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getProceduresImpl()
         */
-        *hash getProcedures() {
+        *hash<auto> getProcedures() {
             return getProceduresImpl();
         }
 
@@ -855,7 +892,7 @@ public namespace Schema {
         /** this function wraps getPackagesImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getPackagesImpl()
         */
-        *hash getPackages() {
+        *hash<auto> getPackages() {
             return getPackagesImpl();
         }
 
@@ -863,7 +900,7 @@ public namespace Schema {
         /** this function wraps getMaterializedViewsImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getMaterializedViewsImpl()
         */
-        *hash getMaterializedViews() {
+        *hash<auto> getMaterializedViews() {
             return getMaterializedViewsImpl();
         }
 
@@ -871,7 +908,7 @@ public namespace Schema {
         /** this function wraps getStrictReferenceDataHashImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getStrictReferenceDataHashImpl()
         */
-        *hash getStrictReferenceDataHash() {
+        *hash<auto> getStrictReferenceDataHash() {
             return getStrictReferenceDataHashImpl();
         }
 
@@ -879,7 +916,7 @@ public namespace Schema {
         /** this function wraps getReferenceDataHashImpl(); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement getReferenceDataHashImpl()
         */
-        *hash getReferenceDataHash() {
+        *hash<auto> getReferenceDataHash() {
             return getReferenceDataHashImpl();
         }
 
@@ -887,7 +924,7 @@ public namespace Schema {
         /** this function wraps (); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement ()
         */
-        *hash getCreateOnlyReferenceData() {
+        *hash<auto> getCreateOnlyReferenceData() {
             return getCreateOnlyReferenceDataImpl();
         }
 
@@ -895,8 +932,37 @@ public namespace Schema {
         /** this function wraps (); for forwards-compatibility, do not override this
             method in subclasses, instead re-implement ()
         */
-        *hash getInsertOnlyReferenceData() {
+        *hash<auto> getInsertOnlyReferenceData() {
             return getInsertOnlyReferenceDataImpl();
+        }
+
+        #! shared constructor initialization
+        private init(Qore::SQL::AbstractDatasource ds, *hash<SchemaOptionInfo> opts) {
+            self.ds = ds;
+            name = getName();
+            version = getVersion();
+            data_ts = opts.data_ts;
+            index_ts = opts.index_ts;
+
+            drv = ds.getDriverName();
+
+            db = new Database(ds, opts.db_opts);
+
+            index_options = getIndexOptions();
+            creation_options = getCreationOptions();
+            column_options = getColumnOptions();
+
+            all_options = AbstractSchema::combineOptions(creation_options, column_options);
+
+            schema = {
+                "tables": getTables(),
+                "sequences": getSequences(),
+                "types": getTypes(),
+                "functions": getFunctions(),
+                "procedures": getProcedures(),
+                "packages": getPackages(),
+                "materialized_views": getMaterializedViews(),
+            };
         }
 
         #! returns the name of the schema
@@ -908,85 +974,85 @@ public namespace Schema {
         #! returns index options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
         */
-        private *hash getIndexOptionsImpl() {
+        private *hash<auto> getIndexOptionsImpl() {
         }
 
         #! returns column options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
         */
-        private *hash getColumnOptionsImpl() {
+        private *hash<auto> getColumnOptionsImpl() {
         }
 
         #! returns schema creation options
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom options
         */
-        private *hash getGenericOptionsImpl() {
+        private *hash<auto> getGenericOptionsImpl() {
         }
 
         #! returns table definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getTablesImpl() {
+        private *hash<auto> getTablesImpl() {
         }
 
         #! returns sequence definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getSequencesImpl() {
+        private *hash<auto> getSequencesImpl() {
         }
 
         #! returns type definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getTypesImpl() {
+        private *hash<auto> getTypesImpl() {
         }
 
         #! returns function definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getFunctionsImpl() {
+        private *hash<auto> getFunctionsImpl() {
         }
 
         #! returns stored procedure definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getProceduresImpl() {
+        private *hash<auto> getProceduresImpl() {
         }
 
         #! returns (Oracle) package definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getPackagesImpl() {
+        private *hash<auto> getPackagesImpl() {
         }
 
         #! returns materialized view definitions
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getMaterializedViewsImpl() {
+        private *hash<auto> getMaterializedViewsImpl() {
         }
 
         #! returns a hash of "strict reference data", describing the only data that can appear in the target table
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getStrictReferenceDataHashImpl() {
+        private *hash<auto> getStrictReferenceDataHashImpl() {
         }
 
         #! returns a hash of "normal reference data", describing data that must appear in the target table, however additional rows are also acceptable
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getReferenceDataHashImpl() {
+        private *hash<auto> getReferenceDataHashImpl() {
         }
 
         #! returns a hash of "create-only reference data", describing data that is written to the table when the table is created
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getCreateOnlyReferenceDataImpl() {
+        private *hash<auto> getCreateOnlyReferenceDataImpl() {
         }
 
         #! returns a hash of "insert-only reference data", describing data that will only be inserted if missing, otherwise existing rows with changed data are left unchanged
         /** the default behavior of this method is to return @ref nothing, reimplement in subclasses to return custom configuration
         */
-        private *hash getInsertOnlyReferenceDataImpl() {
+        private *hash<auto> getInsertOnlyReferenceDataImpl() {
         }
 
         #! returns @ref True "True" if the method can detect that DB objects defined in the schema exist in the database
@@ -1075,7 +1141,7 @@ public namespace Schema {
         #! this method is called to perform schema reference data managment on the given table with the given data
         private doTable(AbstractTable table, list rows, int upsert_strategy, bool delete_others, int verbose, reference<hash> sh) {
             # if we are reporting the status, then change to "UpsertSelectFirst" so that we can only report updated rows
-            if (verbose) {
+            if (verbose > 0) {
                 if (upsert_strategy != AbstractTable::UpsertInsertOnly)
                     upsert_strategy = AbstractTable::UpsertSelectFirst;
                 log("checking table %s", table.getName());
@@ -1097,7 +1163,7 @@ public namespace Schema {
                 ++tsh{change};
                 # increment global change
                 ++sh{change};
-                if (verbose <= 1)
+                if (!verbose)
                     logProgress(AbstractTable::UpsertResultLetterMap{result});
                 else if (verbose > 1) {
                     if (dot) {
@@ -1112,13 +1178,12 @@ public namespace Schema {
             table.upsertFromIterator(AbstractSchema::getRows(rows).iterator(), upsert_strategy, ("delete_others": delete_others, "info_callback": cb));
 
             # show table summary if verbose = 1
-            if (verbose) {
+            if (verbose > 0) {
                 if (tsh) {
                     if (verbose == 1 || dot)
                         logProgress("\n");
                     log("** reference data %s: %s", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), tsh.pairIterator())));
-                }
-                else {
+                } else {
                     if (verbose > 1) {
                         if (dot)
                             logProgress("\n");
