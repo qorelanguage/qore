@@ -1502,13 +1502,14 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const NamedScope& ns
     return nullptr;
 }
 
-QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const QoreProgramLocation* loc, const NamedScope& nscope) {
+QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const QoreProgramLocation* loc, const NamedScope& nscope, bool raise_error) {
     QoreClass* oc;
     // if there is no namespace specified, then just find class
     if (nscope.size() == 1) {
         oc = parseFindClassIntern(nscope.ostr);
-        if (!oc)
+        if (!oc && raise_error) {
             parse_error(*loc, "reference to undefined class '%s'", nscope.ostr);
+        }
         return oc;
     }
 
@@ -1517,18 +1518,20 @@ QoreClass* qore_root_ns_private::parseFindScopedClassIntern(const QoreProgramLoc
     if (oc)
         return oc;
 
-    if (m != (nscope.size() - 1))
-        parse_error(*loc, "cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
-    else {
-        QoreString err;
-        err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
-        for (unsigned i = 0; i < (nscope.size() - 1); i++) {
-            err.concat(nscope[i]);
-            if (i != (nscope.size() - 2))
-                err.concat("::");
+    if (raise_error) {
+        if (m != (nscope.size() - 1)) {
+            parse_error(*loc, "cannot resolve namespace '%s' in '%s'", nscope[m], nscope.ostr);
+        } else {
+            QoreString err;
+            err.sprintf("cannot find class '%s' in any namespace '", nscope.getIdentifier());
+            for (unsigned i = 0; i < (nscope.size() - 1); i++) {
+                err.concat(nscope[i]);
+                if (i != (nscope.size() - 2))
+                    err.concat("::");
+            }
+            err.concat("'");
+            parse_error(*loc, err.getBuffer());
         }
-        err.concat("'");
-        parse_error(*loc, err.getBuffer());
     }
 
     printd(5, "qore_root_ns_private::parseFindScopedClassIntern('%s') returning %p\n", nscope.ostr, oc);

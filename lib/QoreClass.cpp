@@ -893,10 +893,18 @@ void qore_class_private::mergeAbstract() {
     // merge direct base class abstract method lists to ourselves
     for (auto& i : *scl) {
         if ((*i).sclass) {
-            assert((*i).sclass->priv->initialized);
+            qore_class_private* cls = (*i).sclass->priv;
+            if (!cls->initialized) {
+                if (cls->sys) {
+                    cls->initializeBuiltin();
+                } else {
+                    cls->initialize();
+                }
+            }
+            assert(cls->initialized);
 
             // called during class initialization to copy committed abstract variants to our variant lists
-            AbstractMethodMap& mm = (*i).sclass->priv->ahm;
+            AbstractMethodMap& mm = cls->ahm;
             //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
             for (auto& j : mm) {
                 // skip if vlists are empty
@@ -1532,22 +1540,30 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
     }
 }
 
-int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
+int BCNode::tryResolveClass(QoreClass* cls, bool raise_error) {
     if (!sclass) {
         if (cname) {
             // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-            delete cname;
-            cname = 0;
+            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname, raise_error);
+            if (sclass) {
+                printd(5, "BCNode::tryResolveClass() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+                delete cname;
+                cname = nullptr;
+            } else {
+                printd(5, "BCNode::tryResolveClass() %s cannot resolve %s\n", cls->getName(), cname->ostr);
+            }
         } else {
             // issue #3005: cstr may be nullptr in case of a previous parse error
             if (cstr) {
                 // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-                sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-                printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-                free(cstr);
-                cstr = nullptr;
+                sclass = qore_root_ns_private::parseFindClass(loc, cstr, raise_error);
+                if (sclass) {
+                    printd(5, "BCNode::tryResolveClass() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+                    free(cstr);
+                    cstr = nullptr;
+                } else {
+                    printd(5, "BCNode::tryResolveClass() %s cannot resolve %s\n", cls->getName(), cstr);
+                }
             }
         }
         if (cls == sclass) {
@@ -1556,8 +1572,13 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             cls->priv->scl->valid = false;
             sclass = nullptr;
         }
-        //printd(5, "BCNode::initializeHierarchy() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
+        //printd(5, "BCNode::tryResolveClass() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
     }
+    return sclass ? 0 : -1;
+}
+
+int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
+    tryResolveClass(cls, true);
     int rc;
     // recursively add base classes to special method list
     if (sclass) {
@@ -1575,8 +1596,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             parse_error(*cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
         rc = sclass->priv->initializeHierarchy(qcp_set);
-    }
-    else
+    } else
         rc = -1;
     return rc;
 }

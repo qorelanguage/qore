@@ -1363,26 +1363,29 @@ class BCNode {
 public:
     // populated automatically on creation
     const QoreProgramLocation* loc;
-    NamedScope* cname;
-    char* cstr;
-    QoreClass* sclass;
+    NamedScope* cname = nullptr;
+    char* cstr = nullptr;
+    QoreClass* sclass = nullptr;
     ClassAccess access;
     bool is_virtual : 1;
 
-    DLLLOCAL BCNode(const QoreProgramLocation* loc, NamedScope* c, ClassAccess a) : loc(loc), cname(c), cstr(nullptr), sclass(nullptr), access(a), is_virtual(false) {
+    DLLLOCAL BCNode(const QoreProgramLocation* loc, NamedScope* c, ClassAccess a) : loc(loc), cname(c), access(a),
+            is_virtual(false) {
     }
 
     // this method takes ownership of *str
-    DLLLOCAL BCNode(const QoreProgramLocation* loc, char* str, ClassAccess a) : loc(loc), cname(0), cstr(str), sclass(nullptr), access(a), is_virtual(false) {
+    DLLLOCAL BCNode(const QoreProgramLocation* loc, char* str, ClassAccess a) : loc(loc), cstr(str), access(a),
+            is_virtual(false) {
     }
 
     // for builtin base classes
-    DLLLOCAL BCNode(const QoreProgramLocation* loc, QoreClass* qc, bool n_virtual = false)
-        : loc(loc), cname(nullptr), cstr(nullptr), sclass(qc), access(Public), is_virtual(n_virtual) {
+    DLLLOCAL BCNode(const QoreProgramLocation* loc, QoreClass* qc, bool n_virtual = false) : loc(loc), sclass(qc),
+            access(Public), is_virtual(n_virtual) {
     }
 
     // called at runtime with committed classes
-    DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), cname(nullptr), cstr(nullptr), sclass(old.sclass), access(old.access), is_virtual(old.is_virtual) {
+    DLLLOCAL BCNode(const BCNode &old) : loc(old.loc), sclass(old.sclass), access(old.access),
+            is_virtual(old.is_virtual) {
         assert(!old.cname);
         assert(!old.cstr);
         assert(old.sclass);
@@ -1393,6 +1396,8 @@ public:
         if (cstr)
             free(cstr);
     }
+
+    DLLLOCAL int tryResolveClass(QoreClass* cls, bool raise_error);
 
     DLLLOCAL ClassAccess getAccess() const { return access; }
 
@@ -2971,6 +2976,10 @@ public:
                 has_new_user_changes = true;
             if (!has_sig_changes)
                 has_sig_changes = true;
+            assert(cls);
+            for (auto& i : *scl) {
+                i->tryResolveClass(cls, false);
+            }
         }
     }
 
