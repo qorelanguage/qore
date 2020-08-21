@@ -385,7 +385,7 @@ public namespace Schema {
 
         #! creates the callback object from the given arguments
         /** @param sc the Schema::AbstractSchema "AbstractSchema" object for output logging and SQL execution
-            @param v the verbosity level; larger numbers mean more output
+            @param v the verbosity level; larger numbers mean more output, negative numbers mean no output
         */
         constructor(AbstractSchema sc, int v = 0) {
             schema = sc;
@@ -400,6 +400,9 @@ public namespace Schema {
                 ++change_count;
             else
                 t = 1;
+            if (verbose < 0) {
+                return;
+            }
             if (verbose > t) {
                 if (dot_count) {
                     schema.logProgress("\n");

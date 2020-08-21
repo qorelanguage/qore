@@ -121,7 +121,7 @@ public class AbstractDataProcessor {
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
         @param _data the data to process
     */
-    private abstract auto submitImpl(code enqueue, auto _data);
+    private abstract submitImpl(code enqueue, auto _data);
 
     #! Returns @ref True if the data processor supports bulk operation
     /** @return @ref True if the data processor supports bulk operation
