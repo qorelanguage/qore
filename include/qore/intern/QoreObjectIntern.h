@@ -572,155 +572,156 @@ public:
         return false;
     }
 
-   DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
+    DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
 
-   DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
-      if (!privateData)
-         privateData = new KeyList;
-      //printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this, privateData, theclass->getName(), key, pd);
-      privateData->insert(key, pd);
-      addVirtualPrivateData(key, pd);
-   }
+    DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
+        if (!privateData) {
+            privateData = new KeyList;
+        }
+        printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this, privateData, theclass->getName(), key, pd);
+        privateData->insert(key, pd);
+        addVirtualPrivateData(key, pd);
+    }
 
-   // add virtual IDs for private data to class list
-   DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
-      // first get parent class corresponding to "key"
-      QoreClass* qc = theclass->getClass(key);
+    // add virtual IDs for private data to class list
+    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
+        // first get parent class corresponding to "key"
+        QoreClass* qc = theclass->getClass(key);
 
-      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p privateData: %p key: %d apd: %p qc: %p '%s'\n", this, privateData, key, apd, qc, qc->getName());
-      assert(qc);
-      BCSMList* sml = qc->getBCSMList();
-      //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
-      if (!sml)
-         return;
+        //printd(5, "qore_object_private::addVirtualPrivateData() this: %p privateData: %p key: %d apd: %p qc: %p '%s'\n", this, privateData, key, apd, qc, qc->getName());
+        assert(qc);
+        BCSMList* sml = qc->getBCSMList();
+        //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
+        if (!sml)
+            return;
 
-      for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
-         //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' key: %d virt: %s\n", this, i->first, i->first->getName(), i->first->getID(), i->second ? "true" : "false");
-         if (i->second)
-            privateData->insertVirtual(i->first->getID(), apd);
-      }
-   }
+        for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
+            //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' key: %d virt: %s\n", this, i->first, i->first->getName(), i->first->getID(), i->second ? "true" : "false");
+            if (i->second)
+                privateData->insertVirtual(i->first->getID(), apd);
+        }
+    }
 
-   DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
-      QoreSafeVarRWWriteLocker sl(rml);
-      return privateData ? privateData->getAndRemovePtr(key) : nullptr;
-   }
+    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
+        QoreSafeVarRWWriteLocker sl(rml);
+        return privateData ? privateData->getAndRemovePtr(key) : nullptr;
+    }
 
-   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+    DLLLOCAL AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
-   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
     // no locking necessary; if class_ctx is non-null, an internal member is being initialized
     DLLLOCAL QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx);
 
-   //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
-   /**
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return member data of the object
-   */
-   DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
-
-   DLLLOCAL void incScanCount(int dt) {
-      assert(dt);
-      assert(obj_count || dt > 0);
-      //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
-      obj_count += dt;
-   }
-
-   DLLLOCAL unsigned getScanCount() const {
-      return obj_count;
-   }
-
-   DLLLOCAL VRMutex* getGate() const {
-      return &gate;
-   }
-
-   /*
-   DLLLOCAL static bool hackId(const QoreObject& obj) {
-      if (!obj.priv->data)
-         return false;
-      const AbstractQoreNode* n = obj.priv->data->getKeyValue("name");
-      if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), "http-test"))
-         return true;
-      return false;
-   }
-   */
-
-   // custom reference handler - unlocked
-   /** @param real if the reference is "real" (i.e. cannot be part of a recursive cycle) or not
+    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
+    /**
+         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @return member data of the object
     */
-   DLLLOCAL void customRefIntern(bool real);
+    DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
 
-   // custom dereference handler - unlocked
-   /** @param real if the dereference is "real" (i.e. cannot be part of a recursive cycle) or not
+    DLLLOCAL void incScanCount(int dt) {
+        assert(dt);
+        assert(obj_count || dt > 0);
+        //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+        obj_count += dt;
+    }
+
+    DLLLOCAL unsigned getScanCount() const {
+        return obj_count;
+    }
+
+    DLLLOCAL VRMutex* getGate() const {
+        return &gate;
+    }
+
+    /*
+    DLLLOCAL static bool hackId(const QoreObject& obj) {
+        if (!obj.priv->data)
+            return false;
+        const AbstractQoreNode* n = obj.priv->data->getKeyValue("name");
+        if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), "http-test"))
+            return true;
+        return false;
+    }
     */
-   DLLLOCAL void customDeref(bool real, ExceptionSink* xsink);
 
-   DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
+    // custom reference handler - unlocked
+    /** @param real if the reference is "real" (i.e. cannot be part of a recursive cycle) or not
+    */
+    DLLLOCAL void customRefIntern(bool real);
 
-   DLLLOCAL void endCall(ExceptionSink* xsink);
+    // custom dereference handler - unlocked
+    /** @param real if the dereference is "real" (i.e. cannot be part of a recursive cycle) or not
+    */
+    DLLLOCAL void customDeref(bool real, ExceptionSink* xsink);
 
-   // increments the real reference count without incrementing the actual reference count
-   // (i.e. turns the current not real reference into a "real" reference; one that cannot
-   // participate in recursive graphs)
-   DLLLOCAL void setRealReference();
+    DLLLOCAL int startCall(const char* mname, ExceptionSink* xsink);
 
-   // decrements the real reference count without decrementing the actual reference count
-   DLLLOCAL void unsetRealReference();
+    DLLLOCAL void endCall(ExceptionSink* xsink);
 
-   DLLLOCAL const char* getClassName() const {
-      return theclass->getName();
-   }
+    // increments the real reference count without incrementing the actual reference count
+    // (i.e. turns the current not real reference into a "real" reference; one that cannot
+    // participate in recursive graphs)
+    DLLLOCAL void setRealReference();
 
-   DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
-      return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
-   }
+    // decrements the real reference count without decrementing the actual reference count
+    DLLLOCAL void unsetRealReference();
 
-   DLLLOCAL static qore_object_private* get(QoreObject& obj) {
-      return obj.priv;
-   }
+    DLLLOCAL const char* getClassName() const {
+        return theclass->getName();
+    }
 
-   DLLLOCAL static const qore_object_private* get(const QoreObject& obj) {
-      return obj.priv;
-   }
+    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+        return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
+    }
 
-   DLLLOCAL static QoreValue takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
-      return obj.priv->takeMember(xsink, mem, check_access);
-   }
+    DLLLOCAL static qore_object_private* get(QoreObject& obj) {
+        return obj.priv;
+    }
 
-   DLLLOCAL static QoreValue takeMember(QoreObject& obj, LValueHelper& lvh, const char* mem) {
-      return obj.priv->takeMember(lvh, mem);
-   }
+    DLLLOCAL static const qore_object_private* get(const QoreObject& obj) {
+        return obj.priv;
+    }
 
-   DLLLOCAL static void takeMembers(QoreObject& o, QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l) {
-      o.priv->takeMembers(rv, lvh, l);
-   }
+    DLLLOCAL static QoreValue takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
+        return obj.priv->takeMember(xsink, mem, check_access);
+    }
 
-   DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
-      return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
-   }
+    DLLLOCAL static QoreValue takeMember(QoreObject& obj, LValueHelper& lvh, const char* mem) {
+        return obj.priv->takeMember(lvh, mem);
+    }
 
-   DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
-      obj->priv->plusEquals(v, vl, xsink);
-   }
+    DLLLOCAL static void takeMembers(QoreObject& o, QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l) {
+        o.priv->takeMembers(rv, lvh, l);
+    }
 
-   DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
-      return obj->priv->firstKey(xsink);
-   }
+    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
+        return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
+    }
 
-   DLLLOCAL static QoreStringNode* lastKey(QoreObject* obj, ExceptionSink* xsink) {
-      return obj->priv->lastKey(xsink);
-   }
+    DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
+        obj->priv->plusEquals(v, vl, xsink);
+    }
 
-   DLLLOCAL static unsigned getScanCount(const QoreObject& o) {
-      return o.priv->getScanCount();
-   }
+    DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
+        return obj->priv->firstKey(xsink);
+    }
 
-   DLLLOCAL static void incScanCount(const QoreObject& o, int dt) {
-      o.priv->incScanCount(dt);
-   }
+    DLLLOCAL static QoreStringNode* lastKey(QoreObject* obj, ExceptionSink* xsink) {
+        return obj->priv->lastKey(xsink);
+    }
+
+    DLLLOCAL static unsigned getScanCount(const QoreObject& o) {
+        return o.priv->getScanCount();
+    }
+
+    DLLLOCAL static void incScanCount(const QoreObject& o, int dt) {
+        o.priv->incScanCount(dt);
+    }
 };
 
 class qore_object_lock_handoff_helper {
