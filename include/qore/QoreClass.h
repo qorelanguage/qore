@@ -535,11 +535,15 @@ public:
 
         @param obj_cls the class for the object to be returned
         @param args the arguments for the method
+        @param allow_abstract if construction of abstract classes is allowed; this should only be true when called
+        from an external language module where the class has been inherited and all abstract methods have been
+        overridden in the subclass in the other language, otherwise allowing an abstract class to be constructed
+        will result in runtime errors / core dumps
         @param xsink Qore-language exception information is added here
 
         @since %Qore 0.9.5
     */
-    DLLEXPORT QoreObject* execConstructor(const QoreClass& obj_cls, const QoreListNode* args,
+    DLLEXPORT QoreObject* execConstructor(const QoreClass& obj_cls, const QoreListNode* args, bool allow_abstract,
         ExceptionSink* xsink) const;
 
     //! creates a new object and executes the constructor on it and returns the new object

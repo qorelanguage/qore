@@ -2604,8 +2604,10 @@ public:
     DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm,
         const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
+    // allow_abstract = true if only for other languages that have inherited this class and have implemented
+    // the abstract methods
     DLLLOCAL QoreObject* execConstructor(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-        const QoreListNode* args, const QoreClass* obj_cls = nullptr) const;
+        const QoreListNode* args, const QoreClass* obj_cls = nullptr, bool allow_abstract = false) const;
 
     DLLLOCAL void addBuiltinMethod(const char* mname, MethodVariantBase* variant);
     DLLLOCAL void addBuiltinStaticMethod(const char* mname, MethodVariantBase* variant);
@@ -2976,10 +2978,6 @@ public:
                 has_new_user_changes = true;
             if (!has_sig_changes)
                 has_sig_changes = true;
-            assert(cls);
-            for (auto& i : *scl) {
-                i->tryResolveClass(cls, false);
-            }
         }
     }
 

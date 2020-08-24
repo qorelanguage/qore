@@ -299,7 +299,7 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
         }
         for (auto& vi : vlist) {
             MethodVariantBase* v = vi.second;
-            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
+            desc->sprintf("\n * abstract %s %s::%s(%s)", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
                 v->getSignature()->getSignatureText());
         }
     }
@@ -1088,21 +1088,23 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
 }
 
 QoreObject* qore_class_private::execConstructor(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-    const QoreListNode* args, const QoreClass* obj_cls) const {
+    const QoreListNode* args, const QoreClass* obj_cls, bool allow_abstract) const {
 #ifdef DEBUG
-    // instantiation checks have to be made at parse time
-    for (auto& i : ahm) {
-        printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
-        vmap_t& v = i.second->vlist;
-        for (auto& vi : v) {
-            printd(0, " + vlist: %s\n", vi.first);
+    if (!allow_abstract) {
+        // instantiation checks have to be made at parse time
+        for (auto& i : ahm) {
+            printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
+            vmap_t& v = i.second->vlist;
+            for (auto& vi : v) {
+                printd(0, " + vlist: %s\n", vi.first);
+            }
+            v = i.second->pending_save;
+            for (auto& vi : v) {
+                printd(0, " + pending_save: %s\n", vi.first);
+            }
         }
-        v = i.second->pending_save;
-        for (auto& vi : v) {
-            printd(0, " + pending_save: %s\n", vi.first);
-        }
+        assert(ahm.empty());
     }
-    assert(ahm.empty());
 #endif
 
     // create new object
@@ -2746,7 +2748,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 // imports members from qc -> this
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
-    assert(qc.name != name || qc.cls->priv->ns->name != cls->priv->ns->name);
+    assert(qc.name != name || !ns || qc.cls->priv->ns->name != ns->name);
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialized before merging
     qc.members.parseInit(qc.selfid);
@@ -3386,8 +3388,8 @@ QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* 
     return priv->execConstructor(xsink, nullptr, args);
 }
 
-QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, ExceptionSink* xsink) const {
-    return priv->execConstructor(xsink, nullptr, args, &obj_cls);
+QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, bool allow_abstract, ExceptionSink* xsink) const {
+    return priv->execConstructor(xsink, nullptr, args, &obj_cls, allow_abstract);
 }
 
 QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
@@ -5216,6 +5218,9 @@ public:
             i = qc->scl->begin();
         } else {
             ++i;
+        }
+        if (i != qc->scl->end() && !(*i)->sclass && (*i)->tryResolveClass(qc->cls, false)) {
+            i = qc->scl->end();
         }
         return i != qc->scl->end();
     }

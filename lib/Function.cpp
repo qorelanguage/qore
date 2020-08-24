@@ -656,50 +656,49 @@ bool QoreFunction::existsVariant(const type_vec_t& paramTypeInfo) const {
 }
 
 static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction* aqf, const AbstractQoreFunctionVariant* variant) {
-   QoreStringNode* desc = new QoreStringNode;
-   do_call_name(*desc, aqf);
-   desc->sprintf("%s) is a variant that returns a constant value when incorrect data types are passed to the function", variant->getSignature()->getSignatureText());
-   const QoreTypeInfo* rti = variant->getReturnTypeInfo();
-   if (QoreTypeInfo::hasType(rti) && !variant->numParams()) {
-      desc->concat(" and always returns ");
-      if (QoreTypeInfo::getUniqueReturnClass(rti) || func->className()) {
-         QoreTypeInfo::getThisType(rti, *desc);
-      }
-      else {
-         // get actual value and include in warning
-         ExceptionSink xsink;
-         CodeEvaluationHelper ceh(&xsink, func, variant, "noop-dummy");
-         ValueHolder v(variant->evalFunction(func->getName(), ceh, 0), 0);
-         //ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
-         if (v->isNothing())
-            desc->concat("NOTHING");
-         else {
-            QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
-            desc->sprintf("the following value: %s (", vs->getBuffer());
+    QoreStringNode* desc = new QoreStringNode;
+    do_call_name(*desc, aqf);
+    desc->sprintf("%s) is a variant that returns a constant value when incorrect data types are passed to the function", variant->getSignature()->getSignatureText());
+    const QoreTypeInfo* rti = variant->getReturnTypeInfo();
+    if (QoreTypeInfo::hasType(rti) && !variant->numParams()) {
+        desc->concat(" and always returns ");
+        if (QoreTypeInfo::getUniqueReturnClass(rti) || func->className()) {
             QoreTypeInfo::getThisType(rti, *desc);
-            desc->concat(')');
-         }
-      }
-   }
-   return desc;
+        } else {
+            // get actual value and include in warning
+            ExceptionSink xsink;
+            CodeEvaluationHelper ceh(&xsink, func, variant, "noop-dummy");
+            ValueHolder v(variant->evalFunction(func->getName(), ceh, 0), 0);
+            //ReferenceHolder<AbstractQoreNode> v(variant->evalFunction(func->getName(), ceh, 0), 0);
+            if (v->isNothing())
+                desc->concat("NOTHING");
+            else {
+                QoreNodeAsStringHelper vs(*v, FMT_NONE, 0);
+                desc->sprintf("the following value: %s (", vs->getBuffer());
+                QoreTypeInfo::getThisType(rti, *desc);
+                desc->concat(')');
+            }
+        }
+    }
+    return desc;
 }
 
 static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore_class_private* class_ctx, bool internal_access) {
-   assert(dynamic_cast<const MethodVariantBase*>(v));
-   const MethodVariantBase* mvb = reinterpret_cast<const MethodVariantBase*>(v);
-   ClassAccess va = mvb->getAccess();
-   // skip if the variant is not accessible
-   return ((!class_ctx && va > Public) || (va == Internal && !internal_access));
+    assert(dynamic_cast<const MethodVariantBase*>(v));
+    const MethodVariantBase* mvb = reinterpret_cast<const MethodVariantBase*>(v);
+    ClassAccess va = mvb->getAccess();
+    // skip if the variant is not accessible
+    return ((!class_ctx && va > Public) || (va == Internal && !internal_access));
 }
 
 static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgramLocation* loc, int pi, const char* class_name, const char* name, const char* sig, const QoreTypeInfo* proto, const QoreTypeInfo* arg) {
-   QoreStringNode* desc = new QoreStringNode("argument ");
-   desc->sprintf("%d to '", pi);
-   if (class_name)
-      desc->sprintf("%s::", class_name);
-   desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getName(proto), QoreTypeInfo::getName(arg));
-   qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
-   return 0;
+    QoreStringNode* desc = new QoreStringNode("argument ");
+    desc->sprintf("%d to '", pi);
+    if (class_name)
+        desc->sprintf("%s::", class_name);
+    desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getName(proto), QoreTypeInfo::getName(arg));
+    qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+    return nullptr;
 }
 
 static void do_call_str(QoreString &desc, const QoreFunction* func, const type_vec_t& argTypeInfo) {

@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.4
+%requires qore >= 0.9.5
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
 
@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "0.9.4";
+    version = "0.9.5";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -71,6 +71,9 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil095 HttpServerUtil 0.9.5
+    - aligned version with the HttpServer module version
 
     @subsection httputil094 HttpServerUtil 0.9.4
     - added support for sending chunked replies from an @ref Qore::InputStream "InputStream"
