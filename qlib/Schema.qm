@@ -820,7 +820,7 @@ public namespace Schema {
             already set
         */
         *hash<auto> getIndexOptions() {
-            *hash<auto> h = getIndexOptionsImpl();
+            *hash h += getIndexOptionsImpl();
             if (index_ts && !h.index_tablespace)
                 h.index_tablespace = index_ts;
             return h;
