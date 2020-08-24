@@ -1215,7 +1215,7 @@ protected:
         return nullptr;
     }
 
-    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation* loc, const NamedScope& name);
+    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation* loc, const NamedScope& name, bool raise_error);
     DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
     DLLLOCAL QoreClass* parseFindScopedClassWithMethodInternError(const QoreProgramLocation* loc, const NamedScope& name, bool error);
     DLLLOCAL QoreClass* parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
@@ -1228,7 +1228,7 @@ protected:
             if (nscx) {
                 QoreClass* qc = nscx->parseFindLocalClass(cname);
                 if (qc)
-                return qc;
+                    return qc;
             }
         }
 
@@ -1855,15 +1855,16 @@ public:
         return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(loc, name, typeInfo, found);
     }
 
-    DLLLOCAL static QoreClass* parseFindClass(const QoreProgramLocation* loc, const char* name) {
+    DLLLOCAL static QoreClass* parseFindClass(const QoreProgramLocation* loc, const char* name, bool raise_error = true) {
         QoreClass* qc = getRootNS()->rpriv->parseFindClassIntern(name);
-        if (!qc)
+        if (!qc && raise_error) {
             parse_error(*loc, "reference to undefined class '%s'", name);
+        }
         return qc;
     }
 
-    DLLLOCAL static QoreClass* parseFindScopedClass(const QoreProgramLocation* loc, const NamedScope& name) {
-        return getRootNS()->rpriv->parseFindScopedClassIntern(loc, name);
+    DLLLOCAL static QoreClass* parseFindScopedClass(const QoreProgramLocation* loc, const NamedScope& name, bool raise_error = true) {
+        return getRootNS()->rpriv->parseFindScopedClassIntern(loc, name, raise_error);
     }
 
     DLLLOCAL static QoreClass* parseFindScopedClassWithMethod(const QoreProgramLocation* loc, const NamedScope& name, bool error) {

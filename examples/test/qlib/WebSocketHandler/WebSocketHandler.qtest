@@ -59,7 +59,6 @@ class MyWsHandler inherits WebSocketHandler {
     logError(string fmt) {
         errs.push(vsprintf(fmt, argv));
     }
-
 }
 
 class MyWsClient inherits WebSocketClient {

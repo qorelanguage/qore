@@ -2003,8 +2003,10 @@ ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
 }
 
 QoreProgram* getProgram() {
-    printd(5, "getProgram(): (td: %p) %p\n", &thread_data, (thread_data.get())->current_pgm);
-    return (thread_data.get())->current_pgm;
+    ThreadData* td = thread_data.get();
+    printd(5, "getProgram(): (td: %p) %p\n", &thread_data, td->current_pgm);
+    QoreProgram* rv = td->current_pgm;
+    return rv ? rv : td->call_program_context;
 }
 
 RootQoreNamespace* getRootNS() {

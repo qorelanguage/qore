@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
 
-/*  WebSocketHandler.qm Copyright 2013 - 2019 Qore Technologies, s.r.o.
+/*  WebSocketHandler.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -121,16 +121,15 @@ public namespace WebSocketHandler {
         }
 
         #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
-        constructor(WebSocketHandler n_handler) {
-            handler = n_handler;
+        constructor(WebSocketHandler handler) {
+            self.handler = handler;
         }
 
         #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
         *binary pollData() {
             try {
                 return queue.get(DefaultQueuePollingInterval);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "QUEUE-TIMEOUT")
                     rethrow;
             }

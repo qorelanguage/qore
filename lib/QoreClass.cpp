@@ -299,7 +299,7 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
         }
         for (auto& vi : vlist) {
             MethodVariantBase* v = vi.second;
-            desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
+            desc->sprintf("\n * abstract %s %s::%s(%s)", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname,
                 v->getSignature()->getSignatureText());
         }
     }
@@ -893,10 +893,18 @@ void qore_class_private::mergeAbstract() {
     // merge direct base class abstract method lists to ourselves
     for (auto& i : *scl) {
         if ((*i).sclass) {
-            assert((*i).sclass->priv->initialized);
+            qore_class_private* cls = (*i).sclass->priv;
+            if (!cls->initialized) {
+                if (cls->sys) {
+                    cls->initializeBuiltin();
+                } else {
+                    cls->initialize();
+                }
+            }
+            assert(cls->initialized);
 
             // called during class initialization to copy committed abstract variants to our variant lists
-            AbstractMethodMap& mm = (*i).sclass->priv->ahm;
+            AbstractMethodMap& mm = cls->ahm;
             //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
             for (auto& j : mm) {
                 // skip if vlists are empty
@@ -1080,21 +1088,23 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
 }
 
 QoreObject* qore_class_private::execConstructor(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-    const QoreListNode* args, const QoreClass* obj_cls) const {
+    const QoreListNode* args, const QoreClass* obj_cls, bool allow_abstract) const {
 #ifdef DEBUG
-    // instantiation checks have to be made at parse time
-    for (auto& i : ahm) {
-        printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
-        vmap_t& v = i.second->vlist;
-        for (auto& vi : v) {
-            printd(0, " + vlist: %s\n", vi.first);
+    if (!allow_abstract) {
+        // instantiation checks have to be made at parse time
+        for (auto& i : ahm) {
+            printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
+            vmap_t& v = i.second->vlist;
+            for (auto& vi : v) {
+                printd(0, " + vlist: %s\n", vi.first);
+            }
+            v = i.second->pending_save;
+            for (auto& vi : v) {
+                printd(0, " + pending_save: %s\n", vi.first);
+            }
         }
-        v = i.second->pending_save;
-        for (auto& vi : v) {
-            printd(0, " + pending_save: %s\n", vi.first);
-        }
+        assert(ahm.empty());
     }
-    assert(ahm.empty());
 #endif
 
     // create new object
@@ -1532,22 +1542,30 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
     }
 }
 
-int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
+int BCNode::tryResolveClass(QoreClass* cls, bool raise_error) {
     if (!sclass) {
         if (cname) {
             // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-            delete cname;
-            cname = 0;
+            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname, raise_error);
+            if (sclass) {
+                printd(5, "BCNode::tryResolveClass() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+                delete cname;
+                cname = nullptr;
+            } else {
+                printd(5, "BCNode::tryResolveClass() %s cannot resolve %s\n", cls->getName(), cname->ostr);
+            }
         } else {
             // issue #3005: cstr may be nullptr in case of a previous parse error
             if (cstr) {
                 // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-                sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-                printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-                free(cstr);
-                cstr = nullptr;
+                sclass = qore_root_ns_private::parseFindClass(loc, cstr, raise_error);
+                if (sclass) {
+                    printd(5, "BCNode::tryResolveClass() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+                    free(cstr);
+                    cstr = nullptr;
+                } else {
+                    printd(5, "BCNode::tryResolveClass() %s cannot resolve %s\n", cls->getName(), cstr);
+                }
             }
         }
         if (cls == sclass) {
@@ -1556,8 +1574,13 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             cls->priv->scl->valid = false;
             sclass = nullptr;
         }
-        //printd(5, "BCNode::initializeHierarchy() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
+        //printd(5, "BCNode::tryResolveClass() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
     }
+    return sclass ? 0 : -1;
+}
+
+int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
+    tryResolveClass(cls, true);
     int rc;
     // recursively add base classes to special method list
     if (sclass) {
@@ -1575,8 +1598,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             parse_error(*cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
         rc = sclass->priv->initializeHierarchy(qcp_set);
-    }
-    else
+    } else
         rc = -1;
     return rc;
 }
@@ -2726,7 +2748,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 // imports members from qc -> this
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
-    assert(qc.name != name || qc.cls->priv->ns->name != cls->priv->ns->name);
+    assert(qc.name != name || !ns || qc.cls->priv->ns->name != ns->name);
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialized before merging
     qc.members.parseInit(qc.selfid);
@@ -3366,8 +3388,8 @@ QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* 
     return priv->execConstructor(xsink, nullptr, args);
 }
 
-QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, ExceptionSink* xsink) const {
-    return priv->execConstructor(xsink, nullptr, args, &obj_cls);
+QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, bool allow_abstract, ExceptionSink* xsink) const {
+    return priv->execConstructor(xsink, nullptr, args, &obj_cls, allow_abstract);
 }
 
 QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
@@ -5196,6 +5218,9 @@ public:
             i = qc->scl->begin();
         } else {
             ++i;
+        }
+        if (i != qc->scl->end() && !(*i)->sclass && (*i)->tryResolveClass(qc->cls, false)) {
+            i = qc->scl->end();
         }
         return i != qc->scl->end();
     }

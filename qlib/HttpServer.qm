@@ -22,16 +22,16 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.4
+%requires qore >= 0.9.5
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.9.4
+%requires(reexport) HttpServerUtil >= 0.9.5
 
 %new-style
 
 module HttpServer {
-    version = "0.9.4";
+    version = "0.9.5";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -111,6 +111,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http095 HttpServer 0.9.5
+    - fixed a bug where the HTTP server would not always stop the ThreadPool which caused process shutdowns to hang
+      (<a href="https://github.com/qorelanguage/qore/issues/3999">issue 3999</a>)
 
     @subsection http094 HttpServer 0.9.4
     - added support for sending chunked replies from an @ref Qore::InputStream "InputStream"
@@ -1180,6 +1184,8 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         map $1.stop(), listeners.iterator();
         c.waitForZero();
+
+        threadPool.stop();
     }
 
     #! stops a single listener based on its name or bind address; does not return until all connections on the listener have closed
