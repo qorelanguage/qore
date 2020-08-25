@@ -871,7 +871,7 @@ DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
 DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 
-#if defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE)
+#if defined(HAVE_PTHREAD_GET_STACKSIZE_NP) || (defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE))
 #define QORE_HAVE_GET_STACK_SIZE
 #endif
 
@@ -881,42 +881,45 @@ DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 
 class QorePThreadAttr {
 private:
-   pthread_attr_t attr;
+    pthread_attr_t attr;
 
 public:
-   DLLLOCAL QorePThreadAttr() {
-      pthread_attr_init(&attr);
-      pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-   }
+    DLLLOCAL QorePThreadAttr() {
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    }
 
-   DLLLOCAL ~QorePThreadAttr() {
-      //printd(2, "calling pthread_attr_destroy(%p)\n", &attr);
-      pthread_attr_destroy(&attr);
-      //printd(2, "returned from pthread_attr_destroy(%p)\n", &attr);
-   }
+    DLLLOCAL ~QorePThreadAttr() {
+        //printd(2, "calling pthread_attr_destroy(%p)\n", &attr);
+        pthread_attr_destroy(&attr);
+        //printd(2, "returned from pthread_attr_destroy(%p)\n", &attr);
+    }
 
 #ifdef HAVE_PTHREAD_ATTR_GETSTACK
-   DLLLOCAL void getstack(void*& ptr, size_t& ssize) {
-      pthread_attr_getstack(&attr, &ptr, &ssize);
-   }
+    DLLLOCAL void getstack(void*& ptr, size_t& ssize) {
+        pthread_attr_getstack(&attr, &ptr, &ssize);
+    }
 #endif
 
-   DLLLOCAL size_t getstacksize() const {
-      size_t ssize;
-      pthread_attr_getstacksize(&attr, &ssize);
-      return ssize;
-   }
+    DLLLOCAL size_t getstacksize() const {
+        size_t ssize;
+        pthread_attr_getstacksize(&attr, &ssize);
+        return ssize;
+    }
 
-   DLLLOCAL int setstacksize(size_t ssize) {
-      return pthread_attr_setstacksize(&attr, ssize);
-   }
+    DLLLOCAL int setstacksize(size_t ssize) {
+        return pthread_attr_setstacksize(&attr, ssize);
+    }
 
-   DLLLOCAL pthread_attr_t* get_ptr() {
-      return &attr;
-   }
+    DLLLOCAL pthread_attr_t* get_ptr() {
+        return &attr;
+    }
 
 #ifdef QORE_HAVE_GET_STACK_SIZE
     DLLLOCAL static size_t getCurrentThreadStackSize() {
+#ifdef HAVE_PTHREAD_GET_STACKSIZE_NP
+        return pthread_get_stacksize_np(pthread_self());
+#else
         pthread_attr_t attr;
         if (pthread_getattr_np(pthread_self(), &attr)) {
             return 0;
@@ -927,6 +930,7 @@ public:
             return 0;
         }
         return size;
+#endif
     }
 #endif
 };

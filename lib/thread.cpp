@@ -2502,21 +2502,21 @@ QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink) {
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
-   int tid = get_thread_entry();
-   //printd(2, "got %d()\n", tid);
+    int tid = get_thread_entry();
+    //printd(2, "got %d()\n", tid);
 
-   // if can't start thread, then throw exception
-   if (tid == -1) {
-      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return -1;
-   }
+    // if can't start thread, then throw exception
+    if (tid == -1) {
+        xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
+        return -1;
+    }
 
-   ThreadArg* ta = new ThreadArg(f, arg, tid);
+    ThreadArg* ta = new ThreadArg(f, arg, tid);
 
-   //printd(5, "tp = %p\n", tp);
-   // create thread
-   int rc;
-   pthread_t ptid;
+    //printd(5, "tp = %p\n", tp);
+    // create thread
+    int rc;
+    pthread_t ptid;
 
 #ifdef QORE_MANAGE_STACK
     // make sure accesses to ta_default are made locked

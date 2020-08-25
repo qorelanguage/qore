@@ -130,6 +130,7 @@
 #cmakedefine HAVE_USLEEP
 #cmakedefine HAVE_VFORK
 #cmakedefine HAVE_VPRINTF
+#cmakedefine HAVE_PTHREAD_GET_STACKSIZE_NP
 #cmakedefine HAVE_GETIFADDRS
 #cmakedefine HAVE_WORKING_FORK
 #cmakedefine HAVE_WORKING_VFORK
