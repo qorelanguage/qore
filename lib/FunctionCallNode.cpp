@@ -140,7 +140,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
     // initialize arguments and setup argument type list (argTypeInfo)
     if (num_args) {
         // issue #2993: do not initialize args with the "return value ignored" parse flag set
-        lvids += parse_args->initArgs(oflag, pflag & ~PF_RETURN_VALUE_IGNORED, argTypeInfo, args);
+        lvids += parse_args->initArgs(oflag, pflag & ~(PF_RETURN_VALUE_IGNORED | PF_BACKGROUND), argTypeInfo, args);
         parse_args = nullptr;
     }
 
@@ -219,8 +219,9 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
 
             parseException(*loc, "ILLEGAL-CALL", desc);
         }
-    } else
+    } else {
         returnTypeInfo = nullptr;
+    }
 
     //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p args: %p (%zd)\n", this, func ? func->getName() : "n/a", variant, args, args ? args->size() : 0);
 
