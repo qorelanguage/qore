@@ -962,11 +962,6 @@ DLLLOCAL void* qore_get_in_addr(struct sockaddr *sa);
 // for IPv4/v6 only
 DLLLOCAL size_t qore_get_in_len(struct sockaddr *sa);
 
-#ifdef QORE_MANAGE_STACK
-DLLLOCAL size_t q_thread_get_stack_size();
-DLLLOCAL size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
-#endif
-
 DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
 
 DLLLOCAL void qore_delete_module_options();
