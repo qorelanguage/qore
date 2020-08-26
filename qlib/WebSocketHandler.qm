@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 # require type definitions everywhere
 %require-types
@@ -37,7 +37,7 @@
 %new-style
 
 module WebSocketHandler {
-    version = "1.4.3";
+    version = "1.5";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,6 +62,9 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_5 Version 1.5
+    - allow the WebSocket handler to have connections added to it from outside the class
 
     @subsection websockethandler_v1_4_3 Version 1.4.3
     - added missing exception handling to connection registration code
@@ -376,14 +379,7 @@ public namespace WebSocketHandler {
             softstring cid = cx.id;
 
             # get new connection object
-            WebSocketConnection wsc = getConnectionImpl(cx, hdr, cid);
-
-            # add connection object to hash
-            {
-                rwl.writeLock();
-                on_exit rwl.writeUnlock();
-                ch{cid} = wsc;
-            }
+            WebSocketConnection wsc = doNewConnection(cx, hdr, cid);
             try {
                 # issue #3225: handle exceptions in WebSocketHandler and remove the connection
                 wsc.registered();
@@ -504,6 +500,20 @@ public namespace WebSocketHandler {
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
         WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
             return new WebSocketConnection(self);
+        }
+
+        #! called when a connection is established; registers the new connection internally
+        WebSocketConnection doNewConnection(hash<auto> cx, hash<auto> hdr, string cid) {
+            WebSocketConnection rv = getConnectionImpl(cx, hdr, cid);
+
+            # add connection object to hash
+            {
+                rwl.writeLock();
+                on_exit rwl.writeUnlock();
+                ch{cid} = rv;
+            }
+
+            return rv;
         }
 
         #! called when the connection terminates; the default implementation does nothing
