@@ -2536,17 +2536,20 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
     return tid;
 }
 
-#ifdef QORE_MANAGE_STACK
 // returns the default thread stack size for new threads
 size_t q_thread_get_stack_size() {
+#ifdef QORE_MANAGE_STACK
     // make sure accesses to stack info are made locked
     AutoLocker al(stack_lck);
-
     return qore_thread_stack_size;
+#else
+    return 0;
+#endif
 }
 
 // returns the default thread stack size set for new threads
 size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
+#ifdef QORE_MANAGE_STACK
     // make sure accesses to stack info are made locked
     AutoLocker al(stack_lck);
 
@@ -2559,8 +2562,10 @@ size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
     qore_thread_stack_size = ta_default.getstacksize();
 
     return qore_thread_stack_size;
-}
+#else
+    return size;
 #endif
+}
 
 #ifdef QORE_HAVE_THREAD_NAME
 #define MAX_THREAD_NAME_SIZE 256

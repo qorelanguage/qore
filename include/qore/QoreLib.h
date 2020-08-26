@@ -723,4 +723,14 @@ DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
 */
 DLLEXPORT void qore_apply_rounding_heuristic(QoreString& str, int round_threshold_1, int round_threshold_2);
 
+//! returns the default thread stack size
+/** @since %Qore 0.9.5 a public API
+*/
+DLLEXPORT size_t q_thread_get_stack_size();
+
+//! sets the default thread stack size or throws an exception on error
+/** @since %Qore 0.9.5 a public API
+*/
+DLLEXPORT size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
+
 #endif // _QORE_QORELIB_H
