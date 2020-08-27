@@ -352,11 +352,10 @@ public namespace TableMapper {
 
             #! buffer for bulk DML
             hash hbuf;
-            *int hbuf_size; # size of the batch in hbuf (like if returned from
-                            # getRecListSize())
-                            # FIXME would be nice to have hbuf with hbuf_size
-                            # in a class, but there are performance considerations.
-                            # --PQ 23-Mar-2017
+            #! size of the batch in hbuf as if returned from getRecListSize()
+            /* FIXME would be nice to have hbuf with hbuf_size in a class, but there are performance considerations.
+            */
+            *int hbuf_size;
 
             #! per-row @ref closure or @ref call_reference for batch inserts/upserts
             *code rowcode;
@@ -376,17 +375,17 @@ public namespace TableMapper {
 
             @par Example:
             @code{.py}
-const DbMapper = (
-    "id": ("sequence": "seq_inventory_example"),
+const DbMapper = {
+    "id": {"sequence": "seq_inventory_example"},
     "store_code": "StoreCode",
     "product_code": "ProductCode",
     "product_desc": "ProductDescription",
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
-    "status": ("constant": "01"),
+    "status": {"constant": "01"},
     "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
-    );
+};
 
 InboundTableMapper mapper(table, DbMapper);
             @endcode
@@ -415,17 +414,17 @@ InboundTableMapper mapper(table, DbMapper);
 
             @par Example:
             @code{.py}
-const DbMapper = (
-    "id": ("sequence": "seq_inventory_example"),
+const DbMapper = {
+    "id": {"sequence": "seq_inventory_example"},
     "store_code": "StoreCode",
     "product_code": "ProductCode",
     "product_desc": "ProductDescription",
     "ordered": "Ordered",
     "available": "Available",
     "in_transit": "InTransit",
-    "status": ("constant": "01"),
+    "status": {"constant": "01"},
     "total": int sub (any x, hash rec) { return rec.Available.toInt() + rec.Ordered.toInt() + rec.InTransit.toInt(); },
-    );
+};
 
 InboundTableMapper mapper(table, DbMapper);
             @endcode

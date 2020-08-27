@@ -1,0 +1,55 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class ParseMemberSizeTest
+
+public class ParseMemberSizeTest inherits QUnit::Test {
+    public {
+        const PositiveTests = {
+            "1k": 1024,
+            "1 kb": 1024,
+            "1 kilobyte": 1024,
+            "2 kilobytes": 2048,
+            "1 kib": 1000,
+
+            "1MB": 1024 * 1024,
+            "1 mb": 1024 * 1024,
+            "1 megabyte": 1024 * 1024,
+            "2 megabytes": 2048 * 1024,
+            "1 MiB": 1000 * 1000,
+
+            "1GB": 1024 * 1024 * 1024,
+            "1 gb": 1024 * 1024 * 1024,
+            "1 gigabyte": 1024 * 1024 * 1024,
+            "2 gigabytes": 2048 * 1024 * 1024,
+            "1 GiB": 1000 * 1000 * 1000,
+            "1.5GB": (1.5 * 1024 * 1024 * 1024).toInt(),
+
+            "3 PB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
+        };
+
+        const NegativeTests = (
+            "two MB",
+            "14 ZZ",
+            "23,4 MB",
+        );
+    }
+
+
+    constructor() : Test ("ParseMemberSizeTest", "1.0") {
+        addTestCase("get_memory_size() test", \testGetMemorySize());
+        set_return_value(main());
+    }
+
+    testGetMemorySize() {
+        map assertEq($1.value, parse_memory_size($1.key), $1.key), PositiveTests.pairIterator();
+
+        map assertThrows("MEMORY-SIZE-ERROR", \parse_memory_size(), $1, $1), NegativeTests;
+    }
+}

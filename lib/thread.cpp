@@ -323,6 +323,7 @@ public:
     ArgvRefStack argv_refs;
 
 #ifdef QORE_MANAGE_STACK
+    size_t stack_start;
     size_t stack_limit;
     // this thread's stack size for error reporting
     size_t stack_size;
@@ -389,10 +390,11 @@ public:
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
         stack_size = qore_thread_stack_size;
+        stack_start = get_stack_pos();
 #ifdef STACK_DIRECTION_DOWN
-        stack_limit = get_stack_pos() - qore_thread_stack_limit;
+        stack_limit = stack_start - qore_thread_stack_limit;
 #else
-        stack_limit = get_stack_pos() + qore_thread_stack_limit;
+        stack_limit = stack_start + qore_thread_stack_limit;
 #endif // #ifdef STACK_DIRECTION_DOWN
 
 #ifdef IA64_64
@@ -2564,6 +2566,34 @@ size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
     return qore_thread_stack_size;
 #else
     return size;
+#endif
+}
+
+//! Returns the number of bytes left in the current thread stack
+size_t q_thread_stack_remaining() {
+#ifdef QORE_MANAGE_STACK
+    ThreadData* td = thread_data.get();
+#ifdef STACK_DIRECTION_DOWN
+    return get_stack_pos() - td->stack_limit;
+#else
+    return td->stack_limit - get_stack_pos();
+#endif // #ifdef STACK_DIRECTION_DOWN
+#else
+    return 0;
+#endif
+}
+
+// Returns the number of bytes used in the current thread stack
+size_t q_thread_stack_used() {
+#ifdef QORE_MANAGE_STACK
+    ThreadData* td = thread_data.get();
+#ifdef STACK_DIRECTION_DOWN
+    return td->stack_start - get_stack_pos();
+#else
+    return get_stack_pos() = td->stack_start;
+#endif // #ifdef STACK_DIRECTION_DOWN
+#else
+    return 0;
 #endif
 }
 

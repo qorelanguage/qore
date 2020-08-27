@@ -6183,7 +6183,7 @@ string sql = table.getAlignSqlString(table2);
 
         @throw PRIMARY-KEY-ERROR the table has no primary key or the primary key has more than one column
         */
-    *list find(list ids) {
+    *list find(list<auto> ids) {
         string cname = getPrimaryKeyColumn();
 
         if (!ids)
