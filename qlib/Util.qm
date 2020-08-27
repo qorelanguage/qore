@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.5.1";
+    version = "1.6";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -73,6 +73,7 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
+    - @ref Util::parse_memory_size()
     - @ref Util::parse_ranges()
     - @ref Util::parse_to_qore_value()
     - @ref Util::parse_uri_query()
@@ -86,6 +87,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_6 Util 1.6
+    - added the @ref Util::parse_memory_size() "parse_memory_size()" function
+      (<a href="https://github.com/qorelanguage/qore/issues/4004">issue 4004</a>)
 
     @subsection util_1_5_1 Util 1.5.1
     - fixed bugs in \c %EVAL= expressions in @ref Util::parse_to_qore_value() "parse_to_qore_value()" where
@@ -168,6 +173,48 @@ public namespace Util {
 
         #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref True "True"
         *hash<auto> params;
+    }
+
+    #! Returns a size in bytes from a string where "1M" = 1048576 and so forth
+    /** @param str the input string to parse
+
+        @return the size in bytes
+
+        Known suffixes:
+        - \c K, KB = one Kilobyte (1024 bytes)
+        - \c M, MB = one Megabyte (1024 * 1024 bytes)
+        - \c G, GB = one Megabyte (1024 * 1024 * 1024 bytes)
+        - \c KiB = 1,000 bytes (i.e. a "marketing kilobyte")
+        - \c MiB = 1,000,000 bytes (i.e. a "marketing megabyte")
+        - \c GiB = 1,000,000,000 bytes (i.e. a "marketing gigabyte")
+        . and so on
+
+        @throw MEMORY-SIZE-ERROR", cannot parse string
+    */
+    public int sub parse_memory_size(string str) {
+        (*string num, *string suffix) = (str =~ x/^\s*([0-9](?:\.[0-9]+)?+)\s*([a-z]+)?$/i);
+        if (!num) {
+            throw "MEMORY-SIZE-ERROR", sprintf("cannot parse input string %y as a memory size", str);
+        }
+
+        if (suffix) {
+            *int match = StorageAbbr{suffix[0].lwr()};
+            if (exists match) {
+                if (suffix.size() == 3 && (suffix[1..2].lwr() == "ib")) {
+                    return _get_size(num, marketing_storage_sizes{StorageNames[match]});
+                }
+                if (suffix.size() == 1 || (suffix.size() == 2 && suffix[1].lwr() == "b")) {
+                    return _get_size(num, storage_sizes{StorageNames[match]});
+                }
+                string pattern = StorageNames[match] + ("(bytes?)?");
+                if (regex(suffix, pattern, RE_Caseless)) {
+                    return _get_size(num, storage_sizes{StorageNames[match]});
+                }
+            }
+            throw "MEMORY-SIZE-ERROR", sprintf("cannot parse input string suffix %y in %y as a memory size", suffix, str);
+        }
+
+        return num.toInt();
     }
 
     #! compares complex versions by breaking down strings into component parts
@@ -396,6 +443,12 @@ bool abs = absolute_path_windows(path);
      */
     public bool sub absolute_path_windows(string path) {
         return Qore::absolute_path_windows(path);
+    }
+
+    # private, non-exported helper function for parse_memory_size()
+    int sub _get_size(string num, number mult) {
+        float f = num.toFloat();
+        return (f * mult).toInt();
     }
 
     # private, non-exported constant hashes for scan_exp() below
@@ -972,6 +1025,9 @@ string pass = get_random_string();
 
     #! storage names (Geop, which would normally follow Bronto, is excluded as the abbreviation would be GB/GiB)
     public const StorageNames = ("Kilo", "Mega", "Giga", "Tera", "Peta", "Exa", "Zetta", "Yotta", "Bronto");
+
+    #! hash of single-letter storage name abbreviations
+    public const StorageAbbr = map {$1[0].lwr(): $#}, StorageNames;
 
     #! returns a string giving a user-friendly real storage size (ie based on 1KiB = 1024 bytes) in KiB, MiB, GiB, TiB, etc for the given byte size
     /** @par Example:

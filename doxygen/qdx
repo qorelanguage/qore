@@ -35,6 +35,9 @@ class qdx {
         *string psname;
         string build;
         string qorever;
+
+        const EC_SEMICOLON = ";";
+        const EC_BRACKET = "}";
     }
 
     public {
@@ -457,6 +460,17 @@ class qdx {
                 }
             }
 
+            # see if we have a constant declaration
+            if (exists (*string exp = (line =~ x/^\s*const\s+\w+\s*=\s*(.*)$/)[0])) {
+                if (exp !~ /;(\s*#.*)?$/) {
+                    readUntilEndExp(exp, inf, EC_SEMICOLON);
+                    line =~ s/^(\s*const\s+\w+)\s=.*/$1 = ...;/;
+                    line += "\n";
+                }
+                w.write(line);
+                continue;
+            }
+
             # see if the line is the start of a method or function declaration
             if (regex(line, '\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$')
                 && line !~ /const .*=/
@@ -567,8 +581,7 @@ class qdx {
                         if (!regex(line, "}")) {
                             line += "\npublic:\n";
                             ++cbc;
-                        }
-                        else
+                        } else
                             delete class_name;
                     }
 
@@ -730,6 +743,145 @@ class qdx {
         }
     }
 
+    private readUntilEndExp(*string str, FileInputStream inf, string end) {
+        # bracket stack
+        list<string> bracket_stack;
+        string quote;
+        int regex;
+
+        StreamReader sr(inf);
+
+        code check_str = int sub () {
+            if (!str.val()) {
+                str = sr.readLine();
+                if (!str.val()) {
+                    return -1;
+                }
+            }
+            return 0;
+        };
+
+        code consume = string sub () {
+            return extract str, 0, 1;
+        };
+
+        while (True) {
+            while (regex) {
+                if (check_str()) {
+                    return;
+                }
+                string c = consume();
+                if (regex == 1 && c == "\\") {
+                    splice str, 0, 1;
+                    continue;
+                }
+                if (c == "/") {
+                    if (!--regex) {
+                        break;
+                    }
+                }
+            }
+
+            if (check_str()) {
+                return;
+            }
+            if (str =~ /\s*=~\s*s\//) {
+                str =~ s/\s*=~\s*s\///g;
+                regex = 2;
+                continue;
+            }
+
+            if (str =~ /\s*[\!=]~\s*[mx]?\//) {
+                str =~ s/\s*[\!=]~\s*[mx]?\///g;
+                regex = 1;
+                continue;
+            }
+
+            if (check_str()) {
+                return;
+            }
+            string c = consume();
+            if (c == "'" || c == '"') {
+                if (quote) {
+                    if (c == quote) {
+                        delete quote;
+                    }
+                } else {
+                    quote = c;
+                }
+                continue;
+            }
+            if (quote) {
+                if (c == "\\" && quote != "'") {
+                    if (check_str()) {
+                        return;
+                    }
+                    consume();
+                }
+                continue;
+            }
+
+            if (c == "{") {
+                bracket_stack += c;
+            } else if (c == "}") {
+                if (bracket_stack.last() != "{") {
+                    throw "BRACKET-ERROR", sprintf("mismatched bracket in input");
+                }
+                pop bracket_stack;
+                if (end == EC_BRACKET && !bracket_stack) {
+                    return;
+                }
+                continue;
+            } else if (c == "$") {
+                if (check_str()) {
+                    return;
+                }
+                c = consume();
+                if (c != "#") {
+                    splice str, 0, 0, c;
+                }
+                continue;
+            } else if (c == "#") {
+                # discard the rest of the line
+                remove str;
+                continue;
+            } else if (c == "/") {
+                if (check_str()) {
+                    return;
+                }
+                c = consume();
+                if (c == "*") {
+                    # read until close block comment
+                    bool star = False;
+                    while (True) {
+                        if (check_str()) {
+                            return;
+                        }
+                        c = consume();
+                        if (star) {
+                            if (c == "/") {
+                                break;
+                            }
+                            star = (c == "*");
+                            continue;
+                        }
+                        if (c == "*") {
+                            star = True;
+                        }
+                    }
+                } else {
+                    splice str, 0, 0, c;
+                }
+                continue;
+            } else if (c == ";") {
+                if (!bracket_stack && end == EC_SEMICOLON) {
+                    #printf("END str: %y\n", str);
+                    return;
+                }
+            }
+        }
+    }
+
     # return number of lines processed
     private int readUntilCloseBracket(FileInputStream inf) {
         int cnt = 1;
@@ -750,13 +902,12 @@ class qdx {
         while (True) {
             if (need) {
                 c = sr.readString(1);
-            }
-            else {
+            } else {
                 need = True;
             }
 
             if (c == "\n") {
-                line_cnt++;
+                ++line_cnt;
             }
 
             if (regex) {
@@ -773,8 +924,7 @@ class qdx {
                     if (c == quote) {
                         delete quote;
                     }
-                }
-                else {
+                } else {
                     quote = c;
                 }
                 continue;
@@ -802,23 +952,19 @@ class qdx {
 
             if (c == "{") {
                 ++cnt;
-            }
-            else if (c == "}") {
+            } else if (c == "}") {
                 if (!--cnt) {
                     return line_cnt;
                 }
-            }
-            else if (c == "$") {#"){
+            } else if (c == "$") {#"){
                 c = sr.readString(1);
                 if (c != "#") {
                     need = False;
                 }
-            }
-            else if (c == "#") {
+            } else if (c == "#") {
                 # read until EOL
                 sr.readLine();
-            }
-            else if (c == "/") {
+            } else if (c == "/") {
                 c = sr.readString(1);
                 if (c == "*") {
                     # read until close block comment
@@ -836,8 +982,7 @@ class qdx {
                             star = True;
                         }
                     }
-                }
-                else {
+                } else {
                     need = False;
                 }
             }

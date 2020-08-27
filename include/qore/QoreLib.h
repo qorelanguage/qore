@@ -733,4 +733,14 @@ DLLEXPORT size_t q_thread_get_stack_size();
 */
 DLLEXPORT size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
 
+//! Returns the number of bytes left in the current thread stack
+/** @since %Qore 0.9.5
+*/
+DLLEXPORT size_t q_thread_stack_remaining();
+
+//! Returns the number of bytes used in the current thread stack
+/** @since %Qore 0.9.5
+*/
+DLLEXPORT size_t q_thread_stack_used();
+
 #endif // _QORE_QORELIB_H
