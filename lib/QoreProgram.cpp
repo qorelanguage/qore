@@ -2290,6 +2290,11 @@ const QoreExternalConstant* QoreProgram::findNamespaceConstant(const char* path,
     return reinterpret_cast<const QoreExternalConstant*>(con);
 }
 
+int QoreProgram::issueModuleCmd(const char* module, const char* cmd, ExceptionSink* xsink) {
+    QMM.issueRuntimeCmd(module, this, cmd, xsink);
+    return *xsink ? -1 : 0;
+}
+
 QoreRWLock QoreBreakpoint::lck_breakpoint;
 QoreBreakpointList_t QoreBreakpoint::breakpointList;
 volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;

@@ -376,15 +376,8 @@ private:
 
 class ProgramCallContextHelper {
 public:
-    DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm)
-        : pgm(new_pgm ? get_set_program_call_context(new_pgm) : reinterpret_cast<QoreProgram*>(-1)) {
-    }
-
-    DLLLOCAL ~ProgramCallContextHelper() {
-        if (pgm != reinterpret_cast<QoreProgram*>(-1)) {
-            set_program_call_context(pgm);
-        }
-    }
+    DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm);
+    DLLLOCAL ~ProgramCallContextHelper();
 
 private:
     QoreProgram* pgm;
@@ -392,26 +385,26 @@ private:
 
 class ModuleReExportHelper {
 protected:
-   QoreAbstractModule* m;
-   bool reexport;
+    QoreAbstractModule* m;
+    bool reexport;
 
 public:
-   DLLLOCAL ModuleReExportHelper(QoreAbstractModule* mi, bool reexp);
-   DLLLOCAL ~ModuleReExportHelper();
+    DLLLOCAL ModuleReExportHelper(QoreAbstractModule* mi, bool reexp);
+    DLLLOCAL ~ModuleReExportHelper();
 };
 
 class QoreParseCountContextHelper {
 protected:
-   unsigned count;
+    unsigned count;
 
 public:
-   DLLLOCAL QoreParseCountContextHelper() : count(parse_try_module_get()) {
-      parse_try_module_set(0);
-   }
+    DLLLOCAL QoreParseCountContextHelper() : count(parse_try_module_get()) {
+        parse_try_module_set(0);
+    }
 
-   DLLLOCAL ~QoreParseCountContextHelper() {
-      parse_try_module_set(count);
-   }
+    DLLLOCAL ~QoreParseCountContextHelper() {
+        parse_try_module_set(count);
+    }
 };
 
 class QoreProgramStackLocationHelper {

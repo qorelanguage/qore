@@ -793,6 +793,20 @@ public:
     */
     DLLEXPORT QoreHashNode* getThreadData();
 
+    //! issues a module command for the given module; the module is loaded into the current %Program object if it is not already present
+    /** @param module the module name; must be in the default character encoding (normally UTF-8)
+        @param cmd the command string to execute to be parsed by the module (normally UTF-8)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return -1 if an error occurred (in which case the error information is in \a xsink), 0 if not
+
+        @note command errors can result in other module- and command-specific exceptions being thrown; see
+        documentation for the module and command in question for more details
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT int issueModuleCmd(const char* module, const char* cmd, ExceptionSink* xsink);
+
     DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
     DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
