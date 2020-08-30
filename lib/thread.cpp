@@ -1553,6 +1553,23 @@ LVarStackBreakHelper::~LVarStackBreakHelper() {
     }
 }
 
+ProgramCallContextHelper::ProgramCallContextHelper(QoreProgram* new_pgm) {
+    if (new_pgm) {
+        ThreadData* td = thread_data.get();
+        pgm = td->call_program_context;
+        td->call_program_context = new_pgm;
+    } else {
+        pgm = reinterpret_cast<QoreProgram*>(-1);
+    }
+}
+
+ProgramCallContextHelper::~ProgramCallContextHelper() {
+    if (pgm != reinterpret_cast<QoreProgram*>(-1)) {
+        ThreadData* td = thread_data.get();
+        td->call_program_context = pgm;
+    }
+}
+
 QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
     // allow the program context to be skipped with a nullptr arg
     if (!pgm) {

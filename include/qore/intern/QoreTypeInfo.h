@@ -43,6 +43,8 @@
 // forward references
 class LValueHelper;
 
+DLLLOCAL int64 parse_get_parse_options();
+
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo);
 
@@ -458,7 +460,7 @@ public:
                 }
             }
             // if the type may not match at runtime, then return no match with %strict-types
-            if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+            if (parse_get_parse_options() & PO_STRICT_TYPES) {
                 return QTI_NOT_EQUAL;
             }
             may_not_match = true;
@@ -1117,7 +1119,7 @@ protected:
         //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
         if (typeInfo->return_vec.size() > accept_vec.size()) {
             // if the type may not match at runtime, then return no match with %strict-types
-            if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+            if (parse_get_parse_options() & PO_STRICT_TYPES) {
                 return QTI_NOT_EQUAL;
             }
             may_not_match = true;
@@ -1140,7 +1142,7 @@ protected:
             if (t_no_match) {
                 if (!may_not_match) {
                     // if the type may not match at runtime, then return no match with %strict-types
-                    if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+                    if (parse_get_parse_options() & PO_STRICT_TYPES) {
                         return QTI_NOT_EQUAL;
                     }
                     may_not_match = true;
