@@ -369,8 +369,13 @@ class qdx {
             #line =~ s/\$/__6_/g;
             #line =~ s/\$//g;
 
-            if (o.nmp)
-                line =~ s/@mainpage ([\w]+)/@page $1 $1/;
+            if (o.nmp && (*string page = (line =~ x/@mainpage (\w.*)/)[0])) {
+                string link = page.lwr();
+                link =~ s/\s+/_/g;
+                line = regex_subst(line, "@mainpage \\w.*", "@page " + link + " " + page);
+                w.write(line);
+                continue;
+            }
 
             if (in_doc) {
                 if (line =~ /\*\//) {
