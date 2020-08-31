@@ -204,6 +204,7 @@ public namespace Qdx {
     #! a line-based input stream iterator for post-processing HTML and JS files created for Qore documentation
     public class QorePostProcessingInputStreamLineIterator inherits Qore::InputStreamLineIterator {
         private:internal {
+            bool checkFile;
             bool isQore = True;
         }
 
@@ -276,9 +277,19 @@ public namespace Qdx {
         string getValue() {
             string line = InputStreamLineIterator::getValue();
 
-            if (isQore && line =~ /\w+_1_1[a-z]/) {
-                isQore = False;
+            if (isQore) {
+                if (!checkFile && line =~ /was generated from the following file:/) {
+                    checkFile = True;
+                } else if (checkFile && line =~ /\.(java|py)<\/li>/) {
+                    isQore = False;
+                }
+                /*
+                if (isQore && line =~ /\w+_1_1[a-z]/) {
+                    isQore = False;
+                }
+                */
             }
+
 
             if (isQore) {
                 line =~ s/__1_/[/g;
