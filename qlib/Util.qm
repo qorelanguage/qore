@@ -177,21 +177,23 @@ public namespace Util {
 
     #! Returns a size in bytes from a string where "1M" = 1048576 and so forth
     /** @param str the input string to parse
+        @param use_binary if @ref True then base-2-based values are always assumed (i.e. "1 KB" = 1024 bytes and so
+        forth)
 
         @return the size in bytes
 
         Known suffixes:
-        - \c K, KB = one Kilobyte (1024 bytes)
-        - \c M, MB = one Megabyte (1024 * 1024 bytes)
-        - \c G, GB = one Megabyte (1024 * 1024 * 1024 bytes)
-        - \c KiB = 1,000 bytes (i.e. a "marketing kilobyte")
-        - \c MiB = 1,000,000 bytes (i.e. a "marketing megabyte")
-        - \c GiB = 1,000,000,000 bytes (i.e. a "marketing gigabyte")
+        - \c K, KiB = one Kibibyte (1024 bytes)
+        - \c M, MiB = one Mebibyte (1024 * 1024 bytes)
+        - \c G, GiB = one Gibibyte (1024 * 1024 * 1024 bytes)
+        - \c KB = 1,000 bytes (i.e. a "marketing kilobyte")
+        - \c MB = 1,000,000 bytes (i.e. a "marketing megabyte")
+        - \c GB = 1,000,000,000 bytes (i.e. a "marketing gigabyte")
         . and so on
 
-        @throw MEMORY-SIZE-ERROR", cannot parse string
+        @throw MEMORY-SIZE-ERROR: cannot parse string
     */
-    public int sub parse_memory_size(string str) {
+    public int sub parse_memory_size(string str, *bool use_binary) {
         (*string num, *string suffix) = (str =~ x/^\s*([0-9](?:\.[0-9]+)?+)\s*([a-z]+)?$/i);
         if (!num) {
             throw "MEMORY-SIZE-ERROR", sprintf("cannot parse input string %y as a memory size", str);
@@ -201,12 +203,22 @@ public namespace Util {
             *int match = StorageAbbr{suffix[0].lwr()};
             if (exists match) {
                 if (suffix.size() == 3 && (suffix[1..2].lwr() == "ib")) {
-                    return _get_size(num, marketing_storage_sizes{StorageNames[match]});
-                }
-                if (suffix.size() == 1 || (suffix.size() == 2 && suffix[1].lwr() == "b")) {
                     return _get_size(num, storage_sizes{StorageNames[match]});
                 }
-                string pattern = StorageNames[match] + ("(bytes?)?");
+                if (suffix.size() == 1 || (suffix.size() == 2 && suffix[1].lwr() == "b")) {
+                    return _get_size(num, use_binary
+                        ? storage_sizes{StorageNames[match]}
+                        : marketing_storage_sizes{StorageNames[match]}
+                    );
+                }
+                string pattern = StorageNames[match] + "(bytes?)?";
+                if (regex(suffix, pattern, RE_Caseless)) {
+                    return _get_size(num, use_binary
+                        ? storage_sizes{StorageNames[match]}
+                        : marketing_storage_sizes{StorageNames[match]}
+                    );
+                }
+                pattern = StorageNames[match][0..1] + "bi(bytes?)?";
                 if (regex(suffix, pattern, RE_Caseless)) {
                     return _get_size(num, storage_sizes{StorageNames[match]});
                 }
