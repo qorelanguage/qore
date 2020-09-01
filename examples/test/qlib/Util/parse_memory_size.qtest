@@ -7,31 +7,35 @@
 %require-types
 %enable-all-warnings
 
-%exec-class ParseMemberSizeTest
+%exec-class ParseMemorySizeTest
 
-public class ParseMemberSizeTest inherits QUnit::Test {
+public class ParseMemorySizeTest inherits QUnit::Test {
     public {
         const PositiveTests = {
-            "1k": 1024,
-            "1 kb": 1024,
-            "1 kilobyte": 1024,
-            "2 kilobytes": 2048,
-            "1 kib": 1000,
+            "1k": 1000,
+            "1 kb": 1000,
+            "1 kilobyte": 1000,
+            "2 kilobytes": 2000,
+            "1 kib": 1024,
+            "1 kibibytes": 1024,
 
-            "1MB": 1024 * 1024,
-            "1 mb": 1024 * 1024,
-            "1 megabyte": 1024 * 1024,
-            "2 megabytes": 2048 * 1024,
-            "1 MiB": 1000 * 1000,
+            "1MB": 1000 * 1000,
+            "1 mb": 1000 * 1000,
+            "1 megabyte": 1000 * 1000,
+            "2 megabytes": 2000 * 1000,
+            "1 MiB": 1024 * 1024,
+            "1 Mebibyte": 1024 * 1024,
 
-            "1GB": 1024 * 1024 * 1024,
-            "1 gb": 1024 * 1024 * 1024,
-            "1 gigabyte": 1024 * 1024 * 1024,
-            "2 gigabytes": 2048 * 1024 * 1024,
-            "1 GiB": 1000 * 1000 * 1000,
-            "1.5GB": (1.5 * 1024 * 1024 * 1024).toInt(),
+            "1GB": 1000 * 1000 * 1000,
+            "1 gb": 1000 * 1000 * 1000,
+            "1 gigabyte": 1000 * 1000 * 1000,
+            "2 gigabytes": 2000 * 1000 * 1000,
+            "1 GiB": 1024 * 1024 * 1024,
+            "1 Gibibyte": 1024 * 1024 * 1024,
+            "1.5GB": (1.5 * 1000 * 1000 * 1000).toInt(),
 
-            "3 PB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
+            "3 PB": 3 * 1000 * 1000 * 1000 * 1000 * 1000,
+            "3 PiB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
         };
 
         const NegativeTests = (
@@ -39,17 +43,43 @@ public class ParseMemberSizeTest inherits QUnit::Test {
             "14 ZZ",
             "23,4 MB",
         );
+
+        const PositiveAssumeBinaryTests = {
+            "1k": 1024,
+            "1 kb": 1024,
+            "1 kilobyte": 1024,
+            "2 kilobytes": 2 * 1024,
+            "1 kib": 1024,
+            "1 kibibytes": 1024,
+
+            "1MB": 1024 * 1024,
+            "1 mb": 1024 * 1024,
+            "1 megabyte": 1024 * 1024,
+            "2 megabytes": 2 * 1024 * 1024,
+            "1 MiB": 1024 * 1024,
+            "1 Mebibyte": 1024 * 1024,
+
+            "1GB": 1024 * 1024 * 1024,
+            "1 gb": 1024 * 1024 * 1024,
+            "1 gigabyte": 1024 * 1024 * 1024,
+            "2 gigabytes": 2 * 1024 * 1024 * 1024,
+            "1 GiB": 1024 * 1024 * 1024,
+            "1 Gibibyte": 1024 * 1024 * 1024,
+            "1.5GB": (1.5 * 1024 * 1024 * 1024).toInt(),
+
+            "3 PB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
+            "3 PiB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
+        };
     }
 
-
-    constructor() : Test ("ParseMemberSizeTest", "1.0") {
+    constructor() : Test ("ParseMemorySizeTest", "1.0") {
         addTestCase("get_memory_size() test", \testGetMemorySize());
         set_return_value(main());
     }
 
     testGetMemorySize() {
         map assertEq($1.value, parse_memory_size($1.key), $1.key), PositiveTests.pairIterator();
-
+        map assertEq($1.value, parse_memory_size($1.key, True), $1.key), PositiveAssumeBinaryTests.pairIterator();
         map assertThrows("MEMORY-SIZE-ERROR", \parse_memory_size(), $1, $1), NegativeTests;
     }
 }
