@@ -41,6 +41,7 @@
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include <string>
 #include <set>
