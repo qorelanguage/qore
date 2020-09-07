@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.6";
+    version = "1.7";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_7 SqlUtil v1.7
+    - added the @ref SqlUtil::SqlResultInfo "SqlResultInfo" hash and methods that return this hash instead of taking
+      an optional output reference for SQL for use in languages that do not support lvalue references
+      (<a href="https://github.com/qorelanguage/qore/issues/3934">issue 3934</a>)
 
     @subsection sqlutilv1_6 SqlUtil v1.6
     - added support for the DataProvider module
