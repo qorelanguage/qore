@@ -441,7 +441,11 @@ public class SqlTestBase inherits QUnit::Test {
         # upsert can return UR_Verified even when rows are upserted when there is an optimized upsert implementation used in the driver-specific SqlUtil module
         assertEq(True, inlist(upsert(ud[1]), (AbstractTable::UR_Inserted, AbstractTable::UR_Verified)));
         assertEq(2, table.selectRow(("columns": ("id_"), "where": ("id": 3)))."id_");
-        assertEq(4, table.selectRow(("columns": ("id_"), "where": ("id": 4)))."id_");
+        hash<SqlResultInfo> info = table.selectRowWithInfo(("columns": ("id_"), "where": ("id": 4)));
+        assertEq(4, info.result."id_");
+        assertEq(Type::String, info.sql.type());
+        assertTrue(info.sql =~ /^select id_ from /);
+        assertEq((4,), info.args);
 
         # test UpsertUpdateOnly
         ud[0]."id" = 4;
@@ -1084,10 +1088,10 @@ public class SqlTestBase inherits QUnit::Test {
         return n + "_f";
     }
 
-    initTestData(hash custom_columns) {
-        hash row;
+    initTestData(hash<auto> custom_columns) {
+        hash<auto> row;
 
-        foreach hash h in (custom_columns.pairIterator()) {
+        foreach hash<auto> h in (custom_columns.pairIterator()) {
             string cn = getColumnName(h.key);
             row{cn} = h.value.bind ?? h.value.value ?? h.value;
 
@@ -1104,24 +1108,27 @@ public class SqlTestBase inherits QUnit::Test {
         if (!table) testSkip("no DB connection");
 
         int count = table.del();
-        assertEq (insert_data.size(), count, "del()");
+        assertEq(insert_data.size(), count, "del()");
 
         map table.insert($1), insert_data;
 
-        count = table.del({});
-        assertEq (insert_data.size(), count, "del({})");
+        hash<SqlResultInfo> info = table.delWithInfo({});
+        count = info.result;
+        assertEq(insert_data.size(), count, "del({})");
+        assertEq(Type::String, info.sql.type());
+        assertNothing(info.args);
 
         table.del();
-        map table.insert($1), insert_data;
+        map table.insertWithInfo($1), insert_data;
 
         count = table.del(("id" : 1));
-        assertEq (insert_data.size() - 1, count, "del(('id' : 1))");
+        assertEq(insert_data.size() - 1, count, "del(('id' : 1))");
         table.del();
 
         map table.insert($1), insert_data;
 
         count = table.del(("id" : -1));
-        assertEq (0, count, "del(('id' : -1))");
+        assertEq(0, count, "del(('id' : -1))");
     }
 
     private abstract string getResultSetSql();

@@ -2281,7 +2281,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     string getDropConstraintSql(string cname, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2316,7 +2316,7 @@ string sql = table.getDropConstraintSql("uk_mytable_name");
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     *string getDropConstraintIfExistsSql(string cname, *hash<auto> opt, *reference<AbstractConstraint> cref) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2401,7 +2401,7 @@ table.dropConstraint("uk_mytable_name");
         @note this method retrieves current constraint definitions from the database if not already loaded or defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractConstraint dropConstraint(string cname, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -2437,7 +2437,7 @@ printf("%s;\n", sql);
         @throw TRIGGER-ERROR the table already has a trigger with the given name or invalid options were passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractTrigger addTrigger(string tname, string src, *hash<auto> opt, *reference lsql) {
         l.lock();
         on_exit l.unlock();
@@ -2467,7 +2467,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     list<auto> getAddTriggerSql(string tname, string src, *hash topt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2540,7 +2540,7 @@ table.dropTrigger("trig_mytable");
         @note this method retrieves all current trigger definitions from the database if none have already been defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractTrigger dropTrigger(string tname, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -2574,7 +2574,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     list<auto> getDropTriggerSql(string tname, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2706,7 +2706,7 @@ table.dropColumn("notes_2");
         @note this method retrieves the table definition from the database if none has already been defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractColumn dropColumn(string cname, *reference lsql) {
         l.lock();
         on_exit l.unlock();
@@ -2748,7 +2748,7 @@ string sql = table.getDropColumnSql("notes_2");
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     list<auto> getDropColumnSql(string cname, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2778,7 +2778,7 @@ table.insertCommit(row);
         @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-        */
+    */
     *hash<auto> insertCommit(hash<auto> row) {
         on_success ds.commit();
         on_error ds.rollback();
@@ -2790,7 +2790,7 @@ table.insertCommit(row);
     /**
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param sql an optional reference to a string to return the SQL generated for the insert statement
-        */
+    */
     *hash<auto> insertCommit(hash<auto> row, reference<string> sql) {
         on_success ds.commit();
         on_error ds.rollback();
@@ -2802,7 +2802,7 @@ table.insertCommit(row);
     /**
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-        */
+    */
     *hash<auto> insertCommit(hash<auto> row, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
@@ -2815,7 +2815,7 @@ table.insertCommit(row);
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param sql an optional reference to a string to return the SQL generated for the insert statement
         @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-        */
+    */
     *hash<auto> insertCommit(hash<auto> row, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
@@ -2835,7 +2835,7 @@ table.insert(row);
         @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-        */
+    */
     *hash<auto> insert(hash<auto> row) {
         return insertIntern(row);
     }
@@ -2844,7 +2844,7 @@ table.insert(row);
     /**
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param sql an optional reference to a string to return the SQL generated for the insert statement
-        */
+    */
     *hash<auto> insert(hash<auto> row, reference<string> sql) {
         return insertIntern(row, \sql);
     }
@@ -2853,7 +2853,7 @@ table.insert(row);
     /**
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-        */
+    */
     *hash<auto> insert(hash<auto> row, hash<auto> opt) {
         return insertIntern(row, NOTHING, opt);
     }
@@ -2863,9 +2863,25 @@ table.insert(row);
         @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
         @param sql an optional reference to a string to return the SQL generated for the insert statement
         @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
-        */
+    */
     *hash<auto> insert(hash<auto> row, reference<string> sql, hash<auto> opt) {
         return insertIntern(row, \sql, opt);
+    }
+
+    #! Inserts a row and returns the result and also the SQL used
+    /** @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert
+        values based on SQL operations to be used directly in the insert statement
+        @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+
+        @return a hash giving the result of the operation and the SQL used for it; the \c result key is assigned to
+        the integer number of rows inserted
+
+        @since SqlUtil 1.7
+    */
+    hash<SqlResultInfo> insertWithInfo(hash<auto> row, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = insertIntern(row, \rv.sql, opt, \rv.args);
+        return rv;
     }
 
     #! A legacy wrapper for @ref SqlUtil::AbstractTable::insert()
@@ -2878,7 +2894,7 @@ table.insert(row);
         return insertIntern(row, NOTHING, opt);
     }
 
-    private *hash<auto> insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt) {
+    private *hash<auto> insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         # check data callback options if any
         validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -2901,7 +2917,7 @@ table.insert(row);
         sql += (foldl $1 + "," + $2, vh.placeholders);
         sql += ")";
 
-        softlist<auto> args = vh.values;
+        args = vh.values;
 
         # check for a bulk insert in case the driver does not support array binding
         if (!hasArrayBind()) {
@@ -2913,10 +2929,10 @@ table.insert(row);
                 }
             }
             if (size) {
-                hash rv;
+                hash<auto> rv;
                 for (int i = 0; i < size; ++i) {
                     # get arg list for row
-                    list targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
+                    list<auto> targs = map $1.typeCode() == NT_LIST ? $1[i] : $1, args;
                     if (opt.returning) {
                         if (!rv) {
                             hash<auto> h = doReturningImpl(opt, \sql, targs);
@@ -3107,13 +3123,32 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         return insertFromSelectIntern(cols, source, sh, NOTHING, opt);
     }
 
+    #! inserts rows into a table based on a select statement from another table (which must be using the same datasource as the current table)
+    /**
+        @param cols the list of column names to use to insert in the current table
+        @param source the source table for the select statement
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return a hash giving the result of the operation and the SQL used for it; the \c result key will hold the
+        integer number of rows inserted
+
+        @since SqlUtil 1.7
+    */
+    hash<SqlResultInfo> insertFromSelectWithInfo(list<auto> cols, AbstractTable source, hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = insertFromSelectIntern(cols, source, select_hash, \rv.sql, opt, \rv.args);
+        return rv;
+    }
+
     #! A legacy @ref SqlUtil::AbstractTable::insertFromSelect() wrapper
     deprecated int insertFromSelectNoCommit(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
         return insertFromSelectIntern(cols, source, sh, \sql, opt);
     }
 
-    private int insertFromSelectIntern(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
-        list<auto> args;
+    private int insertFromSelectIntern(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         string ssql = source.getSelectSql(sh, \args);
 
         # issue #3352: do not execute runtime DML while holding the lock
@@ -3675,7 +3710,7 @@ int cnt = table.rowCount();
         @note to see if the table is empty or not, use emptyData() as this is much faster than rowCount()
 
         @see emptyData()
-        */
+    */
     softint rowCount() {
         return ds.selectRow("select count(1) cnt from %s", getSqlName()).cnt;
     }
@@ -3701,7 +3736,7 @@ SQLStatement i = table.getRowIterator(sh);
 
         @deprecated for getStatement(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
         @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatement() instead
-        */
+    */
     Qore::SQL::SQLStatement getRowIterator(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
         return cast<SQLStatement>(getStatementIntern(sh, \sql, opt));
     }
@@ -3729,7 +3764,7 @@ SQLStatement i = table.getRowIteratorNoExec(sh);
 
         @deprecated for getStatementNoExec(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
         @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatementNoExec() instead
-        */
+    */
     Qore::SQL::SQLStatement getRowIteratorNoExec(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
         return getStatementIntern(sh, \sql, opt, True);
     }
@@ -3754,7 +3789,7 @@ SQLStatement i = table.getRowIterator();
 
         @deprecated for getStatement(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
         @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatement() instead
-        */
+    */
     Qore::SQL::SQLStatement getRowIterator(*hash<auto> sh, *hash<auto> opt) {
         return cast<SQLStatement>(getStatementIntern(sh, NOTHING, opt));
     }
@@ -3781,7 +3816,7 @@ AbstractSQLStatement i = table.getStatement(sh);
         @see getStatementNoExec()
 
         @since %SqlUtil 1.5
-        */
+    */
     Qore::SQL::AbstractSQLStatement getStatement(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
         return getStatementIntern(sh, \sql, opt);
     }
@@ -3807,9 +3842,48 @@ AbstractSQLStatement i = table.getStatement();
         @see getStatementNoExec()
 
         @since %SqlUtil 1.5
-        */
+    */
     Qore::SQL::AbstractSQLStatement getStatement(*hash<auto> sh, *hash<auto> opt) {
         return getStatementIntern(sh, NOTHING, opt);
+    }
+
+    #! returns a result hash including an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.getStatementWithInfo(sh);
+        @endcode
+
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param sql an optional reference to a string to return the SQL generated for the select statement
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return the result info hash; the \c result key will hold an
+        @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select
+        statement matching the arguments
+
+        @throw OPTION-ERROR invalid or unsupported select option
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
+
+        @note
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this
+          method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource"
+          object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or
+          @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any
+          database locks
+
+        @see getStatementNoExecWithInfo()
+
+        @since %SqlUtil 1.7
+    */
+    hash<SqlResultInfo> getStatementWithInfo(*hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = getStatementIntern(select_hash, \rv.sql, opt, False, \rv.args);
+        return rv;
     }
 
     #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
@@ -3834,9 +3908,44 @@ AbstractSQLStatement i = table.getStatementNoExec(sh);
         @see getStatement()
 
         @since %SqlUtil 1.5
-        */
+    */
     Qore::SQL::AbstractSQLStatement getStatementNoExec(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
         return getStatementIntern(sh, \sql, opt, True);
+    }
+
+    #! returns a result hash including an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.getStatementNoExecWithInfo(sh);
+        @endcode
+
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param sql an optional reference to a string to return the SQL generated for the select statement
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return the result info hash; the \c result key will hold an
+        @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select
+        statement matching the arguments
+
+        @throw OPTION-ERROR invalid or unsupported select option
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
+
+        @note
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+        @see getStatementNoExecWithInfo()
+
+        @since %SqlUtil 1.7
+    */
+    hash<SqlResultInfo> getStatementNoExecWithInfo(*hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = getStatementIntern(select_hash, \rv.sql, opt, True, \rv.args);
+        return rv;
     }
 
     #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
@@ -3865,10 +3974,9 @@ AbstractSQLStatement i = table.getStatement();
         return getStatementIntern(sh, NOTHING, opt, True);
     }
 
-    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *bool no_exec) {
+    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        list<auto> args;
         sql = getSelectSqlIntern(sh, \args, opt);
 
         AbstractSQLStatement stmt = ds.getSQLStatement();
@@ -3904,11 +4012,14 @@ AbstractSQLStatement i = table.getStatement();
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
+    */
     *hash<auto> selectRow(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
+        return selectRowIntern(sh, \sql, opt);
+    }
+
+    private *hash<auto> selectRowIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        list<auto> args;
         sql = getSelectSqlUnlocked(sh, \args, opt);
 
         bool rollback_on_error = False;
@@ -3922,10 +4033,43 @@ AbstractSQLStatement i = table.getStatement();
         return ds.vselectRow(sql, args);
     }
 
+    #! returns a hash with a result representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.selectRowWithInfo(sh);
+        @endcode
+
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return an info hash; the \c result key will contain a hash representing the row in the table that matches the
+        argument hash; if more than one row would be returned an exception is raised
+
+        @throw OPTION-ERROR invalid or unsupported select option
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
+        @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
+
+        @note
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select
+          operation, the calling thread will own the thread transaction lock
+
+        @since SqlUTil 1.7
+    */
+    hash<SqlResultInfo> selectRowWithInfo(*hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = selectRowIntern(select_hash, \rv.sql, opt, \rv.args);
+        return rv;
+    }
+
     #! returns a list of hashes representing the rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
-*list l = table.selectRows(sh);
+*list<auto> l = table.selectRows(sh);
         @endcode
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
@@ -3938,13 +4082,18 @@ AbstractSQLStatement i = table.getStatement();
         @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
 
         @note
-        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
-    *list selectRows(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select
+          operation, the calling thread will own the thread transaction lock
+    */
+    *list<auto> selectRows(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
+        return selectRowsIntern(sh, \sql, opt);
+    }
+
+    private *list<auto> selectRowsIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        list<auto> args;
         sql = getSelectSqlUnlocked(sh, \args, opt);
 
         bool rollback_on_error = False;
@@ -3959,7 +4108,39 @@ AbstractSQLStatement i = table.getStatement();
         return ds.vselectRows(sql, args);
     }
 
-    #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+    #! returns a hash with a result key assigned to a list of hashes representing the rows in the table that match the argument hash
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.selectRowsWithInfo(sh);
+        @endcode
+
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return an info hash; the \c result key will contain a list of hashes representing the rows in the table that
+        match the argument hash
+
+        @throw OPTION-ERROR invalid or unsupported select option
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
+
+        @note
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select
+          operation, the calling thread will own the thread transaction lock
+
+        @since Qorus 1.7
+    */
+    hash<SqlResultInfo> selectRowsWithInfo(*hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = selectRowsIntern(select_hash, \rv.sql, opt, \rv.args);
+        return rv;
+    }
+
+    #! returns a hash of lists representing the columns and rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
 *hash h = table.select(sh);
@@ -3972,16 +4153,20 @@ AbstractSQLStatement i = table.getStatement();
         @return a hash of lists representing the columns and rows in the table that match the argument hash
 
         @throw OPTION-ERROR invalid or unsupported select option
-        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
 
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
+    */
     *hash<auto> select(*hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
+        return selectIntern(sh, \sql, opt);
+    }
+
+    private *hash<auto> selectIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        list<auto> args;
         sql = getSelectSqlUnlocked(sh, \args, opt);
 
         bool rollback_on_error = False;
@@ -3994,6 +4179,38 @@ AbstractSQLStatement i = table.getStatement();
             ds.rollback();
 
         return ds.vselect(sql, args);
+    }
+
+    #! returns a hash with a \c result key assigned to a hash of lists representing the columns and rows in the table that match the argument hash
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.selectWithInfo(sh);
+        @endcode
+
+        @param select_hash a hash of conditions for the select statement; see
+        @ref select_option_hash "select option hash" for information about this argument
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return a hash with the \c result key assigned to a hash of lists representing the columns and rows in the
+        table that match the argument hash
+
+        @throw OPTION-ERROR invalid or unsupported select option
+        @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and
+        \c 'offset' does not match any unique constraint
+
+        @note
+        - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key
+          columns will be used for the \c "orderby" option automatically
+        - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select
+          operation, the calling thread will own the thread transaction lock
+
+        @since Qorus 1.7
+    */
+    hash<SqlResultInfo> selectWithInfo(*hash<auto> select_hash, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = selectIntern(select_hash, \rv.sql, opt, \rv.args);
+        return rv;
     }
 
     #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
@@ -4014,7 +4231,7 @@ AbstractSQLStatement i = table.getStatement();
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
+    */
     *hash<auto> selectRow(*hash<auto> sh, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
         # check data callback options if any
@@ -4055,7 +4272,7 @@ AbstractSQLStatement i = table.getStatement();
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
+    */
     *list selectRows(*hash<auto> sh, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
         # check data callback options if any
@@ -4079,7 +4296,7 @@ AbstractSQLStatement i = table.getStatement();
         return ds.vselectRows(sql, args);
     }
 
-    #! returns a hash of lists representing the columns and rows in the table that match the argument hahs
+    #! returns a hash of lists representing the columns and rows in the table that match the argument hash
     /** @par Example:
         @code{.py}
 *hash h = table.select(sh);
@@ -4096,7 +4313,7 @@ AbstractSQLStatement i = table.getStatement();
         @note
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
-        */
+    */
     *hash<auto> select(*hash<auto> sh, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
         # check data callback options if any
@@ -4138,7 +4355,7 @@ string sql = table.getSelectSql(sh, \args);
         @note
         - the select string is specific to the arguments passed (for example @ref null arguments will have clauses like 'is null')
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
-        */
+    */
     string getSelectSql(*hash<auto> sh, *reference<list<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
@@ -4792,7 +5009,7 @@ int dcnt = table.del(("name": name));
         @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
 
         @see delCommit(*hash)
-        */
+    */
     int del(hash cond, reference<string> sql, hash<auto> opt) {
         return delIntern(cond, \sql, opt);
     }
@@ -4817,15 +5034,35 @@ int dcnt = table.del(("name": name));
         return delIntern();
     }
 
+    #! deletes rows in the table matching the condition and returns the count of rows deleted; no transaction management is performed with this method
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.delWithInfo({"name": name});
+        @endcode
+
+        @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+        @return a hash where the \c result key is the count of rows deleted
+
+        @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+        @since SqlUtil 1.7
+    */
+    hash<SqlResultInfo> delWithInfo(hash<auto> cond, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = delIntern(cond, \rv.sql, opt, \rv.args);
+        return rv;
+    }
+
     #! A legacy @ref SqlUtil::AbstractTable::del() wrapper
     deprecated int delNoCommit(*hash cond, *reference<string> sql) {
         return del(cond, \sql);
     }
 
-    private int delIntern(*hash cond, *reference<string> sql, *hash<auto> opt) {
+    private int delIntern(*hash<auto> cond, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         # make query
         sql = sprintf("delete from %s", getSqlName());
-        list<auto> args;
         if (cond)
             sql += getWhereClause(cond, \args);
 
@@ -4926,6 +5163,31 @@ int ucnt = table.update(("id": id), ("name": name));
         return updateIntern(set);
     }
 
+    #! updates rows in the table matching an optional condition and returns an info hash with the count of rows updated; no transaction management is performed with this method
+    /** @par Example:
+        @code{.py}
+hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
+        @endcode
+
+        @param set the hash of values to set, key values are column names, hash values are the values to assign to
+        those columns or update operators (see @ref sql_uop_funcs)
+        @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
+
+        @return an info hash where the \c result key is assigned to the count of rows updated
+
+        @throw UPDATE-ERROR the set hash is empty
+        @throw WHERE-ERROR unknown operator or invalid arguments given in the cond hash for the where clause
+
+        @since SqlUtil 1.7
+    */
+    hash<SqlResultInfo> updateWithInfo(hash<auto> set, hash<auto> cond, *hash<auto> opt) {
+        hash<SqlResultInfo> rv();
+        rv.result = updateIntern(set, cond, \rv.sql, opt, \rv.args);
+        return rv;
+    }
+
     #! Returns the SQL for the given update parameters
     /** @param set the column names and values to set in the update
         @param cond the update condition
@@ -4985,9 +5247,10 @@ int ucnt = table.update(("id": id), ("name": name));
         return updateIntern(set, cond, NOTHING, opt);
     }
 
-    private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt) {
+    private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         hash<SqlCommandInfo> update_hash = getUpdateSql(set, cond);
         sql = update_hash.sql;
+        args = update_hash.args;
         #printf("update_hash: %y\n", update_hash);
         return execData(opt, update_hash.sql, update_hash.args);
     }
