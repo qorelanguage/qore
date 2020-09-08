@@ -759,7 +759,7 @@ class qdx {
         code check_str = int sub () {
             if (!str.val()) {
                 str = sr.readLine();
-                if (!str.val()) {
+                if (!exists str) {
                     return -1;
                 }
             }
