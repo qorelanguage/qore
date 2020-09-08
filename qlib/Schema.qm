@@ -609,7 +609,7 @@ public namespace Schema {
 
             @note if other database objects not belonging to the schema already exist in the given database, they are not touched unless explicitly dropped by upgrade or downgrade code in the schema class; note that any undefined attributes of tables defined in the schema (columns, indexes, constraints, etc) will be dropped however
         */
-        int align(bool force = False, int verbose = 0) {
+        int align(bool force = False, int verbose = 0, bool do_msgs = True) {
             SchemaCallbackHelper sch(self, verbose);
 
             pure_callback_opts = sch.getCallbacks();
@@ -625,11 +625,11 @@ public namespace Schema {
 
             *hash<auto> initial_schema_info;
 
-            if (first_time_install)
-                if (verbose >= 0) {
+            if (first_time_install) {
+                if (do_msgs) {
                     logpf("creating %s schema %s", name, version);
                 }
-            else {
+            } else {
                 if (!checkUpdateSchema(force, \initial_schema_info))
                     return 0;
                 sch.sql_cache = ();
@@ -637,13 +637,13 @@ public namespace Schema {
 
             on_error {
                 ds.rollback();
-                if (verbose >= 0) {
+                if (verbose > 0) {
                     logpf("ALIGNMENT ROLLED BACK");
                 }
             }
             on_success {
                 ds.commit();
-                if (verbose >= 0) {
+                if (verbose > 0) {
                     logpf("COMMITTED ALIGNMENT");
                 }
             }
@@ -685,7 +685,7 @@ public namespace Schema {
             }
 %endif
 
-            if (verbose >= 0) {
+            if (do_msgs) {
                 if (sch.dot_count) {
                     logProgress("\n");
                     sch.dot_count = 0;
@@ -757,7 +757,7 @@ public namespace Schema {
         }
 
         #! executes a schema drop operation in the database
-        drop(bool force = False, int verbose = 0) {
+        drop(bool force = False, int verbose = 0, bool do_msgs = True) {
             SchemaCallbackHelper sch(self, verbose);
 
             callback_opts = sch.getCallbacks(force);
@@ -770,12 +770,12 @@ public namespace Schema {
 
             if (!checkExistence()) {
                 if (!force) {
-                    if (verbose >= 0) {
+                    if (do_msgs) {
                         logpf("schema appears to be empty: use -f to force the drop");
                     }
                     return;
                 }
-                if (verbose >= 0) {
+                if (do_msgs) {
                     logpf("schema appears to be empty: drop forced");
                 }
             } else {
@@ -806,7 +806,7 @@ public namespace Schema {
             }
 %endif
 
-            if (verbose >= 0) {
+            if (do_msgs) {
                 if (sch.dot_count)
                     logProgress("\n");
                 log("%d object%s dropped (%d error%s); schema has been dropped", sch.change_count,

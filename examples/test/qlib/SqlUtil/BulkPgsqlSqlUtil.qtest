@@ -193,7 +193,7 @@ class PgsqlTest inherits SqlTestBase {
             # create the test schema
             schema = new PgsqlTestSchema(ds);
 
-            schema.align(False, m_options.verbose);
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();

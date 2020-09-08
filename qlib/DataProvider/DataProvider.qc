@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 %requires reflection
 %requires Util
 
@@ -294,6 +283,12 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     static registerKnownTypes() {
         # register basic qore types
         DataProvider::registerType("qore/hash", new HashDataType());
+        DataProvider::registerType("qore/string", new QoreStringDataType());
+        DataProvider::registerType("qore/int", new QoreIntDataType());
+        DataProvider::registerType("qore/number", new QoreNumberDataType());
+        DataProvider::registerType("qore/float", new QoreFloatDataType());
+        DataProvider::registerType("qore/date", new QoreDateDataType());
+        DataProvider::registerType("qore/bool", new QoreBoolDataType());
 
         map DataProvider::tryLoad($1), TypeMap.iterator();
     }

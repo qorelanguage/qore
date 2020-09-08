@@ -201,7 +201,7 @@ class MysqlTest inherits SqlTestBase {
             # create the test schema
             schema = new MysqlTestSchema(ds);
 
-            schema.align(False, m_options.verbose);
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
@@ -225,12 +225,12 @@ class MysqlTest inherits SqlTestBase {
         MysqlTestAutoIncrementNegativeSchema schema(table.getDatasource());
         assertThrows("MYSQL-COLUMN-ERROR",
                      "AUTO_INCREMENT can be used only with a subset of types",
-                     sub() { schema.align(False, m_options.verbose); });
+                     sub() { schema.align(False, m_options.verbose, m_options.verbose > 0); });
     }
 
     private testCreateTableWithAutoIncrementPositive() {
         MysqlTestAutoIncrementPositiveSchema schema(table.getDatasource());
-        schema.align(False, m_options.verbose);
+        schema.align(False, m_options.verbose, m_options.verbose > 0);
         assertEq(True, True, "schema alignment works");
     }
 

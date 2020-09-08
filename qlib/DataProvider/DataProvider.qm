@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.5
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -189,11 +189,13 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     method.
 
     If a processor does not support the bulk API, but bulk data is submitted, then the bulk data will be separately
-    iterated, and each record will be passed separately to the processor.
+    iterated, and each record will be passed separately to the processor with a significant performance penalty when
+    processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v1_0_2 DataProvider v1.0.2
+    - added new %Qore base types to the data type hierarchy
     - implemented the following classes:
       - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
       - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
