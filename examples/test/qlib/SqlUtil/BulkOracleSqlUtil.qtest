@@ -136,8 +136,7 @@ class OracleTest inherits SqlTestBase {
         Datasource ds;
         try {
             ds = getDatasource();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
@@ -155,7 +154,7 @@ class OracleTest inherits SqlTestBase {
             # create the test schema
             schema = new OracleTestSchema(ds);
 
-            schema.align(False, m_options.verbose);
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();

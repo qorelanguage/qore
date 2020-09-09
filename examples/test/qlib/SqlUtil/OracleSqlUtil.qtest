@@ -231,7 +231,7 @@ class OracleTest inherits SqlTestBase {
             # create the test schema
             schema = new OracleTestSchema(ds);
 
-            schema.align(False, m_options.verbose);
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
@@ -283,14 +283,14 @@ class OracleTest inherits SqlTestBase {
 
         # align schema with byte semantics
         OracleByteSchema byte_schema(ds);
-        byte_schema.align(True, m_options.verbose);
+        byte_schema.align(True, m_options.verbose, m_options.verbose > 0);
 
         c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
         # it must be C (CHAR) in case of character_semantics=True, B is for BYTE
         assertEq("B", c.char_used, "character_semantics after alignment");
 
         # align schema with character semantics
-        schema.align(True, m_options.verbose);
+        schema.align(True, m_options.verbose, m_options.verbose > 0);
 
         c = ds.selectRow("select * from user_tab_columns where table_name = %v and column_name = %v", "ORACLE_TEST", "VARCHAR2_F");
         # it must be C (CHAR) in case of character_semantics=True, B is for BYTE

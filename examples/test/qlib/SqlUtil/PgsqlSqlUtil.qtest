@@ -214,7 +214,7 @@ class PgsqlTest inherits SqlTestBase {
                 ds.exec("drop sequence pgsql_test_seq");
             } catch () {}
 
-            schema.align(False, m_options.verbose);
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
@@ -265,7 +265,7 @@ class PgsqlTest inherits SqlTestBase {
 
         Bug2963Schema schema(ds);
         # to create test schema without triggers
-        auto res = schema.align(False, m_options.verbose);
+        auto res = schema.align(False, m_options.verbose, m_options.verbose > 0);
 
         # create trigger outseide the schema
         ds.execRaw("create function pgsql_test_2963_func() returns trigger\n"
@@ -278,7 +278,7 @@ class PgsqlTest inherits SqlTestBase {
                    "before insert on pgsql_test_2963 execute procedure pgsql_test_2963_func()");
 
         # align the schema again to drop trigger (and function)
-        res = schema.align(False, m_options.verbose);
+        res = schema.align(False, m_options.verbose, m_options.verbose > 0);
         # 1 = drop trigger
         # 2 = drop function
         assertEq(2, res, "2 actions must be performed");
