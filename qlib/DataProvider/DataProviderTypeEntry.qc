@@ -67,6 +67,9 @@ public class DataProviderTypeEntry inherits Serializable {
         #! Children of this entry
         *hash<string, DataProviderTypeEntry> children;
 
+        #! Names of attributes that can be referenced as children
+        *hash<string, DataProviderTypeEntry> type_children;
+
         #! The type at this location
         *AbstractDataProviderType type;
 
@@ -84,7 +87,7 @@ public class DataProviderTypeEntry inherits Serializable {
         name = "/";
     }
 
-    #! Creates the entry as a root node
+    #! Creates the entry as a child node
     /**
     */
     constructor(string path, string name) {
@@ -159,6 +162,7 @@ public class DataProviderTypeEntry inherits Serializable {
 
         self.type = type;
         self.locked = locked;
+        setTypeChildren();
         return True;
     }
 
@@ -175,6 +179,7 @@ public class DataProviderTypeEntry inherits Serializable {
         }
         *AbstractDataProviderType rv = self.type;
         self.type = type;
+        setTypeChildren();
         return rv;
     }
 
@@ -187,7 +192,7 @@ public class DataProviderTypeEntry inherits Serializable {
             "path": path,
             "has_type": exists type,
             "locked": locked,
-            "children": keys children,
+            "children": keys (type_children + children),
         };
     }
 
@@ -201,7 +206,7 @@ public class DataProviderTypeEntry inherits Serializable {
         if (type) {
             l += path;
         }
-        foreach DataProviderTypeEntry entry in (children.iterator()) {
+        foreach DataProviderTypeEntry entry in ((type_children + children).iterator()) {
             *list<string> child_list = entry.listTypes();
             if (child_list) {
                 l += child_list;
@@ -215,7 +220,7 @@ public class DataProviderTypeEntry inherits Serializable {
     /** @return a list of child entry names, if any
     */
     *list<string> getChildNames() {
-        return keys children;
+        return keys (type_children + children);
     }
 
     #! Returns the type at the entry level, if any
@@ -242,7 +247,7 @@ public class DataProviderTypeEntry inherits Serializable {
     /** @return the given child, if any
     */
     *DataProviderTypeEntry getChild(string child) {
-        return children{child};
+        return children{child} ?? type_children{child};
     }
 
     #! Returns the given child, if any, otherwise throws an exception
@@ -264,6 +269,9 @@ public class DataProviderTypeEntry inherits Serializable {
     removeChild(string child) {
         if (children{child}.locked) {
             throw "TYPE-LOCK-ERROR", sprintf("%s/%s is locked and cannot be removed", path, child);
+        }
+        if (!children{child} && type_children{child}) {
+            throw "TYPE-LOCK-ERROR", sprintf("%s/%s is an attribute of the type and cannot be removed", path, child);
         }
         remove children{child};
     }
@@ -297,6 +305,31 @@ public class DataProviderTypeEntry inherits Serializable {
             return rv;
         }
         return children{child} = new DataProviderTypeEntry(path, child);
+    }
+
+    #! Sets up attributes as children
+    private:internal setTypeChildren() {
+        *hash<string, AbstractDataField> fields = type.getFields();
+        if (fields) {
+            type_children = map {$1.key: new DataProviderTypeEntry(path + "/" + name, $1.key, $1.value.getType())},
+                fields.pairIterator();
+        } else {
+            remove type_children;
+        }
+    }
+
+    #! Creates the entry as a child node
+    /**
+    */
+    private:internal constructor(string path, string name, AbstractDataProviderType type) {
+        if (path == "/") {
+            self.path = "/" + name;
+        } else {
+            self.path = path + "/" + name;
+        }
+        self.name = name;
+        self.type = type;
+        setTypeChildren();
     }
 }
 }

@@ -966,6 +966,11 @@ public class DataProviderTest inherits QUnit::Test {
 
         DataProviderTypeCache t2 = Serializable::deserialize(type_cache.serialize());
         assertEq(2, t2.size());
+
+        HashDataType h4();
+        h4.addField(new QoreDataField("key1", "desc1", StringType));
+        type_cache.registerType("test/four", h4);
+        assertEq("string", type_cache.getType("/test/four/key1").getBaseTypeName());
     }
 
     dataProviderTest() {
