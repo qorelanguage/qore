@@ -1736,7 +1736,18 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
 
     // enrich exception description if present
     if (*xsink) {
-        xsink->appendLastDescription(": module command error from command '%s'", cmd.c_str());
+        // truncate command at first eol
+        qore_offset_t i = cmd.find('\n');
+        if (i == -1) {
+            i = cmd.find('\r');
+        }
+        if (i > 0) {
+            QoreString cmd_copy(&cmd, i);
+            cmd_copy.trim();
+            xsink->appendLastDescription(": module command error from command '%s...'", cmd_copy.c_str());
+        } else {
+            xsink->appendLastDescription(": module command error from command '%s'", cmd.c_str());
+        }
     }
 }
 
