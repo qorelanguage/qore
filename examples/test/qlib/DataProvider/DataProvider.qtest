@@ -969,8 +969,18 @@ public class DataProviderTest inherits QUnit::Test {
 
         HashDataType h4();
         h4.addField(new QoreDataField("key1", "desc1", StringType));
+        HashDataType ch1();
+        ch1.addField(new QoreDataField("key1", "desc1", StringType));
+        h4.addField(new QoreDataField("key2", "desc2", ch1));
         type_cache.registerType("test/four", h4);
         assertEq("string", type_cache.getType("/test/four/key1").getBaseTypeName());
+        DataProviderTypeEntry entry = type_cache.getRoot().getChild("test").getChild("four");
+        assertEq(("key1", "key2"), entry.getInfo().children);
+        assertEq(("key2",), entry.getInfo(True).children);
+        assertEq(("key1", "key2"), type_cache.getTypeInfo("/test/four").children);
+        assertEq(("key2",), type_cache.getTypeInfo("/test/four", True).children);
+        assertEq(("key1", "key2"), type_cache.getTypeInfoEx("/test/four").children);
+        assertEq(("key2",), type_cache.getTypeInfoEx("/test/four", True).children);
     }
 
     dataProviderTest() {

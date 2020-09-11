@@ -70,6 +70,9 @@ public class DataProviderTypeEntry inherits Serializable {
         #! Names of attributes that can be referenced as children
         *hash<string, DataProviderTypeEntry> type_children;
 
+        #! Names of attributes that can be referenced as children that have their own fields
+        *hash<string, DataProviderTypeEntry> rec_children;
+
         #! The type at this location
         *AbstractDataProviderType type;
 
@@ -184,15 +187,19 @@ public class DataProviderTypeEntry inherits Serializable {
     }
 
     #! Returns information about this entry
-    /** @return information about this entry
+    /** @param rec_children_only if @ref True, then only children with fields are returned
+
+        @return information about this entry
     */
-    hash<DataProviderTypeEntryInfo> getInfo() {
+    hash<DataProviderTypeEntryInfo> getInfo(*bool rec_children_only) {
         return <DataProviderTypeEntryInfo>{
             "name": name,
             "path": path,
             "has_type": exists type,
             "locked": locked,
-            "children": keys (type_children + children),
+            "children": rec_children_only
+                ? keys (rec_children + children)
+                : keys (type_children + children),
         };
     }
 
@@ -313,8 +320,13 @@ public class DataProviderTypeEntry inherits Serializable {
         if (fields) {
             type_children = map {$1.key: new DataProviderTypeEntry(path + "/" + name, $1.key, $1.value.getType())},
                 fields.pairIterator();
+            rec_children = map {$1.key: $1.value}, type_children.pairIterator(), $1.value.getType().getFields();
+            if (!rec_children) {
+                remove rec_children;
+            }
         } else {
             remove type_children;
+            remove rec_children;
         }
     }
 

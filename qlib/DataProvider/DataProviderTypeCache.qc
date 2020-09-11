@@ -215,18 +215,20 @@ public class DataProviderTypeCache inherits Serializable {
 
     #! Returns the given data provider type or @ref nothing if not present
     /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
+        @param rec_children_only if @ref True, then only children with fields are returned
 
         @return the given data provider type; @ref NOTHING is returned if the type cannot be resolved
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    *hash<DataProviderTypeEntryInfo> getTypeInfo(string path) {
-        return getTypeInfoImpl(path, False);
+    *hash<DataProviderTypeEntryInfo> getTypeInfo(string path, *bool rec_children_only) {
+        return getTypeInfoImpl(path, False, rec_children_only);
     }
 
     #! Returns the given data provider type or throws an exception if not present
     /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
+        @param rec_children_only if @ref True, then only children with fields are returned
 
         @return the given data provider type; an exception is thrown if the data provide is unknown
 
@@ -235,8 +237,8 @@ public class DataProviderTypeCache inherits Serializable {
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    hash<DataProviderTypeEntryInfo> getTypeInfoEx(string path) {
-        return getTypeInfoImpl(path, True);
+    hash<DataProviderTypeEntryInfo> getTypeInfoEx(string path, *bool rec_children_only) {
+        return getTypeInfoImpl(path, True, rec_children_only);
     }
 
     #! Returns the given data provider type and either throws an exception if not present or returns @ref NOTHING
@@ -313,6 +315,7 @@ public class DataProviderTypeCache inherits Serializable {
     /** @param path a \c "/" separated path for the type
         @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
         @ref NOTHING is returned
+        @param rec_children_only if @ref True, then only children with fields are returned
 
         @return information for the given data provider type or @ref NOTHING is returned if the path cannot be
         resolved and the \a throw_exception argument is @ref False
@@ -323,7 +326,7 @@ public class DataProviderTypeCache inherits Serializable {
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    *hash<DataProviderTypeEntryInfo> getTypeInfoImpl(string path, bool throw_exception) {
+    *hash<DataProviderTypeEntryInfo> getTypeInfoImpl(string path, bool throw_exception, *bool rec_children_only) {
         # we have to grab the write lock if there is a type_loader
         bool need_lock = !rwlock.lockOwner();
         if (need_lock) {
@@ -347,7 +350,7 @@ public class DataProviderTypeCache inherits Serializable {
             type_entry = next_entry;
         }
 
-        return type_entry.getInfo();
+        return type_entry.getInfo(rec_children_only);
     }
 
     #! Returns the RWLock to allow for external serialization
