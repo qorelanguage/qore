@@ -41,6 +41,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugLinenoiseCmdLine.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
+	qlib/DynamicsCommonDataServiceRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
