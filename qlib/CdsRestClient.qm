@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file DynamicsCommonDataServiceRestClient.qm Qore user module for calling DynamicsCommonDataService REST services
+#! @file CdsRestClient.qm Qore user module for calling Microsoft Dynamics 365 Common Data Service REST services
 
-/*  DynamicsCommonDataServiceRestClient.qm Copyright (C) 2020 Qore Technologies, s.r.o.
+/*  CdsRestClient.qm Copyright (C) 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,32 +41,31 @@
 %requires(reexport) RestClient >= 1.3.1
 %requires(reexport) ConnectionProvider >= 1.2
 
-module DynamicsCommonDataServiceRestClient {
+module CdsRestClient {
     version = "1.0";
-    desc = "user module for calling Dynamics CommonDataService REST services";
+    desc = "user module for calling Microsoft Dynamics 365 Common Data Service REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
     license = "MIT";
 }
 
-/** @mainpage DynamicsCommonDataServiceRestClient Module
+/** @mainpage CdsRestClient Module
 
     @tableofcontents
 
-    @section dynamicscommondataservicerestclientintro DynamicsCommonDataServiceRestClient Introduction
+    @section cdsrestclientintro CdsRestClient Introduction
 
-    The %DynamicsCommonDataServiceRestClient module provides an API for calling REST services with Microsoft Dynamics
-    365 Common Data Service REST services.
+    The %CdsRestClient module provides an API for calling Microsoft Dynamics 365 Common Data Service REST services.
 
-    To use this module, use \c "%requires DynamicsCommonDataServiceRestClient" in your code.
+    To use this module, use \c "%requires CdsRestClient" in your code.
 
-    All the public symbols in the module are defined in the DynamicsCommonDataServiceRestClient namespace.
+    All the public symbols in the module are defined in the CdsRestClient namespace.
 
     The main classes are:
-    - @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient "DynamicsCommonDataServiceRestClient":
+    - @ref CdsRestClient::CdsRestClient "CdsRestClient":
       this class provides the REST client API for communuication with the Microsoft Dynamics 365 Common Data Service REST
       API; it also automates authentication and authorization to the target
-    - @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestConnection "DynamicsCommonDataServiceRestConnection":
+    - @ref CdsRestClient::CdsRestConnection "CdsRestConnection":
       provides a REST connection object to a Microsoft Dynamics 365 Common Data Service server (based on the
       @ref connectionproviderintro "ConnectionProvider" module)
 
@@ -79,7 +78,7 @@ module DynamicsCommonDataServiceRestClient {
 %require-types
 %enable-all-warnings
 
-%requires DynamicsCommonDataServiceRestClient
+%requires CdsRestClient
 
 hash<auto> opts = {
     "url": "https://my-instance.crm2.dynamics.com",
@@ -88,19 +87,19 @@ hash<auto> opts = {
     "tenant": "bef147c4-8dd3-4e18-9af8-9573d86d3738",
 };
 
-DynamicsCommonDataServiceRestClient rest(opts);
+CdsRestClient rest(opts);
 hash<auto> ans = rest.get("...");
 printf("%N\n", ans.body);
     @endcode
 
-    @section dynamicscommondataservicerestclientrelnotes Release Notes
+    @section cdsrestclientrelnotes Release Notes
 
-    @subsection dynamicscommondataservicerestclientv1_0 DynamicsCommonDataServiceRestClient v1.0
-    - the initial version of the %DynamicsCommonDataServiceRestClient module
+    @subsection cdsrestclientv1_0 CdsRestClient v1.0
+    - the initial version of the %CdsRestClient module
 */
 
-#! the DynamicsCommonDataServiceRestClient namespace contains all the objects in the DynamicsCommonDataServiceRestClient module
-public namespace DynamicsCommonDataServiceRestClient {
+#! the CdsRestClient namespace contains all the objects in the CdsRestClient module
+public namespace CdsRestClient {
 #! this class provides the REST client API for communication with Microsoft Dynamics 365 Common Data Service servers
 /** This class requires the following options for Microsoft Dynamics 365 Common Data Service authentication and
     authorization to the target server:
@@ -113,7 +112,7 @@ public namespace DynamicsCommonDataServiceRestClient {
     - \c desc: the exception message (ex: <tt>Resource not found for the segment 'WhoAmi'.</tt>)
     - \c arg :
 */
-public class DynamicsCommonDataServiceRestClient inherits RestClient::RestClient {
+public class CdsRestClient inherits RestClient::RestClient {
     public {
         #! default send encoding
         const DefaultSendEncoding = "gzip";
@@ -145,7 +144,7 @@ public class DynamicsCommonDataServiceRestClient inherits RestClient::RestClient
     /**
         @par Example:
         @code{.py}
-DynamicsCommonDataServiceRestClient rest({
+CdsRestClient rest({
 "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap",
 "client_id": client_id,
 "client_secret": client_secret,
@@ -187,18 +186,18 @@ DynamicsCommonDataServiceRestClient rest({
             to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies
             (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies
             over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-        - \c scope: the OAuth2 scope for the login; the default it to use the target URL
+        - \c scope: the OAuth2 scope for the login; the default it to use the target URL + "/.default"
         - \c tenant: (required) the tenant ID
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
-            \c 30s)
+          \c 30s)
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-        @throw DYNAMICSCOMMONDATASERVICERESTCLIENT-ERROR missing or invalid required option for REST
+        @throw CDSRESTCLIENT-ERROR missing or invalid required option for REST
         authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(DynamicsCommonDataServiceRestClient::getOptions(opts), do_not_connect) {
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(CdsRestClient::getOptions(opts), do_not_connect) {
         # check for either the apikey or client id/secret options
         if (opts.client_id && opts.client_secret) {
             client_id = getString(opts, "client_id");
@@ -304,20 +303,20 @@ DynamicsCommonDataServiceRestClient rest({
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
         if (!exists v || v == "") {
-            DynamicsCommonDataServiceRestClient::error("missing required option %y in option argument", key);
+            CdsRestClient::error("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            DynamicsCommonDataServiceRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            CdsRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
         }
         return v;
     }
 
     #! throws an exception due to an error
     static error(string fmt) {
-        throw "DYNAMICSCOMMONDATASERVICERESTCLIENT-ERROR", vsprintf(fmt, argv);
+        throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
-    #! returns options for the @ref DynamicsCommonDataServiceRestClient::constructor()
+    #! returns options for the @ref CdsRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {
             "data": "json",
@@ -325,7 +324,7 @@ DynamicsCommonDataServiceRestClient rest({
     }
 }
 
-#! class for Microsoft Dynamics 365 Common Data Service REST connections; returns @ref DynamicsCommonDataServiceRestClient objects
+#! class for Microsoft Dynamics 365 Common Data Service REST connections; returns @ref CdsRestClient objects
 /** supports the following options:
     - \c "api_version": the API version for Dynamics
     - \c "client_id": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client ID
@@ -347,14 +346,15 @@ DynamicsCommonDataServiceRestClient rest({
     - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
       \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message
       bodies
+    - \c "scope": the OAuth2 scope for the login; the default it to use the target URL + "/.default"
     - \c "tenant": (required) the tenant ID
     - \c "timeout": transfer timeout to use in milliseconds
 
-    @see @ref DynamicsCommonDataServiceRestClient::constructor() for more information on the above options
+    @see @ref CdsRestClient::constructor() for more information on the above options
 */
-public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestConnection {
+public class CdsRestConnection inherits RestClient::RestConnection {
     public {
-        #! DynamicsCommonDataServiceRestConnection object connection options
+        #! CdsRestConnection object connection options
         const Options = RestConnection::Options + {
             "api_version": True,
             "client_id": True,
@@ -366,7 +366,7 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         const OptionList = Options.keys();
     }
 
-    #! creates the DynamicsCommonDataServiceRestConnection object
+    #! creates the CdsRestConnection object
     /** @param name the name of the connection
         @param description connection description
         @param url connection URL (potentially with password info)
@@ -375,31 +375,33 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
 
         See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
 
-        @throws DYNAMICSCOMMONDATASERVICERESTCONNECTION-ERROR missing required options
+        @throws CDSRESTCONNECTION-ERROR missing required options
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : RestConnection(name, description, url, attributes, options) {
         if (!opts.tenant.val() || !opts.client_id.val() || !opts.client_secret.val())
-            throw "DYNAMICSCOMMONDATASERVICERESTCONNECTION-ERROR", sprintf("missing 'tenant', 'client_id', or "
+            throw "CDSRESTCONNECTION-ERROR", sprintf("missing 'tenant', 'client_id', or "
                 "'client_secret' options for connection %y with url %y (%s)", name, url, desc);
         real_opts = {
             "url": real_url,
         } + urlh.("username", "password") + self.opts;
     }
 
-    #! returns a @ref DynamicsCommonDataServiceRestClient object
+    #! returns a @ref CdsRestClient object
     /** @param connect if @ref True "True", then the connection is returned already connected
         @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
 
-        @return a @ref DynamicsCommonDataServiceRestClient object
+        @return a @ref CdsRestClient object
     */
-    private DynamicsCommonDataServiceRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new DynamicsCommonDataServiceRestClient(real_opts, !connect);
+    private CdsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new CdsRestClient(real_opts, !connect);
     }
 
     #! gets options
     /** @return returns a hash with the following supported options:
-        - \c "apikey": the Microsoft Dynamics 365 Common Data Service API key in use
+        - \c "api_version": the API version for Dynamics
+        - \c "client_id": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client ID
+        - \c "client_secret": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client secret
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
           requested response encoding; for possible values, see
@@ -417,9 +419,11 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
           \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
           message bodies
+        - \c "scope": the OAuth2 scope for the login; the default it to use the target URL + "/.default"
+        - \c "tenant": the tenant ID
         - \c "timeout": transfer timeout to use in milliseconds
 
-        @see @ref DynamicsCommonDataServiceRestClient::constructor() for more information on the above options
+        @see @ref CdsRestClient::constructor() for more information on the above options
     */
     hash<auto> getOptions() {
         return Options;
@@ -430,9 +434,9 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         return HttpConnection::DefaultOptions;
     }
 
-    #! returns \c "dynamicscdsrest"
+    #! returns \c "cdsrest"
     string getType() {
-        return "dynamicscdsrest";
+        return "cdsrest";
     }
 }
 }
