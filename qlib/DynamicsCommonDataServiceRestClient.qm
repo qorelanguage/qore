@@ -107,6 +107,11 @@ public namespace DynamicsCommonDataServiceRestClient {
     - \c client_id: the OAuth2 client ID
     - \c client_secret: the OAuth2 client secret
     - \c tenant: the tenant ID
+
+    Errors returned from Dynamics will have the following format:
+    - \c err: will be the hex error code from Dynamics (ex: \c 0x8006088a)
+    - \c desc: the exception message (ex: <tt>Resource not found for the segment 'WhoAmi'.</tt>)
+    - \c arg :
 */
 public class DynamicsCommonDataServiceRestClient inherits RestClient::RestClient {
     public {
@@ -120,7 +125,10 @@ public class DynamicsCommonDataServiceRestClient inherits RestClient::RestClient
         const OAuth2TokenUriPathSuffix = "/oauth2/v2.0/token";
 
         #! Default API version
-        const DefaultApiVersion = "9.0";
+        const DefaultApiVersion = "9.1";
+
+        #! Request URI path prefix
+        const RequestUriPathPrefix = "/api/data/v";
     }
 
     private:internal {
@@ -130,6 +138,7 @@ public class DynamicsCommonDataServiceRestClient inherits RestClient::RestClient
         string tenant;
         string scope;
         string token;
+        string uri_path_pfx;
     }
 
     #! creates the object with the given options
@@ -152,6 +161,7 @@ DynamicsCommonDataServiceRestClient rest({
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 {"additional_methods": {"PROPFIND": True, "MKCOL": True}};
             @endcode
+        - \c api_version: the API version for Dynamics
         - \c client_id: (required) the OAuth2 client ID
         - \c client_secret: (required) the OAuth2 client secret
         - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
@@ -213,6 +223,13 @@ DynamicsCommonDataServiceRestClient rest({
             delete headers.Accept;
         }
 
+        string version;
+        if (opts.api_version) {
+            version = getString(opts, "api_version");
+        }
+        uri_path_pfx = RequestUriPathPrefix + (version ?? DefaultApiVersion);
+        setConnectionPath(uri_path_pfx);
+
         if (client_id && !do_not_connect) {
             loginIntern();
         }
@@ -242,7 +259,7 @@ DynamicsCommonDataServiceRestClient rest({
 
         setURL(OAuth2AuthUrl);
 
-        hash<auto> login = self.("client_id", "client_secret",) + {
+        hash<auto> login = self{"client_id", "client_secret",} + {
             "grant_type": "client_credentials",
             "scope": scope,
         };
@@ -265,6 +282,24 @@ DynamicsCommonDataServiceRestClient rest({
         #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
     }
 
+    #! sends the outgoing HTTP message and recodes the response to data
+    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+        try {
+            return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+        } catch (hash<ExceptionInfo> ex) {
+            # throw an exception for the Dynamics error
+            if (info."response-body".error && info."response-body".size() == 1
+                && info."response-body".error."code".typeCode() == NT_STRING
+                && info."response-body".error.message.typeCode() == NT_STRING) {
+                hash<auto> error = info."response-body".error;
+                string errcode = remove error."code";
+                string msg = remove error.message;
+                throw errcode, msg, error + ex.arg + {"decoded_body": info."response-body"};
+            }
+            rethrow;
+        }
+    }
+
     #! gets a string option
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
@@ -282,48 +317,46 @@ DynamicsCommonDataServiceRestClient rest({
         throw "DYNAMICSCOMMONDATASERVICERESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
-    #! returns options for the @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient::constructor() "DynamicsCommonDataServiceRestClient::constructor()"
+    #! returns options for the @ref DynamicsCommonDataServiceRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        hash<auto> hdr;
-        if (!opts.client_id || !opts.client_secret) {
-            hdr = {
-                "ApiKey": opts.apikey,
-            };
-        }
-        hdr += opts.headers;
         return opts + {
             "data": "json",
-            "headers": hdr,
         };
     }
 }
 
-#! class for Microsoft Dynamics 365 Common Data Service REST connections; returns @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient objects
+#! class for Microsoft Dynamics 365 Common Data Service REST connections; returns @ref DynamicsCommonDataServiceRestClient objects
 /** supports the following options:
+    - \c "api_version": the API version for Dynamics
     - \c "client_id": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client ID
     - \c "client_secret": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client secret
     - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+      requested response encoding; for possible values, see
+      @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
     - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
-        values; the default is \c "json"
+      values; the default is \c "json"
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
+      \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
+      like any other response
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
         processed
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+      \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message
+      bodies
     - \c "tenant": (required) the tenant ID
     - \c "timeout": transfer timeout to use in milliseconds
 
-    @see @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient::constructor() "DynamicsCommonDataServiceRestClient::constructor()" for more information on the above options
+    @see @ref DynamicsCommonDataServiceRestClient::constructor() for more information on the above options
 */
 public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestConnection {
     public {
         #! DynamicsCommonDataServiceRestConnection object connection options
         const Options = RestConnection::Options + {
+            "api_version": True,
             "client_id": True,
             "client_secret": True,
             "tenant": True,
@@ -340,10 +373,10 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         @param attributes various attributes. See below
         @param options connection options
 
-        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
 
         @throws DYNAMICSCOMMONDATASERVICERESTCONNECTION-ERROR missing required options
-        */
+    */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : RestConnection(name, description, url, attributes, options) {
         if (!opts.tenant.val() || !opts.client_id.val() || !opts.client_secret.val())
@@ -354,11 +387,11 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         } + urlh.("username", "password") + self.opts;
     }
 
-    #! returns a @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient object
+    #! returns a @ref DynamicsCommonDataServiceRestClient object
     /** @param connect if @ref True "True", then the connection is returned already connected
         @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
 
-        @return a @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient "DynamicsCommonDataServiceRestClient" object
+        @return a @ref DynamicsCommonDataServiceRestClient object
     */
     private DynamicsCommonDataServiceRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
         return new DynamicsCommonDataServiceRestClient(real_opts, !connect);
@@ -368,8 +401,11 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
     /** @return returns a hash with the following supported options:
         - \c "apikey": the Microsoft Dynamics 365 Common Data Service API key in use
         - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
+        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+          requested response encoding; for possible values, see
+          @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is
+          \c "json"
         - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
             \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
             like any other response
@@ -378,10 +414,12 @@ public class DynamicsCommonDataServiceRestConnection inherits RestClient::RestCo
         - \c "proxy": proxy URL to use
         - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
             processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+          \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+          message bodies
         - \c "timeout": transfer timeout to use in milliseconds
 
-        @see @ref DynamicsCommonDataServiceRestClient::DynamicsCommonDataServiceRestClient::constructor() "DynamicsCommonDataServiceRestClient::constructor()" for more information on the above options
+        @see @ref DynamicsCommonDataServiceRestClient::constructor() for more information on the above options
     */
     hash<auto> getOptions() {
         return Options;
