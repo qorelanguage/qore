@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file CdsRestClient.qm Qore user module for calling Microsoft Dynamics 365 Common Data Service REST services
+#! @file CdsRestClient.qm Qore user module for calling Microsoft Common Data Service REST services
 
 /*  CdsRestClient.qm Copyright (C) 2020 Qore Technologies, s.r.o.
 
@@ -160,7 +160,7 @@ CdsRestClient rest({
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 {"additional_methods": {"PROPFIND": True, "MKCOL": True}};
             @endcode
-        - \c api_version: the API version for Dynamics
+        - \c api: the API version for Dynamics
         - \c client_id: (required) the OAuth2 client ID
         - \c client_secret: (required) the OAuth2 client secret
         - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
@@ -223,8 +223,8 @@ CdsRestClient rest({
         }
 
         string version;
-        if (opts.api_version) {
-            version = getString(opts, "api_version");
+        if (opts.api) {
+            version = getString(opts, "api");
         }
         uri_path_pfx = RequestUriPathPrefix + (version ?? DefaultApiVersion);
         setConnectionPath(uri_path_pfx);
@@ -286,7 +286,7 @@ CdsRestClient rest({
         try {
             return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
         } catch (hash<ExceptionInfo> ex) {
-            # throw an exception for the Dynamics error
+            # throw an exception for the CDS error
             if (info."response-body".error && info."response-body".size() == 1
                 && info."response-body".error."code".typeCode() == NT_STRING
                 && info."response-body".error.message.typeCode() == NT_STRING) {
@@ -324,11 +324,11 @@ CdsRestClient rest({
     }
 }
 
-#! class for Microsoft Dynamics 365 Common Data Service REST connections; returns @ref CdsRestClient objects
+#! class for Microsoft Common Data Service REST connections; returns @ref CdsRestClient objects
 /** supports the following options:
-    - \c "api_version": the API version for Dynamics
-    - \c "client_id": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client ID
-    - \c "client_secret": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client secret
+    - \c "api": the API version for CDS
+    - \c "client_id": (required) the Microsoft Common Data Service OAuth2 client ID
+    - \c "client_secret": (required) the Microsoft Common Data Service OAuth2 client secret
     - \c "connect_timeout": connection timeout to use in milliseconds
     - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
       requested response encoding; for possible values, see
@@ -356,7 +356,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     public {
         #! CdsRestConnection object connection options
         const Options = RestConnection::Options + {
-            "api_version": True,
+            "api": True,
             "client_id": True,
             "client_secret": True,
             "tenant": True,
@@ -399,9 +399,9 @@ public class CdsRestConnection inherits RestClient::RestConnection {
 
     #! gets options
     /** @return returns a hash with the following supported options:
-        - \c "api_version": the API version for Dynamics
-        - \c "client_id": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client ID
-        - \c "client_secret": (required) the Microsoft Dynamics 365 Common Data Service OAuth2 client secret
+        - \c "api": the API version for CDS
+        - \c "client_id": (required) the Microsoft Common Data Service OAuth2 client ID
+        - \c "client_secret": (required) the Microsoft Common Data Service OAuth2 client secret
         - \c "connect_timeout": connection timeout to use in milliseconds
         - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
           requested response encoding; for possible values, see
@@ -437,6 +437,25 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     #! returns \c "cdsrest"
     string getType() {
         return "cdsrest";
+    }
+
+    #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! returns a data provider object for this connection
+    /** @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        # to avoid circular dependencies, this object loads the CdsRestDataProvider and creates the data provider
+        # object dynamically
+        load_module("CdsRestDataProvider");
+        return create_object("CdsRestDataProvider", get());
     }
 }
 }

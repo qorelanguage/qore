@@ -42,6 +42,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/CdsRestClient.qm \
+	qlib/CdsRestDataProvider.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
