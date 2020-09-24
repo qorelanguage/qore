@@ -144,6 +144,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c error_passthru: If @ref True "True" then HTTP status codes indicating errors will not cause an
       \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
       like any other response
+    - \c headers: A hash of headers to send in every outgoing request
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
@@ -181,6 +182,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c assume_encoding
     - %Qore 0.9.4.6 added the following option:
       - \c encoding
+    - %Qore 0.9.5 added the following option:
+      - \c headers
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -1484,6 +1487,28 @@ httpclient.clearProxyUserPassword();
  */
 nothing HTTPClient::clearProxyUserPassword() {
    client->clearProxyUserPassword();
+}
+
+//! Sets headers to send by default with every outgoing request
+/** @param hdr headers to send by default with every outgoing request
+
+    @see getDefaultHeaders()
+
+    @since %Qore 0.9.5
+*/
+nothing HTTPClient::addDefaultHeaders(hash<auto> hdr) {
+    client->addDefaultHeaders(hdr);
+}
+
+//! Returns a hash of default headers to be sent with every outgoing request
+/** @return a hash of default headers to be sent with every outgoing request
+
+    @see addDefaultHeaders()
+
+    @since %Qore 0.9.5
+*/
+hash<string, string> HTTPClient::getDefaultHeaders() [flags=CONSTANT] {
+    return client->getDefaultHeaders();
 }
 
 //! Sets the default path used by the object if no path is set in the URL
