@@ -155,7 +155,7 @@ class CdsTest inherits QUnit::Test {
 
     connectionTest() {
         string url = "http://localhost:8080";
-        CdsRestConnection swsc("test", "test", url, {}, cdsopts - "url");
+        CdsRestConnection swsc("test", "test", url, {}, {"client_id": "x", "client_secret": "x", "tenant": "x",});
         assertEq(True, swsc instanceof CdsRestConnection);
 
         assertThrows("CONNECTION-ERROR", sub () {
