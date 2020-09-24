@@ -1840,7 +1840,7 @@ QoreHashNode* QoreHttpClientObject::getDefaultHeaders() const {
 
     AutoLocker al(priv->m);
     for (auto i : http_priv->default_headers) {
-        h->setKeyValueIntern(i.first, new QoreStringNode(i.second));
+        h->setKeyValueIntern(i.first.c_str(), new QoreStringNode(i.second));
     }
 
     return rv.release();
