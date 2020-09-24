@@ -289,6 +289,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         DataProvider::registerType("qore/float", new QoreFloatDataType());
         DataProvider::registerType("qore/date", new QoreDateDataType());
         DataProvider::registerType("qore/bool", new QoreBoolDataType());
+        DataProvider::registerType("qore/binary", new QoreBinaryDataType());
 
         map DataProvider::tryLoad($1), TypeMap.iterator();
     }

@@ -875,8 +875,10 @@ qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/ZeyosRestClient.qm" "ConnectionProvider;RestClient;Swagger")
 qore_user_module("qlib/BillwerkRestClient.qm" "ConnectionProvider;RestClient")
 qore_user_module("qlib/Sap4HanaRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/CdsRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSchemaValidator")
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")
+qore_user_module("qlib/CdsRestDataProvider.qm" "RestClient;RestSchemaValidator;DataProvider")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")

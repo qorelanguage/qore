@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestSchemaValidator.qm an abstract API for validating REST schemas
 
-/*  RestSchemaValidator.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
+/*  RestSchemaValidator.qm Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.3
+%requires qore >= 0.9.5
 
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
@@ -52,7 +52,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.0";
+    version = "2.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -72,6 +72,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_1 RestSchemaValidator v2.1
+    - fixed a bug handling complex \c Content-Type headers in responses
+      (<a href="https://github.com/qorelanguage/qore/issues/4019">issue 4019</a>)
 
     @subsection restschemavalidator_2_0 RestSchemaValidator v2.0
     - implemented support for the DataProvider API
@@ -754,7 +758,10 @@ public namespace RestSchemaValidator {
             ));
 
             if (response_body.val()) {
-                *hash<auto> dh = DataDeserializationSupport.(hdr."content-type");
+                string ct = (hdr."content-type".typeCode() == NT_LIST
+                    ? hdr."content-type"[0]
+                    : hdr."content-type");
+                *hash<auto> dh = DataDeserializationSupport{ct};
                 if (!dh) {
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; "
                         "types supported: %y; response body: %y", hdr."content-type",
@@ -763,7 +770,7 @@ public namespace RestSchemaValidator {
 
                 if (response_body.typeCode() != NT_STRING) {
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y but "
-                        "body type is %y", hdr."content-type", response_body.type());
+                        "body type is %y", ct, response_body.type());
                 }
 
                 string ds_code = dh.code;

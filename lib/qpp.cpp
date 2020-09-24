@@ -1685,11 +1685,11 @@ protected:
                         p.name.c_str(), i);
                 continue;
             }
-            if (ptype == "binary") {
+            if (ptype == "binary" || ptype == "softbinary") {
                 fprintf(fp, "    const BinaryNode* %s = HARD_QORE_VALUE_BINARY(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
-            if (ptype == "*binary") {
+            if (ptype == "*binary" || ptype == "*softbinary") {
                 fprintf(fp,
                         "    const BinaryNode* %s = get_param_value(args, %d).get<const BinaryNode>();\n",
                         p.name.c_str(), i);
@@ -4316,8 +4316,14 @@ void init() {
     tmap["binary"] = "binaryTypeInfo";
     mtmap["binary"] = "Vy";
 
+    tmap["softbinary"] = "softBinaryTypeInfo";
+    mtmap["softbinary"] = "vy";
+
     tmap["*binary"] = "binaryOrNothingTypeInfo";
     mtmap["*binary"] = "Ny";
+
+    tmap["*softbinary"] = "softBinaryOrNothingTypeInfo";
+    mtmap["*softbinary"] = "ny";
 
     tmap["hash"] = "hashTypeInfo";
     mtmap["hash"] = "Vh";

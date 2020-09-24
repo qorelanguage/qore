@@ -2782,6 +2782,77 @@ protected:
    }
 };
 
+class QoreSoftBinaryTypeInfo : public QoreTypeInfo {
+public:
+    DLLLOCAL QoreSoftBinaryTypeInfo() : QoreTypeInfo("softbinary",
+        q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING,
+                [] (QoreValue& n, ExceptionSink* xsink) {
+                    const QoreStringNode* str = n.get<const QoreStringNode>();
+                    SimpleRefHolder<BinaryNode> bn(new BinaryNode);
+                    bn->append((const void*)str->c_str(), str->size());
+                    discard(n.assign(bn.release()), xsink);
+                }
+            },
+            {NT_NULL,
+                [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(new BinaryNode), xsink);
+                }
+            },
+        }, q_return_vec_t {{NT_BINARY, true}}) {
+    }
+
+protected:
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return true;
+    }
+
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new BinaryNode();
+    }
+};
+
+class QoreSoftBinaryOrNothingTypeInfo : public QoreTypeInfo {
+public:
+    DLLLOCAL QoreSoftBinaryOrNothingTypeInfo() : QoreTypeInfo("*softbinary",
+        q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING,
+                [] (QoreValue& n, ExceptionSink* xsink) {
+                    const QoreStringNode* str = n.get<const QoreStringNode>();
+                    SimpleRefHolder<BinaryNode> bn(new BinaryNode);
+                    bn->append((const void*)str->c_str(), str->size());
+                    discard(n.assign(bn.release()), xsink);
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+        }, q_return_vec_t {{NT_BINARY}, {NT_NOTHING}}) {
+    }
+
+protected:
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return true;
+    }
+
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+};
+
 class QoreSoftBoolTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreSoftBoolTypeInfo() : QoreTypeInfo("softbool", q_accept_vec_t {

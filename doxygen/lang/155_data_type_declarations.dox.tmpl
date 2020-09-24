@@ -28,6 +28,7 @@
     |@ref null_type "null"|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
     |@ref nothing_type "nothing"|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
     |@ref timeout_type "timeout"|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
+    |@ref softbinary_type "softbinary"|@ref string, @ref null|@ref float|Accepts @ref string, @ref null and converts non-binary values to a binary value and returns the new value
     |@ref softint_type "softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
     |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
     |@ref softnumber_type "softnumber"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-number values to a float and returns the new value
@@ -468,6 +469,23 @@ timeout sub foo(timeout to = 1250ms) {
     direct arithmetic with timeout values for this reason.
 
     <hr>
+    @section softbinary_type softbinary
+
+    <b>softbinary Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c softbinary|@ref string, @ref null|@ref binary|Accepts @ref string, and @ref null values and converts \
+        non-binary values to a binary and returns the binary
+
+    @par Example
+    @code{.py}
+softbinary sub foo(softbinary n = "1000") {
+    return n;
+}
+    @endcode
+
+    @since %Qore 0.9.5 introduced the softbinary type
+
+    <hr>
     @section softint_type softint
 
     <b>softint Type Restriction</b>
@@ -502,7 +520,7 @@ softfloat sub foo(softfloat f = "1000") {
 
     <b>softnumber Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number
+    |\c softnumber|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref number_type|Accepts @ref integer, @ref float, @ref number, @ref boolean, @ref string, and @ref null values and converts non-number values to a number and returns the number
 
     @par Example
     @code{.py}

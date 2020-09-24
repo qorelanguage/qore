@@ -1,0 +1,174 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/CdsRestClient.qm
+%requires ../../../../qlib/CdsRestDataProvider
+
+%try-module json
+%define NoJson
+%endtry
+
+%requires qore >= 0.9
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%exec-class CdsTest
+
+class CdsTest inherits QUnit::Test {
+    public {}
+
+    private {
+        CdsRestClient rc;
+
+        # CDS connection options
+        hash cdsopts;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "client_id":      "i,client_id=s",
+            "client_secret":  "s,client_secret=s",
+            "tenant":         "T,tenant,=s",
+            "timeout":        "t,timeout=i",
+            "url":            "u,url=s",
+        };
+
+        const OptionColumn = 22;
+
+        const AcctNo1 = "DEL_TEST_1";
+        const AcctName1 = "My Test Account 1";
+
+        const AcctNo2 = "DEL_TEST_2";
+    }
+
+    constructor() : Test("CdsTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("CDS DataProvider test", \CdsDataProviderTests());
+        addTestCase("CDS REST", \CdsRestTests());
+        addTestCase("connection tests", \connectionTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-i,--client_id=ARG", "set CDS consumer key", OptionColumn);
+        printOption("-s,--client_secret=ARG", "set CDS consumer secret", OptionColumn);
+        printOption("-T,--tenant=ARG", "set CDS tenant", OptionColumn);
+        printOption("-t,--timeout=ARG", "set CDS timeout in seconds", OptionColumn);
+        printOption("-u,--url=ARG", "URL for the CDS instance", OptionColumn);
+    }
+
+    setupConnection() {
+        cdsopts.url = m_options.url ?? ENV.CDS_URL;
+        if (!cdsopts.url)
+            error("missing --url option or CDS_URL environment variable");
+        cdsopts.client_id = m_options.client_id ?? ENV.CDS_CLIENT_ID;
+        if (!cdsopts.client_id)
+            error("missing --client_id option or CDS_CLIENT_ID environment variable");
+        cdsopts.client_secret = m_options.client_secret ?? ENV.CDS_CLIENT_SECRET;
+        if (!cdsopts.client_secret)
+            error("missing --client_secret option or CDS_CLIENT_SECRET environment variable");
+        cdsopts.tenant = m_options.tenant ?? ENV.CDS_TENANT;
+        if (!cdsopts.tenant)
+            error("missing --tenant option or CDS_TENANT environment variable");
+        if (cdsopts."timeout")
+            cdsopts.connect_timeout = cdsopts."timeout";
+
+        rc = new CdsRestClient(cdsopts);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    CdsDataProviderTests() {
+        if (!rc) testSkip("no CDS connection");
+
+        CdsRestDataProvider dp(rc);
+
+        assertFalse(dp.requiresTransactionManagement());
+        {
+            list<string> children = dp.getChildProviderNames();
+            assertEq(Type::List, children.type());
+            hash<string, bool> child_map = map {$1: True}, children;
+            assertTrue(child_map.account);
+        }
+
+        list<hash<auto>> recs;
+        {
+            AbstractDataProvider account = dp.getChildProvider("account");
+
+            string tel = get_random_string();
+            string id;
+            {
+                # create new account
+                hash<auto> rec += {
+                    "name": "deleteme",
+                    "telephone2": tel,
+                };
+                id = account.createRecord(rec).accountid;
+            }
+            on_exit {
+                # delete the record
+                assertEq(1, account.deleteRecords({"telephone2": tel}));
+            }
+
+            # search the record
+            recs = map $1, account.searchRecords({"accountid": id}, {"limit": 1});
+            assertEq(1, recs.size());
+            assertEq(id, recs[0].accountid);
+
+            # update the record
+            assertEq(1, account.updateRecords({"name": "deleteme-now"}, {"telephone2": tel}));
+        }
+    }
+
+    CdsRestTests() {
+        if (!rc) testSkip("no CDS connection");
+
+        assertEq(Type::String, rc.getApi().type());
+
+        assertEq(Type::String, rc.getToken().type());
+
+        hash<auto> h = rc.get("");
+        assertEq(Type::List, h.body.value.type());
+
+        #rc.logout();
+        #assertEq(NOTHING, rc.getToken());
+    }
+
+    connectionTest() {
+        string url = "http://localhost:8080";
+        CdsRestConnection swsc("test", "test", url, {}, {"client_id": "x", "client_secret": "x", "tenant": "x",});
+        assertEq(True, swsc instanceof CdsRestConnection);
+
+        assertThrows("CONNECTION-ERROR", sub () {
+            CdsRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+        });
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        CdsRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
+    }
+}
