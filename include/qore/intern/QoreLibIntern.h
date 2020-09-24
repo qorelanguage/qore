@@ -129,6 +129,7 @@ extern char* strcasestr(const char* s1, const char* s2);
 #define NT_INTORFLOAT       -12
 #define NT_INTFLOATORNUMBER -13
 #define NT_FLOATORNUMBER    -14
+#define NT_SOFTBINARY       -15
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode

@@ -247,6 +247,16 @@ const SoftIntType = qore(get_type_object(softBigIntTypeInfo));
 */
 const SoftIntOrNothingType = qore(get_type_object(softBigIntOrNothingTypeInfo));
 
+//! @ref softbinary_type "softbinary type"
+/**
+*/
+const SoftBinaryType = qore(get_type_object(softBinaryTypeInfo));
+
+//! @ref softbinary_or_nothing_type "*softbinary type"
+/**
+*/
+const SoftBinaryOrNothingType = qore(get_type_object(softBinaryOrNothingTypeInfo));
+
 //! @ref softbool_type "softbool type"
 /**
 */

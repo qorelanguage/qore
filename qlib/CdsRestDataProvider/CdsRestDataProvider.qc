@@ -105,6 +105,14 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
         };
     }
 
+    private {
+        #! Metadata keyed by entity type
+        *hash<auto> meta;
+
+        #! Metadata mutex
+        Mutex lck();
+    }
+
     #! Creates the object from the arguments
     constructor(CdsRestClient rest) {
         self.rest = rest;
@@ -137,8 +145,11 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
+        return keys getMetadata();
+        /*
         hash<auto> v = rest.get("");
         return map $1.url, v.body.value, $1.kind == "EntitySet";
+        */
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -147,16 +158,31 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        hash<auto> info;
-        try {
-            hash<auto> v = rest.get(name, NOTHING, \info);
-            #return new CdsRestObjectDataProvider(rest, name, v.body.objectDescribe);
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err == "HTTP-CLIENT-RECEIVE-ERROR" && info."response-headers".status_code == 404) {
-                return;
-            }
-            rethrow;
+        *hash<auto> obj_meta = getMetadata(){name};
+        if (obj_meta) {
+            return new CdsEntityDataProvider(rest, name, obj_meta);
         }
+    }
+
+    #! Returns metadata
+    private *hash<auto> getMetadata() {
+        if (meta) {
+            return meta;
+        }
+
+        lck.lock();
+        on_exit lck.unlock();
+
+        # check again in the lock
+        if (meta) {
+            return meta;
+        }
+
+        hash<auto> resp = rest.get("$metadata").body."edmx:Edmx"."edmx:DataServices".Schema;
+        #printf("%N\n", resp.EntityType);
+
+        meta = map {$1."^attributes^".Name: $1}, resp.EntityType, ($1.Property || ($1.Abstract == "true"));
+        return meta;
     }
 
     #! Returns data provider static info

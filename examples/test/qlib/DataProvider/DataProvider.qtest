@@ -1066,6 +1066,50 @@ public class DataProviderTest inherits QUnit::Test {
         }
 
         {
+            QoreBinaryDataType type();
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NOTHING);
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NULL);
+
+            AbstractDataProviderType type1 = type.getSoftType();
+            assertEq("softbinary", type1.getName());
+            assertEq(<31>, type1.acceptsValue("1"));
+            assertEq(<3132>, type1.acceptsValue("12"));
+        }
+
+        {
+            QoreBinaryOrNothingDataType type();
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
+
+            AbstractDataProviderType type1 = type.getSoftType();
+            assertEq("*softbinary", type1.getName());
+            assertEq(<31>, type1.acceptsValue("1"));
+            assertEq(<3132>, type1.acceptsValue("12"));
+            assertNothing(type1.acceptsValue());
+            assertNothing(type1.acceptsValue(NULL));
+        }
+
+        {
+            QoreSoftBinaryDataType bin1();
+            assertEq(<3132>, bin1.acceptsValue("12"));
+            assertThrows("RUNTIME-TYPE-ERROR", \bin1.acceptsValue());
+            assertEq(binary(), bin1.acceptsValue(NULL));
+        }
+
+        {
+            QoreSoftBinaryDataType bin1({"qore.no_null": True});
+            assertThrows("RUNTIME-TYPE-ERROR", \bin1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \bin1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreSoftBinaryOrNothingDataType bin1();
+            assertEq(<3132>, bin1.acceptsValue("12"));
+            assertNothing(bin1.acceptsValue());
+            assertNothing(bin1.acceptsValue(NULL));
+        }
+
+        {
             QoreIntDataType type();
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NOTHING);

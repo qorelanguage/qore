@@ -54,6 +54,9 @@ const QoreBoolOrNothingTypeInfo staticBoolOrNothingTypeInfo;
 const QoreBinaryTypeInfo staticBinaryTypeInfo;
 const QoreBinaryOrNothingTypeInfo staticBinaryOrNothingTypeInfo;
 
+const QoreSoftBinaryTypeInfo staticSoftBinaryTypeInfo;
+const QoreSoftBinaryOrNothingTypeInfo staticSoftBinaryOrNothingTypeInfo;
+
 const QoreObjectTypeInfo staticObjectTypeInfo;
 const QoreObjectOrNothingTypeInfo staticObjectOrNothingTypeInfo;
 
@@ -155,6 +158,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
    *codeTypeInfo = &staticCodeTypeInfo,
+   *softBinaryTypeInfo = &staticSoftBinaryTypeInfo,
    *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
    *softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softNumberTypeInfo = &staticSoftNumberTypeInfo,
@@ -186,6 +190,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dataOrNothingTypeInfo = &staticDataOrNothingTypeInfo,
    *referenceOrNothingTypeInfo = &staticReferenceOrNothingTypeInfo,
 
+   *softBinaryOrNothingTypeInfo = &staticSoftBinaryOrNothingTypeInfo,
    *softBigIntOrNothingTypeInfo = &staticSoftBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo,
    *softNumberOrNothingTypeInfo = &staticSoftNumberOrNothingTypeInfo,
@@ -286,6 +291,7 @@ void init_qore_types() {
    do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
    do_maps(NT_SOFTDATE,    "softdate", softDateTypeInfo, softDateOrNothingTypeInfo);
    do_maps(NT_SOFTLIST,    "softlist", softListTypeInfo, softListOrNothingTypeInfo);
+   do_maps(NT_SOFTBINARY,  "softbinary", softBinaryTypeInfo, softBinaryOrNothingTypeInfo);
 
    do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
 

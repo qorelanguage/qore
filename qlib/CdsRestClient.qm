@@ -134,6 +134,7 @@ public class CdsRestClient inherits RestClient::RestClient {
         # for OAuth2-based access
         string client_id;
         string client_secret;
+        string api;
         string tenant;
         string scope;
         string token;
@@ -215,23 +216,27 @@ CdsRestClient rest({
             scope = getString(opts, "scope");
         }
 
-        # ensure that if json serialization is set, that we do not claim to understand XML responses
-        if (ds == "json") {
-            addDefaultHeaders({"Accept": MimeTypeJson});
-        } else {
-            delete headers.Accept;
-        }
-
         string version;
         if (opts.api) {
             version = getString(opts, "api");
         }
-        uri_path_pfx = RequestUriPathPrefix + (version ?? DefaultApiVersion);
+        api = version ?? DefaultApiVersion;
+        uri_path_pfx = RequestUriPathPrefix + api;
         setConnectionPath(uri_path_pfx);
 
         if (client_id && !do_not_connect) {
             loginIntern();
         }
+    }
+
+    #! returns the CDS REST API version currently in use
+    string getApi() {
+        return api;
+    }
+
+    #! returns the access token
+    *string getToken() {
+        return token;
     }
 
     hash<auto> doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash<auto> hdr) {

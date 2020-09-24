@@ -4737,6 +4737,125 @@ class TypeTest inherits QUnit::Test {
         }
 
         {
+            softbinary b = "1";
+            assertEq(<31>, b);
+            b = NULL;
+            assertEq(binary(), b);
+            b = <3132>;
+            assertEq(<3132>, b);
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = 1; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = 1.0; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = 1n; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = True; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = {}; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = (); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = new Mutex(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = \\printf(); }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = \\b; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { softbinary b = NOTHING; }", ""));
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = 1; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = 1.0; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = 1n; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = True; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = {}; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = (); softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = new Mutex(); softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = \\printf(); softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x1; any x = \\x1; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("sub t() { auto x = NOTHING; softbinary b = x; }", "");
+                assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "t");
+            }
+        }
+
+        {
             softbool i = 1;
             assertEq(True, i);
             i = 1.0;
