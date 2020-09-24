@@ -708,6 +708,15 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
             return -1;
     }
 
+    n = opts->getKeyValue("headers");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_HASH) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting hash of headers as value for the \"headers\" key in the options hash");
+            return -1;
+        }
+        addDefaultHeaders(n.get<const QoreHashNode>());
+    }
+
     n = opts->getKeyValue("event_queue");
     if (n.getType() == NT_OBJECT) {
         const QoreObject* o = n.get<const QoreObject>();
@@ -1814,6 +1823,27 @@ int QoreHttpClientObject::getMaxRedirects() const {
 void QoreHttpClientObject::setDefaultHeaderValue(const char* header, const char* val) {
     AutoLocker al(priv->m);
     http_priv->default_headers[header] = val;
+}
+
+void QoreHttpClientObject::addDefaultHeaders(const QoreHashNode* hdr) {
+    AutoLocker al(priv->m);
+    ConstHashIterator i(hdr);
+    while (i.next()) {
+        QoreStringValueHelper str(i.get());
+        http_priv->default_headers[i.getKey()] = str->c_str();
+    }
+}
+
+QoreHashNode* QoreHttpClientObject::getDefaultHeaders() const {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(stringTypeInfo), nullptr);
+    qore_hash_private* h = qore_hash_private::get(**rv);
+
+    AutoLocker al(priv->m);
+    for (auto i : http_priv->default_headers) {
+        h->setKeyValueIntern(i.first.c_str(), new QoreStringNode(i.second));
+    }
+
+    return rv.release();
 }
 
 void QoreHttpClientObject::setEventQueue(Queue *cbq, ExceptionSink* xsink) {

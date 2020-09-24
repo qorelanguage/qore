@@ -504,7 +504,7 @@ rest.setContentEncoding("gzip");
         /** @par Example:
             @code{.py}
 # disable gzip and bzip encoding in responses
-rest.addDefaultHeaders(("Accept-Encoding": "compress"));
+rest.addDefaultHeaders({"Accept-Encoding": "compress"});
             @endcode
 
             @param h a hash of headers to add to the default headers to send on each request

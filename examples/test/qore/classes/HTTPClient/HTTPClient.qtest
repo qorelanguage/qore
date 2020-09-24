@@ -478,13 +478,43 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         {
             HttpTestServer serv(ErrorReply3);
             on_exit serv.done();
-            HTTPClient hc({"url": "http://localhost:" + serv.port, "error_passthru": True});
+            HTTPClient hc({
+                "url": "http://localhost:" + serv.port,
+                "error_passthru": True,
+                "headers": {"X-Test": 1},
+            });
             hash<auto> info;
             hash<auto> resp = hc.send(NOTHING, "GET", "/", NOTHING, False, \info);
             assertEq(404, resp.status_code);
             assertEq("Close", resp.connection);
             assertEq("Close", info."response-headers-raw".Connection);
             assertEq("Close", info."response-headers".connection);
+            assertEq("1", info.headers."X-Test");
+            assertEq("1", hc.getDefaultHeaders()."X-Test");
+        }
+
+        {
+            HttpTestServer serv(ErrorReply3);
+            on_exit serv.done();
+            HTTPClient hc({
+                "url": "http://localhost:" + serv.port,
+                "error_passthru": True,
+                "headers": {"X-Test": 1},
+            });
+            hc.addDefaultHeaders({"X-Test-2": "x"});
+            hash<auto> info;
+            hash<auto> resp = hc.send(NOTHING, "GET", "/", NOTHING, False, \info);
+            assertEq(404, resp.status_code);
+            assertEq("Close", resp.connection);
+            assertEq("Close", info."response-headers-raw".Connection);
+            assertEq("Close", info."response-headers".connection);
+            assertEq("1", hc.getDefaultHeaders()."X-Test");
+            assertEq("x", hc.getDefaultHeaders()."X-Test-2");
+        }
+
+        {
+            assertThrows("HTTP-CLIENT-OPTION-ERROR", "\"headers\"",
+                sub () { new HTTPClient({"url": "http://localhost:1111", "headers": "x"}); });
         }
 
         {
