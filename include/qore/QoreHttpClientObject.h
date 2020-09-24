@@ -343,6 +343,20 @@ public:
     */
     DLLEXPORT void setDefaultHeaderValue(const char* header, const char* val);
 
+    //! Sets the value of multiple headers to send with every outgoing message
+    /** @param hdr the hash of headers to set
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT void addDefaultHeaders(const QoreHashNode* hdr);
+
+    //! Returns a hash of default headers to be sent with every outgoing request
+    /** @return a hash of default headers to be sent with every outgoing request
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreHashNode* getDefaultHeaders() const;
+
     using AbstractPrivateData::deref;
     //! decrements the reference count and deletes the object when it reaches 0
     /**
