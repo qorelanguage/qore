@@ -1836,10 +1836,11 @@ void QoreHttpClientObject::addDefaultHeaders(const QoreHashNode* hdr) {
 
 QoreHashNode* QoreHttpClientObject::getDefaultHeaders() const {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(stringTypeInfo), nullptr);
+    qore_hash_private* h = qore_hash_private::get(**rv);
 
     AutoLocker al(priv->m);
     for (auto i : http_priv->default_headers) {
-        rv->setKeyValue(i.first, new QoreStringNode(i.second), nullptr);
+        h->setKeyValueIntern(i.first, new QoreStringNode(i.second));
     }
 
     return rv.release();
