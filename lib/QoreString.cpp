@@ -936,102 +936,102 @@ int qore_string_private::concat(const QoreString* str, ExceptionSink* xsink) {
 }
 
 int qore_string_private::concatUnicode(unsigned code) {
-   if (getEncoding() == QCS_UTF8) {
-      concatUTF8FromUnicode(code);
-      return 0;
-   }
-   QoreString tmp(QCS_UTF8);
-   tmp.priv->concatUTF8FromUnicode(code);
+    if (getEncoding() == QCS_UTF8) {
+        concatUTF8FromUnicode(code);
+        return 0;
+    }
+    QoreString tmp(QCS_UTF8);
+    tmp.priv->concatUTF8FromUnicode(code);
 
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   TempString ns(tmp.convertEncoding(getEncoding(), &xsink));
-   if (xsink) {
-      // ignore exceptions
-      xsink.clear();
-      return -1;
-   }
+    TempString ns(tmp.convertEncoding(getEncoding(), &xsink));
+    if (xsink) {
+        // ignore exceptions
+        xsink.clear();
+        return -1;
+    }
 
-   concat(ns);
-   return 0;
+    concat(ns);
+    return 0;
 }
 
 int qore_string_private::trimLeading(ExceptionSink* xsink, const intvec_t& cvec) {
-   qore_size_t i = 0;
+    qore_size_t i = 0;
 
-   // trim default whitespace
-   while (i < len) {
-      // get unicode code point of first character in string
-      unsigned clen;
-      int c = getUnicodePointFromBytePos(i, clen, xsink);
-      if (*xsink)
-         return -1;
-      // see if the character is in the character vector
-      if (!inVector(c, cvec))
-         break;
-      i += clen;
-   }
+    // trim default whitespace
+    while (i < len) {
+        // get unicode code point of first character in string
+        unsigned clen;
+        int c = getUnicodePointFromBytePos(i, clen, xsink);
+        if (*xsink)
+            return -1;
+        // see if the character is in the character vector
+        if (c && !inVector(c, cvec))
+            break;
+        i += clen;
+    }
 
-   memmove(buf, buf + i, len + 1 - i);
-   len -= i;
-   return 0;
+    memmove(buf, buf + i, len + 1 - i);
+    len -= i;
+    return 0;
 }
 
 int qore_string_private::trimLeading(ExceptionSink* xsink, const qore_string_private* chars) {
-   if (!len)
-      return 0;
+    if (!len)
+        return 0;
 
-   if (!chars)
-      return trimLeading(xsink, default_whitespace);
+    if (!chars)
+        return trimLeading(xsink, default_whitespace);
 
-   // get a list of unicode points for the characters in chars
-   intvec_t cvec;
-   if (chars->getUnicodeCharArray(cvec, xsink))
-      return -1;
+    // get a list of unicode points for the characters in chars
+    intvec_t cvec;
+    if (chars->getUnicodeCharArray(cvec, xsink))
+        return -1;
 
-   return trimLeading(xsink, cvec);
+    return trimLeading(xsink, cvec);
 }
 
 int qore_string_private::trimTrailing(ExceptionSink* xsink, const intvec_t& cvec) {
-   // get length of string in characters
-   size_t i = charset->getLength(buf, buf + len, xsink);
-   if (*xsink)
-      return -1;
-   assert(i);
+    // get length of string in characters
+    size_t i = charset->getLength(buf, buf + len, xsink);
+    if (*xsink)
+        return -1;
+    assert(i);
 
-   while (i) {
-      --i;
-      // get byte offset for the last character
-      qore_size_t bpos = charset->getByteLen(buf, buf + len, i, xsink);
-      if (*xsink)
-         return -1;
-      unsigned clen;
-      // get the unicode point for the last character in the string
-      int c = getUnicodePointFromBytePos(bpos, clen, xsink);
-      if (*xsink)
-         return -1;
-      // see if the character is in the character vector
-      if (!inVector(c, cvec))
-         break;
-      terminate(bpos);
-   }
+    while (i) {
+        --i;
+        // get byte offset for the last character
+        qore_size_t bpos = charset->getByteLen(buf, buf + len, i, xsink);
+        if (*xsink)
+            return -1;
+        unsigned clen;
+        // get the unicode point for the last character in the string
+        int c = getUnicodePointFromBytePos(bpos, clen, xsink);
+        if (*xsink)
+            return -1;
+        // see if the character is in the character vector
+        if (c && !inVector(c, cvec))
+            break;
+        terminate(bpos);
+    }
 
-   return 0;
+    return 0;
 }
 
 int qore_string_private::trimTrailing(ExceptionSink* xsink, const qore_string_private* chars) {
-   if (!len)
-      return 0;
+    if (!len)
+        return 0;
 
-   if (!chars)
-      return trimTrailing(xsink, default_whitespace);
+    if (!chars)
+        return trimTrailing(xsink, default_whitespace);
 
-   // get a list of unicode points for the characters in chars
-   intvec_t cvec;
-   if (chars->getUnicodeCharArray(cvec, xsink))
-      return -1;
+    // get a list of unicode points for the characters in chars
+    intvec_t cvec;
+    if (chars->getUnicodeCharArray(cvec, xsink))
+        return -1;
 
-   return trimTrailing(xsink, cvec);
+    return trimTrailing(xsink, cvec);
 }
 
 void qore_string_private::terminate(size_t size) {

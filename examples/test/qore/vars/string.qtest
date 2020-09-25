@@ -578,30 +578,30 @@ class StringTest inherits QUnit::Test {
         assertEq(str, "hello", "string reference chomp()");
         str = "  \t\n  hello  \n   \r \t \0 ";
         trim str;
-        assertEq(str, "hello", "trim string operator test");
+        assertEq("hello", str, "trim string operator test");
         str = "  \t\n  hello  \n   \r \t \0 ";
         trim(\str);
-        assertEq(str, "hello", "trim string reference test");
+        assertEq("hello", str, "trim string reference test");
 
         str = "  \t\n  hello  \n   \r \t \0 ";
-        assertEq(trim(str), "hello", "trim string function test");
-        assertEq(rtrim(str), "  \t\n  hello", "rtrim string function test");
-        assertEq(ltrim(str), "hello  \n   \r \t \0 ", "ltrim string function test");
+        assertEq("hello", trim(str), "trim string function test");
+        assertEq("  \t\n  hello", rtrim(str), "rtrim string function test");
+        assertEq("hello  \n   \r \t \0 ", ltrim(str), "ltrim string function test");
 
         str = "  \t\n  hello  \n   \r \t \0 ";
         rtrim(\str);
-        assertEq(str, "  \t\n  hello", "rtrim string reference test");
+        assertEq("  \t\n  hello", str, "rtrim string reference test");
         str = "  \t\n  hello  \n   \r \t \0 ";
         ltrim(\str);
-        assertEq(str, "hello  \n   \r \t \0 ", "ltrim string reference test");
+        assertEq("hello  \n   \r \t \0 ", str, "ltrim string reference test");
 
         l = ( 1, "   \r \t hello  \n  \r \v \t", 3.0, True, "    test\r\n  " );
         trim l;
-        assertEq(l, ( 1, "hello", 3.0, True, "test" ), "list trim");
+        assertEq((1, "hello", 3.0, True, "test"), l, "list trim");
 
-        h = ( "key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223 );
+        h = {"key1" : "    hello\n \r  ", "key2" : 2045, "key3": "     test\r   \n \t\v   ", "key4" : 302.223};
         trim h;
-        assertEq(h, ( "key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223 ), "hash trim");
+        assertEq({"key1" : "hello", "key2" : 2045, "key3": "test", "key4" : 302.223}, h, "hash trim");
 
         softstring tstr = 1;
         tstr += "\n";
