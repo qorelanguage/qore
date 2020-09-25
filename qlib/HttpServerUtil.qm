@@ -514,9 +514,8 @@ public namespace HttpServer {
 
     #! returns a listener option info hash from flat arguments
     /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
+        @param listener_params parameters for the listener; processed by @ref http_get_ssl_objects()
+        @param opts listener options
 
         @return a listener option info hash
     */
@@ -574,7 +573,7 @@ public namespace HttpServer {
         @param cert_path the path to an X.509 certificate file
         @param key_path the path to a private key file; if not present, then the certificate is assumed to also have
         the private key in it
-        @param key_password the password to the private key file
+        @param pwd the password to the private key file
 
         @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
     */
@@ -1638,8 +1637,8 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         @return to accept a dedicated connection, return a hash (ideally an @ref HttpServer::HttpResponseInfo hash) with the following key:
         - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-        .
-        or, to handle the request without a dedicated connection, return a hash with the following keys
+        \n
+        or, to handle the request without a dedicated connection, return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
         - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns

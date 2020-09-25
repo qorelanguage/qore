@@ -1676,6 +1676,7 @@ check_ip_address(str, True);
 
     #! Retrieves file data from an HTTP URL
     /** @param url the HTTP URL including the path to the resource to retrieve
+        @param path an optional path to append to the URL
         @param options connection options
 
         @since Util 1.5
@@ -1698,7 +1699,7 @@ check_ip_address(str, True);
 
     #! Retrieves file data from the given URL
     /** @param url the URL for the file
-        @param opts retrieval options
+        @param options retrieval options
 
         @throw GET-FILE-FROM-URL-ERROR unknown or unsupported scheme in URL or other error retrieving the file
 
@@ -1757,14 +1758,14 @@ check_ip_address(str, True);
 
         @since %Util 1.5.1
     */
-    public string sub substitute_env_vars(string rv) {
+    public string sub substitute_env_vars(string str) {
         while (True) {
-            *list<string> x = (rv =~ x/(\$[A-Za-z][A-Za-z0-9_]*)/);
+            *list<string> x = (str =~ x/(\$[A-Za-z][A-Za-z0-9_]*)/);
             if (!x) {
-                x = (rv =~ x/(\${[^{}]*})/);
+                x = (str =~ x/(\${[^{}]*})/);
             }
             if (!x) {
-                x = (rv =~ x/(\$\([^\(\)]*\))/);
+                x = (str =~ x/(\$\([^\(\)]*\))/);
             }
             if (!x) {
                 break;
@@ -1775,9 +1776,9 @@ check_ip_address(str, True);
                 splice var, 0, 1;
 
                 # substitute environment variable
-                rv = regex_subst(rv, "\\\$" + var, ENV{var});
+                str = regex_subst(str, "\\\$" + var, ENV{var});
             }
         }
-        return rv;
+        return str;
     }
 }

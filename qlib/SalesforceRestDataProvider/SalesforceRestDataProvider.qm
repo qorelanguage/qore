@@ -89,7 +89,7 @@ module SalesforceRestDataProvider {
 
     @section salesforcerestdataprovider_relnotes Release Notes
 
-    @subsection salesforcerestdataprovider_v1_0 SalesforceRestDataProvider v1.0.1
+    @subsection salesforcerestdataprovider_v1_0_1 SalesforceRestDataProvider v1.0.1
     - fixed a bug deleting records with no matches
       (<a href="https://github.com/qorelanguage/qore/issues/3921">issue 3921</a>)
     - fixed serializing \c DATE fields

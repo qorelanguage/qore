@@ -36,10 +36,10 @@
 #! contains all public definitions in the CdsRestDataProvider module
 public namespace CdsRestDataProvider {
 #! The CdsRest data provider class
-public class CdsRestDataProvider inherits AbstractDataProvider {
+public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! The REST client object for API calls
-        CdsRestClient rest;
+        CdsRestClient::CdsRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -110,11 +110,11 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
         *hash<auto> meta;
 
         #! Metadata mutex
-        Mutex lck();
+        Qore::Thread::Mutex lck();
     }
 
     #! Creates the object from the arguments
-    constructor(CdsRestClient rest) {
+    constructor(CdsRestClient::CdsRestClient rest) {
         self.rest = rest;
     }
 
@@ -146,10 +146,6 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
     */
     private *list<string> getChildProviderNamesImpl() {
         return keys getMetadata();
-        /*
-        hash<auto> v = rest.get("");
-        return map $1.url, v.body.value, $1.kind == "EntitySet";
-        */
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -157,7 +153,7 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
 
         @see getChildProviderEx()
     */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
         *hash<auto> obj_meta = getMetadata(){name};
         if (obj_meta) {
             return new CdsEntityDataProvider(rest, name, obj_meta);
@@ -178,7 +174,7 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
             return meta;
         }
 
-        hash<auto> resp = rest.get("$metadata").body."edmx:Edmx"."edmx:DataServices".Schema;
+        hash<auto> resp = rest.get("$metadata?annotations=true").body."edmx:Edmx"."edmx:DataServices".Schema;
         #printf("%N\n", resp.EntityType);
 
         meta = map {$1."^attributes^".Name: $1}, resp.EntityType, ($1.Property || ($1.Abstract == "true"));
@@ -186,7 +182,7 @@ public class CdsRestDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns data provider static info
-    private hash<DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 

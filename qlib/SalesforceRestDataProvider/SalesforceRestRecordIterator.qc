@@ -55,7 +55,10 @@ public class SalesforceRestRecordIterator inherits AbstractDataProviderRecordIte
     }
 
     #! creates the iterator
-    /** @param table the table to iteratate
+    /** @param rest the REST client connection to the server
+        @param name the name of the object
+        @param record_info info about the current object
+        @param where_cond the search conditions
         @param search_options search options; assumed to have already been processed for validity before this call
     */
     constructor(SalesforceRestClient rest, string name, hash<SalesforceRestRecordInfo> record_info, *hash<auto> where_cond, *hash<auto> search_options) {

@@ -36,7 +36,7 @@
 #! Contains all public definitions in the CdsRestDataProvider module
 public namespace CdsRestDataProvider {
 #! The CdsRest data provider factory
-public class CdsRestDataProviderFactory inherits AbstractDataProviderFactory {
+public class CdsRestDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         static Class cls = new Class("CdsRestDataProvider");
     }
@@ -49,7 +49,7 @@ public class CdsRestDataProviderFactory inherits AbstractDataProviderFactory {
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<DataProviderInfo> getInfo() {
+    hash<DataProvider::DataProviderInfo> getInfo() {
         return CdsRestDataProvider::ProviderInfo;
     }
 

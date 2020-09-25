@@ -57,22 +57,22 @@ module CdsRestDataProvider {
     The %CdsRestDataProvider module provides a @ref dataproviderintro "data provider" API for Microsoft Dynamics 365
     Common Data Service REST services.  The
     @ref CdsRestDataProvider::CdsRestDataProvider "CdsRestDataProvider" class allows for
-    introspecting CDS instances, while the
-    @ref CdsRestDataProvider::CdsRestObjectDataProvider "CdsRestObjectDataProvider" class
-    supports the @ref dataproviderintro "data provider" record-based API for communication with REST servers and
-    querying and manipulating CDS data.
+    introspecting a Microsoft Common Data Service application instance (such as Dynamics 365, for example), while the
+    @ref CdsRestDataProvider::CdsEntityDataProvider "CdsEntityDataProvider" class
+    supports the @ref dataproviderintro "data provider" record-based API for querying and manipulating entity data in
+    the application.
 
     CDS instances can be introspected with the following format:
     - REST operation path: <tt><i>uri_path</i></tt>
-      - ex: <tt><b>accounts</b></tt>
+      - ex: <tt><b>account</b></tt>
       - results in a
-        @ref CdsRestDataProvider::CdsRestObjectDataProvider "CdsRestObjectDataProvider" object
+        @ref CdsRestDataProvider::CdsEntityDataProvider "CdsEntityDataProvider" object
         where record operations supported on the object can be executed
 
     The following classes are provided by this module:
     - @ref CdsRestDataProvider::CdsRestDataProvider "CdsRestDataProvider"
     - @ref CdsRestDataProvider::CdsRestDataProviderFactory "CdsRestDataProviderFactory"
-    - @ref CdsRestDataProvider::CdsRestObjectDataProvider "CdsRestObjectDataProvider"
+    - @ref CdsRestDataProvider::CdsEntityDataProvider "CdsEntityDataProvider"
     - @ref CdsRestDataProvider::CdsRestRecordIterator "CdsRestRecordIterator"
 
     @subsection cdsrestdataprovider_v1_0 CdsRestDataProvider v1.0
