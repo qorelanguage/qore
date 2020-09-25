@@ -31,7 +31,7 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
 
     private:internal {
         #! The REST client object for API calls
-        CdsRestClient rest;
+        CdsRestClient::CdsRestClient rest;
 
         #! current object name
         string name;
@@ -40,14 +40,17 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
         hash<CdsRestRecordInfo> record_info;
 
         #! record iterator
-        ListHashIterator i;
+        Qore::ListHashIterator i;
     }
 
     #! creates the iterator
-    /** @param table the table to iteratate
+    /** @param rest the REST client connection
+        @param name the name of the entity
+        @param record_info record information describing the entity
+        @param where_cond the where clause for the query, if any
         @param search_options search options; assumed to have already been processed for validity before this call
     */
-    constructor(CdsRestClient rest, string name, hash<CdsRestRecordInfo> record_info, *hash<auto> where_cond, *hash<auto> search_options) {
+    constructor(CdsRestClient::CdsRestClient rest, string name, hash<CdsRestRecordInfo> record_info, *hash<auto> where_cond, *hash<auto> search_options) {
         self.rest = rest;
         self.name = name;
         self.record_info = record_info;
@@ -159,7 +162,7 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
     #! Returns the record description, if available
     /** @return the record type of the iterator
     */
-    *hash<string, AbstractDataField> getRecordType() {
+    *hash<string, DataProvider::AbstractDataField> getRecordType() {
         return record_info.record_type;
     }
 
@@ -202,26 +205,6 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
                         exp_list += col;
                         break;
 
-                    /*
-                    case NT_HASH:
-                        if (!col.cop) {
-                            throw "COLUMN-ERROR", sprintf("missing column operator in \"columns\" hash element "
-                                "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
-                                "the column names or a list of column operator hashes as returned from column "
-                                "operator functions; this element is missing hash key \"cop\" giving the column "
-                                "operator; keys provided: %y", $# + 1, column_names.size(), col.keys());
-                        }
-                        try {
-                            string val = doColumnOperatorIntern(col.cop, col.arg, col.column);
-                            exp_list += val;
-                        } catch (hash<ExceptionInfo> ex) {
-                            # rethrow exception with additional contextual information
-                            throw ex.err, sprintf("%s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), $# + 1,
-                                column_names.size(), ex.desc), ex.arg;
-                        }
-                        break;
-                    */
-
                     default:
                         throw "COLUMN-ERROR", sprintf("cannot process column value of type %y (%y)", col.type(), col);
                 }
@@ -263,33 +246,5 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
 
         return sprintf("%s eq %s", key, getArgValue(key, value));
     }
-
-    /*
-    private string doDateTimeValue(string key, auto value) {
-        if (value.typeCode() == NT_STRING) {
-            if (record_info.time_fields{key} && value =~ /^[0-9]+:/) {
-                # add the start of the UNIX epoch to the time to parse it to a date value
-                value = "1970-01-01T" + value;
-            }
-            value = date(value);
-        } else if (value.typeCode() != NT_DATE) {
-            throw "WHERE-ERROR", sprintf("cannot convert value of type %y to a date for field %y", value.type(), key);
-        }
-
-        if (record_info.date_time_fields{key}) {
-            return value.format("YYYY-MM-DDTHH:mm:SSZ");
-        }
-
-        if (record_info.date_fields{key}) {
-            return value.format("YYYY-MM-DD");
-        }
-
-        if (record_info.time_fields{key}) {
-            return value.format("HH:mm:SS.msZ");
-        }
-
-        return sprintf("'%s'", value.format("YYYY-MM-DDTHH:mm:SS.xxZ"));
-    }
-    */
 }
 }

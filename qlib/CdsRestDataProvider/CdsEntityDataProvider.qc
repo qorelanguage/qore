@@ -37,13 +37,16 @@ hashdecl CdsRestRecordInfo {
 
     #! Key field, if any
     string key;
+
+    #! Entity set name
+    string entity_set_name;
 }
 
 #! The CdsEntityDataProvider data provider class
-public class CdsEntityDataProvider inherits AbstractDataProvider {
+public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! The REST client object for API calls
-        CdsRestClient rest;
+        CdsRestClient::CdsRestClient rest;
 
         #! current object name
         string name;
@@ -70,7 +73,7 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
         return name;
     }
 
-    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+    private *hash<string, DataProvider::AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return record_info.record_type;
     }
 
@@ -80,12 +83,12 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
 
         @see requestSearchRecordsImpl()
     */
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+    private DataProvider::AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
        return new CdsRestRecordIterator(rest, name, record_info, where_cond, search_options);
     }
 
     #! Returns data provider static info
-    private hash<DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         hash<DataProviderInfo> rv = CdsRestDataProvider::ProviderInfo - "constructor_options" + <DataProviderInfo>{
             "search_options": {
                 "columns": <DataProviderOptionInfo>{
@@ -130,7 +133,7 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
         duplicate record
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
-        string url = sprintf("%ss", name);
+        string url = record_info.entity_set_name;
         hash<auto> info;
         # the id is returned in the "id" field in the response
         hash<auto> resp;
@@ -169,7 +172,7 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
         }
         date now = now_us();
 
-        string url = sprintf("%ss(%s)", name, id_value);
+        string url = sprintf("%s(%s)", record_info.entity_set_name, id_value);
         hash<auto> info;
         hash<auto> resp;
         try {
@@ -224,7 +227,7 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
 
     #! updates a single record
     private updateSingleRecord(string id, hash<auto> set) {
-        string url = sprintf("%ss(%s)", name, id);
+        string url = sprintf("%s(%s)", record_info.entity_set_name, id);
         hash<auto> info;
         hash<auto> resp;
         try {
@@ -238,7 +241,7 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
 
     #! deletes a single record
     private deleteSingleRecord(string id) {
-        string url = sprintf("%ss(%s)", name, id);
+        string url = sprintf("%s(%s)", record_info.entity_set_name, id);
         hash<auto> info;
         hash<auto> resp;
         try {
@@ -257,6 +260,8 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
             throw "CDS-ENTITY-ERROR", sprintf("entity %y has no key property (%y)", name, meta.Key);
         }
         record_info.key = key;
+        # get entity set name
+        setEntitySetName();
         foreach hash<auto> field in (meta.Property) {
             AbstractDataProviderType type;
             hash<auto> opts += {
@@ -296,8 +301,43 @@ public class CdsEntityDataProvider inherits AbstractDataProvider {
                     type = AbstractDataProviderType::get(AbstractDataProviderType::anyType, opts);
                     break;
             }
+            # get description
+            *string desc;
+            foreach hash<auto> i in (field.Annotation) {
+                if (i."^attributes^".Term == "Org.OData.Core.V1.Description") {
+                    desc = i."^attributes^".String;
+                    break;
+                }
+            }
             record_info.field_types{attr.Name} = type.getBaseTypeName();
             record_info.record_type{attr.Name} = new QoreDataField(attr.Name, NOTHING, type);
+        }
+    }
+
+    #! Determine the entity set name for the entity
+    private setEntitySetName() {
+        hash<auto> info;
+        try {
+            string uri = sprintf("EntityDefinitions(LogicalName='%s')?$select=EntitySetName", name);
+            hash<auto> resp = rest.get(uri, NOTHING, \info);
+            *string entity_set_name;
+            if (!(entity_set_name = resp.body.EntitySetName)) {
+                throw "CDS-ENTITY-SET-ERROR", sprintf("missing entity set name for %y in %y (query %y)", name, resp.body,
+                    uri);
+            }
+            record_info.entity_set_name = entity_set_name;
+            return;
+        } catch (hash<ExceptionInfo> ex) {
+            if (info."response-headers".status_code != 403) {
+                rethrow;
+            }
+        }
+        # if we get a 403 Unauthorized response, then we determine the entity set name with a heuristic
+        record_info.entity_set_name = record_info.key;
+        if (record_info.key[-1] == "y") {
+            splice record_info.entity_set_name, -1, "ies";
+        } else {
+            record_info.entity_set_name += "s";
         }
     }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore CdsRestDataProviderDefs definitions
+#! Qore CDSRestDataProviderDefs definitions
 
-/** CdsRestDataProviderDefs.qc Copyright 2020 Qore Technologies, s.r.o.
+/** CDSRestDataProviderDefs.qc Copyright 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,23 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the CdsRestDataProvider module
-public namespace CdsRestDataProvider {
+#! contains all public definitions in the CDSRestDataProvider module
+public namespace CDSRestDataProvider {
  #! Query operator info hash as returned by all @ref query_op_funcs "operator functions"
 public hashdecl QueryOperatorInfo {
     string op;   #!< the operator string code
     auto arg;    #!< optional argument
 }
 
-#! column operator info hash as returned by all @ref query_query_cop_funcs "column operator functions"
-public hashdecl QueryColumnOperatorInfo {
-    string cop;   #!< the column operator string code
-    auto column;  #!< column sopecifier, may be a string or a complex hash
-    auto arg;     #!< optional argument
-}
 
 /** @defgroup query_ops Query Operators
-    These are the operators that can be used in where clauses
+    These are the operators that can be used in queries
 */
 #@{
 #! like/contains operator
@@ -50,49 +44,49 @@ const QUERY_OP_ENDSWITH = "endswith";
 #! like/contains operator
 const QUERY_OP_STARTSWITH = "startswith";
 
-#! the Query less than (<) operator for use in where clauses
+#! the Query less than (<) operator for use in queries
 /** @see query_op_lt()
 */
 public const QUERY_OP_LT = "lt";
 
-#! the Query less than or equals (<=) operator for use in where clauses
+#! the Query less than or equals (<=) operator for use in queries
 /** @see query_op_le()
 */
 public const QUERY_OP_LE = "le";
 
-#! the Query greater than operator (>) for use in where clauses
+#! the Query greater than operator (>) for use in queries
 /** @see query_op_gt()
 */
 public const QUERY_OP_GT = "gt";
 
-#! the Query greater than or equals operator (>=) for use in where clauses
+#! the Query greater than or equals operator (>=) for use in queries
 /** @see query_op_ge()
 */
 public const QUERY_OP_GE = "ge";
 
-#! the Query not equals operator (!= or <>) for use in where clauses
+#! the Query not equals operator (!= or <>) for use in queries
 /** @see query_op_ne()
 */
 public const QUERY_OP_NE = "ne";
 
-#! the Query equals operator (=) for use in where clauses
+#! the Query equals operator (=) for use in queries
 /** @see query_op_eq()
 */
 public const QUERY_OP_EQ = "eq";
 
-#! the Query \c "not" operator for use in @ref where_clauses
+#! the Query \c "not" operator for use in queries
 /** @see query_op_not()
 */
 public const QUERY_OP_NOT = "not";
 
-#! to combine Query expressions with \c "or" for use in @ref where_clauses
+#! to combine Query expressions with \c "or" for use in queries
 /** @see query_wquery_op_or()
 */
 public const QUERY_OP_OR = "or";
 #@}
 
 /** @defgroup query_op_funcs Query Operator Functions
-    These are the operators that can be used in Cds where clauses
+    These are the operators that can be used in CDS queries
     - query_op_like(): for the \c "like" operator
     - query_op_ge(): for the \c ">=" operator when comparing column values to immediate values
     - query_op_gt(): for the \c ">" operator when comparing column values to immediate values
@@ -109,7 +103,7 @@ public hash<QueryOperatorInfo> sub query_make_op(string op, auto arg) {
     return new hash<QueryOperatorInfo>({"op": op, "arg": arg});
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "contains" operator with the given argument for use in cds where clauses
+#! returns an @ref QueryOperatorInfo hash for the \c "contains" operator with the given argument for use in cds queries
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_like("%smith%")});
@@ -117,13 +111,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param str the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_like(string str) {
     return query_make_op(QUERY_OP_CONTAINS, str);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "contains" operator with the given argument for use in cds where clauses
+#! returns an @ref QueryOperatorInfo hash for the \c "contains" operator with the given argument for use in cds queries
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_contains("%smith%")});
@@ -131,13 +125,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param str the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_contains(string str) {
     return query_make_op(QUERY_OP_CONTAINS, str);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "<" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c "<" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_lt("Zebra")});
@@ -145,13 +139,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param arg the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_lt(auto arg) {
     return query_make_op(QUERY_OP_LT, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "<=" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c "<=" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_le("Zebra")});
@@ -159,13 +153,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param arg the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_le(auto arg) {
     return query_make_op(QUERY_OP_LE, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c ">" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c ">" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_gt("Apple")});
@@ -173,13 +167,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param arg the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_gt(auto arg) {
     return query_make_op(QUERY_OP_GT, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c ">=" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c ">=" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_ge("Apple")});
@@ -187,13 +181,13 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param arg the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_ge(auto arg) {
     return query_make_op(QUERY_OP_GE, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_ne("Smith")});
@@ -205,7 +199,7 @@ public hash<QueryOperatorInfo> sub query_op_ne(auto arg) {
     return query_make_op(QUERY_OP_NE, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "=" operator with the given argument for use in cds where clauses when comparing column values to immediate values
+#! returns an @ref QueryOperatorInfo hash for the \c "=" operator with the given argument for use in cds queries when comparing column values to immediate values
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_eq("Smith")});
@@ -213,25 +207,25 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Name": query_op_
 
     @param arg the argument for the operator
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_eq(auto arg) {
     return query_make_op(QUERY_OP_EQ, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash for the \c "not" operator; for use in cds where clauses
+#! returns an @ref QueryOperatorInfo hash for the \c "not" operator; for use in cds queries
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"name": query_op_not(query_op_eq(name))});
     @endcode
 
-    @return an @ref QueryOperatorInfo hash for use in cds where clauses
+    @return an @ref QueryOperatorInfo hash for use in cds queries
 */
 public hash<QueryOperatorInfo> sub query_op_not(hash arg) {
     return query_make_op(QUERY_OP_NOT, arg);
 }
 
-#! returns an @ref QueryOperatorInfo hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in cds where clauses
+#! returns an @ref QueryOperatorInfo hash with a fake \c "_OR_" column name; the list of arguments to the function is combined such that each hash in the list generates SQL expressions combined with \a "and" logic, and each of those clauses is combined with \a "or" logic; this is for use in cds queries
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"Id": id} + query_wop_or({"Type": "C", "ValidationFlag": query_op_ne("Y")}, {"ExpirationFlag": 'Y'}));
@@ -242,7 +236,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"Id": id} + query
     @param ... remaining expressions to combine with \c "or" logic
 
     @return a hash with an @ref QueryOperatorInfo hash value keyed by a fake column name (\c "_OR_" with a numeric
-    prefix for uniqueness) for use in a where operation description hash for use in cds where clauses
+    prefix for uniqueness) for use in a where operation description hash for use in cds queries
 
     @note a random prefix is used so that multiple uses of the function can be used to generate a single where clause
     hash
@@ -256,7 +250,7 @@ public hash<string, hash<QueryOperatorInfo>> sub query_wop_or(hash<auto> h1, has
 }
 #@}
 
-#! a hash of valid operators for use in where clauses
+#! a hash of valid operators for use in queries
 public const DefaultQueryOpMap = {
     QUERY_OP_CONTAINS: (
         "code": string sub (object i, string cn, auto arg) {

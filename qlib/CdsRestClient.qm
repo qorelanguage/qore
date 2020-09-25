@@ -222,7 +222,7 @@ CdsRestClient rest({
         }
         api = version ?? DefaultApiVersion;
         uri_path_pfx = RequestUriPathPrefix + api;
-        setConnectionPath(uri_path_pfx);
+        #setConnectionPath(uri_path_pfx);
 
         if (client_id && !do_not_connect) {
             loginIntern();

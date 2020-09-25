@@ -319,12 +319,12 @@ public const SOQL_OP_NE = "!=";
 */
 public const SOQL_OP_EQ = "=";
 
-#! the SOQL \c "not" operator for use in @ref where_clauses
+#! the SOQL \c "not" operator for use in where clauses
 /** @see soql_op_not()
 */
 public const SOQL_OP_NOT = "not";
 
-#! to combine SOQL expressions with \c "or" for use in @ref where_clauses
+#! to combine SOQL expressions with \c "or" for use in where clauses
 /** @see soql_wsoql_op_or()
 */
 public const SOQL_OP_OR = "or";
@@ -361,7 +361,7 @@ public const SOQL_OP_OR = "or";
     @param arg the argument to the operator
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the
-    @ref select_option_columns "columns" argument of a @ref select_option_hash "select option hash"
+    columns argument of a search option hash
 
     @note Normally this function is not called directly, but rather by the other column operator functions
 */
@@ -377,13 +377,13 @@ public hash<SoqlColumnOperatorInfo> sub soql_make_cop(string cop, auto column, a
 #! returns a @ref SoqlColumnOperatorInfo hash for the \c "min" operator; returns minimum column values
 /** @par Example:
     @code{.py}
-AbstractDataProviderRecordIterator i = provider.searchRecords(("columns": (soql_cop_min("Id")), "where": {"Type": "user"}));
+AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": (soql_cop_min("Id")), "where": {"Type": "user"}});
     @endcode
 
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_min(auto column) {
     return soql_make_cop(SOQL_COP_MIN, column);
@@ -392,13 +392,13 @@ public hash<SoqlColumnOperatorInfo> sub soql_cop_min(auto column) {
 #! returns a @ref SoqlColumnOperatorInfo hash for the \c "max" operator; returns maximum column values
 /** @par Example:
     @code{.py}
-AbstractDataProviderRecordIterator i = provider.searchRecords(("columns": (soql_cop_max("id")), "where": {"Type": "user"}));
+AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": (soql_cop_max("id")), "where": {"Type": "user"}});
     @endcode
 
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_max(auto column) {
     return soql_make_cop(SOQL_COP_MAX, column);
@@ -413,7 +413,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": (soql_
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_avg(auto column) {
     return soql_make_cop(SOQL_COP_AVG, column);
@@ -428,20 +428,33 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": (soql_
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_sum(auto column) {
     return soql_make_cop(SOQL_COP_SUM, column);
 }
 
-#! returns a @ref SoqlColumnOperatorInfo hash for the \c "count_distinct" aggregate function; returns row counts
+#! returns a @ref SoqlColumnOperatorInfo hash for the \c "count" aggregate function; returns row counts
 /** @par Example:
     @code{.py}
 AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"AccountType", soql_cop_count()}, "where": {"Type": "user"}, "groupby": "AccountType"});
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
+*/
+public hash<SoqlColumnOperatorInfo> sub soql_cop_count(auto column = "") {
+    return soql_make_cop(SOQL_COP_COUNT, column);
+}
+
+#! returns a @ref SoqlColumnOperatorInfo hash for the \c "count_distinct" aggregate function; returns row counts
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"AccountType", soql_cop_count_distinct()}, "where": {"Type": "user"}, "groupby": "AccountType"});
+    @endcode
+
+    @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_count_distinct(auto column = "") {
     return soql_make_cop(SOQL_COP_COUNT_DISTINCT, column);
@@ -456,7 +469,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {soql_
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 
     @note using this function on a date or date/time field will cause it to be returned as a string instead of a
     date/time value
@@ -474,7 +487,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {soql_
     @param column the column specification for the column
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_convert_currency(auto column) {
     return soql_make_cop(SOQL_COP_CONVERT_CURRENCY, column);
@@ -487,7 +500,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_calendar_month(auto column) {
     return soql_make_cop(SOQL_COP_CALENDAR_MONTH, column);
@@ -500,7 +513,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_calendar_quarter(auto column) {
     return soql_make_cop(SOQL_COP_CALENDAR_QUARTER, column);
@@ -513,7 +526,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_calendar_year(auto column) {
     return soql_make_cop(SOQL_COP_CALENDAR_YEAR, column);
@@ -526,7 +539,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_day_in_month(auto column) {
     return soql_make_cop(SOQL_COP_DAY_IN_MONTH, column);
@@ -539,7 +552,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_day_in_week(auto column) {
     return soql_make_cop(SOQL_COP_DAY_IN_WEEK, column);
@@ -552,7 +565,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_day_in_year(auto column) {
     return soql_make_cop(SOQL_COP_DAY_IN_YEAR, column);
@@ -565,7 +578,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_day_only(auto column) {
     return soql_make_cop(SOQL_COP_DAY_ONLY, column);
@@ -578,7 +591,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_fiscal_month(auto column) {
     return soql_make_cop(SOQL_COP_FISCAL_MONTH, column);
@@ -591,7 +604,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_fiscal_quarter(auto column) {
     return soql_make_cop(SOQL_COP_FISCAL_QUARTER, column);
@@ -604,7 +617,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_fiscal_year(auto column) {
     return soql_make_cop(SOQL_COP_FISCAL_YEAR, column);
@@ -617,7 +630,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_hour_in_day(auto column) {
     return soql_make_cop(SOQL_COP_HOUR_IN_DAY, column);
@@ -630,7 +643,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_week_in_month(auto column) {
     return soql_make_cop(SOQL_COP_WEEK_IN_MONTH, column);
@@ -643,7 +656,7 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
     @endcode
 
     @return a @ref SoqlColumnOperatorInfo hash corresponding to the arguments for use in the \c "columns" argument of
-    a @ref select_option_hash "select option hash"
+    a search option hash
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_week_in_year(auto column) {
     return soql_make_cop(SOQL_COP_WEEK_IN_YEAR, column);
