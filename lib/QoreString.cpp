@@ -2226,90 +2226,89 @@ int QoreString::snprintf(size_t size, const char* fmt, ...) {
 }
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_t length) const {
-   printd(5, "QoreString::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-          offset, length, priv->buf, this, priv->len);
+    printd(5, "QoreString::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
+            offset, length, priv->buf, this, priv->len);
 
-   qore_size_t n_offset;
-   if (offset < 0)
-      n_offset = priv->len + offset;
-   else
-      n_offset = offset;
-   if (n_offset >= priv->len)  // if offset outside of string, return nothing
-      return -1;
+    qore_size_t n_offset;
+    if (offset < 0)
+        n_offset = priv->len + offset;
+    else
+        n_offset = offset;
+    if (n_offset >= priv->len)  // if offset outside of string, return nothing
+        return -1;
 
-   qore_size_t n_length;
-   if (length < 0) {
-      length = priv->len - n_offset + length;
-      if (length < 0)
-         n_length = 0;
-      else
-         n_length = length;
-   }
-   else if ((qore_size_t)length > (priv->len - n_offset))
-      n_length = priv->len - n_offset;
-   else
-      n_length = length;
+    qore_size_t n_length;
+    if (length < 0) {
+        length = priv->len - n_offset + length;
+        if (length < 0)
+            n_length = 0;
+        else
+            n_length = length;
+    } else if ((qore_size_t)length > (priv->len - n_offset))
+        n_length = priv->len - n_offset;
+    else
+        n_length = length;
 
-   ns->concat(priv->buf + n_offset, n_length);
-   return 0;
+    ns->concat(priv->buf + n_offset, n_length);
+    return 0;
 }
 
 int QoreString::substr_simple(QoreString* ns, qore_offset_t offset) const {
-   printd(5, "QoreString::substr_simple(offset=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-          offset, priv->buf, this, priv->len);
+    printd(5, "QoreString::substr_simple(offset=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
+            offset, priv->buf, this, priv->len);
 
-   qore_size_t n_offset;
-   if (offset < 0)
-      n_offset = priv->len + offset;
-   else
-      n_offset = offset;
-   if (n_offset >= priv->len)  // if offset outside of string, return nothing
-      return -1;
+    qore_size_t n_offset;
+    if (offset < 0)
+        n_offset = priv->len + offset;
+    else
+        n_offset = offset;
+    if (n_offset >= priv->len)  // if offset outside of string, return nothing
+        return -1;
 
-   // add length to ensure that the entire string is copied even if it has embedded nulls
-   ns->concat(priv->buf + n_offset, priv->len - n_offset);
-   return 0;
+    // add length to ensure that the entire string is copied even if it has embedded nulls
+    ns->concat(priv->buf + n_offset, priv->len - n_offset);
+    return 0;
 }
 
 int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const {
-   assert(xsink);
-   QORE_TRACE("QoreString::substr_complex(offset, length)");
-   printd(5, "QoreString::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
-          offset, length, priv->buf, this, priv->len);
+    assert(xsink);
+    QORE_TRACE("QoreString::substr_complex(offset, length)");
+    printd(5, "QoreString::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p priv->len=" QSD ")\n",
+            offset, length, priv->buf, this, priv->len);
 
-   char* pend = priv->buf + priv->len;
-   if (offset < 0) {
-      int clength = priv->getEncoding()->getLength(priv->buf, pend, xsink);
-      if (*xsink)
-         return -1;
+    char* pend = priv->buf + priv->len;
+    if (offset < 0) {
+        int clength = priv->getEncoding()->getLength(priv->buf, pend, xsink);
+        if (*xsink)
+            return -1;
 
-      offset = clength + offset;
+        offset = clength + offset;
 
-      if ((offset < 0) || (offset >= clength))  // if offset outside of string, return nothing
-         return -1;
-   }
+        if ((offset < 0) || (offset >= clength))  // if offset outside of string, return nothing
+            return -1;
+    }
 
-   qore_size_t start = priv->getEncoding()->getByteLen(priv->buf, pend, offset, xsink);
-   if (*xsink)
-      return -1;
+    qore_size_t start = priv->getEncoding()->getByteLen(priv->buf, pend, offset, xsink);
+    if (*xsink)
+        return -1;
 
-   if (start == priv->len)
-      return -1;
+    if (start == priv->len)
+        return -1;
 
-   if (length < 0) {
-      length = priv->getEncoding()->getLength(priv->buf + start, pend, xsink) + length;
-      if (*xsink)
-         return -1;
+    if (length < 0) {
+        length = priv->getEncoding()->getLength(priv->buf + start, pend, xsink) + length;
+        if (*xsink)
+            return -1;
 
-      if (length < 0)
-         length = 0;
-   }
-   qore_size_t end = priv->getEncoding()->getByteLen(priv->buf + start, pend, length, xsink);
-   if (*xsink)
-      return -1;
+        if (length < 0)
+            length = 0;
+    }
+    qore_size_t end = priv->getEncoding()->getByteLen(priv->buf + start, pend, length, xsink);
+    if (*xsink)
+        return -1;
 
-   ns->concat(priv->buf + start, end);
-   return 0;
+    ns->concat(priv->buf + start, end);
+    return 0;
 }
 
 int QoreString::substr_complex(QoreString* ns, qore_offset_t offset, ExceptionSink* xsink) const {

@@ -12,10 +12,27 @@
 
 public class StringTest inherits QUnit::Test {
     constructor() : Test("StringTest", "1.0") {
+        addTestCase("null test", \nullTest());
         addTestCase("function tests", \functionTests());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    nullTest() {
+        string str = "hi" + <00>.toString() + "there";
+        str = convert_encoding(str, "ascii");
+
+        assertEq(8, str.size());
+        assertEq(0, ord(str[2]));
+        assertEq("there", str[3..]);
+        assertEq(0, ord(str[-6]));
+
+        str = "hi" + <00>.toString() + "there";
+        assertEq(8, str.size());
+        assertEq(0, ord(str[2]));
+        assertEq("there", str[3..]);
+        assertEq(0, ord(str[-6]));
     }
 
     functionTests() {
