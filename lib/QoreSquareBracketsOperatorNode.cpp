@@ -59,20 +59,17 @@ void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* ofl
                 edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
                 qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
             }
-        }
-        else {
+        } else {
             if (QoreTypeInfo::isType(lti, NT_STRING)) {
                 returnTypeInfo = rti_is_list ? stringTypeInfo : stringOrNothingTypeInfo;
-            }
-            else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
+            } else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
                 if (rti_is_list)
                    returnTypeInfo = binaryTypeInfo;
                 else if (!rti_can_be_list)
                     returnTypeInfo = bigIntOrNothingTypeInfo;
                 // if the rhs may or may not be a list, then we can't determine the return type;
                 // it could be int, binary, or NOTHING
-            }
-            else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
+            } else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
                      && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
                      && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)) {
                 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
@@ -89,8 +86,7 @@ void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* ofl
                     if (ti) {
                         // with a slice, the return type is list<*type>
                         returnTypeInfo = qore_get_complex_list_type(get_or_nothing_type_check(ti));
-                    }
-                    else {
+                    } else {
                         // otherwise we always get a list when making a slice of a list, but the element type is unknown
                         // if the lhs is not a list, then we get NOTHING
                         returnTypeInfo = QoreTypeInfo::isType(lti, NT_LIST) ? listTypeInfo : listOrNothingTypeInfo;
@@ -98,8 +94,7 @@ void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* ofl
                 }
                 // if we can be a list but also can be something else (ex NOTHING),
                 // then we cannot predict the return type at parse time
-            }
-            else {
+            } else {
                 if (ti) {
                     // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
                     returnTypeInfo = get_or_nothing_type_check(ti);
@@ -223,13 +218,11 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
 
                         ret->push(n.refSelf(), xsink);
                     }
-                }
-                else {
+                } else {
                     if (!i) {
                         vtype = entry->getTypeInfo();
                         vcommon = true;
-                    }
-                    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
+                    } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
                         vcommon = false;
                     ret->push(entry.release(), xsink);
                 }
