@@ -33,6 +33,9 @@ public class StringTest inherits QUnit::Test {
         assertEq(0, ord(str[2]));
         assertEq("there", str[3..]);
         assertEq(0, ord(str[-6]));
+
+        str = reverse(str);
+        assertEq("ereht", str[0..4]);
     }
 
     functionTests() {
