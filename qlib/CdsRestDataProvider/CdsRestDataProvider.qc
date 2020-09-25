@@ -174,7 +174,15 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
             return meta;
         }
 
-        hash<auto> resp = rest.get("$metadata?annotations=true").body."edmx:Edmx"."edmx:DataServices".Schema;
+        hash<auto> resp;
+        hash<auto> info;
+        try {
+            resp = rest.get("$metadata?annotations=true", NOTHING, \info).body."edmx:Edmx"."edmx:DataServices".Schema;
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            throw ex.err, ex.desc, ex.arg + ex_arg;
+        }
         #printf("%N\n", resp.EntityType);
 
         meta = map {$1."^attributes^".Name: $1}, resp.EntityType, ($1.Property || ($1.Abstract == "true"));
