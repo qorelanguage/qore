@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
-/*  ConnectionProvider.qm Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  ConnectionProvider.qm Copyright 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.3";
+    version = "1.4";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -101,6 +101,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section connectionproviderrelnotes Release Notes
 
+    @subsection connectionprovider_1_4 ConnectionProvider 1.4
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
+
     @subsection connectionprovider_1_3 ConnectionProvider 1.3
     - implemented support for serializing connections and removed the \c AbstractConnection::getConstructorInfo() and
       \c AbstractConnection::getConstructorInfoImpl() methods
@@ -136,218 +140,218 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
 #! the ConnectionProvider namespace contains all the objects in the ConnectionProvider module
 public namespace ConnectionProvider {
-    #! information that can be used to dynamically construct a connection object
-    /** as returned by AbstractConnection::getConstructorInfo()
+#! information that can be used to dynamically construct a connection object
+/** as returned by AbstractConnection::getConstructorInfo()
 
-        @since ConnectionProvider 1.1
+    @since ConnectionProvider 1.1
+*/
+public hashdecl ConnectionConstructorInfo {
+    #! any module required to be loaded for the constructor call
+    *string module;
+
+    #! the name of the constructor's class
+    string class_name;
+
+    #! the constructor arguments
+    *softlist<auto> args;
+
+    #! code to execute after construction
+    /** the code must be compatible with the following parse options:
+        - @ref Qore::PO_NEW_STYLE
+        - @ref Qore::PO_STRICT_ARGS
+        - @ref Qore::PO_REQUIRE_TYPES
+
+        The followinng local variables will be available:
+        - <tt>object obj</tt>: the object that was created
+        - <tt>bool connect</tt>: if the object should be connected
+        - <tt>*hash rtopts</tt>: any runtime options provided
     */
-    public hashdecl ConnectionConstructorInfo {
-        #! any module required to be loaded for the constructor call
-        *string module;
+    *string post_processing;
 
-        #! the name of the constructor's class
-        string class_name;
+    #! code to execute before construction to preprocess the constructor arguments
+    /** the code must be compatible with the following parse options:
+        - @ref Qore::PO_NEW_STYLE
+        - @ref Qore::PO_STRICT_ARGS
+        - @ref Qore::PO_REQUIRE_TYPES
 
-        #! the constructor arguments
-        *softlist<auto> args;
+        The following local variables will be available:
+        - <tt>reference<*softlist&lt;auto;gt;> args</tt>: a reference to the constructor arguments
+        - <tt>bool connect</tt>: if the object should be connected
+        - <tt>*hash rtopts</tt>: any runtime options provided
+    */
+    *string pre_processing;
+}
 
-        #! code to execute after construction
-        /** the code must be compatible with the following parse options:
-            - @ref Qore::PO_NEW_STYLE
-            - @ref Qore::PO_STRICT_ARGS
-            - @ref Qore::PO_REQUIRE_TYPES
+#! connection information hash as returned by @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()"
+public hashdecl ConnectionInfo {
+    string name;                #!< the connection name
+    string desc;                #!< the connection description
+    *date last_check;           #!< the date/time value of the last connection check (or @ref nothing if not checked)
+    bool loopback;              #!< a boolean vaue indicating if the connection is a loopback connection
+    bool monitor;               #!< a boolean vaue indicating if the connection should be monitored or not
+    *hash opts;                 #!< the original options used to create the object
+    string status;              #!< a string giving the connection's status
+    string type;                #!< the connection type
+    bool up = False;            #!< a boolean vaue indicating the connection is known to be up (will be @ref False "False" if not checked)
+    *date updated;              #!< the date/time value of the update (or @ref nothing if not updated)
+    string url;                 #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref True "True")
+    hash url_hash;              #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+    bool enabled;               #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
+    bool locked;                #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
+    bool debug_data;            #!< a boolean value indicating whether the connection should be subject to data debugging. This flag does not affect anything by default, it is for user re-implementations
+    hash<auto> tags;            #!< user-defined key-value pairs associated with the connection
+    bool has_provider = False;  #!< if the connection supports the data provider API
+}
 
-            The followinng local variables will be available:
-            - <tt>object obj</tt>: the object that was created
-            - <tt>bool connect</tt>: if the object should be connected
-            - <tt>*hash rtopts</tt>: any runtime options provided
-        */
-        *string post_processing;
+#! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
+public hashdecl ConfigInfo {
+    string name;  #!< the name of the connection
+    string desc;  #!< the description
+    string url;   #!< the full URL (including any username & password)
+    *hash opts;   #!< the options set on the connection
+}
 
-        #! code to execute before construction to preprocess the constructor arguments
-        /** the code must be compatible with the following parse options:
-            - @ref Qore::PO_NEW_STYLE
-            - @ref Qore::PO_STRICT_ARGS
-            - @ref Qore::PO_REQUIRE_TYPES
+#! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
+public hashdecl PingInfo {
+    string name;             #!< the name of the connection
+    string desc;             #!< the description
+    *hash opts;              #!< the options set on the connection
+    string url;              #!< a safe version of the URL (without passwords)
+    bool ok;                 #!< a boolean value giving the result of the ping
+    date time;               #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
+    string info;             #!< a string giving the result of the ping (\c "OK" or an error message)
+    *hash ping_info;         #!< an optional free-form hash giving additional info regarding ping operation or the remote system
+    *hash<ExceptionInfo> ex; #!< if an exception occured, all exception info will be returned here
+}
 
-            The following local variables will be available:
-            - <tt>reference<*softlist&lt;auto;gt;> args</tt>: a reference to the constructor arguments
-            - <tt>bool connect</tt>: if the object should be connected
-            - <tt>*hash rtopts</tt>: any runtime options provided
-        */
-        *string pre_processing;
-    }
-
-    #! connection information hash as returned by @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()"
-    public hashdecl ConnectionInfo {
-        string name;                #!< the connection name
-        string desc;                #!< the connection description
-        *date last_check;           #!< the date/time value of the last connection check (or @ref nothing if not checked)
-        bool loopback;              #!< a boolean vaue indicating if the connection is a loopback connection
-        bool monitor;               #!< a boolean vaue indicating if the connection should be monitored or not
-        *hash opts;                 #!< the original options used to create the object
-        string status;              #!< a string giving the connection's status
-        string type;                #!< the connection type
-        bool up = False;            #!< a boolean vaue indicating the connection is known to be up (will be @ref False "False" if not checked)
-        *date updated;              #!< the date/time value of the update (or @ref nothing if not updated)
-        string url;                 #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref True "True")
-        hash url_hash;              #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
-        bool enabled;               #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
-        bool locked;                #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
-        bool debug_data;            #!< a boolean value indicating whether the connection should be subject to data debugging. This flag does not affect anything by default, it is for user re-implementations
-        hash<auto> tags;            #!< user-defined key-value pairs associated with the connection
-        bool has_provider = False;  #!< if the connection supports the data provider API
-    }
-
-    #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
-    public hashdecl ConfigInfo {
-        string name;  #!< the name of the connection
-        string desc;  #!< the description
-        string url;   #!< the full URL (including any username & password)
-        *hash opts;   #!< the options set on the connection
-    }
-
-    #! ping response info as returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
-    public hashdecl PingInfo {
-        string name;             #!< the name of the connection
-        string desc;             #!< the description
-        *hash opts;              #!< the options set on the connection
-        string url;              #!< a safe version of the URL (without passwords)
-        bool ok;                 #!< a boolean value giving the result of the ping
-        date time;               #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
-        string info;             #!< a string giving the result of the ping (\c "OK" or an error message)
-        *hash ping_info;         #!< an optional free-form hash giving additional info regarding ping operation or the remote system
-        *hash<ExceptionInfo> ex; #!< if an exception occured, all exception info will be returned here
-    }
-
-    #! returns a URL string for the given identifier if the identifier is known to a registered connection provider or returns the URL itself if the identifier is a valid URL
-    /** @par Example:
-        @code{.py}
+#! returns a URL string for the given identifier if the identifier is known to a registered connection provider or returns the URL itself if the identifier is a valid URL
+/** @par Example:
+    @code{.py}
 string connstr = get_connection_url(str);
-        @endcode
+    @endcode
 
-        @param str the connection identifier or a valid URL connection string (a URL string is considered valid for this function if it begins with a scheme and has at least one character after the scheme; ex: \c "scheme://x..."
+    @param str the connection identifier or a valid URL connection string (a URL string is considered valid for this function if it begins with a scheme and has at least one character after the scheme; ex: \c "scheme://x..."
 
-        @return the URL string corresponding to the connection identifier, or, in case the argument is a valid URL string, returns the argument itself
+    @return the URL string corresponding to the connection identifier, or, in case the argument is a valid URL string, returns the argument itself
 
-        @throw CONNECTION-ERROR the connection string cannot be matched as an external url identifier by a connection provider module and there is no scheme (i.e. protocol) specification in the string followed by at least one character (ex: \c "scheme://x...")
+    @throw CONNECTION-ERROR the connection string cannot be matched as an external url identifier by a connection provider module and there is no scheme (i.e. protocol) specification in the string followed by at least one character (ex: \c "scheme://x...")
 
-        @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
+    @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
-        @see @ref connectionprovider_modules
-     */
-    public string sub get_connection_url(string str) {
-        return str =~ /^[^:\/]+:\/\/.+/
-            ? str
-            : get_connection(str).url;
-    }
+    @see @ref connectionprovider_modules
+    */
+public string sub get_connection_url(string str) {
+    return str =~ /^[^:\/]+:\/\/.+/
+        ? str
+        : get_connection(str).url;
+}
 
-    #! returns an AbstractConnection object if the identifier is known to a registered connection provider
-    /** @par Example:
-        @code{.py}
+#! returns an AbstractConnection object if the identifier is known to a registered connection provider
+/** @par Example:
+    @code{.py}
 string connstr = get_connection(str);
-        @endcode
+    @endcode
 
-        @param conn the connection identifier
+    @param conn the connection identifier
 
-        @return the connection object
+    @return the connection object
 
-        @throw CONNECTION-ERROR the connection string cannot be matched as an external url identifier by a connection provider module
+    @throw CONNECTION-ERROR the connection string cannot be matched as an external url identifier by a connection provider module
 
-        @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
+    @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
-        @see @ref connectionprovider_modules
-     */
-    public AbstractConnection sub get_connection(string conn) {
-        # process connection provider modules in declaration order
-        if (ENV.QORE_CONNECTION_PROVIDERS) {
-            list el = ();
-            list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);
-            foreach string mod in (pl) {
-                try {
-                    return priv_try_get_connection(mod, conn);
-                } catch (hash<ExceptionInfo> ex) {
-                    el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
-                }
+    @see @ref connectionprovider_modules
+    */
+public AbstractConnection sub get_connection(string conn) {
+    # process connection provider modules in declaration order
+    if (ENV.QORE_CONNECTION_PROVIDERS) {
+        list el = ();
+        list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);
+        foreach string mod in (pl) {
+            try {
+                return priv_try_get_connection(mod, conn);
+            } catch (hash<ExceptionInfo> ex) {
+                el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
-            throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; tried the following connection provider modules: %y; errors: %y", conn, pl, el);
         }
-
-        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
+        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; tried the following connection provider modules: %y; errors: %y", conn, pl, el);
     }
 
-    #! returns all known connections as a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
-    /** @par Example:
-        @code{.py}
+    throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
+}
+
+#! returns all known connections as a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
+/** @par Example:
+    @code{.py}
 *hash<string, AbstractConnection> h = get_connections();
-        @endcode
+    @endcode
 
-        @param verbose display connection provider module errors on stdout (otherwise errors are ignored)
+    @param verbose display connection provider module errors on stdout (otherwise errors are ignored)
 
-        @return a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
+    @return a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
 
-        @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
+    @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
-        @see
-        - get_connection_hash()
-        - @ref connectionprovider_modules
-     */
-    public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
-        hash<string, AbstractConnection> h();
-        # process connection provider modules in declaration order
-        if (ENV.QORE_CONNECTION_PROVIDERS) {
-            list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);
-            foreach string mod in (pl) {
-                try {
-                    map h.($1.key) = $1.value, priv_try_get_connections(mod).pairIterator(), !exists h.($1.key);
-                } catch (hash<ExceptionInfo> ex) {
-                    if (verbose)
-                        printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
-                }
+    @see
+    - get_connection_hash()
+    - @ref connectionprovider_modules
+    */
+public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
+    hash<string, AbstractConnection> h();
+    # process connection provider modules in declaration order
+    if (ENV.QORE_CONNECTION_PROVIDERS) {
+        list pl = ENV.QORE_CONNECTION_PROVIDERS.split(PathSep);
+        foreach string mod in (pl) {
+            try {
+                map h.($1.key) = $1.value, priv_try_get_connections(mod).pairIterator(), !exists h.($1.key);
+            } catch (hash<ExceptionInfo> ex) {
+                if (verbose)
+                    printf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
-
-        return h;
     }
 
-    #! returns a hash of connection information keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
-    /** @par Example:
-        @code{.py}
+    return h;
+}
+
+#! returns a hash of connection information keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included)
+/** @par Example:
+    @code{.py}
 *hash<string, hash<ConnectionInfo>> h = get_connection_hash();
-        @endcode
+    @endcode
 
-        @param verbose display connection provider module errors on stdout (otherwise errors are silently ignored)
+    @param verbose display connection provider module errors on stdout (otherwise errors are silently ignored)
 
-        @return a hash keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
+    @return a hash keyed by connection identifier; values are @ref ConnectionInfo hashes as returned by @ref AbstractConnection::getInfo() (with passwords included); @ref nothing is returned if no connections are known
 
-        @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
+    @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
-        @see
-        - get_connections()
-        - @ref connectionprovider_modules
-     */
-    public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
-        return map {
-            $1.key: $1.value.getInfo(True),
-        }, get_connections(verbose).pairIterator();
-    }
+    @see
+    - get_connections()
+    - @ref connectionprovider_modules
+    */
+public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
+    return map {
+        $1.key: $1.value.getInfo(True),
+    }, get_connections(verbose).pairIterator();
+}
 } # ConnectionProvider namespace
 
 # private, non-exported namespace
 namespace Priv {
-    *hash sub priv_try_get_connections(string mod) {
-        Program p();
-        p.loadModule(mod);
-        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
-        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s)", mod));
-        return p.callFunction("get_mod_connections");
-    }
+*hash sub priv_try_get_connections(string mod) {
+    Program p();
+    p.loadModule(mod);
+    # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+    p.setScriptPath(sprintf("Qore::ConnectionProvider(%s)", mod));
+    return p.callFunction("get_mod_connections");
+}
 
-    ConnectionProvider::AbstractConnection sub priv_try_get_connection(string mod, string conn) {
-        Program p();
-        p.loadModule(mod);
-        # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
-        p.setScriptPath(sprintf("Qore::ConnectionProvider(%s,%s)", mod, conn));
-        return p.callFunction("get_mod_connection", conn);
-    }
+ConnectionProvider::AbstractConnection sub priv_try_get_connection(string mod, string conn) {
+    Program p();
+    p.loadModule(mod);
+    # we cannot make the following call before the Program::loadModule() call or it will break loading modules from relative paths
+    p.setScriptPath(sprintf("Qore::ConnectionProvider(%s,%s)", mod, conn));
+    return p.callFunction("get_mod_connection", conn);
+}
 } # Priv nsmrspace

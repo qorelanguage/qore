@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FtpConnection class definition
 
-/*  FtpConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  FtpConnection.qc Copyright 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,13 @@ public namespace ConnectionProvider {
         - \c "path_add": appends the given string to the path component of the URL at runtime
     */
     public class FtpConnection inherits AbstractConnection {
+        public {
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("FtpConnection"),
+            };
+        }
+
         #! DEPRECATED: creates the FtpConnection object
         /** @param name the name of the connection
             @param desc connection description
@@ -59,7 +66,7 @@ public namespace ConnectionProvider {
 
             See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : AbstractConnection(name, description, url, attributes, options) {
         }
 
@@ -73,7 +80,7 @@ public namespace ConnectionProvider {
             - \c "path": overrides the path component in the URL at runtime
             - \c "path_add": appends the given string to the path component of the URL at runtime
         */
-        *hash getRuntimeOptions() {
+        *hash<auto> getRuntimeOptions() {
             return {
                 "path": True,
                 "path_add": True,

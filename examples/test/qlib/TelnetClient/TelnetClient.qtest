@@ -12,6 +12,9 @@
 
 %exec-class TelnetClientTest
 
+# test deprecated functionality
+%disable-warning deprecated
+
 public class TelnetClientTest inherits QUnit::Test {
     constructor() : Test("TelnetClientTest", "1.0") {
         addTestCase("TelnetClient tests", \telnetClientTests());

@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 # require type definitions everywhere
 %require-types
@@ -33,12 +33,12 @@
 
 %requires WebSocketUtil >= 1.0
 %requires Util >= 1.0
-%requires(reexport) ConnectionProvider >= 1.2
+%requires(reexport) ConnectionProvider >= 1.4
 
 %new-style
 
 module WebSocketClient {
-    version = "1.8";
+    version = "1.9";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -93,6 +93,10 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v1_9 v1.9
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
 
     @subsection wsc_v1_8 v1.8
     - removed the \c WebSocketConnectionObject::getConstructorInfo() and
@@ -232,7 +236,7 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
 
             @since WebSocketClient 1.6 added the \c yield option
         */
-        constructor(code cb, hash opts) {
+        constructor(code cb, hash<auto> opts) {
             if (opts.url.typeCode() != NT_STRING)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key giving the connection target");
             url = opts.url;
@@ -500,7 +504,7 @@ ws.setEventQueue();
 %endif
                         continue;
                     }
-                    hash h = ws_read_message(hc, timeout_ms);
+                    hash<auto> h = ws_read_message(hc, timeout_ms);
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
                             logDebug("server sent OpClose without code; closing immediately");
@@ -589,8 +593,7 @@ ws.setEventQueue();
             if (txtmsg) {
                 if (txtmsg.encoding() != "UTF-8")
                     txtmsg = convert_encoding(txtmsg, "UTF-8");
-            }
-            else
+            } else
                 txtmsg = WSCCMap{code};
             msg += txtmsg;
             try {
@@ -609,12 +612,12 @@ ws.setEventQueue();
                 hdr."User-Agent" = DefaultUserAgent;
 
             string key = get_random_string(16).toBase64();
-            hdr += (
+            hdr += {
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
                 # https://tools.ietf.org/html/rfc6455#section-4.1 specifies a 16-byte length for this random nonce
                 "Sec-WebSocket-Key": key,
-                );
+            };
 
             hash<auto> rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
 
@@ -684,6 +687,21 @@ ws.setEventQueue();
         - \c "yield": a closure to yield current thread execution
     */
     public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
+        public {
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("WebSocketConnectionObject"),
+                "options": HttpConnection::ConnectionEntry.options,
+            };
+
+            #! object connection options
+            const Options = map {$1: True}, keys ConnectionEntry.options;
+
+            #! default options
+            const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionEntry.options.pairIterator(),
+                exists $1.value.default_value;
+        }
+
         #! DEPRECATED: creates the WebSocketConnectionObject object
         /** @param name the name of the connection
             @param desc connection description
@@ -712,9 +730,9 @@ ws.setEventQueue();
             : AbstractConnection(name, description, url, attributes, options) {
         }
 
-        #! returns \c "websocket"
+        #! returns \c "ws"
         string getType() {
-            return "websocket";
+            return "ws";
         }
 
         #! returns runtime options
@@ -725,14 +743,14 @@ ws.setEventQueue();
             - \c "log": a closure accepting a single string for logging
             - \c "yield": a closure to yield current thread execution
             */
-        *hash getRuntimeOptions() {
-            return (
+        *hash<auto> getRuntimeOptions() {
+            return {
                 "callback": True,
                 "log": True,
                 "errlog": True,
                 "dbglog": True,
                 "yield": True,
-                );
+            };
         }
 
         #! returns a @ref WebSocketClient object
@@ -759,13 +777,13 @@ ws.setEventQueue();
         }
 
         #! gets options
-        hash getOptions() {
-            return HttpConnection::Options;
+        hash<auto> getOptions() {
+            return Options;
         }
 
         #! returns default options
-        *hash getDefaultOptions() {
-            return HttpConnection::DefaultOptions;
+        *hash<auto> getDefaultOptions() {
+            return DefaultOptions;
         }
 
         private hash<PingInfo> pingIntern(hash<PingInfo> rv) {

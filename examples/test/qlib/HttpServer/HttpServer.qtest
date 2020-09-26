@@ -134,7 +134,7 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         mServer.setHandler("/route/b", "/route/b", MimeTypeHtml, new SimpleStringHandler("/route/b"));
         mServer.setHandler("/route", "/route", MimeTypeHtml, new SimpleStringHandler("/route"));
         mServer.setDefaultHandler("my-handler", mHandler);
-        port = mServer.addListener(0).port;
+        port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
         url = "http://localhost:" + port;
     }
 

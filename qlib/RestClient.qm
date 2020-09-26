@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 %requires Mime >= 1.3
-%requires(reexport) ConnectionProvider >= 1.2
+%requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 0.1
 
@@ -65,6 +65,8 @@ module RestClient {
         # if no modules for data de/serialization can be loaded, then throw an exception
         if (!RestClient::Accept)
             throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least one of which is required to support data de/serialization for REST requests and responses");
+        ConnectionProviderCache::registerConnection("rest", RestConnection::ConnectionEntry);
+        ConnectionProviderCache::registerConnection("rests", RestConnection::ConnectionEntry);
     };
 %endif
 }
@@ -125,6 +127,8 @@ printf("%N\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_7 RestClient v1.7
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
     - fixed a bug handling complex \c Content-Type headers in responses
       (<a href="https://github.com/qorelanguage/qore/issues/4019">issue 4019</a>)
 
@@ -273,15 +277,14 @@ public namespace RestClient {
 
             #! Data serialization options; this is a hash to simulate a set of strings
             /** Data serialization options are as follows:
-                - \c "auto": prefers in this order: json, yaml, rawxml, xml-rpc, url, and text
-                - \c "xml": use only XML-RPC serialization
-                - \c "rawxml": use raw XML serialization
-                - \c "json": use only JSON serialization
-                - \c "yaml": use only YAML serialization
-                - \c "xml": use only XML-RPC serialization
-                - \c "text": use only plain text. No serialization is used.
+                - \c "auto": prefers in this order: json, yaml, rawxml, xml, url, and text
                 - \c "bin": for binary message bodies without data serialization
+                - \c "json": use only JSON serialization
+                - \c "rawxml": use raw XML serialization
+                - \c "text": use only plain text. No serialization is used.
                 - \c "url": for URL-encoded message bodies
+                - \c "xml": use only XML-RPC serialization
+                - \c "yaml": use only YAML serialization
              */
             const DataSerializationOptions = {
                 "auto": True,
@@ -351,33 +354,52 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @endcode
 
             @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body as well. Example:
+            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to
+              create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
+              is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body
+              as well. Example:
                 @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
                 @endcode
-            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
-            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can
+              be a relative date-time value for clarity, ex: \c 20s)
+            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
+              \c "send_encoding" option is not set) and the requested response encoding (note that the
+              @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+              @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to
+              \c "auto"
+            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
+              connection URL
             - \c default_port: The default port number to connect to if none is given in the URL
             - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
-              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
+              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+              caller like any other response
             - \c headers: an optional hash of headers to send with every request, these can also be overridden in
               request method calls
-            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
+              message headers
             - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
             - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
-              processed
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
-            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-            - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
-            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
+            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
+              of processed
+            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
+              to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note
+              that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+              @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
+              validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
+              \c 30s)
+            - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
+              \c validator option, if given by calling
+              @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+              object to validate request and response messages; overrides \a swagger
             - \c no_charset: if True no charset will be added to the Content-Type header
-            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
+            @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+            remote server
 
             @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
@@ -1045,17 +1067,71 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             #! real options used when creating an object
             hash<auto> real_opts;
 
-            #! RestConnection object connection options
-            const Options = HttpConnection::Options + {
-                "content_encoding": True,
-                "data": True,
-                "headers": True,
-                "send_encoding": True,
-                "swagger": True,
-                "validator": True,
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("RestConnection"),
+                "options": HttpConnection::ConnectionEntry.options + {
+                    "content_encoding": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "this sets the send encoding (if the `send_encoding` option is not set) and the "
+                            "response encoding to request; values are:\n"
+                            "- `gzip`: use GNU zip encoding (RFC 1952)\n"
+                            "- `bzip2`: use bzip2 encoding\n"
+                            "- `deflate`: use the deflate algorithm (RFC 1951)\n"
+                            "- `identity`: use no content encoding",
+                        "allowed_values": ("gzip", "bzip2", "deflate", "identity"),
+                    },
+                    "data": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "data serialization options:\n"
+                            "- `auto`: prefers in this order: `json`, `yaml`, `rawxml`, `xml`, `url`, and `text`\n"
+                            "- `bin`: for binary message bodies without data serialization\n"
+                            "- `json`: use only JSON serialization\n"
+                            "- `rawxml`: use raw XML serialization\n"
+                            "- `text`: use only plain text; no serialization is used\n"
+                            "- `url`: for URL-encoded message bodies\n"
+                            "- `xml`: use only XML-RPC serialization\n"
+                            "- `yaml`: use only YAML serialization",
+                        "allowed_values": ("auto", "json", "yaml", "rawxml", "xml", "url", "text", "bin"),
+                        "default_value": "auto",
+                    },
+                    "headers": <ConnectionOptionInfo>{
+                        "type": "hash",
+                        "desc": "an optional hash of headers to send with every request, these can also be "
+                            "overridden in request method calls",
+                    },
+                    "send_encoding": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "this sets the send encoding; values are:\n"
+                            "- `gzip`: use GNU zip encoding (RFC 1952)\n"
+                            "- `bzip2`: use bzip2 encoding\n"
+                            "- `deflate`: use the deflate algorithm (RFC 1951)\n"
+                            "- `identity`: use no content encoding",
+                        "allowed_values": ("gzip", "bzip2", "deflate", "identity"),
+                    },
+                    "swagger": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "the location of a Swagger schema to use for message validation; processed with "
+                            "`FileLocationHandler::getTextFileFromLocation()` "
+                            "(ex: `file:///path/to/swagger-schema.json`); conflicts with `validator`",
+                    },
+                    "validator": <ConnectionOptionInfo>{
+                        "type": "any",
+                        "desc": "an `AbstractRestSchemaValidator` object for REST message validation; conflicts with "
+                            "`swagger`",
+                    },
+                },
             };
 
-            const OptionList = Options.keys();
+            #! object connection options
+            const Options = map {$1: True}, keys ConnectionEntry.options;
+
+            #! default options
+            const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionEntry.options.pairIterator(),
+                exists $1.value.default_value;
+
+            #! object connection option list
+            const OptionList = keys ConnectionEntry.options;
         }
 
         #! DEPRECATED: creates the RestConnection object
@@ -1139,7 +1215,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         #! returns default options
         *hash<auto> getDefaultOptions() {
-            return HttpConnection::DefaultOptions;
+            return DefaultOptions;
         }
 
         #! returns \c "rest"

@@ -92,7 +92,7 @@ class WebSocketHandlerTest inherits QUnit::Test {
         mServer = new HttpServer(\log(), \log());
         mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
         mServer.setDefaultHandler("ws-handler", wsHandler);
-        port = mServer.addListener(0).port;
+        port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         set_return_value(main());
 

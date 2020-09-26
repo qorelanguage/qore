@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Pop3Client.qm POP3 client module definition
 
-/*  Pop3Client.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+/*  Pop3Client.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -32,7 +32,7 @@
 %requires MailMessage >= 1.0
 
 # requires the ConnectionProvider module
-%requires(reexport) ConnectionProvider >= 1.2
+%requires(reexport) ConnectionProvider >= 1.4
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -41,11 +41,15 @@
 %enable-all-warnings
 
 module Pop3Client {
-    version = "1.8";
+    version = "1.9";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        ConnectionProviderCache::registerConnection("pop3", Pop3Connection::ConnectionEntry);
+        ConnectionProviderCache::registerConnection("pop3s", Pop3Connection::ConnectionEntry);
+    };
 }
 
 /** @mainpage Pop3Client Module
@@ -93,6 +97,10 @@ if (!h)
     @note based on http://tools.ietf.org/html/rfc1939 (POP3)
 
     @section pop3client_relnotes Pop3Client Module Release Notes
+
+    @subsection pop3client_v1_9 Pop3Client 1.9
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
 
     @subsection pop3client_v1_8 Pop3Client 1.8
     - removed the \c Pop3Connection::getConstructorInfo() and \c Pop3Connection::getConstructorInfoImpl() methods
@@ -1019,6 +1027,13 @@ pop3.setEventQueue();
         @since %Pop3Client 1.5
     */
     public class Pop3Connection inherits ConnectionProvider::AbstractConnection {
+        public {
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("Pop3Connection"),
+            };
+        }
+
         #! DEPRECATED: creates the Pop3Connection object
         /** @param name the name of the connection
             @param desc connection description

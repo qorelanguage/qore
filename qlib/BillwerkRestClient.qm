@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 %new-style
 %strict-args
@@ -30,13 +30,18 @@
 %enable-all-warnings
 
 %requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
 
 module BillwerkRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling billwerk.com REST services";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        ConnectionProviderCache::registerConnection("billwerkrest", BillwerkRestConnection::ConnectionEntry);
+        ConnectionProviderCache::registerConnection("billwerkrests", BillwerkRestConnection::ConnectionEntry);
+    };
 }
 
 /** @mainpage BillwerkRestClient Module
@@ -92,7 +97,11 @@ printf("Response body: %N\n", response.body);
 
     @section Billwerkrestclientrelnotes Release Notes
 
-    @subsection Billwerkrestclientv1_0 BillwerkRestClient v1.0
+    @subsection billwerkrestclientv1_1 BillwerkRestClient v1.1
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
+
+    @subsection billwerkrestclientv1_0 BillwerkRestClient v1.0
     - the initial version of the %BillwerkRestClient module
 */
 
@@ -297,15 +306,28 @@ BillwerkRestClient billwerk(
     */
     public class BillwerkRestConnection inherits RestClient::RestConnection {
         public {
-            #! BillwerkRestConnection object connection options
-            const BillwerkOptions = {
-                "client_id": True,
-                "client_secret": True,
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("BillwerkRestConnection"),
+                "options": RestConnection::ConnectionEntry.options + {
+                    "client_id": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "the client ID",
+                    },
+                    "client_secret": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "the client secret",
+                    },
+                },
+                "required_options": foldl $1 + "," + $2, BillwerkRestClient::RequiredOptions,
             };
 
-            const Options = RestConnection::Options + BillwerkOptions;
+            #! object connection options
+            const Options = map {$1: True}, keys ConnectionEntry.options;
 
-            const OptionList = Options.keys();
+            #! default options
+            const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionEntry.options.pairIterator(),
+                exists $1.value.default_value;
         }
 
         #! creates the BillwerkRestConnection object
@@ -331,7 +353,6 @@ BillwerkRestClient billwerk(
                           sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
                                   key, value.type(), value);
                 }
-                #self{key} = value;
             }
         }
 
@@ -373,7 +394,7 @@ BillwerkRestClient billwerk(
 
         #! returns default options
         *hash<auto> getDefaultOptions() {
-            return HttpConnection::DefaultOptions;
+            return DefaultOptions;
         }
 
         #! returns \c "billwerkrest"

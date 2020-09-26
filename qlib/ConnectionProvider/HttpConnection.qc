@@ -51,29 +51,76 @@ public namespace ConnectionProvider {
     */
     public class HttpConnection inherits AbstractConnection {
         public {
-            #! HttpConnection object connection options
-            const Options = {
-                "assume_encoding": True,
-                "error_passthru": True,
-                "http_version": True,
-                "max_redirects": True,
-                "proxy": True,
-                "timeout": True,
-                "connect_timeout": True,
-                "redirect_passthru": True,
-                "ssl_cert_path": True,
-                "ssl_key_password": True,
-                "ssl_key_path": True,
-                "ssl_verify_cert": True,
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("FilesystemConnection"),
+                "options": {
+                    "assume_encoding": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "assumes the given encoding if the server does not send a `charset` value",
+                    },
+                    "connect_timeout": <ConnectionOptionInfo>{
+                        "type": "int",
+                        "desc": "connection timeout to use in milliseconds (default: 45 seconds)",
+                        "default_value": 45000,
+                    },
+                    "error_passthru": <ConnectionOptionInfo>{
+                        "type": "bool",
+                        "desc": "if `True` then HTTP status codes indicating errors will not cause an "
+                            "`HTTP-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
+                            "passed through to the caller like any other response",
+                        "default_value": False,
+                    },
+                    "http_version": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
+                        "default_value": "1.1",
+                    },
+                    "max_redirects": <ConnectionOptionInfo>{
+                        "type": "int",
+                        "desc": "maximum redirects to support",
+                    },
+                    "proxy": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "proxy URL to use",
+                    },
+                    "redirect_passthru": <ConnectionOptionInfo>{
+                        "type": "bool",
+                        "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
+                        "default_value": False,
+                    },
+                    "ssl_cert_path": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "a path to an X.509 client certificate file in PEM format",
+                    },
+                    "ssl_key_password": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "the password to the private key given with `ssl_key_path`",
+                        "sensitive": True,
+                    },
+                    "ssl_key_path": <ConnectionOptionInfo>{
+                        "type": "string",
+                        "desc": "a path to a private key file in PEM format for the X.509 client certificate",
+                    },
+                    "ssl_verify_cert": <ConnectionOptionInfo>{
+                        "type": "bool",
+                        "desc": "if `True` then the server's certificate will only be accepted if it's verified",
+                        "default_value": False,
+                    },
+                    "timeout": <ConnectionOptionInfo>{
+                        "type": "int",
+                        "desc": "transfer timeout to use in milliseconds (default: 45 seconds)",
+                        "default_value": 45000,
+                    },
+                },
             };
+
+            #! HttpConnection object connection options
+            const Options = map {$1: True}, keys ConnectionEntry.options;
 
             #! HttpConnection default options
-            const DefaultOptions = {
-                "timeout": 45s,
-                "connect_timeout": 45s,
-            };
-
-            const OptionList = Options.keys();
+            const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionEntry.options.pairIterator(),
+                exists $1.value.default_value;
         }
 
         #! DEPRECATED: creates the HttpConnection object
@@ -141,10 +188,6 @@ public namespace ConnectionProvider {
         }
 
         #! returns default options
-        /** @return default options as follows:
-            - \c "connect_timeout": (@ref relative_dates "relative date/time value") 45 seconds
-            - \c "timeout": (@ref relative_dates "relative date/time value") 45 seconds
-        */
         *hash<auto> getDefaultOptions() {
             return DefaultOptions;
         }
@@ -159,7 +202,7 @@ public namespace ConnectionProvider {
          */
         deprecated
         static HttpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            hash attributes = {
+            hash<auto> attributes = {
                 "monitor": monitor,
             };
 

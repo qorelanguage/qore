@@ -81,7 +81,7 @@ class BillwerkTest inherits QUnit::Test {
         m_http = new HttpServer(\log(), \log());
         m_http.setHandler("/api/v1/actionsteps", "/api/v1/actionsteps",
                           (MimeTypeJson, MimeTypeFormUrlEncoded), new FakeBillwerkRestHandler(MimeTypeJson, VALUE_JSON.input));
-        port = m_http.addListener(0).port;
+        port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         try {
             billwerkRestClient = new BillwerkRestClient({"url": "http://test1:test2@localhost:" + port, "client_id": "a"});

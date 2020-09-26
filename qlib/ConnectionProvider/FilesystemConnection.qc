@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FilesystemConnection class definition
 
-/*  FilesystemConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  FilesystemConnection.qc Copyright 2016 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,13 +35,22 @@ public namespace ConnectionProvider {
     */
     public class FilesystemConnection inherits AbstractConnection {
         public {
-            #! FilesystemConnection object connection options
-            const Options = {
-                "readonly": True,
+            #! Connection entry info
+            const ConnectionEntry = <ConnectionProviderEntry>{
+                "cls": Class::forName("FilesystemConnection"),
+                "options": {
+                    "readonly": <ConnectionOptionInfo>{
+                        "type": "bool",
+                        "desc": "does not mark the connection as down if the directory is read only; use for example "
+                            "if the connection should point to a read-only base directory; interface directories "
+                            "should normally be writable",
+                        "default_value": False,
+                    },
+                },
             };
 
-            #! FilesystemConnection object connection option list
-            const OptionList = Options.keys();
+            #! FilesystemConnection object connection options
+            const Options = map {$1: True}, keys ConnectionEntry.options;
         }
 
         #! DEPRECATED: creates the FilesystemConnection object
