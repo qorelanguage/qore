@@ -390,7 +390,16 @@ scheme://user:pass@hostname:port/path
                 if (type == "int") {
                     type = Type::Int;
                 }
-                if (type != "any" && i.value.type() != type) {
+                string vtype = i.value.type();
+                if (type != "any" && vtype != type) {
+                    if (type == Type::Int && i.value.intp()) {
+                        options{i.key} = i.value.toInt();
+                        continue;
+                    }
+                    if (type == "bool" && vtype == "string") {
+                        options{i.key} = parse_boolean(i.value);
+                        continue;
+                    }
                     throw "CONNECTION-OPTION-ERROR",
                         sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
                             name, urlh.protocol, url, i.key, i.value.type(), i.value, type);

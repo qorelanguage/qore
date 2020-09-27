@@ -434,6 +434,8 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
             self{key} = v;
         }
 
+        map self{$1} = opts{$1} ?? Defaults{$1}, keys Defaults;
+
         if (!do_not_connect)
             loginIntern();
     }
@@ -993,7 +995,7 @@ sfrest.logout();
             "additional_methods": {"PATCH": False} + opts.additional_methods,
             "data": "json",
             "url": opts.oauth_url_auth ?? Defaults.oauth_url_auth,
-        } + opts;
+        } + Defaults + opts;
     }
 
     #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
