@@ -30,8 +30,6 @@
 
 %exec-class Main
 
-%disable-warning deprecated
-
 const VALUE_TEXT = {
     "input": "Lorem Ipsum",
     "output": "Lorem Ipsum",
@@ -231,7 +229,7 @@ public class Main inherits QUnit::Test {
 
     connectionTests() {
         string url = "http://localhost:8099/";
-        RestConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        RestConnection conn("test", "test", url);
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
 

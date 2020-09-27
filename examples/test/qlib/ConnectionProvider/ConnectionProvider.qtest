@@ -7,9 +7,6 @@
 %strict-args
 %allow-injection
 
-# deprecated functionality is explicitly tested
-%disable-warning deprecated
-
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
@@ -31,11 +28,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
     constructor() : Test("ConnectionProvider Test", "1.0") {
         addTestCase("cache test", \cacheTest());
         addTestCase("ftp", \ftpConnectionTest());
-        addTestCase("ftp deprecated", \ftpConnectionTestDeprecated());
         addTestCase("http", \httpConnectionTest());
-        addTestCase("http deprecated", \httpConnectionTestDeprecated());
         addTestCase("fs", \fsConnectionTest());
-        addTestCase("fs deprecated", \fsConnectionTestDeprecated());
         addTestCase("invalid", \invalidConnectionTest());
         addTestCase("custom parseUrl", \customParseUrlTest());
         addTestCase("custom option validation", \customValidateOptions());
@@ -45,7 +39,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     cacheTest() {
-        assertGt(0, ConnectionProviderCache::size());
+        assertGt(0, ConnectionSchemeCache::size());
     }
 
     ftpConnectionTest() {
@@ -58,14 +52,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
         # issue #3696: test connection serialization
         FtpConnection conn2 = Serializable::deserialize(fc.serialize());
         assertEq(fc.url, conn2.url);
-    }
-
-    ftpConnectionTestDeprecated() {
-        string url = "ftp://user:pass@localhost:1234/some_path";
-        hash<auto> urlh = parse_url(url);
-        FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
-        assertEq(True, fc.enabled, "connection is enabled by default");
-        assertEq(False, fc.locked, "connection is unlocked by default");
     }
 
     httpConnectionTest() {
@@ -121,13 +107,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq("SOCKET-SSL-ERROR", server.waitException().err);
     }
 
-    httpConnectionTestDeprecated() {
-        string url = "http://127.0.0.1";
-        HttpConnection hc("name", "desc", url, True, NOTHING, Qore::parse_url(url));
-        assertEq(True, hc.enabled, "connection is enabled by default");
-        assertEq(False, hc.locked, "connection is unlocked by default");
-    }
-
     fsConnectionTest() {
         string url = Util::tmp_location();
         hash<auto> opts = (
@@ -145,16 +124,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
         # issue #3696: test connection serialization
         FilesystemConnection conn2 = Serializable::deserialize(fs.serialize());
         assertEq(fs.url, conn2.url);
-
-        Dir d = fs.get();
-        assertEq(Util::tmp_location(), d.path(), "Path equality");
-    }
-
-    fsConnectionTestDeprecated() {
-        string url = Util::tmp_location();
-        FilesystemConnection fs("name", "desc", url, True, NOTHING, Qore::parse_url(url));
-        assertEq(True, fs.enabled, "connection is enabled by default");
-        assertEq(False, fs.locked, "connection is unlocked by default");
 
         Dir d = fs.get();
         assertEq(Util::tmp_location(), d.path(), "Path equality");

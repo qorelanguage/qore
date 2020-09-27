@@ -24,9 +24,6 @@
 
 %exec-class SalesforceTest
 
-# we test deprecated functionality here
-%disable-warning deprecated
-
 class SalesforceTest inherits QUnit::Test {
     public {}
 
@@ -174,7 +171,7 @@ class SalesforceTest inherits QUnit::Test {
     connectionTest() {
         string url = sprintf("http://%s:%s@localhost:8080", sfopts.username, sfopts.password);
         remove sfopts.("username", "password");
-        SalesforceRestConnection swsc("test", "test", url, True, sfopts, parse_url(url));
+        SalesforceRestConnection swsc("test", "test", url, {}, sfopts);
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
         assertThrows("CONNECTION-ERROR", sub () {

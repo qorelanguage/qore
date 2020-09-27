@@ -117,7 +117,7 @@ public class Main inherits QUnit::Test {
         SewioRestConnection swsc("test", "test", url, {}, ("apikey": "x"));
         assertEq(True, swsc instanceof SewioRestConnection);
 
-        assertThrows("SEWIORESTCONNECTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url);});
+        assertThrows("CONNECTION-OPTION-ERROR", sub () { SewioRestConnection swsc1("test", "test", url);});
 
         SewioRestClient client = swsc.get(False);
         # issue #3321: check default timeouts

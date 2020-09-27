@@ -29,98 +29,78 @@
 
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
-    #! class for FTP connections; returns @ref Qore::FtpClient objects
-    /** supports the following runtime options in getImpl():
+#! class for FTP connections; returns @ref Qore::FtpClient objects
+/** supports the following runtime options in getImpl():
+    - \c "path": overrides the path component in the URL at runtime
+    - \c "path_add": appends the given string to the path component of the URL at runtime
+*/
+public class FtpConnection inherits AbstractConnectionWithInfo {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("FtpConnection"),
+        };
+    }
+
+    #! creates the FtpConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+    }
+
+    #! returns \c "ftp"
+    string getType() {
+        return "ftp";
+    }
+
+    #! returns runtime options
+    /** return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
         - \c "path": overrides the path component in the URL at runtime
         - \c "path_add": appends the given string to the path component of the URL at runtime
     */
-    public class FtpConnection inherits AbstractConnection {
-        public {
-            #! Connection entry info
-            const ConnectionEntry = <ConnectionProviderEntry>{
-                "cls": Class::forName("FtpConnection"),
-            };
-        }
-
-        #! DEPRECATED: creates the FtpConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL (potentially with password info)
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-
-            @deprecated since Qore 0.9
-        */
-        deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
-            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
-        }
-
-        #! creates the FtpConnection object
-        /** @param name the name of the connection
-            @param description connection description
-            @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
-            @param options connection options
-
-            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-         */
-        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
-        }
-
-        #! returns \c "ftp"
-        string getType() {
-            return "ftp";
-        }
-
-        #! returns runtime options
-        /** return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
-            - \c "path": overrides the path component in the URL at runtime
-            - \c "path_add": appends the given string to the path component of the URL at runtime
-        */
-        *hash<auto> getRuntimeOptions() {
-            return {
-                "path": True,
-                "path_add": True,
-            };
-        }
-
-        #! returns an @ref Qore::FtpClient object
-        /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
-            @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
-        */
-        private FtpClient getImpl(bool connect = True, *hash rtopts) {
-            # set runtime path
-            *string rtpath = rtopts.path ?* urlh.path;
-            if (rtopts.path_add.val()) {
-                if (rtpath !~ /\/$/ && rtopts.path_add !~ /^\//)
-                    rtpath += "/";
-                rtpath += rtopts.path_add;
-            }
-
-            # create the object and perform post processing if necessary
-            FtpClient fc(url);
-            if (connect) {
-                fc.connect();
-                if (rtpath.val()) {
-                    fc.cwd(rtpath);
-                }
-            }
-            return fc;
-        }
-
-        #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
-         */
-        deprecated
-        static FtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            hash attributes = {
-                "monitor": monitor,
-            };
-
-            return new FtpConnection(name, desc, url, attributes, opts ?? {});
-        }
+    *hash<auto> getRuntimeOptions() {
+        return {
+            "path": True,
+            "path_add": True,
+        };
     }
+
+    #! returns an @ref Qore::FtpClient object
+    /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
+        @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
+    */
+    private FtpClient getImpl(bool connect = True, *hash rtopts) {
+        # set runtime path
+        *string rtpath = rtopts.path ?* urlh.path;
+        if (rtopts.path_add.val()) {
+            if (rtpath !~ /\/$/ && rtopts.path_add !~ /^\//)
+                rtpath += "/";
+            rtpath += rtopts.path_add;
+        }
+
+        # create the object and perform post processing if necessary
+        FtpClient fc(url);
+        if (connect) {
+            fc.connect();
+            if (rtpath.val()) {
+                fc.cwd(rtpath);
+            }
+        }
+        return fc;
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
 } # ConnectionProvider namespace

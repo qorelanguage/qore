@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file ConnectionProviderCache.qc module for data access and introspection
+#! @file ConnectionSchemeCache.qc module for data access and introspection
 
-/** ConnectionProviderCache.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** ConnectionSchemeCache.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ public hashdecl ConnectionOptionInfo {
 }
 
 #! Connection provider information
-public hashdecl ConnectionProviderEntry {
+public hashdecl ConnectionSchemeInfo {
     #! The connection class
     Class cls;
 
@@ -63,7 +63,7 @@ public hashdecl ConnectionProviderEntry {
 }
 
 #! Connection provider type cache class
-public class ConnectionProviderCache {
+public class ConnectionSchemeCache {
     public {
         #! Map of known connection schemes to modules
         const SchemeMap = {
@@ -128,15 +128,15 @@ public class ConnectionProviderCache {
 
     private {
         #! Connection provider cache
-        static hash<string, hash<ConnectionProviderEntry>> cache = {
-            "ftp": FtpConnection::ConnectionEntry,
-            "ftps": FtpConnection::ConnectionEntry,
+        static hash<string, hash<ConnectionSchemeInfo>> cache = {
+            "ftp": FtpConnection::ConnectionScheme,
+            "ftps": FtpConnection::ConnectionScheme,
 
-            "dir": FilesystemConnection::ConnectionEntry,
-            "file": FilesystemConnection::ConnectionEntry,
+            "dir": FilesystemConnection::ConnectionScheme,
+            "file": FilesystemConnection::ConnectionScheme,
 
-            "http": HttpConnection::ConnectionEntry,
-            "https": HttpConnection::ConnectionEntry,
+            "http": HttpConnection::ConnectionScheme,
+            "https": HttpConnection::ConnectionScheme,
         };
 
         #! Connection provider cache lock
@@ -147,9 +147,10 @@ public class ConnectionProviderCache {
     /** @param scheme the scheme for the connection provider
         @param entry the new connection provider entry
 
-        @throw PROVIDER-ERROR the given provider has already been registered
+        @return True if the connection was reigstered, False if there is already a registered connection with this
+        scheme
     */
-    static registerConnection(string scheme, hash<ConnectionProviderEntry> entry) {
+    static bool registerScheme(string scheme, hash<ConnectionSchemeInfo> entry) {
         bool needs_lock = !lck.lockOwner();
         if (needs_lock) {
             lck.lock();
@@ -159,38 +160,15 @@ public class ConnectionProviderCache {
         }
 
         if (cache{scheme}) {
-            if (cache{scheme} == entry) {
-                return;
-            }
-            throw "PROVIDER-ERROR", sprintf("scheme %y is already registered with class %y (conflicting class %y)",
-                scheme, cache{scheme}.cls.getPathName(), entry.cls.getPathName());
+            return False;
         }
 
         cache{scheme} = entry;
-    }
-
-    #! Register or replaces a connection provider in the cache
-    /** @param scheme the scheme for the connection provider
-        @param entry the new connection provider entry
-
-        @return True if the entry was replaced or added
-    */
-    static bool registerOrReplaceConnection(string scheme, hash<ConnectionProviderEntry> entry) {
-        bool needs_lock = !lck.lockOwner();
-        if (needs_lock) {
-            lck.lock();
-        }
-        on_exit if (needs_lock) {
-            lck.unlock();
-        }
-
-        *hash<ConnectionProviderEntry> old_entry = cache{scheme};
-        cache{scheme} = entry;
-        return old_entry != entry;
+        return True;
     }
 
     #! Returns the entire cache
-    static hash<string, hash<ConnectionProviderEntry>> get() {
+    static hash<string, hash<ConnectionSchemeInfo>> get() {
         return cache;
     }
 
@@ -207,48 +185,45 @@ public class ConnectionProviderCache {
     #! Returns a list of all cached schemes
     /**
     */
-    static *list<string> listConnections() {
+    static *list<string> listSchemes() {
         return keys cache;
     }
 
-    #! Returns the given connection provider entry or @ref nothing if not present
-    /** @param scheme the scheme for the connection provider
+    #! Returns info for the given connection scheme or @ref nothing if not present
+    /** @param scheme the scheme for the connection
 
-        @return the connection provider entry for the given scheme; @ref NOTHING is returned if the scheme is not
+        @return info for the given connection scheme; @ref NOTHING is returned if the scheme is not
         registered
     */
-    static *hash<ConnectionProviderEntry> getConnection(string scheme) {
-        return ConnectionProviderCache::getConnectionImpl(scheme, False);
+    static *hash<ConnectionSchemeInfo> getScheme(string scheme) {
+        return ConnectionSchemeCache::getSchemeImpl(scheme, False);
     }
 
-    #! Returns the given connection provider or throws an exception if not present
+    #! Returns info for the given connection scheme or throws an exception if not present
     /** @param scheme the scheme for the connection provider
 
-        @return connection provider entry for the given scheme; an exception is thrown if the scheme is unknown
+        @return info for the given connection scheme; an exception is thrown if the scheme is unknown
 
-        @throw PROVIDER-ERROR the scheme is unknown
-
-        @note types are stored based on the path provided which may differ from their type names (which may be generic
-        and therefore not suitable for indexing)
+        @throw SCHEME-ERROR the scheme is unknown
     */
-    static hash<ConnectionProviderEntry> getConnectionEx(string scheme) {
-        return ConnectionProviderCache::getConnectionImpl(scheme, True);
+    static hash<ConnectionSchemeInfo> getSchemeEx(string scheme) {
+        return ConnectionSchemeCache::getSchemeImpl(scheme, True);
     }
 
-    #! Returns the given connection provider and either throws an exception if not present or returns @ref NOTHING
+    #! Returns info for the given connection scheme; either throws an exception if not present or returns @ref NOTHING
     /** @param scheme the scheme for the connection provider
         @param throw_exception if @ref True then an exception is thrown if the scheme cannot be resolved, otherwise
         @ref NOTHING is returned
-        @param connection_loader a closure taking a string scheme argument and returning
-        <tt>*hash<ConnectionProviderEntry></tt>
+        @param scheme_loader a closure taking a string scheme argument and returning
+        <tt>*hash<ConnectionSchemeInfo></tt>
 
-        @return connection provider entry for the given scheme or @ref NOTHING is returned if the scheme cannot be
+        @return info for the given connection scheme or @ref NOTHING is returned if the scheme cannot be
         resolved and the \a throw_exception argument is @ref False
 
-        @throw PROVIDER-ERROR the scheme is unknown; only thrown if the \a throw_exception argument is @ref True
+        @throw SCHEME-ERROR the scheme is unknown; only thrown if the \a throw_exception argument is @ref True
     */
-    static *hash<ConnectionProviderEntry> getConnectionImpl(string scheme, bool throw_exception, *code connection_loader) {
-        # we have to grab the write lock if there is a connection_loader
+    static *hash<ConnectionSchemeInfo> getSchemeImpl(string scheme, bool throw_exception, *code scheme_loader) {
+        # we have to grab the write lock if there is a scheme_loader
         bool needs_lock = !lck.lockOwner();
         if (needs_lock) {
             lck.lock();
@@ -257,27 +232,22 @@ public class ConnectionProviderCache {
             lck.unlock();
         }
 
-        *hash<ConnectionProviderEntry> rv = cache{scheme};
+        *hash<ConnectionSchemeInfo> rv = cache{scheme};
         if (!rv) {
             if (*string mod = SchemeMap{scheme}) {
-                if (ConnectionProviderCache::tryLoadModule(mod, throw_exception)) {
+                if (ConnectionSchemeCache::tryLoadModule(mod, throw_exception)) {
                     rv = cache{scheme};
                 }
             }
-            if (!rv && connection_loader) {
-                rv = cache{scheme} = connection_loader(scheme);
+            if (!rv && scheme_loader) {
+                rv = cache{scheme} = scheme_loader(scheme);
             }
         }
 
         if (!rv && throw_exception) {
-            throw "PROVIDER-ERROR", sprintf("connection provider scheme %y is not registered", scheme);
+            throw "SCHEME-ERROR", sprintf("connection provider scheme %y is not registered", scheme);
         }
         return rv;
-    }
-
-    #! Returns the lock to allow for external serialization
-    static Mutex getLock() {
-        return lck;
     }
 
     #! Try to load the given module

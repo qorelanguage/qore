@@ -3,6 +3,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/BillwerkRestClient.qm
 %requires ../../../../qlib/HttpServer.qm

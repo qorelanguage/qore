@@ -45,12 +45,12 @@ module SmtpClient {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
-        ConnectionProviderCache::registerConnection("smtp", SmtpConnection::ConnectionEntry);
-        ConnectionProviderCache::registerConnection("smtps", SmtpConnection::ConnectionEntry);
-        ConnectionProviderCache::registerConnection("smtptls", SmtpConnection::ConnectionEntry);
-        ConnectionProviderCache::registerConnection("esmtp", SmtpConnection::ConnectionEntry);
-        ConnectionProviderCache::registerConnection("esmtps", SmtpConnection::ConnectionEntry);
-        ConnectionProviderCache::registerConnection("esmtptls", SmtpConnection::ConnectionEntry);
+        ConnectionSchemeCache::registerScheme("smtp", SmtpConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("smtps", SmtpConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("smtptls", SmtpConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("esmtp", SmtpConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("esmtps", SmtpConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("esmtptls", SmtpConnection::ConnectionScheme);
     };
 }
 
@@ -177,804 +177,783 @@ smtp.sendMessage(msg);@endcode
     - Attachment: used to attach files to a Message
 */
 public namespace SmtpClient {
-    #! 15 second read timeout
-    public const DefaultReadTimeout = 15s;
+#! 15 second read timeout
+public const DefaultReadTimeout = 15s;
 
-    #! 30 second connect timeout
-    public const DefaultConnectTimeout = 30s;
+#! 30 second connect timeout
+public const DefaultConnectTimeout = 30s;
 
-    #! internal response hash
-    public hashdecl SmtpResponseInfo {
-        #! The response code
-        int code;
+#! internal response hash
+public hashdecl SmtpResponseInfo {
+    #! The response code
+    int code;
 
-        #! The response string
-        string desc;
+    #! The response string
+    string desc;
+}
+
+#! for backwards-compatibility and convenience
+public class Message inherits MailMessage::Message {
+    #! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
+    /** Use the Message::addTo() method to add message recipients
+
+        @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
+        @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+
+        @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
+    */
+    constructor(string sender, string subject) : MailMessage::Message(sender, subject) {
+    }
+}
+
+#! for backwards-compatibility only
+public class Attachment inherits MailMessage::Attachment {
+}
+
+#! the class that's used to communicate with an SMTP server and supports optional TLS/SSL encryption
+/** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration,
+    so it is safe to access in a multithreaded context.
+*/
+public class SmtpClient {
+    #! @cond nodoc
+    private {
+        Socket sock();
+
+        # connect string
+        string connect;
+
+        # ensures exclusive access to the object
+        Mutex mutex();
+
+        bool nosend = False;
+
+        # optional info log closure
+        *code log_info;
+
+        # optional debug log closure
+        *code log_debug;
+
+        # tls flag (ie \c "STARTTLS" flag; ie application layer security)
+        bool tls = False;
+
+        # ssl flag (for TLS/SSL connections - ie transport layer instead of application layer security)
+        bool ssl = False;
+
+        # esmtp flag
+        bool esmtp;
+
+        # authentication credentials
+        *string user;
+        *string pass;
+
+        # logged in flag
+        bool logged_in = False;
+
+        # read timeout in milliseconds
+        timeout readTimeout = DefaultReadTimeout;
+
+        # connect timeout in milliseconds
+        timeout connectTimeout = DefaultConnectTimeout;
+
+        # HELO/EHLO reply
+        hash<auto> hello_reply;
+
+        const MaxDebugLine = 2048;
+    }
+    #! @endcond
+
+    public {
+        #! default SMTP port
+        const SmtpPort = 25;
+
+        #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
+        const SmtpsPort = 465;
+
+        #! default ESMTP port
+        const EsmtpPort = 587;
+
+        #! procotol config
+        const Protocols = {
+            "smtp": (
+                "port": SmtpPort,
+                "ssl": False,
+                "tls": False,
+            ),
+            "smtps": (
+                "port": SmtpsPort,
+                "ssl": True,
+                "tls": False,
+            ),
+            "smtptls": (
+                "port": SmtpsPort,
+                "ssl": False,
+                "tls": True,
+            ),
+            "esmtp": (
+                "port": EsmtpPort,
+                "ssl": False,
+                "tls": False,
+            ),
+            "esmtps": (
+                "port": SmtpsPort,
+                "ssl": True,
+                "tls": False,
+            ),
+            "esmtptls": (
+                "port": EsmtpPort,
+                "ssl": False,
+                "tls": True,
+            ),
+        };
     }
 
-    #! for backwards-compatibility and convenience
-    public class Message inherits MailMessage::Message {
-        #! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
-        /** Use the Message::addTo() method to add message recipients
+    #! creates the SmtpClient object
+    /** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
+        @param port the port number of the SMTP server
+        @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
+        @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+    */
+    constructor(string host, softint port, *code log, *code dbglog) {
+        log_info = log;
+        log_debug = dbglog;
 
-            @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-            @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
-
-            @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
-         */
-        constructor(string sender, string subject) : MailMessage::Message(sender, subject) {
-        }
+        connect = sprintf("%s:%d", host, port);
+        logDbg("SmtpClient server: %y", connect);
     }
 
-    #! for backwards-compatibility only
-    public class Attachment inherits MailMessage::Attachment {
-    }
-
-    #! the class that's used to communicate with an SMTP server and supports optional TLS/SSL encryption
-    /** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration,
-        so it is safe to access in a multithreaded context.
-     */
-    public class SmtpClient {
-        #! @cond nodoc
-        private {
-            Socket sock();
-
-            # connect string
-            string connect;
-
-            # ensures exclusive access to the object
-            Mutex mutex();
-
-            bool nosend = False;
-
-            # optional info log closure
-            *code log_info;
-
-            # optional debug log closure
-            *code log_debug;
-
-            # tls flag (ie \c "STARTTLS" flag; ie application layer security)
-            bool tls = False;
-
-            # ssl flag (for TLS/SSL connections - ie transport layer instead of application layer security)
-            bool ssl = False;
-
-            # esmtp flag
-            bool esmtp;
-
-            # authentication credentials
-            *string user;
-            *string pass;
-
-            # logged in flag
-            bool logged_in = False;
-
-            # read timeout in milliseconds
-            timeout readTimeout = DefaultReadTimeout;
-
-            # connect timeout in milliseconds
-            timeout connectTimeout = DefaultConnectTimeout;
-
-            # HELO/EHLO reply
-            hash<auto> hello_reply;
-
-            const MaxDebugLine = 2048;
-        }
-        #! @endcond
-
-        public {
-            #! default SMTP port
-            const SmtpPort = 25;
-
-            #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
-            const SmtpsPort = 465;
-
-            #! default ESMTP port
-            const EsmtpPort = 587;
-
-            #! procotol config
-            const Protocols = {
-                "smtp": (
-                    "port": SmtpPort,
-                    "ssl": False,
-                    "tls": False,
-                ),
-                "smtps": (
-                    "port": SmtpsPort,
-                    "ssl": True,
-                    "tls": False,
-                ),
-                "smtptls": (
-                    "port": SmtpsPort,
-                    "ssl": False,
-                    "tls": True,
-                ),
-                "esmtp": (
-                    "port": EsmtpPort,
-                    "ssl": False,
-                    "tls": False,
-                ),
-                "esmtps": (
-                    "port": SmtpsPort,
-                    "ssl": True,
-                    "tls": False,
-                ),
-                "esmtptls": (
-                    "port": EsmtpPort,
-                    "ssl": False,
-                    "tls": True,
-                ),
-            };
-        }
-
-        #! creates the SmtpClient object
-        /** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
-            @param port the port number of the SMTP server
-            @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
-            @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
-         */
-        constructor(string host, softint port, *code log, *code dbglog) {
-            log_info = log;
-            log_debug = dbglog;
-
-            connect = sprintf("%s:%d", host, port);
-            logDbg("SmtpClient server: %y", connect);
-        }
-
-        #! creates the SmtpClient object
-        /** @par Example:
-            @code{.py}
+    #! creates the SmtpClient object
+    /** @par Example:
+        @code{.py}
 SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
-            @endcode
+        @endcode
 
-            @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
-            @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
-            @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
+        @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
+        @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
+        @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
 
-            @throw PARSE-URL-ERROR the \a url argument could not be parsed with parse_url()
-            @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
-            @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
-         */
-        constructor(string url, *code log, *code dbglog) {
-            log_info = log;
-            log_debug = dbglog;
+        @throw PARSE-URL-ERROR the \a url argument could not be parsed with parse_url()
+        @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
+        @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
+    */
+    constructor(string url, *code log, *code dbglog) {
+        log_info = log;
+        log_debug = dbglog;
 
-            hash<UrlInfo> uh = parse_url(url, True);
+        hash<UrlInfo> uh = parse_url(url, True);
 
-            if (uh.protocol) {
-                *hash<auto> ph = Protocols.(uh.protocol);
-                if (!ph) {
-                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y", uh.protocol, url, keys Protocols);
-                }
-
-                if (!uh.port && uh.host[0] != "/") {
-                    uh.port = ph.port;
-                }
-
-                self += ph.("tls", "ssl");
-            } else if (!uh.port && uh.host[0] != "/") {
-                uh.port = SmtpPort;
+        if (uh.protocol) {
+            *hash<auto> ph = Protocols.(uh.protocol);
+            if (!ph) {
+                throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y", uh.protocol, url, keys Protocols);
             }
 
-            connect = uh.port ? sprintf("%s:%d", uh.host, uh.port) : uh.host;
-            logDbg("SmtpClient server: %y", connect);
-
-            if (uh.username) {
-                if (!uh.password)
-                    throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", url);
-                user = uh.username;
-                pass = uh.password;
-
-                logDbg("set authentication credentials to %s/xxx", user);
-            } else if (uh.password)
-                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", url);
-        }
-
-        #! disconnects if connected and destroys the object
-        /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
-         */
-        destructor() {
-            try {
-                disconnect();
-            } catch (hash<ExceptionInfo> ex) {
-                logDbg("SmtpClient disconnect: %s: %s", ex.err, ex.desc);
+            if (!uh.port && uh.host[0] != "/") {
+                uh.port = ph.port;
             }
+
+            self += ph.("tls", "ssl");
+        } else if (!uh.port && uh.host[0] != "/") {
+            uh.port = SmtpPort;
         }
 
-        #! Returns the connection target string
-        /** @since %SmtpClient 1.7
-        */
-        string getTarget() {
-            return connect;
+        connect = uh.port ? sprintf("%s:%d", uh.host, uh.port) : uh.host;
+        logDbg("SmtpClient server: %y", connect);
+
+        if (uh.username) {
+            if (!uh.password)
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", url);
+            user = uh.username;
+            pass = uh.password;
+
+            logDbg("set authentication credentials to %s/xxx", user);
+        } else if (uh.password)
+            throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", url);
+    }
+
+    #! disconnects if connected and destroys the object
+    /** if any exceptions occur during the disconnection, they are sent to the debug log closure/call reference
+    */
+    destructor() {
+        try {
+            disconnect();
+        } catch (hash<ExceptionInfo> ex) {
+            logDbg("SmtpClient disconnect: %s: %s", ex.err, ex.desc);
         }
+    }
 
-        #! sets the TLS/SSL flag
-        /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
-         */
-        tls(bool n_tls) {
-            tls = n_tls;
-            if (ssl)
-                ssl = False;
-        }
+    #! Returns the connection target string
+    /** @since %SmtpClient 1.7
+    */
+    string getTarget() {
+        return connect;
+    }
 
-        #! returns the TLS/SSL flag
-        bool tls() {
-            return tls;
-        }
+    #! sets the TLS/SSL flag
+    /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
+    */
+    tls(bool n_tls) {
+        tls = n_tls;
+        if (ssl)
+            ssl = False;
+    }
 
-        #! sets the SSL connection flag
-        /** @param n_ssl if @ref True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
-         */
-        ssl(bool n_ssl) {
-            ssl = n_ssl;
-            if (tls)
-                tls = False;
-        }
+    #! returns the TLS/SSL flag
+    bool tls() {
+        return tls;
+    }
 
-        #! returns the SSL connection flag
-        bool ssl() {
-            return ssl;
-        }
+    #! sets the SSL connection flag
+    /** @param n_ssl if @ref True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
+    */
+    ssl(bool n_ssl) {
+        ssl = n_ssl;
+        if (tls)
+            tls = False;
+    }
 
-        #! sets the username and password for authenticated connections
-        /** @param n_user the username to set for authentication
-            @param n_pass the password to set for authentication
+    #! returns the SSL connection flag
+    bool ssl() {
+        return ssl;
+    }
 
-            @note
-            - Currently this class only knows how to do AUTH PLAIN authentication
-            - This method is subject to thread serialization
-         */
-        setUserPass(string n_user, string n_pass) {
-            AutoLock am(mutex);
-            user = n_user;
-            pass = n_pass;
-        }
+    #! sets the username and password for authenticated connections
+    /** @param n_user the username to set for authentication
+        @param n_pass the password to set for authentication
 
-        #! sets or disables test mode; no connections are made in test mode
-        test(bool ns) {
-            nosend = ns;
-        }
+        @note
+        - Currently this class only knows how to do AUTH PLAIN authentication
+        - This method is subject to thread serialization
+    */
+    setUserPass(string n_user, string n_pass) {
+        AutoLock am(mutex);
+        user = n_user;
+        pass = n_pass;
+    }
 
-        #! returns the test mode flag
-        bool test() {
-            return nosend;
-        }
+    #! sets or disables test mode; no connections are made in test mode
+    test(bool ns) {
+        nosend = ns;
+    }
 
-        #! Connect to the server with the connection parameters set in the @ref constructor()
-        /** @note
-            - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
-            - This method is subject to thread serialization
-         */
-        connect() {
-            AutoLock am(mutex);
-            connectIntern();
-        }
+    #! returns the test mode flag
+    bool test() {
+        return nosend;
+    }
 
-        #! return connection status
-        bool isConnected() {
-            return (nosend || sock.isOpen());
-        }
+    #! Connect to the server with the connection parameters set in the @ref constructor()
+    /** @note
+        - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
+        - This method is subject to thread serialization
+    */
+    connect() {
+        AutoLock am(mutex);
+        connectIntern();
+    }
 
-        #! disconnect from the server
-        /** @note This method is subject to thread serialization
-         */
-        disconnect() {
-            AutoLock am(mutex);
-            disconnectIntern();
-        }
+    #! return connection status
+    bool isConnected() {
+        return (nosend || sock.isOpen());
+    }
 
-        #! sets the read timeout
-        setReadTimeout(timeout to) {
-            readTimeout = to;
-        }
+    #! disconnect from the server
+    /** @note This method is subject to thread serialization
+    */
+    disconnect() {
+        AutoLock am(mutex);
+        disconnectIntern();
+    }
 
-        #! returns the read timeout as an integer giving milliseconds
-        int getReadTimeoutMs() {
-            return readTimeout;
-        }
+    #! sets the read timeout
+    setReadTimeout(timeout to) {
+        readTimeout = to;
+    }
 
-        #! returns the read timeout as a relative time value
-        date getReadTimeoutDate() {
-            return milliseconds(readTimeout);
-        }
+    #! returns the read timeout as an integer giving milliseconds
+    int getReadTimeoutMs() {
+        return readTimeout;
+    }
 
-        #! sets the connect timeout
-        setConnectTimeout(timeout to) {
-            connectTimeout = to;
-        }
+    #! returns the read timeout as a relative time value
+    date getReadTimeoutDate() {
+        return milliseconds(readTimeout);
+    }
 
-        #! returns the connect timeout as an integer giving milliseconds
-        int getConnectTimeoutMs() {
-            return connectTimeout;
-        }
+    #! sets the connect timeout
+    setConnectTimeout(timeout to) {
+        connectTimeout = to;
+    }
 
-        #! returns the connect timeout as a relative time value
-        date getConnectTimeoutDate() {
-            return milliseconds(connectTimeout);
-        }
+    #! returns the connect timeout as an integer giving milliseconds
+    int getConnectTimeoutMs() {
+        return connectTimeout;
+    }
 
-        #! send a Message to the server
-        /** @param message the Message to send
+    #! returns the connect timeout as a relative time value
+    date getConnectTimeoutDate() {
+        return milliseconds(connectTimeout);
+    }
 
-            @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
-            - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
-            - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command
-            - \c MSGID: return structure after the send; generally contains message id
-            - \c QUIT: the server response of the disconnect command
+    #! send a Message to the server
+    /** @param message the Message to send
 
-            @note This method is subject to thread serialization
+        @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
+        - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
+        - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command
+        - \c MSGID: return structure after the send; generally contains message id
+        - \c QUIT: the server response of the disconnect command
 
-            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
-         */
-        hash<auto> sendMessage(MailMessage::Message message) {
-            # throws a MESSAGE-ERROR exception if the message cannot be sent
-            string mstr = message.serialize();
+        @note This method is subject to thread serialization
 
-            if (log_debug)
-                logDbg("message: %s", message.toLine());
+        @throw MESSAGE-ERROR the message is incomplete and cannot be sent
+    */
+    hash<auto> sendMessage(MailMessage::Message message) {
+        # throws a MESSAGE-ERROR exception if the message cannot be sent
+        string mstr = message.serialize();
 
-            # lock for sending
-            AutoLock am(mutex);
+        if (log_debug)
+            logDbg("message: %s", message.toLine());
 
-            hash<auto> reply;
-            try {
-                # send SMTP info for message
-                reply = sendMessageInfoIntern(message);
+        # lock for sending
+        AutoLock am(mutex);
 
-                # send message
-                sendData(mstr);
+        hash<auto> reply;
+        try {
+            # send SMTP info for message
+            reply = sendMessageInfoIntern(message);
 
-                # end of data
-                hash<SmtpResponseInfo> rh = sendCommand(".");
-                reply.MSGID = rh;
+            # send message
+            sendData(mstr);
 
-                # quit
-                rh = sendCommand("QUIT");
-                logged_in = False;
-                reply.QUIT = rh;
-            } catch(hash<ExceptionInfo> ex) {
-                logDbg("send error: %s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
-                forceDisconnectIntern();
-                rethrow;
-            }
-            # close connection
+            # end of data
+            hash<SmtpResponseInfo> rh = sendCommand(".");
+            reply.MSGID = rh;
+
+            # quit
+            rh = sendCommand("QUIT");
+            logged_in = False;
+            reply.QUIT = rh;
+        } catch(hash<ExceptionInfo> ex) {
+            logDbg("send error: %s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
             forceDisconnectIntern();
-
-            return reply;
+            rethrow;
         }
+        # close connection
+        forceDisconnectIntern();
 
-        #! force disconnect of socket without error
-        /** @note This method is subject to thread serialization
-         */
-        forceDisconnect() {
-            AutoLock am(mutex);
-            forceDisconnectIntern();
-        }
+        return reply;
+    }
 
-        #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
-        /** @par Example:
-            @code{.py}
+    #! force disconnect of socket without error
+    /** @note This method is subject to thread serialization
+    */
+    forceDisconnect() {
+        AutoLock am(mutex);
+        forceDisconnectIntern();
+    }
+
+    #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
+    /** @par Example:
+        @code{.py}
 smtp.clearWarningQueue();
-            @endcode
+        @endcode
 
-            @see setWarningQueue()
+        @see setWarningQueue()
 
-            @since %SmtpClient 1.3
-        */
-        nothing clearWarningQueue() {
-            sock.clearWarningQueue();
-        }
+        @since %SmtpClient 1.3
+    */
+    nothing clearWarningQueue() {
+        sock.clearWarningQueue();
+    }
 
-        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
-        /** @par Example:
-            @code{.py}
+    #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
+    /** @par Example:
+        @code{.py}
 smtp.setWarningQueue(5000, 5000, queue, "socket-1");
-            @endcode
+        @endcode
 
-            @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
-            - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
-            - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
-            - \c "us": an integer giving the number of microseconds for the operation
-            - \c "timeout": an integer giving the warning threshold in microseconds
-            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
-            @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
-            - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
-            - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
-            - \c "bytes": the amount of bytes sent
-            - \c "us": an integer giving the number of microseconds for the operation
-            - \c "bytes_sec": a float giving the transfer speed in bytes per second
-            - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
-            @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-            @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-            @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+        - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
+        - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
+        - \c "us": an integer giving the number of microseconds for the operation
+        - \c "timeout": an integer giving the warning threshold in microseconds
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
+        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+        - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
+        - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
+        - \c "bytes": the amount of bytes sent
+        - \c "us": an integer giving the number of microseconds for the operation
+        - \c "bytes_sec": a float giving the transfer speed in bytes per second
+        - \c "threshold": an integer giving the warning threshold in bytes per second
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
+        @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
+        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
+        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
-            @throw QUEUE-ERROR the Queue passed has a maximum size set
-            @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
+        @throw QUEUE-ERROR the Queue passed has a maximum size set
+        @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
 
-            @see clearWarningQueue()
+        @see clearWarningQueue()
 
-            @since %SmtpClient 1.3
-        */
-        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
-            sock.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
-        }
+        @since %SmtpClient 1.3
+    */
+    nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
+        sock.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
+    }
 
-        #! Returns performance statistics for the socket
-        /** @par Example:
-            @code{.py}
+    #! Returns performance statistics for the socket
+    /** @par Example:
+        @code{.py}
 hash<auto> h = smtp.getUsageInfo();
-            @endcode
+        @endcode
 
-            @return a hash with the following keys:
-            - \c "bytes_sent": an integer giving the total amount of bytes sent
-            - \c "bytes_recv": an integer giving the total amount of bytes received
-            - \c "us_sent": an integer giving the total number of microseconds spent sending data
-            - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-            - \c "arg": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the optional argument for warning hashes
-            - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the warning timeout in microseconds
-            - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+        @return a hash with the following keys:
+        - \c "bytes_sent": an integer giving the total amount of bytes sent
+        - \c "bytes_recv": an integer giving the total amount of bytes received
+        - \c "us_sent": an integer giving the total number of microseconds spent sending data
+        - \c "us_recv": an integer giving the total number of microseconds spent receiving data
+        - \c "arg": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the optional argument for warning hashes
+        - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the warning timeout in microseconds
+        - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
-            @since %SmtpClient 1.3
+        @since %SmtpClient 1.3
 
-            @see clearStats()
-        */
-        hash<auto> getUsageInfo() {
-            return sock.getUsageInfo();
-        }
+        @see clearStats()
+    */
+    hash<auto> getUsageInfo() {
+        return sock.getUsageInfo();
+    }
 
-        #! Clears performance statistics
-        /** @par Example:
-            @code{.py}
+    #! Clears performance statistics
+    /** @par Example:
+        @code{.py}
 smtp.clearStats();
-            @endcode
+        @endcode
 
-            @since %SmtpClient 1.3
+        @since %SmtpClient 1.3
 
-            @see getUsageInfo()
-        */
-        clearStats() {
-            sock.clearStats();
-        }
+        @see getUsageInfo()
+    */
+    clearStats() {
+        sock.clearStats();
+    }
 
-        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
-        /** @par Example:
-            @code{.py}
+    #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+    /** @par Example:
+        @code{.py}
 smtp.setEventQueue(queue);
-            @endcode
+        @endcode
 
-            @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
-            the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
-            @param arg an argument that will be included in each event hash in the \a arg key
-            @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+        @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
+        the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+        @param arg an argument that will be included in each event hash in the \a arg key
+        @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
 
-            @throw QUEUE-ERROR the Queue passed has a maximum size set
+        @throw QUEUE-ERROR the Queue passed has a maximum size set
 
-            @see @ref event_handling for more information
+        @see @ref event_handling for more information
 
-            @since %SmtpClient 1.8
-        */
-        setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
-            sock.setEventQueue(queue, arg, with_data);
-        }
+        @since %SmtpClient 1.8
+    */
+    setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
+        sock.setEventQueue(queue, arg, with_data);
+    }
 
-        #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
-        /** @par Example:
-            @code{.py}
+    #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+    /** @par Example:
+        @code{.py}
 smtp.setEventQueue();
-            @endcode
+        @endcode
 
-            @see @ref event_handling for more information
+        @see @ref event_handling for more information
 
-            @since %SmtpClient 1.8
-        */
-        setEventQueue() {
-            sock.setEventQueue();
+        @since %SmtpClient 1.8
+    */
+    setEventQueue() {
+        sock.setEventQueue();
+    }
+
+    #! @cond nodoc
+    # don't reimplement this method; fix/enhance it in the module
+    final private disconnectIntern() {
+        if (isConnected()) {
+            sock.close();
+            sock.shutdown();
         }
+    }
 
-        #! @cond nodoc
-        # don't reimplement this method; fix/enhance it in the module
-        final private disconnectIntern() {
-            if (isConnected()) {
-                sock.close();
-                sock.shutdown();
+    private log(string msg) {
+        if (log_info.val())
+            call_function(log_info, "SmtpClient: " + trim(vsprintf(msg, argv)));
+    }
+
+    private logDbg(string msg) {
+        if (log_debug.val())
+            call_function(log_debug, "SmtpClient: " + trim(vsprintf(msg, argv)));
+    }
+
+    private connectIntern() {
+        try {
+            sock.connect(connect, connectTimeout);
+            if (ssl)
+                sock.upgradeClientToSSL(connectTimeout);
+
+            string rep = readLine(readTimeout);
+            logDbg("connect reply: %y", trim(rep));
+            esmtp = (rep =~ /ESMTP/);
+
+            # send HELO/EHLO string
+            string hello = esmtp ? "EHLO" : "HELO";
+            hash<SmtpResponseInfo> rh = sendCommand(hello + "  %s", gethostname());
+            if (rh.code >= 500)
+                throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", hello, rh);
+
+            hello_reply{hello} = rh;
+
+            # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
+            if (!tls && esmtp && !ssl && rh.desc =~ /STARTTLS/) {
+                logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
+                tls = True;
             }
-        }
 
-        private log(string msg) {
-            if (log_info.val())
-                call_function(log_info, "SmtpClient: " + trim(vsprintf(msg, argv)));
-        }
-
-        private logDbg(string msg) {
-            if (log_debug.val())
-                call_function(log_debug, "SmtpClient: " + trim(vsprintf(msg, argv)));
-        }
-
-        private connectIntern() {
-            try {
-                sock.connect(connect, connectTimeout);
-                if (ssl)
-                    sock.upgradeClientToSSL(connectTimeout);
-
-                string rep = readLine(readTimeout);
-                logDbg("connect reply: %y", trim(rep));
-                esmtp = (rep =~ /ESMTP/);
-
-                # send HELO/EHLO string
-                string hello = esmtp ? "EHLO" : "HELO";
-                hash<SmtpResponseInfo> rh = sendCommand(hello + "  %s", gethostname());
+            # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
+            if (tls && !sock.isSecure()) {
+                rh = sendCommand("STARTTLS");
                 if (rh.code >= 500)
-                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending %s command: %y", hello, rh);
+                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", rh);
 
-                hello_reply{hello} = rh;
-
-                # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
-                if (!tls && esmtp && !ssl && rh.desc =~ /STARTTLS/) {
-                    logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
-                    tls = True;
-                }
-
-                # issue STARTTLS and upgrade to a TLS connection if the tls flag is set and we are not already secure
-                if (tls && !sock.isSecure()) {
-                    rh = sendCommand("STARTTLS");
-                    if (rh.code >= 500)
-                        throw "SMTP-DATA-EXCEPTION", sprintf("error sending STARTTLS command: %y", rh);
-
-                    sock.upgradeClientToSSL(connectTimeout);
-                    logDbg("upgrade to TLS/SSL connection %s %s", sock.getSSLCipherName(), sock.getSSLCipherVersion());
-                }
-
-                # issue login if credentials supplied and we have not already logged in
-                if (!logged_in && user)
-                    loginIntern();
-            } catch (hash<ExceptionInfo> ex) {
-                sock.close();
-                sock.shutdown();
-                rethrow;
+                sock.upgradeClientToSSL(connectTimeout);
+                logDbg("upgrade to TLS/SSL connection %s %s", sock.getSSLCipherName(), sock.getSSLCipherVersion());
             }
-        }
-
-        private loginIntern() {
-            hash<SmtpResponseInfo> rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
-            if (rh.code != 235)
-                throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", rh);
-            logged_in = True;
-        }
-
-        # send data over the socket
-        private sendDataIntern(data str) {
-            if (!isConnected()) {
-                logDbg("send: not connected; not sending");
-                throw "NOT-CONNECTED", "not connected in sendDataIntern()";
-            }
-
-            # send
-            sock.send(str);
-        }
-
-        # send data and log in the debug log if set
-        private sendData(string str) {
-            # format additional arguments if necessary
-            if (!argv.empty())
-                str = vsprintf(str, argv);
-
-            if (log_debug.val()) {
-                string lstr = trim(str);
-                if (lstr.size() > MaxDebugLine) {
-                    splice lstr, MaxDebugLine;
-                    lstr += "...";
-                }
-                logDbg("data: %y", lstr);
-            }
-
-            sendDataIntern(str);
-        }
-
-        # send data and log in the debug log if set
-        private sendData(binary b) {
-            logDbg("binary data: %d bytes", b.size());
-            sendDataIntern(b);
-        }
-
-        # send a command over the socket and return the response as a hash
-        # don't reimplement this method; fix/enhance it in the module
-        final private hash<SmtpResponseInfo> sendCommand(string str) {
-            # format additional arguments if necessary
-            if (!argv.empty())
-                str = vsprintf(str, argv);
-
-            trim str;
-            logDbg("send %y", str);
-
-            # send data
-            sendDataIntern(str + "\r\n");
-
-            # read data
-            string rep;
-
-            softint code;
-            string desc;
-
-            # process multi-line responses
-            while (True) {
-                string l = readLine(readTimeout);
-                trim l;
-                logDbg("reply: %y", l);
-
-                # if a continuation is signaled from the server, then keep reading
-                if (l =~ /^[0-9]{3}-/) {
-                    if (!code)
-                        code = int(l);
-                    # assume it's the same code every time
-                    if (!desc.empty())
-                        desc += "\n";
-                    desc += extract l, 4;
-                    continue;
-                }  else {
-                    if (l !~ /^[0-9]{3} /) {
-                        log("cannot parse reply: %s\n", l);
-                        desc += l;
-                        code = -1;
-                        break;
-                    }
-                    if (!code)
-                        code = int(l);
-                    # assume it's the same code every time
-                    if (!desc.empty())
-                        desc += "\n";
-                    desc += extract l, 4;
-                    break;
-                }
-            }
-
-            return <SmtpResponseInfo>{"code": code, "desc": desc};
-        }
-
-        # read a line from the socket (terminated with \n)
-        private string readLine(timeout to) {
-            string str;
-            int c = 0;
-            do {
-                c = sock.recvu1(to);
-                str += chr(c);
-            } while (c != 10);
-
-            return str;
-        }
-
-        # sends the message header (without body & attachments) to the SMTP server
-        # don't reimplement this method; fix/enhance it in the module
-        final private hash<auto> sendMessageInfoIntern(MailMessage::Message message) {
-            # open connection to server
-            if (!isConnected())
-                connectIntern();
 
             # issue login if credentials supplied and we have not already logged in
             if (!logged_in && user)
                 loginIntern();
-
-            hash<SmtpResponseInfo> rh;
-            hash<auto> reply = hello_reply;
-
-            rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
-            if (rh.code >= 500)
-                throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", rh);
-
-            # send recipient
-            foreach string rcpt in (message.getRecipients()) {
-                rh = sendCommand("RCPT TO: <%s>", rcpt);
-                reply.RCPT{rcpt} = rh;
-                if (rh.code >= 500)
-                    throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", rh);
-            }
-
-            # send data
-            rh = sendCommand("DATA");
-            if (rh.code != 354)
-                throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", rh);
-
-            return reply;
+        } catch (hash<ExceptionInfo> ex) {
+            sock.close();
+            sock.shutdown();
+            rethrow;
         }
-
-        private forceDisconnectIntern() {
-            if (isConnected()) {
-                try {
-                    disconnectIntern();
-                } catch() {
-                    # ignore
-                }
-            }
-        }
-        #! @endcond
     }
 
-    #! class for SMTP connections; returns an object of class @ref SmtpClient for sending emails
-    /** supports the following runtime options in getImpl() for connection logging:
+    private loginIntern() {
+        hash<SmtpResponseInfo> rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
+        if (rh.code != 235)
+            throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", rh);
+        logged_in = True;
+    }
+
+    # send data over the socket
+    private sendDataIntern(data str) {
+        if (!isConnected()) {
+            logDbg("send: not connected; not sending");
+            throw "NOT-CONNECTED", "not connected in sendDataIntern()";
+        }
+
+        # send
+        sock.send(str);
+    }
+
+    # send data and log in the debug log if set
+    private sendData(string str) {
+        # format additional arguments if necessary
+        if (!argv.empty())
+            str = vsprintf(str, argv);
+
+        if (log_debug.val()) {
+            string lstr = trim(str);
+            if (lstr.size() > MaxDebugLine) {
+                splice lstr, MaxDebugLine;
+                lstr += "...";
+            }
+            logDbg("data: %y", lstr);
+        }
+
+        sendDataIntern(str);
+    }
+
+    # send data and log in the debug log if set
+    private sendData(binary b) {
+        logDbg("binary data: %d bytes", b.size());
+        sendDataIntern(b);
+    }
+
+    # send a command over the socket and return the response as a hash
+    # don't reimplement this method; fix/enhance it in the module
+    final private hash<SmtpResponseInfo> sendCommand(string str) {
+        # format additional arguments if necessary
+        if (!argv.empty())
+            str = vsprintf(str, argv);
+
+        trim str;
+        logDbg("send %y", str);
+
+        # send data
+        sendDataIntern(str + "\r\n");
+
+        # read data
+        string rep;
+
+        softint code;
+        string desc;
+
+        # process multi-line responses
+        while (True) {
+            string l = readLine(readTimeout);
+            trim l;
+            logDbg("reply: %y", l);
+
+            # if a continuation is signaled from the server, then keep reading
+            if (l =~ /^[0-9]{3}-/) {
+                if (!code)
+                    code = int(l);
+                # assume it's the same code every time
+                if (!desc.empty())
+                    desc += "\n";
+                desc += extract l, 4;
+                continue;
+            }  else {
+                if (l !~ /^[0-9]{3} /) {
+                    log("cannot parse reply: %s\n", l);
+                    desc += l;
+                    code = -1;
+                    break;
+                }
+                if (!code)
+                    code = int(l);
+                # assume it's the same code every time
+                if (!desc.empty())
+                    desc += "\n";
+                desc += extract l, 4;
+                break;
+            }
+        }
+
+        return <SmtpResponseInfo>{"code": code, "desc": desc};
+    }
+
+    # read a line from the socket (terminated with \n)
+    private string readLine(timeout to) {
+        string str;
+        int c = 0;
+        do {
+            c = sock.recvu1(to);
+            str += chr(c);
+        } while (c != 10);
+
+        return str;
+    }
+
+    # sends the message header (without body & attachments) to the SMTP server
+    # don't reimplement this method; fix/enhance it in the module
+    final private hash<auto> sendMessageInfoIntern(MailMessage::Message message) {
+        # open connection to server
+        if (!isConnected())
+            connectIntern();
+
+        # issue login if credentials supplied and we have not already logged in
+        if (!logged_in && user)
+            loginIntern();
+
+        hash<SmtpResponseInfo> rh;
+        hash<auto> reply = hello_reply;
+
+        rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
+        if (rh.code >= 500)
+            throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", rh);
+
+        # send recipient
+        foreach string rcpt in (message.getRecipients()) {
+            rh = sendCommand("RCPT TO: <%s>", rcpt);
+            reply.RCPT{rcpt} = rh;
+            if (rh.code >= 500)
+                throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", rh);
+        }
+
+        # send data
+        rh = sendCommand("DATA");
+        if (rh.code != 354)
+            throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", rh);
+
+        return reply;
+    }
+
+    private forceDisconnectIntern() {
+        if (isConnected()) {
+            try {
+                disconnectIntern();
+            } catch() {
+                # ignore
+            }
+        }
+    }
+    #! @endcond
+}
+
+#! class for SMTP connections; returns an object of class @ref SmtpClient for sending emails
+/** supports the following runtime options in getImpl() for connection logging:
+    - \c "log": a closure accepting a single string for logging
+    - \c "dbglog": a closure taking a single string for detailed technical connection logging
+
+    @since %SmtpClient 1.6
+*/
+public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("SmtpConnection"),
+        };
+    }
+
+    #! creates the SmtpConnection connection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+    }
+
+    #! returns \c "smtp"
+    string getType() {
+        return "smtp";
+    }
+
+    #! returns runtime options
+    /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
+        - \c "log": a closure accepting a single string for logging
+        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+    */
+    *hash<auto> getRuntimeOptions() {
+        return {
+            "log": True,
+            "dbglog": True,
+        };
+    }
+
+    #! returns an @ref SmtpClient object
+    /** @param connect if @ref True "True", then @ref SmtpClient::SmtpClient::connect() "SmtpClient::connect()" is called
+        @param rtopts supports the following runtime options in getImpl() for connection logging:
         - \c "log": a closure accepting a single string for logging
         - \c "dbglog": a closure taking a single string for detailed technical connection logging
 
-        @since %SmtpClient 1.6
+        @return an @ref SmtpClient object
     */
-    public class SmtpConnection inherits ConnectionProvider::AbstractConnection {
-        public {
-            #! Connection entry info
-            const ConnectionEntry = <ConnectionProviderEntry>{
-                "cls": Class::forName("SmtpConnection"),
-            };
-        }
-
-        #! DEPRECATED: creates the SmtpConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-
-            @deprecated since Qore 0.9
-        */
-        deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
-            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts) {
-            #code log = sub (string fmt) { vprintf(fmt + "\n", argv); };
-            #opts.dbglog = opts.log = log;
-        }
-
-        #! creates the SmtpConnection connection object
-        /** @param name the name of the connection
-            @param description connection description
-            @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
-            @param options connection options
-
-            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-         */
-        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
-        }
-
-        #! returns \c "smtp"
-        string getType() {
-            return "smtp";
-        }
-
-        #! returns runtime options
-        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        */
-        *hash<auto> getRuntimeOptions() {
-            return {
-                "log": True,
-                "dbglog": True,
-            };
-        }
-
-        #! returns an @ref SmtpClient object
-        /** @param connect if @ref True "True", then @ref SmtpClient::SmtpClient::connect() "SmtpClient::connect()" is called
-            @param rtopts supports the following runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-            @return an @ref SmtpClient object
-        */
-        private SmtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
-            SmtpClient sc(url, rtopts.log, rtopts.dbglog);
-            if (connect)
-                sc.connect();
-            return sc;
-        }
-
-        #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
-         */
-        deprecated
-        static SmtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            hash attributes = {
-                "monitor": monitor,
-            };
-            return new SmtpConnection(name, desc, url, attributes, opts ?? {});
-        }
+    private SmtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        SmtpClient sc(url, rtopts.log, rtopts.dbglog);
+        if (connect)
+            sc.connect();
+        return sc;
     }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
 }
