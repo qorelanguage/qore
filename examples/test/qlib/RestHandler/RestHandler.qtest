@@ -32,9 +32,6 @@
 %define NoYaml
 %endtry
 
-# this test explicitly tests deprecated funtionality
-%disable-warning deprecated
-
 %exec-class RestHandlerTest
 
 class MyStaticRestClass inherits AbstractRestClass {
@@ -513,7 +510,7 @@ public class RestHandlerTest inherits QUnit::Test {
         }
 
         string url = "http://localhost:" + port + "/swagger";
-        RestConnection conn("test", "test", url, False, {"validator": RestHandlerTest::getSwagger()}, parse_url(url));
+        RestConnection conn("test", "test", url, {}, {"validator": RestHandlerTest::getSwagger()});
         AbstractDataProvider rest_provider = conn.getDataProvider().getChildProviderEx("test").getChildProviderEx("PUT");
 
         #printf("req: %N\nresp: %N\n", rest_provider.getRequestType(), rest_provider.getResponseType());
