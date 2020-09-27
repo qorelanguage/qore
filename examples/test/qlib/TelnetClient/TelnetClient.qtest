@@ -36,7 +36,7 @@ public class TelnetClientTest inherits QUnit::Test {
 
     connectionTests() {
         string url = "telnet://localhost:8099";
-        TelnetConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        TelnetConnection conn("test", "test", url);
         TelnetClient client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
 

@@ -410,8 +410,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
             return True;
         } catch (hash<ExceptionInfo> ex) {
             if (verbose || True) {
-                #stderr.printf("module %y: %s: %s: %s\n", module_str, get_ex_pos(ex), ex.err, ex.desc);
-                stderr.printf("module %y: %s: %s: %s\n", module_str, get_exception_string(ex));
+                stderr.printf("module %y: %s\n", module_str, get_exception_string(ex));
             }
         }
         return False;

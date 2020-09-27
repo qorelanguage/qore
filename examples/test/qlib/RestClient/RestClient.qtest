@@ -30,8 +30,6 @@
 
 %exec-class Main
 
-%disable-warning deprecated
-
 const VALUE_TEXT = {
     "input": "Lorem Ipsum",
     "output": "Lorem Ipsum",
@@ -114,7 +112,7 @@ public class Main inherits QUnit::Test {
         m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new SimpleStringHandler(MimeTypeJson, VALUE_JSON.input));
         m_http.setHandler("/api_yaml", "/api_yaml", MimeTypeYaml, new SimpleStringHandler(MimeTypeYaml, VALUE_YAML.input));
         m_http.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
-        port = m_http.addListener(0).port;
+        port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
     }
 
     tearDown() {
@@ -231,7 +229,7 @@ public class Main inherits QUnit::Test {
 
     connectionTests() {
         string url = "http://localhost:8099/";
-        RestConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        RestConnection conn("test", "test", url);
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
 

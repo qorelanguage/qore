@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file AwsRestClient.qm Qore user module for calling AWS REST services
 
-/*  AwsRestClient.qm Copyright (C) 2019 Qore Technologies, s.r.o.
+/*  AwsRestClient.qm Copyright (C) 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.3
+%requires qore >= 0.9.5
 
 # require type definitions everywhere
 %require-types
@@ -39,14 +39,17 @@
 
 %requires(reexport) Mime >= 1.3
 %requires(reexport) RestClient >= 1.3.1
-%requires(reexport) ConnectionProvider >= 1.2
+%requires(reexport) ConnectionProvider >= 1.4
 
 module AwsRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling AWS REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("awsrests", AwsRestConnection::ConnectionScheme);
+    };
 }
 
 /** @mainpage AwsRestClient Module
@@ -93,459 +96,419 @@ printf("%N\n", ans.body);
 
     @section Awsrestclientrelnotes Release Notes
 
+    @subsection awsrestclientv1_1 AwsRestClient v1.1
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
+
     @subsection awsrestclientv1_0 AwsRestClient v1.0
     - the initial version of the %AwsRestClient module
 */
 
 #! the AwsRestClient namespace contains all the objects in the AwsRestClient module
 public namespace AwsRestClient {
-    #! this class provides the REST client API for communication with AWS
-    /** This class requires the following options ... XXXX
-     */
-    public class AwsRestClient inherits RestClient::RestClient {
-        public {
-            #! default send encoding
-            const DefaultSendEncoding = "gzip";
+#! this class provides the REST client API for communication with AWS
+/** This class requires the following options:
+    - \c aws_keyid
+    - \c aws_secret
+    - \c aws_region
+    - \c aws_service
+*/
+public class AwsRestClient inherits RestClient::RestClient {
+    public {
+        #! default send encoding
+        const DefaultSendEncoding = "gzip";
 
-            #! required options
-            const RequiredOptions = (
-                "aws_keyid",
-                "aws_secret",
-                "aws_region",
-                "aws_service",
-            );
+        #! required options
+        const RequiredOptions = (
+            "aws_keyid",
+            "aws_secret",
+            "aws_region",
+            "aws_service",
+        );
 
-            #! Qore digest algorithm to use for HMAC calculations; must match AwsSignatureAlgorithm
-            const QoreDigest = CRYPTO_DIGEST_SHA256;
+        #! Qore digest algorithm to use for HMAC calculations; must match AwsSignatureAlgorithm
+        const QoreDigest = CRYPTO_DIGEST_SHA256;
 
-            #! AWS signature algorithm used; must match QoreDigest
-            const AwsSignatureAlgorithm = "AWS4-HMAC-SHA256";
+        #! AWS signature algorithm used; must match QoreDigest
+        const AwsSignatureAlgorithm = "AWS4-HMAC-SHA256";
 
-            #! Fixed termination string
-            const AwsTermination = "aws4_request";
-        }
+        #! Fixed termination string
+        const AwsTermination = "aws4_request";
+    }
 
-        private:internal {
-            # the AWS access key ID
-            string aws_keyid;
-            # the AWS secret access key
-            string aws_secret;
-            # the AWS region
-            string aws_region;
-            # the AWS service
-            string aws_service;
-            # is this request for AWS S3?
-            bool aws_s3 = False;
-            # temporary session token
-            string aws_token;
-            # credential scope suffix
-            string credential_scope_suffix;
-        }
+    private:internal {
+        # the AWS access key ID
+        string aws_keyid;
+        # the AWS secret access key
+        string aws_secret;
+        # the AWS region
+        string aws_region;
+        # the AWS service
+        string aws_service;
+        # is this request for AWS S3?
+        bool aws_s3 = False;
+        # temporary session token
+        string aws_token;
+        # credential scope suffix
+        string credential_scope_suffix;
+    }
 
-        #! creates the object with the given options
-        /**
-            @par Example:
-            @code{.py}
+    #! creates the object with the given options
+    /**
+        @par Example:
+        @code{.py}
 AwsRestClient rest({
-    "url": "https://apigateway.eu-central-1.amazonaws.com",
-    "aws_keyid": aws_keyid,
-    "aws_secret": aws_secret.
+"url": "https://apigateway.eu-central-1.amazonaws.com",
+"aws_keyid": aws_keyid,
+"aws_secret": aws_secret.
 });
-            @endcode
+        @endcode
 
-            @param opts valid options are:
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows
-              HTTP extensions like e.g. WebDAV to work. The hash takes the method name as a key, and the value is a
-              boolean @ref True "True" or @ref False "False": indicating if the method requires a message
-              body as well. Example:
-                @code{.py}
+        @param opts valid options are:
+        - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows
+            HTTP extensions like e.g. WebDAV to work. The hash takes the method name as a key, and the value is a
+            boolean @ref True "True" or @ref False "False": indicating if the method requires a message
+            body as well. Example:
+            @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 {"additional_methods": {"PROPFIND": True, "MKCOL": True}};
-                @endcode
-            - \c aws_keyid: (required) the AWS key ID
-            - \c aws_region: the AWS region to use (ex: \c "us-east-1"); if it cannot be derived from the URL then it
-              is a required option
-            - \c was_service: the AWS service to use (ex: \c "iam"); if it cannot be derived from the URL then it is a
-              required option
-            - \c aws_secret: (required) the AWS secret access key value
-            - \c aws_token: a temporary session token from AWS Security Token Service for this HTTP session
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
-              \c "send_encoding" option is not set) and the requested response encoding (note that the
-              @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-              @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
-              connection URL
-            - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
-              \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
-            - \c headers: an optional hash of headers to send with every request, these can also be overridden in
-              request method calls
-            - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in
-              outgoing message headers
-            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-            - \c proxy: The proxy URL for connecting through a proxy
-            - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller
-              instead of processed
-            - \c aws_s3: set to True to flag this object for use with AWS aws_s3, which requires special message encoding
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
-              to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies
-              (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies
-              over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
-              validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
-            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
-              \c 30s)
-            - \c url: a string giving the URL to connect to; if not given then the target URL will be taken from any
-              \c validator option, if given by calling
-              @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
-            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-              object to validate request and response messages; overrides \a swagger
-            @param do_not_connect if \c False (the default), then a connection will be immediately established to the
-            remote server
+            @endcode
+        - \c aws_keyid: (required) the AWS key ID
+        - \c aws_region: the AWS region to use (ex: \c "us-east-1"); if it cannot be derived from the URL then it
+            is a required option
+        - \c was_service: the AWS service to use (ex: \c "iam"); if it cannot be derived from the URL then it is a
+            required option
+        - \c aws_secret: (required) the AWS secret access key value
+        - \c aws_token: a temporary session token from AWS Security Token Service for this HTTP session
+        - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
+            \c "send_encoding" option is not set) and the requested response encoding (note that the
+            @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
+            connection URL
+        - \c default_port: The default port number to connect to if none is given in the URL
+        - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
+            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
+            like any other response
+        - \c headers: an optional hash of headers to send with every request, these can also be overridden in
+            request method calls
+        - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in
+            outgoing message headers
+        - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c proxy: The proxy URL for connecting through a proxy
+        - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller
+            instead of processed
+        - \c aws_s3: set to True to flag this object for use with AWS aws_s3, which requires special message encoding
+        - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
+            to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies
+            (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies
+            over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
+            validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+        - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
+            \c 30s)
+        - \c url: a string giving the URL to connect to; if not given then the target URL will be taken from any
+            \c validator option, if given by calling
+            @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+        - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+            object to validate request and response messages; overrides \a swagger
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+        remote server
 
-            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-            @throw AWSRESTCLIENT-ERROR missing or invalid required option for AWS REST authentication or communication
-
-            @note the \c data option is always set to \c "json"
-        */
-        constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(opts + {"data": "json"}, do_not_connect) {
-            # AWS does not support basic authentication
-            hash<UrlInfo> url_info = parse_url(opts.url);
-            if (url_info{"username", "password"}) {
-                throw "AWSRESTCLIENT-ERROR", sprintf("AWS URL must not contain a username or password; URL: %y", opts.url);
-            }
-
-            # set the region automatically from the URL if not provided in an option
-            *list<string> url_components = (url_info.host =~ x/([^\.]+)/g);
-            if (url_components.size() != 4 || url_components[2] != "amazonaws" || url_components[3] != "com") {
-                url_components = ();
-            }
-            if (!opts.aws_service && url_components) {
-                opts.aws_service = url_components[0];
-            }
-            if (!opts.aws_region && url_components) {
-                opts.aws_region = url_components[1];
-            }
-
-            # check required options
-            foreach string key in (RequiredOptions) {
-                auto v = opts{key};
-                if (!exists v || v == "") {
-                    throw "AWSRESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
-                }
-                if (v.typeCode() != NT_STRING) {
-                    throw "AWSRESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting "
-                        "\"string\"", key, v.type(), v);
-                }
-
-                self{key} = v;
-            }
-
-            # get credential scope suffix
-            credential_scope_suffix = sprintf("%s/%s/%s", aws_region, aws_service, AwsTermination);
-
-            if (exists opts.aws_s3 && parse_boolean(opts.aws_s3)) {
-                aws_s3 = True;
-            }
-            if (opts.aws_token) {
-                aws_token = opts.aws_token;
-                headers."X-Amz-Security-Token" = aws_token;
-            }
-        }
-
-        hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
-            # get request time
-            date gmtime = Qore::gmtime();
-            # get credential scope
-            string scope = sprintf("%s/%s", gmtime.format("YYYYMMDD"), credential_scope_suffix);
-
-            # get signature and signed header string
-            string signed_headers;
-
-            # add configured headers without overriding
-            hdr = headers + hdr;
-
-            # get signature
-            string sig = getSignature(m, path, \hdr, body, gmtime, scope, \signed_headers);
-
-            # add authorization header
-            hdr.Authorization = sprintf("%s Credential=%s/%s, SignedHeaders=%s, Signature=%s",
-                AwsSignatureAlgorithm, aws_keyid, scope, signed_headers, sig);
-
-            return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
-        }
-
-        string getSignature(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
-            string scope, reference<string> signed_headers) {
-            string req_string = getRequestString(http_method, path, \hdr, body, gmtime, scope, \signed_headers);
-
-            # calculate a signature
-            string gmdate = gmtime.format("YYYYMMDD");
-            # 1: key, date
-            binary signing_key = hmac(QoreDigest, gmdate, "AWS4" + aws_secret);
-            # 2: hash, region
-            signing_key = hmac(QoreDigest, aws_region, signing_key);
-            # 3: hash, service
-            signing_key = hmac(QoreDigest, aws_service, signing_key);
-            # 4: hash, termination
-            signing_key = hmac(QoreDigest, AwsTermination, signing_key);
-
-            string sig = hmac(QoreDigest, req_string, signing_key).toHex();
-
-            return sig;
-        }
-
-        private string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
-            string scope, reference<string> signed_headers) {
-            # get AWS date value
-            string aws_date = gmtime.format("YYYYMMDDTHHmmSS") + "Z";
-            hdr."X-Amz-Date" = aws_date;
-            string csig = getCanonicalSignature(http_method, path, hdr, body, \signed_headers);
-
-            string msg = AwsSignatureAlgorithm + "\n"
-                + aws_date + "\n"
-                + scope + "\n"
-                + csig;
-
-            return msg;
-        }
-
-        private string getCanonicalSignature(string http_method, string path, hash<auto> hdr, *data body,
-            reference<string> signed_headers) {
-            # create the canonical string
-            # 1: HTTP request method
-            string cstr = http_method + "\n";
-
-            # make canonical URI
-            hash<UriQueryInfo> uri_info = parse_uri_query(path);
-
-            # 2: canonical URI parameter
-            string uri = uri_info.method ?? "/";
-
-            # normalize the path if not an S3 request
-            if (!aws_s3) {
-                uri = normalize_dir_unix(uri, "/");
-            }
-
-            # URI-encode the path
-            uri = encode_url(uri, False);
-            # non-AWS-S3 requests must be URI-encoded twice
-            # https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
-            if (!aws_s3) {
-                uri = encode_url(uri, False);
-            }
-            # add to canonical string
-            cstr += uri + "\n";
-
-            # 3: canonical query string
-            if (uri_info.params) {
-                # process sorted query parameters in order
-                cstr += (
-                    foldl $1 + "&" + $2, (
-                        map
-                            sprintf("%s=%s", encode_url($1, True), uri_info.params{$1} === True ? "" : encode_url(uri_info.params{$1}, True)),
-                            sort(keys uri_info.params)
-                    )
-                );
-            }
-            cstr += "\n";
-
-            # 4: canonical headers
-            # convert header keys to lowercase
-            hdr = map {$1.key.lwr(): $1.value}, hdr.pairIterator();
-            # add host header
-            hdr += {"host": getHostHeaderValue()};
-
-            # sort headers
-            hdr = map {$1: hdr{$1}}, sort(keys hdr);
-
-            cstr += (
-                foldl $1 + $2, (
-                    map
-                        sprintf("%s:%s\n", $1, trimall(hdr.$1)),
-                        sort(keys hdr)
-                )
-            ) + "\n";
-
-            # 5: signed headers
-            signed_headers = (foldl $1 + ";" + $2, keys hdr);
-            cstr += signed_headers + "\n";
-
-            # 6: digest
-            cstr += digest(QoreDigest, body ?? "").toHex();
-
-            #printf("CSTR:\n%s\n", cstr);
-
-            return digest(QoreDigest, cstr).toHex();
-        }
-
-        static private:internal string trimall(string str) {
-            # remove leading and trailing whitespace
-            trim str;
-            # collapse multiple spaces to a single space
-            str =~ s/ +/ /g;
-            return str;
-        }
-    }
-
-    #! class for AWS REST connections; returns @ref AwsRestClient::AwsRestClient objects
-    /** supports the following options:
-        - \c "aws_keyid": (required) AWS key ID
-        - \c "aws_region": (required) the AWS region to use (ex: \c "us-east-1")
-        - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special message
-          encoding
-        - \c "aws_secret": (required) the AWS secret access key value
-        - \c "aws_service": (required) the AWS service to use (ex: \c "iam")
-        - \c "aws_token": (optional) a temporary session token from AWS Security Token Service for this HTTP session
-        - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-          requested response encoding; for possible values, see
-          @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-          \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-          like any other response
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-        - \c "max_redirects": maximum redirects to support
-        - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller
-          instead of processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-          \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-          message bodies
-        - \c "timeout": transfer timeout to use in milliseconds
+        @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+        @throw AWSRESTCLIENT-ERROR missing or invalid required option for AWS REST authentication or communication
 
         @note the \c data option is always set to \c "json"
-
-        @see @ref AwsRestClient::AwsRestClient::constructor() "AwsRestClient::constructor()" for more information on
-        the above options
     */
-    public class AwsRestConnection inherits RestClient::RestConnection {
-        public {
-            #! AwsRestConnection object connection options
-            const Options = RestConnection::Options + {
-                "aws_keyid": True,
-                "aws_secret": True,
-                "aws_region": True,
-                "aws_service": True,
-                "aws_s3": True,
-                "aws_token": True,
-            };
-
-            const OptionList = Options.keys();
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(opts + {"data": "json"}, do_not_connect) {
+        # AWS does not support basic authentication
+        hash<UrlInfo> url_info = parse_url(opts.url);
+        if (url_info{"username", "password"}) {
+            throw "AWSRESTCLIENT-ERROR", sprintf("AWS URL must not contain a username or password; URL: %y", opts.url);
         }
 
-        #! DEPRECATED: creates the AwsRestConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL (potentially with password info)
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-
-            @throws AWSRESTCONNECTION-ERROR missing apikey option
-
-            @deprecated since Qore 0.9
-        */
-        deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash<auto> opts, hash<auto> urlh)
-            : RestConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
-            constructorInit();
+        # set the region automatically from the URL if not provided in an option
+        *list<string> url_components = (url_info.host =~ x/([^\.]+)/g);
+        if (url_components.size() != 4 || url_components[2] != "amazonaws" || url_components[3] != "com") {
+            url_components = ();
+        }
+        if (!opts.aws_service && url_components) {
+            opts.aws_service = url_components[0];
+        }
+        if (!opts.aws_region && url_components) {
+            opts.aws_region = url_components[1];
         }
 
-        #! creates the AwsRestConnection object
-        /** @param name the name of the connection
-            @param description connection description
-            @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
-            @param options connection options
-
-            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-
-            @throws AWSRESTCONNECTION-ERROR missing apikey option
-         */
-        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
-            constructorInit();
-        }
-
-        private:internal constructorInit() {
-            if (!opts.aws_keyid.val()) {
-                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_keyid' option for connection %y with url "
-                    "%y (%s)", name, url, desc);
+        # check required options
+        foreach string key in (RequiredOptions) {
+            auto v = opts{key};
+            if (!exists v || v == "") {
+                throw "AWSRESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
             }
-            if (!opts.aws_secret.val()) {
-                throw "AWSRESTCONNECTION-ERROR", sprintf("missing 'aws_secret' option for connection %y with url "
-                    "%y (%s)", name, url, desc);
+            if (v.typeCode() != NT_STRING) {
+                throw "AWSRESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting "
+                    "\"string\"", key, v.type(), v);
             }
-            real_opts = {"url": real_url} + urlh.("username", "password") + self.opts;
+
+            self{key} = v;
         }
 
-        #! returns a @ref AwsRestClient::AwsRestClient object
-        /** @param connect if @ref True "True", then the connection is returned already connected
-            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+        # get credential scope suffix
+        credential_scope_suffix = sprintf("%s/%s/%s", aws_region, aws_service, AwsTermination);
 
-            @return a @ref AwsRestClient::AwsRestClient "AwsRestClient" object
-        */
-        private AwsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-            return new AwsRestClient(real_opts, !connect);
+        if (exists opts.aws_s3 && parse_boolean(opts.aws_s3)) {
+            aws_s3 = True;
         }
-
-        #! gets options
-        /** @return returns a hash with the following supported options:
-            - \c "aws_keyid": (required) AWS key ID
-            - \c "aws_region": (required) the AWS region to use (ex: \c "us-east-1")
-            - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special
-              message encoding
-            - \c "aws_secret": (required) the AWS secret access key value
-            - \c "aws_service": (required) the AWS service to use (ex: \c "iam")
-            - \c "aws_token": (optional) a temporary session token from AWS Security Token Service for this HTTP
-              session
-            - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-              requested response encoding; for possible values, see
-              @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause
-              a \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
-              caller like any other response
-            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-            - \c "max_redirects": maximum redirects to support
-            - \c "proxy": proxy URL to use
-            - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller
-              instead of processed
-            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the
-              value
-              \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-              message bodies
-            - \c "timeout": transfer timeout to use in milliseconds
-
-            @see @ref AwsRestClient::AwsRestClient::constructor() "AwsRestClient::constructor()" for more information
-            on the above options
-        */
-        hash<auto> getOptions() {
-            return Options;
-        }
-
-        #! returns default options
-        *hash<auto> getDefaultOptions() {
-            return HttpConnection::DefaultOptions;
-        }
-
-        #! returns \c "awsrest"
-        string getType() {
-            return "awsrest";
-        }
-
-        #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
-         */
-        deprecated
-        static AwsRestConnection make(string name, string desc, string url, bool monitor, *hash<auto> opts, hash<auto> urlh) {
-            hash<auto> attributes = {
-                "monitor": monitor,
-            };
-
-            return new AwsRestConnection(name, desc, url, attributes, opts ?? {});
+        if (opts.aws_token) {
+            aws_token = opts.aws_token;
+            headers."X-Amz-Security-Token" = aws_token;
         }
     }
+
+    hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+        # get request time
+        date gmtime = Qore::gmtime();
+        # get credential scope
+        string scope = sprintf("%s/%s", gmtime.format("YYYYMMDD"), credential_scope_suffix);
+
+        # get signature and signed header string
+        string signed_headers;
+
+        # add configured headers without overriding
+        hdr = headers + hdr;
+
+        # get signature
+        string sig = getSignature(m, path, \hdr, body, gmtime, scope, \signed_headers);
+
+        # add authorization header
+        hdr.Authorization = sprintf("%s Credential=%s/%s, SignedHeaders=%s, Signature=%s",
+            AwsSignatureAlgorithm, aws_keyid, scope, signed_headers, sig);
+
+        return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+    }
+
+    string getSignature(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
+        string scope, reference<string> signed_headers) {
+        string req_string = getRequestString(http_method, path, \hdr, body, gmtime, scope, \signed_headers);
+
+        # calculate a signature
+        string gmdate = gmtime.format("YYYYMMDD");
+        # 1: key, date
+        binary signing_key = hmac(QoreDigest, gmdate, "AWS4" + aws_secret);
+        # 2: hash, region
+        signing_key = hmac(QoreDigest, aws_region, signing_key);
+        # 3: hash, service
+        signing_key = hmac(QoreDigest, aws_service, signing_key);
+        # 4: hash, termination
+        signing_key = hmac(QoreDigest, AwsTermination, signing_key);
+
+        string sig = hmac(QoreDigest, req_string, signing_key).toHex();
+
+        return sig;
+    }
+
+    private string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
+        string scope, reference<string> signed_headers) {
+        # get AWS date value
+        string aws_date = gmtime.format("YYYYMMDDTHHmmSS") + "Z";
+        hdr."X-Amz-Date" = aws_date;
+        string csig = getCanonicalSignature(http_method, path, hdr, body, \signed_headers);
+
+        string msg = AwsSignatureAlgorithm + "\n"
+            + aws_date + "\n"
+            + scope + "\n"
+            + csig;
+
+        return msg;
+    }
+
+    private string getCanonicalSignature(string http_method, string path, hash<auto> hdr, *data body,
+        reference<string> signed_headers) {
+        # create the canonical string
+        # 1: HTTP request method
+        string cstr = http_method + "\n";
+
+        # make canonical URI
+        hash<UriQueryInfo> uri_info = parse_uri_query(path);
+
+        # 2: canonical URI parameter
+        string uri = uri_info.method ?? "/";
+
+        # normalize the path if not an S3 request
+        if (!aws_s3) {
+            uri = normalize_dir_unix(uri, "/");
+        }
+
+        # URI-encode the path
+        uri = encode_url(uri, False);
+        # non-AWS-S3 requests must be URI-encoded twice
+        # https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
+        if (!aws_s3) {
+            uri = encode_url(uri, False);
+        }
+        # add to canonical string
+        cstr += uri + "\n";
+
+        # 3: canonical query string
+        if (uri_info.params) {
+            # process sorted query parameters in order
+            cstr += (
+                foldl $1 + "&" + $2, (
+                    map
+                        sprintf("%s=%s", encode_url($1, True), uri_info.params{$1} === True ? "" : encode_url(uri_info.params{$1}, True)),
+                        sort(keys uri_info.params)
+                )
+            );
+        }
+        cstr += "\n";
+
+        # 4: canonical headers
+        # convert header keys to lowercase
+        hdr = map {$1.key.lwr(): $1.value}, hdr.pairIterator();
+        # add host header
+        hdr += {"host": getHostHeaderValue()};
+
+        # sort headers
+        hdr = map {$1: hdr{$1}}, sort(keys hdr);
+
+        cstr += (
+            foldl $1 + $2, (
+                map
+                    sprintf("%s:%s\n", $1, trimall(hdr.$1)),
+                    sort(keys hdr)
+            )
+        ) + "\n";
+
+        # 5: signed headers
+        signed_headers = (foldl $1 + ";" + $2, keys hdr);
+        cstr += signed_headers + "\n";
+
+        # 6: digest
+        cstr += digest(QoreDigest, body ?? "").toHex();
+
+        #printf("CSTR:\n%s\n", cstr);
+
+        return digest(QoreDigest, cstr).toHex();
+    }
+
+    static private:internal string trimall(string str) {
+        # remove leading and trailing whitespace
+        trim str;
+        # collapse multiple spaces to a single space
+        str =~ s/ +/ /g;
+        return str;
+    }
+}
+
+#! class for AWS REST connections; returns @ref AwsRestClient::AwsRestClient objects
+/** supports the following options:
+    - \c "aws_keyid": (required) AWS key ID
+    - \c "aws_region": (required) the AWS region to use (ex: \c "us-east-1")
+    - \c "aws_s3": (optional) set to True to flag this object for use with AWS S3, which requires special message
+        encoding
+    - \c "aws_secret": (required) the AWS secret access key value
+    - \c "aws_service": (required) the AWS service to use (ex: \c "iam")
+    - \c "aws_token": (optional) a temporary session token from AWS Security Token Service for this HTTP session
+    - \c "connect_timeout": connection timeout to use in milliseconds
+    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
+        requested response encoding; for possible values, see
+        @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
+        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response
+    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+    - \c "max_redirects": maximum redirects to support
+    - \c "proxy": proxy URL to use
+    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller
+        instead of processed
+    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
+        \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+        message bodies
+    - \c "timeout": transfer timeout to use in milliseconds
+
+    @note the \c data option is always set to \c "json"
+
+    @see @ref AwsRestClient::AwsRestClient::constructor() "AwsRestClient::constructor()" for more information on
+    the above options
+*/
+public class AwsRestConnection inherits RestClient::RestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("AwsRestConnection"),
+            "options": RestConnection::ConnectionScheme.options + {
+                "data": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "data serialization options are limited to `json` with this object",
+                    "allowed_values": ("json",),
+                    "default_value": "json",
+                },
+                "aws_keyid": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "AWS key ID",
+                },
+                "aws_secret": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the AWS secret access key value",
+                    "sensitive": True,
+                },
+                "aws_region": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the AWS region to use (ex: `us-east-1`)",
+                },
+                "aws_service": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the AWS service to use (ex: `iam`)",
+                },
+                "aws_s3": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "set to `True` to flag this object for use with AWS S3, which requires special "
+                        "message encoding",
+                    "default_value": False,
+                },
+                "aws_token": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "",
+                },
+            },
+            "required_options": foldl $1 + "," + $2, AwsRestClient::RequiredOptions,
+        };
+    }
+
+    #! creates the AwsRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+        : RestConnection(name, description, url, attributes, options) {
+        real_opts = {"url": real_url} + urlh.("username", "password") + self.opts;
+    }
+
+    #! returns \c "awsrest"
+    string getType() {
+        return "awsrest";
+    }
+
+    #! returns a @ref AwsRestClient::AwsRestClient object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+        @return a @ref AwsRestClient::AwsRestClient "AwsRestClient" object
+    */
+    private AwsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new AwsRestClient(real_opts, !connect);
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
 }

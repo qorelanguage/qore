@@ -6,9 +6,6 @@
 %require-types
 %strict-args
 
-# purposely test deprecated functionality
-%disable-warning deprecated
-
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/SmtpClient.qm
 %requires ../../../../qlib/QUnit.qm
@@ -39,7 +36,7 @@ public class SmtpClientTest inherits QUnit::Test {
 
     connectionTests() {
         string url = "smtps://user:pass@localhost:8099";
-        SmtpConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        SmtpConnection conn("test", "test", url);
         SmtpClient client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
 

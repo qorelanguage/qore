@@ -202,7 +202,7 @@ public class DataProviderTypeCache inherits Serializable {
     #! Returns the given data provider type or throws an exception if not present
     /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
 
-        @return the given data provider type; an exception is thrown if the data provide is unknown
+        @return the given data provider type; an exception is thrown if the data provider is unknown
 
         @throw PROVIDER-ERROR the given data provider type path is unknown
 
@@ -230,7 +230,7 @@ public class DataProviderTypeCache inherits Serializable {
     /** @param path a \c "/" separated path for the type; trailing path elements can be a path into fields
         @param rec_children_only if @ref True, then only children with fields are returned
 
-        @return the given data provider type; an exception is thrown if the data provide is unknown
+        @return the given data provider type; an exception is thrown if the data provider is unknown
 
         @throw PROVIDER-ERROR the given data provider type path is unknown
 
@@ -243,7 +243,7 @@ public class DataProviderTypeCache inherits Serializable {
 
     #! Returns the given data provider type and either throws an exception if not present or returns @ref NOTHING
     /** @param path a \c "/" separated path for the type
-        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
+        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, otherwise
         @ref NOTHING is returned
         @param type_loader a closure taking a list of strings giving the full path to the type and returning
         <tt>*AbstractDataProviderType</tt>
@@ -313,7 +313,7 @@ public class DataProviderTypeCache inherits Serializable {
 
     #! Returns information for the given data provider type and either throws an exception if not present or returns @ref NOTHING
     /** @param path a \c "/" separated path for the type
-        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, OTHERWISE
+        @param throw_exception if @ref True then an exception is thrown if the path cannot be resolved, otherwise
         @ref NOTHING is returned
         @param rec_children_only if @ref True, then only children with fields are returned
 

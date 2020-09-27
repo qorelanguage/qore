@@ -17,9 +17,6 @@
 
 %exec-class WebSocketClientTest
 
-# we explicitly test deprecated functionality here
-%disable-warning deprecated
-
 class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
         map send($1), WebSocketClientTest::Data;
@@ -58,7 +55,7 @@ class WebSocketClientTest inherits QUnit::Test {
         mServer = new HttpServer(\log(), \log());
         mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
         mServer.setDefaultHandler("ws-handler", wsHandler);
-        port = mServer.addListener(0).port;
+        port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         set_return_value(main());
 
@@ -96,7 +93,7 @@ class WebSocketClientTest inherits QUnit::Test {
 
     connectionTests() {
         string url = "ws://localhost:8099";
-        WebSocketConnectionObject conn("test", "test", url, False, NOTHING, parse_url(url));
+        WebSocketConnectionObject conn("test", "test", url);
         WebSocketClient client = conn.get(False);
         assertEq(url, client.getUrl());
 

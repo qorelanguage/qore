@@ -56,7 +56,7 @@ class SewioWebSocketClientTest inherits QUnit::Test {
         mServer = new HttpServer(\log(), \log());
         mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
         mServer.setDefaultHandler("ws-handler", wsHandler);
-        port = mServer.addListener(0).port;
+        port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         set_return_value(main());
 
@@ -98,7 +98,7 @@ class SewioWebSocketClientTest inherits QUnit::Test {
         SewioWebSocketConnection swsc("test", "test", url, {"monitor": True}, ("apikey": "x"));
         assertEq(True, swsc instanceof SewioWebSocketConnection);
 
-        assertThrows("SEWIOWEBSOCKETCONNECTION-ERROR", sub () { SewioWebSocketConnection swsc1("test", "test", url); });
+        assertThrows("CONNECTION-OPTION-ERROR", sub () { SewioWebSocketConnection swsc1("test", "test", url); });
     }
 
     private log(string str) {

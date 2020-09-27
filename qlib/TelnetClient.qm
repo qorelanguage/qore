@@ -25,7 +25,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.5
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -33,14 +33,17 @@
 %require-types
 %enable-all-warnings
 
-%requires(reexport) ConnectionProvider >= 1.2
+%requires(reexport) ConnectionProvider >= 1.4
 
 module TelnetClient {
-    version = "1.6";
+    version = "1.7";
     desc = "allows connections to a Telnet server, to remotely execute commands and read their output";
     author = "Pavol Potancok <ppotancok@gmail.com>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("telnet", TelnetConnection::ConnectionScheme);
+    };
 }
 
 /** @mainpage TelnetClient Module
@@ -65,6 +68,10 @@ module TelnetClient {
     - @ref TelnetOptionCodes "TelnetOptionCodes": telnet protocol option codes and a lookup map
 
     @section telnetclient_relnotes TelnetClient Module Release Notes
+
+    @subsection telnetclient_v1_7 TelnetClient v1.7
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
 
     @subsection telnetclient_v1_6 TelnetClient v1.6
     - removed the \c TelnetConnection::getConstructorInfo() and \c TelnetConnection::getConstructorInfoImpl() methods
@@ -102,943 +109,931 @@ module TelnetClient {
 
 #! contains constant definitions and the definition of the TelnetClient class
 public namespace TelnetClient {
-    /** @defgroup TelnetDefaults Default Values
-     */
-    #@{
-    # default telnet port
-    public const DefaultTelnetPort = 23;
+/** @defgroup TelnetDefaults Default Values
+*/
+#@{
+# default telnet port
+public const DefaultTelnetPort = 23;
 
-    # default connection timeout
-    public const DefaultConnTimeout = 15s;
+# default connection timeout
+public const DefaultConnTimeout = 15s;
 
-    # default poll timeout
-    const DefaultTimeout = 100ms;
+# default poll timeout
+const DefaultTimeout = 100ms;
 
-    # default terminal type
-    const DefaultTerminalType = "xterm";
+# default terminal type
+const DefaultTerminalType = "xterm";
 
-    # default terminal speed
-    const DefaultTerminalSpeed = 38400;
-    #@}
+# default terminal speed
+const DefaultTerminalSpeed = 38400;
+#@}
 
-    /** @defgroup TelnetCommandCodes Telnet Protocol Command Codes
-     */
-    #@{
-    public const IAC  = 255; #!< IAC
-    public const DONT = 254; #!< DONT
-    public const DO   = 253; #!< DO
-    public const WONT = 252; #!< WONT
-    public const WILL = 251; #!< WILL
-    public const SE  = 240;  #!< Subnegotiation End
-    public const NOP = 241;  #!< No Operation
-    public const DM  = 242;  #!< Data Mark
-    public const BRK = 243;  #!< Break
-    public const IP  = 244;  #!< Interrupt process
-    public const AO  = 245;  #!< Abort output
-    public const AYT = 246;  #!< Are You There
-    public const EC  = 247;  #!< Erase Character
-    public const EL  = 248;  #!< Erase Line
-    public const GA  = 249;  #!< Go Ahead
-    public const SB =  250;  #!< Subnegotiation Begin
+/** @defgroup TelnetCommandCodes Telnet Protocol Command Codes
+*/
+#@{
+public const IAC  = 255; #!< IAC
+public const DONT = 254; #!< DONT
+public const DO   = 253; #!< DO
+public const WONT = 252; #!< WONT
+public const WILL = 251; #!< WILL
+public const SE  = 240;  #!< Subnegotiation End
+public const NOP = 241;  #!< No Operation
+public const DM  = 242;  #!< Data Mark
+public const BRK = 243;  #!< Break
+public const IP  = 244;  #!< Interrupt process
+public const AO  = 245;  #!< Abort output
+public const AYT = 246;  #!< Are You There
+public const EC  = 247;  #!< Erase Character
+public const EL  = 248;  #!< Erase Line
+public const GA  = 249;  #!< Go Ahead
+public const SB =  250;  #!< Subnegotiation Begin
 
-    #! command name map
-    public const CmdMap = (
-        IAC : "IAC",
-        DONT : "DONT",
-        DO : "DO",
-        WONT : "WONT",
-        WILL: "WILL",
-        SE : "SubnegotiationEnd",
-        NOP : "NoOperation",
-        DM: "DataMark",
-        BRK : "Break",
-        IP : "Interruptprocess",
-        AO : "Abortoutput",
-        AYT : "AreYouThere",
-        EC : "EraseCharacter",
-        EL : "EraseLine",
-        GA : "GoAhead",
-        SB : "SubnegotiationBegin",
-        );
-    #@}|
+#! command name map
+public const CmdMap = (
+    IAC : "IAC",
+    DONT : "DONT",
+    DO : "DO",
+    WONT : "WONT",
+    WILL: "WILL",
+    SE : "SubnegotiationEnd",
+    NOP : "NoOperation",
+    DM: "DataMark",
+    BRK : "Break",
+    IP : "Interruptprocess",
+    AO : "Abortoutput",
+    AYT : "AreYouThere",
+    EC : "EraseCharacter",
+    EL : "EraseLine",
+    GA : "GoAhead",
+    SB : "SubnegotiationBegin",
+    );
+#@}|
 
-    public const SUPDUP_OPT = 21; # SUPDUP_OPT display protocol
+public const SUPDUP_OPT = 21; # SUPDUP_OPT display protocol
 
-    /** @defgroup TelnetOptionCodes Telnet Command Option Codes
-     */
-    #@{
-    public const TOPT_BIN = 0;         #!< BinaryTransmission
-    public const TOPT_ECHO = 1;        #!< Echo|Is|Send
-    public const TOPT_RECN = 2;        #!< Reconnection
-    public const TOPT_SUPP = 3;        #!< SuppressGoAhead
-    public const TOPT_APRX = 4;        #!< ApproxMessageSizeNegotiation
-    public const TOPT_STAT = 5;        #!< Status
-    public const TOPT_TIM = 6;         #!< TimingMark
-    public const TOPT_REM = 7;         #!< RemoteControlledTransandEcho
-    public const TOPT_OLW = 8;         #!< OutputLineWidth
-    public const TOPT_OPS = 9;         #!< OutputPageSize
-    public const TOPT_OCRD = 10;       #!< OutputCarriage-ReturnDisposition
-    public const TOPT_OHT = 11;        #!< OutputHorizontalTabstops
-    public const TOPT_OHTD = 12;       #!< OutputHorizontalTabDisposition
-    public const TOPT_OFD = 13;        #!< OutputFormfeedDisposition
-    public const TOPT_OVT = 14;        #!< OutputVerticalTabstops
-    public const TOPT_OVTD = 15;       #!< OutputVerticalTabDisposition
-    public const TOPT_OLD = 16;        #!< OutputLinefeedDisposition
-    public const TOPT_EXT = 17;        #!< ExtendedASCII
-    public const TOPT_LOGO = 18;       #!< Logout
-    public const TOPT_BYTE = 19;       #!< ByteMacro
-    public const TOPT_DATA = 20;       #!< DataEntryTerminal
-    public const TOPT_SUP = 21;        #!< SUPDUP
-    public const TOPT_SUPO = 22;       #!< SUPDUPOutput
-    public const TOPT_SNDL = 23;       #!< SendLocation
-    public const TOPT_TERM = 24;       #!< TerminalType
-    public const TOPT_EOR = 25;        #!< EndofRecord
-    public const TOPT_TACACS = 26;     #!< TACACSUserIdent
-    public const TOPT_OM = 27;         #!< OutputMarking
-    public const TOPT_TLN = 28;        #!< TerminalLocationNumber
-    public const TOPT_3270 = 29;       #!< Telnet3270Regime
-    public const TOPT_X3 = 30;         #!< X.3PAD
-    public const TOPT_NAWS = 31;       #!< NegotiateAboutWindowSize
-    public const TOPT_TS = 32;         #!< TerminalSpeed
-    public const TOPT_RFC = 33;        #!< RemoteFlowControl
-    public const TOPT_LINE = 34;       #!< Linemode
-    public const TOPT_XDL = 35;        #!< XDisplayLocation
-    public const TOPT_ENVIR = 36;      #!< TelnetEnvironmentOption
-    public const TOPT_AUTH = 37;       #!< TelnetAuthenticationOption
-    public const TOPT_ENVIR_NEW = 39;  #!< TelnetNewEnvironmentOption
-    public const TOPT_TN3270 = 40;     #!< TN3270Enhancements
-    public const TOPT_X_AUTH = 41;     #!< TelnetXAUTH
-    public const TOPT_CHARSET = 42;    #!< TelnetCHARSET
-    public const TOPT_RSP = 43;        #!< TelnetRemoteSerialPort
-    public const TOPT_COMPORT = 44;    #!< TelnetComPortControl
-    public const TOPT_SLE = 45;        #!< TelnetSuppressLocalEcho
-    public const TOPT_STARTTLS = 46;   #!< TelnetStartTLS
-    public const TOPT_KERMIT = 47;     #!< TelnetKERMIT
-    public const TOPT_SEND_URL = 48;   #!< Send-URL
-    public const TOPT_EXTOP = 255;     #!< Extended-Options-List
+/** @defgroup TelnetOptionCodes Telnet Command Option Codes
+*/
+#@{
+public const TOPT_BIN = 0;         #!< BinaryTransmission
+public const TOPT_ECHO = 1;        #!< Echo|Is|Send
+public const TOPT_RECN = 2;        #!< Reconnection
+public const TOPT_SUPP = 3;        #!< SuppressGoAhead
+public const TOPT_APRX = 4;        #!< ApproxMessageSizeNegotiation
+public const TOPT_STAT = 5;        #!< Status
+public const TOPT_TIM = 6;         #!< TimingMark
+public const TOPT_REM = 7;         #!< RemoteControlledTransandEcho
+public const TOPT_OLW = 8;         #!< OutputLineWidth
+public const TOPT_OPS = 9;         #!< OutputPageSize
+public const TOPT_OCRD = 10;       #!< OutputCarriage-ReturnDisposition
+public const TOPT_OHT = 11;        #!< OutputHorizontalTabstops
+public const TOPT_OHTD = 12;       #!< OutputHorizontalTabDisposition
+public const TOPT_OFD = 13;        #!< OutputFormfeedDisposition
+public const TOPT_OVT = 14;        #!< OutputVerticalTabstops
+public const TOPT_OVTD = 15;       #!< OutputVerticalTabDisposition
+public const TOPT_OLD = 16;        #!< OutputLinefeedDisposition
+public const TOPT_EXT = 17;        #!< ExtendedASCII
+public const TOPT_LOGO = 18;       #!< Logout
+public const TOPT_BYTE = 19;       #!< ByteMacro
+public const TOPT_DATA = 20;       #!< DataEntryTerminal
+public const TOPT_SUP = 21;        #!< SUPDUP
+public const TOPT_SUPO = 22;       #!< SUPDUPOutput
+public const TOPT_SNDL = 23;       #!< SendLocation
+public const TOPT_TERM = 24;       #!< TerminalType
+public const TOPT_EOR = 25;        #!< EndofRecord
+public const TOPT_TACACS = 26;     #!< TACACSUserIdent
+public const TOPT_OM = 27;         #!< OutputMarking
+public const TOPT_TLN = 28;        #!< TerminalLocationNumber
+public const TOPT_3270 = 29;       #!< Telnet3270Regime
+public const TOPT_X3 = 30;         #!< X.3PAD
+public const TOPT_NAWS = 31;       #!< NegotiateAboutWindowSize
+public const TOPT_TS = 32;         #!< TerminalSpeed
+public const TOPT_RFC = 33;        #!< RemoteFlowControl
+public const TOPT_LINE = 34;       #!< Linemode
+public const TOPT_XDL = 35;        #!< XDisplayLocation
+public const TOPT_ENVIR = 36;      #!< TelnetEnvironmentOption
+public const TOPT_AUTH = 37;       #!< TelnetAuthenticationOption
+public const TOPT_ENVIR_NEW = 39;  #!< TelnetNewEnvironmentOption
+public const TOPT_TN3270 = 40;     #!< TN3270Enhancements
+public const TOPT_X_AUTH = 41;     #!< TelnetXAUTH
+public const TOPT_CHARSET = 42;    #!< TelnetCHARSET
+public const TOPT_RSP = 43;        #!< TelnetRemoteSerialPort
+public const TOPT_COMPORT = 44;    #!< TelnetComPortControl
+public const TOPT_SLE = 45;        #!< TelnetSuppressLocalEcho
+public const TOPT_STARTTLS = 46;   #!< TelnetStartTLS
+public const TOPT_KERMIT = 47;     #!< TelnetKERMIT
+public const TOPT_SEND_URL = 48;   #!< Send-URL
+public const TOPT_EXTOP = 255;     #!< Extended-Options-List
 
-    #! option map, maps codes to text descriptions
-    public const OptMap = (
-        TOPT_BIN : "BinaryTransmission",
-        TOPT_ECHO : "Echo|Is|Send",
-        TOPT_RECN : "Reconnection",
-        TOPT_SUPP : "SuppressGoAhead",
-        TOPT_APRX : "ApproxMessageSizeNegotiation",
-        TOPT_STAT : "Status",
-        TOPT_TIM : "TimingMark",
-        TOPT_REM : "RemoteControlledTransandEcho",
-        TOPT_OLW : "OutputLineWidth",
-        TOPT_OPS : "OutputPageSize",
-        TOPT_OCRD : "OutputCarriage-ReturnDisposition",
-        TOPT_OHT : "OutputHorizontalTabstops",
-        TOPT_OHTD : "OutputHorizontalTabDisposition",
-        TOPT_OFD : "OutputFormfeedDisposition",
-        TOPT_OVT : "OutputVerticalTabstops",
-        TOPT_OVTD : "OutputVerticalTabDisposition",
-        TOPT_OLD : "OutputLinefeedDisposition",
-        TOPT_EXT : "ExtendedASCII",
-        TOPT_LOGO : "Logout",
-        TOPT_BYTE : "ByteMacro",
-        TOPT_DATA : "DataEntryTerminal",
-        TOPT_SUP : "SUPDUP",
-        TOPT_SUPO : "SUPDUPOutput",
-        TOPT_SNDL : "SendLocation",
-        TOPT_TERM : "TerminalType",
-        TOPT_EOR : "EndofRecord",
-        TOPT_TACACS : "TACACSUserIdent",
-        TOPT_OM : "OutputMarking",
-        TOPT_TLN : "TerminalLocationNumber",
-        TOPT_3270 : "Telnet3270Regime",
-        TOPT_X3 : "X.3PAD",
-        TOPT_NAWS : "NegotiateAboutWindowSize",
-        TOPT_TS : "TerminalSpeed",
-        TOPT_RFC : "RemoteFlowControl",
-        TOPT_LINE : "Linemode",
-        TOPT_XDL : "XDisplayLocation",
-        TOPT_ENVIR : "TelnetEnvironmentOption",
-        TOPT_AUTH : "TelnetAuthenticationOption",
-        TOPT_ENVIR_NEW : "TelnetNewEnvironmentOption",
-        TOPT_TN3270 : "TN3270Enhancements",
-        TOPT_X_AUTH : "TelnetXAUTH",
-        TOPT_CHARSET : "TelnetCHARSET",
-        TOPT_RSP : "TelnetRemoteSerialPort",
-        TOPT_COMPORT : "TelnetComPortControl",
-        TOPT_SLE : "TelnetSuppressLocalEcho",
-        TOPT_STARTTLS : "TelnetStartTLS",
-        TOPT_KERMIT : "TelnetKERMIT",
-        TOPT_SEND_URL : "Send-URL",
-        TOPT_EXTOP : "Extended-Options-List",
-        );
-    #@}
+#! option map, maps codes to text descriptions
+public const OptMap = (
+    TOPT_BIN : "BinaryTransmission",
+    TOPT_ECHO : "Echo|Is|Send",
+    TOPT_RECN : "Reconnection",
+    TOPT_SUPP : "SuppressGoAhead",
+    TOPT_APRX : "ApproxMessageSizeNegotiation",
+    TOPT_STAT : "Status",
+    TOPT_TIM : "TimingMark",
+    TOPT_REM : "RemoteControlledTransandEcho",
+    TOPT_OLW : "OutputLineWidth",
+    TOPT_OPS : "OutputPageSize",
+    TOPT_OCRD : "OutputCarriage-ReturnDisposition",
+    TOPT_OHT : "OutputHorizontalTabstops",
+    TOPT_OHTD : "OutputHorizontalTabDisposition",
+    TOPT_OFD : "OutputFormfeedDisposition",
+    TOPT_OVT : "OutputVerticalTabstops",
+    TOPT_OVTD : "OutputVerticalTabDisposition",
+    TOPT_OLD : "OutputLinefeedDisposition",
+    TOPT_EXT : "ExtendedASCII",
+    TOPT_LOGO : "Logout",
+    TOPT_BYTE : "ByteMacro",
+    TOPT_DATA : "DataEntryTerminal",
+    TOPT_SUP : "SUPDUP",
+    TOPT_SUPO : "SUPDUPOutput",
+    TOPT_SNDL : "SendLocation",
+    TOPT_TERM : "TerminalType",
+    TOPT_EOR : "EndofRecord",
+    TOPT_TACACS : "TACACSUserIdent",
+    TOPT_OM : "OutputMarking",
+    TOPT_TLN : "TerminalLocationNumber",
+    TOPT_3270 : "Telnet3270Regime",
+    TOPT_X3 : "X.3PAD",
+    TOPT_NAWS : "NegotiateAboutWindowSize",
+    TOPT_TS : "TerminalSpeed",
+    TOPT_RFC : "RemoteFlowControl",
+    TOPT_LINE : "Linemode",
+    TOPT_XDL : "XDisplayLocation",
+    TOPT_ENVIR : "TelnetEnvironmentOption",
+    TOPT_AUTH : "TelnetAuthenticationOption",
+    TOPT_ENVIR_NEW : "TelnetNewEnvironmentOption",
+    TOPT_TN3270 : "TN3270Enhancements",
+    TOPT_X_AUTH : "TelnetXAUTH",
+    TOPT_CHARSET : "TelnetCHARSET",
+    TOPT_RSP : "TelnetRemoteSerialPort",
+    TOPT_COMPORT : "TelnetComPortControl",
+    TOPT_SLE : "TelnetSuppressLocalEcho",
+    TOPT_STARTTLS : "TelnetStartTLS",
+    TOPT_KERMIT : "TelnetKERMIT",
+    TOPT_SEND_URL : "Send-URL",
+    TOPT_EXTOP : "Extended-Options-List",
+    );
+#@}
 
-    #! The TelnetClient class allows communication with a telnet server; it can be used directly or subclassed with overridden methods to customize its behavior
-    /** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration,
-        so it is safe to access in a multithreaded context.
-     */
-    public class TelnetClient {
-        #! @cond nodoc
-        private {
-            # the connection string
-            string connect;
+#! The TelnetClient class allows communication with a telnet server; it can be used directly or subclassed with overridden methods to customize its behavior
+/** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration,
+    so it is safe to access in a multithreaded context.
+*/
+public class TelnetClient {
+    #! @cond nodoc
+    private {
+        # the connection string
+        string connect;
 
-            # the socket for all communication with the server
-            Socket conn();
+        # the socket for all communication with the server
+        Socket conn();
 
-            # to manage contention on the Socket
-            Mutex m();
+        # to manage contention on the Socket
+        Mutex m();
 
-            # login user
-            *string user;
+        # login user
+        *string user;
 
-            # logging closures
-            *code log_info;
-            *code log_debug;
+        # logging closures
+        *code log_info;
+        *code log_debug;
 
-            # hash of features the telnet server has asked for
-            hash fh;
-        }
-        #! @endcond
+        # hash of features the telnet server has asked for
+        hash fh;
+    }
+    #! @endcond
 
-        # no public members
-        public {}
+    # no public members
+    public {}
 
-        #! creates the TelnetClient object
-        /** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
-            @param port the port number of the telnet server
-            @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
-            @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
-         */
-          constructor(string host, softint port, *code log, *code dbglog) {
-            if (host.empty())
-                throw "TELNET-CONSTRUCTOR-ERROR", "the host parameter may not be empty";
+    #! creates the TelnetClient object
+    /** @param host the hostname of the telnet server (use [hostname] to explicitly specify an ipv6 connection)
+        @param port the port number of the telnet server
+        @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
+        @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+    */
+    constructor(string host, softint port, *code log, *code dbglog) {
+        if (host.empty())
+            throw "TELNET-CONSTRUCTOR-ERROR", "the host parameter may not be empty";
 
-            log_info = log;
-            log_debug = dbglog;
+        log_info = log;
+        log_debug = dbglog;
 
-            connect = sprintf("%s:%d", host, port);
-            logDbg("server: %y", connect);
-        }
+        connect = sprintf("%s:%d", host, port);
+        logDbg("server: %y", connect);
+    }
 
-        #! creates the TelnetClient object from a target string and optional log closure(s)
-        /** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections); also accepts URLs with a scheme \c "telnet://", any other scheme, or of the URL contains a username, password, or path, an \c INVALID-TARGET exception will be thrown
-            @param log a @ref closure "closure" or @ref call_reference "call reference" for log messages; a single string argument will be passed to this code for logging
-            @param dbglog a @ref closure "closure" or @ref call_reference "call reference" for debugging/technical log messages; a single string argument will be passed to this code for logging
+    #! creates the TelnetClient object from a target string and optional log closure(s)
+    /** @param connect the hostname of the Telnet server or a hostname:port specification (use [hostname] or [address] for ipv6 connections); also accepts URLs with a scheme \c "telnet://", any other scheme, or of the URL contains a username, password, or path, an \c INVALID-TARGET exception will be thrown
+        @param log a @ref closure "closure" or @ref call_reference "call reference" for log messages; a single string argument will be passed to this code for logging
+        @param dbglog a @ref closure "closure" or @ref call_reference "call reference" for debugging/technical log messages; a single string argument will be passed to this code for logging
 
-            @note a UNIX domain socket target can be given with a URL in the following format:
-            <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i>
-            is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
-            \c "telnet://socket=%2ftmp%socket-dir%2fsocket-file-1"; this allows a filesystem path to be used in the
-            host portion of the URL providing the path to the UNIX domain socket.
+        @note a UNIX domain socket target can be given with a URL in the following format:
+        <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i>
+        is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+        \c "telnet://socket=%2ftmp%socket-dir%2fsocket-file-1"; this allows a filesystem path to be used in the
+        host portion of the URL providing the path to the UNIX domain socket.
 
-            @throw INVALID-TARGET the connection argument contains a URL with an invalid target scheme or unsupported components (username, password, or path)
-         */
-        constructor(string connect, *code log, *code dbglog) {
-            log_info = log;
-            log_debug = dbglog;
+        @throw INVALID-TARGET the connection argument contains a URL with an invalid target scheme or unsupported components (username, password, or path)
+    */
+    constructor(string connect, *code log, *code dbglog) {
+        log_info = log;
+        log_debug = dbglog;
 
-            if (connect =~ /^[^:]+:\/\//) {
-                hash h = parse_url(connect);
-                if (h.protocol != "telnet")
-                    throw "INVALID-TARGET", sprintf("URL %y contains invalid scheme %y; expecting \"telnet\"", connect, h.protocol);
-                foreach string key in ("username", "password", "path") {
-                    if (h{key})
-                        throw "INVALID-TARGET", sprintf("URL %y contains a value for the %s which is not supported, remove this value from the URL and try again", connect, key);
-                }
-                connect = h.host;
-                # if there is no port and the host is not a path for a UNIX domain socket, then add the default telnet port
-                if (!h.port && h.host[0] != "/")
-                    h.port = DefaultTelnetPort;
-                if (h.port)
-                    connect += sprintf(":%d", h.port);
+        if (connect =~ /^[^:]+:\/\//) {
+            hash h = parse_url(connect);
+            if (h.protocol != "telnet")
+                throw "INVALID-TARGET", sprintf("URL %y contains invalid scheme %y; expecting \"telnet\"", connect, h.protocol);
+            foreach string key in ("username", "password", "path") {
+                if (h{key})
+                    throw "INVALID-TARGET", sprintf("URL %y contains a value for the %s which is not supported, remove this value from the URL and try again", connect, key);
             }
-            else if (connect !~ /^\//) {
-                # add default port if the connect string has no port number and:
-                # 1) is not a path (for a UNIX domain socket)
-                # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
-                *softint p = (connect =~ x/:([0-9]+)$/)[0];
-                if (!p)
-                    connect += ":" + DefaultTelnetPort;
-            }
-
-            self.connect = connect;
-            logDbg("server: %y", connect);
+            connect = h.host;
+            # if there is no port and the host is not a path for a UNIX domain socket, then add the default telnet port
+            if (!h.port && h.host[0] != "/")
+                h.port = DefaultTelnetPort;
+            if (h.port)
+                connect += sprintf(":%d", h.port);
+        }
+        else if (connect !~ /^\//) {
+            # add default port if the connect string has no port number and:
+            # 1) is not a path (for a UNIX domain socket)
+            # 2) is not an ipv6 address enclosed in '[]' (ex '[2001:0db8:85a3:0000:0000:8a2e:0370:7334]')
+            *softint p = (connect =~ x/:([0-9]+)$/)[0];
+            if (!p)
+                connect += ":" + DefaultTelnetPort;
         }
 
-        #! disconnects from the server if connected and deletes the object
-        destructor() {
-            disconnect();
-        }
+        self.connect = connect;
+        logDbg("server: %y", connect);
+    }
 
-        #! logs the message to the log closure set with the constructor (if any)
-        private log(string msg) {
-            if (log_info.val())
-                call_function(log_info, "Telnet INFO: " + trim(vsprintf(msg, argv)));
-        }
+    #! disconnects from the server if connected and deletes the object
+    destructor() {
+        disconnect();
+    }
 
-        #! logs the message to the debug log closure set with the constructor (if any)
-        private logDbg(string msg) {
-            if (log_debug.val())
-                call_function(log_debug, "Telnet DEBUG: " + trim(vsprintf(msg, argv)));
-        }
+    #! logs the message to the log closure set with the constructor (if any)
+    private log(string msg) {
+        if (log_info.val())
+            call_function(log_info, "Telnet INFO: " + trim(vsprintf(msg, argv)));
+    }
 
-        #! connects to the Telnet server
-        /** If the object is already connected, it is disconnected and a new connection attempt is made.
-            @note This method is subject to thread serialization.
-         */
-        connect(timeout timeout = DefaultConnTimeout) {
-            AutoLock al(m);
-            if (isConnected())
-                disconnectIntern();
-            logDbg("connecting to %s (timeout %y)", connect, milliseconds(timeout));
-            conn.connect(connect, timeout);
-            hash h = conn.getSocketInfo();
-            log("connected to %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
-        }
+    #! logs the message to the debug log closure set with the constructor (if any)
+    private logDbg(string msg) {
+        if (log_debug.val())
+            call_function(log_debug, "Telnet DEBUG: " + trim(vsprintf(msg, argv)));
+    }
 
-        #! returns @ref True "True" if the client is connected to the server
-        bool isConnected() {
-            return conn.isOpen();
-        }
+    #! connects to the Telnet server
+    /** If the object is already connected, it is disconnected and a new connection attempt is made.
+        @note This method is subject to thread serialization.
+    */
+    connect(timeout timeout = DefaultConnTimeout) {
+        AutoLock al(m);
+        if (isConnected())
+            disconnectIntern();
+        logDbg("connecting to %s (timeout %y)", connect, milliseconds(timeout));
+        conn.connect(connect, timeout);
+        hash h = conn.getSocketInfo();
+        log("connected to %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
+    }
 
-        #! sets or clears (in case passed with no value) the username parameter for logging in to the telnet server
-        /** @param n_user the username to use for logins
+    #! returns @ref True "True" if the client is connected to the server
+    bool isConnected() {
+        return conn.isOpen();
+    }
 
-            @note This method is subject to thread serialization.
-         */
-        setUser(*string n_user) {
-            AutoLock al(m);
-            user = n_user;
-        }
+    #! sets or clears (in case passed with no value) the username parameter for logging in to the telnet server
+    /** @param n_user the username to use for logins
 
-        #! returns the current value of the username parameter
-        *string getUser() {
-            return user;
-        }
+        @note This method is subject to thread serialization.
+    */
+    setUser(*string n_user) {
+        AutoLock al(m);
+        user = n_user;
+    }
 
-        #! disconnects from the Telnet server
-        /** @note This method is subject to thread serialization.
-         */
-        disconnect() {
-            AutoLock al(m);
-            if (isConnected())
-                disconnectIntern();
-        }
+    #! returns the current value of the username parameter
+    *string getUser() {
+        return user;
+    }
 
-        #! sends data to the server
-        /** @param arr a single element or a list of elements to send to the server; elements can be as follows:
-            - string: currently sent verbatim to the server, in particular no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
-            - integer: treated as a single-byte value; if the value is @ref IAC (ie 255 or 0xff) then it is sent twice
-            - binary: sent verbatim to the server
+    #! disconnects from the Telnet server
+    /** @note This method is subject to thread serialization.
+    */
+    disconnect() {
+        AutoLock al(m);
+        if (isConnected())
+            disconnectIntern();
+    }
 
-            @throw SEND-ERROR this exception is thrown if an invalid data type is passed to this method
-            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
+    #! sends data to the server
+    /** @param arr a single element or a list of elements to send to the server; elements can be as follows:
+        - string: currently sent verbatim to the server, in particular no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
+        - integer: treated as a single-byte value; if the value is @ref IAC (ie 255 or 0xff) then it is sent twice
+        - binary: sent verbatim to the server
 
-            @note
-            - This method could also throw any exception that Socket::sendBinary2() or Socket::sendi1() could throw
-            - This method is subject to thread serialization
-         */
-        sendData(softlist arr) {
-            AutoLock al(m);
-            checkConnIntern();
-            sendDataIntern(arr);
-        }
+        @throw SEND-ERROR this exception is thrown if an invalid data type is passed to this method
+        @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
 
-        #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
-        /** @param str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
+        @note
+        - This method could also throw any exception that Socket::sendBinary2() or Socket::sendi1() could throw
+        - This method is subject to thread serialization
+    */
+    sendData(softlist arr) {
+        AutoLock al(m);
+        checkConnIntern();
+        sendDataIntern(arr);
+    }
 
-            @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
+    #! sends literal string data to the server; the text dat is converted to the socket's encoding if necessary
+    /** @param str currently sent verbatim to the server; no encoding conversions are performed on this string (possibly these should be scanned for @ref IAC characters which should be duplicated)
 
-            @note
-            - This method could also throw any exception that Socket::sendBinary2() could throw
-            - This method is subject to thread serialization
-         */
-        sendTextData(string str) {
-            AutoLock al(m);
-            checkConnIntern();
-            sendTextDataIntern(str);
-        }
+        @throw NOT-CONNECTED-EXCEPTION if the socket is not already connected then this exception is thrown
 
-        #! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
-        /** NOTHING is only returned if the remote end closed the connection
+        @note
+        - This method could also throw any exception that Socket::sendBinary2() could throw
+        - This method is subject to thread serialization
+    */
+    sendTextData(string str) {
+        AutoLock al(m);
+        checkConnIntern();
+        sendTextDataIntern(str);
+    }
 
-            @note
-            - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
-            - This method is subject to thread serialization
-         */
-        *string getAvailableData(timeout t = DefaultTimeout) {
-            AutoLock al(m);
-            return getAvailableDataIntern(t);
-        }
+    #! returns all data available as a string (which could be an empty string if no data is available in the timeout period) or NOTHING if the connection was closed by the remote end
+    /** NOTHING is only returned if the remote end closed the connection
 
-        #! returns @ref True "True" if the server has confirmed with a DO command that it supports the given feature
-        /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
-            - @ref TOPT_TS "TOPT_TS": TerminalSpeed
-            - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
-            - @ref TOPT_TERM "TOPT_TERM": TerminalType
-            - @ref TOPT_ENVIR_NEW "TOPT_ENVIR_NEW": TelnetNewEnvironmentOption
-            - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
-            - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
-         */
-        bool hasFeature(int fc) {
-            return boolean(fh{fc});
-        }
+        @note
+        - This method could throw any exception that Socket::recvu1() could throw except SOCKET-CLOSED (in which case the exception is caught and NOTHING is returned)
+        - This method is subject to thread serialization
+    */
+    *string getAvailableData(timeout t = DefaultTimeout) {
+        AutoLock al(m);
+        return getAvailableDataIntern(t);
+    }
 
-        #! this method should be called externally when the window size has changed
-        /** @see @ref getWindowSize()
-         */
-        windowSizeUpdated() {
-            hash wh = getWindowSize();
-            AutoLock al(m);
-            updateWindowSizeIntern(wh);
-        }
+    #! returns @ref True "True" if the server has confirmed with a DO command that it supports the given feature
+    /** @param fc The feature code to check; see @ref TelnetOptionCodes for possible values; supported features are:
+        - @ref TOPT_TS "TOPT_TS": TerminalSpeed
+        - @ref TOPT_XDL "TOPT_XDL": XDisplayLocation
+        - @ref TOPT_TERM "TOPT_TERM": TerminalType
+        - @ref TOPT_ENVIR_NEW "TOPT_ENVIR_NEW": TelnetNewEnvironmentOption
+        - @ref TOPT_SUPP "TOPT_SUPP": SuppressGoAhead
+        - @ref TOPT_NAWS "TOPT_NAWS": NegotiateAboutWindowSize
+    */
+    bool hasFeature(int fc) {
+        return boolean(fh{fc});
+    }
 
-        #! this method provides the value that will be given as the DISPLAY value in protocol negotiation
-        /** override this method in a subclass to provide a different value
-          */
-        private *string getDisplay() {
-            *string rv = ENV.DISPLAY;
-            # do not use UNIX socket path
-            return exists rv && rv !~ /^\// ? rv : gethostname() + ":0";
-        }
+    #! this method should be called externally when the window size has changed
+    /** @see @ref getWindowSize()
+    */
+    windowSizeUpdated() {
+        hash wh = getWindowSize();
+        AutoLock al(m);
+        updateWindowSizeIntern(wh);
+    }
 
-        #! this method provides the value that will be given as the terminal type in protocol negotiation
-        /** override this method in a subclass to provide a different value
-          */
-        private *string getTerminalType() {
-            return ENV.TERM.val() ? ENV.TERM : DefaultTerminalType;
-        }
+    #! this method provides the value that will be given as the DISPLAY value in protocol negotiation
+    /** override this method in a subclass to provide a different value
+    */
+    private *string getDisplay() {
+        *string rv = ENV.DISPLAY;
+        # do not use UNIX socket path
+        return exists rv && rv !~ /^\// ? rv : gethostname() + ":0";
+    }
 
-        #! this method provides the value that will be given as the user's environment in protocol negotiation
-        /** override this method in a subclass to provide a different value
-          */
-        private hash getEnvironment() {
-            # by default we only return the DISPLAY and PRINTER env variables to the other side
-            return ENV.(list("PRINTER")) + ("DISPLAY": getDisplay());
-        }
+    #! this method provides the value that will be given as the terminal type in protocol negotiation
+    /** override this method in a subclass to provide a different value
+    */
+    private *string getTerminalType() {
+        return ENV.TERM.val() ? ENV.TERM : DefaultTerminalType;
+    }
 
-        #! this method provides the value that will be given as the terminal speed in protocol negotiation
-        /** override this method in a subclass to provide a different value
-          */
-        private int getTerminalSpeed() {
-            return DefaultTerminalSpeed;
-        }
+    #! this method provides the value that will be given as the user's environment in protocol negotiation
+    /** override this method in a subclass to provide a different value
+    */
+    private hash getEnvironment() {
+        # by default we only return the DISPLAY and PRINTER env variables to the other side
+        return ENV.(list("PRINTER")) + ("DISPLAY": getDisplay());
+    }
 
-        #! this method provides the value that will be given as the terminal window size in protocol negotiation
-        /** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
-            Override this method in a subclass to provide a different value.
+    #! this method provides the value that will be given as the terminal speed in protocol negotiation
+    /** override this method in a subclass to provide a different value
+    */
+    private int getTerminalSpeed() {
+        return DefaultTerminalSpeed;
+    }
 
-            @return a hash with the following keys:
-            - \c rows: the number of rows in the display
-            - \c columns: the number of columns in the display
-          */
-        private hash getWindowSize() {
-            return TermIOS::getWindowSize();
-        }
+    #! this method provides the value that will be given as the terminal window size in protocol negotiation
+    /** The default implementation of this method is to return the actual terminal size by calling TermIOS::getWindowSize().
+        Override this method in a subclass to provide a different value.
 
-        #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
-        /** @par Example:
-            @code{.py}
+        @return a hash with the following keys:
+        - \c rows: the number of rows in the display
+        - \c columns: the number of columns in the display
+    */
+    private hash getWindowSize() {
+        return TermIOS::getWindowSize();
+    }
+
+    #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
+    /** @par Example:
+        @code{.py}
 telnet.clearWarningQueue();
-            @endcode
+        @endcode
 
-            @see setWarningQueue()
+        @see setWarningQueue()
 
-            @since %TelnetClient 1.1
-        */
-        nothing clearWarningQueue() {
-            conn.clearWarningQueue();
-        }
+        @since %TelnetClient 1.1
+    */
+    nothing clearWarningQueue() {
+        conn.clearWarningQueue();
+    }
 
-        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
-        /** @par Example:
-            @code{.py}
+    #! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
+    /** @par Example:
+        @code{.py}
 telnet.setWarningQueue(5000, 5000, queue, "socket-1");
-            @endcode
+        @endcode
 
-            @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
-            - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
-            - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
-            - \c "us": an integer giving the number of microseconds for the operation
-            - \c "timeout": an integer giving the warning threshold in microseconds
-            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
-            @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
-            - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
-            - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
-            - \c "bytes": the amount of bytes sent
-            - \c "us": an integer giving the number of microseconds for the operation
-            - \c "bytes_sec": a float giving the transfer speed in bytes per second
-            - \c "threshold": an integer giving the warning threshold in bytes per second
-            - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
-            @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-            @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-            @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+        - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
+        - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
+        - \c "us": an integer giving the number of microseconds for the operation
+        - \c "timeout": an integer giving the warning threshold in microseconds
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
+        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+        - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
+        - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
+        - \c "bytes": the amount of bytes sent
+        - \c "us": an integer giving the number of microseconds for the operation
+        - \c "bytes_sec": a float giving the transfer speed in bytes per second
+        - \c "threshold": an integer giving the warning threshold in bytes per second
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "TelnetClient::setWarningQueue()" method, it will be included in the warning hash here
+        @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
+        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
+        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
-            @throw QUEUE-ERROR the Queue passed has a maximum size set
-            @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
+        @throw QUEUE-ERROR the Queue passed has a maximum size set
+        @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
 
-            @see TelnetClient::clearWarningQueue()
+        @see TelnetClient::clearWarningQueue()
 
-            @since %TelnetClient 1.1
-        */
-        nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
-            conn.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
-        }
+        @since %TelnetClient 1.1
+    */
+    nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, any arg, timeout min_ms = 1s) {
+        conn.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
+    }
 
-        #! Returns performance statistics for the socket
-        /** @par Example:
-            @code{.py}
+    #! Returns performance statistics for the socket
+    /** @par Example:
+        @code{.py}
 hash<auto> h = telnet.getUsageInfo();
-            @endcode
+        @endcode
 
-            @return a hash with the following keys:
-            - \c "bytes_sent": an integer giving the total amount of bytes sent
-            - \c "bytes_recv": an integer giving the total amount of bytes received
-            - \c "us_sent": an integer giving the total number of microseconds spent sending data
-            - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-            - \c "arg": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the optional argument for warning hashes
-            - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the warning timeout in microseconds
-            - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+        @return a hash with the following keys:
+        - \c "bytes_sent": an integer giving the total amount of bytes sent
+        - \c "bytes_recv": an integer giving the total amount of bytes received
+        - \c "us_sent": an integer giving the total number of microseconds spent sending data
+        - \c "us_recv": an integer giving the total number of microseconds spent receiving data
+        - \c "arg": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the optional argument for warning hashes
+        - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the warning timeout in microseconds
+        - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "TelnetClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
-            @since %TelnetClient 1.1
+        @since %TelnetClient 1.1
 
-            @see TelnetClient::clearStats()
-        */
-        hash<auto> getUsageInfo() {
-            return conn.getUsageInfo();
-        }
+        @see TelnetClient::clearStats()
+    */
+    hash<auto> getUsageInfo() {
+        return conn.getUsageInfo();
+    }
 
-        #! Clears performance statistics
-        /** @par Example:
-            @code{.py}
+    #! Clears performance statistics
+    /** @par Example:
+        @code{.py}
 telnet.clearStats();
-            @endcode
+        @endcode
 
-            @since %TelnetClient 1.1
+        @since %TelnetClient 1.1
 
-            @see TelnetClient::getUsageInfo()
-        */
-        clearStats() {
-            conn.clearStats();
-        }
+        @see TelnetClient::getUsageInfo()
+    */
+    clearStats() {
+        conn.clearStats();
+    }
 
-        #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
-        /** @par Example:
-            @code{.py}
+    #! Sets a @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"
+    /** @par Example:
+        @code{.py}
 telnet.setEventQueue(queue);
-            @endcode
+        @endcode
 
-            @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
-            the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
-            @param arg an argument that will be included in each event hash in the \a arg key
-            @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
+        @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
+        the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+        @param arg an argument that will be included in each event hash in the \a arg key
+        @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
 
-            @throw QUEUE-ERROR the Queue passed has a maximum size set
+        @throw QUEUE-ERROR the Queue passed has a maximum size set
 
-            @see @ref event_handling for more information
+        @see @ref event_handling for more information
 
-            @since %TelnetClient 1.6
-        */
-        setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
-            conn.setEventQueue(queue, arg, with_data);
-        }
+        @since %TelnetClient 1.6
+    */
+    setEventQueue(Qore::Thread::Queue queue, auto arg, *bool with_data) {
+        conn.setEventQueue(queue, arg, with_data);
+    }
 
-        #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
-        /** @par Example:
-            @code{.py}
+    #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+    /** @par Example:
+        @code{.py}
 telnet.setEventQueue();
-            @endcode
+        @endcode
 
-            @see @ref event_handling for more information
+        @see @ref event_handling for more information
 
-            @since %TelnetClient 1.6
-        */
-        setEventQueue() {
-            conn.setEventQueue();
+        @since %TelnetClient 1.6
+    */
+    setEventQueue() {
+        conn.setEventQueue();
+    }
+
+    #! Returns the connection target string
+    /** @since %TelnetClient 1.3
+    */
+    string getTarget() {
+        return connect;
+    }
+
+    #! @cond nodoc
+    # don't override this method, fix/enhance it with a patch to the module
+    private final disconnectIntern() {
+        if (conn.isOpen()) {
+            hash h = conn.getSocketInfo();
+            conn.close();
+            conn.shutdown();
+            log("disconnected from %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
         }
+    }
 
-        #! Returns the connection target string
-        /** @since %TelnetClient 1.3
-        */
-        string getTarget() {
-            return connect;
-        }
+    private checkConnIntern() {
+        if (!isConnected())
+            throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
+    }
 
-        #! @cond nodoc
-        # don't override this method, fix/enhance it with a patch to the module
-        private final disconnectIntern() {
-            if (conn.isOpen()) {
-                hash h = conn.getSocketInfo();
-                conn.close();
-                conn.shutdown();
-                log("disconnected from %s (%s)%s", h.hostname, h.address_desc, h.port ? sprintf(" port %d", h.port) : "");
-            }
-        }
-
-        private checkConnIntern() {
-            if (!isConnected())
-                throw "NOT-CONNECTED-EXCEPTION", "Cannot perform the operation without being connected to server!";
-        }
-
-        # don't override this method, fix/enhance it with a patch to the module
-        private final sendDataIntern(softlist arr, bool double_aic = False) {
-            foreach auto val in (arr) {
-                switch (val.typeCode()) {
-                    case NT_BINARY: {
-                        conn.sendBinary2(val);
-                        break;
-                    }
-
-                    case NT_STRING: {
-                        conn.sendBinary2(val);
-                        break;
-                    }
-
-                    case NT_INT: {
-                        conn.sendi1(val);
-                        if (double_aic && val == IAC)
-                            conn.sendi1(IAC);
-                        break;
-                    }
-
-                    default: {
-                        throw "SEND-ERROR", sprintf("don't know how to send type %y value: %y", val.type(), val);
-                    }
-                }
-            }
-        }
-
-        private sendTextDataIntern(string str) {
-            conn.sendBinary2(str);
-        }
-
-        # don't override this method, fix/enhance it with a patch to the module
-        private final *string getAvailableDataIntern(timeout t = DefaultTimeout) {
-            string rv = "";
-
-            while (conn.isDataAvailable(t)) {
-                # only use the timeout on the first read, otherwise return immediately when data is not available
-                if (t)
-                    t = 0;
-
-                int char;
-                try {
-                    char = conn.recvu1(0);
-                }
-                catch (hash<ExceptionInfo> ex) {
-                    if (ex.err == "SOCKET-CLOSED") {
-                        disconnectIntern();
-                        return;
-                    }
-                    rethrow;
-                }
-
-                if (char == IAC)
-                    processCmd(\rv);
-                else if (!char || char == SUPDUP_OPT) {
-                    #logDbg("ignoring char: %d", char);
-                    # ignore?
-                }
-                else
-                    rv += chr(char);
-            }
-
-            #logDbg("rv: %y", rv);
-            return rv;
-        }
-
-        # don't override this method, fix/enhance it with a patch to the module
-        private final updateWindowSizeIntern(hash wh) {
-            logDbg("SND: %s %s [%d,%d,%d,%d]", CmdMap{SB}, OptMap{TOPT_NAWS},(wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff));
-            sendDataIntern((IAC,SB,TOPT_NAWS));
-            sendDataIntern(((wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff)), True);
-            sendDataIntern((IAC, SE));
-        }
-
-        # don't override this method, fix/enhance it with a patch to the module
-        private final processCmd(reference<string> rv) {
-            # read all data with no timeout; we assume that commands are pushed in their entirety
-            int cmd = conn.recvu1(0);
-            if (cmd == IAC) {
-                rv += chr(IAC);
-                return;
-            }
-
-            switch (cmd) {
-                case SB: {
-                    logDbg("RCV: %s (%d) starting subnegotiation", CmdMap{cmd}, cmd);
-                    doSubNegotiation();
+    # don't override this method, fix/enhance it with a patch to the module
+    private final sendDataIntern(softlist arr, bool double_aic = False) {
+        foreach auto val in (arr) {
+            switch (val.typeCode()) {
+                case NT_BINARY: {
+                    conn.sendBinary2(val);
                     break;
                 }
 
-                case DO: {
-                    int opt = conn.recvu1(0);
-                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
-
-                    switch (opt) {
-                        case TOPT_TS:
-                        case TOPT_XDL:
-                        case TOPT_TERM:
-                        case TOPT_ENVIR_NEW:
-                        case TOPT_SUPP: {
-                            # set feature to True
-                            fh{opt} = True;
-                            logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
-                            sendDataIntern((IAC,WILL,opt));
-                            break;
-                        }
-
-                        # RFC 1073: http://www.ietf.org/rfc/rfc1073.txt
-                        case TOPT_NAWS: {
-                            logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
-                            # set feature to True
-                            fh{opt} = True;
-                            sendDataIntern((IAC,WILL,opt));
-                            updateWindowSizeIntern(getWindowSize());
-                            break;
-                        }
-
-                        default: {
-                            logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
-                            sendDataIntern((IAC,WONT,opt));
-                            logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
-                            sendDataIntern((IAC,DONT,opt));
-                            break;
-                        }
-                    }
+                case NT_STRING: {
+                    conn.sendBinary2(val);
                     break;
                 }
 
-                case DONT: {
-                    int opt = conn.recvu1(0);
-                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
-
-                    if (opt == TOPT_LINE) {
-                        logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
-                        sendDataIntern((IAC,WILL,opt));
-                    }
-                    else {
-                        logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
-                        sendDataIntern((IAC,WONT,opt));
-                    }
-                    break;
-                }
-
-                case WILL: {
-                    int opt = conn.recvu1(0);
-                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
-
-                    logDbg("SND: DO %s (%d %d)", OptMap{opt}, DO, opt);
-                    sendDataIntern((IAC,DO,opt));
-                    break;
-                }
-
-                case WONT: {
-                    int opt = conn.recvu1(0);
-                    logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
-
-                    logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
-                    sendDataIntern((IAC,DONT,opt));
+                case NT_INT: {
+                    conn.sendi1(val);
+                    if (double_aic && val == IAC)
+                        conn.sendi1(IAC);
                     break;
                 }
 
                 default: {
-                    log("PROTOCOL ERROR: unknown AIC code received from server: %d (ignoring)", cmd);
-                    break;
+                    throw "SEND-ERROR", sprintf("don't know how to send type %y value: %y", val.type(), val);
                 }
             }
         }
+    }
 
-        # don't override this method, fix/enhance it with a patch to the module
-        private final doSubNegotiation() {
-            bool gotiac = False;
+    private sendTextDataIntern(string str) {
+        conn.sendBinary2(str);
+    }
 
-            while (True) {
-                # read in option code
-                int sbOpt;
-                if (gotiac) {
-                    sbOpt = IAC;
-                    gotiac = False;
-                }
-                else
-                    sbOpt = conn.recvu1(1);
+    # don't override this method, fix/enhance it with a patch to the module
+    private final *string getAvailableDataIntern(timeout t = DefaultTimeout) {
+        string rv = "";
 
-                # read in code
-                int sbCode = conn.recvu1(1);
+        while (conn.isDataAvailable(t)) {
+            # only use the timeout on the first read, otherwise return immediately when data is not available
+            if (t)
+                t = 0;
 
-                # exit if subnegotiation is over
-                if (sbOpt == IAC && sbCode == SE) {
-                    logDbg("RCV %s (%d) ended subnegotiation", CmdMap{sbCode}, sbCode);
+            int char;
+            try {
+                char = conn.recvu1(0);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                if (ex.err == "SOCKET-CLOSED") {
+                    disconnectIntern();
                     return;
                 }
+                rethrow;
+            }
 
-                if (sbCode != 1) {
-                    log("PROTOCOL ERROR: unknown subnegotiation code: %d, ignoring", sbCode);
-                    continue;
-                }
+            if (char == IAC)
+                processCmd(\rv);
+            else if (!char || char == SUPDUP_OPT) {
+                #logDbg("ignoring char: %d", char);
+                # ignore?
+            }
+            else
+                rv += chr(char);
+        }
 
-                logDbg("RCV: OPT %s (%s)", OptMap{sbOpt}, sbOpt);
+        #logDbg("rv: %y", rv);
+        return rv;
+    }
 
-                # server requests us to SEND (code 1) the subnegotiation answer
-                switch (sbOpt) {
-                    case TOPT_TS: {
-                        # send terminal speed string
-                        int spd = getTerminalSpeed();
-                        string val = sprintf("%d,%d", spd, spd);
-                        logDbg("SND: %s %y", OptMap{TOPT_TS}, val);
-                        sendDataIntern((IAC,SB,TOPT_TS, 0, val, IAC,SE));
+    # don't override this method, fix/enhance it with a patch to the module
+    private final updateWindowSizeIntern(hash wh) {
+        logDbg("SND: %s %s [%d,%d,%d,%d]", CmdMap{SB}, OptMap{TOPT_NAWS},(wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff));
+        sendDataIntern((IAC,SB,TOPT_NAWS));
+        sendDataIntern(((wh.columns & 0xff00),(wh.columns & 0xff),(wh.rows & 0xff00),(wh.rows & 0xff)), True);
+        sendDataIntern((IAC, SE));
+    }
+
+    # don't override this method, fix/enhance it with a patch to the module
+    private final processCmd(reference<string> rv) {
+        # read all data with no timeout; we assume that commands are pushed in their entirety
+        int cmd = conn.recvu1(0);
+        if (cmd == IAC) {
+            rv += chr(IAC);
+            return;
+        }
+
+        switch (cmd) {
+            case SB: {
+                logDbg("RCV: %s (%d) starting subnegotiation", CmdMap{cmd}, cmd);
+                doSubNegotiation();
+                break;
+            }
+
+            case DO: {
+                int opt = conn.recvu1(0);
+                logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
+
+                switch (opt) {
+                    case TOPT_TS:
+                    case TOPT_XDL:
+                    case TOPT_TERM:
+                    case TOPT_ENVIR_NEW:
+                    case TOPT_SUPP: {
+                        # set feature to True
+                        fh{opt} = True;
+                        logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                        sendDataIntern((IAC,WILL,opt));
                         break;
                     }
 
-                    case TOPT_XDL: {
-                        # display location
-                        *string display = getDisplay();
-                        logDbg("SND: %s %y", OptMap{TOPT_XDL}, display);
-                        sendDataIntern((IAC,SB,TOPT_XDL, 0, display, IAC, SE));
-                        break;
-                    }
-
-                    # RFC 1572: http://www.ietf.org/rfc/rfc1572.txt
-                    case TOPT_ENVIR_NEW: {
-                        # get requested list of options to send
-                        list req = ();
-                        while (True) {
-                            sbOpt = conn.recvu1(0);
-                            if (sbOpt == IAC) {
-                                gotiac = True;
-                                break;
-                            }
-                            req += sbOpt;
-                        }
-
-                        # FIXME: we send everything anyway...
-                        logDbg("RCV: new environment options: %y", req);
-
-                        # set telnet environment vars
-                        sendDataIntern((IAC,SB,TOPT_ENVIR_NEW, 0));  # first 0=IS, second 0=VAR, see RFC 1572
-
-                        *string display = getDisplay();
-                        logDbg("SND: %s VAR DISPLAY %y", OptMap{TOPT_ENVIR_NEW}, display);
-                        # send 0=VAR "DISPLAY" 1=VALUE ...value...
-                        sendDataIntern((0, "DISPLAY", 1, display));
-
-                        # send USER if present
-                        if (!user.empty()) {
-                            logDbg("SND: %s VAR USER %y", OptMap{TOPT_ENVIR_NEW}, user);
-                            # send 0=VAR "USER" 1=VALUE ...value...
-                            sendDataIntern((0, "USER", 1, user));
-                            logDbg("SND: %s VAR ACCT %y", OptMap{TOPT_ENVIR_NEW}, user);
-                            # send 0=VAR "ACCT" 1=VALUE ...value...
-                            sendDataIntern((0, "ACCT", 1, user));
-                        }
-
-                        # send user environment to server
-                        hash env = getEnvironment();
-                        foreach string k in (select keys env, env.$1.val()) {
-                            logDbg("SND: %s USERVAR %y = %y", OptMap{TOPT_ENVIR_NEW}, k, env{k});
-                            # send 3=USERVAR ...key... 1=VALUE ...value...
-                            sendDataIntern((3, k, 1, env{k}));
-                        }
-
-                        sendDataIntern((IAC,SE));
-                        break;
-                    }
-
-                    # see telnet RFC 1091
-                    case TOPT_TERM: {
-                        # terminal type
-                        *string term = getTerminalType();
-                        logDbg("SND: %s %y", OptMap{TOPT_TERM}, term);
-                        sendDataIntern((IAC,SB,TOPT_TERM, 0, term, IAC, SE));
+                    # RFC 1073: http://www.ietf.org/rfc/rfc1073.txt
+                    case TOPT_NAWS: {
+                        logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                        # set feature to True
+                        fh{opt} = True;
+                        sendDataIntern((IAC,WILL,opt));
+                        updateWindowSizeIntern(getWindowSize());
                         break;
                     }
 
                     default: {
-                        logDbg("unsupported subnegotiation option: %d %s, ignoring\n", sbOpt, OptMap{sbOpt});
+                        logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
+                        sendDataIntern((IAC,WONT,opt));
+                        logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
+                        sendDataIntern((IAC,DONT,opt));
                         break;
                     }
                 }
+                break;
+            }
+
+            case DONT: {
+                int opt = conn.recvu1(0);
+                logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
+
+                if (opt == TOPT_LINE) {
+                    logDbg("SND: WILL %s (%d %d)", OptMap{opt}, WILL, opt);
+                    sendDataIntern((IAC,WILL,opt));
+                }
+                else {
+                    logDbg("SND: WONT %s (%d %d)", OptMap{opt}, WONT, opt);
+                    sendDataIntern((IAC,WONT,opt));
+                }
+                break;
+            }
+
+            case WILL: {
+                int opt = conn.recvu1(0);
+                logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
+
+                logDbg("SND: DO %s (%d %d)", OptMap{opt}, DO, opt);
+                sendDataIntern((IAC,DO,opt));
+                break;
+            }
+
+            case WONT: {
+                int opt = conn.recvu1(0);
+                logDbg("RCV: %s %s (%s %d)", CmdMap{cmd}, OptMap{opt}, cmd, opt);
+
+                logDbg("SND: DONT %s (%d %d)", OptMap{opt}, DONT, opt);
+                sendDataIntern((IAC,DONT,opt));
+                break;
+            }
+
+            default: {
+                log("PROTOCOL ERROR: unknown AIC code received from server: %d (ignoring)", cmd);
+                break;
             }
         }
-        #! @endcond
     }
 
-    #! class for Telnet connections; returns an object of class @ref TelnetClient for connecting to telnet sessions
-    /** supports the following runtime options in getImpl() for connection logging:
+    # don't override this method, fix/enhance it with a patch to the module
+    private final doSubNegotiation() {
+        bool gotiac = False;
+
+        while (True) {
+            # read in option code
+            int sbOpt;
+            if (gotiac) {
+                sbOpt = IAC;
+                gotiac = False;
+            }
+            else
+                sbOpt = conn.recvu1(1);
+
+            # read in code
+            int sbCode = conn.recvu1(1);
+
+            # exit if subnegotiation is over
+            if (sbOpt == IAC && sbCode == SE) {
+                logDbg("RCV %s (%d) ended subnegotiation", CmdMap{sbCode}, sbCode);
+                return;
+            }
+
+            if (sbCode != 1) {
+                log("PROTOCOL ERROR: unknown subnegotiation code: %d, ignoring", sbCode);
+                continue;
+            }
+
+            logDbg("RCV: OPT %s (%s)", OptMap{sbOpt}, sbOpt);
+
+            # server requests us to SEND (code 1) the subnegotiation answer
+            switch (sbOpt) {
+                case TOPT_TS: {
+                    # send terminal speed string
+                    int spd = getTerminalSpeed();
+                    string val = sprintf("%d,%d", spd, spd);
+                    logDbg("SND: %s %y", OptMap{TOPT_TS}, val);
+                    sendDataIntern((IAC,SB,TOPT_TS, 0, val, IAC,SE));
+                    break;
+                }
+
+                case TOPT_XDL: {
+                    # display location
+                    *string display = getDisplay();
+                    logDbg("SND: %s %y", OptMap{TOPT_XDL}, display);
+                    sendDataIntern((IAC,SB,TOPT_XDL, 0, display, IAC, SE));
+                    break;
+                }
+
+                # RFC 1572: http://www.ietf.org/rfc/rfc1572.txt
+                case TOPT_ENVIR_NEW: {
+                    # get requested list of options to send
+                    list req = ();
+                    while (True) {
+                        sbOpt = conn.recvu1(0);
+                        if (sbOpt == IAC) {
+                            gotiac = True;
+                            break;
+                        }
+                        req += sbOpt;
+                    }
+
+                    # FIXME: we send everything anyway...
+                    logDbg("RCV: new environment options: %y", req);
+
+                    # set telnet environment vars
+                    sendDataIntern((IAC,SB,TOPT_ENVIR_NEW, 0));  # first 0=IS, second 0=VAR, see RFC 1572
+
+                    *string display = getDisplay();
+                    logDbg("SND: %s VAR DISPLAY %y", OptMap{TOPT_ENVIR_NEW}, display);
+                    # send 0=VAR "DISPLAY" 1=VALUE ...value...
+                    sendDataIntern((0, "DISPLAY", 1, display));
+
+                    # send USER if present
+                    if (!user.empty()) {
+                        logDbg("SND: %s VAR USER %y", OptMap{TOPT_ENVIR_NEW}, user);
+                        # send 0=VAR "USER" 1=VALUE ...value...
+                        sendDataIntern((0, "USER", 1, user));
+                        logDbg("SND: %s VAR ACCT %y", OptMap{TOPT_ENVIR_NEW}, user);
+                        # send 0=VAR "ACCT" 1=VALUE ...value...
+                        sendDataIntern((0, "ACCT", 1, user));
+                    }
+
+                    # send user environment to server
+                    hash env = getEnvironment();
+                    foreach string k in (select keys env, env.$1.val()) {
+                        logDbg("SND: %s USERVAR %y = %y", OptMap{TOPT_ENVIR_NEW}, k, env{k});
+                        # send 3=USERVAR ...key... 1=VALUE ...value...
+                        sendDataIntern((3, k, 1, env{k}));
+                    }
+
+                    sendDataIntern((IAC,SE));
+                    break;
+                }
+
+                # see telnet RFC 1091
+                case TOPT_TERM: {
+                    # terminal type
+                    *string term = getTerminalType();
+                    logDbg("SND: %s %y", OptMap{TOPT_TERM}, term);
+                    sendDataIntern((IAC,SB,TOPT_TERM, 0, term, IAC, SE));
+                    break;
+                }
+
+                default: {
+                    logDbg("unsupported subnegotiation option: %d %s, ignoring\n", sbOpt, OptMap{sbOpt});
+                    break;
+                }
+            }
+        }
+    }
+    #! @endcond
+}
+
+#! class for Telnet connections; returns an object of class @ref TelnetClient for connecting to telnet sessions
+/** supports the following runtime options in getImpl() for connection logging:
+    - \c "log": a closure accepting a single string for logging
+    - \c "dbglog": a closure taking a single string for detailed technical connection logging
+
+    @since %TelnetClient 1.3
+*/
+public class TelnetConnection inherits ConnectionProvider::AbstractConnectionWithInfo {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("TelnetConnection"),
+        };
+    }
+
+    #! creates the RestConnection connection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+    }
+
+    #! returns \c "telnet"
+    string getType() {
+        return "telnet";
+    }
+
+    #! returns runtime options
+    /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
+        - \c "log": a closure accepting a single string for logging
+        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+    */
+    *hash<auto> getRuntimeOptions() {
+        return {
+            "log": True,
+            "dbglog": True,
+        };
+    }
+
+    #! returns an @ref TelnetClient object
+    /** @param connect if @ref True "True", then @ref TelnetClient::connect() is called
+        @param rtopts supports the following runtime options in getImpl() for connection logging:
         - \c "log": a closure accepting a single string for logging
         - \c "dbglog": a closure taking a single string for detailed technical connection logging
 
-        @since %TelnetClient 1.3
+        @return an @ref TelnetClient object
     */
-    public class TelnetConnection inherits ConnectionProvider::AbstractConnection {
-        #! DEPRECATED: creates the TelnetConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-
-            @deprecated since Qore 0.9
-        */
-        deprecated
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
-            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
-        }
-
-        #! creates the RestConnection connection object
-        /** @param name the name of the connection
-            @param description connection description
-            @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
-            @param options connection options
-
-            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-         */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
-        }
-
-        #! returns \c "telnet"
-        string getType() {
-            return "telnet";
-        }
-
-        #! returns runtime options
-        /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        */
-        *hash getRuntimeOptions() {
-            return (
-                "log": True,
-                "dbglog": True,
-                );
-        }
-
-        #! returns an @ref TelnetClient object
-        /** @param connect if @ref True "True", then @ref TelnetClient::connect() is called
-            @param rtopts supports the following runtime options in getImpl() for connection logging:
-            - \c "log": a closure accepting a single string for logging
-            - \c "dbglog": a closure taking a single string for detailed technical connection logging
-
-            @return an @ref TelnetClient object
-        */
-        private TelnetClient getImpl(bool connect = True, *hash rtopts) {
-            TelnetClient::TelnetClient sc(url, rtopts.log, rtopts.dbglog);
-            if (connect)
-                sc.connect();
-            return sc;
-        }
-
-        #! DEPRECATED: static constructor
-        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
-         */
-        deprecated
-        static TelnetConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            hash attributes = {
-                "monitor": monitor,
-            };
-            return new TelnetConnection(name, desc, url, attributes, opts ?? {});
-        }
+    private TelnetClient getImpl(bool connect = True, *hash rtopts) {
+        TelnetClient::TelnetClient sc(url, rtopts.log, rtopts.dbglog);
+        if (connect)
+            sc.connect();
+        return sc;
     }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
 }

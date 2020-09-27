@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ZeyosRestClient.qm Qore user module for calling zeyos.com REST services
 
-/*  ZeyosRestClient.qm Copyright (C) 2017 - 2019 Qore Technologies, s.r.o.
+/*  ZeyosRestClient.qm Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9
+%requires qore >= 0.9.5
 
 %new-style
 %strict-args
@@ -30,13 +30,17 @@
 %enable-all-warnings
 
 %requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
 
 module ZeyosRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling zeyos.com REST services";
     author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("zeyosrests", ZeyosRestConnection::ConnectionScheme);
+    };
 }
 
 /** @mainpage ZeyosRestClient Module
@@ -87,255 +91,234 @@ printf("Response body: %N\n", response.body);
 
     @section Zeyosrestclientrelnotes Release Notes
 
+    @subsection Zeyosrestclientv1_1 ZeyosRestClient v1.1
+    - implemented support for a data provider scheme cache and rich option information for connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
+
     @subsection Zeyosrestclientv1_0 ZeyosRestClient v1.0
     - the initial version of the %ZeyosRestClient module
 */
 
 #! the ZeyosRestClient namespace contains all the objects in the ZeyosRestClient module
 public namespace ZeyosRestClient {
-    #! this class provides the REST client API for communication with the <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP system
-    /** This class requires one of the following options for <a href="http://www.zeyos.com">zeyos.com</a>'s
-        authentication and authorization to the target server:
-        - \c appsecret: the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
-        - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then the HTTP username, password,
-          and appsecret are not needed and will be ignored.
+#! this class provides the REST client API for communication with the <a href="http://www.zeyos.com">zeyos.com</a> CRM ERP system
+/** This class requires one of the following options for <a href="http://www.zeyos.com">zeyos.com</a>'s
+    authentication and authorization to the target server:
+    - \c appsecret: the <a href="http://www.zeyos.com">zeyos.com</a>'s appsecret
+    - \c token: the <a href="http://www.zeyos.com">zeyos.com</a>'s token, if provided then the HTTP username, password,
+        and appsecret are not needed and will be ignored.
 
-        After connecting, the ZeyosRestClient class will request a session token that will be used in further communication.
-     */
-    public class ZeyosRestClient inherits RestClient::RestClient {
-        public {
-            const RequiredOptions = (
-                "appsecret"
-            );
+    After connecting, the ZeyosRestClient class will request a session token that will be used in further communication.
+    */
+public class ZeyosRestClient inherits RestClient::RestClient {
+    public {
+        const RequiredOptions = (
+            "appsecret"
+        );
 
-            const AuthPath = "/auth/v1/login";
-        }
+        const AuthPath = "/auth/v1/login";
+    }
 
-        private:internal {
-            string username;
-            string password;
-            string identifier;
-            string appsecret;
-        }
+    private:internal {
+        string username;
+        string password;
+        string identifier;
+        string appsecret;
+    }
 
-        #! creates the object with the given options
-        /**
-            @par Example:
-            @code{.py}
+    #! creates the object with the given options
+    /**
+        @par Example:
+        @code{.py}
 ZeyosRestClient zeyos(
-    {
-        "url": "https://cloud.zeyos.com/test",
-        "identifier": "id",
-        "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5"
-    });
-            @endcode
+{
+    "url": "https://cloud.zeyos.com/test",
+    "identifier": "id",
+    "appsecret": "8df3cc8be92d300edb9ff9b9a680d22eacbf2ee5"
+});
+        @endcode
 
-            @param options valid options are:
-            - \c appsecret (optional): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
-            - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
-            - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
-                @code{.py}
+        @param options valid options are:
+        - \c appsecret (optional): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
+        - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
+        - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
+            @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
-                @endcode
-            - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
-            - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
-            - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
-            - \c default_port: The default port number to connect to if none is given in the URL
-            - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause an
-              \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
-            - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
-            - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
-            - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-            - \c proxy: The proxy URL for connecting through a proxy
-            - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-            - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
-            - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-            - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
-            - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
-            - \c no_charset: if True no charset will be added to the Content-Type header (should be set to True if data are sent in the body). Default is True if not passed.
-            @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
+            @endcode
+        - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a relative date-time value for clarity, ex: \c 20s)
+        - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "auto"
+        - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+        - \c default_port: The default port number to connect to if none is given in the URL
+        - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause an
+            \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+            like any other response
+        - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
+        - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+        - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c proxy: The proxy URL for connecting through a proxy
+        - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+        - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
+        - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any \c validator option, if given by calling @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+        - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object to validate request and response messages; overrides \a swagger
+        - \c no_charset: if True no charset will be added to the Content-Type header (should be set to True if data are sent in the body). Default is True if not passed.
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
 
-            @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-            @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a> REST authentication or communication
-        */
-        constructor(hash<auto> options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
-            if (options.token) {
-                headers{"Authorization"} = "Bearer " + options.token;
-                return;
-            }
-
-            # check required options
-            foreach string key in (RequiredOptions) {
-                auto value = options{key};
-                if (!value.val()) {
-                    throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing required option %y", key);
-                }
-                if (value.typeCode() != NT_STRING) {
-                    throw "ZEYOSRESTCLIENT-ERROR",
-                          sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
-                                  key, value.type(), value);
-                }
-                self{key} = value;
-            }
-
-            # set username and password, if present
-            if (options.url) {
-                self += parse_url(options.url){"username", "password"};
-            }
-
-            # if no token is set, then the URL must have a username & password
-            if (!exists username || !exists password) {
-                throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing username and password; cannot login "
-                    "without both a username and password");
-            }
-
-            getToken();
-        }
-
-        #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        static hash<auto> getOptions(hash<auto> options) {
-            # the "{}" is to ensure that "new_options" stays "hash<auto>"
-            hash<auto> new_options = {} + options;
-
-            # remove username and password from URL
-            hash<UrlInfo> url_info = parse_url(options.url);
-            url_info -= ("username", "password");
-            # strip leading slash from path if present
-            url_info.path =~ s/^\///;
-            new_options.url = sprintf("%s://%s%s%s",
-                url_info.protocol ?? "https",
-                url_info.host,
-                (url_info.port ? ":" + url_info.port : ""),
-                (url_info.path.val() ? "/" + url_info.path : ""));
-
-            if (!exists options.no_charset) {
-                new_options.no_charset = True;
-            }
-            return new_options;
-        }
-
-        #! logs in an sets the token for further communication
-        private getToken() {
-            hash<auto> result = RestClient::post(AuthPath, {
-                "name": username,
-                "password": password,
-                "identifier": identifier ?? self.uniqueHash(),
-                "appsecret": appsecret,
-            });
-            headers{"Authorization"} = "Bearer " + result.body.token;
-        }
-    }
-
-    #! class for <a href="http://www.zeyos.com">Zeyos.com</a> REST connections; returns @ref ZeyosRestClient::ZeyosRestClient objects
-    /** supports the following options:
-        - \c "identifier" (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
-        - \c "appsecret" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
-        - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
-        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
-          \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
-          like any other response
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-        - \c "max_redirects": maximum redirects to support
-        - \c "proxy": proxy URL to use
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-        - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
-        - \c "timeout": transfer timeout to use in milliseconds
-
-        @note additionally supports the following runtime option in getImpl():
-        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
-
-        @see @ref ZeyosRestClient::ZeyosRestClient::constructor() "ZeyosRestClient::constructor()" for more information on the above options
+        @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+        @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a> REST authentication or communication
     */
-    public class ZeyosRestConnection inherits RestClient::RestConnection {
-        public {
-            #! ZeyosRestConnection object connection options
-            const ZeyosOptions = {
-                "identifier": True,
-                "appsecret": True,
-            };
-
-            const Options = RestConnection::Options + ZeyosOptions;
-
-            const OptionList = Options.keys();
+    constructor(hash<auto> options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), do_not_connect) {
+        if (options.token) {
+            headers{"Authorization"} = "Bearer " + options.token;
+            return;
         }
 
-        #! creates the ZeyosRestConnection object
-        /** @param name the name of the connection
-            @param description connection description
-            @param url connection URL (potentially with password info)
-            @param attributes various attributes. See below
-            @param options connection options
-
-            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-
-            @throws ZEYOSRESTCONNECTION-ERROR missing needed option for Zeyos authentication
-         */
-        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, ZeyosRestConnection::getConstructorOptions(options)) {
-            foreach string key in (keys ZeyosOptions) {
-                auto value = opts{key};
-                if (!exists value || value == "") {
-                    continue;
-                }
-                if (value.typeCode() != NT_STRING) {
-                    throw "ZEYOSRESTCONNECTION-ERROR",
-                          sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
-                                  key, value.type(), value);
-                }
-                #self{key} = value;
+        # check required options
+        foreach string key in (RequiredOptions) {
+            auto value = options{key};
+            if (!value.val()) {
+                throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing required option %y", key);
             }
+            if (value.typeCode() != NT_STRING) {
+                throw "ZEYOSRESTCLIENT-ERROR",
+                        sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
+                                key, value.type(), value);
+            }
+            self{key} = value;
         }
 
-        #! returns a @ref ZeyosRestClient::ZeyosRestClient object
-        /** @param connect if @ref True "True", then the connection is returned already connected
-            @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
-
-            @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
-        */
-        private ZeyosRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-            return new ZeyosRestClient(real_opts, !connect);
+        # set username and password, if present
+        if (options.url) {
+            self += parse_url(options.url){"username", "password"};
         }
 
-        #! gets options
-        /** @return returns a hash with the following supported options:
-            - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-            - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values; the default is \c "json"
-            - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
-              \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
-              like any other response
-            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-            - \c "max_redirects": maximum redirects to support
-            - \c "proxy": proxy URL to use
-            - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-            - \c "timeout": transfer timeout to use in milliseconds
-
-            @see @ref ZeyosRestClient::ZeyosRestClient::constructor() "ZeyosRestClient::constructor()" for more information on the above options
-        */
-        hash<auto> getOptions() {
-            return Options;
+        # if no token is set, then the URL must have a username & password
+        if (!exists username || !exists password) {
+            throw "ZEYOSRESTCLIENT-ERROR", sprintf("missing username and password; cannot login "
+                "without both a username and password");
         }
 
-        #! returns default options
-        *hash<auto> getDefaultOptions() {
-            return HttpConnection::DefaultOptions;
-        }
-
-        #! returns \c "zeyosrest"
-        string getType() {
-            return "zeyosrest";
-        }
-
-        #! gets options for the constructor
-        hash<auto> getConstructorOptions(hash<auto> options) {
-            return options + (options.identifier
-                ? {}
-                : {"identifier": self.uniqueHash()});
-        }
+        getToken();
     }
+
+    #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+    static hash<auto> getOptions(hash<auto> options) {
+        # the "{}" is to ensure that "new_options" stays "hash<auto>"
+        hash<auto> new_options = {} + options;
+
+        # remove username and password from URL
+        hash<UrlInfo> url_info = parse_url(options.url);
+        url_info -= ("username", "password");
+        # strip leading slash from path if present
+        url_info.path =~ s/^\///;
+        new_options.url = sprintf("%s://%s%s%s",
+            url_info.protocol ?? "https",
+            url_info.host,
+            (url_info.port ? ":" + url_info.port : ""),
+            (url_info.path.val() ? "/" + url_info.path : ""));
+
+        if (!exists options.no_charset) {
+            new_options.no_charset = True;
+        }
+        return new_options;
+    }
+
+    #! logs in an sets the token for further communication
+    private getToken() {
+        hash<auto> result = RestClient::post(AuthPath, {
+            "name": username,
+            "password": password,
+            "identifier": identifier ?? self.uniqueHash(),
+            "appsecret": appsecret,
+        });
+        headers{"Authorization"} = "Bearer " + result.body.token;
+    }
+}
+
+#! class for <a href="http://www.zeyos.com">Zeyos.com</a> REST connections; returns @ref ZeyosRestClient::ZeyosRestClient objects
+/** supports the following options:
+    - \c "identifier" (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
+    - \c "appsecret" (mandatory): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
+    - \c "connect_timeout": connection timeout to use in milliseconds
+    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+    - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
+    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
+        like any other response
+    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
+    - \c "max_redirects": maximum redirects to support
+    - \c "proxy": proxy URL to use
+    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
+    - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
+    - \c "timeout": transfer timeout to use in milliseconds
+
+    @note additionally supports the following runtime option in getImpl():
+    - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
+
+    @see @ref ZeyosRestClient::ZeyosRestClient::constructor() "ZeyosRestClient::constructor()" for more information on the above options
+*/
+public class ZeyosRestConnection inherits RestClient::RestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("ZeyosRestConnection"),
+            "options": RestConnection::ConnectionScheme.options + {
+                "appsecret": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the Zeyos application secret",
+                    "sensitive": True,
+                },
+                "identifier": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the Zeyos identifier;if none is provided, a random identifier string is used",
+                },
+            },
+            "required_options": foldl $1 + "," + $2, ZeyosRestClient::RequiredOptions,
+        };
+    }
+
+    #! creates the ZeyosRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+        : RestConnection(name, description, url, attributes, ZeyosRestConnection::getConstructorOptions(options)) {
+    }
+
+    #! returns \c "zeyosrest"
+    string getType() {
+        return "zeyosrest";
+    }
+
+    #! gets options for the constructor
+    hash<auto> getConstructorOptions(hash<auto> options) {
+        return options + (options.identifier
+            ? {}
+            : {"identifier": self.uniqueHash()});
+    }
+
+    #! returns a @ref ZeyosRestClient::ZeyosRestClient object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+        @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
+    */
+    private ZeyosRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new ZeyosRestClient(real_opts, !connect);
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
 }

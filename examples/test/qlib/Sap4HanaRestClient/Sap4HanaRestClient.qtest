@@ -116,7 +116,7 @@ public class Main inherits QUnit::Test {
         Sap4HanaRestConnection swsc("test", "test", url, {}, ("apikey": "x"));
         assertEq(True, swsc instanceof Sap4HanaRestConnection);
 
-        assertThrows("SAP4HANARESTCONNECTION-ERROR", sub () { Sap4HanaRestConnection swsc1("test", "test", url);});
+        assertThrows("CONNECTION-OPTION-ERROR", sub () { Sap4HanaRestConnection swsc1("test", "test", url);});
 
         Sap4HanaRestClient client = swsc.get(False);
         # issue #3321: check default timeouts
