@@ -434,22 +434,22 @@ scheme://user:pass@hostname:port/path
     private:internal constructorInit(string name, string description, string url, hash<auto> attributes, hash<auto> options) {
         # metadata
         self.name = name;
-        self.desc = description;
+        desc = description;
 
         # url handling
         self.url = url;
-        self.urlh = parseUrl(self.url);
-        self.safe_url = getSafeUrl(self.urlh);
+        urlh = parseUrl(self.url);
+        safe_url = getSafeUrl(self.urlh);
 
         # attributes
-        self.monitor = attributes.monitor ?? True;
-        self.enabled = attributes.enabled ?? True;
-        self.locked = attributes.locked ?? False;
-        self.debug_data = attributes.debug_data ?? False;
-        self.tags = attributes.tags ?? {};
+        monitor = attributes.monitor ?? True;
+        enabled = attributes.enabled ?? True;
+        locked = attributes.locked ?? False;
+        debug_data = attributes.debug_data ?? False;
+        tags = attributes.tags ?? {};
 
-        self.orig_opts = options;
-        self.opts = validateOptions(options);
+        opts = validateOptions(options);
+        orig_opts = opts;
     }
 
     #! returns the string type name for the connection object
