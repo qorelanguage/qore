@@ -8,7 +8,10 @@
     Bugfix release with minor new features; including full ARM CPU support; see below for more information
 
     @subsection qore_095_compatibility Fixes That Can Affect Backwards-Compatibility
-    - the @ref Qore::mkdir() "mkdir()" function was modified to provide consistent behavior and a consistent return
+    - The <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module was updated with
+      support for verbose option reporting and a connection cache; support for the deprecated constructor was removed
+      from \c HttpConnection, HttpBasedConnection, as well as from other connection classes
+    - The @ref Qore::mkdir() "mkdir()" function was modified to provide consistent behavior and a consistent return
       value with and without the \a parents argument; this function never throws an exception now, and always returns
       either \c 0 (meaning no error occurred) or \c 1 (meaning an error occurred) and no longer returns the number of
       directories created when \a parents = @ref True.  Use @ref Qore::Dir::create() "Dir::create()" to get the number
@@ -62,17 +65,17 @@
     - <a href="../../modules/Util/html/index.html">Util</a> module updates:
       - added the \c parse_memory_size() function
         (<a href="https://github.com/qorelanguage/qore/issues/4004">issue 4004</a>)
-    - new data type:
+    - New data type:
       - @ref softbinary_type "softbinary"
-    - new methods:
+    - New methods:
       - @ref Qore::HTTPClient::addDefaultHeaders() "HTTPClient::addDefaultHeaders()"
       - @ref Qore::HTTPClient::getDefaultHeaders() "HTTPClient::getDefaultHeaders()"
       - @ref Qore::Program::callStaticMethod() "Program::callStaticMethod()"
       - @ref Qore::Program::callStaticMethodArgs() "Program::callStaticMethodArgs()"
-    - new functions:
+    - New functions:
       - @ref Qore::mkdir_ex() "mkdir_ex()"
       - @ref Qore::get_stack_size() "get_stack_size()" now works on Darwin / macOS
-    - added stack guard support for ARM processors
+    - Added stack guard support for ARM processors
       (<a href="https://github.com/qorelanguage/qore/issues/3965">issue 3965</a>)
 
     @subsection qore_095_bug_fixes Bug Fixes in Qore

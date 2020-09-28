@@ -181,7 +181,7 @@ class IgnoreOptionsConnection inherits HttpConnection {
     }
 
     hash<auto> validateOptions(hash<auto> options) {
-        return orig_opts;
+        return options;
     }
 }
 
