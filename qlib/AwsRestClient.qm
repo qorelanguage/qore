@@ -440,7 +440,12 @@ public class AwsRestConnection inherits RestClient::RestConnection {
                 "data": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "data serialization options are limited to `json` with this object",
-                    "allowed_values": ("json",),
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "json",
+                            "desc": "use JSON serialization",
+                        },
+                    ),
                     "default_value": "json",
                 },
                 "aws_keyid": <ConnectionOptionInfo>{

@@ -224,17 +224,32 @@ public class SewioRestConnection inherits RestClient::RestConnection {
                 "data": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "data serialization options are limited to `json` with this object",
-                    "allowed_values": ("json",),
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "json",
+                            "desc": "use JSON serialization",
+                        },
+                    ),
                     "default_value": "json",
                 },
                 "send_encoding": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "this sets the send encoding; values are:\n"
-                        "- `gzip`: use GNU zip encoding (RFC 1952)\n"
-                        "- `bzip2`: use bzip2 encoding\n"
-                        "- `deflate`: use the deflate algorithm (RFC 1951)\n"
-                        "- `identity`: use no content encoding",
-                    "allowed_values": ("gzip", "bzip2", "deflate", "identity"),
+                    "desc": "this sets the send encoding",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "gzip",
+                            "desc": "use GNU zip encoding ([RFC 1952](https://tools.ietf.org/html/rfc1952))",
+                        }, <AllowedValueInfo>{
+                            "value": "bzip2",
+                            "desc": "use bzip2 encoding",
+                        }, <AllowedValueInfo>{
+                            "value": "deflate",
+                            "desc": "use the deflate algorithm ([RFC 1951](https://tools.ietf.org/html/rfc1951))",
+                        }, <AllowedValueInfo>{
+                            "value": "identity",
+                            "desc": "use no content encoding",
+                        },
+                    ),
                     "default_value": SewioRestClient::DefaultSendEncoding,
                 },
                 "apikey": <ConnectionOptionInfo>{
