@@ -27,6 +27,15 @@
 
 #! Contains all public definitions in the ConnectionProvider module
 public namespace ConnectionProvider {
+#! Allowed value hash
+public hashdecl AllowedValueInfo {
+    #! The value
+    auto value;
+
+    #! Description for the value
+    string desc;
+}
+
 #! Connection option information
 public hashdecl ConnectionOptionInfo {
     #! Option value type
@@ -39,7 +48,7 @@ public hashdecl ConnectionOptionInfo {
     bool sensitive = False;
 
     #! List of allowed values (enum)
-    *list<auto> allowed_values;
+    *softlist<hash<AllowedValueInfo>> allowed_values;
 
     #! Any default value
     auto default_value;

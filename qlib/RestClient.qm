@@ -1074,25 +1074,53 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "content_encoding": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "this sets the send encoding (if the `send_encoding` option is not set) and the "
-                        "response encoding to request; values are:\n"
-                        "- `gzip`: use GNU zip encoding (RFC 1952)\n"
-                        "- `bzip2`: use bzip2 encoding\n"
-                        "- `deflate`: use the deflate algorithm (RFC 1951)\n"
-                        "- `identity`: use no content encoding",
-                    "allowed_values": ("gzip", "bzip2", "deflate", "identity"),
+                        "response encoding to request",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "gzip",
+                            "desc": "use GNU zip encoding ([RFC 1952](https://tools.ietf.org/html/rfc1952))",
+                        }, <AllowedValueInfo>{
+                            "value": "bzip2",
+                            "desc": "use bzip2 encoding",
+                        }, <AllowedValueInfo>{
+                            "value": "deflate",
+                            "desc": "use the deflate algorithm ([RFC 1951](https://tools.ietf.org/html/rfc1951))",
+                        }, <AllowedValueInfo>{
+                            "value": "identity",
+                            "desc": "use no content encoding",
+                        },
+                    ),
                 },
                 "data": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "data serialization options:\n"
-                        "- `auto`: prefers in this order: `json`, `yaml`, `rawxml`, `xml`, `url`, and `text`\n"
-                        "- `bin`: for binary message bodies without data serialization\n"
-                        "- `json`: use only JSON serialization\n"
-                        "- `rawxml`: use raw XML serialization\n"
-                        "- `text`: use only plain text; no serialization is used\n"
-                        "- `url`: for URL-encoded message bodies\n"
-                        "- `xml`: use only XML-RPC serialization\n"
-                        "- `yaml`: use only YAML serialization",
-                    "allowed_values": ("auto", "json", "yaml", "rawxml", "xml", "url", "text", "bin"),
+                    "desc": "data serialization options",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "auto",
+                            "desc": "prefers in this order: `json`, `yaml`, `rawxml`, `xml`, `url`, and `text`",
+                        }, <AllowedValueInfo>{
+                            "value": "bin",
+                            "desc": "for binary message bodies without data serialization",
+                        }, <AllowedValueInfo>{
+                            "value": "json",
+                            "desc": "use JSON serialization",
+                        }, <AllowedValueInfo>{
+                            "value": "rawxml",
+                            "desc": "use raw XML serialization",
+                        }, <AllowedValueInfo>{
+                            "value": "text",
+                            "desc": "use only plain text; no serialization is used",
+                        }, <AllowedValueInfo>{
+                            "value": "url",
+                            "desc": "for URL-encoded message bodies",
+                        }, <AllowedValueInfo>{
+                            "value": "xml",
+                            "desc": "use only XML-RPC serialization",
+                        }, <AllowedValueInfo>{
+                            "value": "yaml",
+                            "desc": "use only YAML serialization",
+                        },
+                    ),
                     "default_value": "auto",
                 },
                 "headers": <ConnectionOptionInfo>{
@@ -1102,12 +1130,22 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 },
                 "send_encoding": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "this sets the send encoding; values are:\n"
-                        "- `gzip`: use GNU zip encoding (RFC 1952)\n"
-                        "- `bzip2`: use bzip2 encoding\n"
-                        "- `deflate`: use the deflate algorithm (RFC 1951)\n"
-                        "- `identity`: use no content encoding",
-                    "allowed_values": ("gzip", "bzip2", "deflate", "identity"),
+                    "desc": "this sets the send encoding",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "gzip",
+                            "desc": "use GNU zip encoding ([RFC 1952](https://tools.ietf.org/html/rfc1952))",
+                        }, <AllowedValueInfo>{
+                            "value": "bzip2",
+                            "desc": "use bzip2 encoding",
+                        }, <AllowedValueInfo>{
+                            "value": "deflate",
+                            "desc": "use the deflate algorithm ([RFC 1951](https://tools.ietf.org/html/rfc1951))",
+                        }, <AllowedValueInfo>{
+                            "value": "identity",
+                            "desc": "use no content encoding",
+                        },
+                    ),
                 },
                 "swagger": <ConnectionOptionInfo>{
                     "type": "string",
