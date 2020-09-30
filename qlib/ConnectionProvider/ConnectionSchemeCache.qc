@@ -91,7 +91,7 @@ public class ConnectionSchemeCache {
 
             "awsrests": "AwsRestClient",
 
-            "cdsrests": "RestClient",
+            "cdsrests": "CdsRestClient",
 
             "zeyosrest": "ZeyosRestClient",
             "zeyosrests": "ZeyosRestClient",
