@@ -29,6 +29,7 @@
     |@ref broken-logic-precedence "%broken-logic-precedence"|Use old pre-0.8.12 precedence of logical and bitwise operators
     |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
+    |@ref broken-range "%broken-range"|Include the upper limit in @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" as with pre-0.9.5
     |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
     |@ref broken-sprintf "%broken-sprintf"|Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
     |@ref correct-cast "%correct-cast"|revert the effect of the @ref broken-cast "%broken-cast" parse option
@@ -37,6 +38,7 @@
     |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse option
     |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse option
     |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse option
+    |@ref correct-range "%correct-range"|revert the effect of the @ref broken-range "%broken-range" parse option
     |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse option
     |@ref correct-sprintf "%correct-sprintf"|revert the effect of the @ref broken-sprintf "%broken-sprintf" parse option
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
@@ -443,6 +445,23 @@ i+ =4;
     @since %Qore 0.8.12
 
     <hr>
+    @section broken-range %broken-range
+
+    @par Parse Directive:
+    <tt>%%broken-range</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pbroken-range</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_RANGE
+
+    @par Description:
+    Include the upper limit in @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" as with %Qore before 0.9.5
+
+    @since %Qore 0.9.5
+
+    <hr>
     @section broken-references %broken-references
 
     @par Parse Directive:
@@ -593,6 +612,25 @@ i+ =4;
     @since %Qore 0.8.12.10
 
     <hr>
+    @section correct-range %correct-range
+
+    @par Parse Directive:
+    <tt>%%correct-range</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-range "%broken-range" parse option.
+
+    @see @ref broken-range "%broken-range"
+
+    @since %Qore 0.9.5
+
+    <hr>
     @section correct-references %correct-references
 
     @par Parse Directive:
@@ -607,7 +645,7 @@ i+ =4;
     @par Description:
     Reverts the effect of the @ref broken-references "%broken-references" parse option.
 
-    @see @ref broken-operators "%broken-references"
+    @see @ref broken-references "%broken-references"
 
     @since %Qore 0.8.13
 

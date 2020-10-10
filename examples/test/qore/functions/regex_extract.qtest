@@ -24,16 +24,15 @@ class RegexExtractTest inherits QUnit::Test {
 
     testRegexExtract() {
         foreach int capture_length in (CAPTURE_LENGTHS) {
-            string fixedlenstr = (map "a", xrange(1, capture_length)).join('');
+            string fixedlenstr = (map "a", xrange(1, capture_length + 1)).join('');
             foreach int i in (xrange(1, SUBPATTERNS_TO_TEST)) {
-                string str   = (map fixedlenstr, xrange(1, i)).join('');
-                string regex = (map "(" + fixedlenstr + ")", xrange(1, i)).join('');
+                string str   = (map fixedlenstr, xrange(1, i + 1)).join('');
+                string regex = (map "(" + fixedlenstr + ")", xrange(1, i + 1)).join('');
 
-                any result;
+                auto result;
                 try {
                     result = regex_extract(str, regex);
-                }
-                catch(hash ex) {
+                } catch(hash<ExceptionInfo> ex) {
                     assertTrue(i >= SUBPATTERNS_AT_LEAST, i + " subpatterns of length " + capture_length + " available");
                     break;
                 }

@@ -37,8 +37,21 @@
 
 #include <cassert>
 
+//! add an element to the end of the stack trace
+void QoreCallStack::add(qore_call_t type, const char* label, int start, int end, const char* code,
+        const char* lang) {
+    // issue #4030 insert at the beginning of the call stack, since later the order will be reversed
+    insert(begin(), QoreCallStackElement(type, label, start, end, code, lang));
+}
+
+void QoreCallStack::add(qore_call_t type, const char* label, int start, int end, const char* source,
+        unsigned offset, const char* code, const char* lang) {
+    // issue #4030 insert at the beginning of the call stack, since later the order will be reversed
+    insert(begin(), QoreCallStackElement(type, label, start, end, source, offset, code, lang));
+}
+
 QoreExceptionBase::QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValue n_arg, qore_call_t n_type)
-    : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
+        : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
     // populate call stack
     const QoreStackLocation* w = get_runtime_stack_location();
     while (w) {

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Diff.qm Qore user module for generally useful routines
 
-/*  Diff.qm Copyright 2014 - 2015 Qore Technologies, sro
+/*  Diff.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.5
 %require-types
 %enable-all-warnings
 %new-style
@@ -63,20 +63,20 @@ public namespace Diff {
     #! returns differences in two lists
     /** @par Example:
         @code{.py}
-my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
+list diff = diff((1, 2, 3, 4), (2, 3, 5));
         @endcode
         @param old some list
         @param neww another list
-        */
-    public list sub diff(softlist old, softlist neww) {
-        list matrix = list();
+    */
+    public list<auto> sub diff(softlist<auto> old, softlist<auto> neww) {
+        list<auto> matrix = ();
         int maxlen = 0;
         int old_max;
         int new_max;
         if (!old.empty() && !neww.empty()) {
-            foreach int old_index in (xrange(0, old.size() - 1)) {
-                any old_value = old[old_index];
-                list nkeys = select xrange(0, neww.size() - 1), neww[$1] == old_value;
+            foreach int old_index in (xrange(0, old.size())) {
+                auto old_value = old[old_index];
+                list<auto> nkeys = select xrange(0, neww.size()), neww[$1] == old_value;
                 foreach int new_index in (nkeys) {
                     matrix[old_index][new_index] = exists matrix[old_index - 1][new_index - 1] ? matrix[old_index - 1][new_index - 1] + 1 : 1;
                     if (matrix[old_index][new_index] > maxlen) {
@@ -88,18 +88,18 @@ my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
             }
         }
         if (old.empty() && neww.empty()) {
-            return list();
+            return ();
         }
 
         if (maxlen == 0) {
-            return list(('d' : old, 'i' : neww));
+            return list({'d': old, 'i': neww});
         }
 
-        list e1_old = slice(old, old_max != 0 ? range(0, old_max - 1) : list());
-        list e1_new = slice(neww, new_max != 0 ? range(0, new_max - 1) : list());
-        list e_eq   = slice(neww, maxlen > 0 ? range(new_max, new_max + maxlen - 1) : list());
-        list e2_old = slice(old, old.size() > old_max + maxlen ? range(old_max + maxlen, old.size() - 1) : list());
-        list e2_new = slice(neww, neww.size() > new_max + maxlen ? range(new_max + maxlen, neww.size() - 1) : list());
+        list<auto> e1_old = slice(old, old_max != 0 ? range(0, old_max) : ());
+        list<auto> e1_new = slice(neww, new_max != 0 ? range(0, new_max) : ());
+        list<auto> e_eq   = slice(neww, maxlen > 0 ? range(new_max, new_max + maxlen) : ());
+        list<auto> e2_old = slice(old, old.size() > old_max + maxlen ? range(old_max + maxlen, old.size()) : ());
+        list<auto> e2_new = slice(neww, neww.size() > new_max + maxlen ? range(new_max + maxlen, neww.size()) : ());
         return
             diff(e1_old, e1_new)
             + e_eq
@@ -109,11 +109,11 @@ my list $diff = diff((1, 2, 3, 4), (2, 3, 5));
     #! shows differences between two strings considering lines as elementary unit. This function clones standard unix diff
     /** @par Example:
         @code{.py}
-my string $diff = diff_text($str1, $str2);
+string diff = diff_text(str1, str2);
         @endcode
         @param s1 some string
         @param s2 another string
-        */
+    */
     public string sub diff_text(string s1, string s2) {
         list lines1 = split("\n", s1);
         list lines2 = split("\n", s2);
@@ -129,11 +129,9 @@ my string $diff = diff_text($str1, $str2);
                 list del = line.d;
                 if (insert.size() && del.size()) {
                     diff += line_range(line2, line2 + del.size() - 1) + 'c' + line_range(line1, line1 + insert.size() - 1) + "\n";
-                }
-                else if (insert.size()) {
+                } else if (insert.size()) {
                     diff += (line2 - 1) + "a" + line_range(line1, line1 + insert.size() - 1) + "\n";
-                }
-                else if (del.size()) {
+                } else if (del.size()) {
                     diff += line_range(line2, line2 + del.size() - 1) + "d" + (line1 - 1) + "\n";
                 }
 
@@ -148,10 +146,9 @@ my string $diff = diff_text($str1, $str2);
                 }
                 line1 += insert.size();
                 line2 += del.size();
-            }
-            else {
-                line1++;
-                line2++;
+            } else {
+                ++line1;
+                ++line2;
             }
         }
         return diff;

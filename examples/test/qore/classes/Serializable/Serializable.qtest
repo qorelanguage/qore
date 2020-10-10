@@ -389,7 +389,7 @@ class SerializableTest inherits QUnit::Test {
         }
 
         {
-            list<RTest> l = map new RTest(), xrange(RCount - 1);
+            list<RTest> l = map new RTest(), xrange(RCount);
             for (int i = 0; i < RCount; ++i) {
                 for (int j = 0; j < RCount; ++j) {
                     int k = i + j + 1;

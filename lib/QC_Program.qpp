@@ -645,6 +645,13 @@ const PO_BROKEN_OPERATORS = PO_BROKEN_OPERATORS;
 */
 const PO_BROKEN_LOOP_STATEMENT = PO_BROKEN_LOOP_STATEMENT;
 
+//! allows for old pre-%Qore 0.9.5 handling of @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()"
+/** @see @ref broken-range "%broken-range"
+
+    @since %Qore 0.9.5
+*/
+const PO_BROKEN_RANGE = PO_BROKEN_RANGE;
+
 //! allows for old pre-%Qore 0.8.13 handling of @ref reference_type "reference" and @ref reference_or_nothing_type "*reference"
 /** @see @ref broken-references "%broken-references"
 

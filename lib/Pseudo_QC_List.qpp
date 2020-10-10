@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -237,14 +237,15 @@ map printf("+ %y\n", $1), l.ranegIterator();
 
     @return a @ref Qore::RangeIterator "RangeIterator" object for the list elements
 
-    @since %Qore 0.8.8
-    @since %Qore 0.8.11.1 this pseudo-method takes the optional \a val argument
+    @since
+    - %Qore 0.8.8
+    - %Qore 0.8.11.1 this pseudo-method takes the optional \a val argument
  */
 AbstractIterator <list>::rangeIterator(auto val) [flags=CONSTANT] {
    if (l->empty())
       return new QoreObject(QC_SINGLEVALUEITERATOR, 0, new SingleValueIterator);
 
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, l->size() - 1, 1, val, xsink), xsink);
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, l->size(), 1, val, xsink), xsink);
    if (*xsink)
       return QoreValue();
 

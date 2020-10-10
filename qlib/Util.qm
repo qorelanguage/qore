@@ -1480,7 +1480,7 @@ list<int> ints = parse_ranges("3,5, 7-9"); # returns (3, 5, 7, 8, 9)
         foreach string str in (parts) {
             list<string> bounds = str.split("-");
             if (bounds.size() == 2) {
-                numbers += range(int(bounds[0]), int(bounds[1]));
+                numbers += range(int(bounds[0]), int(bounds[1]) + 1);
             } else {
                 numbers += int(str);
             }

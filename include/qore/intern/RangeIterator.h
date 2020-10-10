@@ -56,12 +56,20 @@ public:
             m_stop(stop),
             m_step(step),
             m_position(-1),
-            m_increasing(start<stop),
+            m_increasing(start < stop),
             m_valid(false),
             val((!v.isNothing() && step >= 0) ? v.refSelf() : QoreValue()) {
         if (step < 1) {
             xsink->raiseException("RANGEITERATOR-ERROR", "Value of the 'step' argument has to be greater than 0 " \
                 "(value passed: " QLLD ")", step);
+        }
+        // issue #4031
+        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+            if (m_increasing) {
+                ++stop;
+            } else {
+                --stop;
+            }
         }
     }
 
@@ -81,7 +89,7 @@ public:
 
     DLLLOCAL bool next() {
         ++m_position;
-        m_valid = m_increasing ? (calculateCurrent() <= m_stop) : (calculateCurrent() >= m_stop);
+        m_valid = m_increasing ? (calculateCurrent() < m_stop) : (calculateCurrent() > m_stop);
         if (!m_valid)
             m_position = -1;
         return m_valid;
@@ -94,7 +102,7 @@ public:
     DLLLOCAL QoreValue getValue(ExceptionSink *xsink) {
         if (!m_valid) {
             xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
-            return 0;
+            return QoreValue();
         }
 
         int64 rv = calculateCurrent();

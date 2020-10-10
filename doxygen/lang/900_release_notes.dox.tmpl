@@ -16,6 +16,8 @@
       either \c 0 (meaning no error occurred) or \c 1 (meaning an error occurred) and no longer returns the number of
       directories created when \a parents = @ref True.  Use @ref Qore::Dir::create() "Dir::create()" to get the number
       of directories created as in previous versions of %Qore; @see Qore::mkdir_ex()
+    - Fixed broken @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" where the upper limit of the range
+      was included in the result.  To get the old behavior, use the @ref broken-range "%broken-range" parse directive.
 
     @subsection qore_095_new_features New Features in Qore
     - <a href="../../modules/CdsRestClient/html/index.html">CdsRestClient</a>
@@ -100,6 +102,12 @@
     - <a href="../../modules/QUnit/html/index.html">QUnit</a> module updates:
       - updated to allow tests to be run with argument handling from languages that do not support lvalue references
         (<a href="https://github.com/qorelanguage/qore/issues/3934">issue 3934</a>)
+    - fixed a bug in @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" where the upper limit of the
+      range was included in the result
+      (<a href="https://github.com/qorelanguage/qore/issues/4031">issue 4031</a>)
+    - fixed a bug in exception handling with external language modules where stack trace elements were added in
+      reverse order
+      (<a href="https://github.com/qorelanguage/qore/issues/4030">issue 4030</a>)
     - fixed a bug in @ref Qore::mkdir() with \c parents = @ref True
       (<a href="https://github.com/qorelanguage/qore/issues/3992">issue 3992</a>)
     - fixed a bug handling embedded nulls in UTF-8 strings
