@@ -28,7 +28,7 @@ class HashTimeTest inherits QUnit::Test {
 
         set_return_value(main());
     }
-    
+
     globalSetUp() {
         l = ();
         srand(now());
@@ -37,7 +37,7 @@ class HashTimeTest inherits QUnit::Test {
     test() {
         # test create
         date list_start = now_us();
-        foreach int i in (range(hash_keycount - 1)) {
+        foreach int i in (range(hash_keycount)) {
             l += getKey(i);
         }
         assertEq(elements(l), hash_keycount, "created list of " + hash_keycount + " elements");
@@ -46,7 +46,7 @@ class HashTimeTest inherits QUnit::Test {
         assertTrue(interval_create < limit_time, "Create interval: " + interval_create + "s");
 
         # test insert
-        foreach int i in (range(hash_keycount - 1)) {
+        foreach int i in (range(hash_keycount)) {
             h{l[i]} = True;
         }
         date search = now_us();
@@ -56,7 +56,7 @@ class HashTimeTest inherits QUnit::Test {
         # test search
         search = now_us();
         for (int loop = 0; loop < num_loops; loop++) {
-            foreach int i in (range(hash_keycount - 1)) {
+            foreach int i in (range(hash_keycount)) {
                 bool v = h.(l[i]);
             }
         }

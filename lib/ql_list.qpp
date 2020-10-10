@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,12 +64,19 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
 
     QoreListNode* l = new QoreListNode(bigIntTypeInfo);
     if (start < stop) {
-        for (int64 i = start; i <= stop; i += step) {
+        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+            ++stop;
+        }
+
+        for (int64 i = start; i < stop; i += step) {
             l->push(i, xsink);
         }
-    }
-    else {
-        for (int64 i = start; i >= stop; i -= step) {
+    } else {
+        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+            --stop;
+        }
+
+        for (int64 i = start; i > stop; i -= step) {
             l->push(i, xsink);
         }
     }
@@ -870,7 +877,7 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
     @endcode
 
     @param start the initial value
-    @param stop the final value
+    @param stop the upper limit
     @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
 
     @return Returns a list containing an arithmetic progression of integers.
@@ -881,7 +888,9 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
 
     @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
 
-    @since %Qore 0.8.6
+    @since
+    - %Qore 0.8.6
+    - %Qore 0.9.5 does not include the upper limit in the range unless @ref broken-range "%broken-range" is set
 */
 list<int> range(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     return range_intern(start, stop, step, xsink);
@@ -905,7 +914,9 @@ range(-3); # (0, -1, -2, -3)
 
     @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
 
-    @since %Qore 0.8.6
+    @since
+    - %Qore 0.8.6
+    - %Qore 0.9.5 does not include the upper limit in the range unless @ref broken-range "%broken-range" is set
  */
 list<int> range(int stop) [flags=CONSTANT] {
     return range_intern(0, stop, 1, xsink);

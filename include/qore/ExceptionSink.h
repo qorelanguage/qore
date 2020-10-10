@@ -285,7 +285,7 @@ enum qore_call_t : signed char {
 struct QoreSourceLocation {
     std::string label;     //!< the code label name (source file if source not present)
     int start_line,        //!< the start line
-        end_line;           //!< the end line
+        end_line;          //!< the end line
     std::string source;    //!< optional additional source file
     unsigned offset = 0;   //!< offset in source file (only used if source is not empty)
     std::string code;      //!< the function or method call name; method calls in format class::name
@@ -324,15 +324,13 @@ typedef std::vector<QoreCallStackElement> callstack_vec_t;
 /** @since %Qore 0.8.13
  */
 struct QoreCallStack : public callstack_vec_t {
-    DLLLOCAL void add(qore_call_t type, const char* label, int start, int end, const char* code,
-        const char* lang = "Qore") {
-        push_back(QoreCallStackElement(type, label, start, end, code, lang));
-    }
+    //! add an element to the end of the stack trace
+    DLLEXPORT void add(qore_call_t type, const char* label, int start, int end, const char* code,
+        const char* lang = "Qore");
 
-    DLLLOCAL void add(qore_call_t type, const char* label, int start, int end, const char* source,
-        unsigned offset, const char* code, const char* lang = "Qore") {
-        push_back(QoreCallStackElement(type, label, start, end, source, offset, code, lang));
-    }
+    //! add an element to the end of the stack trace
+    DLLEXPORT void add(qore_call_t type, const char* label, int start, int end, const char* source,
+        unsigned offset, const char* code, const char* lang = "Qore");
 };
 
 static inline void alreadyDeleted(ExceptionSink *xsink, const char *cmeth) {

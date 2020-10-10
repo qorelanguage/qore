@@ -392,7 +392,7 @@ public namespace DebugCmdLine {
                                         hash data.cmd = 'thread/stack';
                                         data.tid = dcl.checkThreadId();
                                         *hash th = dcl.doCommand(data, False);
-                                        return th.result.size() > 1 ? range(0, th.result.size()-2) : ();   # TODO: is removing bottom item reliable rule ?
+                                        return th.result.size() > 1 ? range(0, th.result.size() - 1) : ();   # TODO: is removing bottom item reliable rule ?
                                     },
                                     'validate': \DebugCommandLine::validateInt(),
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {

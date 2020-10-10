@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,11 @@ FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(Fu
     int64 stop = rh->getAsBigInt();
 
     value_type = list;
+    if (start <= stop) {
+        ++stop;
+    } else {
+        --stop;
+    }
     return new QoreFunctionalRangeOperator(start, stop, xsink);
 }
 

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -151,8 +151,14 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
 
     if (seq->getType() == NT_LIST) {
         int64 start, stop, seq_size;
-        if (getEffectiveRange(*seq, start, stop, seq_size, xsink))
+        if (getEffectiveRange(*seq, start, stop, seq_size, xsink)) {
+            if (start <= stop) {
+                ++stop;
+            } else {
+                --stop;
+            }
             return new QoreFunctionalSquareBracketsRangeOperator(seq, start, stop, xsink);
+        }
     }
 
     bool needs_deref;
@@ -242,8 +248,7 @@ bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq
             start = 0;
         if (seq_type != NT_LIST && stop > seq_size - 1)
             stop = seq_size - 1;
-    }
-    else {
+    } else {
         if (stop > seq_size - 1 || start < 0)
             return false;
 

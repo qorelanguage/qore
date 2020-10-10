@@ -264,13 +264,23 @@ public class ArrayTest inherits QUnit::Test {
     }
 
     testRange() {
-        assertEq((0, 1,), range(1), "range - basic test");
-        assertEq((2, 3, 4, 5), range(2, 5), "range - boundaries test");
-        assertEq((2, 1, 0, -1, -2), range(2, -2), "range - descending test");
-        assertEq((1, 6), range(1, 10, 5), "range - step test");
-        assertEq((0, 5, 10), range(0, 10, 5), "range - step from 0");
-        assertEq((-10, -5, 0, 5, 10), range(-10, 10, 5), "range - asc test");
-        assertEq((10, 5, 0, -5, -10), range(10, -10, 5), "range - descending step test");
+        assertEq((0,), range(1), "range - basic test");
+        assertEq((2, 3, 4,), range(2, 5), "range - boundaries test");
+        assertEq((2, 1, 0, -1,), range(2, -2), "range - descending test");
+        assertEq((1, 6,), range(1, 10, 5), "range - step test");
+        assertEq((0, 5,), range(0, 10, 5), "range - step from 0");
+        assertEq((-10, -5, 0, 5), range(-10, 10, 5), "range - asc test");
+        assertEq((10, 5, 0, -5), range(10, -10, 5), "range - descending step test");
+
+        Program p(PO_NEW_STYLE | PO_BROKEN_RANGE);
+        p.parse("list<int> sub _range() { return call_function_args(\\range(), argv); }", "_range");
+        assertEq((0, 1,), p.callFunction("_range", 1), "range - basic test");
+        assertEq((2, 3, 4, 5), p.callFunction("_range", 2, 5), "range - boundaries test");
+        assertEq((2, 1, 0, -1, -2), p.callFunction("_range", 2, -2), "range - descending test");
+        assertEq((1, 6), p.callFunction("_range", 1, 10, 5), "range - step test");
+        assertEq((0, 5, 10), p.callFunction("_range", 0, 10, 5), "range - step from 0");
+        assertEq((-10, -5, 0, 5, 10), p.callFunction("_range", -10, 10, 5), "range - asc test");
+        assertEq((10, 5, 0, -5, -10), p.callFunction("_range", 10, -10, 5), "range - descending step test");
     }
 
     testPseudomethods() {
@@ -287,7 +297,7 @@ public class ArrayTest inherits QUnit::Test {
     }
 
     sortDescStable() {
-        list x = map ($1, 1), range(1,9);
+        list x = map ($1, 1), range(1, 9);
         code f = int sub(list l, list r) { return l[1] <=> r[1]; };
         list s = sort_descending_stable(x, f);
         assertEq(x, s);

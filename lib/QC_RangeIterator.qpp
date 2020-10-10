@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /** @file QC_RangeIterator.qpp RangeIterator class definition */
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright 2003 - 2017 Qore Technologies s.r.o.
+    Copyright 2003 - 2020 Qore Technologies s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -42,20 +42,22 @@
     This results in memory-friendly handling for large numerical sequences compared to
     generating a list in memory and iterating that list (as with @ref Qore::range()).
 
-   @par Example: RangeIterator basic usage
-   @code{.py}
+    @par Example: RangeIterator basic usage
+    @code{.py}
 RangeIterator r(0, 2);
 foreach int i in (r)
     printf("i=%d\n", i);
 # i=0
 # i=1
 # i=2
-   @endcode
+    @endcode
 
-   @see range()
-   @see xrange()
+    @see range()
+    @see xrange()
 
-   @since %Qore 0.8.6
+    @since
+    - %Qore 0.8.6
+    - %Qore 0.9.5 does not include the upper limit in the range unless @ref broken-range "%broken-range" is set
  */
 qclass RangeIterator [arg=RangeIterator* i; ns=Qore; vparent=AbstractIterator];
 
@@ -75,10 +77,10 @@ RangeIterator i(5, 10, 2);
     @since %Qore 0.8.11.1 this method takes the optional \a val argument
  */
 RangeIterator::constructor(int start, int stop, int step = 1, auto val) {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
-   if (*xsink)
-      return;
-   self->setPrivate(CID_RANGEITERATOR, r.release());
+    ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+    if (*xsink)
+        return;
+    self->setPrivate(CID_RANGEITERATOR, r.release());
 }
 
 //! creates the numerical sequence iterator with the initial arguments
@@ -94,10 +96,10 @@ RangeIterator i(5);
     @since %Qore 0.8.11.1
  */
 RangeIterator::constructor(int stop) {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
-   if (*xsink)
-      return;
-   self->setPrivate(CID_RANGEITERATOR, r.release());
+    ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
+    if (*xsink)
+        return;
+    self->setPrivate(CID_RANGEITERATOR, r.release());
 }
 
 //! Creates a copy of the RangeIterator object, iterating the same object as the original and in the same position
@@ -107,7 +109,7 @@ RangeIterator ni = i.copy();
     @endcode
  */
 RangeIterator::copy() {
-   self->setPrivate(CID_RANGEITERATOR, new RangeIterator(*i));
+    self->setPrivate(CID_RANGEITERATOR, new RangeIterator(*i));
 }
 
 //! This method returns @ref True "True" while there are more numbers to iterate and @ref False "False" when the range has been completely iterated
@@ -125,9 +127,9 @@ while (i.next()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool RangeIterator::next() {
-   if (i->check(xsink))
-       return false;
-   return i->next();
+    if (i->check(xsink))
+        return false;
+    return i->next();
 }
 
 //! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
@@ -146,9 +148,9 @@ while (i.next()) {
     @note if a value was passed to the constructor, then that value is returned instead of the current range index
  */
 auto RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-       return QoreValue();
-   return i->getValue(xsink);
+    if (i->check(xsink))
+        return QoreValue();
+    return i->getValue(xsink);
 }
 
 //! Reset the iterator instance to its initial state (start, stop, and step).
@@ -178,9 +180,9 @@ foreach int i in (r)
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 RangeIterator::reset() {
-   if (i->check(xsink))
-       return QoreValue();
-   i->reset();
+    if (i->check(xsink))
+        return QoreValue();
+    i->reset();
 }
 
 //! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
@@ -193,7 +195,7 @@ if (i.valid())
     @endcode
  */
 bool RangeIterator::valid() [flags=CONSTANT] {
-   return i->valid();
+    return i->valid();
 }
 
 /** @defgroup range_functions RangeIterator helper functions
@@ -239,15 +241,17 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
 
     @note the main difference between range() and xrange() is that range returns a real list and xrange() returns a RangeIterator
 
-    @since %Qore 0.8.6
-    @since %Qore 0.8.11.1 this function takes the optional \a val argument
+    @since
+    - %Qore 0.8.6
+    - %Qore 0.8.11.1 this function takes the optional \a val argument
+    - %Qore 0.9.5 does not include the upper limit in the range unless @ref broken-range "%broken-range" is set
 */
 RangeIterator xrange(int start, int stop, int step = 1, auto val) [flags=RET_VALUE_ONLY] {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
+    return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 
 //! Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
@@ -268,13 +272,15 @@ xrange(-3); # 0, -1, -2, -3
 
     @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
-    @since %Qore 0.8.6
+    @since
+    - %Qore 0.8.6
+    - %Qore 0.9.5 does not include the upper limit in the range unless @ref broken-range "%broken-range" is set
  */
 RangeIterator xrange(int stop) [flags=CONSTANT] {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
+    return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 //@}
