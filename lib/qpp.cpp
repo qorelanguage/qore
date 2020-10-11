@@ -1199,8 +1199,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                         error("missing end quote in hash key '%s'\n", key.c_str());
                         return -1;
                     }
-                }
-                else {
+                } else {
                     key.insert(0, "MAKE_STRING_FROM_SYMBOL(");
                     key += ")";
                 }
@@ -1396,33 +1395,50 @@ static void process_comment(std::string& buf) {
 
         size_t start = i;
 
-        size_t end;
+        size_t end = 0;
 
-        // find end of line
-        size_t j = buf.find('\n', i + 2);
-        log(LL_DEBUG, "serialize_dox_comment() looking for first EOL j: %lu\n", j);
-        if (j == std::string::npos)
+        i += 1;
+        std::string str;
+        // closure to get one line, allowing for line continuations with '\' in the last position
+        auto get_line = [&]() {
+            str.clear();
+            // find end of line
+            size_t j = buf.find('\n', i);
+            if (j == std::string::npos) {
+                return false;
+            }
+            while (true) {
+                end = j;
+                if (buf[j - 1] != '\\') {
+                    str.append(buf, i, j - i);
+                    i = j + 1;
+                    break;
+                }
+                str.append(buf, i, j - i - 1);
+                i = j + 1;
+                j = buf.find('\n', i);
+                if (j == std::string::npos) {
+                    break;
+                }
+            }
+            return true;
+        };
+
+        if (!get_line()) {
             break;
+        }
 
-        end = j;
+        std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n    <table>\n";
 
-        std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n    <table>";
-
-        std::string str(buf, i + 1, j - i - 1);
 
         while (true) {
             strlist_t sl;
             get_string_list2(sl, str, '|');
 
             doRow(sl, tstr);
-            i = j + 1;
-
-            // find next EOL
-            j = buf.find('\n', i);
-            if (j == std::string::npos)
+            if (!get_line()) {
                 break;
-
-            str.assign(buf, i, j - i);
+            }
 
             // find start of next row, if any
             size_t k = str.find('|');
@@ -1430,7 +1446,7 @@ static void process_comment(std::string& buf) {
                 break;
 
             str.erase(0, k + 1);
-            end = j;
+            //end = j;
         }
 
         tstr += "    </table>\n";

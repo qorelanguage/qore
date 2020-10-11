@@ -17,7 +17,8 @@
       directories created when \a parents = @ref True.  Use @ref Qore::Dir::create() "Dir::create()" to get the number
       of directories created as in previous versions of %Qore; @see Qore::mkdir_ex()
     - Fixed broken @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" where the upper limit of the range
-      was included in the result.  To get the old behavior, use the @ref broken-range "%broken-range" parse directive.
+      was included in the result for maximum compatibility with other languages.  To get the old behavior, use the
+      @ref broken-range "%broken-range" parse directive.
 
     @subsection qore_095_new_features New Features in Qore
     - <a href="../../modules/CdsRestClient/html/index.html">CdsRestClient</a>
@@ -32,13 +33,12 @@
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
       - added new %Qore base types to the data type hierarchy
       - implemented the following classes:
-        - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
-        - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
-        - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
+        - \c AbstractDataProcessor
+        - \c DataProviderBulkRecordIterator
+        - \c DataProviderPipeline
         \n
         (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
-      - added the \c DUPLICATE-RECORD exception documentation for
-        @ref DataProvider::AbstractDataProvider::createRecord() "AbstractDataProvider::createRecord()"
+      - added the \c DUPLICATE-RECORD exception documentation for \c AbstractDataProvider::createRecord()
       - updated to allow data provider type attributes to appear as children in the type hierarchy
         (<a href="https://github.com/qorelanguage/qore/issues/4015">issue 4015</a>)
     - <a href="../../modules/FsUtil/html/index.html">FsUtil</a> module updates:
@@ -53,10 +53,10 @@
       - added \c AbstractReflectionFunction::getModuleName()
       - added \c Namespace::getModuleName()
     - <a href="../../modules/RestClient/html/index.html">RestClient</a>
-      - added the @ref no_charset option to options
+      - added the \c no_charset option to options
         (<a href="https://github.com/qorelanguage/qore/issues/3328">issue 3328</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>
-      - added the @ref no_charset option to options
+      - added the \c no_charset option to options
         (<a href="https://github.com/qorelanguage/qore/issues/3328">issue 3328</a>)
     - <a href="../../modules/Schema/html/index.html">Schema</a> module updates:
       - allow schema operations to be executed with no output (verbose < 0)
@@ -1538,46 +1538,44 @@
       - improved @ref new "new", @ref cast "cast<>", and @ref instanceof "instanceof" operators
       - the @ref instanceof "instanceof" operator now works with any type; ex: @code{.py} bool b = v instanceof hash<string, int>; @endcode
       - note that complex type information is lost when assigning to an lvalue with a compatible but more generic type or by assigning to an untyped lvalue; this was necessary to allow complex types to be introduced in %Qore without breaking backwards compatibility.
-    - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead; includes the following classes:
-      - @ref Qore::BinaryInputStream "BinaryInputStream"
-      - @ref Qore::BinaryOutputStream "BinaryOutputStream"
-      - @ref Qore::BufferedStreamReader "BufferedStreamReader"
-      - @ref Qore::EncodingConversionInputStream "EncodingConversionInputStream"
-      - @ref Qore::EncodingConversionOutputStream "EncodingConversionOutputStream"
-      - @ref Qore::FileInputStream "FileInputStream"
-      - @ref Qore::FileOutputStream "FileOutputStream"
-      - @ref Qore::InputStream "InputStream"
-      - @ref Qore::InputStreamLineIterator "InputStreamLineIterator"
-      - @ref Qore::OutputStream "OutputStream"
-      - @ref Qore::PipeInputStream "PipeInputStream"
-      - @ref Qore::PipeOutputStream "PipeOutputStream"
-      - @ref Qore::StreamPipe "StreamPipe"
-      - @ref Qore::StreamReader "StreamReader"
-      - @ref Qore::StreamWriter "StreamWriter"
-      - @ref Qore::StringInputStream "StringInputStream"
-      - @ref Qore::StringOutputStream "StringOutputStream"
-      - @ref Qore::Transform "Transform"
-      - @ref Qore::TransformInputStream "TransformInputStream"
-      - @ref Qore::TransformOutputStream "TransformOutputStream"
-      - @ref Qore::StdoutOutputStream "StdoutOutputStream"
-      - @ref Qore::StderrOutputStream "StderrOutputStream"
-      .
-      Three constants were introduced for accessing standard input/output using streams API:
-      - @ref Qore::stdin_stream "stdin_stream"
-      - @ref Qore::stdout_stream "stdout_stream"
-      - @ref Qore::stderr_stream "stderr_stream"
-      .
-      Additionally, stream support has been added to the following functions and methods:
-      - @ref Qore::FtpClient::put()
-      - @ref Qore::FtpClient::get()
-      - @ref Qore::HTTPClient::send()
-      - @ref Qore::HTTPClient::sendChunked()
-      - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
-      - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
-      .
-      Stream support was also added to the following user modules:
-      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
-      - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>
+    - support for input and output streams for the efficient piecewise processing of small or large amounts of data with a low memory overhead
+      - includes the following classes:
+        - @ref Qore::BinaryInputStream "BinaryInputStream"
+        - @ref Qore::BinaryOutputStream "BinaryOutputStream"
+        - @ref Qore::BufferedStreamReader "BufferedStreamReader"
+        - @ref Qore::EncodingConversionInputStream "EncodingConversionInputStream"
+        - @ref Qore::EncodingConversionOutputStream "EncodingConversionOutputStream"
+        - @ref Qore::FileInputStream "FileInputStream"
+        - @ref Qore::FileOutputStream "FileOutputStream"
+        - @ref Qore::InputStream "InputStream"
+        - @ref Qore::InputStreamLineIterator "InputStreamLineIterator"
+        - @ref Qore::OutputStream "OutputStream"
+        - @ref Qore::PipeInputStream "PipeInputStream"
+        - @ref Qore::PipeOutputStream "PipeOutputStream"
+        - @ref Qore::StreamPipe "StreamPipe"
+        - @ref Qore::StreamReader "StreamReader"
+        - @ref Qore::StreamWriter "StreamWriter"
+        - @ref Qore::StringInputStream "StringInputStream"
+        - @ref Qore::StringOutputStream "StringOutputStream"
+        - @ref Qore::Transform "Transform"
+        - @ref Qore::TransformInputStream "TransformInputStream"
+        - @ref Qore::TransformOutputStream "TransformOutputStream"
+        - @ref Qore::StdoutOutputStream "StdoutOutputStream"
+        - @ref Qore::StderrOutputStream "StderrOutputStream"
+      - Three constants were introduced for accessing standard input/output using streams API:
+        - @ref Qore::stdin_stream "stdin_stream"
+        - @ref Qore::stdout_stream "stdout_stream"
+        - @ref Qore::stderr_stream "stderr_stream"
+      - Additionally, stream support has been added to the following functions and methods:
+        - @ref Qore::FtpClient::put()
+        - @ref Qore::FtpClient::get()
+        - @ref Qore::HTTPClient::send()
+        - @ref Qore::HTTPClient::sendChunked()
+        - @ref Qore::Socket::sendHTTPChunkedBodyFromInputStream()
+        - @ref Qore::Socket::readHTTPChunkedBodyToOutputStream()
+      - Stream support was also added to the following user modules:
+        - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
+        - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a>
     - support for @ref op_functional "lazy functional evaluation" of functional operators (including nested lazy evaluation) for much more efficient processing of iterated expressions; affects:
       - @ref map "map": supports lazy evaluation of itself and also of the iterator expression
       - @ref select "select": supports lazy evaluation of itself and also of the iterator expression
@@ -1593,41 +1591,44 @@
       - @ref binary_slicing "binary slices"
       - new @ref range_operator ".. range operator"
       - updated @ref list_element_operator "[] operator"
-    - enhanced cryptographic support including support for <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> support, plus the following new API functions:
-      - @ref Qore::decrypt_to_binary()
-      - @ref Qore::decrypt_to_string()
-      - @ref Qore::encrypt()
-      - @ref Qore::get_crypto_info()
-      - @ref Qore::get_decryptor()
-      - @ref Qore::get_encryptor()
-      .
-      The following constants were added to support the new generic cryptographic APIs:
-      - @ref Qore::CRYPTO_ALG_AES_128
-      - @ref Qore::CRYPTO_ALG_AES_192
-      - @ref Qore::CRYPTO_ALG_AES_256
-      - @ref Qore::CRYPTO_ALG_BLOWFISH
-      - @ref Qore::CRYPTO_ALG_BLOWFISH_CFB
-      - @ref Qore::CRYPTO_ALG_BLOWFISH_OFB
-      - @ref Qore::CRYPTO_ALG_CAST5
-      - @ref Qore::CRYPTO_ALG_CAST5_CFB
-      - @ref Qore::CRYPTO_ALG_CAST5_OFB
-      - @ref Qore::CRYPTO_ALG_DES
-      - @ref Qore::CRYPTO_ALG_DES_CFB
-      - @ref Qore::CRYPTO_ALG_DES_OFB
-      - @ref Qore::CRYPTO_ALG_DES_EDE
-      - @ref Qore::CRYPTO_ALG_DES_EDE_CFB
-      - @ref Qore::CRYPTO_ALG_DES_EDE_OFB
-      - @ref Qore::CRYPTO_ALG_DES_EDE3
-      - @ref Qore::CRYPTO_ALG_DES_EDE3_CFB
-      - @ref Qore::CRYPTO_ALG_DES_EDE3_OFB
-      - @ref Qore::CRYPTO_ALG_DESX
-      - @ref Qore::CRYPTO_ALG_RC2
-      - @ref Qore::CRYPTO_ALG_RC2_CFB
-      - @ref Qore::CRYPTO_ALG_RC2_OFB
-      - @ref Qore::CRYPTO_ALG_RC4
-      - @ref Qore::CRYPTO_ALG_RC5
-      - @ref Qore::CRYPTO_ALG_RC5_CFB
-      - @ref Qore::CRYPTO_ALG_RC5_OFB
+    - enhanced cryptographic support including support for
+      <a href="https://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES</a> with Additional Authenticated Data
+      and <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a>
+      support
+      - The following new API functions were added:
+        - @ref Qore::decrypt_to_binary()
+        - @ref Qore::decrypt_to_string()
+        - @ref Qore::encrypt()
+        - @ref Qore::get_crypto_info()
+        - @ref Qore::get_decryptor()
+        - @ref Qore::get_encryptor()
+      - The following constants were added to support the new generic cryptographic APIs:
+        - @ref Qore::CRYPTO_ALG_AES_128
+        - @ref Qore::CRYPTO_ALG_AES_192
+        - @ref Qore::CRYPTO_ALG_AES_256
+        - @ref Qore::CRYPTO_ALG_BLOWFISH
+        - @ref Qore::CRYPTO_ALG_BLOWFISH_CFB
+        - @ref Qore::CRYPTO_ALG_BLOWFISH_OFB
+        - @ref Qore::CRYPTO_ALG_CAST5
+        - @ref Qore::CRYPTO_ALG_CAST5_CFB
+        - @ref Qore::CRYPTO_ALG_CAST5_OFB
+        - @ref Qore::CRYPTO_ALG_DES
+        - @ref Qore::CRYPTO_ALG_DES_CFB
+        - @ref Qore::CRYPTO_ALG_DES_OFB
+        - @ref Qore::CRYPTO_ALG_DES_EDE
+        - @ref Qore::CRYPTO_ALG_DES_EDE_CFB
+        - @ref Qore::CRYPTO_ALG_DES_EDE_OFB
+        - @ref Qore::CRYPTO_ALG_DES_EDE3
+        - @ref Qore::CRYPTO_ALG_DES_EDE3_CFB
+        - @ref Qore::CRYPTO_ALG_DES_EDE3_OFB
+        - @ref Qore::CRYPTO_ALG_DESX
+        - @ref Qore::CRYPTO_ALG_RC2
+        - @ref Qore::CRYPTO_ALG_RC2_CFB
+        - @ref Qore::CRYPTO_ALG_RC2_OFB
+        - @ref Qore::CRYPTO_ALG_RC4
+        - @ref Qore::CRYPTO_ALG_RC5
+        - @ref Qore::CRYPTO_ALG_RC5_CFB
+        - @ref Qore::CRYPTO_ALG_RC5_OFB
     - support for binding output placeholder buffers for @ref resultset_output_binding "result sets" that return an @ref Qore::SQL::SQLStatement "SQLStatement" object:
       - new DBI capability constant @ref Qore::SQL::DBI_CAP_HAS_RESULTSET_OUTPUT "DBI_CAP_HAS_RESULTSET_OUTPUT"
       - new placeholder buffer specification constant @ref Qore::SQL::RESULTSET "RESULTSET"
@@ -1704,13 +1705,13 @@
       - @ref Qore::Socket::setSslVerifyMode()
     - updated methods:
       - @ref Qore::Thread::Counter::dec() "Counter::dec()": now returns the current value of the counter
-      - @ref Qore::HTTPClient::constructor() added support for the following options:
-        - \c ssl_cert_path: allows an X.509 client certificate to be set in the constructor
-        - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
-        - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
-        - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
-        .
-        Additionally, the HTTPClient class now understands the \c PATCH method (<a href="https://tools.ietf.org/html/rfc5789">RFC 5789</a>)
+      - @ref Qore::HTTPClient::constructor() updates
+        - Added support for the following options:
+          - \c ssl_cert_path: allows an X.509 client certificate to be set in the constructor
+          - \c ssl_key_path: allows a private key for an X.509 client certificate to be set in the constructor
+          - \c ssl_key_password: allows a password-protected private key to be used wih an X.509 client certificate
+          - \c ssl_verify_cert: enforces server certificate validation with HTTPS connections
+        - Additionally, the HTTPClient class now understands the \c PATCH method (<a href="https://tools.ietf.org/html/rfc5789">RFC 5789</a>)
       - @ref Qore::RangeIterator::constructor(int) was updated; the second argument was removed to avoid ambiguity with the other overloaded constructor
       - @ref Qore::TreeMap::get() "TreeMap::get()": added a new optional argument to return the unmatched part of the search string
       - the following read-only static methods were moved from the @ref Qore::File "File" class to the @ref Qore::ReadOnlyFile "ReadOnlyFile" class:
@@ -2206,20 +2207,20 @@
       - @ref Qore::Program::importClass() now accepts optional arguments that allow the imported version of the class to live in another namespace and have another name and an argument that allows the imported version of the class to remain even if it overlaps with an imported system or user class from a module
       - @ref Qore::Program::importFunction() now accepts an optional argument that allows the imported version of the function to remain even if it overlaps with an imported system or user function from a module
       - the new parse option @ref Qore::PO_ALLOW_INJECTION must be set on the @ref Qore::Program "Program" object in order to use code / dependency injection parameters in the above methods
-      - once a @ref Qore::Program "Program" object has an injected API set up, the system API can be imported (possibly already overridden with injected code) with the following new methods:
-        - @ref Qore::Program::importSystemApi()
-        - @ref Qore::Program::importSystemClasses()
-        - @ref Qore::Program::importSystemConstants()
-        - @ref Qore::Program::importSystemFunctions()
-        .
-        additionally user modules can be loaded with overridden injected code with the following new functions / methods:
-        - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
-        - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
-        - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
-        - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
-        .
-        furthermore the following function can be used to reload injected modules with the non-injected version:
-        - @ref Qore::reload_module() "reload_module()"
+      - @ref Qore::Program "Program" changes:
+        - Once the object has an injected API set up, the system API can be imported
+          (possibly already overridden with injected code) with the following new methods:
+          - @ref Qore::Program::importSystemApi()
+          - @ref Qore::Program::importSystemClasses()
+          - @ref Qore::Program::importSystemConstants()
+          - @ref Qore::Program::importSystemFunctions()
+        - Additionally user modules can be loaded with overridden injected code with the following new functions / methods:
+          - @ref Qore::load_user_module_with_program() "load_user_module_with_program()"
+          - @ref Qore::Program::loadApplyToPrivateUserModule() "Program::loadApplyToPrivateUserModule()"
+          - @ref Qore::Program::loadApplyToUserModule() "Program::loadApplyToUserModule()"
+          - @ref Qore::Program::loadUserModuleWithProgram() "Program::loadUserModuleWithProgram()"
+        - Furthermore the following function can be used to reload injected modules with the non-injected version:
+          - @ref Qore::reload_module() "reload_module()"
     - implemented support for user-defined thread-resource management, allowing %Qore code to safely manage resources associated to a particular thread:
       - @ref Qore::Thread::AbstractThreadResource
       - @ref Qore::remove_thread_resource()
@@ -2290,38 +2291,38 @@
       - @ref Qore::absolute_path()
       - @ref Qore::absolute_path_windows()
       - @ref Qore::absolute_path_unix()
-    - camel-case functions were deprecated in this release, covering the following functions:
-      - @ref Qore::callObjectMethod(): deprecated for @ref Qore::call_object_method()
-      - @ref Qore::callObjectMethodArgs(): deprecated for @ref Qore::call_object_method_args()
-      - @ref Qore::existsFunction(): deprecated for @ref Qore::exists_function()
-      - @ref Qore::functionType(): deprecated for @ref Qore::function_type()
-      - @ref Qore::getAllThreadCallStacks(): deprecated for @ref Qore::get_all_thread_call_stacks()
-      - @ref Qore::getClassName(): deprecated for @ref Qore::get_class_name()
-      - @ref Qore::getDateFromISOWeek(): deprecated for @ref Qore::get_date_from_iso_week()
-      - @ref Qore::getDayNumber(): deprecated for @ref Qore::get_day_number()
-      - @ref Qore::getDayOfWeek(): deprecated for @ref Qore::get_day_of_week()
-      - @ref Qore::SQL::getDBIDriverCapabilities(): deprecated for @ref Qore::SQL::dbi_get_driver_capabilities()
-      - @ref Qore::SQL::getDBIDriverCapabilityList(): deprecated for @ref Qore::SQL::dbi_get_driver_capability_list()
-      - @ref Qore::SQL::getDBIDriverList(): deprecated for @ref Qore::SQL::dbi_get_driver_list()
-      - @ref Qore::getFeatureList(): deprecated for @ref Qore::get_feature_list()
-      - @ref Qore::getISODayOfWeek(): deprecated for @ref Qore::get_iso_day_of_week()
-      - @ref Qore::getISOWeekHash(): deprecated for @ref Qore::get_iso_week_hash()
-      - @ref Qore::getISOWeekString(): deprecated for @ref Qore::get_iso_week_string()
-      - @ref Qore::getMethodList(): deprecated for @ref Qore::get_method_list()
-      - @ref Qore::getModuleHash(): deprecated for @ref Qore::get_module_hash()
-      - @ref Qore::getModuleList(): deprecated for @ref Qore::get_module_list()
-      - @ref Qore::makeBase64String(): deprecated for @ref Qore::make_base64_string()
-      - @ref Qore::makeHexString(): deprecated for @ref Qore::make_hex_string()
-      - @ref Qore::parseBase64String(): deprecated for @ref Qore::parse_base64_string()
-      - @ref Qore::parseBase64StringToString(): deprecated for @ref Qore::parse_base64_string_to_string()
-      - @ref Qore::SQL::parseDatasource(): deprecated for @ref Qore::SQL::parse_datasource()
-      - @ref Qore::parseHexString(): deprecated for @ref Qore::parse_hex_string()
-      - @ref Qore::sortDescending(): deprecated for @ref Qore::sort_descending()
-      - @ref Qore::sortDescendingStable(): deprecated for @ref Qore::sort_descending_stable()
-      - @ref Qore::sortStable(): deprecated for @ref Qore::sort_stable()
-      - @ref Qore::throwThreadResourceExceptions(): deprecated for @ref Qore::throw_thread_resource_exceptions()
-      .
-      Functions deprecated in this release will remain for the forseeable future for backwards-compatibility
+    - camel-case functions were deprecated in this release
+      - the following functions were deprecated:
+        - @ref Qore::callObjectMethod(): deprecated for @ref Qore::call_object_method()
+        - @ref Qore::callObjectMethodArgs(): deprecated for @ref Qore::call_object_method_args()
+        - @ref Qore::existsFunction(): deprecated for @ref Qore::exists_function()
+        - @ref Qore::functionType(): deprecated for @ref Qore::function_type()
+        - @ref Qore::getAllThreadCallStacks(): deprecated for @ref Qore::get_all_thread_call_stacks()
+        - @ref Qore::getClassName(): deprecated for @ref Qore::get_class_name()
+        - @ref Qore::getDateFromISOWeek(): deprecated for @ref Qore::get_date_from_iso_week()
+        - @ref Qore::getDayNumber(): deprecated for @ref Qore::get_day_number()
+        - @ref Qore::getDayOfWeek(): deprecated for @ref Qore::get_day_of_week()
+        - @ref Qore::SQL::getDBIDriverCapabilities(): deprecated for @ref Qore::SQL::dbi_get_driver_capabilities()
+        - @ref Qore::SQL::getDBIDriverCapabilityList(): deprecated for @ref Qore::SQL::dbi_get_driver_capability_list()
+        - @ref Qore::SQL::getDBIDriverList(): deprecated for @ref Qore::SQL::dbi_get_driver_list()
+        - @ref Qore::getFeatureList(): deprecated for @ref Qore::get_feature_list()
+        - @ref Qore::getISODayOfWeek(): deprecated for @ref Qore::get_iso_day_of_week()
+        - @ref Qore::getISOWeekHash(): deprecated for @ref Qore::get_iso_week_hash()
+        - @ref Qore::getISOWeekString(): deprecated for @ref Qore::get_iso_week_string()
+        - @ref Qore::getMethodList(): deprecated for @ref Qore::get_method_list()
+        - @ref Qore::getModuleHash(): deprecated for @ref Qore::get_module_hash()
+        - @ref Qore::getModuleList(): deprecated for @ref Qore::get_module_list()
+        - @ref Qore::makeBase64String(): deprecated for @ref Qore::make_base64_string()
+        - @ref Qore::makeHexString(): deprecated for @ref Qore::make_hex_string()
+        - @ref Qore::parseBase64String(): deprecated for @ref Qore::parse_base64_string()
+        - @ref Qore::parseBase64StringToString(): deprecated for @ref Qore::parse_base64_string_to_string()
+        - @ref Qore::SQL::parseDatasource(): deprecated for @ref Qore::SQL::parse_datasource()
+        - @ref Qore::parseHexString(): deprecated for @ref Qore::parse_hex_string()
+        - @ref Qore::sortDescending(): deprecated for @ref Qore::sort_descending()
+        - @ref Qore::sortDescendingStable(): deprecated for @ref Qore::sort_descending_stable()
+        - @ref Qore::sortStable(): deprecated for @ref Qore::sort_stable()
+        - @ref Qore::throwThreadResourceExceptions(): deprecated for @ref Qore::throw_thread_resource_exceptions()
+      - Functions deprecated in this release will remain for the forseeable future for backwards-compatibility
     - Added support for reexporting imported definitions in user module with the new <tt>%%requires(reexport)</tt> form of the @ref requires "%requires" parse directive.
     - @ref Qore::xrange() and @ref Qore::RangeIterator updates:
       - @ref Qore::xrange() and @ref Qore::RangeIterator::constructor() and <list>::rangeIterator() updated to take an optional value to return in the @ref Qore::RangeIterator::getValue() method
