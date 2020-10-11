@@ -89,10 +89,12 @@ FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(Fu
     int64 stop = rh->getAsBigInt();
 
     value_type = list;
-    if (start <= stop) {
-        ++stop;
-    } else {
-        --stop;
+    if (!(runtime_get_parse_options() & PO_BROKEN_RANGE)) {
+        if (start <= stop) {
+            ++stop;
+        } else {
+            --stop;
+        }
     }
     return new QoreFunctionalRangeOperator(start, stop, xsink);
 }

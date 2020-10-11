@@ -152,10 +152,12 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
     if (seq->getType() == NT_LIST) {
         int64 start, stop, seq_size;
         if (getEffectiveRange(*seq, start, stop, seq_size, xsink)) {
-            if (start <= stop) {
-                ++stop;
-            } else {
-                --stop;
+            if (!(runtime_get_parse_options() & PO_BROKEN_RANGE)) {
+                if (start <= stop) {
+                    ++stop;
+                } else {
+                    --stop;
+                }
             }
             return new QoreFunctionalSquareBracketsRangeOperator(seq, start, stop, xsink);
         }
