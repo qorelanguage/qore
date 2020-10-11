@@ -266,7 +266,7 @@ public:
     //! concatenates the string value corresponding to the number to the string given
     /** @param str the string to append to
         @param fmt a bitfield of @ref number_format_flags "number format flags"
-        */
+    */
     DLLEXPORT void toString(QoreString& str, int fmt = QORE_NF_DEFAULT) const;
 
     //! returns the precision of the number
