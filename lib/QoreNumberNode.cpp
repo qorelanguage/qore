@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,8 +68,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " dp: " QLLD " len: " QLLD "\n", this, str.getBuffer(), exp, dp, len);
 	 if (exp)
 	    str.insertch('0', len + 2, exp);
-      }
-      else {
+      } else {
 	 // get remaining length of string (how many characters were added)
 	 qore_size_t rlen = str.size() - len;
 
@@ -87,8 +86,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
       // try to do some rounding (noise reduction with binary->decimal conversions)
       if (dp && round)
          applyRoundingHeuristic(str, dp, str.size());
-   }
-   else
+   } else
       str.concat(buf);
 
    //printd(5, "qore_number_private::getAsString() this: %p returning '%s'\n", this, str.getBuffer());
@@ -123,7 +121,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp
 
             // set last digit to digit found
             lc = c;
-        }  else {
+        } else {
             // check for 2nd threshold
             if (cnt > round_threshold_2) {
                 break;
@@ -304,8 +302,7 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
       // now substitute decimal point if necessary
       else if (prec > 0 && (dsep.strlen() != 1 || dsep[0] != '.'))
          num.replace(dp, 1, dsep.getBuffer());
-   }
-   else {
+   } else {
       dp = num.size();
       if ((prec < 0) && (prec != QORE_NUM_ALL_DIGITS) && doRound(num, dp, prec))
          return 0;
