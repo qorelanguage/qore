@@ -64,11 +64,11 @@ public:
                 "(value passed: " QLLD ")", step);
         }
         // issue #4031
-        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+        if (runtime_get_parse_options() & PO_BROKEN_RANGE) {
             if (m_increasing) {
-                ++stop;
+                ++m_stop;
             } else {
-                --stop;
+                --m_stop;
             }
         }
     }

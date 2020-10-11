@@ -62,9 +62,10 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
         return 0;
     }
 
+    bool broken_range = runtime_get_parse_options() & PO_BROKEN_RANGE;
     QoreListNode* l = new QoreListNode(bigIntTypeInfo);
     if (start < stop) {
-        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+        if (broken_range) {
             ++stop;
         }
 
@@ -72,7 +73,7 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
             l->push(i, xsink);
         }
     } else {
-        if (parse_get_parse_options() & PO_BROKEN_RANGE) {
+        if (broken_range) {
             --stop;
         }
 
