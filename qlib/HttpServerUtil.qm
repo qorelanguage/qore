@@ -1166,6 +1166,58 @@ public class HttpServer::AbstractHttpRequestHandler {
             throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP level is %y and the Connection header is %y", hdr.http_version, hdr.connection);
     }
 
+    #! Called if the request contains an \c "Expect: 100-continue" header
+    /**
+        @param cx call context hash; this hash will have the following keys:
+        - \c header-info: a hash of information about the request header with the following keys:
+          - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
+            any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
+            be set to the first requested character encoding in the list
+          - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
+            @ref True
+          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
+          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
+            this key
+          - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
+            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the
+            client
+          - \c close: set to @ref True "True" if the connection should be closed after responding,
+            @ref False "False" if not (as derived from the request header)
+          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
+          - \c request-uri: gives the request URI in an HTTP request
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by
+          @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by
+          @ref Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
+        - \c id: the unique HTTP connection ID
+        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        - \c root_path: the root URL path matched if the request was matched by a URL prefix
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys
+        will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+
+        @return a hash with the following keys:
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed
+          when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        @note the default implementation simply returns a <tt>100 Continue</tt> response for all requests; reimplement
+        this method in a subclass to provide the required functionality
+    */
+    hash<HttpResponseInfo> handleExpectHeader(hash<auto> cx, hash<auto> hdr) {
+        return <HttpResponseInfo>{
+            "code": 100,
+        };
+    }
+
     #! will be called when a request is received that should be directed to the handler
     /**
         @param cx call context hash; this hash will have the following keys:
@@ -1187,14 +1239,16 @@ public class HttpServer::AbstractHttpRequestHandler {
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by
+          @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
         - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
-        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys
+        will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
         - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
@@ -1203,10 +1257,12 @@ public class HttpServer::AbstractHttpRequestHandler {
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
         - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed
+          when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
-        @note the default implementation simply returns a 501 error code for all requests; reimplement this method in a subclass to provide the required functionality
+        @note the default implementation simply returns a 501 error code for all requests; reimplement this method in
+        a subclass to provide the required functionality
     */
     hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
         return <HttpResponseInfo>{
