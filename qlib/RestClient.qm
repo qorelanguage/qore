@@ -1009,10 +1009,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             : h."content-type");
         *hash<auto> dh = NullRestSchemaValidator::DataDeserializationSupport{ct};
         if (!dh)
-            throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; types supported: %y; response body: %y", h."content-type", NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
-
-        if (h.body.typeCode() != NT_STRING)
-            throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y but body type is %y", h."content-type", h.body.type());
+            throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; types "
+                "supported: %y; response body: %y", h."content-type",
+                NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
 
         string code = dh."code";
         h.body = dh.arg

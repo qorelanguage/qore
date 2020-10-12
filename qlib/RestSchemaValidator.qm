@@ -76,6 +76,8 @@ module RestSchemaValidator {
     @subsection restschemavalidator_2_1 RestSchemaValidator v2.1
     - fixed a bug handling complex \c Content-Type headers in responses
       (<a href="https://github.com/qorelanguage/qore/issues/4019">issue 4019</a>)
+    - fixed a bug where the \c Expect header was not supported and where binary message bodies were read as strings
+      (<a href="https://github.com/qorelanguage/qore/issues/4035">issue 4035</a>)
 
     @subsection restschemavalidator_2_0 RestSchemaValidator v2.0
     - implemented support for the DataProvider API
@@ -668,10 +670,9 @@ public namespace RestSchemaValidator {
             if (exists http_body) {
                 *hash<auto> dh = DataDeserializationSupport.(headers."content-type");
                 if (!dh)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", headers."content-type", keys DataDeserializationSupport, http_body);
-
-                if (http_body.typeCode() != NT_STRING)
-                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", headers."content-type", http_body.type());
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; "
+                        "types supported: %y; response body: %y", headers."content-type",
+                        keys DataDeserializationSupport, http_body);
 
                 string ds_code = dh.code;
                 rv.body = dh.arg

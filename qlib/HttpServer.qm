@@ -74,12 +74,15 @@ module HttpServer {
 %new-style
 
 class MyHandler inherits AbstractHttpRequestHandler {
-    hash handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
+    hash<HttpResponseInfo> handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
         # NOTE: change "%y" to "%N" to get a more readable multi-line output format for container values
-        log("request received on %s from %s: context: %y hdr: %y body size: %d byte%s", cx."peer-info".desc, cx."socket-info".desc, cx, hdr, body.size(), body.size() == 1 ? "" : "s");
+        log("request received on %s from %s: context: %y hdr: %y body size: %d byte%s", cx."peer-info".desc,
+            cx."socket-info".desc, cx, hdr, body.size(), body.size() == 1 ? "" : "s");
         return {
             "code": 200,
-            "body": sprintf("<title>Test Page</title><body><h1>Qore HTTP server v%s</h1><p>%y on %s PID %s TID %d connection %d</p><p>Qore %s</p></body>", HttpServer::Version, now_us(), gethostname(), getpid(), gettid(), cx.id, Qore::VersionString),
+            "body": sprintf("<title>Test Page</title><body><h1>Qore HTTP server v%s</h1><p>%y on %s PID %s TID %d "
+                "connection %d</p><p>Qore %s</p></body>", HttpServer::Version, now_us(), gethostname(), getpid(),
+                gettid(), cx.id, Qore::VersionString),
             "close": True,
         };
     }
@@ -1837,7 +1840,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference<hash<auto>> cx, hash<auto> hdr, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash<auto>> cx, hash<auto> hdr, bool head = False,
+            HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated) {
         if (!http_methods{hdr.method}) {
             string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
             string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
@@ -1861,10 +1865,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         # erase the encoding string on exit
         on_exit remove cx.encoding;
-
-        # override assumed "iso-8859-1" character encoding if necessary
-        if (body && body.typeCode() == NT_STRING && override_encoding && hdr."_qore_orig_content_type" !~ /charset=/)
-            body = force_encoding(body, override_encoding);
 
         hash url = {
             "path": hdr.path,
@@ -1895,7 +1895,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     if (listener.defaultHandler)
                         hi = listener.defaultHandler;
                     else {
-                        sendHttpError(listener, cx, s, 404, "Not found", NOTHING, NOTHING, cx."response-encoding", head);
+                        sendHttpError(listener, cx, s, 404, "Not found", NOTHING, NOTHING,
+                            cx."response-encoding", head);
                         return;
                     }
                 }
@@ -1917,6 +1918,51 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
 
         try {
+            if (hdr.expect) {
+                if (hdr.expect == "100-continue") {
+                    hash<HttpResponseInfo> resp = handler.handleExpectHeader(cx, hdr);
+                    sendReply(listener, s, handler, resp, \cx, hdr, head, \dedicated);
+                } else {
+                    string etxt = sprintf("unrecognized 'Expect' header: %y", hdr.expect);
+                    string str = sprintf("%s: received from %s via %s (header: %y)", etxt,
+                        cx."peer-info".address_desc, cx."socket-info".address_desc, hdr);
+                    listener.logError(str);
+                    cx.close = True;
+                    sendHttpError(listener, cx, s, 400, etxt, NOTHING, NOTHING, cx."response-encoding",
+                        hdr.method == "HEAD");
+                    return;
+                }
+            }
+
+            *data body;
+            # if we need to get a body
+            if (hdr."content-length") {
+                try {
+                    if (hdr."content-encoding" || hdr."content-type" == MimeTypeOctetStream)
+                        body = s.recvBinary(hdr."content-length", HttpServer::ReadTimeout);
+                    else
+                        body = s.recv(hdr."content-length", HttpServer::ReadTimeout);
+                    #printf("HTTP DEBUG: %s\n", body);
+                } catch (hash<ExceptionInfo> ex) {
+                    string etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", hdr.method,
+                        hdr."content-length", ex.err, ex.desc);
+                    string str = sprintf("%s: received from %s via %s (header: %y)", etxt,
+                        cx."peer-info".address_desc, cx."socket-info".address_desc, hdr);
+                    listener.logError(str);
+                    cx.close = True;
+                    sendHttpError(listener, cx, s, 400, etxt, NOTHING, NOTHING, cx."response-encoding",
+                        hdr.method == "HEAD");
+                    return;
+                }
+            }
+
+            # override assumed "iso-8859-1" character encoding if necessary
+            if (body.typeCode() == NT_STRING && override_encoding && hdr."_qore_orig_content_type" !~ /charset=/) {
+                body = force_encoding(body, override_encoding);
+            }
+
+            listener.doLogRecvBody(body, cx, hdr, info);
+
             hash<HttpResponseInfo> rv;
 
             #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
@@ -2010,7 +2056,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head, reference<bool> dedicated) {
+    final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash<auto> rv,
+            reference<hash> cx, hash<auto> hdr, bool head, reference<bool> dedicated) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -2439,6 +2486,46 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         log_send_body = flag;
     }
 
+    doLogRecvBody(*data body, hash<auto> cx, hash<auto> hdr, hash<auto> info) {
+        if (body) {
+            string lstr = sprintf("cid %d src %y: %s %s HTTP/%s body (%db): ", cx.cid, cx."peer-info".address_desc,
+                hdr.method, cx.masked_path, hdr.http_version, body.size());
+            if (body.typeCode() == NT_STRING) {
+                try {
+                    string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
+                    # attempt to mask sensitive data in the message body
+                    bstr = serv.maskData(bstr);
+                    bstr = replace(bstr, "\n", "\\n");
+                    bstr = replace(bstr, "\r", "\\r");
+                    bstr = replace(bstr, "\t", "\\t");
+                    lstr += sprintf("'%s'", bstr);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err == "INVALID-ENCODING") {
+                        lstr += sprintf("error logging msg body: %s: %s", ex.err, ex.desc);
+
+                        string etxt = serv.getDebug()
+                            ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                            : get_exception_string(ex);
+                        string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+                        logError(str);
+                        logError(sprintf("hdr=%y", hdr));
+                    }
+                }
+            } else {
+                lstr += "<bin>";
+            }
+            log("%s", lstr);
+        }
+
+        if (log_recv_body) {
+            if (hdr."content-type" == MimeTypeOctetStream || hdr."content-encoding") {
+                log("cid %d: RECV BODY: <%s>", cx.id, body.toHex());
+            } else {
+                log("cid %d: RECV BODY: %y", cx.id, body);
+            }
+        }
+    }
+
     hash<auto> getLogOptions() {
         return {
             "recv_headers": log_recv_headers,
@@ -2746,7 +2833,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     # sending a "connection: close" header, but in
                     # case they don't, we simply close the connection silently
                     if (ex.err == "SOCKET-CLOSED") {
-                        #printf("HTTP DEBUG: socket closed id=%d source=%n\n", cx.id, info.address_desc);
+                        #printf("HTTP DEBUG: socket closed id=%d source: %y\n", cx.id, info.address_desc);
                         break;
                     } else if (ex.err == "SOCKET-TIMEOUT") {
                         # log error and close connection on timeout
@@ -2776,9 +2863,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # process ascii encodings in url if present
                 cx.raw_path = hdr.path;
                 hdr.path = decode_uri_request(hdr.path);
+                cx.orig_path = hdr.path;
+                cx.masked_path = serv.maskData(cx.orig_path);
 
                 # remove leading / if present in path
-                *string orig_path = hdr.path;
                 if (hdr.path =~ /^\//)
                     splice hdr.path, 0, 1;
 
@@ -2786,9 +2874,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     cx.auth = hdr.authorization;
 
                 # save original content-type
-                if (hdr."content-type")
+                if (hdr."content-type") {
                     hdr."_qore_orig_content_type" = hdr."content-type";
+                }
                 hdr."content-type" = header_info."body-content-type";
+                if (hdr."content-type".typeCode() == NT_LIST) {
+                    hdr."content-type" = hdr."content-type"[0];
+                }
 
                 # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
                 cx.char_encoding = s.getEncoding();
@@ -2800,58 +2892,11 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
                 cx.close = header_info.close;
 
-                # if we need to get a body
-                if (hdr."content-length") {
-                    try {
-                        if (hdr."content-encoding")
-                            body = s.recvBinary(hdr."content-length", HttpServer::ReadTimeout);
-                        else
-                            body = s.recv(hdr."content-length", HttpServer::ReadTimeout);
-                        #printf("HTTP DEBUG: %s\n", body);
-                    } catch (hash<ExceptionInfo> ex) {
-                        string etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", hdr.method, hdr."content-length", ex.err, ex.desc);
-                        string str = sprintf("%s: received from %s via %s (header=%n)", etxt, info.address_desc, socket_info.address_desc, hdr);
-                        logError(str);
-                        cx.close = True;
-                        serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, NOTHING, cx."response-encoding", hdr.method == "HEAD");
-                        break;
-                    }
-                }
-
-                if (log_recv_body)
-                    log("cid %d: RECV BODY: %y", cx.id, body);
-
                 {
                     # attempt to mask sensitive data in the URI path
-                    orig_path = serv.maskData(orig_path);
-                    string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id, cx."peer-info".address_desc, hdr.method, orig_path, hdr.http_version, hdr."user-agent");
-                    if (body) {
-                        if (body.typeCode() == NT_STRING) {
-                            try {
-                                string bstr = body.size() > BodyLogLimit ? body.substr(0, BodyLogLimit) + "..." : body;
-                                # attempt to mask sensitive data in the message body
-                                bstr = serv.maskData(bstr);
-                                bstr = replace(bstr, "\n", "\\n");
-                                bstr = replace(bstr, "\r", "\\r");
-                                bstr = replace(bstr, "\t", "\\t");
-                                lstr += sprintf(" body: '%s' (%db)", bstr, body.size());
-                            } catch (hash<ExceptionInfo> ex) {
-                                if (ex.err == "INVALID-ENCODING") {
-                                    string etxt = serv.getDebug()
-                                        ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
-                                        : get_exception_string(ex);
-                                    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
-                                    logError(str);
-                                    logError(sprintf("hdr=%y", hdr));
-                                    serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, NOTHING, cx."response-encoding", False);
-                                    continue;
-                                }
-                            }
-                        } else {
-                            lstr += sprintf(" body: <bin> %db", body.size());
-                        }
-                    }
-                    else if (hdr."transfer-encoding" == "chunked")
+                    string lstr = sprintf("cid %d src %y: %s %s HTTP/%s (agent: %y", cx.id,
+                        cx."peer-info".address_desc, hdr.method, cx.masked_path, hdr.http_version, hdr."user-agent");
+                    if (hdr."transfer-encoding" == "chunked")
                         lstr += " body: chunked";
                     if (hdr."_qore_orig_content_type")
                         lstr += sprintf(" Content-Type: %y", hdr."_qore_orig_content_type");
@@ -2868,7 +2913,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 if (get_remote_certs) {
                     cx."client-cert" = s.getRemoteCertificate();
                 }
-                serv.handleRequest(self, s, \cx, hdr, body, hdr.method == "HEAD", phi, info, \dedicated);
+                serv.handleRequest(self, s, \cx, hdr, hdr.method == "HEAD", phi, info, \dedicated);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 
@@ -2883,7 +2928,6 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
             logError(str);
             logError(sprintf("hdr=%y", hdr));
-            #logError(sprintf("msg=%y", body));
             cx.close = True;
             serv.sendHttpError(self, cx, s, 500, etxt, NOTHING, NOTHING, cx."response-encoding", False);
         }
