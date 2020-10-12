@@ -36,6 +36,8 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
+/** @note objects of this type are only compatible if their fields are compatible
+*/
 public class HashDataType inherits QoreDataType {
     private {
         #! the name of the type
@@ -77,10 +79,11 @@ public class HashDataType inherits QoreDataType {
     auto acceptsValue(auto value) {
         # {} + ensure that the hash value is "hash<auto>"
         value = {} + QoreDataType::acceptsValue(value);
+        hash<auto> value_copy = value;
         # check fields if any are defined
         foreach AbstractDataField field in (fields.iterator()) {
             string key = field.getName();
-            auto val = value{key};
+            auto val = remove value_copy{key};
             if (!exists val && !field.isMandatory()) {
                 continue;
             }
@@ -91,7 +94,38 @@ public class HashDataType inherits QoreDataType {
                     ex.desc);
             }
         }
+        if (value_copy) {
+            throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y", getName(),
+                keys value_copy);
+        }
         return value;
+    }
+
+    #! returns True if this type can be assigned from values of the argument type
+    /** @note objects of this type are only compatible if their fields are compatible
+    */
+    bool isAssignableFrom(AbstractDataProviderType t) {
+        *hash<string, AbstractDataField> other_fields = t.getFields();
+        if (other_fields) {
+            foreach AbstractDataField field in (fields.iterator()) {
+                string key = field.getName();
+                *AbstractDataField other_field = remove other_fields{key};
+                if (!other_field) {
+                    if (!field.isMandatory()) {
+                        continue;
+                    } else {
+                        return False;
+                    }
+                }
+                if (!field.getType().isAssignableFrom(other_field.getType())) {
+                    return False;
+                }
+            }
+            if (other_fields) {
+                return False;
+            }
+        }
+        return QoreDataType::isAssignableFrom(t);
     }
 
     #! adds a field to the type
