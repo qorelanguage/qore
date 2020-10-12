@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider class
@@ -234,7 +223,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         *PathItemObject pio = schema.paths.tryMatch(uri_path);
         if (pio) {
             try {
-                return new SwaggerRequestDataProvider(schema, rest, uri_path, pio.getOperation(name.lwr(), uri_path));
+                return new SwaggerRequestDataProvider(schema, rest, uri_path, pio, pio.getOperation(name.lwr(), uri_path));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "INVALID-METHOD") {
                     rethrow;

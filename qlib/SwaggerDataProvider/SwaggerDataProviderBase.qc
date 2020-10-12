@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerDataProvider module definition
 
-/** SwaggerDataProviderBase.qc Copyright 2019 Qore Technologies, s.r.o.
+/** SwaggerDataProviderBase.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider base class
@@ -52,7 +41,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
             switch (i.value.inLoc) {
                 # body and formData parameters are handled directly under the operation
                 case "query": {
-                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, i.value.type, i.value.items, i.value.desc, i.value.required);
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, i.value.type,
+                        i.value.items, i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
                     if (i.value.required && !req_map{i.value.inLoc}) {
                         req_map{i.value.inLoc} = True;
@@ -61,7 +51,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                 }
 
                 case "header": {
-                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, "string", NOTHING, i.value.desc, i.value.required);
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, "string", NOTHING,
+                        i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
                     if (i.value.required) {
                         if (!req_map{i.value.inLoc}) {
@@ -101,7 +92,11 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     #! Returns the data type for the given schema
     private AbstractDataProviderType getSchemaDataType(SchemaObject schema, bool required = True) {
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
-        map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, exists schema.required{$1.key})), schema.properties.pairIterator();
+        map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, exists schema.required{$1.key})),
+            schema.properties.pairIterator();
+        if (schema.additionalProperties) {
+            type.setDefaultOtherFieldType(getType(schema.additionalProperties.type));
+        }
         return type;
     }
 

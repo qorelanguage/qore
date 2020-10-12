@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SwaggerRequestDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider class
@@ -50,6 +39,9 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         #! The URI needs dynamic resolution
         bool resolve_uri;
 
+        #! The path item object for the operation
+        PathItemObject pio;
+
         #! The operation object
         OperationObject op;
 
@@ -61,10 +53,11 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     }
 
     #! Creates the object from the arguments
-    constructor(SwaggerSchema schema, *RestClient rest, string uri_path, OperationObject op) {
+    constructor(SwaggerSchema schema, *RestClient rest, string uri_path, PathItemObject pio, OperationObject op) {
         self.schema = schema;
         self.rest = rest;
         self.uri_path = uri_path;
+        self.pio = pio;
         self.op = op;
 
         if (cb_value_needs_resolution) {
@@ -119,12 +112,14 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     private *AbstractDataProviderType getRequestTypeImpl() {
         HashDataType rv(getName() + ": request");
         bool required = False;
-        if (op.parameters) {
-            addFieldsFromParameters(rv, op.parameters, \required);
+        *hash<string, AbstractParameterObject> params = pio.parameters + op.parameters;
+        if (params) {
+            addFieldsFromParameters(rv, params, \required);
         }
-        if (op.body) {
-            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(op.body).schema, op.body.required ?? False));
-            if (!required && op.body.required) {
+        *AbstractParameterObject body = op.body ?? pio.body;
+        if (body) {
+            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(body).schema, body.required ?? False));
+            if (!required && body.required) {
                 required = True;
             }
         }

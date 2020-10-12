@@ -36,6 +36,8 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
+/** @note objects of this type are only compatible if their fields are compatible
+*/
 public class HashDataType inherits QoreDataType {
     private {
         #! the name of the type
@@ -43,6 +45,12 @@ public class HashDataType inherits QoreDataType {
 
         #! fields
         hash<string, AbstractDataField> fields;
+
+        #! allow other fields
+        *AbstractDataProviderType default_other_field_type;
+
+        #! if the type requires validation
+        bool has_default_other_field_type = False;
     }
 
     #! creates the object and assigns the name as the type
@@ -62,6 +70,16 @@ public class HashDataType inherits QoreDataType {
         self.fields = fields;
     }
 
+    #! Sets the default field type for unlisted fields
+    setDefaultOtherFieldType(*AbstractDataProviderType default_other_field_type) {
+        self.default_other_field_type = default_other_field_type;
+        if (default_other_field_type) {
+            has_default_other_field_type = default_other_field_type.hasType();
+        } else {
+            has_default_other_field_type = False;
+        }
+    }
+
     #! returns the type name
     string getName() {
         return name;
@@ -77,10 +95,11 @@ public class HashDataType inherits QoreDataType {
     auto acceptsValue(auto value) {
         # {} + ensure that the hash value is "hash<auto>"
         value = {} + QoreDataType::acceptsValue(value);
+        hash<auto> value_copy = value;
         # check fields if any are defined
         foreach AbstractDataField field in (fields.iterator()) {
             string key = field.getName();
-            auto val = value{key};
+            auto val = remove value_copy{key};
             if (!exists val && !field.isMandatory()) {
                 continue;
             }
@@ -91,7 +110,58 @@ public class HashDataType inherits QoreDataType {
                     ex.desc);
             }
         }
+        if (value_copy) {
+            if (default_other_field_type) {
+                if (has_default_other_field_type) {
+                    foreach hash<auto> i in (value_copy.pairIterator()) {
+                        try {
+                            value{i.key} = default_other_field_type.acceptsValue(i.value);
+                        } catch (hash<ExceptionInfo> ex) {
+                            throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y default field %y: %s: %s", getName(),
+                                i.key, ex.err, ex.desc);
+                        }
+                    }
+                }
+            } else {
+                throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
+                    getName(), keys value_copy, keys fields);
+            }
+        }
         return value;
+    }
+
+    #! returns True if this type can be assigned from values of the argument type
+    /** @note objects of this type are only compatible if their fields are compatible
+    */
+    bool isAssignableFrom(AbstractDataProviderType t) {
+        *hash<string, AbstractDataField> other_fields = t.getFields();
+        if (other_fields) {
+            foreach AbstractDataField field in (fields.iterator()) {
+                string key = field.getName();
+                *AbstractDataField other_field = remove other_fields{key};
+                if (!other_field) {
+                    if (!field.isMandatory()) {
+                        continue;
+                    } else {
+                        return False;
+                    }
+                }
+                if (!field.getType().isAssignableFrom(other_field.getType())) {
+                    return False;
+                }
+            }
+            if (other_fields) {
+                if (!default_other_field_type) {
+                    return False;
+                }
+                foreach AbstractDataField other_field in (other_fields) {
+                    if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
+                        return False;
+                    }
+                }
+            }
+        }
+        return QoreDataType::isAssignableFrom(t);
     }
 
     #! adds a field to the type
