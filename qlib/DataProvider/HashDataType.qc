@@ -45,6 +45,12 @@ public class HashDataType inherits QoreDataType {
 
         #! fields
         hash<string, AbstractDataField> fields;
+
+        #! allow other fields
+        *AbstractDataProviderType default_other_field_type;
+
+        #! if the type requires validation
+        bool has_default_other_field_type = False;
     }
 
     #! creates the object and assigns the name as the type
@@ -62,6 +68,16 @@ public class HashDataType inherits QoreDataType {
         : QoreDataType(AutoHashType, options) {
         self.name = name;
         self.fields = fields;
+    }
+
+    #! Sets the default field type for unlisted fields
+    setDefaultOtherFieldType(*AbstractDataProviderType default_other_field_type) {
+        self.default_other_field_type = default_other_field_type;
+        if (default_other_field_type) {
+            has_default_other_field_type = default_other_field_type.hasType();
+        } else {
+            has_default_other_field_type = False;
+        }
     }
 
     #! returns the type name
@@ -95,8 +111,21 @@ public class HashDataType inherits QoreDataType {
             }
         }
         if (value_copy) {
-            throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y", getName(),
-                keys value_copy);
+            if (default_other_field_type) {
+                if (has_default_other_field_type) {
+                    foreach hash<auto> i in (value_copy.pairIterator()) {
+                        try {
+                            value{i.key} = default_other_field_type.acceptsValue(i.value);
+                        } catch (hash<ExceptionInfo> ex) {
+                            throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y default field %y: %s: %s", getName(),
+                                i.key, ex.err, ex.desc);
+                        }
+                    }
+                }
+            } else {
+                throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
+                    getName(), keys value_copy, keys fields);
+            }
         }
         return value;
     }
@@ -122,7 +151,14 @@ public class HashDataType inherits QoreDataType {
                 }
             }
             if (other_fields) {
-                return False;
+                if (!default_other_field_type) {
+                    return False;
+                }
+                foreach AbstractDataField other_field in (other_fields) {
+                    if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
+                        return False;
+                    }
+                }
             }
         }
         return QoreDataType::isAssignableFrom(t);

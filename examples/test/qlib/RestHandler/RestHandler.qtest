@@ -16,8 +16,9 @@
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/RestSchemaValidator.qm
 %requires ../../../../qlib/Swagger.qm
-%requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/SwaggerDataProvider
+%requires ../../../../qlib/RestHandler.qm
 %requires ../../../../qlib/Mapper.qm
 
 %try-module xml >= 1.3

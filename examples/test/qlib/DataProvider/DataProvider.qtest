@@ -231,10 +231,12 @@ public class DataProviderTest inherits QUnit::Test {
         HashDataType t2("t2");
         t2.addField(new QoreDataField("b", "desc", new QoreStringDataType()));
         assertFalse(t1.isAssignableFrom(t2));
-        hash<auto> h1 = {
+        hash<auto> h1;
+        h1 += {
             "a": "string",
         };
-        hash<auto> h2 = {
+        hash<auto> h2;
+        h2 += {
             "b": "string",
         };
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), h2);
@@ -245,6 +247,12 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), h1 + {"b": "string"});
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), {"a": 1});
         assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), {"b": 2});
+        t1.setDefaultOtherFieldType(new QoreIntDataType());
+        t2.setDefaultOtherFieldType(new QoreIntDataType());
+        h1 += {"b": 2};
+        h2 += {"a": 2};
+        assertEq(h1, t1.acceptsValue(h1));
+        assertEq(h2, t2.acceptsValue(h2));
     }
 
     pipelineTest() {
