@@ -201,14 +201,16 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v1_0_2 DataProvider v1.0.2
+    - fixed a bug where @ref DataProvider::HashDataType "HashDataType" would not enforce fields or field types when
+      checking for type and value compatibility
+      (<a href="https://github.com/qorelanguage/qore/issues/4037">issue 4037</a>)
     - added new %Qore base types to the data type hierarchy
     - implemented the following classes:
       - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"
       - @ref DataProvider::DataProviderBulkRecordIterator "DataProviderBulkRecordIterator"
-      - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"
-      .
+      - @ref DataProvider::DataProviderPipeline "DataProviderPipeline"\n
       (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
-    - added the \c DUPLICATE-RECORD exception documentation for
+    - added \c DUPLICATE-RECORD exception documentation for
       @ref DataProvider::AbstractDataProvider::createRecord() "AbstractDataProvider::createRecord()"
     - updated to allow data provider type attributes to appear as children in the type hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/4015">issue 4015</a>)
