@@ -40,7 +40,7 @@ public class QoreHashDataType inherits QoreDataType {
     #! creates the type
     /** @throw TYPE-ERROR invalid type; must be a hash type but not a hashdecl
     */
-    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+    constructor(Type type = HashType, *hash<auto> options) : QoreDataType(type, options) {
         if (type.getBaseTypeCode() != NT_HASH || type.isTypedHash()) {
             throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(), type.getName());
         }

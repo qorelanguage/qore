@@ -282,7 +282,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     #! Registers all known data provider types
     static registerKnownTypes() {
         # register basic qore types
-        DataProvider::registerType("qore/hash", new HashDataType());
+        DataProvider::registerType("qore/hash", new QoreHashDataType());
         DataProvider::registerType("qore/string", new QoreStringDataType());
         DataProvider::registerType("qore/int", new QoreIntDataType());
         DataProvider::registerType("qore/number", new QoreNumberDataType());
