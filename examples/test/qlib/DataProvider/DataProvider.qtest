@@ -232,9 +232,11 @@ public class DataProviderTest inherits QUnit::Test {
         HashDataType t2("t2");
         t2.addField(new QoreDataField("b", "desc", str));
         HashDataType t3("t3");
+        HashDeclDataType t4(TypedHash::forName("StatInfo"));
         assertFalse(t1.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t1));
         assertTrue(t3.isAssignableFrom(t2));
+        assertTrue(t3.isAssignableFrom(t4));
         assertTrue(t1.isAssignableFrom(t3));
         assertTrue(t2.isAssignableFrom(t3));
         assertFalse(t1.isAssignableFrom(str));
@@ -257,6 +259,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq(h2, t2.acceptsValue(h2));
         assertEq(h1, t3.acceptsValue(h1));
         assertEq(h2, t3.acceptsValue(h2));
+        assertEq(<StatInfo>{"size": 1}, t3.acceptsValue(<StatInfo>{"size": 1}));
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), h2 + {"a": "string"});
         assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), h1 + {"b": "string"});
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), {"a": 1});
@@ -267,6 +270,7 @@ public class DataProviderTest inherits QUnit::Test {
         h2 += {"a": 2};
         assertEq(h1, t1.acceptsValue(h1));
         assertEq(h2, t2.acceptsValue(h2));
+
     }
 
     pipelineTest() {
