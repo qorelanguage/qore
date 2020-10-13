@@ -226,11 +226,20 @@ public class DataProviderTest inherits QUnit::Test {
     }
 
     compatTest() {
+        QoreStringDataType str();
         HashDataType t1("t1");
-        t1.addField(new QoreDataField("a", "desc", new QoreStringDataType()));
+        t1.addField(new QoreDataField("a", "desc", str));
         HashDataType t2("t2");
-        t2.addField(new QoreDataField("b", "desc", new QoreStringDataType()));
+        t2.addField(new QoreDataField("b", "desc", str));
+        HashDataType t3("t3");
         assertFalse(t1.isAssignableFrom(t2));
+        assertTrue(t3.isAssignableFrom(t1));
+        assertTrue(t3.isAssignableFrom(t2));
+        assertTrue(t1.isAssignableFrom(t3));
+        assertTrue(t2.isAssignableFrom(t3));
+        assertFalse(t1.isAssignableFrom(str));
+        assertFalse(t2.isAssignableFrom(str));
+        assertFalse(t3.isAssignableFrom(str));
         hash<auto> h1;
         h1 += {
             "a": "string",
@@ -241,8 +250,13 @@ public class DataProviderTest inherits QUnit::Test {
         };
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), h2);
         assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), h1);
+        assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), 1);
+        assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), 1);
+        assertThrows("RUNTIME-TYPE-ERROR", \t3.acceptsValue(), 1);
         assertEq(h1, t1.acceptsValue(h1));
         assertEq(h2, t2.acceptsValue(h2));
+        assertEq(h1, t3.acceptsValue(h1));
+        assertEq(h2, t3.acceptsValue(h2));
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), h2 + {"a": "string"});
         assertThrows("RUNTIME-TYPE-ERROR", \t2.acceptsValue(), h1 + {"b": "string"});
         assertThrows("RUNTIME-TYPE-ERROR", \t1.acceptsValue(), {"a": 1});
