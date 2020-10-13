@@ -873,6 +873,10 @@ QoreClass* QoreNamespace::findLocalClass(const char* cname) const {
     return priv->classList.find(cname);
 }
 
+QoreClass* QoreNamespace::findLoadLocalClass(const char* cname) {
+    return priv->findLoadClass(cname);
+}
+
 QoreNamespace* QoreNamespace::findLocalNamespace(const char* cname) const {
     return priv->nsl.find(cname);
 }

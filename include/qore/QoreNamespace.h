@@ -121,13 +121,13 @@ public:
     //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
     /** @param po parse options to use when copying the namespace
         @return a deep copy of the namespace
-        */
+    */
     DLLEXPORT QoreNamespace* copy(int po) const;
 
     //! returns a deep copy of the namespace
     /** @param po parse options to use when copying the namespace
         @return a deep copy of the namespace
-        */
+    */
     DLLEXPORT QoreNamespace* copy(int64 po = PO_DEFAULT) const;
 
     //! gets a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
@@ -206,12 +206,24 @@ public:
     DLLEXPORT QoreNamespace* findCreateNamespacePathAll(const char* nspath);
 
     //! finds a class in this namespace, does not search child namespaces
-    /** can only be called in the parse lock
-        does not call the class handler
+    /** can only be called in the parse lock; does not call the class handler
+
         @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
+
         @return the class found or 0 if not present
     */
     DLLEXPORT QoreClass* findLocalClass(const char* cname) const;
+
+    //! finds a class in this namespace, does not search child namespaces
+    /** can only be called in the parse lock; does call the class handler
+
+        @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
+
+        @return the class found or 0 if not present
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreClass* findLoadLocalClass(const char* cname);
 
     //! finds a subnamespace in this namespace, does not search child namespaces
     /** can only be called in the parse lock
