@@ -36,7 +36,8 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
-/** @note objects of this type are only compatible if their fields are compatible
+/** @note objects of this type are only compatible if their fields are compatible, unless the type has no fields, in
+    which case it's compatible with all other hashes
 */
 public class HashDataType inherits QoreDataType {
     private {
@@ -122,7 +123,7 @@ public class HashDataType inherits QoreDataType {
                         }
                     }
                 }
-            } else {
+            } else if (fields) {
                 throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
                     getName(), keys value_copy, keys fields);
             }
@@ -131,11 +132,12 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! returns True if this type can be assigned from values of the argument type
-    /** @note objects of this type are only compatible if their fields are compatible
+    /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
+        without declared fields, then they are compatible
     */
     bool isAssignableFrom(AbstractDataProviderType t) {
         *hash<string, AbstractDataField> other_fields = t.getFields();
-        if (other_fields) {
+        if (fields && other_fields) {
             foreach AbstractDataField field in (fields.iterator()) {
                 string key = field.getName();
                 *AbstractDataField other_field = remove other_fields{key};
@@ -152,7 +154,7 @@ public class HashDataType inherits QoreDataType {
             }
             if (other_fields) {
                 if (!default_other_field_type) {
-                    return False;
+                    return fields ? True : False;
                 }
                 foreach AbstractDataField other_field in (other_fields) {
                     if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
