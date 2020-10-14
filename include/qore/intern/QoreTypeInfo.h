@@ -2954,7 +2954,7 @@ public:
             }
          },
          {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
-               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
+               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()), 0)), xsink);
             }
          },
          {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
@@ -3007,7 +3007,7 @@ public:
             }
          },
          {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
-               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()))), xsink);
+               discard(n.assign(q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()), 0)), xsink);
             }
          },
          {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {

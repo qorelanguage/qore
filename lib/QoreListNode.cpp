@@ -879,8 +879,9 @@ int QoreListNode::getAsString(QoreString &str, int foff, ExceptionSink* xsink) c
             QoreValue n = li.getValue();
             if (n.getAsString(str, foff, xsink))
                 return -1;
-            if (!li.last())
+            if (!li.last()) {
                 str.concat(", ");
+            }
         }
         str.concat(']');
         return 0;

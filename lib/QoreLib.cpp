@@ -746,10 +746,11 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bo
                 *(f++) = *param; // a|A|e|E|f|F|g|G
                 *f = '\0';
                 double val = qv.getAsFloat();
+                size_t offset = tbuf.size();
                 tbuf.sprintf(fmt, val);
                 // issue 1556: external modules that call setlocale() can change
                 // the decimal point character used here from '.' to ','
-                q_fix_decimal(&tbuf);
+                q_fix_decimal(&tbuf, offset);
                 //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
             }
             if (type && (width != -1)) {
@@ -2687,10 +2688,14 @@ QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncodi
 }
 
 template <typename T>
-T* q_fix_decimal_tmpl(T* str, size_t offset = 0) {
+T* q_fix_decimal_tmpl(T* str, size_t offset) {
     char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
     if (p)
         *p = '.';
+    // concatentate ".0" to floating-point strings without a decimal point
+    if (!strchr(str->c_str() + offset, '.')) {
+        str->concat(".0");
+    }
     return str;
 }
 
