@@ -26,7 +26,7 @@ public class SprintfTest inherits QUnit::Test {
     separators() {
         string str = sprintf("%y", (1, 2.0));
         assertEq("[1, 2.0]", str);
-        assertEq("-2e-34", sprintf("%g", -2e34));
+        assertEq("-2e-34", sprintf("%g", -2e-34));
     }
 
     brokenSprintf() {
