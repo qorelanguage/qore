@@ -15,11 +15,18 @@ public class A {
 
 public class SprintfTest inherits QUnit::Test {
     constructor() : Test("Sprintf test", "1.0") {
+        addTestCase("separators", \separators());
         addTestCase("broken sprintf test", \brokenSprintf());
         addTestCase("Test 1", \test(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    separators() {
+        string str = sprintf("%y", (1, 2.0));
+        assertEq("[1, 2.0]", str);
+        assertEq("-2e-34", sprintf("%g", -2e-34));
     }
 
     brokenSprintf() {

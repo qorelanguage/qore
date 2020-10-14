@@ -1189,7 +1189,7 @@ QoreString::QoreString(double f) : priv(new qore_string_private) {
    priv->charset = QCS_DEFAULT;
    // issue 1556: external modules that call setlocale() can change
    // the decimal point character used here from '.' to ','
-   q_fix_decimal(this);
+   q_fix_decimal(this, 0);
 }
 
 QoreString::QoreString(const DateTime *d) : priv(new qore_string_private) {

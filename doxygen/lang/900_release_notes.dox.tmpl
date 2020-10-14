@@ -19,6 +19,9 @@
     - Fixed broken @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" where the upper limit of the range
       was included in the result for maximum compatibility with other languages.  To get the old behavior, use the
       @ref broken-range "%broken-range" parse directive.
+    - Floating-point values are always converted to strings with a decimal point; in previous releases of %Qore,
+      round floating-point values were converted to strings without any decimal point; i.e. <tt>1.0</tt> will now be
+      converted to \c "1.0" (in previous releases of %Qore, it would be converted to simply \c "1")
 
     @subsection qore_095_new_features New Features in Qore
     - <a href="../../modules/CdsRestClient/html/index.html">CdsRestClient</a>
@@ -118,6 +121,9 @@
       (<a href="https://github.com/qorelanguage/qore/issues/4030">issue 4030</a>)
     - fixed a bug in @ref Qore::mkdir() with \c parents = @ref True
       (<a href="https://github.com/qorelanguage/qore/issues/3992">issue 3992</a>)
+    - fixed a bug where complex formatting output with @ref Qore::sprintf() "sprintf()" and related dunctions would
+      have \c "." separators instead of \c "," separators when floating-point values were included in the output
+      (<a href="https://github.com/qorelanguage/qore/issues/3947">issue 3947</a>)
     - fixed a bug handling embedded nulls in UTF-8 strings
       (<a href="https://github.com/qorelanguage/qore/issues/2942">issue 2942</a>)
 

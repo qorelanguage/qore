@@ -381,7 +381,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
          break;
 
       case QV_Float:
-         str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()));
+         str = q_fix_decimal(new QoreStringMaker("%.9g", n.getAsFloat()), 0);
          del = true;
          break;
 
@@ -403,8 +403,7 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
                str = t;
                del = true;
             }
-         }
-         else {
+         } else {
             str = NullString;
             del = false;
          }
@@ -433,7 +432,7 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
          break;
 
       case QV_Float:
-         str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()));
+         str = q_fix_decimal(new QoreStringNodeMaker("%.9g", n.getAsFloat()), 0);
          del = true;
          break;
 
@@ -458,8 +457,7 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
                str = t;
                del = true;
             }
-         }
-         else {
+         } else {
             str = NullString;
             del = false;
          }
