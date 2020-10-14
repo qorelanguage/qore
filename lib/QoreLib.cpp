@@ -2692,8 +2692,8 @@ T* q_fix_decimal_tmpl(T* str, size_t offset) {
     char* p = const_cast<char*>(strchr(str->c_str() + offset, ','));
     if (p)
         *p = '.';
-    // concatentate ".0" to floating-point strings without a decimal point
-    if (!strchr(str->c_str() + offset, '.')) {
+    // concatentate ".0" to floating-point strings without a decimal point or an exponent
+    if (!strchrs(str->c_str() + offset, ".e")) {
         str->concat(".0");
     }
     return str;
