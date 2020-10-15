@@ -36,8 +36,10 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
-/** @note objects of this type are only compatible if their fields are compatible, unless the type has no fields, in
-    which case it's compatible with all other hashes
+/** @note objects of this type are only compatible if their fields are compatible; non-matching fields of other types
+    are automatically considered compatible; change the default "other field type" by calling
+    setDefaultOtherFieldType() to change this; calling setDefaultOtherFieldType() with no argument removes
+    compatibility with non-matching fields in other types
 */
 public class HashDataType inherits QoreDataType {
     private {
@@ -48,7 +50,7 @@ public class HashDataType inherits QoreDataType {
         hash<string, AbstractDataField> fields;
 
         #! allow other fields
-        *AbstractDataProviderType default_other_field_type;
+        *AbstractDataProviderType default_other_field_type = AbstractDataProviderType::get(AbstractDataProviderType::anyType);
 
         #! if the type requires validation
         bool has_default_other_field_type = False;
@@ -81,12 +83,12 @@ public class HashDataType inherits QoreDataType {
         }
     }
 
-    #! returns the type name
+    #! Returns the type name
     string getName() {
         return name;
     }
 
-    #! returns the value if the value can be assigned to the type
+    #! Returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 
         @return the value to be assigned; can be converted by the type
@@ -122,6 +124,8 @@ public class HashDataType inherits QoreDataType {
                                 i.key, ex.err, ex.desc);
                         }
                     }
+                } else {
+                    value += value_copy;
                 }
             } else if (fields) {
                 throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
@@ -131,7 +135,7 @@ public class HashDataType inherits QoreDataType {
         return value;
     }
 
-    #! returns True if this type can be assigned from values of the argument type
+    #! Returns True if this type can be assigned from values of the argument type
     /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
         without declared fields, then they are compatible
     */
@@ -154,7 +158,10 @@ public class HashDataType inherits QoreDataType {
             }
             if (other_fields) {
                 if (!default_other_field_type) {
-                    return fields ? True : False;
+                    return False;
+                }
+                if (!has_default_other_field_type) {
+                    return True;
                 }
                 foreach AbstractDataField other_field in (other_fields) {
                     if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
@@ -171,17 +178,17 @@ public class HashDataType inherits QoreDataType {
         fields{field.getName()} = field;
     }
 
-    #! returns the given field, if present, or @ref nothing if not
+    #! Returns the given field, if present, or @ref nothing if not
     *AbstractDataField getField(string name) {
         return fields{name};
     }
 
-    #! returns the fields of the data structure; if any
+    #! Returns the fields of the data structure; if any
     *hash<string, AbstractDataField> getFields() {
         return fields;
     }
 
-    #! returns a "soft" type equivalent to the current type
+    #! Returns a "soft" type equivalent to the current type
     /** @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {
@@ -194,7 +201,7 @@ public class HashDataType inherits QoreDataType {
         return rv;
     }
 
-    #! returns an "or nothing" type equivalent to the current type
+    #! Returns an "or nothing" type equivalent to the current type
     /** @return an "or nothing" type equivalent to the current type
     */
     AbstractDataProviderType getOrNothingType() {

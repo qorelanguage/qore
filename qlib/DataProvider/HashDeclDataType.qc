@@ -51,7 +51,47 @@ public class HashDeclDataType inherits QoreDataType {
         hd = type.getTypedHash();
     }
 
-    #! returns the fields of the data structure; if any
+    #! Returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        return hd.doCast(value);
+    }
+
+    #! Returns True if this type can be assigned from values of the argument type
+    /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
+        without declared fields, then they are compatible
+    */
+    bool isAssignableFrom(AbstractDataProviderType t) {
+        *hash<string, AbstractDataField> other_fields = t.getFields();
+        *hash<string, AbstractDataField> self_fields = getFields();
+        if (self_fields && other_fields) {
+            foreach AbstractDataField field in (self_fields.iterator()) {
+                string key = field.getName();
+                *AbstractDataField other_field = remove other_fields{key};
+                if (!other_field) {
+                    if (!field.isMandatory()) {
+                        continue;
+                    } else {
+                        return False;
+                    }
+                }
+                if (!field.getType().isAssignableFrom(other_field.getType())) {
+                    return False;
+                }
+            }
+            if (other_fields) {
+                return False;
+            }
+        }
+        return QoreDataType::isAssignableFrom(t);
+    }
+
+    #! Returns the fields of the data structure; if any
     *hash<string, AbstractDataField> getFields() {
         string name = getName();
         return map {
@@ -60,7 +100,7 @@ public class HashDeclDataType inherits QoreDataType {
         }, hd.getMembers();
     }
 
-    #! returns the given field, if present, or @ref nothing if not
+    #! Returns the given field, if present, or @ref nothing if not
     *AbstractDataField getField(string name) {
         *TypedHashMember member;
         try {
@@ -74,12 +114,12 @@ public class HashDeclDataType inherits QoreDataType {
         return new QoreDataField(name, NOTHING, member.getType(), member.getDefaultValue());
     }
 
-    #! returns the TypedHash backing the type
+    #! Returns the TypedHash backing the type
     TypedHash getTypedHash() {
         return hd;
     }
 
-    #! returns a "soft" type equivalent to the current type
+    #! Returns a "soft" type equivalent to the current type
     /** @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {
@@ -88,7 +128,7 @@ public class HashDeclDataType inherits QoreDataType {
         return rv;
     }
 
-    #! returns an "or nothing" type equivalent to the current type
+    #! Returns an "or nothing" type equivalent to the current type
     /** @return an "or nothing" type equivalent to the current type
     */
     AbstractDataProviderType getOrNothingType() {

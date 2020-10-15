@@ -99,6 +99,14 @@ public:
     */
     DLLEXPORT const QoreNamespace* getNamespace() const;
 
+    //! Performs a runtime cast and returns a typed hash if the has passed is compatible
+    /** The caller owns any reference retuned.  Throws a %Qore-language exception if the hash is not compatible with
+        with the typed hash
+
+        @since %Qore 0.9.5
+    */
+    DLLEXPORT QoreHashNode* doRuntimeCast(const QoreHashNode* h, ExceptionSink* xsink) const;
+
 protected:
     //! deletes the object and frees all memory
     DLLEXPORT ~TypedHashDecl();

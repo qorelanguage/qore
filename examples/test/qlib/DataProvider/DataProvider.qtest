@@ -228,20 +228,58 @@ public class DataProviderTest inherits QUnit::Test {
     compatTest() {
         QoreStringDataType str();
         HashDataType t1("t1");
+        t1.setDefaultOtherFieldType();
         t1.addField(new QoreDataField("a", "desc", str));
         HashDataType t2("t2");
+        t2.setDefaultOtherFieldType();
         t2.addField(new QoreDataField("b", "desc", str));
         HashDataType t3("t3");
         HashDeclDataType t4(TypedHash::forName("StatInfo"));
+        HashDataType t5("t5");
+        t5.addField(new QoreDataField("a", "desc", str));
+        t5.addField(new QoreDataField("b", "desc", str));
+        HashDataType t6("t6");
+        t6.addField(new QoreDataField("a", "desc", str));
+        HashDataType t7("t7");
+        t7.addField(new QoreDataField("b", "desc", str));
+        HashDataType t8("t8");
+        t8.addField(new QoreDataField("type", "desc", str));
+
         assertFalse(t1.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t1));
         assertTrue(t3.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t4));
         assertTrue(t1.isAssignableFrom(t3));
         assertTrue(t2.isAssignableFrom(t3));
+        assertFalse(t1.isAssignableFrom(t5));
+        assertFalse(t2.isAssignableFrom(t5));
+
         assertFalse(t1.isAssignableFrom(str));
         assertFalse(t2.isAssignableFrom(str));
         assertFalse(t3.isAssignableFrom(str));
+
+        assertFalse(t6.isAssignableFrom(t2));
+        assertTrue(t3.isAssignableFrom(t6));
+        assertTrue(t3.isAssignableFrom(t7));
+        assertTrue(t6.isAssignableFrom(t3));
+        assertTrue(t7.isAssignableFrom(t3));
+        assertTrue(t6.isAssignableFrom(t5));
+        assertTrue(t7.isAssignableFrom(t5));
+
+        assertFalse(t6.isAssignableFrom(str));
+        assertFalse(t7.isAssignableFrom(str));
+        assertFalse(t3.isAssignableFrom(str));
+
+        assertFalse(t4.isAssignableFrom(t1));
+        assertFalse(t4.isAssignableFrom(t8));
+        assertTrue(t8.isAssignableFrom(t4));
+
+        {
+            hash<auto> v = {"type": "str"};
+            assertEq(v, t8.acceptsValue(v));
+            assertEq(v, t4.acceptsValue(v));
+        }
+
         hash<auto> h1;
         h1 += {
             "a": "string",
