@@ -187,12 +187,12 @@ public class AbstractDataProviderType inherits Serializable {
         setOptions(options);
     }
 
-    #! returns supported options
+    #! Returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
         # this method intentionally left blank
     }
 
-    #! returns a description of the type as an input type
+    #! Returns a description of the type as an input type
     /** @return a description of the type as an input type; only the following keys are returned
         - \c name
         - \c types_returned
@@ -205,7 +205,7 @@ public class AbstractDataProviderType inherits Serializable {
         };
     }
 
-    #! returns a description of the type as a hash
+    #! Returns a description of the type as a hash
     hash<DataTypeInfo> getInfo() {
         return <DataTypeInfo>{
             "name": getName(),
@@ -228,7 +228,7 @@ public class AbstractDataProviderType inherits Serializable {
         return cast<hash<string, hash<DataFieldInfo>>>(map {$1.key: $1.value.getInfo()}, getFields().pairIterator());
     }
 
-    #! returns True if this type can be assigned from values of the argument type
+    #! Returns True if this type can be assigned from values of the argument type
     bool isAssignableFrom(AbstractDataProviderType t) {
         *Type othertype = t.getValueType();
         if (!othertype) {
@@ -237,7 +237,7 @@ public class AbstractDataProviderType inherits Serializable {
         return isAssignableFrom(othertype);
     }
 
-    #! returns True if this type can be assigned from values of the argument type
+    #! Returns True if this type can be assigned from values of the argument type
     bool isAssignableFrom(Type t) {
         *Type thistype = getValueType();
         if (!thistype) {
@@ -246,30 +246,38 @@ public class AbstractDataProviderType inherits Serializable {
         return thistype.isAssignableFrom(t);
     }
 
-    #! returns True if this type is a list
+    #! Returns True if this type is compatible with the argument type
+    /** Compatibility is similar to assignability, however in the case of a type with defined fields, the argument
+        type may have additional fields not present in the object's type
+    */
+    bool isCompatibleWith(AbstractDataProviderType t) {
+        return isAssignableFrom(t);
+    }
+
+    #! Returns True if this type is a list
     bool isList() {
         *Type thistype = getValueType();
         return thistype ? AutoListOrNothingType.isOutputCompatible(thistype) : False;
     }
 
-    #! returns True if the type must have a value
+    #! Returns True if the type must have a value
     bool isMandatory() {
         *Type thistype = getValueType();
         return thistype ? !thistype.isOrNothingType() : True;
     }
 
-    #! returns the given field, if present, or @ref nothing if not
+    #! Returns the given field, if present, or @ref nothing if not
     *AbstractDataField getField(string field_name) {
         return getFields().field_name;
     }
 
-    #! returns True if the type is not a wildcard type
+    #! Returns True if the type is not a wildcard type
     bool hasType() {
         *Type thistype = getValueType();
         return !thistype || thistype.hasType();
     }
 
-    #! returns the base type name for the type; must be a standard Qore base type name
+    #! Returns the base type name for the type; must be a standard Qore base type name
     string getBaseTypeName() {
         *Type thistype = getValueType();
         if (thistype) {
@@ -280,7 +288,7 @@ public class AbstractDataProviderType inherits Serializable {
         return "all";
     }
 
-    #! returns the base type code for the type
+    #! Returns the base type code for the type
     int getBaseTypeCode() {
         *Type thistype = getValueType();
         return thistype
@@ -288,7 +296,7 @@ public class AbstractDataProviderType inherits Serializable {
             : NT_ALL;
     }
 
-    #! returns a hash of native base type code keys where no translations are performed; keys are type codes, not names
+    #! Returns a hash of native base type code keys where no translations are performed; keys are type codes, not names
     *hash<string, bool> getDirectTypeHash() {
         *Type thistype = getValueType();
         if (thistype) {
@@ -298,7 +306,7 @@ public class AbstractDataProviderType inherits Serializable {
         }
     }
 
-    #! returns True if the type also accepts @ref nothing
+    #! Returns True if the type also accepts @ref nothing
     bool isOrNothingType() {
         *Type thistype = getValueType();
         return thistype
@@ -314,12 +322,12 @@ public class AbstractDataProviderType inherits Serializable {
         }
     }
 
-    #! returns the value of the given option
+    #! Returns the value of the given option
     auto getOptionValue(string opt) {
         return options{opt};
     }
 
-    #! returns options set on the type
+    #! Returns options set on the type
     *hash<auto> getOptions() {
         return options;
     }
@@ -368,7 +376,7 @@ public class AbstractDataProviderType inherits Serializable {
         }
     }
 
-    #! returns a "soft" type equivalent to the current type
+    #! Returns a "soft" type equivalent to the current type
     /** The base class method returns the same type; this method must be overridden in child classes to return a
         usable "soft" type
 
@@ -378,7 +386,7 @@ public class AbstractDataProviderType inherits Serializable {
         return self;
     }
 
-    #! returns an "or nothing" type equivalent to the current type
+    #! Returns an "or nothing" type equivalent to the current type
     /** The base class method returns the same type; this method must be overridden in child classes to return a
         usable "or nothing" type
 
@@ -390,32 +398,32 @@ public class AbstractDataProviderType inherits Serializable {
         return self;
     }
 
-    #! returns the type name
+    #! Returns the type name
     abstract string getName();
 
-    #! returns the base type for the type, if any
+    #! Returns the base type for the type, if any
     abstract *Type getValueType();
 
-    #! returns the subtype (for lists or hashes) if there is only one
+    #! Returns the subtype (for lists or hashes) if there is only one
     abstract *AbstractDataProviderType getElementType();
 
-    #! returns the fields of the data structure; if any
+    #! Returns the fields of the data structure; if any
     abstract *hash<string, AbstractDataField> getFields();
 
-    #! returns a hash of types accepted by this type; keys are type names
+    #! Returns a hash of types accepted by this type; keys are type names
     abstract hash<string, bool> getAcceptTypeHash();
 
-    #! returns a hash of types returned by this type; keys are type names
+    #! Returns a hash of types returned by this type; keys are type names
     abstract hash<string, bool> getReturnTypeHash();
 
-    #! returns the value if the value can be assigned to the type
+    #! Returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 
         @return the value to be assigned; can be converted by the type
     */
     abstract auto acceptsValue(auto value);
 
-    #! returns an appropriate object for the given type
+    #! Returns an appropriate object for the given type
     static AbstractDataProviderType get(Type type, *hash<auto> options) {
         if (type.isTypedHash()) {
             return new HashDeclDataType(type, options);
@@ -427,7 +435,7 @@ public class AbstractDataProviderType inherits Serializable {
         return new QoreDataType(type, options);
     }
 
-    #! returns an appropriate object for the given type
+    #! Returns an appropriate object for the given type
     /** @param typename the name of the type; should be a valid Qore type string
         @param options type options for the data type object
     */

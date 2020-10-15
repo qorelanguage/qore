@@ -233,15 +233,35 @@ public class DataProviderTest inherits QUnit::Test {
         t2.addField(new QoreDataField("b", "desc", str));
         HashDataType t3("t3");
         HashDeclDataType t4(TypedHash::forName("StatInfo"));
+        HashDataType t5("t5");
+        t5.addField(new QoreDataField("a", "desc", str));
+        t5.addField(new QoreDataField("b", "desc", str));
+
         assertFalse(t1.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t1));
         assertTrue(t3.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t4));
         assertTrue(t1.isAssignableFrom(t3));
         assertTrue(t2.isAssignableFrom(t3));
+        assertFalse(t1.isAssignableFrom(t5));
+        assertFalse(t2.isAssignableFrom(t5));
+
+        assertFalse(t1.isCompatibleWith(t2));
+        assertTrue(t3.isCompatibleWith(t1));
+        assertTrue(t3.isCompatibleWith(t2));
+        assertTrue(t3.isCompatibleWith(t4));
+        assertTrue(t1.isCompatibleWith(t3));
+        assertTrue(t2.isCompatibleWith(t3));
+        assertTrue(t1.isCompatibleWith(t5));
+        assertTrue(t2.isCompatibleWith(t5));
+
         assertFalse(t1.isAssignableFrom(str));
         assertFalse(t2.isAssignableFrom(str));
         assertFalse(t3.isAssignableFrom(str));
+
+        assertFalse(t1.isCompatibleWith(str));
+        assertFalse(t2.isCompatibleWith(str));
+        assertFalse(t3.isCompatibleWith(str));
         hash<auto> h1;
         h1 += {
             "a": "string",

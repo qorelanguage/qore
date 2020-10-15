@@ -81,12 +81,12 @@ public class HashDataType inherits QoreDataType {
         }
     }
 
-    #! returns the type name
+    #! Returns the type name
     string getName() {
         return name;
     }
 
-    #! returns the value if the value can be assigned to the type
+    #! Returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 
         @return the value to be assigned; can be converted by the type
@@ -131,11 +131,65 @@ public class HashDataType inherits QoreDataType {
         return value;
     }
 
-    #! returns True if this type can be assigned from values of the argument type
+    #! Returns True if this type can be assigned from values of the argument type
     /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
         without declared fields, then they are compatible
     */
     bool isAssignableFrom(AbstractDataProviderType t) {
+        return compareIntern(t, False);
+    }
+
+    #! Returns True if this type is compatible with the argument type
+    /** Compatibility is similar to assignability, however in the case of a type with defined fields, the argument
+        type may have additional fields not present in the object's type
+    */
+    bool isCompatibleWith(AbstractDataProviderType t) {
+        return compareIntern(t, True);
+    }
+
+    #! adds a field to the type
+    addField(AbstractDataField field) {
+        fields{field.getName()} = field;
+    }
+
+    #! Returns the given field, if present, or @ref nothing if not
+    *AbstractDataField getField(string name) {
+        return fields{name};
+    }
+
+    #! Returns the fields of the data structure; if any
+    *hash<string, AbstractDataField> getFields() {
+        return fields;
+    }
+
+    #! Returns a "soft" type equivalent to the current type
+    /** @return a "soft" type equivalent to the current type
+    */
+    AbstractDataProviderType getSoftType() {
+        if (soft_type) {
+            return self;
+        }
+        HashDataType rv(type, name, options);
+        map rv.addField($1.getSoftType()), getFields().iterator();
+        rv.soft_type = True;
+        return rv;
+    }
+
+    #! Returns an "or nothing" type equivalent to the current type
+    /** @return an "or nothing" type equivalent to the current type
+    */
+    AbstractDataProviderType getOrNothingType() {
+        # recursively return "or nothing" typed fields in any case
+        HashDataType rv = QoreDataType::getOrNothingType();
+        map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
+        return rv;
+    }
+
+    #! Returns True if this type can be assigned from values of the argument type
+    /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
+        without declared fields, then they are compatible
+    */
+    private bool compareIntern(AbstractDataProviderType t, bool allow_extra_fields) {
         *hash<string, AbstractDataField> other_fields = t.getFields();
         if (fields && other_fields) {
             foreach AbstractDataField field in (fields.iterator()) {
@@ -152,9 +206,9 @@ public class HashDataType inherits QoreDataType {
                     return False;
                 }
             }
-            if (other_fields) {
+            if (!allow_extra_fields && other_fields) {
                 if (!default_other_field_type) {
-                    return fields ? True : False;
+                    return False;
                 }
                 foreach AbstractDataField other_field in (other_fields) {
                     if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
@@ -164,44 +218,6 @@ public class HashDataType inherits QoreDataType {
             }
         }
         return QoreDataType::isAssignableFrom(t);
-    }
-
-    #! adds a field to the type
-    addField(AbstractDataField field) {
-        fields{field.getName()} = field;
-    }
-
-    #! returns the given field, if present, or @ref nothing if not
-    *AbstractDataField getField(string name) {
-        return fields{name};
-    }
-
-    #! returns the fields of the data structure; if any
-    *hash<string, AbstractDataField> getFields() {
-        return fields;
-    }
-
-    #! returns a "soft" type equivalent to the current type
-    /** @return a "soft" type equivalent to the current type
-    */
-    AbstractDataProviderType getSoftType() {
-        if (soft_type) {
-            return self;
-        }
-        HashDataType rv(type, name, options);
-        map rv.addField($1.getSoftType()), getFields().iterator();
-        rv.soft_type = True;
-        return rv;
-    }
-
-    #! returns an "or nothing" type equivalent to the current type
-    /** @return an "or nothing" type equivalent to the current type
-    */
-    AbstractDataProviderType getOrNothingType() {
-        # recursively return "or nothing" typed fields in any case
-        HashDataType rv = QoreDataType::getOrNothingType();
-        map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
-        return rv;
     }
 }
 }
