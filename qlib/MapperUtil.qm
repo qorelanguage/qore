@@ -186,7 +186,6 @@ public namespace Mapper {
 
             In both cases the return value is the value to use for the field
         */
-        code handler;
+        *code handler;
     }
 }
-

@@ -204,10 +204,6 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     - fixed a bug where @ref DataProvider::HashDataType "HashDataType" would not enforce fields or field types when
       checking for type and value compatibility
       (<a href="https://github.com/qorelanguage/qore/issues/4037">issue 4037</a>)
-    - added the
-      @ref DataProvider::AbstractDataProviderType::isCompatibleWith() "AbstractDataProviderType::isCompatibleWith()"
-      method
-      (<a href="https://github.com/qorelanguage/qore/issues/4037">issue 4037</a>)
     - added new %Qore base types to the data type hierarchy
     - implemented the following classes:
       - @ref DataProvider::AbstractDataProcessor "AbstractDataProcessor"

@@ -51,20 +51,44 @@ public class HashDeclDataType inherits QoreDataType {
         hd = type.getTypedHash();
     }
 
+    #! Returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        return hd.doCast(value);
+    }
+
     #! Returns True if this type can be assigned from values of the argument type
     /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
         without declared fields, then they are compatible
     */
     bool isAssignableFrom(AbstractDataProviderType t) {
-        return compareIntern(t, False);
-    }
-
-    #! Returns True if this type is compatible with the argument type
-    /** Compatibility is similar to assignability, however in the case of a type with defined fields, the argument
-        type may have additional fields not present in the object's type
-    */
-    bool isCompatibleWith(AbstractDataProviderType t) {
-        return compareIntern(t, True);
+        *hash<string, AbstractDataField> other_fields = t.getFields();
+        *hash<string, AbstractDataField> self_fields = getFields();
+        if (self_fields && other_fields) {
+            foreach AbstractDataField field in (self_fields.iterator()) {
+                string key = field.getName();
+                *AbstractDataField other_field = remove other_fields{key};
+                if (!other_field) {
+                    if (!field.isMandatory()) {
+                        continue;
+                    } else {
+                        return False;
+                    }
+                }
+                if (!field.getType().isAssignableFrom(other_field.getType())) {
+                    return False;
+                }
+            }
+            if (other_fields) {
+                return False;
+            }
+        }
+        return QoreDataType::isAssignableFrom(t);
     }
 
     #! Returns the fields of the data structure; if any
@@ -111,41 +135,6 @@ public class HashDeclDataType inherits QoreDataType {
         HashDataType rv(getName(), options);
         map rv.addField($1.getOrNothingType()), getFields().iterator();
         return rv;
-    }
-
-    #! Returns True if this type can be assigned from values of the argument type
-    /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
-        without declared fields, then they are compatible
-    */
-    private bool compareIntern(AbstractDataProviderType t, bool allow_extra_fields) {
-        *hash<string, AbstractDataField> other_fields = t.getFields();
-        *hash<string, AbstractDataField> self_fields = getFields();
-        if (self_fields && other_fields) {
-            foreach AbstractDataField field in (self_fields.iterator()) {
-                string key = field.getName();
-                *AbstractDataField other_field = remove other_fields{key};
-                if (!other_field) {
-                    if (!field.isMandatory()) {
-                        continue;
-                    } else {
-                        return False;
-                    }
-                }
-                if (allow_extra_fields) {
-                    if (!field.getType().isCompatibleWith(other_field.getType())) {
-                        return False;
-                    }
-                } else {
-                    if (!field.getType().isAssignableFrom(other_field.getType())) {
-                        return False;
-                    }
-                }
-            }
-            if (other_fields && !allow_extra_fields) {
-                return False;
-            }
-        }
-        return QoreDataType::isAssignableFrom(t);
     }
 }
 }

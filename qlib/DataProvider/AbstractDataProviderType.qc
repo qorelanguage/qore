@@ -246,14 +246,6 @@ public class AbstractDataProviderType inherits Serializable {
         return thistype.isAssignableFrom(t);
     }
 
-    #! Returns True if this type is compatible with the argument type
-    /** Compatibility is similar to assignability, however in the case of a type with defined fields, the argument
-        type may have additional fields not present in the object's type
-    */
-    bool isCompatibleWith(AbstractDataProviderType t) {
-        return isAssignableFrom(t);
-    }
-
     #! Returns True if this type is a list
     bool isList() {
         *Type thistype = getValueType();

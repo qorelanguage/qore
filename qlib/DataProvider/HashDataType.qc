@@ -36,8 +36,10 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
-/** @note objects of this type are only compatible if their fields are compatible, unless the type has no fields, in
-    which case it's compatible with all other hashes
+/** @note objects of this type are only compatible if their fields are compatible; non-matching fields of other types
+    are automatically considered compatible; change the default "other field type" by calling
+    setDefaultOtherFieldType() to change this; calling setDefaultOtherFieldType() with no argument removes
+    compatibility with non-matching fields in other types
 */
 public class HashDataType inherits QoreDataType {
     private {
@@ -48,7 +50,7 @@ public class HashDataType inherits QoreDataType {
         hash<string, AbstractDataField> fields;
 
         #! allow other fields
-        *AbstractDataProviderType default_other_field_type;
+        *AbstractDataProviderType default_other_field_type = AbstractDataProviderType::get(AbstractDataProviderType::anyType);
 
         #! if the type requires validation
         bool has_default_other_field_type = False;
@@ -122,6 +124,8 @@ public class HashDataType inherits QoreDataType {
                                 i.key, ex.err, ex.desc);
                         }
                     }
+                } else {
+                    value += value_copy;
                 }
             } else if (fields) {
                 throw "RUNTIME-TYPE-ERROR", sprintf("error in type %y unsupported fields in value: %y; known fields: %y",
@@ -136,15 +140,37 @@ public class HashDataType inherits QoreDataType {
         without declared fields, then they are compatible
     */
     bool isAssignableFrom(AbstractDataProviderType t) {
-        return compareIntern(t, False);
-    }
-
-    #! Returns True if this type is compatible with the argument type
-    /** Compatibility is similar to assignability, however in the case of a type with defined fields, the argument
-        type may have additional fields not present in the object's type
-    */
-    bool isCompatibleWith(AbstractDataProviderType t) {
-        return compareIntern(t, True);
+        *hash<string, AbstractDataField> other_fields = t.getFields();
+        if (fields && other_fields) {
+            foreach AbstractDataField field in (fields.iterator()) {
+                string key = field.getName();
+                *AbstractDataField other_field = remove other_fields{key};
+                if (!other_field) {
+                    if (!field.isMandatory()) {
+                        continue;
+                    } else {
+                        return False;
+                    }
+                }
+                if (!field.getType().isAssignableFrom(other_field.getType())) {
+                    return False;
+                }
+            }
+            if (other_fields) {
+                if (!default_other_field_type) {
+                    return False;
+                }
+                if (!has_default_other_field_type) {
+                    return True;
+                }
+                foreach AbstractDataField other_field in (other_fields) {
+                    if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
+                        return False;
+                    }
+                }
+            }
+        }
+        return QoreDataType::isAssignableFrom(t);
     }
 
     #! adds a field to the type
@@ -183,41 +209,6 @@ public class HashDataType inherits QoreDataType {
         HashDataType rv = QoreDataType::getOrNothingType();
         map rv.fields{$1.key} = $1.value.getOrNothingType(), fields.pairIterator();
         return rv;
-    }
-
-    #! Returns True if this type can be assigned from values of the argument type
-    /** @note objects of this type are only compatible if their fields are compatible; if either side is a hash
-        without declared fields, then they are compatible
-    */
-    private bool compareIntern(AbstractDataProviderType t, bool allow_extra_fields) {
-        *hash<string, AbstractDataField> other_fields = t.getFields();
-        if (fields && other_fields) {
-            foreach AbstractDataField field in (fields.iterator()) {
-                string key = field.getName();
-                *AbstractDataField other_field = remove other_fields{key};
-                if (!other_field) {
-                    if (!field.isMandatory()) {
-                        continue;
-                    } else {
-                        return False;
-                    }
-                }
-                if (!field.getType().isAssignableFrom(other_field.getType())) {
-                    return False;
-                }
-            }
-            if (!allow_extra_fields && other_fields) {
-                if (!default_other_field_type) {
-                    return False;
-                }
-                foreach AbstractDataField other_field in (other_fields) {
-                    if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
-                        return False;
-                    }
-                }
-            }
-        }
-        return QoreDataType::isAssignableFrom(t);
     }
 }
 }

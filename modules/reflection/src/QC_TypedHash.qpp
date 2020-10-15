@@ -64,7 +64,7 @@ static QoreValue find_all_typedhashes(const QoreString& pattern, int re_opts, Qo
     return l.release();
 }
 
-//! The abstract base class for %Qore typed hashes (@ref hashdecl "hashdecls")
+//! The base class for %Qore typed hashes (@ref hashdecl "hashdecls")
 /**
     @since %Qore 0.9.0
  */
@@ -368,6 +368,17 @@ list<TypedHashMember> TypedHash::getMembers() [flags=RET_VALUE_ONLY] {
     }
 
     return l.release();
+}
+
+//! Returns a typed hash for the given hash, if possible
+/** @param h the hash to convert
+
+    @throw RUNTIME-TYPE-ERROR types are not compatible
+
+    @since %Qore 0.9.5
+*/
+hash<auto> TypedHash::doCast(hash<auto> h) {
+    return thd->th->doRuntimeCast(h, xsink);
 }
 
 //! Returns a @ref hashdecl "typed hash (hashdecl)" object corresponding to the name or namespace-justified path provided as an argument

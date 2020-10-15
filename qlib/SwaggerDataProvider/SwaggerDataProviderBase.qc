@@ -96,6 +96,9 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
             schema.properties.pairIterator();
         if (schema.additionalProperties) {
             type.setDefaultOtherFieldType(getType(schema.additionalProperties.type));
+        } else {
+            # make sure that extra fields are not supported
+            type.setDefaultOtherFieldType();
         }
         return type;
     }
