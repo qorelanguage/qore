@@ -488,6 +488,7 @@ include_HEADERS = \
 	include/qore/macros-sparc.h \
 	include/qore/macros-ia64.h \
 	include/qore/macros-parisc.h \
+	include/qore/macros-arm.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
