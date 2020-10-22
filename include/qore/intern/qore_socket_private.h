@@ -530,7 +530,7 @@ struct qore_socket_private {
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "accept", xsink);
                 return QSE_IN_OP;
             }
@@ -1718,7 +1718,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "recv", xsink);
                 return 0;
             }
@@ -1783,7 +1783,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "recv", xsink);
                 return 0;
             }
@@ -1848,7 +1848,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "recvBinary", xsink);
                 return 0;
             }
@@ -1902,7 +1902,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "recvBinary", xsink);
                 return 0;
             }
@@ -1964,7 +1964,7 @@ struct qore_socket_private {
             return;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "recvToOutputStream", xsink);
                 return;
             }
@@ -2212,7 +2212,7 @@ struct qore_socket_private {
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op(cname, mname, xsink);
                 return 0;
             }
@@ -2473,7 +2473,7 @@ struct qore_socket_private {
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op(cname, mname, xsink);
                 return 0;
             }
@@ -2510,7 +2510,7 @@ struct qore_socket_private {
             return;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "sendFromInputStream", xsink);
                 return;
             }
@@ -2568,7 +2568,7 @@ struct qore_socket_private {
             return;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "sendHttpChunkedBodyFromInputStream", xsink);
                 return;
             }
@@ -2656,7 +2656,7 @@ struct qore_socket_private {
             return;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", "sendHttpChunkedBodyTrailer", xsink);
                 return;
             }
@@ -2787,7 +2787,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op(cname, "readHTTPChunkedBodyBinary", xsink);
                 return 0;
             }
@@ -2961,7 +2961,7 @@ struct qore_socket_private {
             return 0;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op(cname, "readHTTPChunkedBody", xsink);
                 return 0;
             }
@@ -3375,7 +3375,7 @@ struct qore_socket_private {
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
-            if (in_op == gettid()) {
+            if (in_op == q_gettid()) {
                 se_in_op("Socket", meth, xsink);
                 return 0;
             }

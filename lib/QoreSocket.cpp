@@ -257,7 +257,7 @@ void concat_target(QoreString& str, const struct sockaddr *addr, const char* typ
 
 qore_socket_op_helper::qore_socket_op_helper(qore_socket_private* sock) : s(sock) {
    assert(s->in_op == -1);
-   s->in_op = gettid();;
+   s->in_op = q_gettid();;
 }
 
 qore_socket_op_helper::~qore_socket_op_helper() {

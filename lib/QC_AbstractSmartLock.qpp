@@ -75,7 +75,7 @@ on_exit
     @return @ref True if the calling thread owns the lock, @ref False if not
  */
 bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
-   return asl->get_tid() == gettid();
+   return asl->get_tid() == q_gettid();
 }
 
 //! Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired

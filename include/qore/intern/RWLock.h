@@ -105,7 +105,7 @@ public:
    }
 
    DLLLOCAL bool writeLockOwner() const {
-      return tid == gettid();
+      return tid == q_gettid();
    }
 
    DLLLOCAL bool readLockOwner() const {
@@ -114,7 +114,7 @@ public:
          return false;
 
       // to check the read lock status, er have to acquire the asl_lock
-      int mtid = gettid();
+      int mtid = q_gettid();
       AutoLocker al(&asl_lock);
       return tmap.find(mtid) == tmap.end() ? false : true;
    }

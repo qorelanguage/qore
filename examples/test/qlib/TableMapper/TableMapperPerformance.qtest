@@ -112,15 +112,15 @@ public class TableMapperPerformanceTestSchema inherits AbstractSchema {
                 "strcol_38": c_varchar(ColumnWidth, C_NOT_NULL),
                 "strcol_39": c_varchar(ColumnWidth, C_NOT_NULL),
             ),
-            );
+        );
 
         const Tables = (
             "table_mapper_test": T_TableMapperPerformanceTest,
-            );
+        );
 
         const Sequences = (
             "seq_table_mapper_test": {},
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : AbstractSchema(ds, dts, its) {
@@ -165,13 +165,13 @@ public class TableMapperPerformanceTest inherits QUnit::Test {
 
         const Map1 = (
             "id": ("sequence": "seq_table_mapper_test"),
-            );
+        );
 
         const MyOpts = Opts + (
             "block": "b,block=i",
             "connstr": "c,conn=s",
             "rows": "r,rows=i",
-            );
+        );
 
         const DefaultRows = 100;
 
@@ -192,8 +192,7 @@ public class TableMapperPerformanceTest inherits QUnit::Test {
             schema.align(False, m_options.verbose);
             # get table object
             table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
@@ -230,15 +229,15 @@ public class TableMapperPerformanceTest inherits QUnit::Test {
 
         hash cmap = map {
             "ncol_" + $1: ("constant": rand() % 10000),
-        }, xrange(39);
+        }, xrange(40);
 
         cmap += map {
             "strcol_" + $1: ("constant": get_random_string(TableMapperPerformanceTestSchema::ColumnWidth)),
-        }, xrange(39);
+        }, xrange(40);
 
         hash vmap = map {
             "var_" + $1: True,
-        }, xrange(3);
+        }, xrange(4);
 
         # prepare map hash
         hash map1 = Map1 + cmap + vmap;
@@ -246,9 +245,9 @@ public class TableMapperPerformanceTest inherits QUnit::Test {
         # prepare input data for mapper
         hash h = map {
             "var_" + $1: (),
-        }, xrange(3);
+        }, xrange(4);
 
-        map (map h{$1} += strmul("x", TableMapperPerformanceTestSchema::ColumnWidth), (map "var_" + $1, xrange(3))), xrange(rows - 1);
+        map (map h{$1} += strmul("x", TableMapperPerformanceTestSchema::ColumnWidth), (map "var_" + $1, xrange(4))), xrange(rows);
 
         #printf("map1: %N\n", map1);
         #printf("h: %N\n", h);
@@ -280,7 +279,7 @@ public class TableMapperPerformanceTest inherits QUnit::Test {
 
     Datasource getDatasource() {
         if (!m_options.connstr) {
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?* ENV.QORE_DB_CONNSTR_PGSQL ?* ENV.QORE_DB_CONNSTR_MYSQL ?* ENV.QORE_DB_CONNSTR_FREETDS ?* ENV.QORE_DB_CONNSTR_SYBASE;
+            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL ?* ENV.QORE_DB_CONNSTR_ORACLE ?* ENV.QORE_DB_CONNSTR_MYSQL ?* ENV.QORE_DB_CONNSTR_FREETDS ?* ENV.QORE_DB_CONNSTR_SYBASE;
             if (m_options.verbose > 2) {
                 printf("using connection string %y\n", m_options.connstr);
             }

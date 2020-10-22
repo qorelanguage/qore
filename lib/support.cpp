@@ -107,7 +107,7 @@ int print_debug(int level, const char *fmt, ...) {
 	 break;
    }
 
-   int tid = (threads_initialized && is_valid_qore_thread()) ? gettid() : -1;
+   int tid = (threads_initialized && is_valid_qore_thread()) ? q_gettid() : -1;
 #ifdef QORE_QUICK_TIMESTAMP_LOG
    int secs, us;
    get_timestamp(secs, us);
@@ -136,17 +136,17 @@ void trace_function(int code, const char *funcname) {
    int secs, us;
    get_timestamp(secs, us);
    if (code == TRACE_IN)
-      printe("%d.%d: TID %d: %s entered\n", secs, us, threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+      printe("%d.%d: TID %d: %s entered\n", secs, us, threads_initialized  && is_valid_qore_thread() ? q_gettid() : 0, funcname);
    else
-      printe("%d.%d: TID %d: %s exited\n", secs, us, threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+      printe("%d.%d: TID %d: %s exited\n", secs, us, threads_initialized  && is_valid_qore_thread() ? q_gettid() : 0, funcname);
 #else
 
    QoreString ts;
    get_timestamp(ts);
    if (code == TRACE_IN)
-      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s entered\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? q_gettid() : 0, funcname);
    else
-      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? gettid() : 0, funcname);
+      printe("%s: TID %d: %s exited\n", ts.getBuffer(), threads_initialized  && is_valid_qore_thread() ? q_gettid() : 0, funcname);
 #endif
 }
 

@@ -1218,7 +1218,12 @@ bool is_valid_qore_thread() {
    return (bool)thread_data.get();
 }
 
+// deprecated due to potential symbol conflicts; use q_gettid() instead
 int gettid() noexcept {
+    return q_gettid();
+}
+
+int q_gettid() noexcept {
     // when destroying objects in the static namespace, this function is called after thread data is destroyed
     // to grab locks; therefore in such cases we return TID 0
     ThreadData* td = thread_data.get();
@@ -1732,293 +1737,292 @@ SingleArgvContextHelper::~SingleArgvContextHelper() {
 }
 
 const QoreListNode* thread_get_implicit_args() {
-   //printd(5, "thread_get_implicit_args() returning %p\n", thread_data.get()->current_implicit_arg);
-   return thread_data.get()->current_implicit_arg;
+    //printd(5, "thread_get_implicit_args() returning %p\n", thread_data.get()->current_implicit_arg);
+    return thread_data.get()->current_implicit_arg;
 }
 
 bool runtime_in_object_method(const char* name, const QoreObject* o) {
-   ThreadData* td = thread_data.get();
-   return (td->current_obj == o && td->current_code == name) ? true : false;
+    ThreadData* td = thread_data.get();
+    return (td->current_obj == o && td->current_code == name) ? true : false;
 }
 
 QoreObject* runtime_get_stack_object() {
-   return (thread_data.get())->current_obj;
+    return (thread_data.get())->current_obj;
 }
 
 const qore_class_private* runtime_get_class() {
-   return (thread_data.get())->current_class;
+    return (thread_data.get())->current_class;
 }
 
 void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& qc) {
-   ThreadData* td = thread_data.get();
-   obj = td->current_obj;
-   qc = td->current_class;
+    ThreadData* td = thread_data.get();
+    obj = td->current_obj;
+    qc = td->current_class;
 }
 
 QoreProgramBlockParseOptionHelper::QoreProgramBlockParseOptionHelper(int64 n_po) {
-   ThreadData* td = thread_data.get();
-   if (td->runtime_po != n_po) {
-      po = td->runtime_po;
-      td->runtime_po = n_po;
-   }
-   else
-      po = -1;
+    ThreadData* td = thread_data.get();
+    if (td->runtime_po != n_po) {
+        po = td->runtime_po;
+        td->runtime_po = n_po;
+    } else
+        po = -1;
 }
 
 QoreProgramBlockParseOptionHelper::~QoreProgramBlockParseOptionHelper() {
-   if (po != -1) {
-      ThreadData* td = thread_data.get();
-      td->runtime_po = po;
-   }
+    if (po != -1) {
+        ThreadData* td = thread_data.get();
+        td->runtime_po = po;
+    }
 }
 
 ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) {
-   if (!pgm)
-      return;
+    if (!pgm)
+        return;
 
-   ThreadData* td = thread_data.get();
-   old_pgm = td->current_pgm;
-   old_tlpd = td->tlpd;
-   old_frameCount = old_tlpd ? old_tlpd->lvstack.getFrameCount() : -1;
-   old_ctx = td->current_pgm_ctx;
+    ThreadData* td = thread_data.get();
+    old_pgm = td->current_pgm;
+    old_tlpd = td->tlpd;
+    old_frameCount = old_tlpd ? old_tlpd->lvstack.getFrameCount() : -1;
+    old_ctx = td->current_pgm_ctx;
 
-   if (pgm != td->current_pgm) {
-      printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm, old_pgm?old_pgm->getProgramId():-1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount);
-      qore_program_private* pp = qore_program_private::get(*pgm);
-      // try to increment thread count
-      if (pp->incThreadCount(xsink)) {
-         printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
-         return;
-      }
+    if (pgm != td->current_pgm) {
+        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm, old_pgm?old_pgm->getProgramId():-1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount);
+        qore_program_private* pp = qore_program_private::get(*pgm);
+        // try to increment thread count
+        if (pp->incThreadCount(xsink)) {
+            printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() failed\n");
+            return;
+        }
 
-      // set up thread stacks
-      restore = true;
-      td->current_pgm = pgm;
-      init_tlpd = td->tpd->saveProgram(runtime, xsink); // set new td->tlpd
-      td->current_pgm_ctx = this;
-      save_frameCount = td->tlpd->lvstack.getFrameCount();
+        // set up thread stacks
+        restore = true;
+        td->current_pgm = pgm;
+        init_tlpd = td->tpd->saveProgram(runtime, xsink); // set new td->tlpd
+        td->current_pgm_ctx = this;
+        save_frameCount = td->tlpd->lvstack.getFrameCount();
 
-      printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p tlpd:%p savefc:%d oldfc:%d init_tlpd:%d\n",
-         this, td->tlpd, save_frameCount, old_frameCount, init_tlpd
-      );
+        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p tlpd:%p savefc:%d oldfc:%d init_tlpd:%d\n",
+            this, td->tlpd, save_frameCount, old_frameCount, init_tlpd
+        );
 
-      if (!td->tlpd->dbgIsAttached()) {
-         // find if tlpd is in lower context and if not then notify dbgAttach()
-         if (isFirstThreadLocalProgramData(td->tlpd)) {
-            td->tlpd->dbgAttach(xsink);
-         }
-      }
-   } else {
-      printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d old_tlpd:%p cur_ctx:%p fc:%d follow\n",
-         this, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount
-      );
-   }
+        if (!td->tlpd->dbgIsAttached()) {
+            // find if tlpd is in lower context and if not then notify dbgAttach()
+            if (isFirstThreadLocalProgramData(td->tlpd)) {
+                td->tlpd->dbgAttach(xsink);
+            }
+        }
+    } else {
+        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d old_tlpd:%p cur_ctx:%p fc:%d follow\n",
+            this, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount
+        );
+    }
 }
 
 ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
-   if (!restore) {
-      printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this:%p cur_ctx:%p no restore\n", this, old_ctx);
-      return;
-   }
-   // restore thread stacks
-   ThreadData* td = thread_data.get();
+    if (!restore) {
+        printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this:%p cur_ctx:%p no restore\n", this, old_ctx);
+        return;
+    }
+    // restore thread stacks
+    ThreadData* td = thread_data.get();
 
-   QoreProgram* pgm = td->current_pgm;
-   printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d, restoring old pgm:%p old_pgmid:%d old tlpd:%p old_ctx:%p savefc:%d oldfc:%d init_tlpd:%d\n", this, td->current_pgm, td->current_pgm?td->current_pgm->getProgramId():-1, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, save_frameCount, old_frameCount, init_tlpd);
-   if (td->tlpd->dbgIsAttached()) {
-      // find if tlpd is in lower context and if not then notify dbgDetach()
-      if (isFirstThreadLocalProgramData(td->tlpd)) {
-         td->tlpd->dbgDetach(nullptr);
-      }
-   }
-   td->current_pgm = old_pgm;
-   td->tlpd = old_tlpd;
-   td->current_pgm_ctx = old_ctx;
+    QoreProgram* pgm = td->current_pgm;
+    printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d, restoring old pgm:%p old_pgmid:%d old tlpd:%p old_ctx:%p savefc:%d oldfc:%d init_tlpd:%d\n", this, td->current_pgm, td->current_pgm?td->current_pgm->getProgramId():-1, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, save_frameCount, old_frameCount, init_tlpd);
+    if (td->tlpd->dbgIsAttached()) {
+        // find if tlpd is in lower context and if not then notify dbgDetach()
+        if (isFirstThreadLocalProgramData(td->tlpd)) {
+            td->tlpd->dbgDetach(nullptr);
+        }
+    }
+    td->current_pgm = old_pgm;
+    td->tlpd = old_tlpd;
+    td->current_pgm_ctx = old_ctx;
 
-   qore_program_private::decThreadCount(*pgm, td->tid);
+    qore_program_private::decThreadCount(*pgm, td->tid);
 }
 
 bool ProgramThreadCountContextHelper::isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const{
-   /* find if tlpd is in lower context, i.e. the first usage of particular tlpd
-      Not sure if may be substituted with init_tlpd when calling dbgXX event.
-      Using isFirstThreadLocalProgramData instead of init_tlpd when looking for context provides
-      corrupted frame as there is frame shift at init_tlpd.
-   */
-   const ProgramThreadCountContextHelper* ch = this;
-   do {
-      if (ch->old_tlpd == tlpd) {
-         break;
-      }
-      ch = ch->old_ctx;
-   } while (ch);
-   return !ch;
+    /* find if tlpd is in lower context, i.e. the first usage of particular tlpd
+        Not sure if may be substituted with init_tlpd when calling dbgXX event.
+        Using isFirstThreadLocalProgramData instead of init_tlpd when looking for context provides
+        corrupted frame as there is frame shift at init_tlpd.
+    */
+    const ProgramThreadCountContextHelper* ch = this;
+    do {
+        if (ch->old_tlpd == tlpd) {
+            break;
+        }
+        ch = ch->old_ctx;
+    } while (ch);
+    return !ch;
 }
 /*
    there is context stack where pgm/tlpd might repeat, in this case we need consider frame value when context
    started
 */
 ThreadLocalProgramData* ProgramThreadCountContextHelper::getContextFrame(int& frame, ExceptionSink* xsink) {
-   if (frame < 0)
-      return nullptr;
+    if (frame < 0)
+        return nullptr;
 
-   ThreadData* td = thread_data.get();
-   ThreadLocalProgramData* tlpd = td->tlpd;
-   int frameCount = tlpd->lvstack.getFrameCount();
-   const ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
-   QoreProgram* pgm = td->current_pgm;
-   printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d inst:%d init_tlpd:%d\n",
-      frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm, pgm->getProgramId(), tlpd->inst, ch?ch->init_tlpd:-1
-   );
-   /*
-      ThreadFrameBoundaryHelper increments lvstack.getFrameCount after ProgramThreadCountContextHelper saved current frame count
-      because when used together in multi inheritance is put at "righter" position. Starting with
-      frameCount = -1, so the first pushFrameBoundary increments to 0.
-   */
-   while (ch && frame >= frameCount - ch->save_frameCount + (ch->init_tlpd ? 1 : 0) ) {
-      frame -= frameCount - ch->save_frameCount;
-      // the initial instance has one "frame" beyond frame count (i.e. frame_count is -1)
-      if (ch->init_tlpd) {
-         frame--;
-      }
-      pgm = ch->old_pgm;
-      tlpd = ch->old_tlpd;
-      frameCount = ch->old_frameCount;
-      ch = ch->old_ctx;
-      if (!tlpd || !pgm) {
-         printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p\n",
-            frame, ch, tlpd);
-         return nullptr;
-      }
-      printd(5, "ProgramThreadCountContextHelper::getContextFrame() L: frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d, inst:%d init_tlpd:%d\n",
-         frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm, pgm->getProgramId(), tlpd->inst, ch ? ch->init_tlpd: -1
-      );
-   }
-   if (!pgm->checkAllowDebugging(xsink)) {
-      return nullptr;
-   }
-   /* now we know that desired frame should be in tlpd and we must add frame index to consider frames above */
-   frame += tlpd->lvstack.getFrameCount() - frameCount;
-   printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d inst:%d\n",
-      frame, ch, tlpd, frameCount, tlpd->lvstack.getFrameCount(), pgm, pgm->getProgramId(), tlpd->inst
-   );
-   return tlpd;
+    ThreadData* td = thread_data.get();
+    ThreadLocalProgramData* tlpd = td->tlpd;
+    int frameCount = tlpd->lvstack.getFrameCount();
+    const ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
+    QoreProgram* pgm = td->current_pgm;
+    printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d inst:%d init_tlpd:%d\n",
+        frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm, pgm->getProgramId(), tlpd->inst, ch?ch->init_tlpd:-1
+    );
+    /*
+        ThreadFrameBoundaryHelper increments lvstack.getFrameCount after ProgramThreadCountContextHelper saved current frame count
+        because when used together in multi inheritance is put at "righter" position. Starting with
+        frameCount = -1, so the first pushFrameBoundary increments to 0.
+    */
+    while (ch && frame >= frameCount - ch->save_frameCount + (ch->init_tlpd ? 1 : 0) ) {
+        frame -= frameCount - ch->save_frameCount;
+        // the initial instance has one "frame" beyond frame count (i.e. frame_count is -1)
+        if (ch->init_tlpd) {
+            frame--;
+        }
+        pgm = ch->old_pgm;
+        tlpd = ch->old_tlpd;
+        frameCount = ch->old_frameCount;
+        ch = ch->old_ctx;
+        if (!tlpd || !pgm) {
+            printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p\n",
+                frame, ch, tlpd);
+            return nullptr;
+        }
+        printd(5, "ProgramThreadCountContextHelper::getContextFrame() L: frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d, inst:%d init_tlpd:%d\n",
+            frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm, pgm->getProgramId(), tlpd->inst, ch ? ch->init_tlpd: -1
+        );
+    }
+    if (!pgm->checkAllowDebugging(xsink)) {
+        return nullptr;
+    }
+    /* now we know that desired frame should be in tlpd and we must add frame index to consider frames above */
+    frame += tlpd->lvstack.getFrameCount() - frameCount;
+    printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d inst:%d\n",
+        frame, ch, tlpd, frameCount, tlpd->lvstack.getFrameCount(), pgm, pgm->getProgramId(), tlpd->inst
+    );
+    return tlpd;
 }
 
 ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm) :
       old_pgm(0), old_tlpd(0), restore(false) {
-   if (!pgm)
-      return;
+    if (!pgm)
+        return;
 
-   ThreadData* td = thread_data.get();
-   printd(5, "ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
-   if (pgm != td->current_pgm) {
-      // try to increment thread count
-      if (qore_program_private::lockParsing(*pgm, xsink))
-         return;
+    ThreadData* td = thread_data.get();
+    printd(5, "ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+    if (pgm != td->current_pgm) {
+        // try to increment thread count
+        if (qore_program_private::lockParsing(*pgm, xsink))
+            return;
 
-      // set up thread stacks
-      restore = true;
-      old_pgm = td->current_pgm;
-      old_tlpd = td->tlpd;
-      td->current_pgm = pgm;
-      td->tpd->saveProgram(false, 0);
-   }
+        // set up thread stacks
+        restore = true;
+        old_pgm = td->current_pgm;
+        old_tlpd = td->tlpd;
+        td->current_pgm = pgm;
+        td->tpd->saveProgram(false, 0);
+    }
 }
 
 ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() {
-   if (!restore)
-      return;
+    if (!restore)
+        return;
 
-   // restore thread stacks
-   ThreadData* td = thread_data.get();
+    // restore thread stacks
+    ThreadData* td = thread_data.get();
 
-   QoreProgram* pgm = td->current_pgm;
-   printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
-   td->current_pgm = old_pgm;
-   td->tlpd        = old_tlpd;
+    QoreProgram* pgm = td->current_pgm;
+    printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+    td->current_pgm = old_pgm;
+    td->tlpd        = old_tlpd;
 
-   qore_program_private::unlockParsing(*pgm);
+    qore_program_private::unlockParsing(*pgm);
 }
 
 ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
-   if (!pgm)
-      return;
+    if (!pgm)
+        return;
 
-   // attach to and lock program for parsing
-   if (qore_program_private::lockParsing(*pgm, xsink))
-      return;
+    // attach to and lock program for parsing
+    if (qore_program_private::lockParsing(*pgm, xsink))
+        return;
 
-   restore = true;
+    restore = true;
 
-   ThreadData* td = thread_data.get();
-   old_pgm = td->current_pgm;
-   td->current_pgm = pgm;
+    ThreadData* td = thread_data.get();
+    old_pgm = td->current_pgm;
+    td->current_pgm = pgm;
 }
 
 ProgramRuntimeParseContextHelper::~ProgramRuntimeParseContextHelper() {
-   if (!restore)
-      return;
+    if (!restore)
+        return;
 
-   ThreadData* td = thread_data.get();
-   qore_program_private::unlockParsing(*td->current_pgm);
-   td->current_pgm = old_pgm;
+    ThreadData* td = thread_data.get();
+    qore_program_private::unlockParsing(*td->current_pgm);
+    td->current_pgm = old_pgm;
 }
 
 CurrentProgramRuntimeParseContextHelper::CurrentProgramRuntimeParseContextHelper() {
-   ThreadData* td = thread_data.get();
-   // attach to and lock current program for parsing - cannot fail with a running program
-   // but current_pgm can be null when loading binary modules
-   if (td->current_pgm)
-      qore_program_private::lockParsing(*td->current_pgm, 0);
+    ThreadData* td = thread_data.get();
+    // attach to and lock current program for parsing - cannot fail with a running program
+    // but current_pgm can be null when loading binary modules
+    if (td->current_pgm)
+        qore_program_private::lockParsing(*td->current_pgm, 0);
 }
 
 CurrentProgramRuntimeParseContextHelper::~CurrentProgramRuntimeParseContextHelper() {
-   ThreadData* td = thread_data.get();
-   // current_pgm can be null when loading binary modules
-   if (td->current_pgm)
-      qore_program_private::unlockParsing(*td->current_pgm);
+    ThreadData* td = thread_data.get();
+    // current_pgm can be null when loading binary modules
+    if (td->current_pgm)
+        qore_program_private::unlockParsing(*td->current_pgm);
 }
 
 CurrentProgramRuntimeExternalParseContextHelper::CurrentProgramRuntimeExternalParseContextHelper() {
-   ThreadData* td = thread_data.get();
-   // attach to and lock current program for parsing - cannot fail with a running program
-   // but current_pgm can be null when loading binary modules
-   if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0))
-      valid = false;
+    ThreadData* td = thread_data.get();
+    // attach to and lock current program for parsing - cannot fail with a running program
+    // but current_pgm can be null when loading binary modules
+    if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0))
+        valid = false;
 }
 
 CurrentProgramRuntimeExternalParseContextHelper::~CurrentProgramRuntimeExternalParseContextHelper() {
-   if (valid) {
-      ThreadData* td = thread_data.get();
-      // current_pgm can be null when loading binary modules
-      if (td->current_pgm)
-         qore_program_private::unlockParsing(*td->current_pgm);
-   }
+    if (valid) {
+        ThreadData* td = thread_data.get();
+        // current_pgm can be null when loading binary modules
+        if (td->current_pgm)
+            qore_program_private::unlockParsing(*td->current_pgm);
+    }
 }
 
 CurrentProgramRuntimeExternalParseContextHelper::operator bool() const {
-   return valid;
+    return valid;
 }
 
 ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
-   ThreadData* td = thread_data.get();
-   if (pgm != td->current_pgm) {
-      if (qore_program_private::incThreadCount(*pgm, xsink))
-         return;
+    ThreadData* td = thread_data.get();
+    if (pgm != td->current_pgm) {
+        if (qore_program_private::incThreadCount(*pgm, xsink))
+            return;
 
-      restore = true;
-      old_pgm = td->current_pgm;
-      td->current_pgm = pgm;
-   }
+        restore = true;
+        old_pgm = td->current_pgm;
+        td->current_pgm = pgm;
+    }
 }
 
 ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
-   if (!restore)
-      return;
+    if (!restore)
+        return;
 
-   ThreadData* td = thread_data.get();
-   qore_program_private::decThreadCount(*td->current_pgm, td->tid);
-   td->current_pgm = old_pgm;
+    ThreadData* td = thread_data.get();
+    qore_program_private::decThreadCount(*td->current_pgm, td->tid);
+    td->current_pgm = old_pgm;
 }
 
 QoreProgram* getProgram() {
@@ -2029,42 +2033,42 @@ QoreProgram* getProgram() {
 }
 
 RootQoreNamespace* getRootNS() {
-   return (thread_data.get())->current_pgm->getRootNS();
-   //return (thread_data.get())->pgmStack->getProgram()->getRootNS();
+    return (thread_data.get())->current_pgm->getRootNS();
+    //return (thread_data.get())->pgmStack->getProgram()->getRootNS();
 }
 
 int64 parse_get_parse_options() {
-   return (thread_data.get())->current_pgm->getParseOptions64();
+    return (thread_data.get())->current_pgm->getParseOptions64();
 }
 
 int64 runtime_get_parse_options() {
-   return (thread_data.get())->runtime_po;
+    return (thread_data.get())->runtime_po;
 }
 
 bool parse_check_parse_option(int64 o) {
-   return (parse_get_parse_options() & o) == o;
+    return (parse_get_parse_options() & o) == o;
 }
 
 bool runtime_check_parse_option(int64 o) {
-   return (runtime_get_parse_options() & o) == o;
+    return (runtime_get_parse_options() & o) == o;
 }
 
 void updateCVarStack(CVNode* ncvs) {
-   ThreadData* td = thread_data.get();
-   td->cvarstack = ncvs;
+    ThreadData* td = thread_data.get();
+    td->cvarstack = ncvs;
 }
 
 CVNode* getCVarStack() {
-   return (thread_data.get())->cvarstack;
+    return (thread_data.get())->cvarstack;
 }
 
 void updateVStack(VNode* nvs) {
-   ThreadData* td = thread_data.get();
-   td->vstack = nvs;
+    ThreadData* td = thread_data.get();
+    td->vstack = nvs;
 }
 
 VNode* getVStack() {
-   return (thread_data.get())->vstack;
+    return (thread_data.get())->vstack;
 }
 
 VNode* update_get_vstack(VNode* vn) {
@@ -2075,12 +2079,12 @@ VNode* update_get_vstack(VNode* vn) {
 }
 
 void save_global_vnode(VNode* vn) {
-   ThreadData* td = thread_data.get();
-   td->global_vnode = vn;
+    ThreadData* td = thread_data.get();
+    td->global_vnode = vn;
 }
 
 VNode* get_global_vnode() {
-   return (thread_data.get())->global_vnode;
+    return (thread_data.get())->global_vnode;
 }
 
 QoreClass* parse_get_class() {
@@ -2700,7 +2704,7 @@ void init_qore_threads() {
     pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
 
     // set default thread name for initial thread
-    set_tid_thread_name(gettid());
+    set_tid_thread_name(q_gettid());
 
     // mark threading as active
     threads_initialized = true;
@@ -2917,7 +2921,7 @@ void QoreThreadList::deleteDataReleaseSignalThread() {
 }
 
 unsigned QoreThreadList::cancelAllActiveThreads() {
-    int tid = gettid();
+    int tid = q_gettid();
 
     // thread cancel count
     unsigned tcc = 0;

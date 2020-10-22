@@ -127,7 +127,7 @@ public:
    // does not block if there is an rsection conflict, returns -1 if the lock cannot be acquired and sets a notification
    DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn);
 
-   DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
+   DLLLOCAL void upgradeReadToRSection(int tid = q_gettid()) {
       AutoLocker al(l);
       assert(write_tid == -1);
 
@@ -143,7 +143,7 @@ public:
    DLLLOCAL void rSectionUnlock() {
       AutoLocker al(l);
       assert(write_tid == -1);
-      assert(rs_tid == gettid());
+      assert(rs_tid == q_gettid());
       assert(readers);
 
       // unlock rsection
@@ -158,11 +158,11 @@ public:
          unlock_read_signal();
    }
 
-   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
+   DLLLOCAL bool hasRSectionLock(int tid = q_gettid()) {
       return rs_tid == tid;
    }
 
-   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
+   DLLLOCAL bool checkRSectionExclusive(int tid = q_gettid()) {
       return (rs_tid == tid || write_tid == tid);
    }
 
@@ -188,15 +188,15 @@ public:
       static_cast<qore_rsection_priv*>(priv)->rSectionUnlock();
    }
 
-   DLLLOCAL bool hasRSectionLock(int tid = gettid()) {
+   DLLLOCAL bool hasRSectionLock(int tid = q_gettid()) {
       return static_cast<qore_rsection_priv*>(priv)->hasRSectionLock(tid);
    }
 
-   DLLLOCAL bool checkRSectionExclusive(int tid = gettid()) {
+   DLLLOCAL bool checkRSectionExclusive(int tid = q_gettid()) {
       return static_cast<qore_rsection_priv*>(priv)->checkRSectionExclusive(tid);
    }
 
-   DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
+   DLLLOCAL void upgradeReadToRSection(int tid = q_gettid()) {
       static_cast<qore_rsection_priv*>(priv)->upgradeReadToRSection(tid);
    }
 
@@ -217,7 +217,7 @@ public:
       }
    }
 
-   DLLLOCAL void acquireRSection(int tid = gettid()) {
+   DLLLOCAL void acquireRSection(int tid = q_gettid()) {
       static_cast<RSectionLock*>(l)->upgradeReadToRSection(tid);
       has_rsection = true;
    }

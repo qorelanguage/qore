@@ -926,7 +926,7 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
         //printd(5, "qore_object_private::customDeref() class: %s this: %p going out of scope\n", getClassName(), this);
 
         // mark status as in destructor
-        status = gettid();
+        status = q_gettid();
 
         //printd(5, "Object lock %p unlocked (safe)\n", &rml);
     }
@@ -964,7 +964,7 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
         priv->privateData->getAndClearPtr(key);
 #endif
         // mark status as in destructor
-        priv->status = gettid();
+        priv->status = q_gettid();
     }
 
     // run the destructor
@@ -1221,7 +1221,7 @@ void QoreObject::doDelete(ExceptionSink* xsink) {
         }
 
         // mark status as in destructor
-        priv->status = gettid();
+        priv->status = q_gettid();
     }
     priv->doDeleteIntern(xsink);
 }

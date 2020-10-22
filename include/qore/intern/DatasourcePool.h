@@ -258,7 +258,7 @@ public:
 
     DLLLOCAL bool currentThreadInTransaction() const {
         SafeLocker sl((QoreThreadLock*)this);
-        return tmap.find(gettid()) != tmap.end();
+        return tmap.find(q_gettid()) != tmap.end();
     }
 
     DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);

@@ -36,7 +36,7 @@
 int qore_rsection_priv::tryRSectionLockNotifyWaitRead(RNotifier* rn) {
     assert(has_notify);
 
-    int tid = gettid();
+    int tid = q_gettid();
 
     AutoLocker al(l);
     assert(write_tid != tid);

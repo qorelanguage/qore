@@ -646,7 +646,7 @@ public:
             assert(!twaiting);
             assert(!tclear);
             // while tclear is set, no threads can attach to this program object - pgm_data_map cannot be modified
-            tclear = gettid();
+            tclear = q_gettid();
 
             for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i)
                 i->second->finalize(cl);
@@ -709,7 +709,7 @@ public:
 
     /*
     DLLLOCAL int checkValid(ExceptionSink* xsink) {
-        if (ptid && ptid != gettid()) {
+        if (ptid && ptid != q_gettid()) {
             xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
             return -1;
         }
@@ -719,7 +719,7 @@ public:
 
     // returns 0 for OK, -1 for error
     DLLLOCAL int incThreadCount(ExceptionSink* xsink) {
-        int tid = gettid();
+        int tid = q_gettid();
 
         // grab program-level lock
         AutoLocker al(plock);
@@ -739,7 +739,7 @@ public:
 
     // throws a QoreStandardException if there is an error
     DLLLOCAL void incThreadCount() {
-        int tid = gettid();
+        int tid = q_gettid();
 
         // grab program-level lock
         AutoLocker al(plock);
@@ -792,7 +792,7 @@ public:
             }
         }
 
-        if (ptid && ptid != gettid()) {
+        if (ptid && ptid != q_gettid()) {
             if (xsink)
                 xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
             return -1;
@@ -812,7 +812,7 @@ public:
 
     // called only with plock held
     DLLLOCAL void waitForAllThreadsToTerminateIntern() {
-        int tid = gettid();
+        int tid = q_gettid();
 
         ptid_map_t::iterator i = tidmap.find(tid);
         unsigned adj = (i != tidmap.end() ? 1 : 0);
@@ -1361,7 +1361,7 @@ public:
         SafeLocker sl(tlock);
         // wait for data to finished being cleared if applicable
         while (tclear) {
-            if (tclear == gettid()) {
+            if (tclear == q_gettid()) {
                 // can be called recursively when destructors are run in local variable finalization
                 assert(pgm_data_map.find(td) != pgm_data_map.end());
                 assert(pgm_data_map[td]->inst);
@@ -2210,7 +2210,7 @@ public:
     DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
 
     DLLLOCAL int breakProgramThread(int tid) {
-        printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
+        printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, q_gettid());
         AutoLocker al(tlock);
         for (auto& i : pgm_data_map) {
             if (i.first->gettid() == tid) {

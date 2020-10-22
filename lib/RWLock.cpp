@@ -180,7 +180,7 @@ void RWLock::signalImpl() {
 void RWLock::destructorImpl(ExceptionSink *xsink) {
    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
    if (i != e) {
-      xsink->raiseException("RWLOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it", getName(), gettid());
+      xsink->raiseException("RWLOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it", getName(), q_gettid());
       // wake up all condition variables waiting on this mutex
       for (; i != e; i++)
          i->first->broadcast();
@@ -222,7 +222,7 @@ int RWLock::releaseImpl() {
       if (!--num_readers && waiting)
          asl_cond.signal();
 
-      int mtid = gettid();
+      int mtid = q_gettid();
       // remove reader for this thread
       tid_map_t::iterator ti = tmap.find(mtid);
       assert(ti != tmap.end());
@@ -241,7 +241,7 @@ int RWLock::releaseImpl() {
 void RWLock::cleanupImpl() {
    // if it was a read lock
    if (num_readers) {
-      int mtid = gettid();
+      int mtid = q_gettid();
       // remove reader for this thread
       vlock_map_t::iterator vi = vmap.find(mtid);
 
@@ -269,7 +269,7 @@ void RWLock::cleanupImpl() {
    }
    else if (tid >= 0) { // if it was the write lock
       // this thread must own the lock
-      assert(tid == gettid());
+      assert(tid == q_gettid());
       // mark lock as unlocked
       tid = -1;
 
@@ -283,7 +283,7 @@ void RWLock::cleanupImpl() {
 }
 
 int RWLock::releaseImpl(ExceptionSink *xsink) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    if (tid == Lock_Deleted) {
       xsink->raiseException("LOCK-ERROR", "The %s object has been deleted in another thread", getName());
       return -1;
@@ -330,7 +330,7 @@ void RWLock::mark_read_lock_intern(int mtid, VLock *nvl) {
 }
 
 int RWLock::readLock(ExceptionSink *xsink, int64 timeout_ms) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    VLock *nvl = getVLock();
    SafeLocker sl(&asl_lock);
 
@@ -387,7 +387,7 @@ void RWLock::release_read_lock_intern(tid_map_t::iterator i) {
 }
 
 int RWLock::readUnlock(ExceptionSink* xsink) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    AutoLocker al(&asl_lock);
    if (tid == mtid) {
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::readUnlock() while holding the write lock", mtid, getName());
@@ -414,7 +414,7 @@ int RWLock::tryReadLock() {
    if (tid != Lock_Unlocked)
       return -1;
 
-   mark_read_lock_intern(gettid(), getVLock());
+   mark_read_lock_intern(q_gettid(), getVLock());
 
    return 0;
 }

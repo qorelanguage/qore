@@ -64,7 +64,7 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
 
     xsink->raiseException("DATASOURCE-TRANSACTION-EXCEPTION", "%s:%s@%s: TID %d terminated while in a transaction; " \
         "transaction will be automatically rolled back and the lock released", getDriverName(),
-        getUsernameStr().c_str(), getDBNameStr().c_str(), gettid());
+        getUsernameStr().c_str(), getDBNameStr().c_str(), q_gettid());
     Datasource::rollback(xsink);
     setTransactionStatus(false);
     releaseLockIntern();
@@ -72,12 +72,12 @@ void ManagedDatasource::cleanup(ExceptionSink *xsink) {
 
 void ManagedDatasource::destructor(ExceptionSink* xsink) {
     AutoLocker al(&ds_lock);
-    if (tid == gettid() || tid == -1)
+    if (tid == q_gettid() || tid == -1)
         // closeUnlocked will throw an exception if a transaction is in progress (and release the transaction lock if held)
         closeUnlocked(xsink);
     else
         xsink->raiseException("DATASOURCE-ERROR", "%s:%s@%s: TID %d deleted Datasource while TID %d is holding the " \
-            "transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), gettid(), tid);
+            "transaction lock", getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(), q_gettid(), tid);
 }
 
 void ManagedDatasource::deref(ExceptionSink *xsink) {
@@ -99,7 +99,7 @@ void ManagedDatasource::deref() {
 }
 
 int ManagedDatasource::grabLockIntern() {
-    int ctid = gettid();
+    int ctid = q_gettid();
 
     if (tid == ctid)
         return 0;
@@ -131,7 +131,7 @@ int ManagedDatasource::grabLock(ExceptionSink *xsink) {
         const char *db = getDBName();
         xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d",
                                 getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(),
-                                gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms,
+                                q_gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms,
                                 tl_timeout_ms == 1 ? "" : "s", tid);
         return -1;
     }
@@ -139,7 +139,7 @@ int ManagedDatasource::grabLock(ExceptionSink *xsink) {
 }
 
 void ManagedDatasource::releaseLockIntern() {
-   assert(tid == gettid());
+   assert(tid == q_gettid());
    tid = -1;
    if (waiting)
       cond.signal();
@@ -169,7 +169,7 @@ int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction
     AutoLocker al(&ds_lock);
 
     // save previous trans lock status
-    new_transaction = (tid != gettid());
+    new_transaction = (tid != q_gettid());
 
     // first grab the transaction lock
     if (grabLock(xsink))
@@ -204,7 +204,7 @@ bool ManagedDatasource::endDBActionIntern(char cmd, bool new_transaction) {
         releaseLockIntern();
     }
 
-    return tid == gettid();
+    return tid == q_gettid();
 }
 
 bool ManagedDatasource::endDBAction(char cmd, bool new_transaction) {
