@@ -2394,17 +2394,15 @@ public:
                     cTypeInfo = nullptr;
                     found = false;
                 }
-            }
-            else if (access == Private && !parseCheckPrivateClassAccess(class_ctx)) {
+            } else if (access == Private && !parseCheckPrivateClassAccess(class_ctx)) {
                 cTypeInfo = nullptr;
                 found = false;
-            }
-            else {
+            } else {
                 return rv;
             }
         }
 
-            return scl ? scl->parseFindConstantValue(cname, cTypeInfo, found, class_ctx, class_ctx == this) : QoreValue();
+        return scl ? scl->parseFindConstantValue(cname, cTypeInfo, found, class_ctx, class_ctx == this) : QoreValue();
     }
 
     DLLLOCAL QoreVarInfo* parseFindLocalStaticVar(const char* vname) const {

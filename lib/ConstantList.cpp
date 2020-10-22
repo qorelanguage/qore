@@ -317,13 +317,13 @@ cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation* loc, const 
 
 cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const QoreTypeInfo* typeInfo, ClassAccess access) {
 #ifdef DEBUG
-   if (cnemap.find(name) != cnemap.end()) {
-      printd(0, "ConstantList::add() %s added twice!", name);
-      assert(false);
-   }
+    if (cnemap.find(name) != cnemap.end()) {
+        printd(0, "ConstantList::add() %s added twice!", name);
+        assert(false);
+    }
 #endif
-   ConstantEntry* ce = new ConstantEntry(&loc_builtin, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
-   return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
+    ConstantEntry* ce = new ConstantEntry(&loc_builtin, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
+    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
 ConstantEntry *ConstantList::findEntry(const char* name) {
@@ -356,41 +356,41 @@ QoreValue ConstantList::find(const char* name, const QoreTypeInfo*& constantType
 }
 
 bool ConstantList::inList(const char* name) const {
-   cnemap_t::const_iterator i = cnemap.find(name);
-   return i != cnemap.end() ? true : false;
+    cnemap_t::const_iterator i = cnemap.find(name);
+    return i != cnemap.end() ? true : false;
 }
 
 bool ConstantList::inList(const std::string& name) const {
-   cnemap_t::const_iterator i = cnemap.find(name.c_str());
-   return i != cnemap.end() ? true : false;
+    cnemap_t::const_iterator i = cnemap.find(name.c_str());
+    return i != cnemap.end() ? true : false;
 }
 
 void ConstantList::mergeUserPublic(const ConstantList& src) {
-   for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
-      if (!i->second->isUserPublic())
-         continue;
+    for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
+        if (!i->second->isUserPublic())
+            continue;
 
-      assert(!inList(i->first));
+        assert(!inList(i->first));
 
-      ConstantEntry* n = new ConstantEntry(*i->second);
-      cnemap[n->getName()] = n;
-   }
+        ConstantEntry* n = new ConstantEntry(*i->second);
+        cnemap[n->getName()] = n;
+    }
 }
 
 int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* xsink) {
-   for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
-      if (!i->second->isSystem())
-         continue;
+    for (cnemap_t::const_iterator i = src.cnemap.begin(), e = src.cnemap.end(); i != e; ++i) {
+        if (!i->second->isSystem())
+            continue;
 
-      if (inList(i->first)) {
-         xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
-         return -1;
-      }
+        if (inList(i->first)) {
+            xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system constant %s due to an existing constant with the same name in the target namespace", i->first);
+            return -1;
+        }
 
-      ConstantEntry* n = new ConstantEntry(*i->second);
-      cnemap[n->getName()] = n;
-   }
-   return 0;
+        ConstantEntry* n = new ConstantEntry(*i->second);
+        cnemap[n->getName()] = n;
+    }
+    return 0;
 }
 
 // no duplicate checking is done here

@@ -1416,6 +1416,7 @@ static void process_comment(std::string& buf) {
                 }
                 str.append(buf, i, j - i - 1);
                 i = j + 1;
+                end = j;
                 j = buf.find('\n', i);
                 if (j == std::string::npos) {
                     break;
@@ -1430,7 +1431,6 @@ static void process_comment(std::string& buf) {
 
         std::string tstr = "@htmlonly <style><!-- td.qore { background-color: #5b9409; color: white; } --></style> @endhtmlonly\n    <table>\n";
 
-
         while (true) {
             strlist_t sl;
             get_string_list2(sl, str, '|');
@@ -1442,16 +1442,19 @@ static void process_comment(std::string& buf) {
 
             // find start of next row, if any
             size_t k = str.find('|');
-            if (k == std::string::npos)
+            if (k == std::string::npos) {
                 break;
+            }
 
             str.erase(0, k + 1);
-            //end = j;
         }
 
         tstr += "    </table>\n";
 
         buf.replace(start, end - start, tstr);
+        if (!str.empty()) {
+            buf.append(str);
+        }
     }
 }
 
