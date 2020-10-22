@@ -37,7 +37,7 @@ VRMutex::VRMutex() : count(0) {
 }
 
 int VRMutex::enter(ExceptionSink *xsink) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
    int rc = VRMutex::grabImpl(mtid, nvl, xsink);
@@ -55,7 +55,7 @@ int VRMutex::exit() {
 }
 
 void VRMutex::cleanupImpl() {
-   if (tid == gettid()) {
+   if (tid == q_gettid()) {
       release_and_signal();
       count = 0;
    }
@@ -100,7 +100,7 @@ int VRMutex::tryGrabImpl(int mtid, VLock *nvl) {
 
 // internal use only
 int VRMutex::releaseImpl() {
-   assert(tid == gettid());
+   assert(tid == q_gettid());
    printd(5, "VRMutex::exit() this=%p count: %d->%d\n", this, count, count - 1);
 
    --count;
@@ -109,7 +109,7 @@ int VRMutex::releaseImpl() {
 }
 
 int VRMutex::releaseImpl(ExceptionSink *xsink) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    if (tid == Lock_Unlocked) {
       // use getName() here so it can be safely inherited
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::exit() without acquiring the lock", mtid, getName());

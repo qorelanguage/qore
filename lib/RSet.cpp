@@ -242,7 +242,7 @@ protected:
 
 public:
     DLLLOCAL RSectionScanHelper(RSetHelper* n_orsh, RObject* n_ro) : orsh(0), ro(n_ro) {
-        int tid = gettid();
+        int tid = q_gettid();
 
         // if we already have the rsection lock, then ignore; already processed (either in fomap or tr_out)
         if (n_ro->rml.hasRSectionLock(tid))
@@ -535,7 +535,7 @@ bool RSetHelper::checkIntern(RObject& obj) {
         return false;
     }
 
-    int tid = gettid();
+    int tid = q_gettid();
 
     // see if the object has been scanned
     omap_t::iterator fi = fomap.lower_bound(&obj);
@@ -687,12 +687,12 @@ public:
          obj.rcond.wait(obj.rlck);
          --obj.rwaiting;
       }
-      obj.rscan = gettid();
+      obj.rscan = q_gettid();
    }
 
    DLLLOCAL ~RScanHelper() {
       AutoLocker al(obj.rlck);
-      assert(obj.rscan == gettid());
+      assert(obj.rscan == q_gettid());
       // we have to use broadcast here because the condition variable is shared
       if (obj.rwaiting)
          obj.rcond.broadcast();

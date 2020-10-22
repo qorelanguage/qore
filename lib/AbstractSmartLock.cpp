@@ -32,12 +32,12 @@
 #include "qore/intern/AbstractSmartLock.h"
 
 void AbstractSmartLock::cleanupImpl() {
-   if (tid == gettid())
+   if (tid == q_gettid())
       release_and_signal();
 }
 
 void AbstractSmartLock::cleanup(ExceptionSink *xsink) {
-   xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", gettid(), getName());
+   xsink->raiseException("LOCK-ERROR", "TID %d terminated while holding a %s lock; the lock will be automatically released", q_gettid(), getName());
    AutoLocker al(&asl_lock);	    
    cleanupImpl();
 }
@@ -88,7 +88,7 @@ void AbstractSmartLock::destructor(ExceptionSink *xsink) {
    if (tid >= 0) {
       vl->pop(this);
       
-      int mtid = gettid();
+      int mtid = q_gettid();
       if (mtid == tid) {
 	 xsink->raiseException("LOCK-ERROR", "TID %d deleted %s object while holding the lock", mtid, getName());
 	 remove_thread_resource(this);
@@ -107,14 +107,14 @@ void AbstractSmartLock::destructor(ExceptionSink *xsink) {
 //    < 0 = error occured (deadlock or timeout)
 /*
 int AbstractSmartLock::grabIntern(ExceptionSink *xsink) {
-int mtid = gettid();
+int mtid = q_gettid();
 AutoLocker al(&asl_lock);
 return grabInternImpl(mtid);
 }
 */
 
 int AbstractSmartLock::grab(ExceptionSink *xsink, int64 timeout_ms) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    
    VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
@@ -125,7 +125,7 @@ int AbstractSmartLock::grab(ExceptionSink *xsink, int64 timeout_ms) {
 }
 
 int AbstractSmartLock::tryGrab() {
-   int mtid = gettid();
+   int mtid = q_gettid();
    VLock *nvl = getVLock();
    AutoLocker al(&asl_lock);
    int rc = tryGrabImpl(mtid, nvl);
@@ -157,7 +157,7 @@ int AbstractSmartLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSi
 
 int AbstractSmartLock::extern_wait(QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
    AutoLocker al(&asl_lock);
-   return externWaitImpl(gettid(), cond, xsink, timeout_ms);
+   return externWaitImpl(q_gettid(), cond, xsink, timeout_ms);
 }
 
 int AbstractSmartLock::verify_wait_unlocked(int mtid, ExceptionSink *xsink) {

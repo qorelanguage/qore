@@ -270,7 +270,7 @@ int RWLock::getWriteWaiting() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 if (rwl.lockOwner())
-    printf("TID %d has either the read lock or the write lock\n", gettid());
+    printf("TID %d has either the read lock or the write lock\n", q_gettid());
     @endcode
  */
 bool RWLock::lockOwner() [flags=CONSTANT] {
@@ -283,7 +283,7 @@ bool RWLock::lockOwner() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 if (rwl.readLockOwner())
-    printf("TID %d has the read lock\n", gettid());
+    printf("TID %d has the read lock\n", q_gettid());
     @endcode
  */
 bool RWLock::readLockOwner() [flags=CONSTANT] {
@@ -296,7 +296,7 @@ bool RWLock::readLockOwner() [flags=CONSTANT] {
     @par Example:
     @code{.py}
 if (rwl.writeLockOwner())
-    printf("TID %d has the write lock\n", gettid());
+    printf("TID %d has the write lock\n", q_gettid());
     @endcode
  */
 bool RWLock::writeLockOwner() [flags=CONSTANT] {

@@ -67,7 +67,7 @@ int SmartMutex::grabImpl(int mtid, VLock *nvl, ExceptionSink *xsink, int64 timeo
 }
 
 int SmartMutex::releaseImpl(ExceptionSink *xsink) {
-   int mtid = gettid();
+   int mtid = q_gettid();
    if (tid < 0) {
       // getName() for possible inheritance
       xsink->raiseException("LOCK-ERROR", "TID %d called %s::unlock() while the lock was already unlocked", mtid, getName());
@@ -124,7 +124,7 @@ void SmartMutex::destructorImpl(ExceptionSink *xsink) {
    cond_map_t::iterator i = cmap.begin(), e = cmap.end();
    if (i != e) {
       xsink->raiseException("LOCK-ERROR", "%s object deleted in TID %d while one or more Condition variables were waiting on it",
-			    getName(), gettid());
+			    getName(), q_gettid());
       // wake up all condition variables waiting on this mutex
       for (; i != e; i++)
 	 i->first->broadcast();
@@ -133,5 +133,5 @@ void SmartMutex::destructorImpl(ExceptionSink *xsink) {
 
 bool SmartMutex::owns_lock() {
    AutoLocker al(&asl_lock);
-   return tid == gettid() ? true : false;
+   return tid == q_gettid() ? true : false;
 }

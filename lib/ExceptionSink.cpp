@@ -365,7 +365,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
     while (e) {
         //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
         printe("unhandled QORE %s exception thrown in TID %d at %s",
-            e->type == CT_USER ? "User" : "System", gettid(), nstr.getBuffer());
+            e->type == CT_USER ? "User" : "System", q_gettid(), nstr.getBuffer());
 
         QoreListNode* cs = e->callStack;
         bool found = false;

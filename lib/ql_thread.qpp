@@ -145,7 +145,7 @@ int tid = gettid();
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
 int gettid() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
-   return gettid();
+    return q_gettid();
 }
 
 //! Returns the current number of threads in the process (not including the special @ref signal_handling "signal handling thread")
@@ -160,7 +160,7 @@ int num = num_threads();
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
 int num_threads() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
-   return thread_list.getNumThreads();
+    return thread_list.getNumThreads();
 }
 
 //! Returns a list of all current thread IDs
@@ -176,7 +176,7 @@ list<int> l = thread_list();
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
 list<int> thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
-   return get_thread_list();
+    return get_thread_list();
 }
 
 //! Saves the data passed in the thread-local hash; all keys are merged into the thread-local hash, overwriting any information that may have been there before
@@ -190,8 +190,8 @@ save_thread_data(h);
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
 nothing save_thread_data(hash<auto> h) [dom=THREAD_CONTROL] {
-   QoreHashNode* data = getProgram()->getThreadData();
-   data->merge(h, xsink);
+    QoreHashNode* data = getProgram()->getThreadData();
+    data->merge(h, xsink);
 }
 
 //! Saves the data passed against the key passed as an argument in thread-local storage
@@ -206,8 +206,8 @@ save_thread_data("key1", value);
     @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
 */
 nothing save_thread_data(string key, auto value) [dom=THREAD_CONTROL] {
-   QoreHashNode* data = getProgram()->getThreadData();
-   data->setKeyValue(key, value.refSelf(), xsink);
+    QoreHashNode* data = getProgram()->getThreadData();
+    data->setKeyValue(key, value.refSelf(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -230,8 +230,8 @@ delete_thread_data("key1", "key2");
     @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
 */
 nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
-   if (num_args(args))
-      delete_thread_data_intern(args, xsink);
+    if (num_args(args))
+        delete_thread_data_intern(args, xsink);
 }
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
@@ -248,7 +248,7 @@ delete_thread_data(list_of_keys);
     @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
 */
 nothing delete_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
-   delete_thread_data_intern(l, xsink);
+    delete_thread_data_intern(l, xsink);
 }
 
 //! Removes the data associated to one or more keys in the thread-local data hash and returns the data removed
@@ -265,7 +265,7 @@ hash<auto> h = remove_thread_data("filename");
     @since %Qore 0.8.4 this function returns the values it removes
 */
 *hash<auto> remove_thread_data(...) [dom=THREAD_CONTROL] {
-   return num_args(args) ? remove_thread_data_intern(args, xsink) : 0;
+    return num_args(args) ? remove_thread_data_intern(args, xsink) : nullptr;
 }
 
 //! Removes the data associated to one or more keys in the thread-local data hash from a literal list passed as the first argument and returns the data removed
@@ -282,7 +282,7 @@ hash<auto> h = remove_thread_data(key_list);
     @since %Qore 0.8.4 this function returns the values it removes
 */
 hash<auto> remove_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
-   return remove_thread_data_intern(l, xsink);
+    return remove_thread_data_intern(l, xsink);
 }
 
 //! Deletes all keys in the thread-local data hash
@@ -295,7 +295,7 @@ delete_all_thread_data();
     @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
 */
 nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
-   qore_program_private::clearThreadData(*getProgram(), xsink);
+    qore_program_private::clearThreadData(*getProgram(), xsink);
 }
 
 //! Returns the value of the thread-local data attached to the key passed
@@ -308,11 +308,11 @@ auto data = get_thread_data("key1");
     @endcode
 */
 auto get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
-   const QoreHashNode* h = getProgram()->getThreadData();
-   return qore_hash_private::get(*h)->getReferencedKeyValueIntern(tmp->c_str());
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return QoreValue();
+    const QoreHashNode* h = getProgram()->getThreadData();
+    return qore_hash_private::get(*h)->getReferencedKeyValueIntern(tmp->c_str());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -333,8 +333,8 @@ hash<auto> th = get_all_thread_data();
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
 hash<auto> get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
-   const QoreHashNode* h = getProgram()->getThreadData();
-   return h->copy();
+    const QoreHashNode* h = getProgram()->getThreadData();
+    return h->copy();
 }
 
 //! Returns a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
@@ -344,7 +344,7 @@ hash<auto> get_all_thread_data() [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD
     @deprecated use get_all_thread_call_stacks(); camel-case function names were deprecated in %Qore 0.8.12
 */
 hash<string, list<hash<CallStackInfo>>> getAllThreadCallStacks() [dom=THREAD_CONTROL,THREAD_INFO;flags=DEPRECATED] {
-   return getAllCallStacks();
+    return getAllCallStacks();
 }
 
 //! Returns a hash of lists of @ref CallStackInfo hashes keyed by TID (thread ID)
@@ -370,7 +370,7 @@ foreach string tid in (cs.keyIterator()) {
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getAllThreadCallStacks()
 */
 hash<string, list<hash<CallStackInfo>>> get_all_thread_call_stacks() [dom=THREAD_CONTROL,THREAD_INFO] {
-   return getAllCallStacks();
+    return getAllCallStacks();
 }
 
 //! Returns a list of @ref CallStackInfo hashes for the current TID (thread ID); because it is always from the same thread being read, no locking is applied as in @ref get_all_thread_call_stacks()
@@ -392,7 +392,7 @@ foreach hash<CallStackInfo> l in (cs) {
     @since %Qore 0.8.13
 */
 list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
-   return qore_get_thread_call_stack();
+    return qore_get_thread_call_stack();
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
@@ -414,7 +414,7 @@ list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INF
     @deprecated use throw_thread_resource_exceptions(); camel-case function names were deprecated in %Qore 0.8.12
 */
 nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
-   purge_thread_resources(xsink);
+    purge_thread_resources(xsink);
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
@@ -428,8 +428,7 @@ nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
     @code{.py}
 try {
     throw_thread_resource_exceptions();
-}
-catch (hash<ExceptionInfo> ex) {
+} catch (hash<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -447,7 +446,7 @@ catch (hash<ExceptionInfo> ex) {
     @since %Qore 0.8.12 as a replacement for deprecated camel-case throwThreadResourceExceptions()
 */
 nothing throw_thread_resource_exceptions() [dom=THREAD_CONTROL] {
-   purge_thread_resources(xsink);
+    purge_thread_resources(xsink);
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread for thread resources created since the last call to mark_thread_resources() and throws all associated exceptions
@@ -466,8 +465,7 @@ try {
     # the last call to mark_thread_resources() will be cleaned up and associated
     # exceptions will be thrown
     throw_thread_resource_exceptions_to_mark();
-}
-catch (hash<<ExceptionInfo> ex) {
+} catch (hash<<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -485,7 +483,7 @@ catch (hash<<ExceptionInfo> ex) {
     @since %Qore 0.8.4
  */
 bool throw_thread_resource_exceptions_to_mark() [dom=THREAD_CONTROL] {
-   return (bool)purge_thread_resources_to_mark(xsink);
+    return (bool)purge_thread_resources_to_mark(xsink);
 }
 
 //! Marks thread resources so that any thread resources left allocated after this call will be cleaned up when throw_thread_resource_exceptions_to_mark() is called
@@ -503,8 +501,7 @@ try {
     on_exit throw_thread_resource_exceptions_to_mark();
 
     # ... some code or calls that may allocate thread resources
-}
-catch (hash<ExceptionInfo> ex) {
+} catch (hash<ExceptionInfo> ex) {
     # ... log or handle exceptions
 }
     @endcode
@@ -520,7 +517,7 @@ catch (hash<ExceptionInfo> ex) {
     @since %Qore 0.8.4
  */
 nothing mark_thread_resources() [dom=THREAD_CONTROL] {
-   mark_thread_resources();
+    mark_thread_resources();
 }
 
 //! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
@@ -542,7 +539,7 @@ set_thread_init(sub () { var = 123; });
     @since %Qore 0.8.13 added the ability to remove the thread initialization code by passing @ref nothing to this function
 */
 bool set_thread_init(*code init) [dom=THREAD_CONTROL] {
-   return qore_program_private::setThreadInit(*getProgram(), init, xsink);
+    return qore_program_private::setThreadInit(*getProgram(), init, xsink);
 }
 
 //! Sets the default time zone for the current thread
@@ -566,8 +563,8 @@ on_exit set_thread_tz(tz);
     @since %Qore 0.8.5
  */
 nothing set_thread_tz(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
-   ReferenceHolder<TimeZoneData> holder(zone, xsink);
-   set_thread_tz(zone->get());
+    ReferenceHolder<TimeZoneData> holder(zone, xsink);
+    set_thread_tz(zone->get());
 }
 
 //! Clears the thread-local time zone for the current thread; after this call TimeZone::get() will return the value set for the current Program
@@ -587,7 +584,7 @@ on_exit set_thread_tz(tz);
     @since %Qore 0.8.5
  */
 nothing set_thread_tz() [dom=LOCALE_CONTROL] {
-   clear_thread_tz();
+    clear_thread_tz();
 }
 
 //! Returns any TimeZone set for the current thread, @ref nothing if none is set
@@ -607,11 +604,11 @@ on_exit set_thread_tz(tz);
     @since %Qore 0.8.5
  */
 *TimeZone get_thread_tz() [dom=LOCALE_CONTROL] {
-   bool set;
-   const AbstractQoreZoneInfo* tz = get_thread_tz(set);
-   if (!set)
-      return QoreValue();
-   return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(tz));
+    bool set;
+    const AbstractQoreZoneInfo* tz = get_thread_tz(set);
+    if (!set)
+        return QoreValue();
+    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(tz));
 }
 
 //! sets a thread resource for the current thread
@@ -633,8 +630,8 @@ set_thread_resource(obj);
     @since %Qore 0.8.12
  */
 nothing set_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
-   ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
-   set_thread_resource(resource);
+    ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
+    set_thread_resource(resource);
 }
 
 //! removes a thread resource from the current thread
@@ -658,8 +655,8 @@ remove_thread_resource(obj);
     @since %Qore 0.8.12
  */
 bool remove_thread_resource(AbstractThreadResource[AbstractQoreThreadResource] resource) [dom=THREAD_CONTROL] {
-   ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
-   return remove_thread_resource(resource) ? false : true;
+    ReferenceHolder<AbstractQoreThreadResource> holder(resource, xsink);
+    return remove_thread_resource(resource) ? false : true;
 }
 
 //! sets a callable thread resource for the current thread with an optional argument
@@ -682,7 +679,7 @@ set_thread_resource(\func(), code);
     @since %Qore 0.8.12
  */
 nothing set_thread_resource(code resource, auto arg) [dom=THREAD_CONTROL] {
-   set_thread_resource(resource, arg);
+    set_thread_resource(resource, arg);
 }
 
 //! removes a callable thread resource from the current thread
@@ -706,7 +703,7 @@ remove_thread_resource(\func());
     @since %Qore 0.8.12
  */
 bool remove_thread_resource(code resource) [dom=THREAD_CONTROL] {
-   return remove_thread_resource(resource, xsink) ? false : true;
+    return remove_thread_resource(resource, xsink) ? false : true;
 }
 
 //! yields the current thread so other threads can be scheduled and run

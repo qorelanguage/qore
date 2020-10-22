@@ -156,7 +156,7 @@ void QoreSignalManager::del() {
 // must only be called inside the lock
 void QoreSignalManager::reload() {
     cmd = C_Reload;
-    if (thread_running && tid != ::gettid()) {
+    if (thread_running && tid != ::q_gettid()) {
 #ifdef DEBUG
         int rc =
 #endif

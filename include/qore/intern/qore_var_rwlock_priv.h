@@ -64,7 +64,7 @@ public:
 
    //! grabs the write lock
    DLLLOCAL void wrlock() {
-      int tid = gettid();
+      int tid = q_gettid();
       AutoLocker al(l);
       assert(tid != write_tid);
 
@@ -79,7 +79,7 @@ public:
 
    //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock() {
-      int tid = gettid();
+      int tid = q_gettid();
       AutoLocker al(l);
       assert(tid != write_tid);
       if (readers || write_tid != -1)
@@ -91,7 +91,7 @@ public:
 
    //! unlocks the lock (assumes the lock is locked)
    DLLLOCAL void unlock() {
-      int tid = gettid();
+      int tid = q_gettid();
       AutoLocker al(l);
       if (write_tid == tid) {
          write_tid = -1;
@@ -110,7 +110,7 @@ public:
    //! grabs the read lock
    DLLLOCAL void rdlock() {
       AutoLocker al(l);
-      assert(write_tid != gettid());
+      assert(write_tid != q_gettid());
       while (write_tid != -1) {
          ++read_waiting;
          read_cond.wait(l);
@@ -123,7 +123,7 @@ public:
    //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int tryrdlock() {
       AutoLocker al(l);
-      assert(write_tid != gettid());
+      assert(write_tid != q_gettid());
       if (write_tid != -1)
          return -1;
 

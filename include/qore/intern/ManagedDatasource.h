@@ -143,7 +143,7 @@ public:
     }
 
     DLLLOCAL bool currentThreadInTransaction() const {
-        return tid == gettid();
+        return tid == q_gettid();
     }
 
     DLLLOCAL QoreHashNode* getOptionHash(ExceptionSink* xsink);
@@ -168,7 +168,7 @@ public:
             return this;
 
         // only return "this" when there was an exception in startDBAction if we already had the lock
-        return tid == gettid() ? this : 0;
+        return tid == q_gettid() ? this : 0;
     }
 
     DLLLOCAL virtual Datasource* helperEndActionImpl(char cmd, bool new_transaction, ExceptionSink* xsink) {
@@ -210,7 +210,7 @@ protected:
 public:
     DLLLOCAL DatasourceLockHelper(ManagedDatasource& n_ds, ExceptionSink* xsink) : ds(n_ds) {
         ds.ds_lock.lock();
-        had_lock = ds.tid == gettid();
+        had_lock = ds.tid == q_gettid();
         valid = !ds.grabLock(xsink);
         if (!valid)
             ds.ds_lock.unlock();

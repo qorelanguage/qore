@@ -385,7 +385,7 @@ protected:
    DLLLOCAL bool checkIntern(AbstractQoreNode* n);
 
    // queues nodes not scanned to tr_invalidate and tr_out
-   DLLLOCAL bool removeInvalidate(RSet* ors, int tid = gettid());
+   DLLLOCAL bool removeInvalidate(RSet* ors, int tid = q_gettid());
 
    DLLLOCAL bool inCurrentSet(omap_t::iterator fi) {
       for (size_t i = 0; i < ovec.size(); ++i)

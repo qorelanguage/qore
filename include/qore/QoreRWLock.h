@@ -37,7 +37,7 @@
 #include <pthread.h>
 
 #ifdef DEBUG
-extern int gettid() noexcept;
+extern int q_gettid() noexcept;
 #endif
 
 //! provides a simple POSIX-threads-based read-write lock

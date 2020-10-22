@@ -181,7 +181,7 @@ void DatasourcePool::init(ExceptionSink* xsink) {
 }
 
 void DatasourcePool::cleanup(ExceptionSink* xsink) {
-   int tid = gettid();
+   int tid = q_gettid();
 
    // thread must have a Datasource allocated
    SafeLocker sl((QoreThreadLock *)this);
@@ -218,13 +218,13 @@ void DatasourcePool::destructor(ExceptionSink* xsink) {
     // mark object as invalid in case any threads are waiting on a free Datasource
     valid = false;
 
-    int tid = gettid();
+    int tid = q_gettid();
     thread_use_t::iterator i = tmap.find(tid);
     unsigned curr = i == tmap.end() ? (unsigned)-1 : i->second;
 
     for (unsigned j = 0; j < cmax; ++j) {
         if (j != curr && pool[j]->isInTransaction())
-            xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: TID %d deleted DatasourcePool while TID %d using connection %d/%d was in a transaction", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), gettid(), tid_list[j], j + 1, cmax);
+            xsink->raiseException("DATASOURCEPOOL-ERROR", "%s:%s@%s: TID %d deleted DatasourcePool while TID %d using connection %d/%d was in a transaction", pool[0]->getDriverName(), pool[0]->getUsernameStr().c_str(), pool[0]->getDBNameStr().c_str(), q_gettid(), tid_list[j], j + 1, cmax);
     }
 
     if (i != tmap.end() && pool[curr]->isInTransaction()) {
@@ -281,7 +281,7 @@ void DatasourcePool::freeDS(ExceptionSink* xsink) {
 
    remove_thread_resource(this);
 
-   int tid = gettid();
+   int tid = q_gettid();
 
    AutoLocker al((QoreThreadLock*)this);
 
@@ -341,7 +341,7 @@ Datasource* DatasourcePool::getDS(bool &new_ds, ExceptionSink* xsink) {
 Datasource* DatasourcePool::getAllocatedDS() {
    SafeLocker sl((QoreThreadLock*)this);
    // see if thread already has a datasource allocated
-   thread_use_t::iterator i = tmap.find(gettid());
+   thread_use_t::iterator i = tmap.find(q_gettid());
    assert(i != tmap.end());
    return pool[i->second];
 }
@@ -379,7 +379,7 @@ int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
 Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink) {
     assert(!new_ds);
 
-    int tid = gettid();
+    int tid = q_gettid();
 
     Datasource* ds;
 
@@ -641,7 +641,7 @@ const QoreEncoding* DatasourcePool::getQoreEncoding() const {
 }
 
 bool DatasourcePool::inTransaction() {
-    int tid = gettid();
+    int tid = q_gettid();
     AutoLocker al((QoreThreadLock*)this);
     return tmap.find(tid) != tmap.end();
 }

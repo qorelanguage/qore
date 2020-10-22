@@ -182,7 +182,7 @@ public:
    DLLLOCAL void end_handler();
    DLLLOCAL void preFork();
    DLLLOCAL void postFork(bool new_process, ExceptionSink* xsink);
-   DLLLOCAL int gettid() {
+   DLLLOCAL int q_gettid() {
       return tid;
    }
    DLLLOCAL void reset_default_signal_mask();
