@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,30 +36,30 @@ QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserC
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {
-   return new QoreClosureNode(this);
+    return new QoreClosureNode(this);
 }
 
 QoreObjectClosureNode* QoreClosureParseNode::evalObjectClosure() const {
-   QoreObject* o;
-   const qore_class_private* c_ctx;
-   runtime_get_object_and_class(o, c_ctx);
-   return new QoreObjectClosureNode(o, c_ctx, this);
+    QoreObject* o;
+    const qore_class_private* c_ctx;
+    runtime_get_object_and_class(o, c_ctx);
+    return new QoreObjectClosureNode(o, c_ctx, this);
 }
 
 QoreValue QoreClosureParseNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
+    return in_method ? (AbstractQoreNode*)evalObjectClosure() : (AbstractQoreNode*)evalClosure();
 }
 
 int QoreClosureParseNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("parsed closure (%slambda, %p)", lambda ? "" : "non-", this);
-   return 0;
+    str.sprintf("parsed closure (%slambda, %p)", lambda ? "" : "non-", this);
+    return 0;
 }
 
 QoreString* QoreClosureParseNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString* rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 void QoreClosureParseNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -73,22 +73,22 @@ void QoreClosureParseNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
 }
 
 const char* QoreClosureParseNode::getTypeName() const {
-   return getStaticTypeName();
+    return getStaticTypeName();
 }
 
 QoreValue QoreClosureParseNode::exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
-   return uf->evalClosure(closure_base, pgm, args, self, class_ctx, xsink);
+    return uf->evalClosure(closure_base, pgm, args, self, class_ctx, xsink);
 }
 
 QoreClosureBase* QoreClosureParseNode::evalBackground(ExceptionSink* xsink) const {
-   cvv_vec_t* cvv = thread_get_all_closure_vars();
+    cvv_vec_t* cvv = thread_get_all_closure_vars();
 
-   if (in_method) {
-      QoreObject* o;
-      const qore_class_private* c_ctx;
-      runtime_get_object_and_class(o, c_ctx);
-      return new QoreObjectClosureNode(o, c_ctx, this, cvv);
-   }
+    if (in_method) {
+        QoreObject* o;
+        const qore_class_private* c_ctx;
+        runtime_get_object_and_class(o, c_ctx);
+        return new QoreObjectClosureNode(o, c_ctx, this, cvv);
+    }
 
-   return new QoreClosureNode(this, cvv);
+    return new QoreClosureNode(this, cvv, runtime_get_class());
 }

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,28 +42,28 @@ class ThreadSafeLocalVarRuntimeEnvironment;
 
 class ClosureParseEnvironment {
 private:
-   LVarSet* vlist;
-   VNode* high_water_mark;
-   ClosureParseEnvironment* prev;
+    LVarSet* vlist;
+    VNode* high_water_mark;
+    ClosureParseEnvironment* prev;
 
 public:
-   DLLLOCAL ClosureParseEnvironment(LVarSet* n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
-      prev = thread_get_closure_parse_env();
-      thread_set_closure_parse_env(this);
-   }
+    DLLLOCAL ClosureParseEnvironment(LVarSet* n_vlist) : vlist(n_vlist), high_water_mark(getVStack()) {
+        prev = thread_get_closure_parse_env();
+        thread_set_closure_parse_env(this);
+    }
 
-   DLLLOCAL ~ClosureParseEnvironment() {
-      thread_set_closure_parse_env(prev);
-   }
+    DLLLOCAL ~ClosureParseEnvironment() {
+        thread_set_closure_parse_env(prev);
+    }
 
-   DLLLOCAL VNode* getHighWaterMark() {
-      return high_water_mark;
-   }
+    DLLLOCAL VNode* getHighWaterMark() {
+        return high_water_mark;
+    }
 
-   DLLLOCAL void add(LocalVar* var) {
-      // add var to the set
-      vlist->add(var);
-   }
+    DLLLOCAL void add(LocalVar* var) {
+        // add var to the set
+        vlist->add(var);
+    }
 };
 
 class QoreClosureNode;
@@ -101,7 +101,8 @@ public:
 
     DLLLOCAL bool isLambda() const { return lambda; }
 
-    DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue exec(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args,
+        QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreClosureBase* evalBackground(ExceptionSink* xsink) const;
 

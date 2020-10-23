@@ -1,112 +1,112 @@
 /*
-  QoreClosureNode.cpp
+    QoreClosureNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 
 ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper(const QoreClosureBase* current) : prev(thread_set_runtime_closure_env(current)) {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p current: %p\n", prev, current);
 }
 
 ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
-   thread_set_runtime_closure_env(prev);
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironmentHelper::~ThreadSafeLocalVarRuntimeEnvironmentHelper() prev: %p\n", prev);
+    thread_set_runtime_closure_env(prev);
 }
 
 ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment(const lvar_set_t* vlist) {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p vlist: %p size: %d\n", this, vlist, vlist->size());
-   for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
-      ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
-      //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
-      cmap[*i] = cvar;
-      cvvset.insert(cvar);
-      cvar->ref();
-   }
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p vlist: %p size: %d\n", this, vlist, vlist->size());
+    for (lvar_set_t::const_iterator i = vlist->begin(), e = vlist->end(); i != e; ++i) {
+        ClosureVarValue* cvar = thread_find_closure_var((*i)->getName());
+        //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::ThreadSafeLocalVarRuntimeEnvironment() this: %p '%s' i: %p cvar: %p val: %s\n", this, (*i)->getName(), *i, cvar, cvar->val.getTypeName());
+        cmap[*i] = cvar;
+        cvvset.insert(cvar);
+        cvar->ref();
+    }
 }
 
 ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() this: %p\n", this);
-   assert(cmap.empty());
-   assert(cvvset.empty());
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::~ThreadSafeLocalVarRuntimeEnvironment() this: %p\n", this);
+    assert(cmap.empty());
+    assert(cvvset.empty());
 }
 
 ClosureVarValue* ThreadSafeLocalVarRuntimeEnvironment::find(const LocalVar* id) const {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
-   cvar_map_t::const_iterator i = cmap.find(id);
-   assert(i != cmap.end());
-   return i->second;
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::find(%p '%s') this: %p\n", id, id->getName(), this);
+    cvar_map_t::const_iterator i = cmap.find(id);
+    assert(i != cmap.end());
+    return i->second;
 }
 
 bool ThreadSafeLocalVarRuntimeEnvironment::hasVar(ClosureVarValue* cvv) const {
-   return cvvset.find(cvv) != cvvset.end();
+    return cvvset.find(cvv) != cvvset.end();
 }
 
 void ThreadSafeLocalVarRuntimeEnvironment::del(ExceptionSink* xsink) {
-   //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::del() this: %p\n", this);
-   for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
-      i->second->deref(xsink);
+    //printd(5, "ThreadSafeLocalVarRuntimeEnvironment::del() this: %p\n", this);
+    for (cvar_map_t::iterator i = cmap.begin(), e = cmap.end(); i != e; ++i)
+        i->second->deref(xsink);
 
 #ifdef DEBUG
-   cmap.clear();
-   cvvset.clear();
+    cmap.clear();
+    cvvset.clear();
 #endif
 }
 
 bool QoreClosureNode::derefImpl(ExceptionSink* xsink) {
-   del(xsink);
-   pgm->depDeref();
-   return true;
+    del(xsink);
+    pgm->depDeref();
+    return true;
 }
 
 QoreValue QoreClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, pgm, args, 0, 0, xsink);
+    CVecInstantiator cvi(cvec, xsink);
+    return closure->exec(*this, pgm, args, 0, class_ctx, xsink);
 }
 
 bool QoreClosureNode::getAsBoolImpl() const {
-   // check if we should do perl-style boolean evaluation
-   QoreProgram* pgm = getProgram();
-   if (pgm && runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      return false;
-   return true;
+    // check if we should do perl-style boolean evaluation
+    QoreProgram* pgm = getProgram();
+    if (pgm && runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
+        return false;
+    return true;
 }
 
 bool QoreObjectClosureNode::derefImpl(ExceptionSink* xsink) {
-   del(xsink);
-   obj->tDeref();
+    del(xsink);
+    obj->tDeref();
 #ifdef DEBUG
-   obj = 0;
+    obj = nullptr;
 #endif
-   return true;
+    return true;
 }
 
 QoreValue QoreObjectClosureNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   CVecInstantiator cvi(cvec, xsink);
-   return closure->exec(*this, 0, args, obj, class_ctx, xsink);
+    CVecInstantiator cvi(cvec, xsink);
+    return closure->exec(*this, 0, args, obj, class_ctx, xsink);
 }
