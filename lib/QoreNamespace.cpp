@@ -1309,7 +1309,8 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
     return QoreValue();
 }
 
-QoreValue qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(const QoreProgramLocation* loc, const NamedScope& nscope, const QoreTypeInfo*& typeInfo, bool& found) {
+QoreValue qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(const QoreProgramLocation* loc,
+        const NamedScope& nscope, const QoreTypeInfo*& typeInfo, bool& found) {
     assert(nscope.size() > 1);
     assert(!found);
 
@@ -1357,11 +1358,13 @@ QoreValue qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(cons
     }
 
     // raise parse exception
-    if (m != (nscope.size() - 1))
-        parse_error(*loc, "cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
-    else {
+    if (m != (nscope.size() - 1)) {
+        parse_error(*loc, "cannot find any namespace or class '%s' in '%s' providing a constant or static class " \
+            "variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
+    } else {
         QoreString err;
-        err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace or class '", nscope.getIdentifier());
+        err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace or class '",
+            nscope.getIdentifier());
         for (unsigned i = 0; i < (nscope.size() - 1); i++) {
             err.concat(nscope[i]);
             if (i != (nscope.size() - 2))

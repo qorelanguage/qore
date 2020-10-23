@@ -5096,6 +5096,36 @@ void QoreVarInfo::parseInit(const char* name) {
     }
 }
 
+int QoreVarInfo::evalInit(const char* name, ExceptionSink* xsink) {
+    printd(5, "QoreVarInfo::evalInit() %s committing %s var (exp: %s)\n", name, privpub(access), exp.getFullTypeName());
+
+    if (eval_init) {
+        return 0;
+    }
+    eval_init = true;
+
+    if (exp) {
+        // evaluate expression
+        ValueEvalRefHolder val(exp, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        if (QoreTypeInfo::mayRequireFilter(getTypeInfo(), *val)) {
+            val.ensureReferencedValue();
+            QoreTypeInfo::acceptInputMember(getTypeInfo(), name, *val, xsink);
+            if (*xsink) {
+                return -1;
+            }
+        }
+
+        discard(assignInit(val.takeReferencedValue()), xsink);
+    } else {
+        init();
+    }
+
+    return 0;
+}
+
 QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* new_ns) {
     assert(!(new_ns && new_cls));
     qore_class_private* new_cls_priv = new_cls ? qore_class_private::get(*new_cls) : nullptr;
@@ -5147,30 +5177,9 @@ void QoreVarMap::parseCommitRuntimeInit(ExceptionSink* xsink) {
     init = true;
     assert(xsink);
     for (auto& i : member_list) {
-        //printd(5, "qore_class_private::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i.second->access), l->first, l->first);
         // initialize variable
-        //initVar(i.first, *(i.second), xsink);
-        const char* vname = i.first;
-        QoreVarInfo& vi = *(i.second);
-
-        if (vi.exp) {
-            // evaluate expression
-            ValueEvalRefHolder val(vi.exp, xsink);
-            if (*xsink) {
-                continue;
-            }
-            if (QoreTypeInfo::mayRequireFilter(vi.getTypeInfo(), *val)) {
-                val.ensureReferencedValue();
-                QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, *val, xsink);
-                if (*xsink) {
-                    continue;
-                }
-            }
-
-            discard(vi.assignInit(val.takeReferencedValue()), xsink);
-        }
-        else {
-            vi.init();
+        if (i.second->evalInit(i.first, xsink)) {
+            continue;
         }
     }
 }
@@ -5337,7 +5346,8 @@ const char* QoreClassMemberIterator::getName() const {
 
 class qore_class_static_member_iterator_private : public PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember> {
 public:
-    DLLLOCAL qore_class_static_member_iterator_private(const qore_class_private& obj) : PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember>(obj.vars.member_list) {
+    DLLLOCAL qore_class_static_member_iterator_private(const qore_class_private& obj)
+            : PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember>(obj.vars.member_list) {
     }
 };
 

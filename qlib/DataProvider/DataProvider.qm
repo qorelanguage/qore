@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0.2";
+    version = "1.0.3";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -46,6 +46,8 @@ module DataProvider {
     init = sub () {
         # register the data provider factory
         DataProvider::registerFactory(new NullDataProviderFactory());
+        # to workaround #4048 (circular initialization error)
+        AbstractDataProviderType::anyDataType = new QoreDataType(AutoType);
     };
 }
 
@@ -199,6 +201,12 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_3 DataProvider v1.0.3
+    - fixed bugs in the default return value for
+      @ref DataProvider::AbstractDataProcessor::getExpectedType() "AbstractDataProcessor::getExpectedType()" and
+      @ref DataProvider::AbstractDataProcessor::getReturnType() "AbstractDataProcessor::getReturnType()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4043">issue 4043</a>)
 
     @subsection dataprovider_v1_0_2 DataProvider v1.0.2
     - fixed a bug where @ref DataProvider::HashDataType "HashDataType" would not enforce fields or field types when

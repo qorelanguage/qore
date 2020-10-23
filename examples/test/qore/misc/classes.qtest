@@ -646,9 +646,26 @@ class Issue3368 {
     }
 }
 
+class Issue4045_A {
+    public {
+        static int i = Issue4045_B::i + 1;
+        static string str = "testA";
+        const cstr = Issue4045_B::str;
+    }
+}
+
+class Issue4045_B {
+    public {
+        static int i = 1;
+        static string str = "testB";
+        const cstr = Issue4045_A::str;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 4045", \issue4045());
         addTestCase("issue 3901", \issue3901());
         addTestCase("issue 3869", \issue3869());
         addTestCase("issue 3644", \issue3644());
@@ -673,6 +690,13 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4045() {
+        assertEq(Issue4045_A::str, Issue4045_B::cstr);
+        assertEq(Issue4045_B::str, Issue4045_A::cstr);
+        assertEq(2, Issue4045_A::i);
+        assertEq(1, Issue4045_B::i);
     }
 
     issue3901() {

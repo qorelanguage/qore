@@ -220,7 +220,7 @@ const char* QoreExternalMemberVarBase::getAccessString() const {
 }
 
 QoreValue QoreExternalStaticMember::getValue() const {
-    return reinterpret_cast<const QoreVarInfo*>(this)->getReferencedValue();
+    return reinterpret_cast<const QoreVarInfo*>(this)->getRuntimeReferencedValue();
 }
 
 int QoreExternalStaticMember::setValue(const QoreValue val, ExceptionSink* xsink) const {
