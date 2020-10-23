@@ -73,9 +73,9 @@ void SelfVarrefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, i
     if (pflag & PF_CONST_EXPRESSION)
         parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
 
-    if (!oflag)
+    if (!oflag) {
         parse_error(*loc, "cannot reference member \"%s\" when not in an object context", str);
-    else {
+    } else {
         qore_class_private::parseCheckInternalMemberAccess(parse_get_class(), str, typeInfo, loc);
         returnTypeInfo = typeInfo;
     }

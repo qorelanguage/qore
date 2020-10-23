@@ -5048,8 +5048,11 @@ void QoreMemberInfo::parseInit(const char* name, LocalVar& selfid) {
             while (lvids--)
                 pop_local_var();
         }
+        // get hard reference for assignment if applicable
+        const QoreTypeInfo* assignmentTypeInfo = QoreTypeInfo::getHardReference(typeInfo);
+
         // throw a type exception only if parse exceptions are enabled
-        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+        if (!QoreTypeInfo::parseAccepts(assignmentTypeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
             QoreStringNode* desc = new QoreStringNode("initialization expression for ");
             desc->sprintf("%s member '%s' returns ", privpub(access), name);
             QoreTypeInfo::getThisType(argTypeInfo, *desc);
@@ -5076,7 +5079,7 @@ void QoreVarInfo::parseInit(const char* name) {
     val.set(typeInfo);
 
     if (exp) {
-        const QoreTypeInfo* argTypeInfo = 0;
+        const QoreTypeInfo* argTypeInfo = nullptr;
         int lvids = 0;
         parse_init_value(exp, 0, 0, lvids, argTypeInfo);
         if (lvids) {
@@ -5084,8 +5087,11 @@ void QoreVarInfo::parseInit(const char* name) {
             while (lvids--)
                 pop_local_var();
         }
+        // get hard reference for assignment if applicable
+        const QoreTypeInfo* assignmentTypeInfo = QoreTypeInfo::getHardReference(typeInfo);
+
         // throw a type exception only if parse exceptions are enabled
-        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+        if (!QoreTypeInfo::parseAccepts(assignmentTypeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
             QoreStringNode* desc = new QoreStringNode("initialization expression for ");
             desc->sprintf("%s class static variable '%s' returns ", privpub(access), name);
             QoreTypeInfo::getThisType(argTypeInfo, *desc);

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -162,7 +162,7 @@ void ParseReferenceNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pfla
     }
 
     if (QoreTypeInfo::hasType(argTypeInfo)) {
-        returnTypeInfo = typeInfo = qore_get_complex_reference_type(argTypeInfo);
+        returnTypeInfo = typeInfo = qore_get_complex_hard_reference_type(argTypeInfo);
     }
     //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
 }

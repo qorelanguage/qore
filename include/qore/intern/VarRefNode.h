@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,11 +82,18 @@ protected:
     }
 
     DLLLOCAL virtual const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() const {
-        if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
-            return ref.id->parseGetTypeInfoForInitialAssignment();
-        if (type == VT_GLOBAL)
-            return ref.var->parseGetTypeInfoForInitialAssignment();
-        return 0;
+        const QoreTypeInfo* rv;
+        if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
+            rv = ref.id->parseGetTypeInfoForInitialAssignment();
+        } else if (type == VT_GLOBAL) {
+            rv = ref.var->parseGetTypeInfoForInitialAssignment();
+        } else {
+            rv = nullptr;
+        }
+        if (rv && QoreTypeInfo::isReference(rv)) {
+            return QoreTypeInfo::getHardReference(rv);
+        }
+        return rv;
     }
 
     DLLLOCAL void setThreadSafeIntern() {
