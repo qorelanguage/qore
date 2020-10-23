@@ -360,7 +360,18 @@ class ReferenceTest inherits QUnit::Test {
         }
         {
             Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
-            p.parse("our int i; class T2 { public {static reference r;} constructor() {r = \\i; r = 2;}} int sub t2() {T2 t(); return i;}", "");
+            p.parse("our int i; class T2 {
+    public {static reference r;}
+    constructor() {
+        r = \\i;
+        r = 2;
+    }
+}
+
+int sub t2() {
+    T2 t();
+    return i;
+}", "");
             assertEq(2, p.callFunction("t2"));
         }
         {

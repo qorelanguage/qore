@@ -5048,8 +5048,11 @@ void QoreMemberInfo::parseInit(const char* name, LocalVar& selfid) {
             while (lvids--)
                 pop_local_var();
         }
+        // get hard reference for assignment if applicable
+        const QoreTypeInfo* assignmentTypeInfo = QoreTypeInfo::getHardReference(typeInfo);
+
         // throw a type exception only if parse exceptions are enabled
-        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+        if (!QoreTypeInfo::parseAccepts(assignmentTypeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
             QoreStringNode* desc = new QoreStringNode("initialization expression for ");
             desc->sprintf("%s member '%s' returns ", privpub(access), name);
             QoreTypeInfo::getThisType(argTypeInfo, *desc);
@@ -5076,7 +5079,7 @@ void QoreVarInfo::parseInit(const char* name) {
     val.set(typeInfo);
 
     if (exp) {
-        const QoreTypeInfo* argTypeInfo = 0;
+        const QoreTypeInfo* argTypeInfo = nullptr;
         int lvids = 0;
         parse_init_value(exp, 0, 0, lvids, argTypeInfo);
         if (lvids) {
@@ -5084,8 +5087,11 @@ void QoreVarInfo::parseInit(const char* name) {
             while (lvids--)
                 pop_local_var();
         }
+        // get hard reference for assignment if applicable
+        const QoreTypeInfo* assignmentTypeInfo = QoreTypeInfo::getHardReference(typeInfo);
+
         // throw a type exception only if parse exceptions are enabled
-        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+        if (!QoreTypeInfo::parseAccepts(assignmentTypeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
             QoreStringNode* desc = new QoreStringNode("initialization expression for ");
             desc->sprintf("%s class static variable '%s' returns ", privpub(access), name);
             QoreTypeInfo::getThisType(argTypeInfo, *desc);
@@ -5094,6 +5100,36 @@ void QoreVarInfo::parseInit(const char* name) {
             qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
         }
     }
+}
+
+int QoreVarInfo::evalInit(const char* name, ExceptionSink* xsink) {
+    printd(5, "QoreVarInfo::evalInit() %s committing %s var (exp: %s)\n", name, privpub(access), exp.getFullTypeName());
+
+    if (eval_init) {
+        return 0;
+    }
+    eval_init = true;
+
+    if (exp) {
+        // evaluate expression
+        ValueEvalRefHolder val(exp, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        if (QoreTypeInfo::mayRequireFilter(getTypeInfo(), *val)) {
+            val.ensureReferencedValue();
+            QoreTypeInfo::acceptInputMember(getTypeInfo(), name, *val, xsink);
+            if (*xsink) {
+                return -1;
+            }
+        }
+
+        discard(assignInit(val.takeReferencedValue()), xsink);
+    } else {
+        init();
+    }
+
+    return 0;
 }
 
 QoreParseClassHelper::QoreParseClassHelper(QoreClass* new_cls, qore_ns_private* new_ns) {
@@ -5147,30 +5183,9 @@ void QoreVarMap::parseCommitRuntimeInit(ExceptionSink* xsink) {
     init = true;
     assert(xsink);
     for (auto& i : member_list) {
-        //printd(5, "qore_class_private::parseCommitRuntimeInit() %s committing %s var %p %s\n", name.c_str(), privpub(i.second->access), l->first, l->first);
         // initialize variable
-        //initVar(i.first, *(i.second), xsink);
-        const char* vname = i.first;
-        QoreVarInfo& vi = *(i.second);
-
-        if (vi.exp) {
-            // evaluate expression
-            ValueEvalRefHolder val(vi.exp, xsink);
-            if (*xsink) {
-                continue;
-            }
-            if (QoreTypeInfo::mayRequireFilter(vi.getTypeInfo(), *val)) {
-                val.ensureReferencedValue();
-                QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, *val, xsink);
-                if (*xsink) {
-                    continue;
-                }
-            }
-
-            discard(vi.assignInit(val.takeReferencedValue()), xsink);
-        }
-        else {
-            vi.init();
+        if (i.second->evalInit(i.first, xsink)) {
+            continue;
         }
     }
 }
@@ -5337,7 +5352,8 @@ const char* QoreClassMemberIterator::getName() const {
 
 class qore_class_static_member_iterator_private : public PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember> {
 public:
-    DLLLOCAL qore_class_static_member_iterator_private(const qore_class_private& obj) : PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember>(obj.vars.member_list) {
+    DLLLOCAL qore_class_static_member_iterator_private(const qore_class_private& obj)
+            : PrivateMemberIteratorBase<QoreVarMap, QoreExternalStaticMember>(obj.vars.member_list) {
     }
 };
 

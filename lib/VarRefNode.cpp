@@ -3,7 +3,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -154,8 +154,7 @@ void VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const Q
             ++lvids;
         }
         //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
-    }
-    else if (type != VT_GLOBAL) {
+    } else if (type != VT_GLOBAL) {
         assert(type == VT_UNRESOLVED);
         // otherwise reference must be resolved
         resolve(typeInfo);
@@ -175,9 +174,13 @@ void VarRefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& 
     if (!is_assignment && new_decl) {
         assert(!outTypeInfo);
         outTypeInfo = nothingTypeInfo;
+    } else {
+        if (is_assignment && new_decl) {
+            outTypeInfo = parseGetTypeInfoForInitialAssignment();
+        } else {
+            outTypeInfo = parseGetTypeInfo();
+        }
     }
-    else
-        outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 }
 
 VarRefNewObjectNode* VarRefNode::globalMakeNewCall(QoreValue args) {
@@ -274,10 +277,15 @@ void VarRefDeclNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, i
     // this expression returns nothing if it's a new local variable
     // so if we're not assigning we return nothingTypeInfo as the
     // return type
-    if (!is_assignment && new_decl)
+    if (!is_assignment && new_decl) {
         outTypeInfo = nothingTypeInfo;
-    else
-        outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
+    } else {
+        if (is_assignment && new_decl) {
+            outTypeInfo = parseGetTypeInfoForInitialAssignment();
+        } else {
+            outTypeInfo = parseGetTypeInfo();
+        }
+    }
 }
 
 // for checking for new object calls

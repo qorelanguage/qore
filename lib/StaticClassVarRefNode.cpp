@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,19 +31,20 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
 
-StaticClassVarRefNode::StaticClassVarRefNode(const QoreProgramLocation* loc, const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi) : ParseNode(loc, NT_CLASS_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
+StaticClassVarRefNode::StaticClassVarRefNode(const QoreProgramLocation* loc, const char* c_str, const QoreClass& n_qc,
+        QoreVarInfo& n_vi) : ParseNode(loc, NT_CLASS_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
 }
 
 StaticClassVarRefNode::~StaticClassVarRefNode() {
 }
 
-int StaticClassVarRefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
+int StaticClassVarRefNode::getAsString(QoreString &qstr, int foff, ExceptionSink* xsink) const {
     qstr.sprintf("reference to static class variable %s::%s", qc.getName(), str.c_str());
     return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *StaticClassVarRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString *StaticClassVarRefNode::getAsString(bool &del, int foff, ExceptionSink* xsink) const {
     del = true;
     QoreString *rv = new QoreString;
     getAsString(*rv, foff, xsink);
@@ -51,22 +52,23 @@ QoreString *StaticClassVarRefNode::getAsString(bool &del, int foff, ExceptionSin
 }
 
 // returns the type name as a c string
-const char *StaticClassVarRefNode::getTypeName() const {
+const char* StaticClassVarRefNode::getTypeName() const {
     return "static class variable reference";
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-QoreValue StaticClassVarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue StaticClassVarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     // issue 3523: evaluate in case the value is a reference
-    ValueHolder val(vi.getReferencedValue(), xsink);
+    ValueHolder val(vi.getReferencedValue(str.c_str(), xsink), xsink);
     // the value here must always require a dereference
     return val->needsEval() ? val->eval(xsink) : val.release();
 }
 
-void StaticClassVarRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void StaticClassVarRefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str.c_str());
-    typeInfo = vi.parseGetTypeInfo();
+    vi.parseInit(str.c_str());
+    typeInfo = vi.getTypeInfo();
 }
 
 void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {

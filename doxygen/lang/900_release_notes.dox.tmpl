@@ -8,6 +8,11 @@
     Bugfix release; see below for more information
 
     @subsection qore_0951_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
+      - fixed invalid default return values for \c AbstractDataProcessor methods
+        (<a href="https://github.com/qorelanguage/qore/issues/4043">issue 4043</a>)
+    - fixed a problem with lazy resolution of static class variables that could lead to incorrect runtime execution
+      (<a href="https://github.com/qorelanguage/qore/issues/4045">issue 4045</a>)
     - fixed a symbol conflict with the \c gettid() C++ function; use \c q_gettid() instead to avoid potential symbol
       conflicts that can result in a crash
       (<a href="https://github.com/qorelanguage/qore/issues/4046">issue 4046</a>)

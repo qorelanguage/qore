@@ -165,8 +165,10 @@ public hashdecl DataTypeInfo {
 #! describes a data type
 public class AbstractDataProviderType inherits Serializable {
     public {
-        static Type nothingType("nothing");
-        static Type anyType("auto");
+        static Type nothingType = Reflection::NothingType;
+        static Type anyType = Reflection::AutoType;
+        # not initialized here to workaround issue #4048 (circular initializtion error)
+        static AbstractDataProviderType anyDataType;
     }
 
     private {

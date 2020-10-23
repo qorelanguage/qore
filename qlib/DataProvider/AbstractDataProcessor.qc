@@ -55,7 +55,7 @@ public class AbstractDataProcessor {
         @note Calls getExpectedTypeImpl() to provide the return value
     */
     AbstractDataProviderType getExpectedType() {
-        return getExpectedTypeImpl() ?? AbstractDataProviderType::anyType;
+        return getExpectedTypeImpl() ?? AbstractDataProviderType::anyDataType;
     }
 
     #! Returns the type of data that will be returned, if available
@@ -64,7 +64,7 @@ public class AbstractDataProcessor {
         @note Calls getReturnTypeImpl() to provide the return value
     */
     AbstractDataProviderType getReturnType() {
-        return getReturnTypeImpl() ?? AbstractDataProviderType::anyType;
+        return getReturnTypeImpl() ?? AbstractDataProviderType::anyDataType;
     }
 
     #! Returns @ref True if the data processor supports bulk operation

@@ -839,7 +839,8 @@ class QoreMemberInfoBase {
 protected:
     const QoreTypeInfo* typeInfo;
 
-    DLLLOCAL QoreMemberInfoBase(const QoreMemberInfoBase& old) : typeInfo(old.typeInfo), exp(old.exp.refSelf()), loc(old.loc), parseTypeInfo(old.parseTypeInfo ? new QoreParseTypeInfo(*old.parseTypeInfo) : nullptr) {
+    DLLLOCAL QoreMemberInfoBase(const QoreMemberInfoBase& old) : typeInfo(old.typeInfo), exp(old.exp.refSelf()),
+            loc(old.loc), parseTypeInfo(old.parseTypeInfo ? new QoreParseTypeInfo(*old.parseTypeInfo) : nullptr) {
     }
 
 public:
@@ -850,8 +851,9 @@ public:
     const QoreProgramLocation* loc;
     QoreParseTypeInfo* parseTypeInfo;
 
-    DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue()) :
-        typeInfo(n_typeinfo), exp(e), loc(loc), parseTypeInfo(n_parseTypeInfo) {
+    DLLLOCAL QoreMemberInfoBase(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr,
+            QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue())
+            : typeInfo(n_typeinfo), exp(e), loc(loc), parseTypeInfo(n_parseTypeInfo) {
     }
 
     DLLLOCAL ~QoreMemberInfoBase() {
@@ -883,21 +885,23 @@ public:
 
 class QoreMemberInfoBaseAccess : public QoreMemberInfoBase {
 public:
-   ClassAccess access;
+    ClassAccess access;
 
-   DLLLOCAL QoreMemberInfoBaseAccess(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public) :
-      QoreMemberInfoBase(loc, n_typeinfo, n_parseTypeInfo, e), access(n_access) {
-   }
+    DLLLOCAL QoreMemberInfoBaseAccess(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr,
+            QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public) :
+        QoreMemberInfoBase(loc, n_typeinfo, n_parseTypeInfo, e), access(n_access) {
+    }
 
-   DLLLOCAL ClassAccess getAccess() const {
-      return access;
-   }
+    DLLLOCAL ClassAccess getAccess() const {
+        return access;
+    }
 
 protected:
-   DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access) : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
-   }
+    DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access)
+            : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
+    }
 
-   bool init = false;
+    bool init = false;
 };
 
 // for the inheritance list for each member
@@ -915,7 +919,10 @@ typedef std::deque<const QoreMemberInfo*> member_info_list_t;
 class QoreMemberInfo : public QoreMemberInfoBaseAccess {
     friend class qore_class_private;
 public:
-    DLLLOCAL QoreMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public, const qore_class_private* qc = nullptr) : QoreMemberInfoBaseAccess(loc, n_typeInfo, n_parseTypeInfo, e, n_access), is_local(true) {
+    DLLLOCAL QoreMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr,
+            QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public,
+            const qore_class_private* qc = nullptr)
+            : QoreMemberInfoBaseAccess(loc, n_typeInfo, n_parseTypeInfo, e, n_access), is_local(true) {
         if (qc) {
             cls_vec.push_back(qc);
         }
@@ -1042,17 +1049,23 @@ public:
     mutable QoreVarRWLock rwl;
     QoreLValueGeneric val;
     bool finalized;
+    // flag telling if the static var has been evaluated
+    bool eval_init = false;
 
-    DLLLOCAL QoreVarInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public) :
+    DLLLOCAL QoreVarInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr,
+            QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public) :
         QoreMemberInfoBaseAccess(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
     }
 
-    DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
+    DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public)
+            : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
     }
 
     DLLLOCAL ~QoreVarInfo() {
         assert(!val.hasValue());
     }
+
+    DLLLOCAL int evalInit(const char* name, ExceptionSink* xsink);
 
 #ifdef DEBUG
     DLLLOCAL void del() {
@@ -1099,7 +1112,15 @@ public:
         }
     }
 
-    DLLLOCAL QoreValue getReferencedValue() const {
+    // can be called during parse initialization, in which case the variable must be initialized first
+    DLLLOCAL QoreValue getReferencedValue(const char* name, ExceptionSink* xsink) {
+        if (!eval_init && evalInit(name, xsink)) {
+            return QoreValue();
+        }
+        return getRuntimeReferencedValue();
+    }
+
+    DLLLOCAL QoreValue getRuntimeReferencedValue() const {
         QoreAutoVarRWReadLocker al(rwl);
         return val.getReferencedValue();
     }

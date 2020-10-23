@@ -318,6 +318,8 @@ public class DataProviderTest inherits QUnit::Test {
             assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
 
             TestRecordProcessor record_processor0("A");
+            assertEq(AbstractDataProviderType::anyDataType, record_processor0.getExpectedType());
+            assertEq(AbstractDataProviderType::anyDataType, record_processor0.getReturnType());
             pipe.append(record_processor0);
             pipe.submit(record_provider);
             pipe.waitDone();
