@@ -64,6 +64,7 @@ protected:
     const QoreClosureParseNode* closure;
     mutable ThreadSafeLocalVarRuntimeEnvironment closure_env;
     cvv_vec_t* cvec;
+    const qore_class_private* class_ctx;
 
     DLLLOCAL void del(ExceptionSink* xsink) {
         closure_env.del(xsink);
@@ -79,7 +80,9 @@ protected:
 
 public:
    //! constructor is not exported outside the library
-    DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure, cvv_vec_t* cv) : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure), closure_env(n_closure->getVList()), cvec(cv) {
+    DLLLOCAL QoreClosureBase(const QoreClosureParseNode* n_closure, cvv_vec_t* cv, const qore_class_private* class_ctx)
+            : ResolvedCallReferenceNode(false, NT_RUNTIME_CLOSURE), closure(n_closure),
+                closure_env(n_closure->getVList()), cvec(cv), class_ctx(class_ctx) {
         //printd(5, "QoreClosureBase::QoreClosureBase() this: %p closure: %p\n", this, closure);
         closure->ref();
     }
@@ -131,7 +134,8 @@ protected:
     DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-    DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), pgm(::getProgram()) {
+    DLLLOCAL QoreClosureNode(const QoreClosureParseNode* n_closure, cvv_vec_t* cv = nullptr,
+            const qore_class_private* class_ctx = nullptr) : QoreClosureBase(n_closure, cv, class_ctx), pgm(::getProgram()) {
         pgm->depRef();
     }
 
@@ -179,7 +183,6 @@ public:
 class QoreObjectClosureNode : public QoreClosureBase {
 private:
     QoreObject* obj;
-    const qore_class_private* class_ctx;
 
     DLLLOCAL QoreObjectClosureNode(const QoreObjectClosureNode&); // not implemented
     DLLLOCAL QoreObjectClosureNode& operator=(const QoreObjectClosureNode&); // not implemented
@@ -188,7 +191,10 @@ protected:
     DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-    DLLLOCAL QoreObjectClosureNode(QoreObject* n_obj, const qore_class_private* c_ctx, const QoreClosureParseNode* n_closure, cvv_vec_t* cv = 0) : QoreClosureBase(n_closure, cv), obj(n_obj), class_ctx(c_ctx) {
+    DLLLOCAL QoreObjectClosureNode(QoreObject* n_obj, const qore_class_private* c_ctx,
+            const QoreClosureParseNode* n_closure, cvv_vec_t* cv = nullptr)
+            : QoreClosureBase(n_closure, cv, c_ctx),
+                obj(n_obj) {
         obj->tRef();
     }
 

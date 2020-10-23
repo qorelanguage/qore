@@ -662,9 +662,24 @@ class Issue4045_B {
     }
 }
 
+class Issue4051_A {
+    private x(Queue q) {
+        q.push(1);
+    }
+
+    static test(Issue4051_A obj, Queue q) {
+        background sub () {
+            obj.x(q);
+        }();
+    }
+}
+
+class Issue4051_B inherits Issue4051_A;
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 4051", \issue4051());
         addTestCase("issue 4045", \issue4045());
         addTestCase("issue 3901", \issue3901());
         addTestCase("issue 3869", \issue3869());
@@ -690,6 +705,13 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4051() {
+        Issue4051_B obj();
+        Queue q();
+        Issue4051_A::test(obj, q);
+        assertEq(1, q.get(2s));
     }
 
     issue4045() {
