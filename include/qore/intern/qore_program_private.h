@@ -122,13 +122,13 @@ private:
     DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
 
     // thread debug types, field is read/write only in thread being debugged, no locking is needed
-    DebugRunStateEnum runState;
+    DebugRunStateEnum runState = DBG_RS_DETACH;
     // used to implement "to to statement" debugger command, reset it when program is interrupted
-    const AbstractStatement* runToStatement;
+    const AbstractStatement* runToStatement = nullptr;
     // when stepover or until return we need calls function calls
-    int functionCallLevel;
+    int functionCallLevel = 0;
 
-    inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
+    DLLLOCAL inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
         assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
         if (rs == DBG_RS_UNTIL_RETURN) {
             functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
@@ -138,9 +138,9 @@ private:
         runToStatement = rts;
     }
     // set to true by any process do break running program asap
-    volatile bool breakFlag;
+    volatile bool breakFlag = false;
     // called from running thread
-    inline void checkBreakFlag() {
+    DLLLOCAL inline void checkBreakFlag() {
         if (breakFlag && runState != DBG_RS_DETACH) {
             breakFlag = false;
             if (runState != DBG_RS_STOPPED) {
@@ -151,7 +151,7 @@ private:
     }
     // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
     int attachFlag = 0;
-    inline void checkAttach(ExceptionSink* xsink) {
+    DLLLOCAL inline void checkAttach(ExceptionSink* xsink) {
         if (runState != DBG_RS_STOPPED) {
             if (attachFlag > 0) {
                 dbgAttach(xsink);
@@ -178,7 +178,7 @@ public:
     // top-level vars instantiated
     bool inst : 1;
 
-    DLLLOCAL ThreadLocalProgramData() : runState(DBG_RS_DETACH), functionCallLevel(0), breakFlag(false), tz(0), tz_set(false), inst(false) {
+    DLLLOCAL ThreadLocalProgramData() : tz_set(false), inst(false) {
         printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
     }
 
@@ -547,7 +547,7 @@ class QoreBreakpoint;
 class qore_program_private : public qore_program_private_base {
 private:
     mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
-    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
+    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo* n_TZ = QTZM.getLocalZoneInfo()) {
     }
 
     // only called from parseSetTimeZone
@@ -648,23 +648,24 @@ public:
             // while tclear is set, no threads can attach to this program object - pgm_data_map cannot be modified
             tclear = q_gettid();
 
-            for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i)
-                i->second->finalize(cl);
+            for (auto& i : pgm_data_map) {
+                i.second->finalize(cl);
+            }
         }
 
         // dereference finalized thread-local data outside the lock to avoid deadlocks
         if (cl) {
-            for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
-                (*i).discard(xsink);
+            for (auto& i : *cl) {
+                i.discard(xsink);
             }
             delete cl;
         }
     }
 
     DLLLOCAL void clearProgramThreadData(ExceptionSink* xsink) {
-        for (pgm_data_map_t::iterator i = pgm_data_map.begin(), e = pgm_data_map.end(); i != e; ++i) {
-            i->second->del(xsink);
-            i->first->delProgram(pgm);
+        for (auto& i : pgm_data_map) {
+            i.second->del(xsink);
+            i.first->delProgram(pgm);
         }
     }
 
@@ -1325,17 +1326,19 @@ public:
 
     // TODO: xsink should not be necessary; vars should be emptied and finalized in the finalizeThreadData() call
     DLLLOCAL int endThread(ThreadProgramData* td, ExceptionSink* xsink) {
-        ThreadLocalProgramData* tlpd = 0;
+        ThreadLocalProgramData* tlpd = nullptr;
 
         // delete all local variables for this thread
         {
             AutoLocker al(tlock);
-            if (tclear)
+            if (tclear) {
                 return -1;
+            }
 
             pgm_data_map_t::iterator i = pgm_data_map.find(td);
-            if (i == pgm_data_map.end())
+            if (i == pgm_data_map.end()) {
                 return -1;
+            }
             tlpd = i->second;
             pgm_data_map.erase(i);
         }
@@ -1347,9 +1350,11 @@ public:
     DLLLOCAL void doTopLevelInstantiation(ThreadLocalProgramData& tlpd) {
         // instantiate top-level vars for this thread
         const LVList* lvl = sb.getLVList();
-        if (lvl)
-            for (unsigned i = 0; i < lvl->size(); ++i)
+        if (lvl) {
+            for (unsigned i = 0; i < lvl->size(); ++i) {
                 lvl->lv[i]->instantiate();
+            }
+        }
 
         //printd(5, "qore_program_private::doTopLevelInstantiation() lvl: %p setup %ld local vars pgm: %p\n", lvl, lvl ? lvl->size() : 0, getProgram());
 

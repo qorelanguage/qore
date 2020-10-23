@@ -52,8 +52,10 @@ private:
 public:
     // clears and marks all variables as finalized on the stack
     DLLLOCAL void finalize(arg_vec_t*& cl) {
+        //printd(5, "ThreadClosureVariableStack::finalize() this: %p\n", this);
         ThreadClosureVariableStack::iterator i(curr);
         while (i.next()) {
+            //printd(5, "ThreadClosureVariableStack::finalize() this: %p %p %s\n", this, i.get(), i.get()->id);
             ValueHolder n(i.get()->finalize(), nullptr);
             if (n->derefCanThrowException()) {
                 if (!cl) {
@@ -83,15 +85,15 @@ public:
     DLLLOCAL void uninstantiateIntern() {
 #if 0
         if (!curr->pos)
-            printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
+            printd(0, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->prev->pos - 1, curr->prev->var[curr->prev->pos - 1]->id, curr->prev->var[curr->prev->pos - 1]->id);
         else
-            printd(5, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
+            printd(0, "ThreadClosureVariableStack::uninstantiate() this: %p pos: %d %p %s\n", this, curr->pos - 1, curr->var[curr->pos - 1]->id, curr->var[curr->pos - 1]->id);
 #endif
         if (!curr->pos) {
             if (curr->next) {
                 //printf("this %p: del curr: %p, curr->next: %p\n", this, curr, curr->next);
                 delete curr->next;
-                curr->next = 0;
+                curr->next = nullptr;
             }
             curr = curr->prev;
             assert(curr);

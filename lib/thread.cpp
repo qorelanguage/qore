@@ -546,19 +546,20 @@ bool ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
     // first purge all data
-    arg_vec_t* cl = 0;
+    arg_vec_t* cl = nullptr;
 
     // remove and finalize all thread-local data in all referenced programs
     {
         AutoLocker al(pslock);
-        for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
-            qore_program_private::finalizeThreadData(*i, this, cl);
+        for (auto& i : pgm_set) {
+            qore_program_private::finalizeThreadData(i, this, cl);
+        }
     }
 
     // delete thread-local data
     if (cl) {
-        for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
-            (*i).discard(xsink);
+        for (auto& i : *cl) {
+            i.discard(xsink);
         }
         delete cl;
     }

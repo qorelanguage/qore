@@ -2745,7 +2745,7 @@ bool ThreadBlock<LocalVarValue>::frameBoundary(int p) {
 
 template<>
 bool ThreadBlock<ClosureVarValue*>::frameBoundary(int p) {
-    return (bool)var[p];
+    return !(bool)var[p];
 }
 
 int q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
