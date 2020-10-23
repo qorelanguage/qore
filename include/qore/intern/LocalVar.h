@@ -121,7 +121,7 @@ public:
 
     DLLLOCAL QoreValue finalize() {
         if (finalized)
-            return 0;
+            return QoreValue();
 
         finalized = true;
 

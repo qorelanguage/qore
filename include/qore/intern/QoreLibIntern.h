@@ -717,20 +717,20 @@ DLLLOCAL void qore_machine_backtrace();
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadBlock {
 private:
-   DLLLOCAL ThreadBlock(const ThreadBlock&);
+    DLLLOCAL ThreadBlock(const ThreadBlock&);
 
 public:
-   T var[S1];
-   int pos;
-   ThreadBlock<T, S1>* prev, * next;
+    T var[S1];
+    int pos = 0;
+    ThreadBlock<T, S1>* prev, * next = nullptr;
 
-   DLLLOCAL ThreadBlock(ThreadBlock* n_prev = 0) : pos(0), prev(n_prev), next(0) { }
-   DLLLOCAL ~ThreadBlock() { }
-   DLLLOCAL T& get(int p) {
-      return var[p];
-   }
+    DLLLOCAL ThreadBlock(ThreadBlock* prev = nullptr) : prev(prev) { }
+    DLLLOCAL ~ThreadBlock() { }
+    DLLLOCAL T& get(int p) {
+        return var[p];
+    }
 
-   DLLLOCAL bool frameBoundary(int p);
+    DLLLOCAL bool frameBoundary(int p);
 };
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
@@ -745,7 +745,8 @@ protected:
     int pos = 0;
 
 public:
-    DLLLOCAL ThreadLocalDataIterator(Block* n_orig) : orig(n_orig && n_orig->pos ? n_orig : nullptr) {
+    DLLLOCAL ThreadLocalDataIterator(Block* n_orig)
+        : orig(n_orig && n_orig->pos ? n_orig : nullptr) {
     }
 
     DLLLOCAL ThreadLocalDataIterator() {
@@ -772,6 +773,7 @@ public:
                     pos = curr->pos - 1;
                 }
             }
+            //printd(5, "ThreadLocalDataIterator::next() this: %p curr: %p pos: %d b: %d\n", this, curr, pos, curr->frameBoundary(pos));
         } while (curr->frameBoundary(pos));
 
         return true;
@@ -786,42 +788,42 @@ public:
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
 class ThreadLocalData {
 public:
-   typedef ThreadBlock<T, S1> Block;
-   typedef ThreadLocalDataIterator<T, S1> iterator;
+    typedef ThreadBlock<T, S1> Block;
+    typedef ThreadLocalDataIterator<T, S1> iterator;
 
-   Block* curr;
+    Block* curr;
 
-   DLLLOCAL ThreadLocalData() {
-      curr = new Block;
-      //printf("this=%p: first curr=%p\n", this, curr);
-   }
+    DLLLOCAL ThreadLocalData() {
+        curr = new Block;
+        //printf("this=%p: first curr=%p\n", this, curr);
+    }
 
-   DLLLOCAL ~ThreadLocalData() {
+    DLLLOCAL ~ThreadLocalData() {
 #ifdef DEBUG
-      //if (curr->pos)
-         //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
+        //if (curr->pos)
+            //printf("~ThreadLocalData::~~ThreadLocalData() this=%p: del curr=%p pos=%d next=%p prev=%p\n", this, curr, curr->pos, curr->next, curr->prev);
 #endif
-      assert(!curr->prev);
-      assert(!curr->pos);
-      if (curr->next)
-         delete curr->next;
-      delete curr;
-   }
+        assert(!curr->prev);
+        assert(!curr->pos);
+        if (curr->next)
+            delete curr->next;
+        delete curr;
+    }
 #ifdef DEBUG
-   DLLLOCAL bool empty() const {
-      return (!curr->pos && !curr->prev);
-   }
+    DLLLOCAL bool empty() const {
+        return (!curr->pos && !curr->prev);
+    }
 #endif
 
-   DLLLOCAL int getFrameCount() const {
-     return frame_count;
-   }
+    DLLLOCAL int getFrameCount() const {
+        return frame_count;
+    }
 
 protected:
-   int frame_count = -1;
+    int frame_count = -1;
 
 private:
-   DLLLOCAL ThreadLocalData(const ThreadLocalData&);
+    DLLLOCAL ThreadLocalData(const ThreadLocalData&);
 };
 
 // maps from Q_AF_* to standard system AF_ constants
