@@ -282,13 +282,6 @@ protected:
     */
     DLLEXPORT QoreHashNode* copyData(ExceptionSink* xsink) const;
 
-    //! copies all member data of the current object to the passed QoreHashNode
-    /**
-        @param hash the hash to copy all data from
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-    DLLEXPORT void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink);
-
     //! sets private data for the object against the class ID passed, used in C++ functions implementing Qore constructors
     /**
         @param key the class ID of the class to set the private data for

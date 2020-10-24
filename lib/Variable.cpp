@@ -105,9 +105,9 @@ void Var::del(ExceptionSink* xsink) {
         printd(4, "Var::~Var() refptr: %p\n", val.v.getPtr());
         val.v.getPtr()->deref(xsink);
         // clear type so no further deleting will be done
-    }
-    else
+    } else {
         val.removeValue(true).discard(xsink);
+    }
 }
 
 bool Var::isImported() const {
@@ -1914,10 +1914,9 @@ AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation* loc, 
         if (val.getType() == NT_REFERENCE) {
             ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
             lvalue_id = lvalue_ref::get(ref)->lvalue_id;
-        }
-        else {
+        } else {
             // creating a reference to an unassigned reference assigns the reference
-            if (/*!val.assigned && */refTypeInfo) {
+            if (refTypeInfo) {
                 typeInfo = refTypeInfo;
             }
             lvalue_id = this;

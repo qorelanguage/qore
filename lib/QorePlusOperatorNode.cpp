@@ -136,9 +136,10 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         if (rt == NT_OBJECT) {
             QoreObject* r = rh->get<QoreObject>();
             ReferenceHolder<QoreHashNode> rv(qore_hash_private::get(*l)->copy(true), xsink);
-            qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
+            SafeDerefHelper sdh(xsink);
+            qore_object_private::get(*r)->mergeDataToHash(*rv, sdh, xsink);
             if (*xsink)
-                return 0;
+                return QoreValue();
 
             return rv.release();
         }
@@ -153,11 +154,11 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
 
         ReferenceHolder<QoreHashNode> h(qore_object_private::get(*l)->getRuntimeMemberHash(xsink), xsink);
         if (*xsink)
-            return 0;
+            return QoreValue();
 
         h->merge(r, xsink);
         if (*xsink)
-            return 0;
+            return QoreValue();
 
         return h.release();
     }

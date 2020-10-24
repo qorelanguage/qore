@@ -35,16 +35,10 @@
 class ThreadLocalVariableData : public ThreadLocalData<LocalVarValue> {
 public:
     // clears and marks all variables as finalized on the stack
-    DLLLOCAL void finalize(arg_vec_t*& cl) {
+    DLLLOCAL void finalize(SafeDerefHelper& sdh) {
         ThreadLocalVariableData::iterator i(curr);
         while (i.next()) {
-            ValueHolder n(i.get().finalize(), nullptr);
-            if (n->derefCanThrowException()) {
-                if (!cl) {
-                    cl = new arg_vec_t;
-                }
-                cl->push_back(n.release());
-            }
+            sdh.deref(i.get().finalize());
         }
     }
 

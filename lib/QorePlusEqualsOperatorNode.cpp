@@ -85,6 +85,9 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     // is the same value, so it can be copied in the LValueHelper constructor
     new_right.ensureReferencedValue();
 
+    // issue #4055: values requiring dereferencing must be dereferenced outside the lock
+    SafeDerefHelper sdh(xsink);
+
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper v(left, xsink);
     if (!v)
@@ -132,15 +135,15 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
         // do hash plus-equals if left side is a hash
         if (new_right->getType() == NT_HASH) {
             v.ensureUnique();
-            v.getValue().get<QoreHashNode>()->merge(new_right->get<const QoreHashNode>(), xsink);
+            qore_hash_private::get(*v.getValue().get<QoreHashNode>())->merge(*qore_hash_private::get(*new_right->get<const QoreHashNode>()), sdh, xsink);
         } else if (new_right->getType() == NT_OBJECT) {
             v.ensureUnique();
-            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), xsink);
+            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), sdh, xsink);
         }
     } else if (vtype == NT_OBJECT) {
         // do hash/object plus-equals if left side is an object
         QoreObject* o = v.getValue().get<QoreObject>();
-        qore_object_private::plusEquals(o, new_right->getInternalNode(), v.getAutoVLock(), xsink);
+        qore_object_private::get(*o)->plusEquals(new_right->getInternalNode(), v.getAutoVLock(), sdh, xsink);
     } else if (vtype == NT_STRING) {
         // do string plus-equals if left-hand side is a string
         if (!new_right->isNullOrNothing()) {

@@ -199,22 +199,25 @@ public:
     DLLLOCAL void incScanPrivateData();
     DLLLOCAL void decScanPrivateData();
 
-    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
-        if (!v)
+    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, SafeDerefHelper& sdh, ExceptionSink* xsink) {
+        if (!v) {
             return;
+        }
 
         // do not need ensure_unique() for objects
-        if (v->getType() == NT_OBJECT)
-            merge(*const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->priv, vl, xsink);
-        else if (v->getType() == NT_HASH)
-            merge(reinterpret_cast<const QoreHashNode*>(v), vl, xsink);
+        if (v->getType() == NT_OBJECT) {
+            merge(*const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->priv, vl, sdh, xsink);
+        } else if (v->getType() == NT_HASH) {
+            merge(reinterpret_cast<const QoreHashNode*>(v), vl, sdh, xsink);
+        }
     }
 
-    DLLLOCAL void merge(qore_object_private& o, AutoVLock& vl, ExceptionSink* xsink);
+    DLLLOCAL void merge(qore_object_private& o, AutoVLock& vl, SafeDerefHelper& sdh, ExceptionSink* xsink);
 
-    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
+    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, SafeDerefHelper& sdh, ExceptionSink* xsink);
 
-    DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, const qore_class_private* class_ctx, const QoreHashNode* new_internal_data = 0);
+    DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive,
+        const qore_class_private* class_ctx, SafeDerefHelper& sdh, const QoreHashNode* new_internal_data = nullptr);
 
     DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
 
@@ -224,19 +227,19 @@ public:
         // get the current class context
         const qore_class_private* class_ctx = runtime_get_class();
         if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-            class_ctx = 0;
+            class_ctx = nullptr;
 
         QoreAutoVarRWReadLocker al(rml);
 
         if (status == OS_DELETED) {
             makeAccessDeletedObjectException(xsink, theclass->getName());
-            return 0;
+            return nullptr;
         }
 
         if (class_ctx) {
             const char* str = data->getFirstKey();
             //printd(5, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
-            return !str ? 0 : new QoreStringNode(str);
+            return !str ? nullptr : new QoreStringNode(str);
         }
 
         // get first accessible non-internal member
@@ -249,25 +252,25 @@ public:
             //printd(5, "qore_object_private::firstKey() skipping '%s' (private)\n", hi.getKey());
         }
 
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
         // get the current class context
         const qore_class_private* class_ctx = runtime_get_class();
         if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-            class_ctx = 0;
+            class_ctx = nullptr;
 
         QoreAutoVarRWReadLocker al(rml);
 
         if (status == OS_DELETED) {
             makeAccessDeletedObjectException(xsink, theclass->getName());
-            return 0;
+            return nullptr;
         }
 
         if (class_ctx) {
             const char* str = data->getLastKey();
-            return !str ? 0 : new QoreStringNode(str);
+            return !str ? nullptr : new QoreStringNode(str);
         }
 
         // get last accessible non-internal member
@@ -278,7 +281,7 @@ public:
                 return new QoreStringNode(hi.getKey());
         }
 
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const;
@@ -361,8 +364,7 @@ public:
 
         if (rc == QOA_PRIV_ERROR) {
             doPrivateException(mem, xsink);
-        }
-        else {
+        } else {
             doPublicException(mem, xsink);
         }
         return -1;
@@ -420,10 +422,10 @@ public:
             status = OS_DELETED;
 
             cdm = cdmap;
-            cdmap = 0;
+            cdmap = nullptr;
 
             td = data;
-            data = 0;
+            data = nullptr;
 
             removeInvalidateRSetIntern();
         }
@@ -484,9 +486,9 @@ public:
 
             status = OS_DELETED;
             cdmap_t* cdm = cdmap;
-            cdmap = 0;
+            cdmap = nullptr;
             QoreHashNode* td = data;
-            data = 0;
+            data = nullptr;
 
             removeInvalidateRSetIntern();
 
@@ -572,7 +574,7 @@ public:
         return false;
     }
 
-    DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
+    DLLLOCAL void mergeDataToHash(QoreHashNode* hash, SafeDerefHelper& sdh, ExceptionSink* xsink) const;
 
     DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
         if (!privateData) {
@@ -703,10 +705,6 @@ public:
         return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
     }
 
-    DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
-        obj->priv->plusEquals(v, vl, xsink);
-    }
-
     DLLLOCAL static QoreStringNode* firstKey(QoreObject* obj, ExceptionSink* xsink) {
         return obj->priv->firstKey(xsink);
     }
@@ -726,40 +724,40 @@ public:
 
 class qore_object_lock_handoff_helper {
 private:
-   qore_object_private* pobj;
-   AutoVLock& vl;
+    qore_object_private* pobj;
+    AutoVLock& vl;
 
 public:
-   DLLLOCAL qore_object_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj), vl(n_vl) {
-      if (pobj->obj == vl.getObject()) {
-         assert(vl.getRWL() == &pobj->rml);
-         vl.clear();
-         return;
-      }
+    DLLLOCAL qore_object_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj), vl(n_vl) {
+        if (pobj->obj == vl.getObject()) {
+            assert(vl.getRWL() == &pobj->rml);
+            vl.clear();
+            return;
+        }
 
-      // reference current object
-      pobj->obj->tRef();
+        // reference current object
+        pobj->obj->tRef();
 
-      // unlock previous lock and release from AutoVLock structure
-      vl.del();
+        // unlock previous lock and release from AutoVLock structure
+        vl.del();
 
-      // lock current object
-      pobj->rml.wrlock();
-   }
+        // lock current object
+        pobj->rml.wrlock();
+    }
 
-   DLLLOCAL ~qore_object_lock_handoff_helper() {
-      // unlock if lock not saved in AutoVLock structure
-      if (pobj) {
-         //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rml);
-         pobj->rml.unlock();
-         pobj->obj->tDeref();
-      }
-   }
+    DLLLOCAL ~qore_object_lock_handoff_helper() {
+        // unlock if lock not saved in AutoVLock structure
+        if (pobj) {
+            //printd(5, "Object lock %p unlocked (handoff)\n", &pobj->rml);
+            pobj->rml.unlock();
+            pobj->obj->tDeref();
+        }
+    }
 
-   DLLLOCAL void stayLocked() {
-      vl.set(pobj->obj, &pobj->rml);
-      pobj = 0;
-   }
+    DLLLOCAL void stayLocked() {
+        vl.set(pobj->obj, &pobj->rml);
+        pobj = nullptr;
+    }
 };
 
 #endif

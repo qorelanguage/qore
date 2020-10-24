@@ -21,6 +21,8 @@
       (<a href="https://github.com/qorelanguage/qore/issues/4051">issue 4051</a>)
     - fixed a bug that could cause a crash destroying thread-local vars when threads terminate
       (<a href="https://github.com/qorelanguage/qore/issues/4053">issue 4053</a>)
+    - fixed a race condition that could cause a crash when deleting closure-local variable data while holding a lock
+      (<a href="https://github.com/qorelanguage/qore/issues/4055">issue 4055</a>)
 
     @section qore_095 Qore 0.9.5
 
