@@ -304,10 +304,10 @@ public:
 
     DLLLOCAL QoreListNode* getKeys() const;
 
-    DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
+    DLLLOCAL void merge(const qore_hash_private& h0, ExceptionSink* xsink);
 
     // to be called when a lock is held to avoid dereferencing in the lock
-    DLLLOCAL void merge(const qore_hash_private& h, SafeDerefHelper& sdh);
+    DLLLOCAL void merge(const qore_hash_private& h, SafeDerefHelper& sdh, ExceptionSink* xsink);
 
     DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
@@ -425,16 +425,16 @@ public:
         return h.release();
     }
 
-    DLLLOCAL void setKeyValue(const char* key, QoreValue val, SafeDerefHelper& sdh) {
+    DLLLOCAL void setKeyValue(const char* key, QoreValue val, SafeDerefHelper& sdh, ExceptionSink* xsink) {
         hash_assignment_priv ha(*this, key);
         // in case of assigning keys to an initialized hashdecl, the key may already have a value
-        sdh.deref(ha.swap(val));
+        ha.assign(val, sdh, xsink);
     }
 
-    DLLLOCAL void setKeyValue(const std::string& key, QoreValue val, SafeDerefHelper& sdh) {
+    DLLLOCAL void setKeyValue(const std::string& key, QoreValue val, SafeDerefHelper& sdh, ExceptionSink* xsink) {
         hash_assignment_priv ha(*this, key.c_str());
         // in case of assigning keys to an initialized hashdecl, the key may already have a value
-        sdh.deref(ha.swap(val));
+        ha.assign(val, sdh, xsink);
     }
 
     DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {

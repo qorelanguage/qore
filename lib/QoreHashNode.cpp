@@ -78,9 +78,9 @@ void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) 
     }
 }
 
-void qore_hash_private::merge(const qore_hash_private& h, SafeDerefHelper& sdh) {
+void qore_hash_private::merge(const qore_hash_private& h, SafeDerefHelper& sdh, ExceptionSink* xsink) {
     for (auto& i : h.member_list) {
-        setKeyValue(i->key, i->val.refSelf(), sdh);
+        setKeyValue(i->key, i->val.refSelf(), sdh, xsink);
     }
 }
 
@@ -991,6 +991,28 @@ void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
     }
 
     swapImpl(val.release()).discard(xsink);
+}
+
+void hash_assignment_priv::assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSink* xsink) {
+    ValueHolder val(v, xsink);
+    if (h.hashdecl) {
+        if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink)) {
+            return;
+        }
+    } else if (h.complexTypeInfo) {
+        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
+        // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
+        // anyway if there is an exception it would dump core when the exception is raised
+        if (xsink && *xsink) {
+            return;
+        }
+    } else {
+        // perform type stripping
+        ValueHolder v(val.release(), xsink);
+        val = copy_strip_complex_types(*v);
+    }
+
+    sdh.deref(swapImpl(val.release()));
 }
 
 QoreValue hash_assignment_priv::getImpl() const {

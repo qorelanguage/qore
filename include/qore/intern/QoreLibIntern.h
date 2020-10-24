@@ -737,6 +737,8 @@ public:
 
    DLLLOCAL void assign(QoreValue v, ExceptionSink* xsink);
 
+   DLLLOCAL void assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSink* xsink);
+
    DLLLOCAL QoreValue swap(QoreValue v) {
       return swapImpl(v);
    }

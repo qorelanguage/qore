@@ -612,10 +612,10 @@ void qore_object_private::mergeDataToHash(QoreHashNode* hash, SafeDerefHelper& s
 
     qore_hash_private* hp = qore_hash_private::get(*hash);
     if (class_ctx) {
-        hp->merge(*qore_hash_private::get(*data), sdh);
+        hp->merge(*qore_hash_private::get(*data), sdh, xsink);
         const QoreHashNode* odata = getInternalData(class_ctx);
         if (odata) {
-            hp->merge(*qore_hash_private::get(*odata), sdh);
+            hp->merge(*qore_hash_private::get(*odata), sdh, xsink);
         }
         return;
     }
@@ -626,7 +626,7 @@ void qore_object_private::mergeDataToHash(QoreHashNode* hash, SafeDerefHelper& s
             continue;
         }
 
-        hp->setKeyValue(hi.getKey(), hi.getReferenced(), sdh);
+        hp->setKeyValue(hi.getKey(), hi.getReferenced(), sdh, xsink);
     }
 }
 

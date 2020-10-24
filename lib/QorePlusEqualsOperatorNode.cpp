@@ -135,7 +135,7 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
         // do hash plus-equals if left side is a hash
         if (new_right->getType() == NT_HASH) {
             v.ensureUnique();
-            qore_hash_private::get(*v.getValue().get<QoreHashNode>())->merge(*qore_hash_private::get(*new_right->get<const QoreHashNode>()), sdh);
+            qore_hash_private::get(*v.getValue().get<QoreHashNode>())->merge(*qore_hash_private::get(*new_right->get<const QoreHashNode>()), sdh, xsink);
         } else if (new_right->getType() == NT_OBJECT) {
             v.ensureUnique();
             qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), sdh, xsink);
