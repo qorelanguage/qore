@@ -188,9 +188,9 @@ public:
         assert(cvstack.empty());
     }
 
-    DLLLOCAL void finalize(arg_vec_t*& cl) {
-        lvstack.finalize(cl);
-        cvstack.finalize(cl);
+    DLLLOCAL void finalize(SafeDerefHelper& sdh) {
+        lvstack.finalize(sdh);
+        cvstack.finalize(sdh);
     }
 
     DLLLOCAL void del(ExceptionSink* xsink) {
@@ -639,7 +639,7 @@ public:
 
     DLLLOCAL void clearLocalVars(ExceptionSink* xsink) {
         // grab all thread-local data in a vector and finalize it outside the lock
-        arg_vec_t* cl = nullptr;
+        SafeDerefHelper sdh(xsink);
         {
             AutoLocker al(tlock);
             // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
@@ -649,16 +649,8 @@ public:
             tclear = q_gettid();
 
             for (auto& i : pgm_data_map) {
-                i.second->finalize(cl);
+                i.second->finalize(sdh);
             }
-        }
-
-        // dereference finalized thread-local data outside the lock to avoid deadlocks
-        if (cl) {
-            for (auto& i : *cl) {
-                i.discard(xsink);
-            }
-            delete cl;
         }
     }
 
@@ -1301,17 +1293,15 @@ public:
         QoreHashNode* h = clearThreadData(xsink);
         if (h) {
             h->deref(xsink);
-            thread_local_storage->set(0);
+            thread_local_storage->set(nullptr);
         }
     }
 
-    DLLLOCAL void finalizeThreadData(ThreadProgramData* td, arg_vec_t*& cl) {
+    DLLLOCAL void finalizeThreadData(ThreadProgramData* td, SafeDerefHelper& sdh) {
         QoreHashNode* h = thread_local_storage->get();
         if (h) {
-            if (!cl)
-                cl = new arg_vec_t;
-            cl->push_back(h);
-            thread_local_storage->set(0);
+            sdh.add(h);
+            thread_local_storage->set(nullptr);
         }
 
         // delete all local variables for this thread
@@ -1320,8 +1310,9 @@ public:
             return;
 
         pgm_data_map_t::iterator i = pgm_data_map.find(td);
-        if (i != pgm_data_map.end())
-            i->second->finalize(cl);
+        if (i != pgm_data_map.end()) {
+            i->second->finalize(sdh);
+        }
     }
 
     // TODO: xsink should not be necessary; vars should be emptied and finalized in the finalizeThreadData() call
@@ -2047,14 +2038,6 @@ public:
 
     DLLLOCAL static bool setThreadVarData(QoreProgram* pgm, ThreadProgramData* td, ThreadLocalProgramData* &tlpd, bool run) {
         return pgm->priv->setThreadVarData(td, tlpd, run);
-    }
-
-    DLLLOCAL static void finalizeThreadData(QoreProgram* pgm, ThreadProgramData* td, arg_vec_t*& cl) {
-        pgm->priv->finalizeThreadData(td, cl);
-    }
-
-    DLLLOCAL static int endThread(QoreProgram* pgm, ThreadProgramData* td, ExceptionSink* xsink) {
-        return pgm->priv->endThread(td, xsink);
     }
 
     DLLLOCAL static void makeParseException(QoreProgram* pgm, const QoreProgramLocation &loc, QoreStringNode* desc) {

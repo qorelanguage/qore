@@ -306,6 +306,9 @@ public:
 
     DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
 
+    // to be called when a lock is held to avoid dereferencing in the lock
+    DLLLOCAL void merge(const qore_hash_private& h, SafeDerefHelper& sdh);
+
     DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
     DLLLOCAL void getTypeName(QoreString& str) const {
@@ -420,6 +423,18 @@ public:
         }
 
         return h.release();
+    }
+
+    DLLLOCAL void setKeyValue(const char* key, QoreValue val, SafeDerefHelper& sdh) {
+        hash_assignment_priv ha(*this, key);
+        // in case of assigning keys to an initialized hashdecl, the key may already have a value
+        sdh.deref(ha.swap(val));
+    }
+
+    DLLLOCAL void setKeyValue(const std::string& key, QoreValue val, SafeDerefHelper& sdh) {
+        hash_assignment_priv ha(*this, key.c_str());
+        // in case of assigning keys to an initialized hashdecl, the key may already have a value
+        sdh.deref(ha.swap(val));
     }
 
     DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {

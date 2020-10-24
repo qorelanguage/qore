@@ -458,6 +458,44 @@ DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);
 #endif
 
+//! Helps dereference values outside of locks
+class SafeDerefHelper {
+public:
+    DLLLOCAL SafeDerefHelper(ExceptionSink* xsink) : xsink(xsink) {
+    }
+
+    //! must be destroyed outside of any locks
+    DLLLOCAL ~SafeDerefHelper() {
+        if (value_list) {
+            for (auto& i : *value_list) {
+                i.discard(xsink);
+            }
+            delete value_list;
+        }
+    }
+
+    //! dereferences the value immediately if it cannot throw an exception, or adds it to the list for dereferencing outside the lock
+    DLLLOCAL void deref(QoreValue v) {
+        if (v.derefCanThrowException()) {
+            add(v);
+        } else {
+            v.discard(nullptr);
+        }
+    }
+
+    //! adds a value for dereferencing on exit
+    DLLLOCAL void add(QoreValue v) {
+        if (!value_list) {
+            value_list = new arg_vec_t;
+        }
+        value_list->push_back(v);
+    }
+
+protected:
+    ExceptionSink* xsink;
+    arg_vec_t* value_list = nullptr;
+};
+
 class QoreParseListNode;
 
 #include "qore/intern/NamedScope.h"
@@ -866,28 +904,28 @@ public:
 // pushes a marker on the local variable parse stack so that searches can skip to global thread-local variables when the search hits the marker
 class VariableBlockHelper {
 public:
-   DLLLOCAL VariableBlockHelper();
-   DLLLOCAL ~VariableBlockHelper();
+    DLLLOCAL VariableBlockHelper();
+    DLLLOCAL ~VariableBlockHelper();
 };
 
 class ParseOptionMaps {
 protected:
-   DLLLOCAL void doMap(int64 code, const char* desc, const char* dom = nullptr);
+    DLLLOCAL void doMap(int64 code, const char* desc, const char* dom = nullptr);
 
 public:
-   typedef std::map<int64, const char*> pomap_t;
-   typedef std::map<const char*, int64, ltstr> pormap_t;
+    typedef std::map<int64, const char*> pomap_t;
+    typedef std::map<const char*, int64, ltstr> pormap_t;
 
-   pomap_t pomap, dommap;
-   pormap_t pormap, domrmap;
+    pomap_t pomap, dommap;
+    pormap_t pormap, domrmap;
 
-   DLLLOCAL ParseOptionMaps();
+    DLLLOCAL ParseOptionMaps();
 
-   DLLLOCAL QoreHashNode* getCodeToStringMap() const;
-   DLLLOCAL QoreHashNode* getStringToCodeMap() const;
+    DLLLOCAL QoreHashNode* getCodeToStringMap() const;
+    DLLLOCAL QoreHashNode* getStringToCodeMap() const;
 
-   DLLLOCAL QoreHashNode* getDomainToStringMap() const;
-   DLLLOCAL QoreHashNode* getStringToDomainMap() const;
+    DLLLOCAL QoreHashNode* getDomainToStringMap() const;
+    DLLLOCAL QoreHashNode* getStringToDomainMap() const;
 };
 
 DLLLOCAL extern ParseOptionMaps pomaps;

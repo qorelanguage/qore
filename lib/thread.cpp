@@ -528,40 +528,34 @@ void ThreadProgramData::delProgram(QoreProgram* pgm) {
 }
 
 bool ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
-   if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
-      return false;
-   printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
-   ref();
-   td->current_pgm->depRef();
-   {
-      AutoLocker al(pslock);
-      assert(pgm_set.find(td->current_pgm) == pgm_set.end());
-      pgm_set.insert(td->current_pgm);
-   }
-   if (runtime) {
-      qore_program_private::doThreadInit(*td->current_pgm, xsink);
-   }
-   return true;
+    if (!qore_program_private::setThreadVarData(td->current_pgm, this, td->tlpd, runtime))
+        return false;
+    printd(5, "ThreadProgramData::saveProgram() this: %p pgm: %p\n", this, td->current_pgm);
+    ref();
+    td->current_pgm->depRef();
+    {
+        AutoLocker al(pslock);
+        assert(pgm_set.find(td->current_pgm) == pgm_set.end());
+        pgm_set.insert(td->current_pgm);
+    }
+    if (runtime) {
+        qore_program_private::doThreadInit(*td->current_pgm, xsink);
+    }
+    return true;
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
     // first purge all data
-    arg_vec_t* cl = nullptr;
-
-    // remove and finalize all thread-local data in all referenced programs
     {
-        AutoLocker al(pslock);
-        for (auto& i : pgm_set) {
-            qore_program_private::finalizeThreadData(i, this, cl);
-        }
-    }
+        SafeDerefHelper sdh(xsink);
 
-    // delete thread-local data
-    if (cl) {
-        for (auto& i : *cl) {
-            i.discard(xsink);
+        // remove and finalize all thread-local data in all referenced programs
+        {
+            AutoLocker al(pslock);
+            for (auto& i : pgm_set) {
+                qore_program_private::get(*i)->finalizeThreadData(this, sdh);
+            }
         }
-        delete cl;
     }
 
     // purge thread data in contained programs
@@ -579,7 +573,7 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
         //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
         pgm->depDeref();
         // only dereference the current object if the thread was deleted from the program
-        if (!qore_program_private::endThread(pgm, this, xsink))
+        if (!qore_program_private::get(*pgm)->endThread(this, xsink))
             deref();
     }
 }

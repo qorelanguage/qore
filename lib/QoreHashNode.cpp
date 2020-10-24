@@ -78,6 +78,12 @@ void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) 
     }
 }
 
+void qore_hash_private::merge(const qore_hash_private& h, SafeDerefHelper& sdh) {
+    for (auto& i : h.member_list) {
+        setKeyValue(i->key, i->val.refSelf(), sdh);
+    }
+}
+
 int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
     const QoreTypeInfo* memTypeInfo = nullptr;
 

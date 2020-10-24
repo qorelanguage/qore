@@ -51,18 +51,12 @@ private:
 
 public:
     // clears and marks all variables as finalized on the stack
-    DLLLOCAL void finalize(arg_vec_t*& cl) {
+    DLLLOCAL void finalize(SafeDerefHelper& sdh) {
         //printd(5, "ThreadClosureVariableStack::finalize() this: %p\n", this);
         ThreadClosureVariableStack::iterator i(curr);
         while (i.next()) {
             //printd(5, "ThreadClosureVariableStack::finalize() this: %p %p %s\n", this, i.get(), i.get()->id);
-            ValueHolder n(i.get()->finalize(), nullptr);
-            if (n->derefCanThrowException()) {
-                if (!cl) {
-                    cl = new arg_vec_t;
-                }
-                cl->push_back(n.release());
-            }
+            sdh.deref(i.get()->finalize());
         }
     }
 
