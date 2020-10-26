@@ -1,7 +1,8 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.9.5.1],
+# NOTE: Qore should always use semantic versioning: https://semver.org/
+AC_INIT([qore], [0.9.6],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
