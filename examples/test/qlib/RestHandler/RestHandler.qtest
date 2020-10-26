@@ -347,7 +347,7 @@ public class RestHandlerTest inherits QUnit::Test {
         mServer.setDefaultHandler("rest-handler", mHandler);
         port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
-        mClient = new RestClient(("url": "http://localhost:" + port));
+        mClient = new RestClient({"url": "http://localhost:" + port});
     }
 
     globalTearDown() {
@@ -500,10 +500,10 @@ public class RestHandlerTest inherits QUnit::Test {
 
         {
             mClient.setSerialization("json");
-            hash info;
+            hash<auto> info;
             {
                 on_error printf("info: %N\n", info);
-                hash h = mClient.put("/swagger/test?action=echo", SimpleHashValue, \info);
+                hash<auto> h = mClient.put("/swagger/test?action=echo", SimpleHashValue, \info);
                 assertEq(SimpleHashValue, h.body);
                 assertThrows("REST-RESPONSE-ERROR", \mClient.put(), ("/swagger/test?invalid=sdf", SimpleHashValue, \info));
             }
@@ -511,8 +511,10 @@ public class RestHandlerTest inherits QUnit::Test {
         }
 
         string url = "http://localhost:" + port + "/swagger";
-        RestConnection conn("test", "test", url, {}, {"validator": RestHandlerTest::getSwagger()});
+        SwaggerSchema swagger = RestHandlerTest::getSwagger();
+        RestConnection conn("test", "test", url, {}, {"validator": swagger});
         AbstractDataProvider rest_provider = conn.getDataProvider().getChildProviderEx("test").getChildProviderEx("PUT");
+        assertEq("/swagger", cast<SwaggerRequestDataProvider>(rest_provider).schema.getBasePath());
 
         #printf("req: %N\nresp: %N\n", rest_provider.getRequestType(), rest_provider.getResponseType());
 

@@ -268,6 +268,9 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     #! Returns the URI path to use in requests
     private string getUriPath() {
         string uri_path = self.uri_path;
+        if ((string base_path = schema.getBasePath()).val() && base_path != "/") {
+            uri_path = base_path + uri_path;
+        }
         if (resolve_uri) {
             uri_path = cb_resolve_value(uri_path);
         }

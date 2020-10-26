@@ -87,7 +87,8 @@ module Swagger {
 
     To override the URI base path specified in the <a href="https://swagger.io/">Swagger</a> schema,
     get the <a href="https://swagger.io/">Swagger</a> schema object by calling
-    \c RestClient::getValidator(), and then call @ref RestSchemaValidator::AbstractRestSchemaValidator::setBasePath()     "AbstractRestSchemaValidator::setBasePath()" on the validator object.
+    \c RestClient::getValidator(), and then call
+    @ref RestSchemaValidator::AbstractRestSchemaValidator::setBasePath() "AbstractRestSchemaValidator::setBasePath()" on the validator object.
 
     @par Client Example
     @code{.py}
@@ -1419,7 +1420,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         op.validateResponse(method, path, pio, code, \rv.body, \mime_types);
 
         if (content && !mime_types{content})
-            throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
+            throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; "
+                "accepted content types: %y", method.upr(), path, content, keys mime_types);
 
         return rv;
     }
@@ -2600,7 +2602,7 @@ public class OperationObject inherits ObjectBase {
         getQoreExampleParams(\query, \headers, pio.parameters, parameters);
 
         if (query)
-            path = make_uri_query(cast<hash<UriQueryInfo>>(("method": path, "params": query)));
+            path = make_uri_query(cast<hash<UriQueryInfo>>({"method": path, "params": query}));
 
         rv.example = sprintf("RestClient client((\"url\": %y));\n", swagger.getTargetUrl());
 

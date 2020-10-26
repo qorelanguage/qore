@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.6
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.0.2";
+    version = "1.0.3";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_0_3 SwaggerDataProvider v1.0.3
+    - fixed a bug where the base path in the Swagger schema was ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection swaggerdataprovider_v1_0_2 SwaggerDataProvider v1.0.2
     - fixed support empty responses
