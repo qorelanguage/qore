@@ -244,7 +244,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                     (map sprintf("%s=%s", $1.key, getUriValue($1.value)), req.query.pairIterator()));
             remove req.query;
         }
-        printf("uri: %y (%y)\n", uri_path, op.path);
         # make the call
         hash<auto> info;
         try {

@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.6
 
 # require type definitions everywhere
 %require-types
@@ -39,7 +39,7 @@
 %requires Mime >= 1.3
 %requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) RestSchemaValidator >= 1.0
-%requires Swagger >= 0.1
+%requires Swagger >= 2.0
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.7";
+    version = "1.7.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -125,6 +125,11 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_7_1 RestClient v1.7.1
+    - added the \a swagger_base_path option to REST clients and connections to allow for Swagger schemas to have their
+      base path overridden
+      (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection restclientv1_7 RestClient v1.7
     - implemented support for a data provider scheme cache and rich option information for connections
@@ -390,6 +395,8 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
             validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+        - \c swagger_base_path: in case the \a swagger option is used, the base path in the schema can be overridden
+          with this option
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
             \c 30s)
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
@@ -432,8 +439,19 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
                 validator = SwaggerLoader::fromUrl(opts.swagger);
+                if (opts.swagger_base_path) {
+                    validator.setBasePath(opts.swagger_base_path);
+                }
             } else {
                 validator = new NullRestSchemaValidator();
+            }
+        }
+        if (validator) {
+            # issue #4059: strip the URI path from the URL if it matches the prefix of the REST validator's base path
+            # otherwise we will run into compatibility problems with the fix
+            string base_path = validator.getBasePath();
+            if (base_path == getConnectionPath()) {
+                setConnectionPath();
             }
         }
 
@@ -1048,6 +1066,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         message bodies
     - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
         validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
+    - \c "swagger_base_path": in case the \a swagger option is used, the base path in the schema can be overridden
+      with this option
     - \c "timeout": transfer timeout to use in milliseconds
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
         object to validate request and response messages; conflicts with \a swagger
@@ -1070,6 +1090,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("RestConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
+                "swagger_base_path": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "in case the `swagger` option is used, the base path in the schema can be overridden "
+                        "with this option",
+                },
                 "content_encoding": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "this sets the send encoding (if the `send_encoding` option is not set) and the "
