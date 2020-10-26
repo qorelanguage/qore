@@ -13,6 +13,9 @@
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
       - fixed invalid default return values for \c AbstractDataProcessor methods
         (<a href="https://github.com/qorelanguage/qore/issues/4043">issue 4043</a>)
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module updates:
+      - fixed a bug where the base path in the Swagger schema was ignored
+        (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
     - fixed a problem with lazy resolution of static class variables that could lead to incorrect runtime execution
       (<a href="https://github.com/qorelanguage/qore/issues/4045">issue 4045</a>)
     - fixed a symbol conflict with the \c gettid() C++ function; use \c q_gettid() instead to avoid potential symbol

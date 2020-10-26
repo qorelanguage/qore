@@ -87,7 +87,8 @@ module Swagger {
 
     To override the URI base path specified in the <a href="https://swagger.io/">Swagger</a> schema,
     get the <a href="https://swagger.io/">Swagger</a> schema object by calling
-    \c RestClient::getValidator(), and then call @ref RestSchemaValidator::AbstractRestSchemaValidator::setBasePath()     "AbstractRestSchemaValidator::setBasePath()" on the validator object.
+    \c RestClient::getValidator(), and then call
+    @ref RestSchemaValidator::AbstractRestSchemaValidator::setBasePath() "AbstractRestSchemaValidator::setBasePath()" on the validator object.
 
     @par Client Example
     @code{.py}
