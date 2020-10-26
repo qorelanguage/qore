@@ -193,11 +193,11 @@
 #cmakedefine SLIST_INCLUDE @SLIST_INCLUDE@
 #cmakedefine SLIST_TYPE @SLIST_TYPE@
 
-/* CPU:s */
+/* CPUs */
 #cmakedefine CPU_X86_64
 #cmakedefine SPARC
 
-/* OS:s */
+/* OSes */
 #cmakedefine DARWIN
 #cmakedefine HPUX
 #cmakedefine SOLARIS
@@ -226,8 +226,20 @@
 
 #cmakedefine ZONEINFO_LOCATION "@ZONEINFO_LOCATION@"
 
+#ifndef PACKAGE_VERSION
+#if @VERSION_PATCH@ == 0
+#define PACKAGE_VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@"
+#else
 #define PACKAGE_VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@.@VERSION_PATCH@"
+#endif
+#endif
+#ifndef VERSION
+#if @VERSION_PATCH@ == 0
+#define VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@"
+#else
 #define VERSION "@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@.@VERSION_PATCH@"
+#endif
+#endif
 #define VERSION_MAJOR @VERSION_MAJOR@
 #define VERSION_MINOR @VERSION_MINOR@
 #define VERSION_SUB @VERSION_SUB@
@@ -242,5 +254,5 @@
 #define QORE_LIB_CXX "@CMAKE_CXX_COMPILER_ID@"
 
 /* to be set later */
-#define QORE_LIB_CFLAGS ""
-#define QORE_LIB_LDFLAGS ""
+#define QORE_LIB_CFLAGS "@CMAKE_CXX_FLAGS@"
+#define QORE_LIB_LDFLAGS "@CMAKE_LDFLAGS@"
