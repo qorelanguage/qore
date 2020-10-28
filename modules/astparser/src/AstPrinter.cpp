@@ -126,7 +126,7 @@ void AstPrinter::printLiteralExpression(std::ostream& os, ASTLiteralExpression* 
             os << le->value.str;
             break;
         case ALEK_String: {
-            std::string str(std::move(escapeString(*le->value.stdstr)));
+            std::string str(escapeString(*le->value.stdstr));
             os << "\"" << str << "\"";
             break;
         }

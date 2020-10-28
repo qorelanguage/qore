@@ -363,9 +363,10 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
         return 0;
     AbstractStatement* s = p->findFunctionStatement(function->c_str(), params, xsink);
     if (!s) {
-        if (!*xsink)
+        if (!*xsink) {
             xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s()\"", function->c_str());
-            return QoreValue();
+        }
+        return QoreValue();
     }
     return p->getStatementId(s);
 }

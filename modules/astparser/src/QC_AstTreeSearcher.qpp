@@ -157,7 +157,7 @@ AstTreeSearcher::constructor() {
 *hash AstTreeSearcher::findSymbolInfo(astparser::AstTree[AstTreeHolder] tree, int line, int col) {
     ReferenceHolder<AstTreeHolder> holder(tree, xsink);
 
-    ASTSymbolInfo si = std::move(AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1));
+    ASTSymbolInfo si = AstTreeSearcher::findSymbolInfo(tree->get(), line+1, col+1);
     if ((si.kind == 0 && si.usage == 0) ||
         (si.loc.firstLine == 0 &&
          si.loc.firstCol == 0 &&

@@ -40,7 +40,7 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
     switch (decl->getKind()) {
         case ASTDeclarationKind::ADK_Class: {
             ASTClassDeclaration* d = static_cast<ASTClassDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Class, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Class, &d->name));
             for (size_t i = 0, count = d->inherits.size(); i < count; i++)
                 inDeclaration(vec, d->inherits[i]);
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
@@ -56,13 +56,13 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
         }
         case ASTDeclarationKind::ADK_Constant: {
             ASTConstantDeclaration* d = static_cast<ASTConstantDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Constant, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Constant, &d->name));
             inExpression(vec, d->value.get());
             break;
         }
         case ASTDeclarationKind::ADK_Function: {
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Function, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Function, &d->name));
             inExpression(vec, d->returnType.get());
             inExpression(vec, d->params.get());
             inExpression(vec, d->inits.get());
@@ -71,14 +71,14 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
         }
         case ASTDeclarationKind::ADK_Hash: {
             ASTHashDeclaration* d = static_cast<ASTHashDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Interface, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Interface, &d->name));
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i]);
             break;
         }
         case ASTDeclarationKind::ADK_HashMember: {
             ASTHashMemberDeclaration* d = static_cast<ASTHashMemberDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Field, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Field, &d->name));
             break;
         }
         case ASTDeclarationKind::ADK_MemberGroup: {
@@ -89,7 +89,7 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
         }
         case ASTDeclarationKind::ADK_Namespace: {
             ASTNamespaceDeclaration* d = static_cast<ASTNamespaceDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Namespace, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Namespace, &d->name));
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                 inDeclaration(vec, d->declarations[i]);
             break;
@@ -98,7 +98,7 @@ void FindSymbolsQuery::inDeclaration(std::vector<ASTSymbolInfo>* vec, ASTDeclara
             break;
         case ASTDeclarationKind::ADK_Variable: {
             ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(decl);
-            vec->push_back(std::move(ASTSymbolInfo(ASYK_Variable, &d->name)));
+            vec->push_back(ASTSymbolInfo(ASYK_Variable, &d->name));
             break;
         }
         case ASTDeclarationKind::ADK_VarList: {

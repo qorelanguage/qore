@@ -274,7 +274,6 @@ void AbstractMethod::override(MethodVariantBase* v) {
     // see if there is already a committed variant matching this signature
     // in this case it must be inherited
     // issue #3934: allow for overrides even if the signatures don't match
-    bool match = false;
     if (v->getFlags() & QCF_ABSTRACT_OVERRIDE_ALL) {
         for (auto& i : vlist) {
             i.second->deref();

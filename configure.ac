@@ -1976,14 +1976,18 @@ fi
 AC_SUBST([MODULE_DIR])
 AC_SUBST([USER_MODULE_DIR])
 
-mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}
+if [ ${VERSION_PATCH} != 0 ]; then
+   mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}
+else
+   mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
+fi
 AC_SUBST([mymodverdir])
 
 # get version-dependent module path
 if test "$windows" = yes; then
   # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}"
+  MODULE_VER_DIR="${MODULE_DIR}/${mymodverdir}"
+  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${mymodverdir}"
 else
   MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
   if test -n "echo ${datarootdir}|grep \$"; then

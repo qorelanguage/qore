@@ -77,7 +77,7 @@ std::vector<ASTNode*>* AstTreeSearcher::findReferences(ASTTree* tree, ast_loc_t 
 }
 
 ASTSymbolInfo AstTreeSearcher::findSymbolInfo(ASTTree* tree, ast_loc_t line, ast_loc_t col) {
-    return std::move(FindSymbolInfoQuery::find(tree, line, col));
+    return FindSymbolInfoQuery::find(tree, line, col);
 }
 
 std::vector<ASTSymbolInfo>* AstTreeSearcher::findSymbols(ASTTree* tree, bool fixSymbols, bool bareNames) {
