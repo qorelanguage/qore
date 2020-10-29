@@ -409,9 +409,11 @@ public class SwaggerTest inherits QUnit::Test {
             # Should not throw.
             so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.json");
             assertTrue(exists so);
+            assertEq("/v2", so.getBasePath());
             delete so;
             so = Swagger::SwaggerLoader::fromFile(basePath + "PetStore.swagger.yaml");
             assertTrue(exists so);
+            assertEq("/v2", so.getBasePath());
 
             assertThrows("EMPTY-SCHEMA-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.yaml");});
             assertThrows("EMPTY-SCHEMA-FILE", sub() {so = Swagger::SwaggerLoader::fromFile(basePath + "EmptySwagger.json");});
@@ -447,6 +449,7 @@ public class SwaggerTest inherits QUnit::Test {
             try_import = string sub (string fn) { return OtherJsonOk; };
             {
                 SwaggerSchema so("", soh, ("try_import": try_import));
+                assertEq("/", so.getBasePath());
             }
 
             soh.paths."/test".get.parameters[0].schema."$ref" = "other.yaml#/info";

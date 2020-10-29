@@ -724,6 +724,8 @@ public class AbstractDataProvider {
             # process value
             bool ok;
             string err;
+            # issue #4062: ensure "options" remains "hash<auto>"
+            options = {} + options;
             foreach AbstractDataProviderType type in (i.value.type) {
                 try {
                     options{i.key} = type.acceptsValue(options{i.key});

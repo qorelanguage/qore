@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.7
 
 # require type definitions everywhere
 %require-types
@@ -31,13 +31,13 @@
 # enable all warnings
 %enable-all-warnings
 
-%requires HttpServerUtil >= 0.3.11
-%requires WebSocketUtil >= 1.0
+%requires HttpServerUtil >= 0.9.5
+%requires WebSocketUtil >= 1.4
 
 %new-style
 
 module WebSocketHandler {
-    version = "1.5";
+    version = "1.5.1";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,6 +62,10 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_5_1 Version 1.5.1
+    - fixed a bug handling the case when a connection object is deleted in a callback method
+      (<a href="https://github.com/qorelanguage/qore/issues/4063">issue 4063</a>)
 
     @subsection websockethandler_v1_5 Version 1.5
     - allow the WebSocket handler to have connections added to it from outside the class
@@ -393,8 +397,12 @@ public namespace WebSocketHandler {
 
             on_exit {
                 #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
-                deregisterConnectionImpl(wsc);
-                wsc.connectionClosed();
+                try {
+                    deregisterConnectionImpl(wsc);
+                    wsc.connectionClosed();
+                } catch (hash<ExceptionInfo> ex) {
+                    logError("exception deregistering WebSocket connection: %s", get_exception_string(ex));
+                }
                 rwl.writeLock();
                 on_exit rwl.writeUnlock();
                 remove ch{cid};
@@ -406,7 +414,8 @@ public namespace WebSocketHandler {
             while (True) {
                 #logDebug("WebSocketHandler::startImpl() loop cid: %y", cx.id);
                 if (stop || lsh{lid} || wsc.stop_flag) {
-                    logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y, wsc.stop_flag: %y", cx.id, stop, lid, lsh{lid}, wsc.stop_flag);
+                    logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y, "
+                        "wsc.stop_flag: %y", cx.id, stop, lid, lsh{lid}, wsc.stop_flag);
                     sendClose(sock, WSCC_GoingAway);
                     break;
                 }
@@ -457,7 +466,8 @@ public namespace WebSocketHandler {
                         break;
                     }
 
-                    logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.(h.op), h.msg.size(), h.masked ? " masked" : "", WebSocketHandler::getDataString(h.msg));
+                    logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.(h.op), h.msg.size(),
+                        h.masked ? " masked" : "", WebSocketHandler::getDataString(h.msg));
 
                     if (!h.masked) {
                         logError("unmasked client frame received");
@@ -473,7 +483,8 @@ public namespace WebSocketHandler {
                         continue;
                     }
 
-                    # issue #2566: https://tools.ietf.org/html/rfc6455#section-5.5.3: we must ignore unsolicited PONG messages
+                    # issue #2566: https://tools.ietf.org/html/rfc6455#section-5.5.3: we must ignore
+                    # unsolicited PONG messages
                     if (h.op == WSOP_Pong) {
                         continue;
                     }
@@ -577,10 +588,10 @@ public namespace WebSocketHandler {
             sock.send(ws_encode_message(msg, WSOP_Close), DefaultSocketSendTimeout);
         }
 
-        static string getDataString(*data data) {
-            if (!data)
+        static string getDataString(*data d) {
+            if (!d)
                 return "n/a";
-            return sprintf("type: %s: %y", data.type(), data);
+            return sprintf("type: %s: %y", d.type(), d);
         }
 
         #! default implementation is empty
