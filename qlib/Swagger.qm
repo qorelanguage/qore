@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.7
 
 # try importing JSON and YAML modules
 %try-module json
@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.3";
+    version = "2.0.4";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,11 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_4 Swagger v2.0.4
+    - fixed a type error in @ref Swagger::Swagger::getBasePath() "Swagger::getBasePath()" for the case when the base
+      path is not set
+      (<a href="https://github.com/qorelanguage/qore/issues/4064">issue 4064</a>)
 
     @subsection swagger_2_0_3 Swagger v2.0.3
     - fixed a bug supporting number formats
@@ -1435,9 +1440,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
     #! returns the base path prefix for all requests in this schema
     /** @return the base path prefix for all requests in this schema
+
+        @note if none is set, then \c "/" is returned
     */
     private string getBasePathImpl() {
-        return basePath;
+        return basePath ?? "/";
     }
 
     #! overrides the basePath value

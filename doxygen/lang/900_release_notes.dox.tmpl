@@ -2,6 +2,22 @@
 
     @tableofcontents
 
+    @section qore_097 Qore 0.9.7
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_097_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
+      - fixed type-handling bugs handling data provider options
+        (<a href="https://github.com/qorelanguage/qore/issues/4062">issue 4062</a>)
+    - <a href="../../modules/Swagger/html/index.html">Swagger</a> module updates:
+      - fixed a type error in \c Swagger::getBasePath() for the case when the base path is not set
+        (<a href="https://github.com/qorelanguage/qore/issues/4064">issue 4064</a>)
+    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module updates:
+      - fixed a bug handling the case when a connection object is deleted in a callback method
+        (<a href="https://github.com/qorelanguage/qore/issues/4063">issue 4063</a>)
+
     @section qore_096 Qore 0.9.6
 
     @note From %Qore 0.9.6 onwards, %Qore releases will use <a href="https://semver.org/">semantic versioning</a>.
