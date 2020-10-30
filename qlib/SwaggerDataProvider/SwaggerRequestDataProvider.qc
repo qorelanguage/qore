@@ -75,7 +75,12 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     #! Returns the data provider name
     string getName() {
-        return schema.info.title + getUriPath() + "/" + op.method.upr();
+        string base_path = schema.getBasePath();
+        string rv = schema.info.title;
+        if (base_path.val() && base_path != "/") {
+            rv += base_path;
+        }
+        return rv + getUriPath() + "/" + op.method.upr();
     }
 
     #! Returns data provider info
@@ -247,7 +252,17 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         # make the call
         hash<auto> info;
         try {
-            hash<auto> resp = rest.doRequest(op.method, uri_path, req.body, \info, NOTHING, req.header + options.hdr);
+            *hash<auto> hdr = req.header + options.hdr;
+            *data body = op.getRequestBody(pio, req.body, \hdr);
+            # prepend base path to request, if any
+            string base_path = schema.getBasePath();
+            if (base_path.val() && base_path != "/") {
+                if (uri_path !~ /^\//) {
+                    base_path += "/";
+                }
+                uri_path = base_path + uri_path;
+            }
+            hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
             #printf("XXX %s\n", get_exception_string(ex));
@@ -268,9 +283,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     #! Returns the URI path to use in requests
     private string getUriPath() {
         string uri_path = self.uri_path;
-        if ((string base_path = schema.getBasePath()).val() && base_path != "/") {
-            uri_path = base_path + uri_path;
-        }
         if (resolve_uri) {
             uri_path = cb_resolve_value(uri_path);
         }

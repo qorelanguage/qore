@@ -2616,6 +2616,8 @@ public class SwaggerTest inherits QUnit::Test {
                 "validator": so,
             );
 
+            assertEq("/v2", so.getBasePath());
+
             RestClient rc(opts);
             #printf("url: %y\n", url);
             hash h = rc.get("/user/login?username=user;password=pass");

@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.6
+%requires qore >= 0.9.7
 
 # require type definitions everywhere
 %require-types
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.7.1";
+    version = "1.7.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -125,6 +125,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_7_2 RestClient v1.7.2
+    - better fixes to REST URI path handling with schema validation
+      (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection restclientv1_7_1 RestClient v1.7.1
     - added the \a swagger_base_path option to REST clients and connections to allow for Swagger schemas to have their
@@ -444,14 +448,6 @@ RestClient rest(("url": "http://localhost:8001/rest"));
                 }
             } else {
                 validator = new NullRestSchemaValidator();
-            }
-        }
-        if (validator) {
-            # issue #4059: strip the URI path from the URL if it matches the prefix of the REST validator's base path
-            # otherwise we will run into compatibility problems with the fix
-            string base_path = validator.getBasePath();
-            if (base_path == getConnectionPath()) {
-                setConnectionPath();
             }
         }
 
@@ -870,18 +866,28 @@ hash<auto> ans = rest.del("/orders/1");
 
     #! sets up the path for the HTTP request URI
     private nothing preparePath(reference<string> path) {
-        # prepare path
-        *string p = getConnectionPath();
-
-        # strip trailing "/" off the connection path
-        p =~ s/\/+$//;
         # strip leading "/" off the given path
         path =~ s/^\/+//;
-        if (p.val())
+
+        # prepare path = connection path + base path + path
+        *string p = getConnectionPath();
+        string base_path = validator.getBasePath();
+        if (base_path.val() && base_path != "/" && p != base_path) {
+            # strip trailing "/" off the base path
+            base_path =~ s/\/+$//;
+            path = base_path + (path.val() ? ("/" + path) : "");
+        }
+
+        if (p.val() && p != "/") {
+            # strip trailing "/" off the connection path
+            p =~ s/\/+$//;
             path = p + (path.val() ? ("/" + path) : "");
+        }
+
         # ensure path is absolute
-        if (path !~ /^\//)
+        if (path !~ /^\//) {
             splice path, 0, 0, "/";
+        }
 
         path = encode_uri_request(path);
     }
@@ -959,6 +965,23 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         # prepare path
         preparePath(\path);
+
+        return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+    }
+
+    #! The same as doRequest() except no schema validation is performed on the request
+    /** @since RestClient 1.7.2
+    */
+    hash<auto> doValidatedRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
+        # use {} + ... here to ensure that hdr stays "hash<auto>"
+        hdr = {} + headers + hdr;
+
+        on_exit if (exists body) {
+            info += {
+                "request-body": body,
+                "request-serialization": ds,
+            };
+        }
 
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }
@@ -1284,7 +1307,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             *AbstractRestSchemaValidator validator = rest.getValidator();
             if (validator) {
                 # if there's a validator, return the provider
-                return validator.getDataProvider(get());
+                return validator.getDataProvider(rest);
             }
         }
         throw "DATA-PROVIDER-ERROR", sprintf("there is no validator object in the %s object to use to return a "

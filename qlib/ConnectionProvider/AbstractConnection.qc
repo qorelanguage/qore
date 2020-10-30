@@ -410,6 +410,7 @@ scheme://user:pass@hostname:port/path
         if (scheme_info.required_options) {
             list<string> req_list = scheme_info.required_options.split("|");
             bool ok;
+            list<string> missing;
             foreach string req in (req_list) {
                 list<string> req_opt = req.split(",");
                 # check which options are missing
@@ -418,10 +419,18 @@ scheme://user:pass@hostname:port/path
                     ok = True;
                     break;
                 }
+                if (req_list.size() == 1) {
+                    missing = keys ((map {$1: True}, req_opt) - keys have);
+                }
             }
             if (!ok) {
-                throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                    scheme_info.required_options, options);
+                if (missing) {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
+                                                             missing, options);
+                } else {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
+                                                             req_list, options);
+                }
             }
         }
         return options;
