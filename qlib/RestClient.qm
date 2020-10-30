@@ -878,11 +878,12 @@ hash<auto> ans = rest.del("/orders/1");
             path = base_path + (path.val() ? ("/" + path) : "");
         }
 
-        if (exists p) {
+        if (p.val() && p != "/") {
             # strip trailing "/" off the connection path
             p =~ s/\/+$//;
             path = p + (path.val() ? ("/" + path) : "");
         }
+
         # ensure path is absolute
         if (path !~ /^\//) {
             splice path, 0, 0, "/";

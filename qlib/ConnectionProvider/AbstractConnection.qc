@@ -409,20 +409,28 @@ scheme://user:pass@hostname:port/path
         # check for required options
         if (scheme_info.required_options) {
             list<string> req_list = scheme_info.required_options.split("|");
-            hash<auto> missing;
+            bool ok;
+            list<string> missing;
             foreach string req in (req_list) {
                 list<string> req_opt = req.split(",");
                 # check which options are missing
                 *hash<auto> have = options{req_opt};
-                if (have.size() < req_opt.size()) {
-                    missing = map {$1: True}, req_opt;
-                    missing -= keys have;
+                if (have.size() == req_opt.size()) {
+                    ok = True;
                     break;
                 }
+                if (req_list.size() == 1) {
+                    missing = (map {$1: True}, req_opt) - keys have;
+                }
             }
-            if (missing) {
-                throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                    keys missing, options);
+            if (!ok) {
+                if (missing) {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
+                                                             missing, options);
+                } else {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
+                                                             req_list, options);
+                }
             }
         }
         return options;

@@ -34,12 +34,12 @@ class FakeZeyosRestHandler inherits AbstractHttpRequestHandler {
         self.input = input;
     }
 
-    hash handleRequest(hash cx, hash hdr, *data body) {
+    hash<auto> handleRequest(hash cx, hash hdr, *data body) {
         #printf("cx: %N\nhdr: %N\nbody: %N\n", cx, hdr, body);
-        if (cx.raw_path =~ /^\/?auth\/v1\/login$/) {
+        if (cx.raw_path =~ /^\/?.+\/auth\/v1\/login$/) {
             return makeResponse({"Content-Type": MimeTypeJson}, 200, "{\"token\": \"token\"}");
         }
-        if (cx.raw_path =~ /^\/?auth\/v1\/logout$/) {
+        if (cx.raw_path =~ /^\/?.+\/auth\/v1\/logout$/) {
             return makeResponse({"Content-Type": MimeTypeJson}, 200, "OK");
         }
         if (!hdr."authorization") {
@@ -88,7 +88,7 @@ class ZeyosTest inherits QUnit::Test {
         port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         try {
-            zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a"});
+            zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a", "instance": "x"});
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "REST-RESPONSE-ERROR") {
                 printf("no client support: %s: %s\n", ex.err, ex.desc);
@@ -132,7 +132,7 @@ class ZeyosTest inherits QUnit::Test {
 
     connectionTest() {
         string url = "http://user:pass@localhost:" + port;
-        ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a"});
+        ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a", "instance": "x"});
         assertEq(True, zeyosrc instanceof ZeyosRestConnection);
 
 %ifdef NoJson
