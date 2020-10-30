@@ -1451,7 +1451,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param basePath the new base path value; use an empty string here to clear the basePath
     */
     private setBasePathImpl(string basePath) {
-        self.basePath = basePath;
+        # remove any trailing '/'s from path
+        basePath =~ s/\/+$//;
+        if (basePath.val()) {
+            self.basePath = basePath;
+        } else {
+            remove basePath;
+        }
     }
 
     #! returns example Qore code for the given request
@@ -2489,6 +2495,47 @@ public class OperationObject inherits ObjectBase {
                 security = cast<list<hash<string, list<string>>>>(securityList);
             }
         }
+    }
+
+    #! Processes a generated request
+    *data getRequestBody(PathItemObject pio, auto body, reference<hash<auto>> headers) {
+        *AbstractParameterObject body_po = self.body ?? pio.body;
+        if (body_po) {
+            body_po.check(True, True, path, method, "body", \body);
+        } else if (formData) {
+            map $1.value.check(True, True, path, method, "formData." + $1.key, \body{$1.key}),
+                formData.pairIterator();
+        } else if (body) {
+            error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
+        }
+
+        if (!exists body) {
+            return;
+        }
+
+        # get content type
+        string ct = consumes.firstKey();
+
+        if (ct == MimeTypeMultipartFormData) {
+            hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
+                "name": $1.key,
+                "filename": $1.key,
+                "hdr": ("Content-Type": MimeTypeText),
+                "body": $1.value,
+                ))}, body.pairIterator());
+
+            hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
+            headers."Content-Type" = mh.hdr."Content-Type";
+            return mh.body;
+        }
+
+        if (MimeDataTypes{ct}) {
+            headers."Content-Type" = ct;
+            return MimeDataTypes{ct}.serialize(body);
+        }
+
+        throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; "
+            "available serialization modules: %y", method.upr(), path, keys consumes, SerializationModules);
     }
 
     #! processes a REST API client-side request to the operation

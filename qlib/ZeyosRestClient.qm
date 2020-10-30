@@ -32,6 +32,8 @@
 %requires(reexport) RestClient >= 1.3.1
 %requires(reexport) ConnectionProvider >= 1.4
 
+%requires json
+
 module ZeyosRestClient {
     version = "1.1";
     desc = "user module for calling zeyos.com REST services";
@@ -113,7 +115,8 @@ public namespace ZeyosRestClient {
 public class ZeyosRestClient inherits RestClient::RestClient {
     public {
         const RequiredOptions = (
-            "appsecret"
+            "appsecret",
+            "instance",
         );
 
         const AuthPath = "/auth/v1/login";
@@ -124,6 +127,10 @@ public class ZeyosRestClient inherits RestClient::RestClient {
         string password;
         string identifier;
         string appsecret;
+        string instance;
+
+        # the token acquired in the login call
+        string token;
     }
 
     #! creates the object with the given options
@@ -140,7 +147,6 @@ ZeyosRestClient zeyos(
 
         @param options valid options are:
         - \c appsecret (optional): the <a href="http://www.zeyos.com">zeyos.com</a> appsecret
-        - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
         - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
             @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
@@ -156,6 +162,8 @@ ZeyosRestClient zeyos(
             like any other response
         - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message headers
+        - \c identifier (optional): the <a href="http://www.zeyos.com">zeyos.com</a> identifier
+        - \c instance (required): the <a href="http://www.zeyos.com">zeyos.com</a> instance name (first segment of URI path)
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
         - \c proxy: The proxy URL for connecting through a proxy
         - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
@@ -200,7 +208,26 @@ ZeyosRestClient zeyos(
                 "without both a username and password");
         }
 
-        getToken();
+        # make sure there is no connection path
+        setConnectionPath();
+
+        if (!do_not_connect) {
+            getToken();
+        }
+    }
+
+    hash<auto> doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash<auto> hdr) {
+        if (!exists token) {
+            getToken(\info);
+        }
+        return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+    }
+
+    hash<auto> doValidatedRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
+        if (!exists token) {
+            getToken(\info);
+        }
+        return RestClient::doValidatedRequest(m, path, body, \info, decode_errors, hdr);
     }
 
     #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
@@ -226,14 +253,15 @@ ZeyosRestClient zeyos(
     }
 
     #! logs in an sets the token for further communication
-    private getToken() {
-        hash<auto> result = RestClient::post(AuthPath, {
+    private getToken(*reference<hash> info) {
+        hash<auto> result = RestClient::doValidatedRequest("POST", "/" + instance + AuthPath, make_json({
             "name": username,
             "password": password,
             "identifier": identifier ?? self.uniqueHash(),
             "appsecret": appsecret,
-        });
-        headers{"Authorization"} = "Bearer " + result.body.token;
+        }), \info, True, {"Content-Type": MimeTypeJson});
+        token = result.body.token;
+        headers{"Authorization"} = "Bearer " + token;
     }
 }
 
@@ -273,6 +301,10 @@ public class ZeyosRestConnection inherits RestClient::RestConnection {
                 "identifier": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the Zeyos identifier;if none is provided, a random identifier string is used",
+                },
+                "instance": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the Zeyos instance name (first segment of URI path)",
                 },
             },
             "required_options": foldl $1 + "," + $2, ZeyosRestClient::RequiredOptions,
