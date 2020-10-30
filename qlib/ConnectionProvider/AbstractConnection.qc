@@ -420,7 +420,7 @@ scheme://user:pass@hostname:port/path
                     break;
                 }
                 if (req_list.size() == 1) {
-                    missing = (map {$1: True}, req_opt) - keys have;
+                    missing = keys ((map {$1: True}, req_opt) - keys have);
                 }
             }
             if (!ok) {
