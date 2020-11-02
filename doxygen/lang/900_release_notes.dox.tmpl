@@ -7,19 +7,25 @@
     @par Release Summary
     Bugfix release; see below for more information
 
+    @subsection qore_097_notes Release Notes
+    Note that when a REST validator is present in a REST connection, any URI path in the connection URL is ignored; to
+    change the base path specified by a REST validator, use the \a swagger_base_path connection option.
+
     @subsection qore_097_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module updates:
       - fixed type-handling bugs handling data provider options
         (<a href="https://github.com/qorelanguage/qore/issues/4062">issue 4062</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
+      - fixed a bug where the base path in the Swagger schema was ignored; note that when a REST validator is present,
+        any URI path in the connection URL is ignored; to change the base path specified by a REST validator, use the
+        \a swagger_base_path connection option
+        (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module updates:
       - fixed a type error in \c Swagger::getBasePath() for the case when the base path is not set
         (<a href="https://github.com/qorelanguage/qore/issues/4064">issue 4064</a>)
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module updates:
       - fixed a bug handling the case when a connection object is deleted in a callback method
         (<a href="https://github.com/qorelanguage/qore/issues/4063">issue 4063</a>)
-    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module updates:
-      - fixed a bug where the base path in the Swagger schema was ignored in
-        (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @section qore_096 Qore 0.9.6
 
