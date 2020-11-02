@@ -127,7 +127,8 @@ printf("%N\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_7_2 RestClient v1.7.2
-    - better fixes to REST URI path handling with schema validation
+    - better fixes to REST URI path handling with schema validation; ensure that the connection path is always cleared
+      when a REST validator is present
       (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection restclientv1_7_1 RestClient v1.7.1
@@ -359,7 +360,7 @@ public class RestClient inherits Qore::HTTPClient {
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
     /** @par Example:
         @code{.py}
-RestClient rest(("url": "http://localhost:8001/rest"));
+RestClient rest({"url": "http://localhost:8001/rest"});
         @endcode
 
         @param opts valid options are:
@@ -399,8 +400,8 @@ RestClient rest(("url": "http://localhost:8001/rest"));
             @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
             validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
-        - \c swagger_base_path: in case the \a swagger option is used, the base path in the schema can be overridden
-          with this option
+        - \c swagger_base_path: in case a REST validator is used, the base path in the schema can be overridden
+          with this option (applies to any REST validator; not just Swagger validators)
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
             \c 30s)
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
@@ -450,12 +451,24 @@ RestClient rest(("url": "http://localhost:8001/rest"));
                 validator = new NullRestSchemaValidator();
             }
         }
+        if (validator) {
+            # issue #4059: strip the URI path from the URL if it matches the prefix of the REST validator's base path
+            # otherwise we will run into compatibility problems with the fix
+            clearConnectionPath();
+        }
 
         if (!do_not_connect)
             connect();
 
         headers = DefaultHeaders + opts.headers;
         noCharset = opts.no_charset;
+    }
+
+    #! Clears the connection path when a validator is present
+    /** Called from the constructor when a REST validator is present
+    */
+    clearConnectionPath() {
+        setConnectionPath();
     }
 
     #! change the serialization option for the object; see @ref DataSerializationOptions for valid options
@@ -1089,8 +1102,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         message bodies
     - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
         validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
-    - \c "swagger_base_path": in case the \a swagger option is used, the base path in the schema can be overridden
-      with this option
+    - \c "swagger_base_path": in case a REST validator is used, the base path in the schema can be overridden
+      with this option (applies to any REST validator; not just Swagger validators)
     - \c "timeout": transfer timeout to use in milliseconds
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
         object to validate request and response messages; conflicts with \a swagger
@@ -1113,11 +1126,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("RestConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
-                "swagger_base_path": <ConnectionOptionInfo>{
-                    "type": "string",
-                    "desc": "in case the `swagger` option is used, the base path in the schema can be overridden "
-                        "with this option",
-                },
                 "content_encoding": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "this sets the send encoding (if the `send_encoding` option is not set) and the "
@@ -1199,6 +1207,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "the location of a Swagger schema to use for message validation; processed with "
                         "`FileLocationHandler::getTextFileFromLocation()` "
                         "(ex: `file:///path/to/swagger-schema.json`); conflicts with `validator`",
+                },
+                "swagger_base_path": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "in case a REST validator is used, the base path in the schema can be overridden "
+                        "with this option (applies to any REST validator; not just Swagger validators)",
                 },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",

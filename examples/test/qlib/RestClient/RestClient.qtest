@@ -228,7 +228,7 @@ public class Main inherits QUnit::Test {
     }
 
     connectionTests() {
-        string url = "http://localhost:8099/";
+        string url = "http://localhost:8099";
         RestConnection conn("test", "test", url);
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
