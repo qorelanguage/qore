@@ -451,7 +451,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 validator = new NullRestSchemaValidator();
             }
         }
-        if (!(validator instanceof NullRestSchemaValidator)) {
+        if (validator.managesUriPath()) {
             # issue #4059: strip the URI path from the URL if it matches the prefix of the REST validator's base path
             # otherwise we will run into compatibility problems with the fix
             clearConnectionPath();
@@ -464,8 +464,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         noCharset = opts.no_charset;
     }
 
-    #! Clears the connection path when a validator is present
-    /** Called from the constructor when a REST validator is present
+    #! Clears the connection path when a validator is present that manages the URI path
+    /** Called from the constructor when a REST validator is present that manages the URI path
     */
     clearConnectionPath() {
         setConnectionPath();
