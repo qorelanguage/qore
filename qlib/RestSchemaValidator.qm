@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.7
 
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
@@ -52,7 +52,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.1";
+    version = "2.1.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -72,6 +72,11 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_1_1 RestSchemaValidator v2.1.1
+    - better fixes to REST URI path handling with schema validation; allow REST validator objects to declare if they
+      manage the URI path in requests or not
+      (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection restschemavalidator_2_1 RestSchemaValidator v2.1
     - fixed a bug handling complex \c Content-Type headers in responses
@@ -348,6 +353,13 @@ public namespace RestSchemaValidator {
             return getDataProviderImpl(rest);
         }
 
+        #! returns @ref True if the provider manages the URI path
+        /** The base class method returns @ref True by default, override in child classes to return @ref False
+        */
+        bool managesUriPath() {
+            return True;
+        }
+
         #! returns a data provider object for this connection, if supported by any REST schema validator object
         /** @param rest the \c RestClient object to make the connection
 
@@ -607,6 +619,13 @@ public namespace RestSchemaValidator {
             /** @since RestSchemaValidator 2.0
             */
             const NullSchemaHashStr = "<null rest schema>";
+        }
+
+        #! returns @ref True if the provider manages the URI path
+        /** This method returns @ref False
+        */
+        bool managesUriPath() {
+            return False;
         }
 
         #! returns a unique hash for the schema that can be used to compare schemas
