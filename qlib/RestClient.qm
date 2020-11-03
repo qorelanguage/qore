@@ -451,7 +451,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 validator = new NullRestSchemaValidator();
             }
         }
-        if (validator) {
+        if (!(validator instanceof NullRestSchemaValidator)) {
             # issue #4059: strip the URI path from the URL if it matches the prefix of the REST validator's base path
             # otherwise we will run into compatibility problems with the fix
             clearConnectionPath();
