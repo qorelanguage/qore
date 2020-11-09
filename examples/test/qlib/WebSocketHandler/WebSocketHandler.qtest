@@ -47,6 +47,7 @@ class MyWsConnection inherits WebSocketConnection {
 class MyWsHandler inherits WebSocketHandler {
     public {
         Queue errs();
+        bool debug = False;
     }
 
     constructor(*hash<auto> opts) : WebSocketHandler(NOTHING, opts) {
@@ -58,6 +59,18 @@ class MyWsHandler inherits WebSocketHandler {
 
     logError(string fmt) {
         errs.push(vsprintf(fmt, argv));
+    }
+
+    logInfo(string fmt) {
+        if (debug) {
+            vprintf("INFO " + fmt + "\n", argv);
+        }
+    }
+
+    logDebug(string fmt) {
+        if (debug) {
+            vprintf("DEBUG " + fmt + "\n", argv);
+        }
     }
 }
 

@@ -37,7 +37,7 @@
 %new-style
 
 module WebSocketHandler {
-    version = "1.5.1";
+    version = "1.5.2";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,6 +62,10 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_5_2 Version 1.5.2
+    - added support for continuation frames
+      (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
 
     @subsection websockethandler_v1_5_1 Version 1.5.1
     - fixed a bug handling the case when a connection object is deleted in a callback method
@@ -157,6 +161,11 @@ public namespace WebSocketHandler {
             queue.push(ws_encode_message(msg));
         }
 
+        #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+        send(data msg, int op, bool fin) {
+            queue.push(ws_encode_message(msg, op, NOTHING, fin));
+        }
+
         #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
@@ -167,6 +176,14 @@ public namespace WebSocketHandler {
         /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
         */
         gotMessage(binary msg) {
+        }
+
+        #! This method is called when a message fragment is received
+        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+
+            @since %WebSocketHandler 1.5.2
+        */
+        gotMessageFragment(hash<WsMsgInfo> msg) {
         }
 
         #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
@@ -411,6 +428,8 @@ public namespace WebSocketHandler {
             # issue #2887 timestamp of last traffic
             int timestamp = clock_getmillis() / 1000;
 
+            # data buffer for fragmented frames
+            data buf;
             while (True) {
                 #logDebug("WebSocketHandler::startImpl() loop cid: %y", cx.id);
                 if (stop || lsh{lid} || wsc.stop_flag) {
@@ -446,15 +465,14 @@ public namespace WebSocketHandler {
                                 sock.send(ws_encode_message(heartbeat_msg, WSOP_Ping), DefaultSocketSendTimeout);
                                 timestamp = now;
                             }
-                        }
-                        else {
+                        } else {
                             timestamp = now;
                         }
 
                         continue;
                     }
 
-                    hash<auto> h = ws_read_message(sock);
+                    hash<WsMsgInfo> h = ws_read_message(sock);
 
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
@@ -466,8 +484,8 @@ public namespace WebSocketHandler {
                         break;
                     }
 
-                    logDebug("received msg (%s: %d bytes%s): %s", WSOPMap.(h.op), h.msg.size(),
-                        h.masked ? " masked" : "", WebSocketHandler::getDataString(h.msg));
+                    logDebug("received msg (%s: %d bytes%s%s): %s", WSOPMap{h.op} ?? "unknown", h.msg.size(),
+                        h.masked ? " masked" : "", h.fin ? " FIN" : "", WebSocketHandler::getDataString(h.msg));
 
                     if (!h.masked) {
                         logError("unmasked client frame received");
@@ -489,9 +507,48 @@ public namespace WebSocketHandler {
                         continue;
                     }
 
-                    if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                    # issue #4073: handle fragmented frames
+                    if (!h.fin) {
+                        wsc.gotMessageFragment(h);
+                        if (!exists buf) {
+                            if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                                buf = h.msg;
+                            } else {
+                                logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
+                                sendClose(sock, WSCC_ProtocolError);
+                                break;
+                            }
+                        } else {
+                            if (h.op != WSOP_Continuation) {
+                                logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
+                                    WSOPMap{h.op} ?? "unknown");
+                                sendClose(sock, WSCC_ProtocolError);
+                                break;
+                            } else {
+                                if (buf.typeCode() == NT_STRING) {
+                                    buf += h.msg.toString();
+                                } else {
+                                    buf += h.msg;
+                                }
+                            }
+                        }
+                        continue;
+                    } else if (exists buf && h.op == WSOP_Continuation) {
+                        if (buf.typeCode() == NT_STRING) {
+                            buf += h.msg.toString();
+                        } else {
+                            buf += h.msg;
+                        }
+                        wsc.gotMessage(remove buf);
+                        continue;
+                    } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                         wsc.gotMessage(h.msg);
                         continue;
+                    } else if (h.op == WSOP_Continuation) {
+                        logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
+                            WSOPMap{h.op} ?? "unknown");
+                        sendClose(sock, WSCC_ProtocolError);
+                        break;
                     }
 
                     # unrecognized opcode - close the connection

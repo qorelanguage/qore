@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.7
 
 # require type definitions everywhere
 %require-types
@@ -38,7 +38,7 @@
 %new-style
 
 module WebSocketClient {
-    version = "1.9";
+    version = "1.9.1";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,6 +100,10 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v1_9_1 v1.9.1
+    - added support for continuation frames
+      (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
 
     @subsection wsc_v1_9 v1.9
     - implemented support for a data provider scheme cache and rich option information for connections
@@ -198,6 +202,7 @@ public class WebSocketClient {
         int stop = 0;
         Counter c();
         code callback;
+        code fragment_callback;
         *code log;
         *code errlog;
         *code debuglog;
@@ -243,6 +248,9 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
         - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging
             debugging/technical messages about the web socket connection
+        - \c fragent_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
+          receiving WebSocket fragmented messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
+          argument
         - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
             current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
             required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
@@ -271,6 +279,14 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
                 "giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is "
                 "in effect");
 %endif
+
+        if (http_opts.hasKey("fragment_callback")) {
+            if (!http_opts.fragment_callback.callp()) {
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
+                    "'fragment_callback' key with type %y; must be a callable value", opts.yield.type());
+            }
+            fragment_callback = http_opts.fragment_callback;
+        }
 
         hash<UrlInfo> uh = parse_url(http_opts.url);
         if (uh.protocol) {
@@ -509,8 +525,10 @@ ws.setEventQueue();
         on_exit {
             c.dec();
         }
-        while (True) {
 
+        # data buffer for fragmented frames
+        data buf;
+        while (True) {
             if (stop) {
                 sendClose(stop);
                 logDebug("event loop stopping on user request");
@@ -526,7 +544,7 @@ ws.setEventQueue();
 %endif
                     continue;
                 }
-                hash<auto> h = ws_read_message(hc, timeout_ms);
+                hash<WsMsgInfo> h = ws_read_message(hc, timeout_ms);
                 if (h.op == WSOP_Close) {
                     if (!h.close) {
                         logDebug("server sent OpClose without code; closing immediately");
@@ -555,9 +573,50 @@ ws.setEventQueue();
                     continue;
                 }
 
-                if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                # issue #4073: handle fragmented frames
+                if (!h.fin) {
+                    if (fragment_callback) {
+                        fragment_callback(h);
+                    }
+                    if (!exists buf) {
+                        if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                            buf = h.msg;
+                        } else {
+                            logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
+                            sendClose(WSCC_ProtocolError);
+                            break;
+                        }
+                    } else {
+                        if (h.op != WSOP_Continuation) {
+                            logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
+                                WSOPMap{h.op} ?? "unknown");
+                            sendClose(WSCC_ProtocolError);
+                            break;
+                        } else {
+                            if (buf.typeCode() == NT_STRING) {
+                                buf += h.msg.toString();
+                            } else {
+                                buf += h.msg;
+                            }
+                        }
+                    }
+                    continue;
+                } else if (exists buf && h.op == WSOP_Continuation) {
+                    if (buf.typeCode() == NT_STRING) {
+                        buf += h.msg.toString();
+                    } else {
+                        buf += h.msg;
+                    }
+                    callback(remove buf);
+                    continue;
+                } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                     callback(h.msg);
                     continue;
+                } else if (h.op == WSOP_Continuation) {
+                    logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
+                        WSOPMap{h.op} ?? "unknown");
+                    sendClose(WSCC_ProtocolError);
+                    break;
                 }
 
                 # unrecognized opcode - close the connection
@@ -672,9 +731,9 @@ ws.setEventQueue();
 
     #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
     /**
-    @param str Sends the string data over the socket
+        @param str Sends the string data over the socket
 
-    @see Socket::send()
+        @see Socket::send()
     */
     send(string str) {
         logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
@@ -683,13 +742,20 @@ ws.setEventQueue();
 
     #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
     /**
-    @param bin Sends the binary data over the socket
+        @param bin Sends the binary data over the socket
 
-    @see Socket::send()
+        @see Socket::send()
     */
     send(binary bin) {
         logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
         hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
+    }
+
+    #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    send(data msg, int op, bool fin) {
+        logDebug("sending message: %y op: %d/%y fin: %y (%y %y)", fin, op, WSOPMap{op} ?? "unknown", fin, hc.isOpen(),
+            hc.isConnected());
+        hc.send2(ws_encode_message(msg, op, True, fin), timeout_ms);
     }
 }
 

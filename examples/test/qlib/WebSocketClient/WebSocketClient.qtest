@@ -23,14 +23,36 @@ class MyWsConnection inherits WebSocketConnection {
     }
 
     gotMessage(string msg) {
-        send("RESPONSE:"+msg);
+        send("RESPONSE:" + msg);
         #printf("GOT MSG: %y\n", msg);
     }
 }
 
 class MyWsHandler inherits WebSocketHandler {
+    public {
+        bool debug = False;
+    }
+
     WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
         return new MyWsConnection(self);
+    }
+
+    logError(string fmt) {
+        if (debug) {
+            vprintf("ERROR " + fmt + "\n", argv);
+        }
+    }
+
+    logInfo(string fmt) {
+        if (debug) {
+            vprintf("INFO " + fmt + "\n", argv);
+        }
+    }
+
+    logDebug(string fmt) {
+        if (debug) {
+            vprintf("DEBUG " + fmt + "\n", argv);
+        }
     }
 }
 
@@ -45,7 +67,7 @@ class WebSocketClientTest inherits QUnit::Test {
             "test1",
             <beeffeed>,
             "test3",
-            );
+        );
     }
 
     constructor() : Test("WebSocketClientTest", "1.0") {
@@ -63,7 +85,7 @@ class WebSocketClientTest inherits QUnit::Test {
     }
 
     webSocketClientTests() {
-        list l = ();
+        list<auto> l = ();
         Counter c(1);
         code cb = sub (*data msg) {
             #printf("RECEIVED: %y\n", msg);
@@ -74,7 +96,18 @@ class WebSocketClientTest inherits QUnit::Test {
             }
         };
         responseSize = Data.size();
-        WebSocketClient wsc(cb, ("url": "ws://localhost:" + port));
+        code log = code sub (string str) {
+            return sub (string fmt) {
+                vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
+            };
+        };
+        hash<auto> opts = {
+            "url": "ws://localhost:" + port,
+            #"log": log("INFO"),
+            #"errlog": log("ERROR"),
+            #"debuglog": log("DEBUG"),
+        };
+        WebSocketClient wsc(cb, opts);
         wsc.connect();
         c.waitForZero();
         assertEq(Data, l);
