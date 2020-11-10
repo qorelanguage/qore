@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketUtil.qm WebSocket common client/server code
 
-/*  WebSocketUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  WebSocketUtil.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.7
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebSocketUtil {
-    version = "1.4";
+    version = "1.4.1";
     desc = "user module providing common client and server support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -65,6 +65,10 @@ module WebSocketUtil {
 
     @section websocketutil_relnotes WebSocketUtil Module Release History
 
+    @subsection wsu_v141 v1.4.1
+    - added support for continuation frames
+      (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
+
     @subsection wsu_v14 v1.4
     - added the @ref WebSocketUtil::ws_get_response_key() function
 
@@ -83,6 +87,15 @@ module WebSocketUtil {
 
 #! the WebSocketUtil namespace contains all the definitions in the WebSocketUtil module
 public namespace WebSocketUtil {
+    #! WebSocket message info
+    public hashdecl WsMsgInfo {
+        int op;
+        bool masked;
+        int close;
+        bool fin;
+        *data msg;
+    }
+
     #! WebSocket GUID
     public const WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
@@ -111,14 +124,14 @@ public namespace WebSocketUtil {
     public const WSOP_Pong = 0xa;
 
     #! maps from opcodes to text descriptions
-    public const WSOPMap = (
+    public const WSOPMap = {
         WSOP_Continuation: "CONTINUATION",
         WSOP_Text: "TEXT",
         WSOP_Binary: "BINARY",
         WSOP_Close: "CLOSE",
         WSOP_Ping: "PING",
         WSOP_Pong: "PONG",
-        );
+    };
     #@}
 
     /** @defgroup closecodes WebSocket Close Codes
@@ -161,7 +174,7 @@ public namespace WebSocketUtil {
     public const WSCC_TlsHandshake = 1015;
 
     #! maps from close codes to text descriptions
-    public const WSCCMap = (
+    public const WSCCMap = {
         WSCC_NormalClosure: "Normal Closure",
         WSCC_GoingAway: "Going Away",
         WSCC_ProtocolError: "Protocol Error",
@@ -174,11 +187,11 @@ public namespace WebSocketUtil {
         WSCC_MandatoryExt: "Mandatory Ext.",
         WSCC_InternalServerError: "Internal Server Error",
         WSCC_TlsHandshake: "TLS Handshake",
-        );
+    };
     #@}
 
     #! encodes a message for sending over a websocket socket
-    public binary sub ws_encode_message(data msg, int op = -1, *bool masked) {
+    public binary sub ws_encode_message(data msg, int op = -1, *bool masked, bool fin = True) {
         if (op == -1)
             op = msg.typeCode() == NT_STRING ? WSOP_Text : WSOP_Binary;
 
@@ -189,7 +202,14 @@ public namespace WebSocketUtil {
             } while (mask == <00000000>);
         }
 
-        binary frame += chr(WS_FIN | op);
+        #printf("ws_encode_message() d: %y op: %d/%y masked: %y fin: %y\n", msg, op, WSOPMap{op}, masked, fin);
+
+        binary frame;
+        if (fin) {
+            frame += chr(WS_FIN | op);
+        } else {
+            frame += chr(op);
+        }
 
         # encode frames with a message size < 126 directly in the second byte
         switch (msg.size()) {
@@ -230,7 +250,7 @@ public namespace WebSocketUtil {
     #! read and decode a message from a socket
     /** @par Example:
         @code{.py}
-hash h = ws_read_message(sock);
+hash<WsMsgInfo> h = ws_read_message(sock);
         @endcode
 
         @param sock the @ref Qore::Socket "Socket" object to receive the message
@@ -242,11 +262,12 @@ hash h = ws_read_message(sock);
         - \c msg: the message received; if a CLOSE opcode is received (see @ref WSOP_Close) then any close message is decoded and included here in text form
         - \c close: the close code (one of @ref closecodes); only included if \a op is @ref WSOP_Close
     */
-    public hash sub ws_read_message(Socket sock, *timeout to) {
+    public hash<WsMsgInfo> sub ws_read_message(Socket sock, *timeout to) {
         int b0 = sock.recvu1(to);
 
         # get opcode
         int op = b0 & 0xf;
+        softbool fin = b0 & WS_FIN;
 
         # get next byte
         int b1 = sock.recvu1(to);
@@ -280,10 +301,11 @@ hash h = ws_read_message(sock);
 
         #printf("DEBUG: op: %d (%s) data_len: %d mask: %y data: %y\n", op, WSOPMap{op}, data_len, mask ? mask.toHex() : NOTHING, data);
 
-        hash h = (
+        hash<WsMsgInfo> h({
             "op": op,
             "masked": masked,
-            );
+            "fin": fin,
+        });
         if (h.op == WSOP_Close) {
             if (data) {
                 # get an unsigned 2-byte integer in network byte order (MSB) for the close code
@@ -292,20 +314,17 @@ hash h = ws_read_message(sock);
                 splice data, 0, 2;
                 *string txtmsg = data ? data.toString("utf8") : NOTHING;
                 data = txtmsg;
-            }
-            else {
+            } else {
                 # https://tools.ietf.org/html/rfc6455#section-7.1.5
                 # If this Close control frame contains no status code, _The WebSocket Connection Close Code_ is considered to be 1005
                 h.close = WSCC_NoStatusRcvd;
             }
-        }
-        else if (op == WSOP_Text)
+        } else if (op == WSOP_Text)
             data = data.toString(sock.getEncoding());
 
         #printf("DEBUG: h: %y data: %y\n", h, data);
-        return h + (
-            "msg": data,
-            );
+        h.msg = data;
+        return h;
     }
 
     #! returns a string response key from the binary key and the WebSocket GUID value
