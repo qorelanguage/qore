@@ -182,6 +182,19 @@ public const WsSchemes = {
     },
 };
 
+/** @defgroup WSClientRawCallbackReturnCodes WebSocketClient Raw Callback Return Codes
+*/
+#@{
+#! If the client should process the message normally
+public const WSC_Process = 0;
+
+#! If the client should continue listening (message already processed)
+public const WSC_Continue = 1;
+
+#! If the client should stop listening (message already processed)
+public const WSC_Break = 2;
+#@}
+
 #! default port for connections
 public const WsDefaultPort = 80;
 
@@ -194,7 +207,7 @@ public const WsDefaultPort = 80;
 
     The @ref WebSocketClient::WebSocketClient "WebSocketClient" class includes support for running in sandboxed Program objects with the following parse options set:
     - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()"
-    */
+*/
 public class WebSocketClient {
     private {
         Mutex m();
@@ -202,7 +215,7 @@ public class WebSocketClient {
         int stop = 0;
         Counter c();
         code callback;
-        code fragment_callback;
+        code raw_callback;
         *code log;
         *code errlog;
         *code debuglog;
@@ -232,12 +245,20 @@ public class WebSocketClient {
     /** @par Example:
         @code{.py}
 sub event(*data msg) {
-if (!msg)
-    printf("connection closed\n");
-else
-    printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), msg);
+    if (!msg) {
+        printf("connection closed\n");
+    } else {
+        printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), msg);
+    }
 }
-WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
+int sub raw_callback(hash<WsMsgInfo> event) {
+    printf("raw event: %y\n", event);
+    return WSC_Process;
+}
+WebSocketClient ws(\event(), {
+    "url": "ws://example.com:8080/path",
+    "raw_callback": \raw_callback(),
+});
         @endcode
 
         @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
@@ -248,16 +269,18 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
         - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging
             debugging/technical messages about the web socket connection
-        - \c fragent_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
-          receiving WebSocket fragmented messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
-          argument
+        - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
+          receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
+          argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
         - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
             current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
             required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
 
         @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
 
-        @since WebSocketClient 1.6 added the \c yield option
+        @since
+        - WebSocketClient 1.6 added the \c yield option
+        - WebSocketClient 1.9.1 added the \c raw_callback option
     */
     constructor(code cb, hash<auto> opts) {
         # += to keep "http_opts" "hash<auto>"
@@ -280,12 +303,12 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
                 "in effect");
 %endif
 
-        if (http_opts.hasKey("fragment_callback")) {
-            if (!http_opts.fragment_callback.callp()) {
+        if (http_opts.hasKey("raw_callback")) {
+            if (!http_opts.raw_callback.callp()) {
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'fragment_callback' key with type %y; must be a callable value", opts.yield.type());
+                    "'raw_callback' key with type %y; must be a callable value", opts.yield.type());
             }
-            fragment_callback = http_opts.fragment_callback;
+            raw_callback = http_opts.raw_callback;
         }
 
         hash<UrlInfo> uh = parse_url(http_opts.url);
@@ -337,12 +360,20 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
     /** @par Example:
         @code{.py}
 sub event(*data msg) {
-if (!msg)
-    printf("connection closed\n");
-else
-    printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), msg);
+    if (!msg) {
+        printf("connection closed\n");
+    } else {
+        printf("%s msg: %y\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), msg);
+    }
 }
-WebSocketClient ws(("url": "ws://example.com:8080/path", "callback": \event()));
+int sub raw_callback(hash<WsMsgInfo> event) {
+    printf("raw event: %y\n", event);
+    return WSC_Process;
+}
+WebSocketClient ws(\event(), {
+    "url": "ws://example.com:8080/path",
+    "raw_callback": \raw_callback(),
+});
 ws.connect();
         @endcode
 
@@ -359,8 +390,8 @@ ws.connect();
         @return a hash with information about the HTTP response from the webn socket server corresponding to the return value of @ref Qore::Socket::readHTTPHeader()
 
         @throw WEBSOCKET-ERROR the option hash is missing either the 'url' or 'callback' keys or type error in the option hash
-        */
-        hash<auto> connect(*hash opts, *reference<hash> info) {
+    */
+    hash<auto> connect(*hash opts, *reference<hash> info) {
         if (opts.hdr && opts.hdr.typeCode() != NT_HASH)
             throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type received: %y", opts.hdr.type());
 
@@ -545,6 +576,15 @@ ws.setEventQueue();
                     continue;
                 }
                 hash<WsMsgInfo> h = ws_read_message(hc, timeout_ms);
+                if (raw_callback) {
+                    int state = raw_callback(h);
+                    if (state == WSC_Continue) {
+                        continue;
+                    }
+                    if (state == WSC_Break) {
+                        break;
+                    }
+                }
                 if (h.op == WSOP_Close) {
                     if (!h.close) {
                         logDebug("server sent OpClose without code; closing immediately");
@@ -575,9 +615,6 @@ ws.setEventQueue();
 
                 # issue #4073: handle fragmented frames
                 if (!h.fin) {
-                    if (fragment_callback) {
-                        fragment_callback(h);
-                    }
                     if (!exists buf) {
                         if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                             buf = h.msg;

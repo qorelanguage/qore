@@ -33,6 +33,7 @@
 
 %requires HttpServerUtil >= 0.9.5
 %requires WebSocketUtil >= 1.4
+%requires Util
 
 %new-style
 
@@ -64,6 +65,10 @@ module WebSocketHandler {
     @section websockethandler_relnotes WebSocketHandler Release History
 
     @subsection websockethandler_v1_5_2 Version 1.5.2
+    - fixed a bug handling closing server-side web sockets on demand
+      (<a href="https://github.com/qorelanguage/qore/issues/4075">issue 4075</a>)
+    - fixed a bug where I/O could not be flushed before closing the socket
+      (<a href="https://github.com/qorelanguage/qore/issues/4074">issue 4074</a>)
     - added support for continuation frames
       (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
 
@@ -106,567 +111,657 @@ module WebSocketHandler {
 
 #! the WebSocketHandler namespace contains all the objects in the WebSocketHandler module
 public namespace WebSocketHandler {
-    #! this class represents a connection to a websocket client
-    /** @par Receiving WebSocket Messages from Clients
-        When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
+/** @defgroup WSHandlerRawCallbackReturnCodes WebSocketHandler Raw Callback Return Codes
+*/
+#@{
+#! If the server should process the message normally
+public const WSC_Process = 0;
 
-        @par Sending WebSocket Message to Clients
-        To send a message to a websocket client, call one of the following methods:
-        - @ref WebSocketHandler::WebSocketConnection::send() "WebSocketConnection::send()": to send an unencoded message to the client
-        - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client
-    */
-    public class WebSocketConnection {
-        public {
-            WebSocketHandler handler;
+#! If the server should continue listening (message already processed)
+public const WSC_Continue = 1;
 
-            # wait a maximum of 1/2 second for data
-            const DefaultQueuePollingInterval = 500ms;
+#! If the server should stop listening (message already processed)
+public const WSC_Break = 2;
+#@}
 
-            # stop connection flag
-            bool stop_flag = False;
-        }
+#! this class represents a connection to a websocket client
+/** @par Receiving WebSocket Messages from Clients
+    When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
 
-        private {
-            #! the @ref Qore::Thread::Queue "Queue" object stores messages to be sent to the server
-            Qore::Thread::Queue queue();
-        }
+    @par Sending WebSocket Message to Clients
+    To send a message to a websocket client, call one of the following methods:
+    - @ref WebSocketHandler::WebSocketConnection::send() "WebSocketConnection::send()": to send an unencoded message to the client
+    - @ref WebSocketHandler::WebSocketConnection::sendEncoded() "WebSocketConnection::sendEncoded()": to send an already-encoded message to the client
+*/
+public class WebSocketConnection {
+    public {
+        #! The parent handler object
+        WebSocketHandler handler;
 
-        #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
-        constructor(WebSocketHandler handler) {
-            self.handler = handler;
-        }
+        #! Stop connection flag
+        bool stop_flag = False;
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
-        *binary pollData() {
-            try {
-                return queue.get(DefaultQueuePollingInterval);
-            } catch (hash<ExceptionInfo> ex) {
-                if (ex.err != "QUEUE-TIMEOUT")
-                    rethrow;
-            }
-        }
+        # wait a maximum of 1/4 second for data
+        const DefaultQueuePollingInterval = 250ms;
+    }
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
-        *binary pollDataImmediate() {
-            return queue.empty() ? NOTHING : queue.get();
-        }
+    private {
+        #! the @ref Qore::Thread::Queue "Queue" object stores messages to be sent to the server
+        Qore::Thread::Queue queue();
 
-        #! pushes an already-encoded message on the connection's message queue
-        sendEncoded(binary msg) {
-            queue.push(msg);
-        }
+        #! The TID of the I/O thread
+        int tid = gettid();
+    }
 
-        #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
-        send(data msg) {
-            queue.push(ws_encode_message(msg));
-        }
+    private:internal {
+        #! The socket used by the server for this connection
+        Socket sock;
+    }
 
-        #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
-        send(data msg, int op, bool fin) {
-            queue.push(ws_encode_message(msg, op, NOTHING, fin));
-        }
+    #! the constructor is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when a new connection is made by a websocket client; it is called from @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() "WebSocketHandler::getConnectionImpl()", which can be overridden in subclasses to allow a subclass of this class to be used as the connection object
+    constructor(WebSocketHandler handler) {
+        self.handler = handler;
+    }
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
-        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
-        */
-        gotMessage(string msg) {
-        }
+    #! Sets the socket used by the server for the connection
+    setSocket(Socket sock) {
+        self.sock = sock;
+    }
 
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
-        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
-        */
-        gotMessage(binary msg) {
-        }
-
-        #! This method is called when a message fragment is received
-        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
-
-            @since %WebSocketHandler 1.5.2
-        */
-        gotMessageFragment(hash<WsMsgInfo> msg) {
-        }
-
-        #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
-        /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
-        */
-        connectionClosed() {
-        }
-
-        #! called when the connection has been registered in handler and accept sending messages (e.g. to send initial welcome message); the default implementation does nothing
-        /**
-            @since %WebSocketHandler 1.4
-        */
-        registered() {
-        }
-
-        #! force closing socket related to connection
-        stop() {
-            stop_flag = True;
-            queue.push(''); # to get a dummy data in polling thread immediately (unless stop called from the WebSocketHandler::startImpl() thread)
+    #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
+    *binary pollData() {
+        try {
+            return queue.get(DefaultQueuePollingInterval);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "QUEUE-TIMEOUT")
+                rethrow;
         }
     }
 
-    #! the main web socket handler class
-    /** connections are represented by object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
-        @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method
-        can be overridden in subclasses to return a custom object for each connection if required.
-
-        @par Receiving WebSocket Messages from Clients
-        When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
-
-        @par Sending WebSocket Message to Clients
-        To send a message to a websocket client, call one of the following methods:
-        - @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()": send a message to single connection given its connection ID
-        - @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()": send a message to all connected clients
-
-        Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
-    */
-    public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
-        public {
-            #! default socket send timeout
-            const DefaultSocketSendTimeout = 30s;
-
-            #! default heartbeat interval
-            const DefaultHeartbeatInterval = 20s;
-
-            #! default heartbeat message
-            const DefaultHeartbeatMsg = "heartbeat";
-
-            #! known constructor options
-            const Options = (
-                "heartbeat",
-                "heartbeat_msg",
-            );
-        }
-
-        private {
-            #! connection read-write lock
-            RWLock rwl();
-
-            #! connection hash
-            hash<string, WebSocketConnection> ch;
-
-            #! heartbeat interval in seconds
-            softint heartbeat = DefaultHeartbeatInterval;
-
-            #! heartbeat message
-            string heartbeat_msg = DefaultHeartbeatMsg;
-        }
-
-        #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
-        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
-            @param opts options for the object with the following optional keys:
-            - \c heartbeat: a positive integer value giving seconds for the heartbeat interval for the server connection (default: 20 seconds)
-            - \c heartbeat_msg: a string giving the payload to send in heartbeat messages (default: \c "heartbeat"); may be an empty string meaning no message
-
-            @throw WEBSOCKETHANDLER-OPTION-ERROR unknown or invalid option
-        */
-        constructor(*HttpServer::AbstractAuthenticator auth, *hash<auto> opts) : HttpServer::AbstractHttpSocketHandler(auth) {
-            foreach hash<auto> h in (opts.pairIterator()) {
-                switch (h.key) {
-                    case "heartbeat": {
-                        if (!h.value.intp()) {
-                            throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y value %y cannot be converted to an integer giving the number of seconds in the heartbeat interval", h.key, h.value);
-                        }
-                        setHeartbeat(h.value);
-                        break;
-                    }
-                    case "heartbeat_msg": {
-                        if (h.value.typeCode() != NT_STRING) {
-                            throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y has type %y; expecting \"string\"", h.key, h.value.type());
-                        }
-                        heartbeat_msg = h.value;
-                        break;
-                    }
-                    default:
-                        throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y is unknown; known options: %y", h.key, Options);
-                }
-            }
-        }
-
-        #! returns the connection heartbeat interval as a number of seconds
-        /** @return the connection heartbeat interval as a number of seconds
-
-            @since WebSocketHandler 1.4.2
-        */
-        int getHeartbeat() {
-            return heartbeat;
-        }
-
-        #! sets the heartbeat interval as a number of seconds
-        /** @param seconds the heartbeat interval as a number of seconds
-
-            @since WebSocketHandler 1.4.2
-        */
-        setHeartbeat(softint seconds) {
-            if (seconds <= 0) {
-                throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option \"heartbeat\" value %y is not a positive integer giving the number of seconds in the heartbeat interval", seconds);
-            }
-            heartbeat = seconds;
-        }
-
-        #! returns the heartbeat message as a string
-        /** @return the heartbeat message as a string; an empty string means no message
-
-            @since WebSocketHandler 1.4.2
-        */
-        string getHeartbeatMessage() {
-            return heartbeat_msg;
-        }
-
-        #! sets the heartbeat message
-        /** @param msg the string payload to send with heartbeat messages; an empty string means no message
-
-            @since WebSocketHandler 1.4.2
-        */
-        setHeartbeatMessage(string msg) {
-            heartbeat_msg = msg;
-        }
-
-        #! called by the HTTP server to handle incoming HTTP requests
-        /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False"
-
-            @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
-            - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo() )
-            - \c user: the current RBAC username (if any)
-            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
-            - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-            - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
-            - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-            @param b message body, if any
-
-            @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False":
-            - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
-            - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
-            - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-
-            Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
-         */
-        hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data b) {
-            #logDebug("websocket request: cx: %N", cx);
-            #logDebug("websocket request: hdr: %N", hdr);
-            if (!hdr."sec-websocket-key") {
-                return {
-                    "code": 400,
-                    "body": "cannot open WebSocket connection; no Sec-WebSocket-Key header found in request",
-                };
-            }
-
-            hash<auto> rhdr = {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-WebSocket-Accept": ws_get_response_key(hdr."sec-websocket-key"),
-            };
-
-            return {
-                "code": 101,
-                "hdr": rhdr,
-            };
-        }
-
-        #! get list of socket connection ids
-        /**
-        */
-        *list<string> getConnectionIds() {
-            rwl.readLock();
-            on_exit rwl.readUnlock();
-            return keys ch;
-        }
-
-        #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
-        /** This method should not return until the connection is closed or the stop() method is called
-
-            @param lid the unique HTTP listener ID
-            @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parseURL())
-            - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            - \c user: the current RBAC username (if any)
-            @param hdr a hash of headers in the request
-            @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
-         */
-        startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Qore::Socket sock) {
-            logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
-
-            softstring cid = cx.id;
-
-            # get new connection object
-            WebSocketConnection wsc = doNewConnection(cx, hdr, cid);
-            try {
-                # issue #3225: handle exceptions in WebSocketHandler and remove the connection
-                wsc.registered();
-            } catch (hash<ExceptionInfo> ex) {
-                logError("exception registering WebSocket connection: %s", get_exception_string(ex));
-                rwl.writeLock();
-                on_exit rwl.writeUnlock();
-                remove ch{cid};
+    #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" to poll for messages from the client to send from the server
+    *binary pollDataImmediate() {
+        try {
+            # negative timeout values mean timeout immediately
+            return queue.get(-1);
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err != "QUEUE-TIMEOUT") {
                 rethrow;
             }
-
-            on_exit {
-                #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
-                try {
-                    deregisterConnectionImpl(wsc);
-                    wsc.connectionClosed();
-                } catch (hash<ExceptionInfo> ex) {
-                    logError("exception deregistering WebSocket connection: %s", get_exception_string(ex));
-                }
-                rwl.writeLock();
-                on_exit rwl.writeUnlock();
-                remove ch{cid};
-            }
-
-            # issue #2887 timestamp of last traffic
-            int timestamp = clock_getmillis() / 1000;
-
-            # data buffer for fragmented frames
-            data buf;
-            while (True) {
-                #logDebug("WebSocketHandler::startImpl() loop cid: %y", cx.id);
-                if (stop || lsh{lid} || wsc.stop_flag) {
-                    logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y, "
-                        "wsc.stop_flag: %y", cx.id, stop, lid, lsh{lid}, wsc.stop_flag);
-                    sendClose(sock, WSCC_GoingAway);
-                    break;
-                }
-
-                try {
-                    bool update;
-                    # send any and all messages on the queue
-                    *binary d = wsc.pollData();
-                    if (d) {
-                        update = True;
-                    }
-                    while (d && !wsc.stop_flag) {
-                        #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", cx.id, d.size());
-                        sock.send(d, DefaultSocketSendTimeout);
-                        d = wsc.pollDataImmediate();
-                        if (d && !update) {
-                            update = True;
-                        }
-                    }
-
-                    if (wsc.stop_flag) {
-                        continue;
-                    }
-                    if (!sock.isDataAvailable(0)) {
-                        int now = clock_getmillis() / 1000;
-                        if (!update) {
-                            if ((now - timestamp) >= heartbeat) {
-                                sock.send(ws_encode_message(heartbeat_msg, WSOP_Ping), DefaultSocketSendTimeout);
-                                timestamp = now;
-                            }
-                        } else {
-                            timestamp = now;
-                        }
-
-                        continue;
-                    }
-
-                    hash<WsMsgInfo> h = ws_read_message(sock);
-
-                    if (h.op == WSOP_Close) {
-                        if (!h.close) {
-                            logDebug("client sent OpClose without code; closing immediately");
-                            break;
-                        }
-                        logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap.(h.close), h.msg);
-                        sendClose(sock, h.close, h.msg);
-                        break;
-                    }
-
-                    logDebug("received msg (%s: %d bytes%s%s): %s", WSOPMap{h.op} ?? "unknown", h.msg.size(),
-                        h.masked ? " masked" : "", h.fin ? " FIN" : "", WebSocketHandler::getDataString(h.msg));
-
-                    if (!h.masked) {
-                        logError("unmasked client frame received");
-                        sendClose(sock, WSCC_ProtocolError);
-                        break;
-                    }
-
-                    # issue #2887 update timestamp for incoming traffic
-                    timestamp = clock_getmillis() / 1000;
-
-                    if (h.op == WSOP_Ping) {
-                        sock.send(ws_encode_message(h.msg, WSOP_Pong), DefaultSocketSendTimeout);
-                        continue;
-                    }
-
-                    # issue #2566: https://tools.ietf.org/html/rfc6455#section-5.5.3: we must ignore
-                    # unsolicited PONG messages
-                    if (h.op == WSOP_Pong) {
-                        continue;
-                    }
-
-                    # issue #4073: handle fragmented frames
-                    if (!h.fin) {
-                        wsc.gotMessageFragment(h);
-                        if (!exists buf) {
-                            if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-                                buf = h.msg;
-                            } else {
-                                logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
-                                sendClose(sock, WSCC_ProtocolError);
-                                break;
-                            }
-                        } else {
-                            if (h.op != WSOP_Continuation) {
-                                logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
-                                    WSOPMap{h.op} ?? "unknown");
-                                sendClose(sock, WSCC_ProtocolError);
-                                break;
-                            } else {
-                                if (buf.typeCode() == NT_STRING) {
-                                    buf += h.msg.toString();
-                                } else {
-                                    buf += h.msg;
-                                }
-                            }
-                        }
-                        continue;
-                    } else if (exists buf && h.op == WSOP_Continuation) {
-                        if (buf.typeCode() == NT_STRING) {
-                            buf += h.msg.toString();
-                        } else {
-                            buf += h.msg;
-                        }
-                        wsc.gotMessage(remove buf);
-                        continue;
-                    } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-                        wsc.gotMessage(h.msg);
-                        continue;
-                    } else if (h.op == WSOP_Continuation) {
-                        logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
-                            WSOPMap{h.op} ?? "unknown");
-                        sendClose(sock, WSCC_ProtocolError);
-                        break;
-                    }
-
-                    # unrecognized opcode - close the connection
-                    sendClose(sock, WSCC_UnsupportedData);
-                    break;
-                } catch (hash<ExceptionInfo> ex) {
-                    # error in websocket handler server, log and close the connection
-                    string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
-                    logError(err);
-                    sendClose(sock, WSCC_InternalServerError, err);
-                    break;
-                }
-            }
-            #logDebug("WebSocketHandler::startImpl() exiting, cid: %y", cx.id);
-        }
-
-        #! called when a connection is established; the default implementation creates a WebSocketConnection object
-        WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
-            return new WebSocketConnection(self);
-        }
-
-        #! called when a connection is established; registers the new connection internally
-        WebSocketConnection doNewConnection(hash<auto> cx, hash<auto> hdr, string cid) {
-            WebSocketConnection rv = getConnectionImpl(cx, hdr, cid);
-
-            # add connection object to hash
-            {
-                rwl.writeLock();
-                on_exit rwl.writeUnlock();
-                ch{cid} = rv;
-            }
-
-            return rv;
-        }
-
-        #! called when the connection terminates; the default implementation does nothing
-        deregisterConnectionImpl(WebSocketConnection wsc) {
-        }
-
-        #! sends a message to all connected clients
-        /** Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
-        */
-        sendAll(data d) {
-            binary msg = ws_encode_message(d);
-
-            rwl.readLock();
-            on_exit rwl.readUnlock();
-
-            # push the data on all connection queues
-            map $1.sendEncoded(msg), ch.iterator();
-
-            #if (ch) logDebug("sending data to connections: %y", ch.keys());
-        }
-
-        #! sends a message to the given connection ID
-        /** Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
-
-            Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
-        */
-        sendOne(softstring id, data d) {
-            rwl.readLock();
-            on_exit rwl.readUnlock();
-
-            if (!exists ch{id})
-                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
-            #logDebug("sending data to connection: %y", id);
-            ch{id}.send(d);
-        }
-
-        #! stop given connection ID
-        stopOne(softstring id) {
-            rwl.readLock();
-            on_exit rwl.readUnlock();
-
-            if (!exists ch{id})
-                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
-            #logDebug("stopping connection: %y", id);
-            ch{id}.stop();
-        }
-
-        private sendClose(Qore::Socket sock, int code, *string txtmsg) {
-            if (!WSCCMap{code}) {
-                logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
-                code = WSCC_InternalServerError;
-            }
-
-            binary msg = code.encodeMsb(2);
-
-            if (txtmsg)
-                txtmsg = convert_encoding(txtmsg, "utf8");
-            else
-                txtmsg = WSCCMap{code};
-            msg += txtmsg;
-            sock.send(ws_encode_message(msg, WSOP_Close), DefaultSocketSendTimeout);
-        }
-
-        static string getDataString(*data d) {
-            if (!d)
-                return "n/a";
-            return sprintf("type: %s: %y", d.type(), d);
-        }
-
-        #! default implementation is empty
-        logInfo(string fmt) {
-            # to avoid warnings about extra arguments in the call
-            delete argv;
-        }
-
-        #! default implementation is empty
-        logError(string fmt) {
-            # to avoid warnings about extra arguments in the call
-            delete argv;
-        }
-
-        #! default implementation is empty
-        logDebug(string fmt) {
-            # to avoid warnings about extra arguments in the call
-            delete argv;
         }
     }
+
+    #! pushes an already-encoded message on the connection's message queue
+    sendEncoded(binary msg) {
+        queue.push(msg);
+    }
+
+    #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    send(data msg) {
+        queue.push(ws_encode_message(msg));
+    }
+
+    #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    send(data msg, int op, bool fin) {
+        queue.push(ws_encode_message(msg, op, NOTHING, fin));
+    }
+
+    #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
+    /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+    */
+    gotMessage(string msg) {
+    }
+
+    #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when messages from the client are received
+    /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+    */
+    gotMessage(binary msg) {
+    }
+
+    #! This method is called when a message is received
+    /** @param msg the raw message information
+
+        @return see @ref WSClientRawCallbackReturnCodes for values and meanings
+
+        @note this base class always returns @ref WSC_Process
+
+        @since %WebSocketHandler 1.5.2
+    */
+    int gotRawMessage(hash<WsMsgInfo> msg) {
+        return WSC_Process;
+    }
+
+    #! this method is called by the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" when the connection is closed
+    /** the implementation in this class is empty; implement this method in a subclass to provide custom behavior
+    */
+    connectionClosed() {
+    }
+
+    #! called when the connection has been registered in handler and accept sending messages (e.g. to send initial welcome message); the default implementation does nothing
+    /**
+        @since %WebSocketHandler 1.4
+    */
+    registered() {
+    }
+
+    #! Flush all output data
+    /**
+        @since %WebSocketHandler 1.5.2
+    */
+    flush() {
+        if (gettid() != tid) {
+            while (!stop_flag && !queue.empty()) {
+                usleep(DefaultQueuePollingInterval);
+            }
+        } else {
+            handler.flushIo(self, sock);
+        }
+    }
+
+    #! force closing socket related to connection
+    stop() {
+        stop_flag = True;
+        queue.push(binary()); # to get a dummy data in polling thread immediately (unless stop called from the WebSocketHandler::startImpl() thread)
+    }
+}
+
+#! the main web socket handler class
+/** connections are represented by object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection".
+    @ref WebSocketHandler::WebSocketHandler::getConnectionImpl() returns a suitable object for each connection, this method
+    can be overridden in subclasses to return a custom object for each connection if required.
+
+    @par Receiving WebSocket Messages from Clients
+    When the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class receives a message from the client, the @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" class calls the @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" on the object that represents that connection.
+
+    @par Sending WebSocket Message to Clients
+    To send a message to a websocket client, call one of the following methods:
+    - @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()": send a message to single connection given its connection ID
+    - @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()": send a message to all connected clients
+
+    Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
+*/
+public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
+    public {
+        #! default socket send timeout
+        const DefaultSocketSendTimeout = 30s;
+
+        #! default heartbeat interval
+        const DefaultHeartbeatInterval = 20s;
+
+        #! default heartbeat message
+        const DefaultHeartbeatMsg = "heartbeat";
+
+        #! known constructor options
+        const Options = (
+            "heartbeat",
+            "heartbeat_msg",
+        );
+    }
+
+    private {
+        #! connection read-write lock
+        RWLock rwl();
+
+        #! connection hash
+        hash<string, WebSocketConnection> ch;
+
+        #! heartbeat interval in seconds
+        softint heartbeat = DefaultHeartbeatInterval;
+
+        #! heartbeat message
+        string heartbeat_msg = DefaultHeartbeatMsg;
+    }
+
+    private:internal {
+        #! Thread-local key for I/O check
+        string tlk = get_random_string(50);
+    }
+
+    #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
+    /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"); if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
+        @param opts options for the object with the following optional keys:
+        - \c heartbeat: a positive integer value giving seconds for the heartbeat interval for the server connection (default: 20 seconds)
+        - \c heartbeat_msg: a string giving the payload to send in heartbeat messages (default: \c "heartbeat"); may be an empty string meaning no message
+
+        @throw WEBSOCKETHANDLER-OPTION-ERROR unknown or invalid option
+    */
+    constructor(*HttpServer::AbstractAuthenticator auth, *hash<auto> opts) : HttpServer::AbstractHttpSocketHandler(auth) {
+        foreach hash<auto> h in (opts.pairIterator()) {
+            switch (h.key) {
+                case "heartbeat": {
+                    if (!h.value.intp()) {
+                        throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y value %y cannot be converted to an integer giving the number of seconds in the heartbeat interval", h.key, h.value);
+                    }
+                    setHeartbeat(h.value);
+                    break;
+                }
+                case "heartbeat_msg": {
+                    if (h.value.typeCode() != NT_STRING) {
+                        throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y has type %y; expecting \"string\"", h.key, h.value.type());
+                    }
+                    heartbeat_msg = h.value;
+                    break;
+                }
+                default:
+                    throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y is unknown; known options: %y", h.key, Options);
+            }
+        }
+    }
+
+    #! returns the connection heartbeat interval as a number of seconds
+    /** @return the connection heartbeat interval as a number of seconds
+
+        @since WebSocketHandler 1.4.2
+    */
+    int getHeartbeat() {
+        return heartbeat;
+    }
+
+    #! sets the heartbeat interval as a number of seconds
+    /** @param seconds the heartbeat interval as a number of seconds
+
+        @since WebSocketHandler 1.4.2
+    */
+    setHeartbeat(softint seconds) {
+        if (seconds <= 0) {
+            throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option \"heartbeat\" value %y is not a positive integer giving the number of seconds in the heartbeat interval", seconds);
+        }
+        heartbeat = seconds;
+    }
+
+    #! returns the heartbeat message as a string
+    /** @return the heartbeat message as a string; an empty string means no message
+
+        @since WebSocketHandler 1.4.2
+    */
+    string getHeartbeatMessage() {
+        return heartbeat_msg;
+    }
+
+    #! sets the heartbeat message
+    /** @param msg the string payload to send with heartbeat messages; an empty string means no message
+
+        @since WebSocketHandler 1.4.2
+    */
+    setHeartbeatMessage(string msg) {
+        heartbeat_msg = msg;
+    }
+
+    #! called by the HTTP server to handle incoming HTTP requests
+    /** To accept a dedicated connection; make sure the return value hash's \c "code" key is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False"
+
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
+        - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo() )
+        - \c user: the current RBAC username (if any)
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
+        - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
+        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
+        @param b message body, if any
+
+        @return a hash representing the response to the client as follows; to accept a dedicated connection; make sure the \c "code" is 101 (ie \c "Switching Protocols") and the \c "close" key is not @ref False "False":
+        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes) (101 \c "Switching Protocols" to accept the dedicated connection, in which case the start() method will be called)
+        - \c "body": the message body to return in the response
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+
+        Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
+        */
+    hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data b) {
+        #logDebug("websocket request: cx: %N", cx);
+        #logDebug("websocket request: hdr: %N", hdr);
+        if (!hdr."sec-websocket-key") {
+            return {
+                "code": 400,
+                "body": "cannot open WebSocket connection; no Sec-WebSocket-Key header found in request",
+            };
+        }
+
+        hash<auto> rhdr = {
+            "Upgrade": "websocket",
+            "Connection": "Upgrade",
+            "Sec-WebSocket-Accept": ws_get_response_key(hdr."sec-websocket-key"),
+        };
+
+        return {
+            "code": 101,
+            "hdr": rhdr,
+        };
+    }
+
+    #! get list of socket connection ids
+    /**
+    */
+    *list<string> getConnectionIds() {
+        rwl.readLock();
+        on_exit rwl.readUnlock();
+        return keys ch;
+    }
+
+    #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
+    /** This method should not return until the connection is closed or the stop() method is called
+
+        @param lid the unique HTTP listener ID
+        @param cx call context hash; this hash will have the following keys:
+        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+        - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+        - \c url: a hash of broken-down URL information (as returned from parseURL())
+        - \c id: the unique HTTP connection ID
+        - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+        - \c user: the current RBAC username (if any)
+        @param hdr a hash of headers in the request
+        @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
+        */
+    startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Qore::Socket sock) {
+        logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
+
+        softstring cid = cx.id;
+
+        # get new connection object
+        WebSocketConnection wsc = doNewConnection(cx, hdr, cid);
+        wsc.setSocket(sock);
+        try {
+            # issue #3225: handle exceptions in WebSocketHandler and remove the connection
+            wsc.registered();
+        } catch (hash<ExceptionInfo> ex) {
+            logError("exception registering WebSocket connection: %s", get_exception_string(ex));
+            rwl.writeLock();
+            on_exit rwl.writeUnlock();
+            remove ch{cid};
+            rethrow;
+        }
+
+        on_exit {
+            #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
+            try {
+                deregisterConnectionImpl(wsc);
+                wsc.connectionClosed();
+            } catch (hash<ExceptionInfo> ex) {
+                logError("exception deregistering WebSocket connection: %s", get_exception_string(ex));
+            }
+            rwl.writeLock();
+            on_exit rwl.writeUnlock();
+            remove ch{cid};
+        }
+
+        # issue #2887 timestamp of last traffic
+        int timestamp = clock_getmillis() / 1000;
+
+        # data buffer for fragmented frames
+        data buf;
+        while (True) {
+            #logDebug("WebSocketHandler::startImpl() loop cid: %y", cx.id);
+            if (stop || lsh{lid} || wsc.stop_flag) {
+                logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y, "
+                    "wsc.stop_flag: %y", cx.id, stop, lid, lsh{lid}, wsc.stop_flag);
+                sendClose(sock, WSCC_GoingAway);
+                break;
+            }
+
+            try {
+                bool update;
+                # send any and all messages on the queue
+                *binary d = wsc.pollData();
+                if (d) {
+                    sock.send(d, DefaultSocketSendTimeout);
+                    update = True;
+                    flushIoIntern(wsc, sock, False);
+                }
+
+                if (wsc.stop_flag) {
+                    continue;
+                }
+                if (!sock.isDataAvailable(0)) {
+                    int now = clock_getmillis() / 1000;
+                    if (!update) {
+                        if ((now - timestamp) >= heartbeat) {
+                            sock.send(ws_encode_message(heartbeat_msg, WSOP_Ping), DefaultSocketSendTimeout);
+                            timestamp = now;
+                        }
+                    } else {
+                        timestamp = now;
+                    }
+
+                    continue;
+                }
+
+                hash<WsMsgInfo> h = ws_read_message(sock);
+
+                # update ping timestamp if we have done WS I/O in a callback
+                on_exit {
+                    if (get_thread_data(tlk)) {
+                        timestamp = clock_getmillis() / 1000;
+                        delete_thread_data(tlk);
+                    }
+                }
+
+                int state = wsc.gotRawMessage(h);
+                if (state == WSC_Continue) {
+                    continue;
+                }
+                if (state == WSC_Break) {
+                    break;
+                }
+
+                if (h.op == WSOP_Close) {
+                    if (!h.close) {
+                        logDebug("client sent OpClose without code; closing immediately");
+                        break;
+                    }
+                    logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap.(h.close), h.msg);
+                    sendClose(sock, h.close, h.msg);
+                    break;
+                }
+
+                logDebug("received msg (%s: %d bytes%s%s): %s", WSOPMap{h.op} ?? "unknown", h.msg.size(),
+                    h.masked ? " masked" : "", h.fin ? " FIN" : "", WebSocketHandler::getDataString(h.msg));
+
+                if (!h.masked) {
+                    logError("unmasked client frame received");
+                    sendClose(sock, WSCC_ProtocolError);
+                    break;
+                }
+
+                # issue #2887 update timestamp for incoming traffic
+                timestamp = clock_getmillis() / 1000;
+
+                if (h.op == WSOP_Ping) {
+                    sock.send(ws_encode_message(h.msg, WSOP_Pong), DefaultSocketSendTimeout);
+                    continue;
+                }
+
+                # issue #2566: https://tools.ietf.org/html/rfc6455#section-5.5.3: we must ignore
+                # unsolicited PONG messages
+                if (h.op == WSOP_Pong) {
+                    continue;
+                }
+
+                # issue #4073: handle fragmented frames
+                if (!h.fin) {
+                    if (!exists buf) {
+                        if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                            buf = h.msg;
+                        } else {
+                            logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
+                            sendClose(sock, WSCC_ProtocolError);
+                            break;
+                        }
+                    } else {
+                        if (h.op != WSOP_Continuation) {
+                            logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
+                                WSOPMap{h.op} ?? "unknown");
+                            sendClose(sock, WSCC_ProtocolError);
+                            break;
+                        } else {
+                            if (buf.typeCode() == NT_STRING) {
+                                buf += h.msg.toString();
+                            } else {
+                                buf += h.msg;
+                            }
+                        }
+                    }
+                    continue;
+                } else if (exists buf && h.op == WSOP_Continuation) {
+                    if (buf.typeCode() == NT_STRING) {
+                        buf += h.msg.toString();
+                    } else {
+                        buf += h.msg;
+                    }
+                    wsc.gotMessage(remove buf);
+                    continue;
+                } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                    wsc.gotMessage(h.msg);
+                    continue;
+                } else if (h.op == WSOP_Continuation) {
+                    logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
+                        WSOPMap{h.op} ?? "unknown");
+                    sendClose(sock, WSCC_ProtocolError);
+                    break;
+                }
+
+                # unrecognized opcode - close the connection
+                sendClose(sock, WSCC_UnsupportedData);
+                break;
+            } catch (hash<ExceptionInfo> ex) {
+                # error in websocket handler server, log and close the connection
+                string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
+                logError(err);
+                sendClose(sock, WSCC_InternalServerError, err);
+                break;
+            }
+        }
+        #logDebug("WebSocketHandler::startImpl() exiting, cid: %y", cx.id);
+    }
+
+    #! Flushes I/O in the connection queue
+    /** @return True if any data was flushed, False if not
+    */
+    bool flushIo(WebSocketConnection wsc, Socket sock) {
+        return flushIoIntern(wsc, sock, True);
+    }
+
+    private:internal bool flushIoIntern(WebSocketConnection wsc, Socket sock, bool update_tld) {
+        bool rv;
+        while (!wsc.stop_flag && exists (*binary d = wsc.pollDataImmediate())) {
+            #printf("TID %d: WebSocketHandler::flushIo() sending msg %d bytes\n", gettid(), d.size());
+            sock.send(d, DefaultSocketSendTimeout);
+            if (d && !rv) {
+                rv = True;
+                if (update_tld) {
+                    save_thread_data(tlk, True);
+                }
+            }
+        }
+        return rv ?? False;
+    }
+
+    #! called when a connection is established; the default implementation creates a WebSocketConnection object
+    WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
+        return new WebSocketConnection(self);
+    }
+
+    #! called when a connection is established; registers the new connection internally
+    WebSocketConnection doNewConnection(hash<auto> cx, hash<auto> hdr, string cid) {
+        WebSocketConnection rv = getConnectionImpl(cx, hdr, cid);
+
+        # add connection object to hash
+        {
+            rwl.writeLock();
+            on_exit rwl.writeUnlock();
+            ch{cid} = rv;
+        }
+
+        return rv;
+    }
+
+    #! called when the connection terminates; the default implementation does nothing
+    deregisterConnectionImpl(WebSocketConnection wsc) {
+    }
+
+    #! sends a message to all connected clients
+    /** Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
+    */
+    sendAll(data d) {
+        binary msg = ws_encode_message(d);
+
+        rwl.readLock();
+        on_exit rwl.readUnlock();
+
+        # push the data on all connection queues
+        map $1.sendEncoded(msg), ch.iterator();
+
+        #if (ch) logDebug("sending data to connections: %y", ch.keys());
+    }
+
+    #! sends a message to the given connection ID
+    /** Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
+
+        Messages are automatically encoded with @ref WebSocketUtil::ws_encode_message() before sending.
+    */
+    sendOne(softstring id, data d) {
+        rwl.readLock();
+        on_exit rwl.readUnlock();
+
+        if (!exists ch{id})
+            throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
+        #logDebug("sending data to connection: %y", id);
+        ch{id}.send(d);
+    }
+
+    #! stop given connection ID
+    stopOne(softstring id) {
+        rwl.readLock();
+        on_exit rwl.readUnlock();
+
+        if (!exists ch{id})
+            throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
+        #logDebug("stopping connection: %y", id);
+        ch{id}.stop();
+    }
+
+    private sendClose(Qore::Socket sock, int code, *string txtmsg) {
+        if (!WSCCMap{code}) {
+            logError("WebSocketHandler::sendClose(): invalid close code %d received; expecting one of: %y", code, (map $1.toInt(), WSCCMap.keyIterator()));
+            code = WSCC_InternalServerError;
+        }
+
+        binary msg = code.encodeMsb(2);
+
+        if (txtmsg)
+            txtmsg = convert_encoding(txtmsg, "utf8");
+        else
+            txtmsg = WSCCMap{code};
+        msg += txtmsg;
+        sock.send(ws_encode_message(msg, WSOP_Close), DefaultSocketSendTimeout);
+    }
+
+    static string getDataString(*data d) {
+        if (!d)
+            return "n/a";
+        return sprintf("type: %s: %y", d.type(), d);
+    }
+
+    #! default implementation is empty
+    logInfo(string fmt) {
+        # to avoid warnings about extra arguments in the call
+        delete argv;
+    }
+
+    #! default implementation is empty
+    logError(string fmt) {
+        # to avoid warnings about extra arguments in the call
+        delete argv;
+    }
+
+    #! default implementation is empty
+    logDebug(string fmt) {
+        # to avoid warnings about extra arguments in the call
+        delete argv;
+    }
+}
 }

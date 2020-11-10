@@ -98,14 +98,15 @@ class WebSocketClientTest inherits QUnit::Test {
         responseSize = Data.size();
         code log = code sub (string str) {
             return sub (string fmt) {
-                vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
+                #vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
+                remove argv;
             };
         };
         hash<auto> opts = {
             "url": "ws://localhost:" + port,
-            #"log": log("INFO"),
-            #"errlog": log("ERROR"),
-            #"debuglog": log("DEBUG"),
+            "log": log("INFO"),
+            "errlog": log("ERROR"),
+            "debuglog": log("DEBUG"),
         };
         WebSocketClient wsc(cb, opts);
         wsc.connect();

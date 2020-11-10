@@ -34,13 +34,32 @@ class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
     }
 
+    int gotRawMessage(hash<WsMsgInfo> msg) {
+        #printf("raw msg: %y\n", msg);
+        return WSC_Process;
+    }
+
     gotMessage(string msg) {
-        if (msg == "STOP") {
-            stop();
-        } else {
-            send("RESPONSE:"+msg);
+        #printf("msg: %y\n", msg);
+        switch (msg) {
+            case "STOP":
+                stop();
+                break;
+            case "FLUSH":
+                send("flushing");
+                flush();
+                break;
+            case "FRAGMENT":
+                send("PART1-", WSOP_Text, False);
+                send("PART2", WSOP_Continuation, True);
+                break;
+            case "PING":
+                send("test ping", WSOP_Ping, True);
+                break;
+            default:
+                send("RESPONSE:" + msg);
+                break;
         }
-        #printf("GOT MSG: %y\n", msg);
     }
 }
 
@@ -58,18 +77,21 @@ class MyWsHandler inherits WebSocketHandler {
     }
 
     logError(string fmt) {
+        if (debug) {
+            vprintf("SERVER ERROR " + fmt + "\n", argv);
+        }
         errs.push(vsprintf(fmt, argv));
     }
 
     logInfo(string fmt) {
         if (debug) {
-            vprintf("INFO " + fmt + "\n", argv);
+            vprintf("SERVER INFO " + fmt + "\n", argv);
         }
     }
 
     logDebug(string fmt) {
         if (debug) {
-            vprintf("DEBUG " + fmt + "\n", argv);
+            vprintf("SERVER DEBUG " + fmt + "\n", argv);
         }
     }
 }
@@ -131,7 +153,6 @@ class WebSocketHandlerTest inherits QUnit::Test {
             wsc.connect();
             c.waitForZero();
             assertTrue(wsc.isOpen());
-            assertTrue(True);
         }
 
         # check bad handler
@@ -151,6 +172,48 @@ class WebSocketHandlerTest inherits QUnit::Test {
             wsc.send("STOP");
             c.waitForZero();
         }
+
+        # check fragmented messaging and flushing I/O
+        {
+            Counter c(1);
+            Queue msgs();
+            code callback = sub (*data msg) {
+                msgs.push(msg);
+            };
+            list<hash<WsMsgInfo>> raw_msgs;
+            code raw_callback = int sub (hash<WsMsgInfo> msg) {
+                raw_msgs += msg;
+                return WSC_Process;
+            };
+            code log = code sub (string str) {
+                return sub (string fmt) {
+                    #vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
+                    remove argv;
+                };
+            };
+            MyWsClient wsc(callback, {
+                "url": "ws://localhost:" + port,
+                "raw_callback": raw_callback,
+                "log": log("INFO"),
+                "errlog": log("ERROR"),
+                "debuglog": log("DEBUG"),
+            }, c);
+            wsc.connect();
+            assertTrue(wsc.isOpen());
+            wsc.send("FRAG", WSOP_Text, False);
+            wsc.send("MENT", WSOP_Continuation, True);
+            assertEq("PART1-PART2", msgs.get(5s));
+            wsc.send("FLUSH");
+            assertEq("flushing", msgs.get(5s));
+            wsc.send("PING");
+            # wait for ping
+            c.waitForZero();
+            assertEq(WSOP_Text, raw_msgs[0].op);
+            assertEq(False, raw_msgs[0].fin);
+            assertEq(WSOP_Continuation, raw_msgs[1].op);
+            assertEq(True, raw_msgs[1].fin);
+        }
+
         wsHandler.errs.get(10s);
         assertEq(0, wsHandler.errs.size());
     }
