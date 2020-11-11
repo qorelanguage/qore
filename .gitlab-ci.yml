@@ -7,7 +7,7 @@ test:
   tags:
     - docker-exec
   services:
-    - name: postgres:11
+    - name: postgres:13
     - name: dnhsoft/mysql-utf8:5.7-mb4
       alias: mysql
   variables:

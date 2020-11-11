@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,43 @@
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QoreQueueIntern.h"
 
-//! %Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
-/** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to Queue::constructor() when the object is created.
-    In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below the maximum size.
-    All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is thrown.
+static int pre_check_timeout(int64 timeout_ms, ExceptionSink* xsink) {
+    if (timeout_ms < INT_MIN) {
+        xsink->raiseException("QUEUE-TIMEOUT-ERROR", "invalid value " QLLD " for queue timeout; minimum value is %d",
+            timeout_ms, INT_MIN);
+        return -1;
+    }
+    if (timeout_ms > INT_MAX) {
+        xsink->raiseException("QUEUE-TIMEOUT-ERROR", "invalid value " QLLD " for queue timeout; maximum value is %d",
+            timeout_ms, INT_MAX);
+        return -1;
+    }
+    return 0;
+}
 
-    Queues can be atomically flagged with an error status by calling Queue::setError().  This method will cause any write operations on the Queue to fail with the error information provided with this call.  Calling Queue::clearError() causes the error status to be removed and allows the Queue to be usable again.
+static int queue_check_timeout(bool to, int timeout_ms, ExceptionSink* xsink) {
+    if (to) {
+        if (timeout_ms > 0) {
+            xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+        } else {
+            xsink->raiseException("QUEUE-TIMEOUT", "timed out immediately due to negative timeout (%d ms)", timeout_ms);
+        }
+        return -1;
+    }
+    return 0;
+}
+
+//! %Queue objects provide a blocking, thread-safe message-passing object to %Qore programs
+/** %Queue objects can also be used as a stack or as a blocking message channel, if a maximum size is given to
+    Queue::constructor() when the object is created.\n
+    In this case when the %Queue is full, adding new elements to the %Queue will block until the %Queue shrinks below
+    the maximum size.\n
+    All read and write methods to %Queue also take timeout values; if a timeout occurs a \c QUEUE-TIMEOUT exception is
+    thrown.
+
+    Queues can be atomically flagged with an error status by calling Queue::setError().  This method will cause any
+    write operations on the Queue to fail with the error information provided with this call.  Calling
+    Queue::clearError() causes the error status to be removed and allows the Queue to be usable again.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
@@ -47,36 +78,39 @@ qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
 /** @par Example:
     @code{.py} Queue queue(); @endcode
 
-    @param max the maximum size of the Queue; -1 means no limit; if 0 or a negative number other than -1 is passed then a \c QUEUE-SIZE-ERROR exception will be thrown
+    @param max the maximum size of the Queue; -1 means no limit; if 0 or a negative number other than -1 is passed
+    then a \c QUEUE-SIZE-ERROR exception will be thrown
 
-    @throw QUEUE-SIZE-ERROR the size cannot be zero or any negative number except for -1 or a number that cannot fit in 32 bits (signed)
+    @throw QUEUE-SIZE-ERROR the size cannot be zero or any negative number except for -1 or a number that cannot fit
+    in 32 bits (signed)
 
     @see Queue::max()
 
     @since %Qore 0.8.4 this method takes a maximum size parameter and can throw exceptions if the parameter is invalid
  */
 Queue::constructor(int max = -1) {
-   if (!max || (max < 0 && max != -1) || max > 0x7fffffff)
-      xsink->raiseException("QUEUE-SIZE-ERROR", QLLD" is an invalid size for a Queue", max);
-   else
-      self->setPrivate(CID_QUEUE, new Queue(max));
+    if (!max || (max < 0 && max != -1) || max > 0x7fffffff)
+        xsink->raiseException("QUEUE-SIZE-ERROR", QLLD" is an invalid size for a Queue", max);
+    else
+        self->setPrivate(CID_QUEUE, new Queue(max));
 }
 
 //! Destroys the Queue object
-/** @note It is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted
+/** @note It is a programming error to delete this object while other threads are blocked on it; in this case an
+    exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted
 
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
  */
 Queue::destructor() {
-   qore_queue_private::destructor(*q, xsink);
-   q->deref(xsink);
+    qore_queue_private::destructor(*q, xsink);
+    q->deref(xsink);
 }
 
 //! Creates a new Queue object with the same elements and maximum size as the original
 /**
  */
 Queue::copy() {
-   self->setPrivate(CID_QUEUE, new Queue(*q));
+    self->setPrivate(CID_QUEUE, new Queue(*q));
 }
 
 //! Pushes a value on the end of the queue
@@ -84,19 +118,28 @@ Queue::copy() {
     @code{.py} queue.push(value); @endcode
 
     @param arg value to be put on the queue
-    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception if the call would otherwise block.  If a positive timeout argument is passed, and the queue has already reached its maximum size and does not go below the maximum size within the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to Queue::constructor().
+    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are
+    interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of
+    milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception
+    if the call would otherwise block.  If a positive timeout argument is passed, and the queue has already reached
+    its maximum size and does not go below the maximum size within the timeout period, a \c "QUEUE-TIMEOUT" exception
+    is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not
+    timeout until a slot becomes available on the queue.  Queue slots are only limited if a maximum size is passed to
+    Queue::constructor().
 
     @throw QUEUE-TIMEOUT The timeout value was exceeded
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
 
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::push(auto arg, timeout timeout_ms = 0) {
+    if (pre_check_timeout(timeout_ms, xsink)) {
+        return QoreValue();
+    }
     bool to;
     q->push(xsink, self, arg.refSelf(), timeout_ms, &to);
-    if (to) {
-        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-    }
+    queue_check_timeout(to, timeout_ms, xsink);
 }
 
 //! Inserts a value at the beginning of the queue
@@ -108,22 +151,29 @@ nothing Queue::push(auto arg, timeout timeout_ms = 0) {
 
     @throw QUEUE-TIMEOUT The timeout value was exceeded
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
 
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
+    if (pre_check_timeout(timeout_ms, xsink)) {
+        return QoreValue();
+    }
     bool to;
     q->insert(xsink, self, arg.refSelf(), timeout_ms, &to);
-    if (to) {
-        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-    }
+    queue_check_timeout(to, timeout_ms, xsink);
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout value equal to zero, then the call does not timeout until data is available, while negative timeout values cause the call to timeout immediately if the call would otherwise block
 /** @par Example:
     @code{.py} auto data = queue.get();@endcode
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception if the call would otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as
+    milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A
+    negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception if the call would
+    otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout period, a
+    \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the
+    argument, then the call does not timeout until data is available on the queue.
 
     @return the first entry on the queue
 
@@ -131,15 +181,16 @@ nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
 
     @throw QUEUE-TIMEOUT The timeout value was exceeded
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
  */
 auto Queue::get(timeout timeout_ms = 0) {
+    if (pre_check_timeout(timeout_ms, xsink)) {
+        return QoreValue();
+    }
     QoreValue rv;
-
     bool to;
     rv = q->shift(xsink, self, timeout_ms, &to);
-    if (to) {
-        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-    }
+    queue_check_timeout(to, timeout_ms, xsink);
 
     return rv;
 }
@@ -148,7 +199,12 @@ auto Queue::get(timeout timeout_ms = 0) {
 /** @par Example:
     @code{.py} auto data = queue.pop(); @endcode
 
-    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception if the call would otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not timeout until data is available on the queue.
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as
+    milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A
+    negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception if the call would
+    otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout period, a
+    \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the
+    argument, then the call does not timeout until data is available on the queue.
 
     @return the last entry on the queue
 
@@ -156,15 +212,16 @@ auto Queue::get(timeout timeout_ms = 0) {
 
     @throw QUEUE-TIMEOUT The timeout value was exceeded
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
  */
 auto Queue::pop(timeout timeout_ms = 0) {
+    if (pre_check_timeout(timeout_ms, xsink)) {
+        return QoreValue();
+    }
     QoreValue rv;
-
     bool to;
     rv = q->pop(xsink, self, timeout_ms, &to);
-    if (to) {
-        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-    }
+    queue_check_timeout(to, timeout_ms, xsink);
 
     return rv;
 }

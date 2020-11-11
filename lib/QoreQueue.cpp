@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -82,9 +82,15 @@ int qore_queue_private::waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
             return QW_ERROR;
         }
 
-        ++read_waiting;
-        int rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
-        --read_waiting;
+        int rc;
+        // issue #4077: do not call QoreCondition::wait() with a negative timeout value
+        if (timeout_ms >= 0) {
+            ++read_waiting;
+            rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
+            --read_waiting;
+        } else {
+            rc = ETIMEDOUT;
+        }
 
         if (rc) {
 #ifdef DEBUG
@@ -119,9 +125,15 @@ int qore_queue_private::waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
             return QW_ERROR;
         }
 
-        ++write_waiting;
-        int rc = timeout_ms ? write_cond.wait(l, timeout_ms) : write_cond.wait(l);
-        --write_waiting;
+        int rc;
+        // issue #4077: do not call QoreCondition::wait() with a negative timeout value
+        if (timeout_ms >= 0) {
+            ++write_waiting;
+            rc = timeout_ms ? write_cond.wait(l, timeout_ms) : write_cond.wait(l);
+            --write_waiting;
+        } else {
+            rc = ETIMEDOUT;
+        }
 
         if (rc) {
 #ifdef DEBUG
@@ -325,7 +337,7 @@ QoreValue qore_queue_private::shift(ExceptionSink* xsink, QoreObject* self, int 
             head->prev = nullptr;
         }
 
-        len--;
+        --len;
         if (write_waiting) {
             write_cond.signal();
         }
