@@ -85,7 +85,6 @@ if (!url) {
     exit(1);
 }
 
-WebSocketClient ws();
 code callback = sub (*data d) {
     if (d.typeCode() == NT_BINARY) {
         printf("binary msg received: %y\n", d);
@@ -93,7 +92,8 @@ code callback = sub (*data d) {
         printf("%s\n", d);
     }
 };
-ws.connect(callback, {"url": url});
+WebSocketClient ws(callback, {"url": url});
+ws.connect();
 # wait forever (or until ctrl-c)
 Counter c(1);
 c.waitForZero();
@@ -831,7 +831,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : AbstractConnectionWithInfo(name, description, url, attributes, options) {
     }
 
@@ -880,7 +880,11 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
 
         @return a @ref WebSocketClient object
     */
-    private WebSocketClient getImpl(bool connect = True, *hash rtopts) {
+    private WebSocketClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        # to avoid type issues with rtopts
+        if (exists rtopts) {
+            rtopts = {} + rtopts;
+        }
         if (!rtopts.callback)
             rtopts.callback = sub (*data msg) {};
         # rename "dbglog" to "debuglog" for WebSocketClient object
