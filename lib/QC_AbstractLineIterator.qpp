@@ -35,7 +35,7 @@
 
     @since %Qore 0.8.13
  */
-qclass AbstractLineIterator [arg=AbstractLineIterator* lit; ns=Qore; vparent=AbstractIterator];
+qclass AbstractLineIterator [arg=void* i; ns=Qore; vparent=AbstractIterator];
 
 //! Moves the current position to the next line; returns @ref False if there are no more lines to read.
 /** This method will return @ref True again after it returns @ref False once if data is not empty, otherwise it will always return @ref False.
@@ -68,6 +68,68 @@ while (i.next()) {
     @see AbstractLineIterator::getLine()
  */
 abstract string AbstractLineIterator::getValue();
+
+//! Returns the current line and splits the string into a list of components based on a separator string and a quote character
+/** Retrieves additional lines if the last is quoted and is not terimated; this way fields can contain multiple lines
+
+    The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
+    field.  If instances of the quote character are found in the field preceded by a backquote character (\c "\"),
+    then these quote characters are included as part of the field's text and not treated as quote characters.\n
+    Also the separator character can appear as a part of a field with this variant.\n
+    This variant is useful for parsing CSV files, for example.
+
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with
+    only one element containing the entire string argument is returned'; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
+    @param quote the quote character
+    @param trim_unquoted remove leading and trailing whitespace from unquoted fields
+
+    @return a list of each component of a string separated by a separator string, with the separator and any enclosing
+    quote characters removed
+
+    @par Example:
+    @code{.py}
+list<string> list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'");
+# returns ("some", ", and commas, here is another one! ,", "here")
+    @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different
+    @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
+
+    @note If a quoted field has line breaks, the resulting field value will use a newline (\n) for the line break,
+    regardless of the line break used in the line iterator
+
+    @since
+    - %Qore 0.9.8 added this method
+ */
+list<string> AbstractLineIterator::getSplitLine(string sep, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+    AbstractIteratorHelper h(xsink, "AbstractLineIterator::getSplitLine() method", self);
+    if (*xsink) {
+        return QoreValue();
+    }
+    QoreValue v = h.getValue(xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    if (v.getType() != NT_STRING) {
+        xsink->raiseException("SPLIT-ERROR", "expecting iterator value type 'string'; got type '%s' instead",
+            v.getTypeName());
+        return QoreValue();
+    }
+    const QoreStringNode* str = v.get<const QoreStringNode>();
+    ReferenceHolder<QoreListNode> rv(split_with_quote(xsink, sep, str, quote, trim_unquoted, &h), xsink);
+    if (*xsink) {
+        ExceptionSink xsink2;
+        ValueHolder line_num(self->evalMethod("index", nullptr, &xsink2), xsink);
+        if (line_num->getType() == NT_INT) {
+            xsink->appendLastDescription(": error iterating input line " QLLD, (int)line_num->getAsBigInt());
+        }
+        return QoreValue();
+    }
+    return rv.release();
+}
 
 //! Returns the current line in the data or throws an \c INVALID-ITERATOR exception if the iterator is invalid.
 /** @return the current line in the data

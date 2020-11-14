@@ -8,6 +8,9 @@
     Bugfix release; see below for more information
 
     @subsection qore_098_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+      - fixed a bug where CSV iteration would fail if a quoted field had a line break in it
+        (<a href="https://github.com/qorelanguage/qore/issues/4079">issue 4079</a>)
     - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module updates:
       - fixed handling WebSocket message fragmentation
         (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
@@ -21,6 +24,9 @@
     - <a href="../../modules/WebSocketUtil/html/index.html">WebSocketUtil</a> module updates:
       - fixed handling WebSocket message fragmentation
         (<a href="https://github.com/qorelanguage/qore/issues/4073">issue 4073</a>)
+    - added @ref Qore::AbstractLineIterator::getSplitLine() "AbstractLineIterator::getSplitLine()" to allow quoted
+      fields with line breaks to be iterated in <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/4079">issue 4079</a>)
     - fixed a crash in @ref Qore::Thread::Queue "Queue" methods with negative timeout values in debug builds
       (<a href="https://github.com/qorelanguage/qore/issues/4077">issue 4077</a>)
 

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,38 +36,15 @@
 #include "qore/intern/QoreClassIntern.h"
 
 class AbstractIteratorHelper {
-protected:
-    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-       const qore_class_private* class_ctx = runtime_get_class();
-       const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, (QoreListNode*)0, false, class_ctx));
-        // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
-        assert(xsink);
-        if (*xsink)
-            return 0;
-        // we must have a variant here because we have an instance of AbstractIterator
-        assert(variant);
-        if (variant->isPrivate()) {
-            // check for access to the class holding the private method
-            if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()), class_ctx)) {
-                QoreString opstr(op);
-                opstr.toupr();
-                opstr.concat("-ITERATOR-ERROR");
-                xsink->raiseException(opstr.getBuffer(), "cannot access private %s::next() iterator method with the %s", variant->method()->getClass()->getName(), op);
-                return 0;
-            }
-        }
-        return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
-    }
-
 public:
-    QoreObject* obj;
-    const QoreMethod* nextMethod;
-    const QoreExternalMethodVariant* nextVariant;
-    const QoreMethod* getValueMethod;
-    const QoreExternalMethodVariant* getValueVariant;
-    bool valid;
+    QoreObject* obj = nullptr;
+    const QoreMethod* nextMethod = nullptr;
+    const QoreExternalMethodVariant* nextVariant = nullptr;
+    const QoreMethod* getValueMethod = nullptr;
+    const QoreExternalMethodVariant* getValueVariant = nullptr;
+    bool valid = false;
 
-    DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) : obj(0), nextMethod(0), nextVariant(0), getValueMethod(0), getValueVariant(0), valid(false) {
+    DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) {
         bool priv;
         const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
         if (!qc)
@@ -75,21 +52,21 @@ public:
 
         const qore_class_private* class_ctx = runtime_get_class();
         if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
-            class_ctx = 0;
+            class_ctx = nullptr;
         ClassAccess access;
         obj = o;
         // get "next" method if accessible
         nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access, class_ctx);
         // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
         assert(nextMethod);
-        nextVariant = getCheckVariant(op, nextMethod, xsink);
+        nextVariant = getCheckVariant(xsink, op, nextMethod);
         if (!nextVariant)
             return;
         if (get_value) {
             getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access, class_ctx);
             // method must be found because we have an instance of AbstractIterator
             assert(getValueMethod);
-            getValueVariant = getCheckVariant(op, getValueMethod, xsink);
+            getValueVariant = getCheckVariant(xsink, op, getValueMethod);
             if (!getValueVariant)
                 return;
         }
@@ -111,6 +88,32 @@ public:
         assert(getValueMethod);
         assert(getValueVariant);
         return qore_method_private::evalNormalVariant(*getValueMethod, xsink, obj, getValueVariant, 0);
+    }
+
+    // finds a method with no arguments
+    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(ExceptionSink* xsink, const char* op, const QoreMethod* m) {
+        const qore_class_private* class_ctx = runtime_get_class();
+        const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(
+            qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, (QoreListNode*)nullptr, false, class_ctx)
+        );
+        // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+        assert(xsink);
+        if (*xsink)
+            return nullptr;
+        // we must have a variant here because we have an instance of AbstractIterator
+        assert(variant);
+        if (variant->isPrivate()) {
+            // check for access to the class holding the private method
+            if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()), class_ctx)) {
+                QoreString opstr(op);
+                opstr.toupr();
+                opstr.concat("-ITERATOR-ERROR");
+                xsink->raiseException(opstr.getBuffer(), "cannot access private %s::%s() iterator method with the %s",
+                    variant->method()->getClass()->getName(), m->getName(), op);
+                return nullptr;
+            }
+        }
+        return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
     }
 
     /*

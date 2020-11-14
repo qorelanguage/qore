@@ -199,7 +199,8 @@ public namespace CsvUtil {
             @param li source line iterator
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header-names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option;
+            \c "header-names" is @ref True "True" \c "headers" is also present; unknown field type
          */
         constructor(AbstractLineIterator li, *hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
             lineIterator = li;
@@ -296,8 +297,7 @@ public namespace CsvUtil {
                     case "header_lines": {
                         try {
                             headerLines = i.value;
-                        }
-                        catch (hash<ExceptionInfo> ex) {
+                        } catch (hash<ExceptionInfo> ex) {
                             throw errname, sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         }
                         break;
@@ -320,8 +320,10 @@ public namespace CsvUtil {
                     }
                 }
             }
-            if (headerNames && !headerLines)
-                throw errname, sprintf("\"header_names\" is True but \"header_lines\" is 0; there must be at least 1 header line to get header names");
+            # assume one header line if header-names is set
+            if (headerNames && !headerLines) {
+                headerLines = 1;
+            }
         }
 
         #! process specification and assing internal data for resolving
@@ -371,7 +373,7 @@ public namespace CsvUtil {
         }
 
         #! match headers provided at csv header or in options, never called for multi-type because header_names is False
-        private prepareFieldsFromHeaders(*list headers) {
+        private prepareFieldsFromHeaders(*list<auto> headers) {
             # add missing m_specs from headers
             string k = m_specs.firstKey();
             if (m_specs{k}) {
@@ -404,10 +406,10 @@ public namespace CsvUtil {
                         if (!lineIterator.next())
                             return False;
 
-                        list h = getLineAndSplit();
-                        if (!h)
+                        list<*string> l = getLineAndSplit();
+                        if (!l)
                             return False;
-                        prepareFieldsFromHeaders(h);
+                        prepareFieldsFromHeaders(l);
                     }
                     # skip the rest of the header rows
                     while (lineNumber() < headerLines) {
@@ -433,8 +435,8 @@ public namespace CsvUtil {
 
                 # generate fake header names with index positions if no header data is already available, note: multi-type has headers
                 if (b && (!m_specs || (m_specs.size() == 1 && exists m_specs{CSV_TYPE_SINGLE} && m_specs{CSV_TYPE_SINGLE}.size() == 0))) {
-                    list l = getLineAndSplit();
-                    list h = ();
+                    list<*string> l = getLineAndSplit();
+                    list<string> h = ();
                     map h += string($#), l;
                     prepareFieldsFromHeaders(h);
                     fakeHeaderNames = True;
@@ -762,12 +764,8 @@ while (i.next()) {
 
         #! Read line split by separator/quote into list
         private list<*string> getLineAndSplit() {
-            string s = lineIterator.getValue();
-            if (s) {
-                return s.split(separator, quote, ignoreWhitespace);
-            } else {
-                return ();
-            }
+            return lineIterator.getSplitLine(separator, quote, ignoreWhitespace);
+            #return lineIterator.getValue().split(separator, quote, ignoreWhitespace);
         }
 
         #! Identify a fixed-length line type using identifyTypeImpl(); may be overridden if necessary.

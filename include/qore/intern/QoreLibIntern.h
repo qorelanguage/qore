@@ -958,7 +958,8 @@ DLLLOCAL void qore_string_init();
 
 DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
-DLLLOCAL QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, const QoreString* quote, bool trim_unquoted, ExceptionSink* xsink);
+DLLLOCAL QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
+    const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h = nullptr);
 DLLLOCAL bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink);
