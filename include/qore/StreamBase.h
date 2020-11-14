@@ -52,7 +52,7 @@ public:
       */
     DLLLOCAL bool check(ExceptionSink *xsink) {
         if (tid.load(std::memory_order_relaxed) != q_gettid()) {
-            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
+            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error " \
                 "to access it from any other thread (accessed from TID %d)", getName(),
                 tid.load(std::memory_order_relaxed), q_gettid());
             return false;
@@ -71,8 +71,8 @@ public:
         if (!tid.compare_exchange_strong(chktid, q_gettid(), std::memory_order_consume, std::memory_order_relaxed)) {
             // do not raise an exception if reassigning to the same thread
             if (chktid != q_gettid()) {
-                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
-                    "(accessed from TID %d)", getName(), chktid, q_gettid());
+                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; it is an error " \
+                    "to access it from any other thread (accessed from TID %d)", getName(), chktid, q_gettid());
             }
         }
     }
@@ -88,8 +88,8 @@ public:
         if (!tid.compare_exchange_strong(chktid, -1, std::memory_order_release, std::memory_order_relaxed)) {
             // do not raise an exception if already unassigned
             if (chktid != -1) {
-                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
-                "be processed from that thread (accessed from TID %d)", getName(), chktid, q_gettid());
+                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may " \
+                    "be processed from that thread (accessed from TID %d)", getName(), chktid, q_gettid());
             }
         }
     }

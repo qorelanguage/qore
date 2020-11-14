@@ -587,35 +587,52 @@ protected:
 template <class T>
 class PrivateDataRefHolder : public ReferenceHolder<T> {
 public:
-   DLLLOCAL PrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->getReferencedPrivateData(cid, xsink)), xsink) {
-   }
+    DLLLOCAL PrivateDataRefHolder(ExceptionSink* xsink) : ReferenceHolder<T>(xsink) {
+    }
+
+    DLLLOCAL PrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->getReferencedPrivateData(cid, xsink)), xsink) {
+    }
+
+    //! assigns a new pointer to the holder, dereferences the current pointer if any
+    DLLLOCAL void operator=(T *nv) {
+        if (this->p)
+            this->p->deref(this->xsink);
+        this->p = nv;
+    }
 };
 
 //! convenience class for holding AbstractPrivateData references
 template <class T>
 class TryPrivateDataRefHolder : public ReferenceHolder<T> {
 public:
-   DLLLOCAL TryPrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->tryGetReferencedPrivateData(cid, xsink)), xsink) {
-   }
+    DLLLOCAL TryPrivateDataRefHolder(const QoreObject* o, qore_classid_t cid, ExceptionSink* xsink) : ReferenceHolder<T>(reinterpret_cast<T*>(o->tryGetReferencedPrivateData(cid, xsink)), xsink) {
+    }
+
+    //! assigns a new pointer to the holder, dereferences the current pointer if any
+    DLLLOCAL void operator=(T *nv) {
+        if (this->p)
+            this->p->deref(this->xsink);
+        this->p = nv;
+    }
 };
 
 class QorePrivateObjectAccessHelper {
 public:
-   DLLLOCAL QorePrivateObjectAccessHelper(ExceptionSink* xs) : xsink(xs), ptr(0) {
-   }
+    DLLLOCAL QorePrivateObjectAccessHelper(ExceptionSink* xs) : xsink(xs), ptr(0) {
+    }
 
-   DLLLOCAL operator bool() const {
-      return (bool)ptr;
-   }
+    DLLLOCAL operator bool() const {
+        return (bool)ptr;
+    }
 
 private:
-   DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&) = delete;
-   DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&) = delete;
-   DLLLOCAL void* operator new(size_t) = delete;
+    DLLLOCAL QorePrivateObjectAccessHelper(const QorePrivateObjectAccessHelper&) = delete;
+    DLLLOCAL QorePrivateObjectAccessHelper& operator=(const QorePrivateObjectAccessHelper&) = delete;
+    DLLLOCAL void* operator new(size_t) = delete;
 
 protected:
-   ExceptionSink* xsink;
-   void* ptr;
+    ExceptionSink* xsink;
+    void* ptr;
 };
 
 #endif
