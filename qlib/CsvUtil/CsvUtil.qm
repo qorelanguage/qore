@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.8 d
+%requires qore >= 0.9.8
 
 %requires Util
 
