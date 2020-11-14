@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file CsvUtil.qm Qore user module for working with CSV files
 
-/*  CsvUtil.qm Copyright 2012 - 2018 Qore Technologies, s.r.o.
+/*  CsvUtil.qm Copyright 2012 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.8
 
 %requires Util
 
@@ -36,7 +36,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.7";
+    version = "1.7.1";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -232,7 +232,6 @@ while (i.next()) {
 }
     @endcode
 
-
     If \c "example-multi-file.csv" is:
     @verbatim
 1,2016-01,20160401
@@ -252,6 +251,10 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_7_1 Version 1.7.1
+    - fixed a bug where CSV iteration would fail if a quoted field had a line break in it
+      (<a href="https://github.com/qorelanguage/qore/issues/4079">issue 4079</a>)
 
     @subsection csvutil_v1_7 Version 1.7
     - added data provider API support

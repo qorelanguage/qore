@@ -60,6 +60,7 @@ f2:3,00:5:25,34";
     }
 
     constructor() : Test("CsvUtilTest", "1.0") {
+        addTestCase("multi-line fields", \multiLineFieldTest());
         addTestCase("data provider", \dataProviderTest());
         addTestCase("issue 2806 test", \issue2806());
         addTestCase("issue 2746 test", \issue2746());
@@ -79,6 +80,46 @@ f2:3,00:5:25,34";
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    multiLineFieldTest() {
+        hash<auto> opts = {
+            "header-names": True,
+        };
+
+        {
+            string csvdata = "A,B\nfield 1,\"field 2\nmulti-line\"\nl2,l3\n";
+
+            CsvDataIterator i(csvdata, opts);
+            list<auto> l = map $1, i;
+            assertEq((
+                {
+                    "A": "field 1",
+                    "B": "field 2\nmulti-line",
+                },
+                {
+                    "A": "l2",
+                    "B": "l3",
+                },
+            ), l);
+        }
+
+        {
+            string csvdata = "A,B\n\"field 1\nline 2\nline 3\",\"field 2\nmulti-line\"\nl2,l3\n";
+
+            CsvDataIterator i(csvdata, opts);
+            list<auto> l = map $1, i;
+            assertEq((
+                {
+                    "A": "field 1\nline 2\nline 3",
+                    "B": "field 2\nmulti-line",
+                },
+                {
+                    "A": "l2",
+                    "B": "l3",
+                },
+            ), l);
+        }
     }
 
     dataProviderTest() {
@@ -637,36 +678,6 @@ UK,1234567893,28052012";
                 ),
                 {}
             );}, (), NOTHING);
-
-        assertThrows("ABSTRACTCSVITERATOR-ERROR",
-            CsvDataIterator sub() {return new CsvDataIterator(
-                "",
-                (
-                    "foo": (
-                        "col1": ("type": "int"),
-                        "col2": ("type": "int"),
-                    ),
-                    "bar": (
-                        "col3": ("type": "int"),
-                        "col4": ("type": "int"),
-                        "col5": ("type": "int"),
-                    ),
-                ),
-                {"header_names": True}
-            );}, (), NOTHING);
-
-        assertThrows("ABSTRACTCSVITERATOR-ERROR",
-            CsvDataIterator sub() {return new CsvDataIterator(
-                "",
-                (
-                    CSV_TYPE_SINGLE: (
-                        "col1": ("type": "int"),
-                        "col2": ("type": "int"),
-                    ),
-                ),
-                {"header_names": True, "header_lines": 0, }
-            );}, (), NOTHING);
-
     }
 
     csvMultiResolveTest() {
