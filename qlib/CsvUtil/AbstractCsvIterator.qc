@@ -179,16 +179,19 @@ public namespace CsvUtil {
             int rc = 0;
 
             # to resolve record type by rules
-            hash m_resolve_by_rule;
+            hash<string, hash<string, list<hash<auto>>>> m_resolve_by_rule;
 
             # to resolve record type by number of fields
-            hash m_resolve_by_count;
+            hash<string, list<string>> m_resolve_by_count;
 
             # list of idx to field transformarions, in order of spec
-            hash m_resolve_by_idx;
+            hash<string, list<string>> m_resolve_by_idx;
 
             # fake specs based on the first non-header row
             bool fakeHeaderNames;
+
+            #! the eol marker, if any
+            *string eol;
 
             # data source iterator
             AbstractLineIterator lineIterator;
@@ -202,7 +205,7 @@ public namespace CsvUtil {
             @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option;
             \c "header-names" is @ref True "True" \c "headers" is also present; unknown field type
          */
-        constructor(AbstractLineIterator li, *hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
+        constructor(AbstractLineIterator li, *hash<auto> opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
             lineIterator = li;
             processCommonOptions(opts, C_OPT1);
 
@@ -224,10 +227,10 @@ public namespace CsvUtil {
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
         # NOTE: when declared as *hash then always calls this constructor
-        constructor(AbstractLineIterator li, hash spec, hash opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
+        constructor(AbstractLineIterator li, hash<auto> spec, hash<auto> opts): CsvHelper("ABSTRACTCSVITERATOR-ERROR") {
             lineIterator = li;
             processCommonOptions(opts, C_OPT2);
-            foreach hash i in (opts.pairIterator()) {
+            foreach hash<auto> i in (opts.pairIterator()) {
                 switch (i.key) {
                     case "extended_record": {
                         extendedRecord = parse_boolean(i.value);
@@ -244,38 +247,27 @@ public namespace CsvUtil {
         }
 
         #! process common options and and assing internal fields
-        private processCommonOptions(*hash opts, int C_OPTx) {
-            foreach hash i in (opts.pairIterator()) {
+        private processCommonOptions(*hash<auto> opts, int C_OPTx) {
+            foreach hash<auto> i in (opts.pairIterator()) {
                 if (!exists Options.(i.key) || ((Options.(i.key) & C_OPTx) == 0))
                     throw errname, sprintf("unknown option %y passed to AbstractCsvIterator::constructor() (valid options: %y)", i.key, (select Options.keys(), (Options.$1 & C_OPTx) != 0));
-                switch (i.key) {
+                string key = i.key;
+                if (key == "date-format") {
+                    key = "date_format";
+                }
+                switch (key) {
                     case "compat_force_empty_string": {
                         compat_force_empty_string = parse_boolean(i.value);
                         break;
                     }
                     case "date_format":
-                    case "date-format": {
-                        if (i.value.typeCode() != NT_STRING)
-                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                        date_format = i.value;
-                        break;
-                    }
+                    case "quote":
+                    case "separator":
+                    case "eol":
                     case "number_format": {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                        number_format = i.value;
-                        break;
-                    }
-                    case "separator": {
-                        if (i.value.typeCode() != NT_STRING)
-                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                        separator = i.value;
-                        break;
-                    }
-                    case "quote": {
-                        if (i.value.typeCode() != NT_STRING)
-                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
-                        quote = i.value;
+                        self{key} = i.value;
                         break;
                     }
                     case "ignore-empty":
@@ -327,23 +319,23 @@ public namespace CsvUtil {
         }
 
         #! process specification and assing internal data for resolving
-        private processSpec(hash spec) {
+        private processSpec(hash<auto> spec) {
             m_specs           = spec;
 
-            m_resolve_by_rule = hash();
-            m_resolve_by_count = hash();
-            m_resolve_by_idx = hash();
+            m_resolve_by_rule = {};
+            m_resolve_by_count = {};
+            m_resolve_by_idx = {};
             fakeHeaderNames = False;
 
             # setup type resolving from spec
-            foreach string k in (m_specs.keyIterator()) {
+            foreach string k in (keys m_specs) {
                 if (m_specs{k}.typeCode() != NT_HASH)
                     throw errname, sprintf("expecting a record description hash assigned to record key %y; got type %y instead (value: %y)", k, m_specs{k}.type(), m_specs{k});
 
-                list rec_rule = ();
+                list<hash<auto>> rec_rule = ();
                 m_resolve_by_idx{k} = ();
-                foreach string c in (m_specs{k}.keyIterator()) {
-                    hash fld_rule;
+                foreach string c in (keys m_specs{k}) {
+                    hash<auto> fld_rule;
                     if (exists m_specs{k}{c}.regex) {
                         if (exists m_specs{k}{c}.value) {
                             throw errname, sprintf("Both value and regex used in field rule for field %y, record: %y", c, k);
@@ -367,7 +359,7 @@ public namespace CsvUtil {
                     if (!m_resolve_by_count{cnt}) {
                         m_resolve_by_count{cnt} = ();
                     }
-                    m_resolve_by_count{cnt} += list(k);
+                    m_resolve_by_count{cnt} += k;
                 }
             }
         }
@@ -764,8 +756,7 @@ while (i.next()) {
 
         #! Read line split by separator/quote into list
         private list<*string> getLineAndSplit() {
-            return lineIterator.getSplitLine(separator, quote, ignoreWhitespace);
-            #return lineIterator.getValue().split(separator, quote, ignoreWhitespace);
+            return lineIterator.getSplitLine(separator, quote, eol, ignoreWhitespace);
         }
 
         #! Identify a fixed-length line type using identifyTypeImpl(); may be overridden if necessary.
@@ -799,11 +790,12 @@ while (i.next()) {
             *string rv;
             int cnt = rec.size();
             if (!m_resolve_by_rule{cnt} && !m_resolve_by_count{cnt} && checkElementCounts)
-                throw errname, sprintf("Line of unexpected field count %d found; known counts: %y (record: %y)", cnt, sort(map ($1.toInt()), (m_resolve_by_rule + m_resolve_by_count).keyIterator()), rec);
+                throw errname, sprintf("Line of unexpected field count %d found; known counts: %y (record: %y)", cnt,
+                    sort(map ($1.toInt()), keys (m_resolve_by_rule + m_resolve_by_count)), rec);
 
             if (m_resolve_by_rule{cnt}) {
                 # try match type by filter spec
-                foreach string k in (m_resolve_by_rule{cnt}.keyIterator()) {
+                foreach string k in (keys m_resolve_by_rule{cnt}) {
                     list rec_rule = m_resolve_by_rule{cnt}{k};
                     bool found = True;  # flt has always at least one item
                     foreach hash fld_rule in (rec_rule) {
@@ -839,7 +831,9 @@ while (i.next()) {
                     rv = m_resolve_by_count{cnt}[0];
                 }
                 if (m_resolve_by_count{cnt}.size() > 1)
-                    throw errname, sprintf("Line with recourd count %d was not automatically matched since the following records have this length: %y; you need to provide your own identifyTypeImpl() method or specify rules (record: %y)", cnt, m_resolve_by_count{cnt}, rec);
+                    throw errname, sprintf("Line with recourd count %d was not automatically matched since the "
+                        "following records have this length: %y; you need to provide your own identifyTypeImpl() "
+                        "method or specify rules (record: %y)", cnt, m_resolve_by_count{cnt}, rec);
             }
             if (!rv && !fakeHeaderNames && m_specs.size() == 1 && exists m_specs{CSV_TYPE_SINGLE}) {
                 # where there is only one type then process it, e.g. when optional fields are not mentioned at the end of line

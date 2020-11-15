@@ -937,23 +937,20 @@ protected:
 DLLEXPORT QoreString* checkEncoding(const QoreString* str, const QoreEncoding* enc, ExceptionSink* xsink);
 
 class QoreStringMaker : public QoreString {
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreStringMaker(const QoreStringMaker& str);
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreStringMaker& operator=(const QoreStringMaker&);
-
 public:
-   //! creates a string with a sprintf-style constructor
-   /** @since %Qore 0.8.7
+    //! creates a string with a sprintf-style constructor
+    /** @since %Qore 0.8.7
     */
-   DLLEXPORT QoreStringMaker(const char* fmt, ...);
+    DLLEXPORT QoreStringMaker(const char* fmt, ...);
 
-   //! creates a string with an explicit encoding and a sprintf-style constructor
-   /** @since %Qore 0.8.7
+    //! creates a string with an explicit encoding and a sprintf-style constructor
+    /** @since %Qore 0.8.7
     */
-   DLLEXPORT QoreStringMaker(const QoreEncoding* enc, const char* fmt, ...);
+    DLLEXPORT QoreStringMaker(const QoreEncoding* enc, const char* fmt, ...);
+
+private:
+    DLLLOCAL QoreStringMaker(const QoreStringMaker& str) = delete;
+    DLLLOCAL QoreStringMaker& operator=(const QoreStringMaker&) = delete;
 };
 
 //! class used to hold a possibly temporary QoreString pointer, stack only, cannot be dynamically allocated
@@ -962,193 +959,188 @@ public:
    TempString rv(new QoreString());
    ...
    if (error)
-   return 0; // here the memory is automatically released
+       return 0; // here the memory is automatically released
    return rv.release();
    @endcode
 */
 class TempString {
-private:
-   QoreString* str;
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   TempString(const TempString& );
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   TempString& operator=(const TempString& );
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   void* operator new(size_t);
-
 public:
-   //! populates the object with a new QoreString that this object will manage
-   DLLLOCAL TempString() : str(new QoreString) {
-   }
+    //! populates the object with a new QoreString that this object will manage
+    DLLLOCAL TempString() : str(new QoreString) {
+    }
 
-   //! populates the object with a new QoreString in a specific encoding that this object will manage
-   DLLLOCAL TempString(const QoreEncoding* enc) : str(new QoreString(enc)) {
-   }
+    //! populates the object with a new QoreString in a specific encoding that this object will manage
+    DLLLOCAL TempString(const QoreEncoding* enc) : str(new QoreString(enc)) {
+    }
 
-   //! populates the object with the QoreString pointer to be managed
-   DLLLOCAL TempString(QoreString* s) {
-      str = s;
-   }
+    //! populates the object with the QoreString pointer to be managed
+    DLLLOCAL TempString(QoreString* s) {
+        str = s;
+    }
 
-   //! deletes the QoreString pointer being managed
-   DLLLOCAL ~TempString() {
-      delete str;
-   }
+    //! deletes the QoreString pointer being managed
+    DLLLOCAL ~TempString() {
+        delete str;
+    }
 
-   //! returns the QoreString pointer being managed
-   DLLLOCAL QoreString* operator->(){ return str; };
+    //! returns the QoreString pointer being managed
+    DLLLOCAL QoreString* operator->(){ return str; };
 
-   //! returns the QoreString pointer being managed
-   DLLLOCAL QoreString* operator*() { return str; };
+    //! returns the QoreString pointer being managed
+    DLLLOCAL QoreString* operator*() { return str; };
 
-   //! returns true if a QoreString pointer is being managed
-   DLLLOCAL operator bool() const { return str != 0; }
+    //! returns true if a QoreString pointer is being managed
+    DLLLOCAL operator bool() const { return str != nullptr; }
 
-   //! releases the QoreString pointer being managed and sets the internal pointer to 0
-   DLLLOCAL QoreString* release() { QoreString* rv = str; str = 0; return rv; }
+    //! releases the QoreString pointer being managed and sets the internal pointer to 0
+    DLLLOCAL QoreString* release() {
+        QoreString* rv = str;
+        str = nullptr;
+        return rv;
+    }
+
+private:
+    QoreString* str;
+
+    TempString(const TempString&) = delete;
+    TempString& operator=(const TempString&) = delete;
+    void* operator new(size_t) = delete;
 };
 
 //! use this class to manage strings where the character encoding must be specified and may be different than the actual encoding in the string
 /** this class calls QoreString::convertEncoding() if necessary and manages any temporary string created by this call.
     the destructor will delete any temporary string if necessary.  Note that the constructor may add Qore-language exception information
     to the "xsink" parameter in case character set encoding conversion was necessary and failed
+
     @see QoreString
+
     @code
     // ensure a string is in UTF-8 encoding
     TempEncodingHelper utf8_str(str, QCS_UTF8, xsink);
     if (!str) // !str is only true if an exception has been thrown in the conversion
-    return 0;
+        return 0;
     printf("%s\n", utf8_str->getBuffer());
     @endcode
 */
 class TempEncodingHelper {
-private:
-   QoreString* str;
-   bool temp;
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL TempEncodingHelper(const TempEncodingHelper& );
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL TempEncodingHelper& operator=(const TempEncodingHelper& );
-
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void* operator new(size_t);
-
-   //! discards the internal state
-   DLLLOCAL void discard_intern() {
-      if (temp && str)
-         delete str;
-   }
-
-   //! sets the internal state
-   /**
-      @param s a pointer to the QoreString input value
-      @param qe the QoreEncoding required
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   DLLLOCAL void set_intern(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
-      if (s->getEncoding() != qe) {
-         str = s->convertEncoding(qe, xsink);
-         temp = true;
-      }
-      else {
-         str = const_cast<QoreString* >(s);
-         temp = false;
-      }
-   }
-
 public:
-   //! converts the given string to the required encoding if necessary
-   /**
-      @param s a reference to the QoreString input value
-      @param qe the QoreEncoding required
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   DLLLOCAL TempEncodingHelper(const QoreString& s, const QoreEncoding* qe, ExceptionSink* xsink) {
-      set_intern(&s, qe, xsink);
-   }
-
-   //! converts the given string to the required encoding if necessary
-   /**
-      @param s a pointer to the QoreString input value
-      @param qe the QoreEncoding required
-      @param xsink if an error occurs, the Qore-language exception information will be added here
-   */
-   DLLLOCAL TempEncodingHelper(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
-      set_intern(s, qe, xsink);
-   }
-
-   //! creates an empty TempEncodingHelperObject that may be initialized with TempEncodingHelper::set() later
-   DLLLOCAL TempEncodingHelper() : str(0), temp(false) {
-   }
-
-   //! deletes any temporary string being managed by the object
-   DLLLOCAL ~TempEncodingHelper() {
-      discard_intern();
-   }
-
-   //! discards any current state and sets and converts (if necessary) a new string to the desired encoding
-   /** note that the return value is the opposite of most qore functions because
-       it was implemented incorrectly; the documentation has been changed to reflect
-       the incorrect implementation; the implementation was not fixed in order to preserve
-       source compatibility
-       @param s a pointer to the QoreString input value
-       @param qe the QoreEncoding required
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return 1=OK, 0=an error occurred and a Qore-language exception was raised
-   */
-   DLLLOCAL int set(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
-      discard_intern();
-
-      set_intern(s, qe, xsink);
-      return str != 0;
-   }
-
-   //! returns true if a temporary string is being managed
-   DLLLOCAL bool is_temp() const {
-      return temp;
-   }
-
-   //! ensures that the object is holding a temporary value
-   DLLLOCAL void makeTemp() {
-      if (!temp && str) {
-         str = new QoreString(*str);
-         temp = true;
-      }
-   }
-
-   //! returns the string being managed
-   DLLLOCAL const QoreString* operator->(){ return str; };
-
-   //! returns the string being managed
-   DLLLOCAL const QoreString* operator*() { return str; };
-
-   //! returns false if the object is empty (for example, if a Qore-language exception was thrown in the constructor), true if not
-   /**
-      @return false if the object is empty, true if not
-   */
-   DLLLOCAL operator bool() const { return str != 0; }
-
-   //! returns a char pointer of the string, the caller owns the pointer returned (it must be manually freed)
-   /**
-      @return a char pointer of the string, the caller owns the pointer returned
-   */
-   DLLLOCAL char* giveBuffer() {
-      if (!str)
-         return 0;
-      if (temp)
-         return str->giveBuffer();
-      return strdup(str->getBuffer());
-   }
-
-   //! remove any leading byte order marker (BOM) from UTF-16* strings
-   /** @since Qore 0.8.13
+    //! converts the given string to the required encoding if necessary
+    /**
+        @param s a reference to the QoreString input value
+        @param qe the QoreEncoding required
+        @param xsink if an error occurs, the Qore-language exception information will be added here
     */
-   DLLEXPORT void removeBom();
+    DLLLOCAL TempEncodingHelper(const QoreString& s, const QoreEncoding* qe, ExceptionSink* xsink) {
+        set_intern(&s, qe, xsink);
+    }
+
+    //! converts the given string to the required encoding if necessary
+    /**
+        @param s a pointer to the QoreString input value
+        @param qe the QoreEncoding required
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+    */
+    DLLLOCAL TempEncodingHelper(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
+        set_intern(s, qe, xsink);
+    }
+
+    //! creates an empty TempEncodingHelperObject that may be initialized with TempEncodingHelper::set() later
+    DLLLOCAL TempEncodingHelper() {
+    }
+
+    //! deletes any temporary string being managed by the object
+    DLLLOCAL ~TempEncodingHelper() {
+        discard_intern();
+    }
+
+    //! discards any current state and sets and converts (if necessary) a new string to the desired encoding
+    /** note that the return value is the opposite of most qore functions because
+         it was implemented incorrectly; the documentation has been changed to reflect
+        the incorrect implementation; the implementation was not fixed in order to preserve
+        source compatibility
+        @param s a pointer to the QoreString input value
+        @param qe the QoreEncoding required
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @return 1=OK, 0=an error occurred and a Qore-language exception was raised
+    */
+    DLLLOCAL int set(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
+        discard_intern();
+
+        set_intern(s, qe, xsink);
+        return str != nullptr;
+    }
+
+    //! returns true if a temporary string is being managed
+    DLLLOCAL bool is_temp() const {
+        return temp;
+    }
+
+    //! ensures that the object is holding a temporary value
+    DLLLOCAL void makeTemp() {
+        if (!temp && str) {
+            str = new QoreString(*str);
+            temp = true;
+        }
+    }
+
+    //! returns the string being managed
+    DLLLOCAL const QoreString* operator->(){ return str; };
+
+    //! returns the string being managed
+    DLLLOCAL const QoreString* operator*() { return str; };
+
+    //! returns false if the object is empty (for example, if a Qore-language exception was thrown in the constructor), true if not
+    /**
+        @return false if the object is empty, true if not
+    */
+    DLLLOCAL operator bool() const { return str != 0; }
+
+    //! returns a char pointer of the string, the caller owns the pointer returned (it must be manually freed)
+    /**
+        @return a char pointer of the string, the caller owns the pointer returned
+    */
+    DLLLOCAL char* giveBuffer() {
+        if (!str)
+            return nullptr;
+        if (temp)
+            return str->giveBuffer();
+        return strdup(str->getBuffer());
+    }
+
+    //! remove any leading byte order marker (BOM) from UTF-16* strings
+    /** @since Qore 0.8.13
+    */
+    DLLEXPORT void removeBom();
+
+private:
+    QoreString* str = nullptr;
+    bool temp = false;
+
+    DLLLOCAL TempEncodingHelper(const TempEncodingHelper&) = delete;
+    DLLLOCAL TempEncodingHelper& operator=(const TempEncodingHelper&) = delete;
+    DLLLOCAL void* operator new(size_t) = delete;
+
+    //! discards the internal state
+    DLLLOCAL void discard_intern() {
+        if (temp && str)
+            delete str;
+    }
+
+    //! sets the internal state
+    /**
+        @param s a pointer to the QoreString input value
+        @param qe the QoreEncoding required
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+    */
+    DLLLOCAL void set_intern(const QoreString* s, const QoreEncoding* qe, ExceptionSink* xsink) {
+        if (s->getEncoding() != qe) {
+            str = s->convertEncoding(qe, xsink);
+            temp = true;
+        } else {
+            str = const_cast<QoreString* >(s);
+            temp = false;
+        }
+    }
 };
 
 //! returns the character width of the given unicode code point
