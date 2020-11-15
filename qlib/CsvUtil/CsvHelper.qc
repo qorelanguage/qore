@@ -218,8 +218,8 @@ class CsvHelper {
 
         @return a list of field names in order of csv record
     */
-    private list adjustFieldsFromHeaders(string type, *list headers, bool check = False) {
-        hash spec = m_specs{type} ?? {};
+    private list<string> adjustFieldsFromHeaders(string type, *list<auto> headers, bool check = False) {
+        hash<auto> spec = m_specs{type} ?? {};
         # issue #2179: ensure that all field specifications match headers set
         if (check && spec && headers) {
             #printf("type: %y spec: %y headers: %y\n", type, spec, headers);
@@ -233,13 +233,13 @@ class CsvHelper {
             if (h1)
                 throw errname, sprintf("field specification for record %y refers to the following fields not reflected in the header: %y; known fields: %y", type, keys h1, headers);
         }
-        list csv_order = ();
+        list<string> csv_order = ();
         if (headers && tolwr)
             headers = (map $1.lwr(), headers);
 
         # look for header name if specified
-        hash fld_by_hdr = {};
-        hash hdr_idxs = map {$1: $#}, headers;
+        hash<auto> fld_by_hdr = {};
+        hash<string, int> hdr_idxs = map {$1: $#}, headers;
 
         m_specs{type} = {};
 

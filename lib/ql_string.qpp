@@ -155,16 +155,19 @@ static size_t count_quotes(const char*& str, size_t& len, const QoreString& quot
 }
 
 QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
-        const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h) {
-    // convert pattern encoding to string if necessary
+        const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h, const QoreString* eol) {
+    // convert pattern encoding to string encoding if necessary
     TempEncodingHelper pat(sep, str->getEncoding(), xsink);
     if (*xsink)
         return nullptr;
 
-    // convert quote to string if necessary
+    // convert quote encoding to string encoding if necessary
     TempEncodingHelper tquote(quote, str->getEncoding(), xsink);
     if (*xsink)
         return nullptr;
+
+    // in case the eol string needs encoding conversion
+    TempEncodingHelper teol;
 
     // temporary string buffer in case additional lines need to be retrieved from a line iterator
     SimpleRefHolder<QoreStringNode> buf;
@@ -237,7 +240,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                         if (!h->next(xsink)) {
                             if (!*xsink) {
                                 xsink->raiseException("SPLIT-ERROR", "cannot find closing quote '%s' in field " QSD
-                                    " (starting with 1); no more line import in iterator", tquote->c_str(), l->size() + 1);
+                                    " (starting with 1); no more line content in iterator", tquote->c_str(), l->size() + 1);
                             }
                         }
                         if (*xsink) {
@@ -260,21 +263,33 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
 
                         // get ostr offset so we can recalculate after concatenating
                         size_t offset = ststr - ostr;
-
                         const QoreStringNode* new_line = v->get<const QoreStringNode>();
-                        //printd(5, "split_with_quote() got new line %p (" QLLD "): '%s'\n", new_line, new_line->size(), new_line->c_str());
                         // add line separator
-                        buf->concat('\n');
+                        size_t eol_len;
+                        if (!eol) {
+                            eol_len = 1;
+                            buf->concat('\n');
+                        } else {
+                            if (!teol && !teol.set(eol, str->getEncoding(), xsink)) {
+                                assert(*xsink);
+                                return nullptr;
+                            }
+                            buf->concat(teol->c_str());
+                            eol_len = teol->size();
+                        }
                         buf->concat(new_line, xsink);
                         if (*xsink) {
                             return nullptr;
                         }
-                        len += new_line->size() + 1;
-                        sl += new_line->size() + 1;
+                        len += (new_line->size() + eol_len);
+                        sl += (new_line->size() + eol_len);
                         str = *buf;
                         ostr = buf->c_str();
                         ststr = ostr + offset;
+                        //printd(5, "split_with_quote() got new line %p (" QLLD "): '%s' eol: '%s' (%d) ststr: '%s'\n", new_line, new_line->size(), new_line->c_str(), teol ? teol->c_str() : "<nl>", (int)eol_len, ststr);
                         assert((ststr - ostr) == offset);
+                        // make sure len is always calculated correctly
+                        assert(len == (str->size() - (ststr - ostr)));
                         continue;
                     }
 
@@ -337,7 +352,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
             // or a separator string comes next
             if (len && (len < pl || memcmp(tpattern, ststr, pl))) {
                 xsink->raiseException("SPLIT-ERROR", "separator pattern '%s' does not follow end quote in field "
-                    QSD " (starting with 1) LEN: %d", tpattern, l->size() + 1, (int)len);
+                    QSD " (starting with 1)", tpattern, l->size() + 1);
                 return nullptr;
             }
 
