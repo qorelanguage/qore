@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.7.2";
+    version = "1.7.3";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -125,6 +125,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_7_3 RestClient v1.7.3
+    - additional fixes to REST path handling with schema validators with a base path
+      (<a href="https://github.com/qorelanguage/qore/issues/4059">issue 4059</a>)
 
     @subsection restclientv1_7_2 RestClient v1.7.2
     - better fixes to REST URI path handling with schema validation; ensure that the connection path is always cleared
@@ -885,7 +889,7 @@ hash<auto> ans = rest.del("/orders/1");
         # prepare path = connection path + base path + path
         *string p = getConnectionPath();
         string base_path = validator.getBasePath();
-        if (base_path.val() && base_path != "/" && p != base_path) {
+        if (base_path.val() && base_path != "/" && path.comparePartial(base_path[1..])) {
             # strip trailing "/" off the base path
             base_path =~ s/\/+$//;
             path = base_path + (path.val() ? ("/" + path) : "");
