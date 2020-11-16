@@ -636,6 +636,19 @@ class Test inherits QUnit::Test {
     }
 
     mapTest() {
+        {
+            code f = *hash<auto> sub (string a) {
+                return {a: True};
+            };
+
+            hash<auto> h = {"a": 1};
+            auto x = select (map f($1), keys h), $1;
+            assertEq("list<hash<string, bool>>", x.fullType());
+
+            x = select (map f($1), keys h, True), $1;
+            assertEq("list<hash<string, bool>>", x.fullType());
+        }
+
         assertEq(NOTHING, (map $1, NOTHING));
         assertEq(1, (map $1, 1));
         assertEq((1,), (map $1, 1.iterator()));
