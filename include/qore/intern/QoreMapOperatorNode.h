@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -137,7 +137,8 @@ protected:
 
 class QoreFunctionalMapIteratorOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalMapIteratorOperator(const QoreMapOperatorNode* m, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : map(m), temp(t), h(n_h), xsink(xs) {
+    DLLLOCAL QoreFunctionalMapIteratorOperator(const QoreMapOperatorNode* m, bool t, AbstractIteratorHelper n_h,
+            ExceptionSink* xs) : map(m), temp(t), h(n_h), xsink(xs) {
     }
 
     DLLLOCAL ~QoreFunctionalMapIteratorOperator() {
@@ -169,7 +170,7 @@ public:
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
-        return f->getValueType();
+        return map->expTypeInfo;
     }
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
