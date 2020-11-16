@@ -1344,8 +1344,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             path = "/" + path;
 
         # remove basePath if present; note that "basePath" must always have a leading /
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         hash<UriQueryInfo> h = parse_uri_query(path);
         method = method.lwr();
@@ -1393,8 +1392,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1431,6 +1429,16 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return rv;
     }
 
+    #! removes the base path from the beginning of the path, if present
+    private fixPath(reference<string> path) {
+        # issue #4087: remove the base path if it matches in the prefix of the path
+        if (basePath.val()) {
+            if (!path.comparePartial(basePath)) {
+                splice path, 0, basePath.length();
+            }
+        }
+    }
+
     #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
     /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
     */
@@ -1454,6 +1462,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         # remove any trailing '/'s from path
         basePath =~ s/\/+$//;
         if (basePath.val()) {
+            # ensure that basePath starts with a '/'
+            if (basePath !~ /^\//) {
+                basePath = "/" + basePath;
+            }
             self.basePath = basePath;
         } else {
             remove basePath;

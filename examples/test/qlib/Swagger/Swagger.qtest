@@ -43,32 +43,39 @@ string sub my_make_yaml(any v) {
 
 class HttpTestServer {
     public {
-        int port;
+        int port = 0;
         string body;
     }
 
     private {
-        Counter end(1);
+        Counter end();
         string resp;
+        Socket s();
     }
 
     constructor(string r) {
         resp = r;
+
+        restart();
+    }
+
+    done() {
+        end.dec();
+    }
+
+    restart() {
+        end.inc();
         # start a fake server
-        Socket s();
-        if (s.bind(0, True))
+        if (s.bind(port, True))
             throw "BIND-ERROR", strerror();
 
         if (s.listen())
             throw "LISTEN-ERROR", strerror();
 
-        port = s.getSocketInfo().port;
-
+        if (!port) {
+            port = s.getSocketInfo().port;
+        }
         background startListener(s);
-    }
-
-    done() {
-        end.dec();
     }
 
     private startListener(Socket s) {
@@ -2482,7 +2489,8 @@ public class SwaggerTest inherits QUnit::Test {
             # issue #2516
             so = new SwaggerSchema("", b);
             {
-                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2517", <feedface>, {"Content-Type": "image/jpeg"});
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2517", <feedface>,
+                    {"Content-Type": "image/jpeg"});
                 assertEq("/api/b2517", res.uri_path);
                 assertEq(<feedface>, res.body);
 
@@ -2491,27 +2499,62 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("api/b2517", res.uri_path);
                 assertEq(<feedface>, res.body);
             }
+
+            # issue #4087
+            so = new SwaggerSchema("", b + {"basePath": "/v1"});
+            {
+                assertEq("/v1", so.getBasePath());
+                hash<RestResponseClientInfo> rsh = so.parseResponse("post", "/v1/api/b2507", 200, "\"string\"",
+                    {"content-type": MimeTypeJson});
+                assertEq(200, rsh.code);
+                assertEq(MimeTypeJson, rsh.hdr."content-type");
+                assertEq("string", rsh.body);
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseResponse(), ("post", "/v2/api/b2507", 200,
+                    "\"string\"", {"content-type": MimeTypeJson}));
+            }
         }
 
         {
             string rep = makeBody("OK");
 
             HttpTestServer serv(rep);
-            on_exit serv.done();
-
             string url = sprintf("http://localhost:%d", serv.port);
-            hash opts = (
+            hash<auto> opts = {
                 "url": url,
                 "swagger": dirname(get_script_path()) + DirSep + "PetStore.swagger.yaml",
-            );
+            };
+            {
+                on_exit serv.done();
 
-            RestClient rc(opts);
-            #printf("url: %y\n", url);
-            hash h = rc.get("/user/login?username=user;password=pass");
-            assertEq("OK", h.body);
+                RestClient rc(opts);
+                #printf("url: %y\n", url);
+                hash<auto> h = rc.get("/user/login?username=user;password=pass");
+                assertEq("OK", h.body);
 
-            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/user/login?x=y");
-            assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/something?x=y");
+                assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/user/login?x=y");
+                assertThrows("SCHEMA-VALIDATION-ERROR", \rc.get(), "/something?x=y");
+            }
+            {
+                serv.restart();
+                on_exit serv.done();
+
+                RestClient rc(opts + {
+                    "swagger_base_path": "/",
+                });
+                hash<auto> h = rc.get("/user/login?username=user;password=pass");
+                assertEq("OK", h.body);
+            }
+            {
+                serv.restart();
+                on_exit serv.done();
+
+                RestClient rc(opts + {
+                    "swagger_base_path": "/v2",
+                });
+                rc.getValidator().setBasePath("v2");
+                hash<auto> h = rc.get("/v2/user/login?username=user;password=pass");
+                assertEq("OK", h.body);
+            }
         }
     }
 
