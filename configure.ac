@@ -62,31 +62,22 @@ fi
 case "${host_cpu}" in
    i[[3456]]86) cpu_family=i386 ;;
    hppa*)       cpu_family=parisc ;;
-   amd64)	cpu_family=x86_64 ;;
+   amd64)   	cpu_family=x86_64 ;;
    *)           cpu_family=${host_cpu} ;;
 esac
-
-# do CPU specific actions
-#AC_MSG_CHECKING([if we have atomic operation support for ${cpu_family} cpus])
-#rm -f include/qore/macros.h
-#if test -e include/qore/macros-${cpu_family}.h; then
-#   (cd include/qore; ln -s macros-${cpu_family}.h macros.h)
-#   AC_MSG_RESULT([ok])
-#else
-#   (cd include/qore; ln -s macros-none.h macros.h)
-#   AC_MSG_RESULT([no])
-#fi
 
 # set OS-specific variables
 SHLIB_SUFFIX=so
 #echo host_os=${host_os}
 case "${host_os}" in
-     *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code)
-		SHLIB_SUFFIX=so
-                QORE_BUILD_HOST=`uname -smpo`
+    *linux*)
+        AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code)
+        SHLIB_SUFFIX=so
+        QORE_BUILD_HOST=`uname -smpo`
 		;;
-     *solaris*) # set compile flags for Solaris
-     		CPPFLAGS="${CPPFLAGS} -D_XPG6 -D_XOPEN_SOURCE=600"
+     *solaris*)
+        # set compile flags for Solaris
+        CPPFLAGS="${CPPFLAGS} -D_XPG6 -D_XOPEN_SOURCE=600"
 		# for checking for some network functions on Solaris
 		QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lnsl -lsocket"
 		# assume we are using CC if not using g++, add -norunpath and -mt to link flags in this case
@@ -103,9 +94,10 @@ case "${host_os}" in
 		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread -lpthread"
 		fi
 		solaris=yes
-                QORE_BUILD_HOST=`uname -spirv`
-	        ;;
-     *darwin*)  # set compile flags for Darwin/OSX
+        QORE_BUILD_HOST=`uname -spirv`
+        ;;
+     *darwin*)
+        # set compile flags for Darwin/OSX
 		CPPFLAGS="${CPPFLAGS} -D_APPLE_C_SOURCE -D_DARWIN_C_SOURCE"
 		SHLIB_SUFFIX=dylib
 		# libtool 1.5.* is creating modules on Darwin 8.* (OS/X 10.4.*) with a .so suffix for some reason
@@ -114,13 +106,14 @@ case "${host_os}" in
 		# use gnutar on darwin to avoid getting those pesky resource files
 		AMTAR=gnutar
 		darwin=yes
-                QORE_BUILD_HOST=`uname -smr`
+        QORE_BUILD_HOST=`uname -smr`
 		;;
-     *hpux*)    if test "$host_cpu" = "ia64"; then
-     		   SHLIB_SUFFIX=so
+     *hpux*)
+        if test "$host_cpu" = "ia64"; then
+            SHLIB_SUFFIX=so
 		else  # assume hppa (PA-RISC)
-     		   SHLIB_SUFFIX=sl
-		   AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
+            SHLIB_SUFFIX=sl
+            AC_DEFINE(SHLIB_SUFFIX, "sl", shared library suffix)
 		fi
 		# add "-AA" and -D__STDC_EXT__ to aCC commandline to enable a clean compile
 		if test -n "`echo $CXX|grep aCC`"; then
@@ -131,17 +124,19 @@ case "${host_os}" in
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes
-                QORE_BUILD_HOST=`uname -a`
+        QORE_BUILD_HOST=`uname -a`
 		;;
-     *cygwin*)  SHLIB_SUFFIX=dll
-     		CPPFLAGS=-mwin32
+     *cygwin*)
+        SHLIB_SUFFIX=dll
+        CPPFLAGS=-mwin32
 		windows=yes
 		# turn off signal handling for cygwin; cygwin supports it, but it's emulated/slow/non-native
 		no_sig_handling=yes
-                QORE_BUILD_HOST=`uname -a`
-     		;;
-     *mingw32*) SHLIB_SUFFIX=dll
-     		windows=yes
+        QORE_BUILD_HOST=`uname -a`
+        ;;
+     *mingw32*)
+        SHLIB_SUFFIX=dll
+        windows=yes
 		mingw=yes
 		need_user_dl=yes # set to make sure there's a user-provided dlfcn.h and libdl.(a|dll) available
 		# DEBUG
@@ -161,58 +156,60 @@ case "${host_os}" in
 		OS=Windows
 		# set LIB_PREFIX if not already set
 		if test -z "$LIB_PREFIX"; then
-   		   AC_MSG_CHECKING([for mingw32 library prefix])
-		   cc_loc=`which $CXX|head -1`
-		   mingw_base=`dirname $cc_loc|sed 's/\/@<:@^/@:>@*$//'`
-		   cc_targ=`echo $CXX|sed s/-g++$//`
-		   if test -d $mingw_base/$cc_targ; then
-		      LIB_PREFIX=$mingw_base/$cc_targ
-		      AC_MSG_RESULT([$LIB_PREFIX])
-		   else
-		      AC_MSG_RESULT([not found])
-		   fi
+            AC_MSG_CHECKING([for mingw32 library prefix])
+            cc_loc=`which $CXX|head -1`
+            mingw_base=`dirname $cc_loc|sed 's/\/@<:@^/@:>@*$//'`
+            cc_targ=`echo $CXX|sed s/-g++$//`
+            if test -d $mingw_base/$cc_targ; then
+                LIB_PREFIX=$mingw_base/$cc_targ
+                AC_MSG_RESULT([$LIB_PREFIX])
+            else
+                AC_MSG_RESULT([not found])
+            fi
 		fi
 		#LDFLAGS="${LDFLAGS} -L${LIB_PREFIX}/lib"
 		#CPPFLAGS="-I${LIB_PREFIX}/include"
 		# need a native g++ compiler for native targets (ie qpp)
 		if test -z "$NATIVE_CXX"; then
-		   NATIVE_CXX=`which g++|head -1 2>/dev/null`
-		   if test -z "$NATIVE_CXX"; then
-		      AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
-		   else
-                      NATIVE_CXX="$NATIVE_CXX -std=c++11"
-		   fi
+            NATIVE_CXX=`which g++|head -1 2>/dev/null`
+            if test -z "$NATIVE_CXX"; then
+                AC_MSG_ERROR(unable to find a native c++ compiler; please set NATIVE_CXX to the path to the native c++ compiler for building qpp)
+            else
+                NATIVE_CXX="$NATIVE_CXX -std=c++11"
+            fi
 		fi
 		if test -z "$NATIVE_CXX"; then
-		   NATIVE_CXX=$CXX
+            NATIVE_CXX=$CXX
 		fi
-                QORE_BUILD_HOST=`uname -a`
+        QORE_BUILD_HOST=`uname -a`
 		AC_SUBST(NATIVE_CXX)
 		AC_SUBST(NATIVE_CPPFLAGS)
 		AC_SUBST(NATIVE_LDDFLAGS)
 		;;
-     freebsd*)  # add /usr/local/lib to LDFLAGS if not already there
-     		if test -d /usr/local/lib -a -z "`echo $LDFLAGS|grep /usr/local/lib`"; then
-     		   LDFLAGS="$LDFLAGS -L/usr/local/lib"
-                fi
+     freebsd*)
+        # add /usr/local/lib to LDFLAGS if not already there
+        if test -d /usr/local/lib -a -z "`echo $LDFLAGS|grep /usr/local/lib`"; then
+            LDFLAGS="$LDFLAGS -L/usr/local/lib"
+        fi
 		# add /usr/local/include to CPPFLAGS if not already there
-     		if test -d /usr/local/include -a -z "`echo $CPPFLAGS|grep /usr/local/include`" -a -z "`echo $CFLAGS|grep /usr/local/include`" -a -z "`echo $CXXFLAGS|grep /usr/local/include`"; then
-     		   CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-                fi
+        if test -d /usr/local/include -a -z "`echo $CPPFLAGS|grep /usr/local/include`" -a -z "`echo $CFLAGS|grep /usr/local/include`" -a -z "`echo $CXXFLAGS|grep /usr/local/include`"; then
+            CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+        fi
 		# set LEX=/usr/local/bin/flex if not already set and the target exists
 		if test -z "$LEX" -a -f /usr/bin/flex -a -z "`/usr/bin/flex --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.\[[6-9]]' -e ' [[3-9]]'`" -a -f /usr/local/bin/flex; then
-		   LEX=/usr/local/bin/flex
-                fi
+            LEX=/usr/local/bin/flex
+        fi
 		AC_WARN([LDFLAGS=$LDFLAGS LEX=$LEX])
-                QORE_BUILD_HOST=`uname -a`
-                ;;
-     *)         AC_WARN(Unknown platform ${host_os})
-                QORE_BUILD_HOST=`uname -a`
-     		;;
+        QORE_BUILD_HOST=`uname -a`
+        ;;
+     *)
+        AC_WARN(Unknown platform ${host_os})
+        QORE_BUILD_HOST=`uname -a`
+        ;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
 if test -z "$MODULE_SUFFIX" ; then
-   MODULE_SUFFIX=$SHLIB_SUFFIX
+    MODULE_SUFFIX=$SHLIB_SUFFIX
 fi
 AC_SUBST(MODULE_SUFFIX)
 
@@ -231,12 +228,12 @@ fi
 # test for flex & flex version
 AC_MSG_CHECKING([for flex 2.5.31 or greater])
 if test -z "`echo $LEX | grep flex`"; then
-        AC_MSG_ERROR([no flex version found])
+    AC_MSG_ERROR([no flex version found])
 elif test -z "`$LEX --version | grep -e ' 2\.5\.3[[1-9]]' -e ' 2\.5\.[[4-9]][[0-9]]' -e ' 2\.[[6-9]]' -e ' [[3-9]]'`" ; then
-        flexver=`$LEX --version`
+    flexver=`$LEX --version`
 	AC_MSG_ERROR([incompatible $flexver found - you can download flex 2.5.35 at http://sourceforge.net/projects/flex])
 else
-        flexver=`$LEX --version`
+    flexver=`$LEX --version`
 	AC_MSG_RESULT([yes ($flexver)])
 fi
 
@@ -247,14 +244,14 @@ AC_MSG_CHECKING([for bison 1.85 or greater])
 if test -z "`echo $YACC | grep bison`"; then
 	AC_MSG_ERROR([bison not found])
 elif test -z "`$YACC --version | head -n 1 | grep -e ' [[2-9]]\.' -e ' 1\.8[[5-9]]*' -e ' 1\.9'`"; then
-        bisonver=`$YACC --version | head -n 1`
+    bisonver=`$YACC --version | head -n 1`
 	AC_MSG_ERROR([incompatible $bisonver found])
 else
 	AC_MSG_RESULT([yes])
 fi
 
 if test "$no_sig_handling" != "yes"; then
-   AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])
+    AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])
 fi
 
 AC_ARG_ENABLE([single-compilation-unit],
@@ -286,30 +283,33 @@ AC_ARG_ENABLE([64bit],
 if test "$enable_64bit" = "auto"; then
    # turn on 64-bit by default if compiling on a 64-bit platform
    case "${host_cpu}" in
-       *64*)
-                 enable_64bit=yes
-                 ;;
-       s390x)
-                 enable_64bit=yes
-                 ;;
-       *)        case "${host_os}" in
-                     darwin*)   mv=`uname -r|cut -f1 -d.`
- 		                if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
-		         	    enable_64bit=yes
-		      		fi
-		     ;;
-		     solaris*)  if test "${host_cpu}" = "i386"; then
-		     	            # if we are running on a 64-bit machine, then enable a 64-bit build
-				    if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
-		         	        enable_64bit=yes
-		     		    fi
-		     	        fi
-		     ;;
-       		 esac
-		 if test "$enable_64bit" = "auto"; then
-		     enable_64bit=no
-		 fi
-                 ;;
+        *64*)
+            enable_64bit=yes
+            ;;
+        s390x)
+            enable_64bit=yes
+            ;;
+        *)
+            case "${host_os}" in
+                darwin*)
+                    mv=`uname -r|cut -f1 -d.`
+                    if test $mv -ge 10 -a "${host_cpu}" = "i386"; then
+                        enable_64bit=yes
+                    fi
+                    ;;
+                solaris*)
+                    if test "${host_cpu}" = "i386"; then
+                        # if we are running on a 64-bit machine, then enable a 64-bit build
+                        if test -n "`isainfo -v 2>/dev/null| grep 64-bit`"; then
+                            enable_64bit=yes
+                        fi
+                    fi
+                    ;;
+            esac
+            if test "$enable_64bit" = "auto"; then
+                enable_64bit=no
+            fi
+            ;;
     esac
 fi
 
@@ -323,124 +323,133 @@ AC_ARG_WITH([libsuffix],
 # see if we know how to set flags properly for different hosts and architectures
 # FIXME: add test on HP-UX if the compiler can generate the appropriate binaries
 if test "$enable_64bit" = "yes"; then
-   case "${host_os}" in
-      *linux*)	if test "$GXX" = "yes" -a "$ARCH" != "aarch64"; then
+    case "${host_os}" in
+        *linux*)
+            if test "$GXX" = "yes"; then
+                case "$host_cpu" in
+                    x86_64|ppc64)
+                        CXXFLAGS="$CXXFLAGS -m64"
+                        ;;
+                esac
+            fi
+            # multiarch
+            if test "$LIBSUFFIX_SET" != "yes"; then
+                if test -d /usr/lib64; then
+                    LIBSUFFIX=64
+                fi
+                if test "$GXX" = "yes"; then
+                    multiarch=`${CXX} --print-multiarch 2> /dev/null`
+                    if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
+                        LIBSUFFIX=/${multiarch}
+                    fi
+                fi
+                AC_SUBST(LIBSUFFIX)
+            fi
+            ;;
+        *hpux*)
+            if test "$host_cpu" = "ia64"; then
+                if test -n "`echo $CXX|grep aCC`"; then
+                    CXXFLAGS="$CXXFLAGS +DD64"
+                elif test "$GXX" = "yes"; then
+                    CXXFLAGS="$CXXFLAGS -mlp64"
+                    QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lCsup"
+                fi
+            else
+                if test -n "`echo $CXX|grep aCC`"; then
+                    CXXFLAGS="$CXXFLAGS +DA2.0W"
+                elif test "$GXX" = "yes"; then
+                    CXXFLAGS="$CXXFLAGS -march=2.0"
+                fi
+            fi
+            ;;
+        *solaris*)
+            if test "$GXX" = "yes"; then
+                if test "$host_cpu" = "sparc"; then
+                    CXXFLAGS="$CXXFLAGS -mcpu=ultrasparc3 -m64"  # NOTE we compile for minimum ultrasparc 3 in 64-bit mode
+                else
                     CXXFLAGS="$CXXFLAGS -m64"
                 fi
-                # multiarch
-                if test "$LIBSUFFIX_SET" != "yes"; then
-                    if test -d /usr/lib64; then
-                        LIBSUFFIX=64
-                    fi
-                    if test "$GXX" = "yes"; then
-                        multiarch=`${CXX} --print-multiarch 2> /dev/null`
-                        if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
-                            LIBSUFFIX=/${multiarch}
-                        fi
-                    fi
-                    AC_SUBST(LIBSUFFIX)
-                fi
-                ;;
-      *hpux*)	if test "$host_cpu" = "ia64"; then
-                    if test -n "`echo $CXX|grep aCC`"; then
-                        CXXFLAGS="$CXXFLAGS +DD64"
-                    elif test "$GXX" = "yes"; then
-                        CXXFLAGS="$CXXFLAGS -mlp64"
-			QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -lCsup"
-                    fi
+            else
+                CC_MAJOR=`$CXX -V 2>&1 | head -1| cut -f1 -d.|cut -d\  -f4`
+                CC_MINOR=`$CXX -V 2>&1 | head -1| cut -f2 -d.|cut -d\  -f1`
+                if test "$CC_MAJOR" -gt 5 -o \( "$CC_MAJOR" -eq 5 -a "$CC_MINOR" -ge 10 \); then
+                    CXXFLAGS="$CXXFLAGS -m64"
                 else
-		    if test -n "`echo $CXX|grep aCC`"; then
-		        CXXFLAGS="$CXXFLAGS +DA2.0W"
-		    elif test "$GXX" = "yes"; then
-			CXXFLAGS="$CXXFLAGS -march=2.0"
-		    fi
-		fi
-		;;
-     *solaris*) if test "$GXX" = "yes"; then
-		    if test "$host_cpu" = "sparc"; then
-		        CXXFLAGS="$CXXFLAGS -mcpu=ultrasparc3 -m64"  # NOTE we compile for minimum ultrasparc 3 in 64-bit mode
-		    else
-		        CXXFLAGS="$CXXFLAGS -m64"
-		    fi
-		else
-		    CC_MAJOR=`$CXX -V 2>&1 | head -1| cut -f1 -d.|cut -d\  -f4`
-		    CC_MINOR=`$CXX -V 2>&1 | head -1| cut -f2 -d.|cut -d\  -f1`
-		    if test "$CC_MAJOR" -gt 5 -o \( "$CC_MAJOR" -eq 5 -a "$CC_MINOR" -ge 10 \); then
-		        CXXFLAGS="$CXXFLAGS -m64"
-		    else
-			CXXFLAGS="$CXXFLAGS -xarch=generic64"
-		    fi
-		fi
-		;;
-     *darwin*)	if test "$GXX" = "yes"; then
-		   xCXXFLAGS="$CXXFLAGS -m64" # TODO/FIXME: temp fix for universal builds. Needs to be solved correctly
-		fi
-		# set ARCH to x86_64 to be consistent with other intel 64-bit builds
-		if test "$host_cpu" = i386 -o "$host_cpu" = x86_64; then
-		   ARCH=x86_64
-		fi
-		;;
-   esac
-   bits=64
+                    CXXFLAGS="$CXXFLAGS -xarch=generic64"
+                fi
+            fi
+            ;;
+        *darwin*)
+            # set ARCH to x86_64 to be consistent with other intel 64-bit builds
+            if test "$host_cpu" = i386 -o "$host_cpu" = x86_64; then
+                ARCH=x86_64
+            fi
+            ;;
+    esac
+    bits=64
 else
    case "${host_os}" in
-     *linux*)	if test "$GXX" = "yes"; then
-                    case "$host_cpu" in
-                        arm*) ;;
-                        *) CXXFLAGS="$CXXFLAGS -m32" ;;
-                    esac
+     *linux*)
+        if test "$GXX" = "yes"; then
+            case "$host_cpu" in
+                arm*) ;;
+                *) CXXFLAGS="$CXXFLAGS -m32" ;;
+            esac
+        fi
+        # multiarch
+        if test "$LIBSUFFIX_SET" != "yes"; then
+            if test "$host_cpu" = "x86_64" -a -d /usr/lib32; then
+                LIBSUFFIX=32
+            fi
+            if test "$GXX" = "yes"; then
+                multiarch=`${CXX} --print-multiarch 2> /dev/null`
+                if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
+                    LIBSUFFIX=/${multiarch}
                 fi
-                # multiarch
-                if test "$LIBSUFFIX_SET" != "yes"; then
-                    if test "$host_cpu" = "x86_64" -a -d /usr/lib32; then
-                        LIBSUFFIX=32
-                    fi
-                    if test "$GXX" = "yes"; then
-                        multiarch=`${CXX} --print-multiarch 2> /dev/null`
-                        if test -n "${multiarch}" -a -d /usr/lib/${multiarch}; then
-                            LIBSUFFIX=/${multiarch}
-                        fi
-                    fi
-                    AC_SUBST(LIBSUFFIX)
-                fi
-                ;;
-     *darwin*)  if test "$GXX" = "yes"; then
-                    case "$host_cpu" in
-                        arm*) ;;
-                        *) CXXFLAGS="$CXXFLAGS -m32" ;;
-                    esac
-                fi
-                ;;
-     *hpux*)	if test "$host_cpu" != "ia64"; then
-		    if test "$GXX" = "yes"; then
-		        CXXFLAGS="$CXXFLAGS -march=2.0"
-		    elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
-		        CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
-		    fi
-		fi
-		;;
-     *solaris*) if test "$GXX" = "yes"; then
-		    if test "$host_cpu" = "sparc"; then
-		        CXXFLAGS="$CXXFLAGS -mv8plus -m32"
-		    else
-		        CXXFLAGS="$CXXFLAGS -m32"
-		    fi
-		else
-		    CXXFLAGS="$CXXFLAGS -xarch=generic"
-		fi
-		;;
-   esac
-   if test "$host_cpu" = "x86_64"; then
-      cpu_family=i386
-   fi
-   bits=32
+            fi
+            AC_SUBST(LIBSUFFIX)
+        fi
+        ;;
+     *darwin*)
+        if test "$GXX" = "yes"; then
+            case "$host_cpu" in
+                arm*) ;;
+                *) CXXFLAGS="$CXXFLAGS -m32" ;;
+            esac
+        fi
+        ;;
+     *hpux*)
+        if test "$host_cpu" != "ia64"; then
+            if test "$GXX" = "yes"; then
+                CXXFLAGS="$CXXFLAGS -march=2.0"
+            elif test -n "`echo $CXX|grep aCC`" -a "$host_cpu" != "ia64"; then
+                CXXFLAGS="$CXXFLAGS +DA2.0N"   # NOTE we compile for PA-RISC 2.0 32-bit, not PA-RISC 1.1
+            fi
+        fi
+        ;;
+     *solaris*)
+        if test "$GXX" = "yes"; then
+            if test "$host_cpu" = "sparc"; then
+                CXXFLAGS="$CXXFLAGS -mv8plus -m32"
+            else
+                CXXFLAGS="$CXXFLAGS -m32"
+            fi
+        else
+            CXXFLAGS="$CXXFLAGS -xarch=generic"
+        fi
+        ;;
+    esac
+    if test "$host_cpu" = "x86_64"; then
+        cpu_family=i386
+    fi
+    bits=32
 fi
 
 # set CPU_X86_64 if we are targeting it
 if test "${enable_64bit}" = yes; then
-   if test "${cpu_family}" = i386 -o "${cpu_family}" = x86_64; then
-      AC_DEFINE([CPU_X86_64], 1, [define if we are targeting a x86_64 CPU])
-   fi
+    if test "${cpu_family}" = i386 -o "${cpu_family}" = x86_64; then
+        AC_DEFINE([CPU_X86_64], 1, [define if we are targeting a x86_64 CPU])
+    fi
 fi
 
 if test "$host_cpu" = "sparc"; then
@@ -1826,60 +1835,59 @@ fi
 # 1: turn on all warnings if we know how
 # 2: make sure compiler settings are correct for assembly if we need it
 if test "$GXX" = "yes"; then
-   CXXFLAGS="$CXXFLAGS -Wall"  # gcc
+    CXXFLAGS="$CXXFLAGS -Wall"  # gcc
 else
-   if test "$solaris" = yes; then
-      # turn on all warnings for the oracle sun studio compiler
-      #CXXFLAGS="$CXXFLAGS +w"
-      if test "$enable_64bit" = yes; then
-         if test "$build_cpu" = sparc; then
-	    solaris_cc_sparc64=yes
-	 else
-	    solaris_cc_x86_64=yes
-         fi
-      else
-
-	 if test "$build_cpu" = sparc; then
-	    solaris_cc_sparc32=yes
-	 else
-	    solaris_cc_i386=yes
-         fi
-      fi
-      need_assembly=yes
-   elif test "$hpux" = yes; then
-      if test "$cpu_family" = parisc; then
-         if test "$enable_64bit" = yes; then
-	    hpux_acc_parisc64=yes
-	 else
-	    hpux_acc_parisc32=yes
-	 fi
-	 need_assembly=yes
-      elif test "$cpu_family" = "ia64"; then
-         if test "$enable_64bit" = yes; then
-	    hpux_acc_64bit_ia64=yes
-	 else
-	    hpux_acc_32bit_ia64=yes
-	 fi
-	 need_assembly=yes
-      fi
-   fi
+    if test "$solaris" = yes; then
+        # turn on all warnings for the oracle sun studio compiler
+        #CXXFLAGS="$CXXFLAGS +w"
+        if test "$enable_64bit" = yes; then
+            if test "$build_cpu" = sparc; then
+                solaris_cc_sparc64=yes
+            else
+                solaris_cc_x86_64=yes
+            fi
+        else
+            if test "$build_cpu" = sparc; then
+                solaris_cc_sparc32=yes
+            else
+                solaris_cc_i386=yes
+            fi
+        fi
+        need_assembly=yes
+    elif test "$hpux" = yes; then
+        if test "$cpu_family" = parisc; then
+            if test "$enable_64bit" = yes; then
+                hpux_acc_parisc64=yes
+            else
+                hpux_acc_parisc32=yes
+            fi
+            need_assembly=yes
+        elif test "$cpu_family" = "ia64"; then
+            if test "$enable_64bit" = yes; then
+                hpux_acc_64bit_ia64=yes
+            else
+                hpux_acc_32bit_ia64=yes
+            fi
+            need_assembly=yes
+        fi
+    fi
 fi
 
 if test "$need_assembly" = yes; then
-   CCAS="$CXX"
-   CCASFLAGS="$CCASFLAGS $CXXFLAGS"
+    CCAS="$CXX"
+    CCASFLAGS="$CCASFLAGS $CXXFLAGS"
 fi
 
 # do a symlink for the correct spec file
 if test ! -f qore.spec; then
-   if test -f /etc/redhat-release -o -f /etc/fedora-release; then
-       ln -s qore.spec-fedora qore.spec
-   elif test -f /etc/SuSE-release; then
-       ln -s qore.spec-opensuse qore.spec
-       ln -s qore.changes-opensuse qore.changes
-   else
-       ln -s qore.spec-multi qore.spec
-   fi
+    if test -f /etc/redhat-release -o -f /etc/fedora-release; then
+        ln -s qore.spec-fedora qore.spec
+    elif test -f /etc/SuSE-release; then
+        ln -s qore.spec-opensuse qore.spec
+        ln -s qore.changes-opensuse qore.changes
+    else
+        ln -s qore.spec-multi qore.spec
+    fi
 fi
 
 # get module API version to set pkglibdir
@@ -1935,16 +1943,16 @@ AM_CONDITIONAL([COND_MINGWCC],                 [test "$mingw" = yes])
 
 # find prefix
 if test -n "${exec_prefix}" -a "${exec_prefix}" != NONE; then
-   myprefix="${exec_prefix}"
+    myprefix="${exec_prefix}"
 elif test -n "${prefix}" -a "${prefix}" != NONE; then
-   myprefix="${prefix}"
+    myprefix="${prefix}"
 else
-   myprefix=${ac_default_prefix}
+    myprefix=${ac_default_prefix}
 fi
 AC_SUBST([myprefix])
 
 if test "${prefix}" = "NONE"; then
-   prefix=${myprefix}
+    prefix=${myprefix}
 fi
 
 # libdir that is set for Makefile in Makefile.am, but not set for configure in
@@ -1956,45 +1964,45 @@ AC_SUBST([libdir])
 
 # set module path
 if test "$windows" = yes; then
-  winprefix="z:${myprefix}"
-  winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'`
-  # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
-  USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
+    winprefix="z:${myprefix}"
+    winlibdir=`echo ${mypkglibdir}|sed 's/\/$//'`
+    # we don't know the real final install location, but at least we can set a valid windows path
+    MODULE_DIR="${winprefix}/lib${LIBSUFFIX}/${winlibdir}"
+    USER_MODULE_DIR="${winprefix}/share/${winlibdir}"
 else
-  MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
-  if test -z "${datarootdir}"; then
-     datarootdir="${prefix}/share"
-     AC_SUBST([datarootdir])
-     USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
-  elif test -n "echo ${datarootdir}|grep \$"; then
-     USER_MODULE_DIR="`eval echo ${datarootdir}`/${mypkglibdir}"
-  else
-     USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
-  fi
+    MODULE_DIR="${myprefix}/lib${LIBSUFFIX}/${mypkglibdir}"
+    if test -z "${datarootdir}"; then
+        datarootdir="${prefix}/share"
+        AC_SUBST([datarootdir])
+        USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
+    elif test -n "echo ${datarootdir}|grep \$"; then
+        USER_MODULE_DIR="`eval echo ${datarootdir}`/${mypkglibdir}"
+    else
+        USER_MODULE_DIR="${datarootdir}/${mypkglibdir}"
+    fi
 fi
 AC_SUBST([MODULE_DIR])
 AC_SUBST([USER_MODULE_DIR])
 
-if [ ${VERSION_PATCH} != 0 ]; then
-   mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}
+if test "${VERSION_PATCH}" != "0"; then
+    mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH}
 else
-   mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
+    mymodverdir=qore-modules/${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}
 fi
 AC_SUBST([mymodverdir])
 
 # get version-dependent module path
 if test "$windows" = yes; then
-  # we don't know the real final install location, but at least we can set a valid windows path
-  MODULE_VER_DIR="${MODULE_DIR}/${mymodverdir}"
-  USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${mymodverdir}"
+    # we don't know the real final install location, but at least we can set a valid windows path
+    MODULE_VER_DIR="${MODULE_DIR}/${mymodverdir}"
+    USER_MODULE_VER_DIR="${USER_MODULE_DIR}/${mymodverdir}"
 else
-  MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
-  if test -n "echo ${datarootdir}|grep \$"; then
-     USER_MODULE_VER_DIR="`eval echo ${datarootdir}`/${mymodverdir}"
-  else
-     USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
-  fi
+    MODULE_VER_DIR="${myprefix}/lib${LIBSUFFIX}/${mymodverdir}"
+    if test -n "echo ${datarootdir}|grep \$"; then
+        USER_MODULE_VER_DIR="`eval echo ${datarootdir}`/${mymodverdir}"
+    else
+        USER_MODULE_VER_DIR="${datarootdir}/${mymodverdir}"
+    fi
 fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
