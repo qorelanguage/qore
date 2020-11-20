@@ -1136,7 +1136,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         optional_field(objType, oh, "host", NT_STRING, \host);
         if (optional_field(objType, oh, "basePath", NT_STRING, \basePath)) {
-            if (basePath.size() && basePath[0] != "/")
+            if (exists basePath && basePath[0] != "/")
                 throw "INVALID-FIELD-FORMAT", "Swagger Object: basePath does not begin with a slash: " + basePath;
         }
 
@@ -1431,7 +1431,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
     #! removes the base path from the beginning of the path, if present
     private fixPath(reference<string> path) {
-        # issue #4087: remove the base path if it matches in the prefix of the path
+        # ensure that path is absolute
+        if (path !~ /^\//) {
+            path = "/" + path;
+        }
+        # issue #4087: remove the base path if it matches the prefix of the path
         if (basePath.val()) {
             if (!path.comparePartial(basePath)) {
                 splice path, 0, basePath.length();
@@ -1480,8 +1484,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private hash<RestQoreExampleCodeInfo> getQoreExampleRequestImpl(string method, string path) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1499,8 +1502,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1530,8 +1532,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1550,8 +1551,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1625,8 +1625,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     */
     private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types, bool compact_serialization) {
         # remove basePath if present
-        if (basePath.val() && regex(path, "^" + basePath))
-            splice path, 0, basePath.length();
+        fixPath(\path);
 
         hash<UriQueryInfo> h = parse_uri_query(path);
 
@@ -2103,8 +2102,15 @@ public class PathComponent {
         PathComponent w = self;
         for (int i = 1; i < path.size(); ++i) {
             *PathComponent next = w.paths{path[i]} ?? w.wildcard;
-            if (!next)
-                throw "SCHEMA-VALIDATION-ERROR", sprintf("path component %y cannot be matched in %y", path[i], path.join("/"));
+            if (!next) {
+                if (w.paths) {
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("path component %y cannot be matched in %y; expected "
+                        "one of: %y", path[i], path.join("/"), keys w.paths);
+                } else {
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("path component %y cannot be matched in %y", path[i],
+                        path.join("/"));
+                }
+            }
             w = next;
         }
         return w.pio;

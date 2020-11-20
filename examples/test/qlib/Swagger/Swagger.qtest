@@ -2496,7 +2496,7 @@ public class SwaggerTest inherits QUnit::Test {
 
                 # the following call would throw a SCHEMA-VALIDATION-ERROR without the fix
                 res = so.processRequest("post", "api/b2517", <feedface>, {"Content-Type": "image/jpeg"});
-                assertEq("api/b2517", res.uri_path);
+                assertEq("/api/b2517", res.uri_path);
                 assertEq(<feedface>, res.body);
             }
 
@@ -2504,6 +2504,10 @@ public class SwaggerTest inherits QUnit::Test {
             so = new SwaggerSchema("", b + {"basePath": "/v1"});
             {
                 assertEq("/v1", so.getBasePath());
+                hash<RestRequestClientInfo> res = so.processRequest("post", "v1/api/b2517", <feedface>,
+                    {"Content-Type": "image/jpeg"});
+                assertEq("/v1/api/b2517", res.uri_path);
+                assertEq(<feedface>, res.body);
                 hash<RestResponseClientInfo> rsh = so.parseResponse("post", "/v1/api/b2507", 200, "\"string\"",
                     {"content-type": MimeTypeJson});
                 assertEq(200, rsh.code);
