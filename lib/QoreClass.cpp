@@ -2747,7 +2747,15 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 // imports members from qc -> this
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
-    assert(qc.name != name || !ns || qc.cls->priv->ns->name != ns->name);
+#ifdef DEBUG
+    if (ns && qc.cls->priv->ns) {
+        std::string nspath0;
+        std::string nspath1;
+        ns->getPath(nspath0);
+        qc.cls->priv->ns->getPath(nspath1);
+        assert(qc.name != name || nspath0 != nspath1);
+    }
+#endif
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialized before merging
     qc.members.parseInit(qc.selfid);

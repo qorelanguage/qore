@@ -88,8 +88,7 @@ bool ExceptionSink::isException() const {
 // if (xsink) { .. }
 ExceptionSink::operator bool () const {
     assert(this);
-    // FIXME: remove qore_check_this() in the next possible release of Qore
-    return qore_check_this(this) && (priv->head || priv->thread_exit);
+    return priv->head || priv->thread_exit;
 }
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {

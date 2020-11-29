@@ -318,8 +318,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     if (!it.index()) {
                         vtype = entry->getTypeInfo();
                         vcommon = true;
-                    }
-                    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
+                    } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
                         vcommon = false;
 
                     ret->push(entry.release(), xsink);
@@ -371,8 +370,10 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
         case NT_LIST: {
             return l.get<const QoreListNode>()->getReferencedEntry(offset);
         }
+
         case NT_STRING:
             return l.get<const QoreStringNode>()->substr(offset, 1, xsink);
+
         case NT_BINARY: {
             const BinaryNode* b = l.get<const BinaryNode>();
             if (offset < 0 || (size_t)offset >= b->size())
@@ -397,8 +398,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
             value_type = list;
             return new QoreFunctionalSquareBracketsComplexOperator(lhs, right.get<const QoreParseListNode>(), xsink);
         }
-    }
-    else {
+    } else {
         if (rhs.eval(right))
             return nullptr;
 
@@ -425,8 +425,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     if (res->isNothing()) {
         value_type = nothing;
         return nullptr;
-    }
-    else if (res->getType() == NT_LIST) {
+    } else if (res->getType() == NT_LIST) {
         value_type = list;
         return new QoreFunctionalListOperator(true, res.release().get<QoreListNode>(), xsink);
     }
@@ -477,8 +476,7 @@ bool QoreFunctionalSquareBracketsComplexOperator::getNextImpl(ValueOptionalRefHo
         }
         else  // set the value using the index from the inner subrange
             val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rangeVal, false, xsink), true);
-    }
-    else {
+    } else {
         ValueEvalRefHolder rh(rightParseList->get(offset), xsink);
         if (*xsink)
             return false;

@@ -171,69 +171,70 @@ void StatementBlock::del() {
 }
 
 int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
-   // instantiate local variables
-   LVListInstantiator lvi(lvars, xsink);
+    // instantiate local variables
+    LVListInstantiator lvi(lvars, xsink);
 
-   return execIntern(return_value, xsink);
+    return execIntern(return_value, xsink);
 }
 
 int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
-   QORE_TRACE("StatementBlock::execImpl()");
-   int rc = 0;
+    QORE_TRACE("StatementBlock::execImpl()");
+    int rc = 0;
 
-   assert(xsink);
+    assert(xsink);
 
-   //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %ld vars\n", this, lvars, lvars->size());
+    //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %ld vars\n", this, lvars, lvars->size());
 
-   bool obe = !on_block_exit_list.empty();
-   // push "on block exit" iterator if necessary
-   if (obe)
-      pushBlock(on_block_exit_list.end());
+    bool obe = !on_block_exit_list.empty();
+    // push "on block exit" iterator if necessary
+    if (obe)
+        pushBlock(on_block_exit_list.end());
 
-   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-   // to execute even when block is empty, e.g. while(true);
-   rc = tlpd->dbgStep(this, 0, xsink);
-   if (!rc && !*xsink) {
-      // execute block
-      for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
-         rc = tlpd->dbgStep(this, *i, xsink);
-         if (rc || *xsink)
-            break;
-         rc = (*i)->exec(return_value, xsink);
-         if (xsink->isEvent()) {
-            tlpd->dbgException(*i, xsink);
-            if (xsink->isEvent()) {
-               break;
+    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+    // to execute even when block is empty, e.g. while(true);
+    rc = tlpd->dbgStep(this, 0, xsink);
+    if (!rc && !*xsink) {
+        // execute block
+        for (auto i : statement_list) {
+            rc = tlpd->dbgStep(this, i, xsink);
+            if (rc || *xsink) {
+                break;
             }
-         }
-         if (rc) break;
-      }
-   }
-   // execute "on block exit" code if applicable
-   if (obe) {
-      ExceptionSink obe_xsink;
-      int nrc = 0;
-      bool error = *xsink;
-      for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
-         enum obe_type_e type = (*i).first;
-         if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
-            if ((*i).second) {
-               nrc = (*i).second->execImpl(return_value, &obe_xsink);
-               // bug 380: make sure and merge every exception after every conditional execution to ensure
-               // that all on_(exit|error) statements are executed even if exceptions are thrown
-               if (obe_xsink) {
-                  xsink->assimilate(obe_xsink);
-                  if (!error)
-                     error = true;
-               }
+            rc = i->exec(return_value, xsink);
+            if (*xsink) {
+                tlpd->dbgException(i, xsink);
+                if (*xsink) {
+                    break;
+                }
             }
-         }
-      }
-      if (nrc)
-         rc = nrc;
-   }
+            if (rc) break;
+        }
+    }
+    // execute "on block exit" code if applicable
+    if (obe) {
+        ExceptionSink obe_xsink;
+        int nrc = 0;
+        bool error = *xsink;
+        for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
+            enum obe_type_e type = (*i).first;
+            if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
+                if ((*i).second) {
+                    nrc = (*i).second->execImpl(return_value, &obe_xsink);
+                    // bug 380: make sure and merge every exception after every conditional execution to ensure
+                    // that all on_(exit|error) statements are executed even if exceptions are thrown
+                    if (obe_xsink) {
+                        xsink->assimilate(obe_xsink);
+                        if (!error)
+                            error = true;
+                    }
+                }
+            }
+        }
+        if (nrc)
+            rc = nrc;
+    }
 
-   return rc;
+    return rc;
 }
 
 // top-level block (program) execution member function
