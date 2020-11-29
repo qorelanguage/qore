@@ -46,61 +46,62 @@ class BCList;
 
 class LVList {
 public:
-   typedef std::vector<LocalVar*> lv_vec_t;
-   lv_vec_t lv;
+    typedef std::vector<LocalVar*> lv_vec_t;
+    lv_vec_t lv;
 
-   DLLLOCAL LVList(int num) {
-      add(num);
-   }
+    DLLLOCAL LVList(int num) {
+        add(num);
+    }
 
-   DLLLOCAL LVList(const LVList& old) {
-      lv.resize(old.size());
-      for (unsigned i = 0; i < old.size(); ++i)
-         lv[i] = old.lv[i];
+    DLLLOCAL LVList(const LVList& old) {
+        lv.resize(old.size());
+        for (unsigned i = 0; i < old.size(); ++i)
+            lv[i] = old.lv[i];
 
-      //printd(5, "LVList::LVList() populated with %d vars\n", lv.size());
-   }
+        //printd(5, "LVList::LVList() populated with %d vars\n", lv.size());
+    }
 
-   DLLLOCAL ~LVList() {
-   }
+    DLLLOCAL ~LVList() {
+    }
 
-   DLLLOCAL qore_size_t size() const {
-      return lv.size();
-   }
+    DLLLOCAL qore_size_t size() const {
+        return lv.size();
+    }
 
-   DLLLOCAL void add(int num) {
-      assert(num > 0);
-      unsigned start = lv.size();
-      //printd(5, "LVList::add(num: %d) this: %p start: %d\n", num, this, start);
-      lv.resize(start + num);
-      // pop variables off stack and save in reverse order
-      for (int i = (int)(start + num - 1); i >= (int)start; --i) {
-         lv[i] = pop_local_var();
-         //printd(5, "LVList::add() %d = %p: %s\n", i, lv[i], lv[i]->getName());
-      }
-   }
+    DLLLOCAL void add(int num) {
+        assert(num > 0);
+        unsigned start = lv.size();
+        //printd(5, "LVList::add(num: %d) this: %p start: %d\n", num, this, start);
+        lv.resize(start + num);
+        // pop variables off stack and save in reverse order
+        for (int i = (int)(start + num - 1); i >= (int)start; --i) {
+            lv[i] = pop_local_var();
+            //printd(5, "LVList::add() %d = %p: %s\n", i, lv[i], lv[i]->getName());
+        }
+    }
 };
 
 class LVListInstantiator {
-   const LVList* l;
-   ExceptionSink* xsink;
+    const LVList* l;
+    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL LVListInstantiator(const LVList* n_l, ExceptionSink* xs) : l(n_l), xsink(xs) {
-      if (!l) return;
-      for (unsigned i = 0; i < l->size(); ++i) {
-         //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
-         l->lv[i]->instantiate();
-      }
-   }
+    DLLLOCAL LVListInstantiator(const LVList* l, ExceptionSink* xs) : l(l) {
+        if (!l) return;
+        xsink = xs;
+        for (unsigned i = 0; i < l->size(); ++i) {
+            //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
+            l->lv[i]->instantiate();
+        }
+    }
 
-   DLLLOCAL ~LVListInstantiator() {
-      if (!l) return;
-      for (int i = (int)l->size() - 1; i >= 0; --i) {
-         //printd(5, "LVListInstantiator::~LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
-         l->lv[i]->uninstantiate(xsink);
-      }
-   }
+    DLLLOCAL ~LVListInstantiator() {
+        if (!l) return;
+        for (int i = (int)l->size() - 1; i >= 0; --i) {
+            //printd(5, "LVListInstantiator::~LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
+            l->lv[i]->uninstantiate(xsink);
+        }
+    }
 };
 
 // forward declaration

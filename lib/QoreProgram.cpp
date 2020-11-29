@@ -1342,30 +1342,31 @@ void ThreadLocalProgramData::dbgDetach(ExceptionSink* xsink) {
 int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink) {
     checkAttach(xsink);
     checkBreakFlag();
+    if (runState == DBG_RS_STOPPED || runState == DBG_RS_DETACH) {
+        return 0;
+    }
     int rc = 0;
-    if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
-        unsigned bkptId = 0;
-        bool cond = runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0);
-        if (!cond) {
-            const AbstractStatement *st = statement ? statement : blockStatement;
-            cond = st == runToStatement;
-            if (!cond && st->getBreakpointFlag()) {   // fast breakpoint check
-                printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d, breakpoint phase-1\n", this, runState, q_gettid());
-                bkptId = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
-                cond = bkptId > 0;
-            }
+    unsigned bkptId = 0;
+    bool cond = runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0);
+    if (!cond) {
+        const AbstractStatement *st = statement ? statement : blockStatement;
+        cond = st == runToStatement;
+        if (!cond && st->getBreakpointFlag()) {   // fast breakpoint check
+            printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d, breakpoint phase-1\n", this, runState, q_gettid());
+            bkptId = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
+            cond = bkptId > 0;
         }
-        if (cond) {
-            printd(5, "ThreadLocalProgramData::dbgStep() this: %p, bkptId: %d, rs: %d, rts: %p, tid: %d\n", this, bkptId, runState, runToStatement, q_gettid());
-            functionCallLevel = 0;
-            DebugRunStateEnum rs = runState;
-            const AbstractStatement* rts = runToStatement;
-            runState = DBG_RS_STOPPED;
-            runToStatement = nullptr;
-            getProgram()->priv->onStep(blockStatement, statement, bkptId, rc, rs, rts, xsink);
-            setRunState(rs, rts);
-            printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, rts: %p, rc: %d, xsink:%d\n", this, runState, runToStatement, rc, xsink && xsink->isEvent());
-        }
+    }
+    if (cond) {
+        printd(5, "ThreadLocalProgramData::dbgStep() this: %p, bkptId: %d, rs: %d, rts: %p, tid: %d\n", this, bkptId, runState, runToStatement, q_gettid());
+        functionCallLevel = 0;
+        DebugRunStateEnum rs = runState;
+        const AbstractStatement* rts = runToStatement;
+        runState = DBG_RS_STOPPED;
+        runToStatement = nullptr;
+        getProgram()->priv->onStep(blockStatement, statement, bkptId, rc, rs, rts, xsink);
+        setRunState(rs, rts);
+        printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, rts: %p, rc: %d, xsink:%d\n", this, runState, runToStatement, rc, xsink && xsink->isEvent());
     }
     return rc;
 }

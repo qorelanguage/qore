@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.9
+Version: 0.9.10
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -114,7 +114,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.6.3.1
+%{_libdir}/libqore.so.6.3.2
 %{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -277,6 +277,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Sun Nov 29 2020 David Nichols <david@qore.org> 0.9.10
+- updated version to 0.9.10
+
 * Mon Nov 16 2020 David Nichols <david@qore.org> 0.9.9
 - updated version to 0.9.9
 
