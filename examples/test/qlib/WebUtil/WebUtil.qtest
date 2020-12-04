@@ -56,8 +56,7 @@ public class WebUtilTest inherits QUnit::Test {
             StaticTemplateManager stm();
             stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
             fail("test cannot go here");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("PARSE-EXCEPTION", ex.err, "oldstyle PO with newstyle template");
             assertEq("local variable 's' declared without '$' prefix, but parse option 'allow-bare-refs' is not set",
                      ex.desc, "oldstyle PO with newstyle template");
@@ -84,9 +83,9 @@ public class WebUtilTest inherits QUnit::Test {
         client.connect();
         on_exit client.disconnect();
 
-        hash info;
+        hash<auto> info;
         auto result = client.get("/test_file.txt", NOTHING, \info);
-        *hash respHdr = info."response-headers";
+        *hash<auto> respHdr = info."response-headers";
         assertEq("abc", trim(result));
         assertFalse(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
 

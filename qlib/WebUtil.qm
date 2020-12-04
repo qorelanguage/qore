@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
+/*  WebUtil.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9
+%requires qore >= 0.9.10
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.6";
+    version = "1.6.1";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -67,6 +67,10 @@ module WebUtil {
 
     @section webutil_relnotes Release Notes
 
+    @subsection webutil_v1_6_1 WebUtil v1.6.1
+    - fixed a bug serving files did not work in server contexts with multiple threads
+      (<a href="https://github.com/qorelanguage/qore/issues/4096">issue 4096</a>)
+
     @subsection webutil_v1_6 WebUtil v1.6
     - fixed a bug when StaticTemplateManager does not respect constructor's parse options in templates
       (<a href="https://github.com/qorelanguage/qore/issues/3334">issue 3334</a>)
@@ -85,7 +89,9 @@ module WebUtil {
     @subsection webutil_v1_3 WebUtil v1.3
     - updated @ref WebUtil::FileHandler::handleRequest() "FileHandler::handleRequest()" to allow for chunked sends
     - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
-    - fixed a bug serviing index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()" where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
+    - fixed a bug serving index files in @ref WebUtil::FileHandler::tryServeRequest() "FileHandler::tryServeRequest()"
+      where index files could be incorrectly served with a \c "204 No Content" response
+      (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
 
     @subsection webutil_v1_2 WebUtil v1.2
     - fixed a bug where template programs with parse option @ref Qore::PO_ALLOW_BARE_REFS set did not work
@@ -123,8 +129,8 @@ public namespace WebUtil {
         }
 
         #! returns the reponse headers
-        private hash getResponseHeaderMessageImpl() {
-            return {
+        private hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
+            return <HttpResponseInfo>{
                 "code": 200,
                 "hdr": {
                     "Transfer-Encoding": "chunked",
@@ -159,11 +165,13 @@ public namespace WebUtil {
             self.stream = stream;
             cs = chunk_size;
             self.respHdr = respHdr;
+            # issue #4096: ensure that serving works from thread callbacks
+            stream.unassignThread();
         }
 
         #! returns the reponse headers
-        private hash getResponseHeaderMessageImpl() {
-            return {
+        private hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
+            return <HttpResponseInfo>{
                 "code": 200,
                 "hdr": {
                     "Transfer-Encoding": "chunked",
@@ -173,8 +181,47 @@ public namespace WebUtil {
 
         #! returns data to send
         private auto sendImpl() {
+            # issue #4096: ensure that serving works from thread callbacks
+            stream.reassignThread();
+            on_exit stream.unassignThread();
             return stream.read(cs);
         }
+    }
+
+    public class AbstractTemplate {
+        #! explicitly renders the given template with the given argument
+        /** @par Example:
+            @code{.py}
+hash<HttpResponseInfo> h = qft.render(ctx);
+            @endcode
+
+            @param new_mtime the modified date/time of the file, used to determine if the template should be recomiled or not
+            @param ctx the context argument for the template
+            @param http_code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
+            @param hdr any optional headers for the response (the \c "Content-Type" header is set from the template's \c "Content-Type" value automatically)
+
+            @return a hash with the following keys:
+            - \c code: the HTTP response code corresponding to the \a code argument
+            - \c body: the rendered template
+            - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's \c "Content-Type" value)
+        */
+        hash<HttpResponseInfo> render(date new_mtime, hash<auto> ctx, int http_code = 200, *hash<auto> hdr) {
+            return renderImpl(new_mtime, ctx, http_code, hdr);
+        }
+
+        #! explicitly renders the given template with the given argument
+        /**
+            @param new_mtime the modified date/time of the file, used to determine if the template should be recomiled or not
+            @param ctx the context argument for the template
+            @param http_code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
+            @param hdr any optional headers for the response (the \c "Content-Type" header is set from the template's \c "Content-Type" value automatically)
+
+            @return a hash with the following keys:
+            - \c code: the HTTP response code corresponding to the \a code argument
+            - \c body: the rendered template
+            - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's \c "Content-Type" value)
+        */
+        abstract private hash<HttpResponseInfo> renderImpl(date new_mtime, hash<auto> ctx, int http_code = 200, *hash<auto> hdr);
     }
 
     #! this is the static base class for all template @ref Qore::Program "Program" container classes
@@ -263,7 +310,7 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             #printf("src: %s\n", src);
 
             # build function source: keep template start on same source line for better error reporting
-            string tpl = StaticTextTemplateBase::getCode(bare_refs, "string sub %s(*hash $ctx){", fn);
+            string tpl = StaticTextTemplateBase::getCode(bare_refs, "string sub %s(*hash<auto> $ctx){", fn);
             tpl += StaticTextTemplateBase::getCode(bare_refs, "my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", src);
             p.parse(tpl, name);
 
@@ -342,7 +389,7 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
     }
 
     #! manages a template resource that may need to be recompiled if the file is updated in the filesystem; used by @ref WebUtil::TemplateFileManager
-    public class FileTemplate inherits TextTemplateBase {
+    public class FileTemplate inherits AbstractTemplate, TextTemplateBase {
         private {
             #! parse options used on the program
             int po;
@@ -386,12 +433,12 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         #! explicitly renders the given template with the given argument
         /** @par Example:
             @code{.py}
-hash<auto> h = qft.render(ctx);
+hash<HttpResponseInfo> h = qft.render(ctx);
             @endcode
 
             @param new_mtime the modified date/time of the file, used to determine if the template should be recomiled or not
             @param ctx the context argument for the template
-            @param code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
+            @param http_code the HTTP response code for the response, if not present then 200 \c "OK" is assumed
             @param hdr any optional headers for the response (the \c "Content-Type" header is set from the template's \c "Content-Type" value automatically)
 
             @return a hash with the following keys:
@@ -399,7 +446,7 @@ hash<auto> h = qft.render(ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's \c "Content-Type" value)
         */
-        hash<auto> render(date new_mtime, hash ctx, int code = 200, *hash<auto> hdr) {
+        private hash<HttpResponseInfo> renderImpl(date new_mtime, hash<auto> ctx, int http_code = 200, *hash<auto> hdr) {
             rwl.readLock();
             on_exit rwl.readUnlock();
 
@@ -412,10 +459,10 @@ hash<auto> h = qft.render(ctx);
                 setupTemplateIntern(new_mtime);
             }
 
-            return {
-                "code": code,
+            return <HttpResponseInfo>{
+                "code": http_code,
                 "body": p.callFunction(TemplateFunc, ctx),
-                "hdr": hdr + ("Content-Type": ct),
+                "hdr": hdr + {"Content-Type": ct},
             };
         }
 
@@ -453,7 +500,7 @@ hash<auto> h = qft.render(ctx);
             RWLock rwl();
 
             #! hash for template storage
-            hash th;
+            hash<string, AbstractTemplate> th;
 
             #! parse options used on the program
             int po;
@@ -475,7 +522,7 @@ hash<auto> h = qft.render(ctx);
         #! explicitly renders the given template with the given path and context argument
         /** @par Example:
             @code{.py}
-hash h = tm.render(resource_path, path, mtime, ctx);
+hash<auto> h = tm.render(resource_path, path, mtime, ctx);
             @endcode
 
             @param tname the template name, normally a relative path for a template file, however this could also be the absolute path
@@ -490,7 +537,7 @@ hash h = tm.render(resource_path, path, mtime, ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
-        hash render(string tname, string path, date mtime, hash ctx, int code = 200, *hash<auto> hdr) {
+        hash<HttpResponseInfo> render(string tname, string path, date mtime, hash<auto> ctx, int code = 200, *hash<auto> hdr) {
             {
                 rwl.readLock();
                 on_exit rwl.readUnlock();
@@ -558,7 +605,7 @@ string qhtml = "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=
     <fieldset class=\"workflow_list\">
         <legend>Step 1: Select Workflow</legend>
           <select class=\"worfklows\" name=\"workflow\" id=\"workflow\">
-            {% foreach my hash $h ($ctx.workflows.pairIterator()) { %}
+            {% foreach my hash<auto> $h ($ctx.workflows.pairIterator()) { %}
             <option value="{{ $h.key }}">{{ $h.value.label }}</option>
             {% } %}
           </select>
@@ -611,7 +658,7 @@ tm.add("/html/index.qhtml", qhtml);
         #! explicitly renders the given template with the given argument
         /** @par Example:
             @code{.py}
-hash h = tm.render("html/index.qhtml", ctx);
+hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             @endcode
 
             @param tname the template name
@@ -626,10 +673,10 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             @throw TEMPLATE-ERROR the given template does not exist
         */
-        hash<HttpResponseInfo> render(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
-            *hash vth = th{tname};
+        hash<HttpResponseInfo> render(string tname, hash<auto> ctx, int code = 200, *hash<auto> hdr) {
+            *hash<auto> vth = th{tname};
             if (!vth)
-                throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, th.keys());
+                throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, keys th);
 
             return <HttpResponseInfo>{
                 "code": code,
@@ -641,7 +688,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! explicitly renders the given template with the given argument context hash if the template exists; if not, returns @ref nothing
         /** @par Example:
             @code{.py}
-*hash h = tm.tryRender("html/index.qhtml", ctx);
+*hash<HttpResponseInfo> h = tm.tryRender("html/index.qhtml", ctx);
             @endcode
 
             @param tname the template name
@@ -654,7 +701,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
-        *hash<HttpResponseInfo> tryRender(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
+        *hash<HttpResponseInfo> tryRender(string tname, hash<auto> ctx, int code = 200, *hash<auto> hdr) {
             *hash<auto> vth = th{tname};
             if (!vth) {
                 return;
@@ -799,7 +846,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c chunked_threshold: the minimum size for sending files with a chunked transfer encoding
             - \c chunk_size: the HTTP chunk size for sending files with chunked transfer encoding
         */
-        constructor(string new_file_root, string url_root = "/", *hash opt) : HttpServer::AbstractUrlHandler(url_root, opt.auth), TemplateFileManager(opt.po, opt.psetup) {
+        constructor(string new_file_root, string url_root = "/", *hash<auto> opt) : HttpServer::AbstractUrlHandler(url_root, opt.auth), TemplateFileManager(opt.po, opt.psetup) {
             file_root = normalize_dir(new_file_root);
             # make sure file_root ends in a directory separator character
             if (file_root[file_root.size() - 1] != DirSep)
@@ -853,17 +900,17 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
         */
-        hash handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+        hash<HttpResponseInfo> handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
             # get local request path and "localize" it and strip off any query args
             string path = getRelativePath(hdr.path);
 
             # add URI query parameters to hdr if possible
             hdr.params = parse_uri_query(hdr.path).params;
 
-            cx += ("resource_path": path, "url_root": url_root, "file_root": file_root, "isregex": False, "hdr": hdr);
+            cx += {"resource_path": path, "url_root": url_root, "file_root": file_root, "isregex": False, "hdr": hdr};
 
             try {
-                *hash h = handleRequestImpl(\cx, hdr, body);
+                *hash<HttpResponseInfo> h = handleRequestImpl(\cx, hdr, body);
                 if (!h) {
                     h = tryServeRequest(listener, s, cx, hdr, body);
                     if (!h) {
@@ -907,14 +954,14 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! this method returns a 400 \c "Bad Request" error code when a file should be served that's not a regular file
         /** this method is called when a file cannot be served because it's not a regular file; reimplement this method in subclasses to customize error handling
         */
-        private hash<HttpResponseInfo> fileError(hash<auto> cx, hash sh) {
+        private hash<HttpResponseInfo> fileError(hash<auto> cx, hash<auto> sh) {
             return makeResponse(400, "The requested resource cannot be served");
         }
 
         #! this method returns a 500 \c "Internal Server Error" error code when an exception occurs
         /** this method is called when an exception occurs; reimplement this method in subclasses to customize error handling
         */
-        private hash<HttpResponseInfo> serverError(hash<auto> cx, hash ex) {
+        private hash<HttpResponseInfo> serverError(hash<auto> cx, hash<auto> ex) {
             string errstr = get_exception_string(ex);
             logError(errstr);
             string desc;
@@ -1084,7 +1131,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
             - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
         */
-        private *hash<HttpResponseInfo> handleRequestImpl(reference<hash> cx, hash<auto> hdr, *data body) {
+        private *hash<HttpResponseInfo> handleRequestImpl(reference<hash<auto>> cx, hash<auto> hdr, *data body) {
         }
     }
 }
