@@ -1,0 +1,84 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore ServiceNowRestDataProvider module definition
+
+/*  ServiceNowRestDataProvider.qm Copyright 2020 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.9.10
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) ServiceNowRestClient
+
+module ServiceNowRestDataProvider {
+    version = "1.0.0";
+    desc = "user module providing a data provider API for ServiceNow instances through the REST API";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new ServiceNowRestDataProviderFactory());
+    };
+}
+
+/** @mainpage ServiceNowRestDataProvider Module
+
+    @tableofcontents
+
+    @section servicenowrestdataproviderintro Introduction to the ServiceNowRestDataProvider Module
+
+    The %ServiceNowRestDataProvider module provides a @ref dataproviderintro "data provider" API for ServiceNow REST
+    services.  The @ref ServiceNowRestDataProvider::ServiceNowRestDataProvider "ServiceNowRestDataProvider" class
+    allows for introspecting a ServiceNow application instance, while the
+    @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider" class
+    supports the @ref dataproviderintro "data provider" record-based API for querying and manipulating table data in
+    the application.
+
+    ServiceNow instances can be introspected with the following format:
+    - REST operation path: <tt><i>uri_path</i></tt>
+      - ex: <tt><b>tables/incident</b></tt>
+      - results in a
+        @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider" object
+        where record operations supported on the object can be executed
+
+    The following classes are provided by this module:
+    - @ref ServiceNowRestDataProvider::ServiceNowRestDataProvider "ServiceNowRestDataProvider"
+    - @ref ServiceNowRestDataProvider::ServiceNowRestDataProviderFactory "ServiceNowRestDataProviderFactory"
+    - @ref ServiceNowRestDataProvider::ServiceNowTablesDataProvider "ServiceNowTablesDataProvider"
+    - @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider"
+    - @ref ServiceNowRestDataProvider::ServiceNowRestRecordIterator "ServiceNowRestRecordIterator"
+
+    @subsection servicenowrestdataprovider_v1_0 ServiceNowRestDataProvider v1.0
+    - initial release of the module
+*/
+
+#! contains all public definitions in the ServiceNowRestDataProvider module
+public namespace ServiceNowRestDataProvider {
+}
