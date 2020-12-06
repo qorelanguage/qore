@@ -219,7 +219,13 @@ class QdpCmd {
 
     static create(AbstractDataProvider provider) {
         *hash<auto> rec = QdpCmd::getHash("create");
-        provider.createRecord(rec);
+        if (!exists rec) {
+            QdpCmd::error("missing argument to 'create' action; a hash is required");
+        }
+        *hash<auto> rv = provider.createRecord(rec);
+        if (opts.verbose) {
+            printf("new record: %y\n", rv);
+        }
         printf("record successfully created\n");
     }
 

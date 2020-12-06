@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module SalesforceRestClient {
-    version = "1.5";
+    version = "1.5.1";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,12 +126,12 @@ list<string> sub create_accounts(list account_list) {
 %requires SalesforceRestClient
 %requires json
 
-hash<auto> opts = (
+hash<auto> opts = {
     "client_id": ENV.SALESFORCE_CONSUMER_KEY,
     "client_secret": ENV.SALESFORCE_CONSUMER_SECRET,
     "username": ENV.SALESFORCE_USER,
     "password": ENV.SALESFORCE_PASS,
-);
+};
 
 SalesforceRestClient rest(opts);
 
@@ -152,6 +152,9 @@ rc.bulkJobClose(h.id);
     functionality and a more detailed example of code using this module.
 
     @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv1_5_1 SalesforceRestClient v1.5.1
+    - added support for \c username and \c password connection options for better security handling
 
     @subsection salesforcerestclientv1_5 SalesforceRestClient v1.5
     - implemented support for a data provider scheme cache and rich option information for connections
@@ -1111,7 +1114,18 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "desc": "the OAuth logout / revoke token URL",
                     "default_value": SalesforceRestClient::Defaults.oauth_url_auth,
                 },
+                "password": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the ServiceNow password (will override any password in the URL)",
+                    "sensitive": True,
+                },
+                "username": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the ServiceNow username (will override any username in the URL)",
+                    "sensitive": False,
+                },
             },
+            # FIXME: username and password are currently optional for backwards compatibility with URL auth options
             "required_options": "client_id,client_secret",
         };
     }

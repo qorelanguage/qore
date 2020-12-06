@@ -122,6 +122,8 @@ public class ConnectionSchemeCache {
 
             "sftp": "Ssh2Connections",
 
+            "snrests": "ServiceNowRestClient",
+
             "ssh": "Ssh2Connections",
 
             "jsonrpc": "JsonRpcClient",
