@@ -42,6 +42,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/CdsRestClient.qm \
+	qlib/ServiceNowRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
@@ -78,7 +79,8 @@ DOX_SPLIT_MODULES = \
 	qlib/CsvUtil \
     qlib/SwaggerDataProvider \
     qlib/SalesforceRestDataProvider \
-    qlib/CdsRestDataProvider
+    qlib/CdsRestDataProvider \
+    qlib/ServiceNowRestDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -91,6 +93,7 @@ FixedLengthUtil_modverdir = $(modverdir)/FixedLengthUtil
 SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
 SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 CdsRestDataProvider_modverdir = $(modverdir)/CdsRestDataProvider
+ServiceNowRestDataProvider_modverdir = $(modverdir)/ServiceNowRestDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -103,6 +106,7 @@ dist_FixedLengthUtil_modver_DATA = $(wildcard qlib/FixedLengthUtil/*.q[cm])
 dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[cm])
 dist_SalesforceRestDataProvider_modver_DATA = $(wildcard qlib/SalesforceRestDataProvider/*.q[cm])
 dist_CdsRestDataProvider_modver_DATA = $(wildcard qlib/CdsRestDataProvider/*.q[cm])
+dist_ServiceNowRestDataProvider_modver_DATA = $(wildcard qlib/ServiceNowRestDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)

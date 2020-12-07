@@ -1,0 +1,183 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/ServiceNowRestClient.qm
+%requires ../../../../qlib/ServiceNowRestDataProvider
+
+%try-module json
+%define NoJson
+%endtry
+
+%requires qore >= 0.9.10
+
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+%exec-class ServiceNowTest
+
+class ServiceNowTest inherits QUnit::Test {
+    public {}
+
+    private {
+        ServiceNowRestClient rc;
+
+        # ServiceNow connection options
+        hash<auto> snopts;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "username":       "U,username=s",
+            "password":       "p,password=s",
+            "client_id":      "i,client_id=s",
+            "client_secret":  "s,client_secret=s",
+            "timeout":        "t,timeout=i",
+            "url":            "u,url=s",
+        };
+
+        const OptionColumn = 22;
+
+        const AcctNo1 = "DEL_TEST_1";
+        const AcctName1 = "My Test Account 1";
+
+        const AcctNo2 = "DEL_TEST_2";
+    }
+
+    constructor() : Test("ServiceNowTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("ServiceNow DataProvider test", \ServiceNowDataProviderTests());
+        addTestCase("ServiceNow REST", \ServiceNowRestTests());
+        addTestCase("connection tests", \connectionTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+        }
+
+        set_return_value(main());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-i,--client_id=ARG", "set ServiceNow consumer key", OptionColumn);
+        printOption("-p,--password=ARG", "set ServiceNow pass", OptionColumn);
+        printOption("-s,--client_secret=ARG", "set ServiceNow consumer secret", OptionColumn);
+        printOption("-t,--timeout=ARG", "set ServiceNow timeout in seconds", OptionColumn);
+        printOption("-U,--username=ARG", "set ServiceNow user", OptionColumn);
+        printOption("-u,--url=ARG", "URL for the ServiceNow instance", OptionColumn);
+    }
+
+    setupConnection() {
+        snopts.url = m_options.url ?? ENV.SERVICENOW_URL;
+        if (!snopts.url)
+            error("missing --url option or SERVICENOW_URL environment variable");
+        snopts.client_id = m_options.client_id ?? ENV.SERVICENOW_CLIENT_ID;
+        if (!snopts.client_id)
+            error("missing --client_id option or SERVICENOW_CLIENT_ID environment variable");
+        snopts.client_secret = m_options.client_secret ?? ENV.SERVICENOW_CLIENT_SECRET;
+        if (!snopts.client_secret)
+            error("missing --client_secret option or SERVICENOW_CLIENT_SECRET environment variable");
+        snopts.username = m_options.username ?? ENV.SERVICENOW_USERNAME;
+        if (!snopts.username)
+            error("missing --username option or SERVICENOW_USERNAME environment variable");
+        snopts.password = m_options.password ?? ENV.SERVICENOW_PASSWORD;
+        if (!snopts.password)
+            error("missing --password option or SERVICENOW_PASSWORD environment variable");
+        if (snopts."timeout")
+            snopts.connect_timeout = snopts."timeout";
+
+        rc = new ServiceNowRestClient(snopts);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    ServiceNowDataProviderTests() {
+        if (!rc) testSkip("no ServiceNow connection");
+
+        AbstractDataProvider dp = new ServiceNowRestDataProvider(rc);
+        dp = dp.getChildProvider("tables");
+
+        assertFalse(dp.requiresTransactionManagement());
+        {
+            list<string> children = dp.getChildProviderNames();
+            assertEq(Type::List, children.type());
+            hash<string, bool> child_map = map {$1: True}, children;
+            assertTrue(child_map.incident);
+        }
+
+        list<hash<auto>> recs;
+        {
+            AbstractDataProvider incident = dp.getChildProvider("incident");
+
+            string desc = get_random_string();
+            string id;
+            {
+                # create new incident
+                hash<auto> rec = {
+                    "short_description": desc,
+                };
+                id = incident.createRecord(rec).sys_id;
+            }
+            on_exit {
+                # delete the record
+                assertEq(1, incident.deleteRecords({"sys_id": id}));
+            }
+
+            # search the record
+            recs = map $1, incident.searchRecords({"short_description": desc}, {"limit": 1});
+            assertEq(1, recs.size());
+            assertEq(id, recs[0].sys_id);
+
+            # update the record
+            assertEq(1, incident.updateRecords({"short_description": "deleteme-now"}, {"sys_id": id}));
+        }
+    }
+
+    ServiceNowRestTests() {
+        if (!rc) testSkip("no ServiceNow connection");
+
+        assertEq(Type::NothingType, rc.getApi().type());
+
+        assertEq(Type::String, rc.getToken().type());
+
+        hash<auto> info;
+        hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
+        on_error printf("%N\n", h);
+        assertEq(Type::Hash, h.body.response.result.type());
+    }
+
+    connectionTest() {
+        string url = "http://localhost:8080";
+        ServiceNowRestConnection swsc("test", "test", url, {}, {
+            "client_id": "x",
+            "client_secret": "x",
+            "username": "x",
+            "password": "x",
+        });
+        assertEq(True, swsc instanceof ServiceNowRestConnection);
+
+        assertThrows("CONNECTION-ERROR", sub () {
+            ServiceNowRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+        });
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        ServiceNowRestClient client = swsc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
+    }
+}

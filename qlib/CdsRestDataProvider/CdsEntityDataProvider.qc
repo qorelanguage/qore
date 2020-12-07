@@ -310,7 +310,7 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
                 }
             }
             record_info.field_types{attr.Name} = type.getBaseTypeName();
-            record_info.record_type{attr.Name} = new QoreDataField(attr.Name, NOTHING, type);
+            record_info.record_type{attr.Name} = new QoreDataField(attr.Name, desc, type);
         }
     }
 
