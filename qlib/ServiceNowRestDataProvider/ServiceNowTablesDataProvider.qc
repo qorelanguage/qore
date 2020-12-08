@@ -138,16 +138,18 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
 
         hash<auto> info;
         try {
-            hash<auto> rv = rest.get("table/sys_db_object?"
+            hash<auto> rv += rest.get("table/sys_db_object?"
                 "sysparm_fields=name,sys_id,create_access,delete_access,read_access,update_access,super_class&sysparm_query=name=" + name,
                 NOTHING, \info).body.response.result;
 
             if (rv.super_class) {
-                getAccessIdIntern(rv.super_class.value, \rv.super_class);
-                scmap{name} = rv.super_class;
+                string super_class;
+                getAccessIdIntern(rv.super_class.value, \super_class);
+                scmap{name} = super_class;
             }
             access{name} = accessid{rv.sys_id} = rv + parseBools(rv - ("name", "sys_id", "super_class"));
         } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
             throw ex.err, ex.desc, ex.arg + ex_arg;

@@ -97,9 +97,6 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
         self.access = access;
         self.meta = SysColumns + meta;
         uri_path += name;
-        if (name == "incident" && !meta.short_description) {
-            throw "XX";
-        }
         getRecordInfoIntern();
     }
 
