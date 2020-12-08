@@ -71,7 +71,7 @@ static const option pgm_opts[] = {
     {"dox-output", required_argument, nullptr, 'd'},
     {"help", no_argument, nullptr, 'h'},
     {"output", required_argument, nullptr, 'o'},
-    {"unit-output", required_argument, nullptr, 'u'},
+    {"unit", required_argument, nullptr, 'u'},
     {"table", required_argument, nullptr, 't'},
     {"verbose", optional_argument, nullptr, 'v'},
     {"value", no_argument, nullptr, 'V'},
@@ -4454,7 +4454,7 @@ void process_command_line(int& argc, char**& argv) {
     pn = basename(argv[0]);
 
     int ch;
-    while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, nullptr)) != -1) {
+    while ((ch = getopt_long(argc, argv, "d:ho:u:t:v:V", pgm_opts, nullptr)) != -1) {
         //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
 
         switch (ch) {
