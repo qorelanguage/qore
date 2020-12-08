@@ -37,7 +37,7 @@
 %requires(reexport) ServiceNowRestClient
 
 module ServiceNowRestDataProvider {
-    version = "1.0.0";
+    version = "1.0.1";
     desc = "user module providing a data provider API for ServiceNow instances through the REST API";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module ServiceNowRestDataProvider {
     - @ref ServiceNowRestDataProvider::ServiceNowTablesDataProvider "ServiceNowTablesDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowRestRecordIterator "ServiceNowRestRecordIterator"
+
+    @subsection servicenowrestdataprovider_v1_0_1 ServiceNowRestDataProvider v1.0.1
+    - fixed a type error in DataProvider API support
+      (<a href="https://github.com/qorelanguage/qore/issues/4104">issue 4104</a>)
 
     @subsection servicenowrestdataprovider_v1_0 ServiceNowRestDataProvider v1.0
     - initial release of the module
