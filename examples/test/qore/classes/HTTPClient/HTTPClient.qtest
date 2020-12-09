@@ -19,7 +19,7 @@ class HttpTestServer {
         int port;
         string body;
 
-        hash hdr;
+        hash<auto> hdr;
 
         SSLCertificate remote_cert;
     }
@@ -65,27 +65,28 @@ class HttpTestServer {
         return body;
     }
 
-    hash getHeader() {
+    hash<auto> getHeader() {
         return hdr;
     }
 }
 
 class TestStreamRequest inherits AbstractStreamRequest {
     private:internal {
-        hash strhdr;
+        hash<auto> strhdr;
         string data;
 
-        list l = ();
+        list<auto> l = ();
     }
 
     # setup the object and the headers for the response
-    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body)
+            : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
         strhdr."Content-Type" = hdr."content-type";
         if (hdr."transfer-encoding" == "chunked")
             strhdr."X-Was-Chunked" = "yes";
     }
 
-    recvImpl(hash v) {
+    recvImpl(hash<auto> v) {
         if (v.data)
             data += v.data;
         else if (v.hdr)
@@ -93,9 +94,16 @@ class TestStreamRequest inherits AbstractStreamRequest {
         l += v;
     }
 
-    hash getResponseHeaderMessageImpl() {
+    hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
         #printf("l: %N\n", l);
-        return AbstractHttpRequestHandler::makeResponse(strhdr + ("X-Got-Chunks": l.size() - 1), 200, data ?? "OK");
+        hash<auto> hdr = strhdr + {
+            "X-Got-Chunks": l.size() - 1,
+        };
+        # test for issue #4109
+        if (self.hdr.method == "HEAD") {
+            hdr."Transfer-Encoding" = "chunked";
+        }
+        return AbstractHttpRequestHandler::makeResponse(hdr, 200, data ?? "OK");
     }
 }
 
@@ -104,15 +112,16 @@ class TestDisconnectStreamRequest inherits AbstractStreamRequest {
     }
 
     # setup the object and the headers for the response
-    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash cx, hash hdr, any body) : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body)
+            : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
     }
 
     recvImpl(hash<auto> v) {
     }
 
-    hash<auto> getResponseHeaderMessageImpl() {
+    hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
         s.close();
-        return {};
+        return <HttpResponseInfo>{};
     }
 }
 
@@ -129,7 +138,7 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     }
 
     # return the stream request handler
-    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash cx, hash hdr, *data body) {
+    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
         remote_cert = s.getRemoteCertificate();
         if (hdr."x-test-disconnect") {
             return new TestDisconnectStreamRequest(listener, self, s, cx, hdr, body);
@@ -331,6 +340,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("chunked HEAD test", \chunkedHeadTest());
         addTestCase("assume encoding", \assumedEncoding());
         addTestCase("chunked disconnect test", \chunkedDisconnectTest());
         addTestCase("client certs", \clientCertTest());
@@ -359,6 +369,25 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             hc.setAssumedEncoding("UTF-8");
             assertEq("UTF-8", hc.getAssumedEncoding());
         }
+    }
+
+    chunkedHeadTest() {
+        TempFile cert("cert.pem", TestCert);
+
+        RealTestHttpServer serv(cert.getPath(), cert.getPath());
+        on_exit delete serv;
+
+        HTTPClient hc({
+            "url": "https://localhost:" + serv.getPort(),
+        });
+        hash<auto> hdr = {
+            "Connection": "Keep-Alive",
+        };
+
+        hash<auto> resp = hc.send(NOTHING, "HEAD", "/", hdr);
+        assertEq(200, resp.status_code);
+        assertEq("chunked", resp."transfer-encoding");
+        hc.disconnect();
     }
 
     chunkedDisconnectTest() {

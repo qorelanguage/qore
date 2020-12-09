@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.5
+%requires qore >= 0.9.10
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
 
@@ -32,7 +32,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "0.9.5";
+    version = "0.9.11";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -71,6 +71,11 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil095 HttpServerUtil 0.9.11
+    - fixed a bug that left hanging threads in HTTP operations with I/O callbacks with \c HEAD requests and a
+      <tt>Transfer-Encoding: chunked</tt> header in the response
+      (<a href="https://github.com/qorelanguage/qore/issues/4109">issue 4109</a>)
 
     @subsection httputil095 HttpServerUtil 0.9.5
     - aligned version with the HttpServer module version
@@ -879,9 +884,17 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
 
     The calling order is as follows:
     - constructor(): this is called when the request is received
-    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  The simulation of a chunked transfer or the actual chunked receive with the callbacks is made by the handleRequest() method.  Subclasses should re-implement recvImpl() which is called by this method
-    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by this method
-    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is sent.  Subclasses should re-implement sendImpl() which is called by this method
+    - recv(): this is called once for each HTTP chunk (if data is sent chunked), and then once with any message
+      trailer.  If data is sent non-chunked, then this method is called with the monolithic message body and then
+      again with @ref nothing to signify the end of the transfer and to simulate a chunked transfer.  The simulation
+      of a chunked transfer or the actual chunked receive with the callbacks is made by the handleRequest() method.
+      Subclasses should re-implement recvImpl() which is called by this method
+    - getResponseHeaderMessage(): this is called after the message body has been received to get the response headers
+      and optionally a message body.  Subclasses should reimplement getResponseHeaderMessageImpl() which is called by
+      this method
+    - send(): this is called if no message body is returned by getResponseHeaderMessage(); each time this method
+      returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is
+      sent.  Subclasses should re-implement sendImpl() which is called by this method
 */
 public class HttpServer::AbstractStreamRequest {
     public {}
@@ -904,23 +917,24 @@ public class HttpServer::AbstractStreamRequest {
     }
 
     #! creates the object with the given attributes
-    /** @param n_listener an HttpListenerInterface object for the listener serving the request for logging purposes
-        @param n_handler the handler serving the request
-        @param n_s the Socket for serving the request
-        @param n_cx a call context hash
-        @param n_hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+    /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
+        @param handler the handler serving the request
+        @param s the Socket for serving the request
+        @param cx a call context hash
+        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys
+        will be present:
         - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
         - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-        @param n_body any message body in the request already received from the incoming socket
+        @param body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface n_listener, AbstractHttpRequestHandler n_handler, Socket n_s, hash<auto> n_cx, hash<auto> n_hdr, auto n_body) {
-        listener = n_listener;
-        handler = n_handler;
-        s = n_s;
-        cx = n_cx;
-        hdr = n_hdr;
-        body = n_body;
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body) {
+        self.listener = listener;
+        self.handler = handler;
+        self.s = s;
+        self.cx = cx;
+        self.hdr = hdr;
+        self.body = body;
     }
 
     #! handles the request
@@ -928,13 +942,14 @@ public class HttpServer::AbstractStreamRequest {
         # handle message body
         if (exists body) {
             hash<auto> dh = {
-                "data": body, "chunked": False
+                "data": body,
+                "chunked": False
             };
             if (cx.deserialized)
                 dh.deserialized = True;
             recv(dh);
             # signal end of data
-            recvImpl(("hdr": NOTHING));
+            recvImpl({"hdr": NOTHING});
         } else {
             if (hdr."transfer-encoding" == "chunked") {
                 if (hdr."content-encoding")
@@ -942,7 +957,7 @@ public class HttpServer::AbstractStreamRequest {
                 else
                     s.readHTTPChunkedBodyWithCallback(\recv(), timeout_ms);
             } else # signal end of data
-                recvImpl(("hdr": NOTHING));
+                recvImpl({"hdr": NOTHING});
         }
 
         return sendResponse();
@@ -956,13 +971,14 @@ public class HttpServer::AbstractStreamRequest {
     */
     private hash<HttpHandlerResponseInfo> sendResponse() {
         hash<HttpHandlerResponseInfo> rv = getResponseHeaderMessage();
-        if (rv.hdr."Transfer-Encoding" != "chunked")
+        # issue #4109: do not start async I/O with a HEAD request
+        if (rv.hdr."Transfer-Encoding" != "chunked" || hdr.method == "HEAD")
             return rv;
 
         http_set_reply_headers(s, cx, \rv);
 
         # send chunked response
-        s.sendHTTPResponseWithCallback(\send(), rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, timeout_ms);
+        s.sendHTTPResponseWithCallback(\send(), rv."code", HttpServer::HttpCodes{rv."code"}, "1.1", rv.hdr, timeout_ms);
         rv.reply_sent = True;
         listener.logResponse(cx, rv);
         return rv;
