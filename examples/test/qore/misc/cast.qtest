@@ -297,6 +297,12 @@ class CastingTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
+            p.parse("sub t() { auto x = cast<Mutex>(new Sequence()); remove x; }", "");
+            assertTrue(True);
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
             p.parse("sub t() { auto x = cast<*Mutex>(*Mutex m); remove x; }", "");
             assertNothing(p.callFunction("t"));
         }

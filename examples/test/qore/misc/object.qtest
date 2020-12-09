@@ -134,9 +134,39 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
 
     instanceofTest() {
         Mutex m();
+        assertTrue(m instanceof AbstractSmartLock);
         Mutex n = m;
+        assertTrue(n instanceof AbstractSmartLock);
         delete n;
         assertFalse(m instanceof AbstractSmartLock);
+
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("Mutex m; bool b = m instanceof int; delete b;", "", -1);
+            on_error printf("%N\n", warn);
+            assertEq("hash<ExceptionInfo>", warn.fullType());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("float f; bool b = f instanceof int; delete b;", "", -1);
+            on_error printf("%N\n", warn);
+            assertEq("hash<ExceptionInfo>", warn.fullType());
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("Mutex m(); bool b = m instanceof Sequence; delete b;", "", -1);
+            on_error printf("%N\n", warn);
+            assertNothing(warn);
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("float f = 1; bool b = f instanceof float; delete b;", "", -1);
+            on_error printf("%N\n", warn);
+            assertNothing(warn);
+        }
     }
 
     testObj() {

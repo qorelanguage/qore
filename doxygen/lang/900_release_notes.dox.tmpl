@@ -8,12 +8,24 @@
     Bugfix release; see below for more information
 
     @subsection qore_0911_bug_fixes Bug Fixes in Qore
-    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>: fixed a bug handling responses to
-      streaming requests with \c HEAD requests with a <tt>Transfer-Encoding: chunked</tt> response
-      (<a href="https://github.com/qorelanguage/qore/issues/4109">issue 4109</a>)
-    - <a href="../../modules/ServiceNowRestDataProvider/html/index.html">ServiceNowRestDataProvider</a>: fixed a type
-      error in DataProvider API support
-      (<a href="https://github.com/qorelanguage/qore/issues/4104">issue 4104</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+      - fixed a bug where HTTP stream handlers could not also implement protocol switching
+        (<a href="https://github.com/qorelanguage/qore/issues/4111">issue 4111</a>)
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>
+      - fixed a bug where HTTP stream handlers could not also implement protocol switching
+        (<a href="https://github.com/qorelanguage/qore/issues/4111">issue 4111</a>)
+      - fixed a bug handling responses to streaming requests with \c HEAD requests with a
+        <tt>Transfer-Encoding: chunked</tt> response
+        (<a href="https://github.com/qorelanguage/qore/issues/4109">issue 4109</a>)
+    - <a href="../../modules/ServiceNowRestDataProvider/html/index.html">ServiceNowRestDataProvider</a>
+      - fixed a type error in DataProvider API support
+        (<a href="https://github.com/qorelanguage/qore/issues/4104">issue 4104</a>)
+    - fixed a bug in the @ref cast "cast<>"; invalid exceptions were raised during parsing for
+      values that could still inherit the target class; the check must only be made at runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/4113">issue 4113</a>)
+    - fixed a bug in the @ref instanceof "instanceof operator"; invalid exceptions were raised during parsing for
+      values that could still inherit the target class; the check must only be made at runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/4112">issue 4112</a>)
 
     @section qore_0910 Qore 0.9.10
 

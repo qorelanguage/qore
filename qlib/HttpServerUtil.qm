@@ -114,544 +114,548 @@ module HttpServerUtil {
     All the public symbols in the module are defined in this namespace
  */
 public namespace HttpServer {
-    #! version of the HttpServer's implementation
-    public const HttpServerVersion = "0.9.4";
+#! version of the HttpServer's implementation
+public const HttpServerVersion = "0.9.11";
 
-    #! default HTTP server string
-    public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
+#! default HTTP server string
+public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
 
-    #! default timeout in ms
-    public const DefaultTimeout = 30s;  # recvs timeout after 30 seconds
+#! default timeout in ms
+public const DefaultTimeout = 30s;  # recvs timeout after 30 seconds
 
-    #! read timeout in ms
-    public const ReadTimeout = DefaultTimeout;
+#! read timeout in ms
+public const ReadTimeout = DefaultTimeout;
 
-    #! maximum X.509 and private key file length
-    /** there is no real maximum size for these files, however an upper limit is used here to ensure that
-        huge files are not used for the SSL cert and key files which could cause a crash or memory problems;
-        currently set to 1M which is orders of magnitude higher than any real files currently in existence
+#! maximum X.509 and private key file length
+/** there is no real maximum size for these files, however an upper limit is used here to ensure that
+    huge files are not used for the SSL cert and key files which could cause a crash or memory problems;
+    currently set to 1M which is orders of magnitude higher than any real files currently in existence
+*/
+public const MaxSslFileLen = 1024 * 1024;
+
+#! map of HTTP result codes and text messages
+public const HttpCodes = {
+    # 100s: Informational
+    "100": "Continue",
+    "101": "Switching Protocols",
+
+    # RFC 2518: WebDAV
+    "102": "Processing",
+
+    # 200s: Success
+    "200": "OK",
+    "201": "Created",
+    "202": "Accepted",
+    "203": "Non-Authoritative Information",
+    "204": "No Content",
+    "205": "Reset Content",
+    "206": "Partial Content",
+
+    # RFC 4918: WebDAV: The message body that follows is an XML message and can contain a number of separate response codes, depending on how many sub-requests were made
+    "207": "Multi-Status",
+
+    # RFC 5842: WebDAV: The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again
+    "208": "Already Reported",
+
+    # RFC 3229
+    "226": "IM Used",
+
+    # 300s: Redirection
+    "300": "Multiple Choices",
+    "301": "Moved Permanently",
+    "302": "Found",
+    "303": "See Other",
+    "304": "Not Modified",
+    "305": "Use Proxy",
+    #"306": "(Reserved)",
+    "307": "Temporary Redirect",
+
+    # 400s: Client Errors
+    "400": "Bad Request",
+    "401": "Unauthorized",
+    "402": "Payment Required",
+    "403": "Forbidden",
+    "404": "Not Found",
+    "405": "Method Not Allowed",
+    "406": "Not Acceptable",
+    "407": "Proxy Authentication Required",
+    "408": "Request Timeout",
+    "409": "Conflict",
+    "410": "Gone",
+    "411": "Length Required",
+    "412": "Precondition Failed",
+    "413": "Request Entity Too Large",
+    "414": "Request-URI Too Long",
+    "415": "Unsupported Media Type",
+    "416": "Requested Range Not Satisfiable",
+    "417": "Expectation Failed",
+
+    # RFC 2324: http://tools.ietf.org/html/rfc2324
+    "418": "I'm a teapot",
+
+    # Returned by the Twitter Search and Trends API when the client is being rate limited
+    "420": "Enhance Your Calm",
+
+    # RFC 4918: WebDAV: The request was well-formed but was unable to be followed due to semantic errors
+    "422": "Unprocessable Entity",
+
+    # RFC 4918: WebDAV: The resource that is being accessed is locked
+    "423": "Locked",
+
+    # RFC 4918: WebDAV: The request failed due to failure of a previous request (e.g. a PROPPATCH)
+    "424": "Failed Dependency",
+
+    # Internet draft: Defined in drafts of "WebDAV Advanced Collections Protocol", but not present in "Web Distributed Authoring and Versioning (WebDAV) Ordered Collections Protocol"
+    "425": "Unordered Collection",
+
+    # RFC 2817: The client should switch to a different protocol such as TLS/1.0
+    "426": "Upgrade Required",
+
+    # RFC 6585: The origin server requires the request to be conditional. Intended to prevent "the 'lost update' problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when meanwhile a third party has modified the state on the server, leading to a conflict."
+    "428": "Precondition Required",
+
+    # RFC 6585: The user has sent too many requests in a given amount of time. Intended for use with rate limiting schemes
+    "429": "Too Many Requests",
+
+    # RFC 6585
+    "431": "Request Header Fields Too Large",
+
+    # 500s: Server Errors
+    "500": "Internal Server Error",
+    "501": "Not Implemented",
+    "502": "Bad Gateway",
+    "503": "Service Unavailable",
+    "504": "Gateway Timeout",
+    "505": "HTTP Version Not Supported",
+    "509": "Bandwidth Limit Exceeded",
+
+    # RFC 2774: Further extensions to the request are required for the server to fulfill it
+    "510": "Not Extended",
+
+    # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
+    "511": "Network Authentication Required",
+};
+
+/** @defgroup HttpServerLoggingOptions HttpServer Logging Options
+*/
+#@{
+#! bit for logging argument
+public const LP_LOGPARAMS = 1 << 16;
+
+#! mask for the log level
+public const LP_LEVELMASK = LP_LOGPARAMS - 1;
+#@}
+
+#! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
+public hashdecl HttpResponseInfo {
+    #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
+    int code;
+
+    #! the message body to return in the response
+    /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
+        sendImpl() are not called
+
+        @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
     */
-    public const MaxSslFileLen = 1024 * 1024;
+    *data body;
 
-    #! map of HTTP result codes and text messages
-    public const HttpCodes = {
-        # 100s: Informational
-        "100": "Continue",
-        "101": "Switching Protocols",
+    #! the message body to return in the response as a chunked response
+    /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
+        sendImpl() are not called
 
-        # RFC 2518: WebDAV
-        "102": "Processing",
-
-        # 200s: Success
-        "200": "OK",
-        "201": "Created",
-        "202": "Accepted",
-        "203": "Non-Authoritative Information",
-        "204": "No Content",
-        "205": "Reset Content",
-        "206": "Partial Content",
-
-        # RFC 4918: WebDAV: The message body that follows is an XML message and can contain a number of separate response codes, depending on how many sub-requests were made
-        "207": "Multi-Status",
-
-        # RFC 5842: WebDAV: The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again
-        "208": "Already Reported",
-
-        # RFC 3229
-        "226": "IM Used",
-
-        # 300s: Redirection
-        "300": "Multiple Choices",
-        "301": "Moved Permanently",
-        "302": "Found",
-        "303": "See Other",
-        "304": "Not Modified",
-        "305": "Use Proxy",
-        #"306": "(Reserved)",
-        "307": "Temporary Redirect",
-
-        # 400s: Client Errors
-        "400": "Bad Request",
-        "401": "Unauthorized",
-        "402": "Payment Required",
-        "403": "Forbidden",
-        "404": "Not Found",
-        "405": "Method Not Allowed",
-        "406": "Not Acceptable",
-        "407": "Proxy Authentication Required",
-        "408": "Request Timeout",
-        "409": "Conflict",
-        "410": "Gone",
-        "411": "Length Required",
-        "412": "Precondition Failed",
-        "413": "Request Entity Too Large",
-        "414": "Request-URI Too Long",
-        "415": "Unsupported Media Type",
-        "416": "Requested Range Not Satisfiable",
-        "417": "Expectation Failed",
-
-        # RFC 2324: http://tools.ietf.org/html/rfc2324
-        "418": "I'm a teapot",
-
-        # Returned by the Twitter Search and Trends API when the client is being rate limited
-        "420": "Enhance Your Calm",
-
-        # RFC 4918: WebDAV: The request was well-formed but was unable to be followed due to semantic errors
-        "422": "Unprocessable Entity",
-
-        # RFC 4918: WebDAV: The resource that is being accessed is locked
-        "423": "Locked",
-
-        # RFC 4918: WebDAV: The request failed due to failure of a previous request (e.g. a PROPPATCH)
-        "424": "Failed Dependency",
-
-        # Internet draft: Defined in drafts of "WebDAV Advanced Collections Protocol", but not present in "Web Distributed Authoring and Versioning (WebDAV) Ordered Collections Protocol"
-        "425": "Unordered Collection",
-
-        # RFC 2817: The client should switch to a different protocol such as TLS/1.0
-        "426": "Upgrade Required",
-
-        # RFC 6585: The origin server requires the request to be conditional. Intended to prevent "the 'lost update' problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when meanwhile a third party has modified the state on the server, leading to a conflict."
-        "428": "Precondition Required",
-
-        # RFC 6585: The user has sent too many requests in a given amount of time. Intended for use with rate limiting schemes
-        "429": "Too Many Requests",
-
-        # RFC 6585
-        "431": "Request Header Fields Too Large",
-
-        # 500s: Server Errors
-        "500": "Internal Server Error",
-        "501": "Not Implemented",
-        "502": "Bad Gateway",
-        "503": "Service Unavailable",
-        "504": "Gateway Timeout",
-        "505": "HTTP Version Not Supported",
-        "509": "Bandwidth Limit Exceeded",
-
-        # RFC 2774: Further extensions to the request are required for the server to fulfill it
-        "510": "Not Extended",
-
-        # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
-        "511": "Network Authentication Required",
-    };
-
-    /** @defgroup HttpServerLoggingOptions HttpServer Logging Options
+        @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
     */
-    #@{
-    #! bit for logging argument
-    public const LP_LOGPARAMS = 1 << 16;
+    *InputStream chunked_body;
 
-    #! mask for the log level
-    public const LP_LEVELMASK = LP_LOGPARAMS - 1;
-    #@}
+    #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+    softbool close = False;
 
-    #! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
-    public hashdecl HttpResponseInfo {
-        #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
-        int code;
+    #! set this key to a hash of extra header information to be returned with the response
+    *hash<auto> hdr;
 
-        #! the message body to return in the response
-        /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
-            sendImpl() are not called
+    #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
+    bool reply_sent = False;
 
-            @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
-        */
-        *data body;
+    #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+    string log;
 
-        #! the message body to return in the response as a chunked response
-        /** if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and
-            sendImpl() are not called
+    #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+    string errlog;
 
-            @note if both \a body and \a chunked_body are set, then \a body is used, anc \a chunked_body is ignored
-        */
-        *InputStream chunked_body;
+    #! additional information to be added to the context (cx) variable's \a user_state key if the connection is not closed
+    *hash<auto> user_state;
+}
 
-        #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
-        softbool close = False;
+#! the return value of HTTP handler methods with potentially unserialized message bodies
+public hashdecl HttpHandlerResponseInfo {
+    #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
+    int code;
 
-        #! set this key to a hash of extra header information to be returned with the response
-        *hash<auto> hdr;
+    #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
+    auto body;
 
-        #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
-        bool reply_sent = False;
+    #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+    softbool close = False;
 
-        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
-        string log;
+    #! set this key to a hash of extra header information to be returned with the response
+    *hash<auto> hdr;
 
-        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
-        string errlog;
-    }
+    #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
+    bool reply_sent = False;
 
-    #! the return value of HTTP handler methods with potentially unserialized message bodies
-    public hashdecl HttpHandlerResponseInfo {
-        #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
-        int code;
+    #! a string can be returned here which will be logged in the HTTP server's log file (if any)
+    string log;
 
-        #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
-        auto body;
+    #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
+    string errlog;
 
-        #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
-        softbool close = False;
+    #! additional information to be added to the context (cx) variable's \a user_state key if the connection is not closed
+    *hash<auto> user_state;
+}
 
-        #! set this key to a hash of extra header information to be returned with the response
-        *hash<auto> hdr;
+# hashdecl for SSL info
+public hashdecl HttpCertInfo {
+    #! X.509 certificate
+    *SSLCertificate cert;
+    #! private key for cert
+    *SSLPrivateKey key;
+}
 
-        #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)
-        bool reply_sent = False;
-
-        #! a string can be returned here which will be logged in the HTTP server's log file (if any)
-        string log;
-
-        #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
-        string errlog;
-    }
-
-    # hashdecl for SSL info
-    public hashdecl HttpCertInfo {
-        #! X.509 certificate
-        *SSLCertificate cert;
-        #! private key for cert
-        *SSLPrivateKey key;
-    }
-
-    #! options for new listeners
-    public hashdecl HttpListenerOptionInfo {
-        #! the node value for the bind
-        *string node;
-        #! the service value for the bind
-        *softstring service;
-        #! the name of the listener
-        *string name;
-        #! SSL cert
-        *Qore::SSLCertificate cert;
-        #! SSL key
-        *Qore::SSLPrivateKey key;
-        #! handler info
-        *hash<string, hash<HttpHandlerConfigInfo>> handler_info;
-        #! logger info logger closure
-        *code logger;
-        #! errorlogger error logger closure
-        *code errorlogger;
-        #! stopc stop notification closure
-        *code stopc;
-        #! network family
-        int family = AF_UNSPEC;
-        #! ask for remote client certificates (causes browsers to prompt for a client cert on new connections)
-        /** ignored if no SSL certificate provided, otherwise @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" is
-            automatically added to \a ssl_verify_flags
-        */
-        bool get_remote_certs = False;
-        #! SSL certificate verification constants; see @ref ssl_mode_constants
-        /** ignored if no SSL certificate provided
-        */
-        int ssl_verify_flags = 0;
-        #! set to False to use openssl CA validation for client certificates
-        /** client certificates are requested if \a ssl_verify_flags contains @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER"
-        */
-        bool ssl_accept_all_certs = True;
-    }
-
-    #! hash providing HTTP handler configuration info
-    public hashdecl HttpHandlerConfigInfo {
-        #! the URI path for the handler
-        string path = "/";
-        #! if the URI path is a regular expression pattern
-        bool isregex = False;
-        #! the Content-Type that the handler handles (optional)
-        softlist<softstring> content_types;
-        #! the handler itself (required)
-        AbstractHttpRequestHandler handler;
-        #! a list of headers that indicate that a request should be handled by the handler (optional)
-        softlist<softstring> headers;
-    }
-
-    #! returns a complete URL from a bind address
-    /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
-        @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
-     */
-    public string sub http_get_url_from_bind(softstring bind, *string host) {
-        hash h = parse_url(bind);
-        # if there is only a port number, it will appear in the "host" key
-        if (h.size() == 1 && h.host && int(h.host) == h.host) {
-            h.port = int(h.host);
-            delete h.host;
-        }
-
-        if (!h.host) {
-            if (!h.port && h.path) {
-                h.host = "socket=" + remove h.path;
-                h.host =~ s/ /%20/g;
-                h.host =~ s/\//%2f/g;
-            } else
-                h.host = (!host || host == gethostname()) ? "localhost" : host;
-        }
-
-        # encose IPv6 addresses in "[]"
-        if (h.host =~ /^[[:xdigit:]:]+$/)
-            h.host = "[" + h.host + "]";
-
-        string login = h.password ? (h.password + ":") : "";
-        if (h.username)
-            login += sprintf("%s@", h.password);
-
-        return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http",
-                       login,
-                       h.host,
-                       h.port ? sprintf(":%d", h.port) : "");
-    }
-
-    #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
-    /** @param path the URI path to parse
-
-        @return a @ref Util::UriQueryInfo hash
-
-        @since
-        - 0.3.11 the \a params key value is always returned as a hash
-        - 0.3.12 the actual implementation is in @ref Util::parse_uri_query()
-
-        @note provided by @ref Util::parse_uri_query()
+#! options for new listeners
+public hashdecl HttpListenerOptionInfo {
+    #! the node value for the bind
+    *string node;
+    #! the service value for the bind
+    *softstring service;
+    #! the name of the listener
+    *string name;
+    #! SSL cert
+    *Qore::SSLCertificate cert;
+    #! SSL key
+    *Qore::SSLPrivateKey key;
+    #! handler info
+    *hash<string, hash<HttpHandlerConfigInfo>> handler_info;
+    #! logger info logger closure
+    *code logger;
+    #! errorlogger error logger closure
+    *code errorlogger;
+    #! stopc stop notification closure
+    *code stopc;
+    #! network family
+    int family = AF_UNSPEC;
+    #! ask for remote client certificates (causes browsers to prompt for a client cert on new connections)
+    /** ignored if no SSL certificate provided, otherwise @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER" is
+        automatically added to \a ssl_verify_flags
     */
-    public hash<Util::UriQueryInfo> sub parse_uri_query(string path) {
-        return Util::parse_uri_query(path);
-    }
-
-    #! helper function for setting HTTP response headers
-    public nothing sub http_set_reply_headers(Socket s, hash<auto> cx, reference<auto> rv, *string server_string) {
-        if (!rv.hdr.Connection) {
-            if (rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
-                rv.hdr.Connection = "close";
-            else
-                rv.hdr.Connection = "Keep-Alive";
-        }
-
-        if (!rv.hdr.Date) # RFC 2616 sec 14.18 date format
-            rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
-
-        if (!rv.hdr.Server)
-            rv.hdr.Server = server_string ?? HttpServerString;
-
-        string old_encoding = s.getEncoding();
-
-        on_exit if (s.getEncoding() != cx."response-encoding")
-            s.setEncoding(cx."response-encoding");
-
-        if (!cx."response-encoding")
-            cx."response-encoding" = old_encoding.lwr();
-        else if (cx."response-encoding".lwr() != old_encoding.lwr())
-            s.setEncoding(cx."response-encoding");
-
-        # "rv" may be a HttpHandlerResponseInfo hashdecl, so we can't access "chunked_body" directly in that case
-        if (rv.body || rv.hasKey("chunked_body") || rv.hdr."Transfer-Encoding" == "chunked") {
-            if (!rv.hdr."Content-Type") {
-                rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
-            } else if (rv.hdr."Content-Type" !~ /charset=/
-                && ((rv.body.typeCode() == NT_STRING)
-                    || (rv.hasKey("chunked_body") && (rv.chunked_body instanceof StringInputStream)))) {
-                rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
-            }
-        }
-    }
-
-    #! this function can be used to mask data in log messages
-    /** @par Example:
-        @code
-        string msg = http_mask_data(msg);
-        @endcode
-
-        @param msg a log message with potentially sensitive data; expected to be a string of serialized data
-
-        @return a string with sensitive data removed; currently the function masks data after
-        \c 'pass', \c 'password', \c 'sensitive', and \c 'sensitive_data'' followed by a colon,
-        an equals sign, and optionally whitespace
-
-        @note this algorithm can have false positives and also can miss sensitive data
+    bool get_remote_certs = False;
+    #! SSL certificate verification constants; see @ref ssl_mode_constants
+    /** ignored if no SSL certificate provided
     */
-    public string sub http_mask_data(string msg) {
-        msg =~ s/((?:pass(?:[^a-zA-Z_]|(?:word)))"?[=:>\s]*).*/$1<masked>.../;
-        return msg;
-    }
-
-    #! returns a listener option info hash from flat arguments
-    /** @param node the node name or address (at least one of either \a node or \a service must be provided to make a bind)
-        @param service the service port (at least one of either \a node or \a service must be provided to make a bind)
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
-
-        @return a listener option info hash
+    int ssl_verify_flags = 0;
+    #! set to False to use openssl CA validation for client certificates
+    /** client certificates are requested if \a ssl_verify_flags contains @ref Qore::SSL_VERIFY_PEER "SSL_VERIFY_PEER"
     */
-    public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, *softstring service, *string cert_path, *string key_path, *string key_password) {
-        hash<HttpListenerOptionInfo> rv({
-            "node": node,
-            "service": service,
-        });
-        if (cert_path) {
-            rv += http_get_ssl_objects(cert_path, key_path, key_password);
-        }
-        return rv;
-    }
+    bool ssl_accept_all_certs = True;
+}
 
-    #! returns a listener option info hash from flat arguments
-    /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-        @param cert_path the path to an X.509 certificate
-        @param key_path the path to the certificate's private key
-        @param key_password the password to the private key, if any
+#! hash providing HTTP handler configuration info
+public hashdecl HttpHandlerConfigInfo {
+    #! the URI path for the handler
+    string path = "/";
+    #! if the URI path is a regular expression pattern
+    bool isregex = False;
+    #! the Content-Type that the handler handles (optional)
+    softlist<softstring> content_types;
+    #! the handler itself (required)
+    AbstractHttpRequestHandler handler;
+    #! a list of headers that indicate that a request should be handled by the handler (optional)
+    softlist<softstring> headers;
+}
 
-        @return a listener option info hash
+#! returns a complete URL from a bind address
+/** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
+    @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
     */
-    public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_path, *string key_path, *string key_password) {
-        hash<HttpListenerOptionInfo> rv();
-        if (cert_path) {
-            rv += http_get_ssl_objects(cert_path, key_path, key_password);
-        }
-
-        if (bind =~ /:\w+/) {
-            (rv.node, rv.service) = (bind =~ x/(.+):(\w+)/);
-        } else if (bind =~ /^[0-9]+$/) {
-            rv.service = bind;
-        } else {
-            rv.node = bind;
-        }
-
-        return rv;
+public string sub http_get_url_from_bind(softstring bind, *string host) {
+    hash h = parse_url(bind);
+    # if there is only a port number, it will appear in the "host" key
+    if (h.size() == 1 && h.host && int(h.host) == h.host) {
+        h.port = int(h.host);
+        delete h.host;
     }
 
-    #! returns a listener option info hash from flat arguments
-    /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-        @param listener_params parameters for the listener; processed by @ref http_get_ssl_objects()
-        @param opts listener options
-
-        @return a listener option info hash
-    */
-    public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, hash<auto> listener_params, hash<HttpListenerOptionInfo> opts = <HttpListenerOptionInfo>{}) {
-        hash<HttpCertInfo> cert_info = http_get_ssl_objects(listener_params);
-        if (cert_info.cert) {
-            opts += cert_info;
-        }
-
-        if (bind =~ /:\w+/) {
-            (opts.node, opts.service) = (bind =~ x/(.+):(\w+)/);
-        } else if (bind =~ /^[0-9]+$/) {
-            opts.service = bind;
-        } else {
-            opts.node = bind;
-        }
-
-        return opts;
+    if (!h.host) {
+        if (!h.port && h.path) {
+            h.host = "socket=" + remove h.path;
+            h.host =~ s/ /%20/g;
+            h.host =~ s/\//%2f/g;
+        } else
+            h.host = (!host || host == gethostname()) ? "localhost" : host;
     }
 
-    #! converts a hash to HTTP certificate info if possible
-    /** @param listener_params can have the following keys:
-        - \c cert_path: the path to an X.509 certificate file
-        - \c key_path: the path to a private key file; if not present, then the certificate is assumed to also have
-          the private key in it
-        - \c key_password: the password to the private key file
+    # encose IPv6 addresses in "[]"
+    if (h.host =~ /^[[:xdigit:]:]+$/)
+        h.host = "[" + h.host + "]";
 
-        @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
-    */
-    public hash<HttpCertInfo> sub http_get_ssl_objects(hash<auto> listener_params) {
-        if (listener_params.cert_path && !listener_params.cert) {
-            return http_get_ssl_objects(listener_params.cert_path, listener_params.key_path, listener_params.key_password);
-        }
+    string login = h.password ? (h.password + ":") : "";
+    if (h.username)
+        login += sprintf("%s@", h.password);
 
-        hash<HttpCertInfo> ssl_info();
-        if (listener_params.cert) {
-            if (!(listener_params.cert instanceof SSLCertificate)) {
-                throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'cert' entry in listener description; "
-                    "expecting a 'SSLCertificate' object, got type '%s' instead", listener_params.cert.fullType());
-            }
-            ssl_info.cert = listener_params.cert;
-            if (listener_params.key) {
-                if (!(listener_params.key instanceof SSLPrivateKey)) {
-                    throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'key' entry in listener description; "
-                        "expecting a 'SSLPrivateKey' object, got type '%s' instead", listener_params.key.fullType());
-                }
-                ssl_info.key = listener_params.key;
-            }
-        }
-        return ssl_info;
+    return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http",
+                    login,
+                    h.host,
+                    h.port ? sprintf(":%d", h.port) : "");
+}
+
+#! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
+/** @param path the URI path to parse
+
+    @return a @ref Util::UriQueryInfo hash
+
+    @since
+    - 0.3.11 the \a params key value is always returned as a hash
+    - 0.3.12 the actual implementation is in @ref Util::parse_uri_query()
+
+    @note provided by @ref Util::parse_uri_query()
+*/
+public hash<Util::UriQueryInfo> sub parse_uri_query(string path) {
+    return Util::parse_uri_query(path);
+}
+
+#! helper function for setting HTTP response headers
+public nothing sub http_set_reply_headers(Socket s, hash<auto> cx, reference<auto> rv, *string server_string) {
+    if (!rv.hdr.Connection) {
+        if (rv.close) # RFC 2616 section 14.10 is "close" in all lower-case
+            rv.hdr.Connection = "close";
+        else
+            rv.hdr.Connection = "Keep-Alive";
     }
 
-    #! converts a hash to HTTP certificate info if possible
-    /**
-        @param cert_path the path to an X.509 certificate file
-        @param key_path the path to a private key file; if not present, then the certificate is assumed to also have
+    if (!rv.hdr.Date) # RFC 2616 sec 14.18 date format
+        rv.hdr.Date = gmtime().format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+
+    if (!rv.hdr.Server)
+        rv.hdr.Server = server_string ?? HttpServerString;
+
+    string old_encoding = s.getEncoding();
+
+    on_exit if (s.getEncoding() != cx."response-encoding")
+        s.setEncoding(cx."response-encoding");
+
+    if (!cx."response-encoding")
+        cx."response-encoding" = old_encoding.lwr();
+    else if (cx."response-encoding".lwr() != old_encoding.lwr())
+        s.setEncoding(cx."response-encoding");
+
+    # "rv" may be a HttpHandlerResponseInfo hashdecl, so we can't access "chunked_body" directly in that case
+    if (rv.body || rv.hasKey("chunked_body") || rv.hdr."Transfer-Encoding" == "chunked") {
+        if (!rv.hdr."Content-Type") {
+            rv.hdr."Content-Type" = MimeTypeHtml + ";charset=" + cx."response-encoding";
+        } else if (rv.hdr."Content-Type" !~ /charset=/
+            && ((rv.body.typeCode() == NT_STRING)
+                || (rv.hasKey("chunked_body") && (rv.chunked_body instanceof StringInputStream)))) {
+            rv.hdr."Content-Type" += ";charset=" + cx."response-encoding";
+        }
+    }
+}
+
+#! this function can be used to mask data in log messages
+/** @par Example:
+    @code
+    string msg = http_mask_data(msg);
+    @endcode
+
+    @param msg a log message with potentially sensitive data; expected to be a string of serialized data
+
+    @return a string with sensitive data removed; currently the function masks data after
+    \c 'pass', \c 'password', \c 'sensitive', and \c 'sensitive_data'' followed by a colon,
+    an equals sign, and optionally whitespace
+
+    @note this algorithm can have false positives and also can miss sensitive data
+*/
+public string sub http_mask_data(string msg) {
+    msg =~ s/((?:pass(?:[^a-zA-Z_]|(?:word)))"?[=:>\s]*).*/$1<masked>.../;
+    return msg;
+}
+
+#! returns a listener option info hash from flat arguments
+/** @param node the node name or address (at least one of either \a node or \a service must be provided to make a bind)
+    @param service the service port (at least one of either \a node or \a service must be provided to make a bind)
+    @param cert_path the path to an X.509 certificate
+    @param key_path the path to the certificate's private key
+    @param key_password the password to the private key, if any
+
+    @return a listener option info hash
+*/
+public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, *softstring service, *string cert_path, *string key_path, *string key_password) {
+    hash<HttpListenerOptionInfo> rv({
+        "node": node,
+        "service": service,
+    });
+    if (cert_path) {
+        rv += http_get_ssl_objects(cert_path, key_path, key_password);
+    }
+    return rv;
+}
+
+#! returns a listener option info hash from flat arguments
+/** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
+    @param cert_path the path to an X.509 certificate
+    @param key_path the path to the certificate's private key
+    @param key_password the password to the private key, if any
+
+    @return a listener option info hash
+*/
+public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_path, *string key_path, *string key_password) {
+    hash<HttpListenerOptionInfo> rv();
+    if (cert_path) {
+        rv += http_get_ssl_objects(cert_path, key_path, key_password);
+    }
+
+    if (bind =~ /:\w+/) {
+        (rv.node, rv.service) = (bind =~ x/(.+):(\w+)/);
+    } else if (bind =~ /^[0-9]+$/) {
+        rv.service = bind;
+    } else {
+        rv.node = bind;
+    }
+
+    return rv;
+}
+
+#! returns a listener option info hash from flat arguments
+/** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
+    @param listener_params parameters for the listener; processed by @ref http_get_ssl_objects()
+    @param opts listener options
+
+    @return a listener option info hash
+*/
+public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, hash<auto> listener_params, hash<HttpListenerOptionInfo> opts = <HttpListenerOptionInfo>{}) {
+    hash<HttpCertInfo> cert_info = http_get_ssl_objects(listener_params);
+    if (cert_info.cert) {
+        opts += cert_info;
+    }
+
+    if (bind =~ /:\w+/) {
+        (opts.node, opts.service) = (bind =~ x/(.+):(\w+)/);
+    } else if (bind =~ /^[0-9]+$/) {
+        opts.service = bind;
+    } else {
+        opts.node = bind;
+    }
+
+    return opts;
+}
+
+#! converts a hash to HTTP certificate info if possible
+/** @param listener_params can have the following keys:
+    - \c cert_path: the path to an X.509 certificate file
+    - \c key_path: the path to a private key file; if not present, then the certificate is assumed to also have
         the private key in it
-        @param pwd the password to the private key file
+    - \c key_password: the password to the private key file
 
-        @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
-    */
-    public hash<HttpCertInfo> sub http_get_ssl_objects(string cert_path, *string key_path, *string pwd) {
-        # issue #3397: user friendly error messages are necessary for SSL cert or key errors
-        *hash<StatInfo> statinfo = hstat(cert_path);
+    @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
+*/
+public hash<HttpCertInfo> sub http_get_ssl_objects(hash<auto> listener_params) {
+    if (listener_params.cert_path && !listener_params.cert) {
+        return http_get_ssl_objects(listener_params.cert_path, listener_params.key_path, listener_params.key_password);
+    }
+
+    hash<HttpCertInfo> ssl_info();
+    if (listener_params.cert) {
+        if (!(listener_params.cert instanceof SSLCertificate)) {
+            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'cert' entry in listener description; "
+                "expecting a 'SSLCertificate' object, got type '%s' instead", listener_params.cert.fullType());
+        }
+        ssl_info.cert = listener_params.cert;
+        if (listener_params.key) {
+            if (!(listener_params.key instanceof SSLPrivateKey)) {
+                throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("invalid 'key' entry in listener description; "
+                    "expecting a 'SSLPrivateKey' object, got type '%s' instead", listener_params.key.fullType());
+            }
+            ssl_info.key = listener_params.key;
+        }
+    }
+    return ssl_info;
+}
+
+#! converts a hash to HTTP certificate info if possible
+/**
+    @param cert_path the path to an X.509 certificate file
+    @param key_path the path to a private key file; if not present, then the certificate is assumed to also have
+    the private key in it
+    @param pwd the password to the private key file
+
+    @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
+*/
+public hash<HttpCertInfo> sub http_get_ssl_objects(string cert_path, *string key_path, *string pwd) {
+    # issue #3397: user friendly error messages are necessary for SSL cert or key errors
+    *hash<StatInfo> statinfo = hstat(cert_path);
+    if (!statinfo) {
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from inaccessible path "
+            "%y", cert_path);
+    }
+    if (!statinfo.size) {
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from empty file %y",
+            cert_path);
+    }
+
+    File f();
+
+    SSLCertificate cert;
+    data cert_data;
+    try {
+        # read in X.509 certificate file
+        f.open2(cert_path);
+        # read in X.509 certificate file
+        cert_data = cert_path =~ /\.der$/
+            ? f.readBinary(MaxSslFileLen)
+            : f.read(MaxSslFileLen);
+        # create certificate object
+        cert = new SSLCertificate(cert_data);
+    } catch (hash<ExceptionInfo> ex) {
+        # rethrow user-friendly exception
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from path %y: %s: %s",
+            cert_path, ex.err, ex.desc);
+    }
+
+    SSLPrivateKey key;
+    if (key_path.val()) {
+        statinfo = hstat(key_path);
         if (!statinfo) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from inaccessible path "
-                "%y", cert_path);
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
+                "%y", key_path);
         }
         if (!statinfo.size) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from empty file %y",
-                cert_path);
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from empty file %y",
+                key_path);
         }
-
-        File f();
-
-        SSLCertificate cert;
-        data cert_data;
-        try {
-            # read in X.509 certificate file
-            f.open2(cert_path);
-            # read in X.509 certificate file
-            cert_data = cert_path =~ /\.der$/
-                ? f.readBinary(MaxSslFileLen)
-                : f.read(MaxSslFileLen);
-            # create certificate object
-            cert = new SSLCertificate(cert_data);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow user-friendly exception
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from path %y: %s: %s",
-                cert_path, ex.err, ex.desc);
-        }
-
-        SSLPrivateKey key;
-        if (key_path.val()) {
-            statinfo = hstat(key_path);
-            if (!statinfo) {
-                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
-                    "%y", key_path);
-            }
-            if (!statinfo.size) {
-                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from empty file %y",
-                    key_path);
-            }
-        }
-
-        try {
-            # read in private key file
-            if (key_path.val()) {
-                f.open2(key_path);
-                key = key_path =~ /\.der$/
-                    ? new SSLPrivateKey(f.readBinary(-1))
-                    : new SSLPrivateKey(f.read(-1), pwd);
-            } else {
-                key = new SSLPrivateKey(cert_data, pwd);
-            }
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow user-friendly exception
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from path %y: %s: %s",
-                key_path.val() ? key_path : cert_path, ex.err, ex.desc);
-        }
-
-        return <HttpCertInfo>{
-            "cert": cert,
-            "key": key,
-        };
     }
 
+    try {
+        # read in private key file
+        if (key_path.val()) {
+            f.open2(key_path);
+            key = key_path =~ /\.der$/
+                ? new SSLPrivateKey(f.readBinary(-1))
+                : new SSLPrivateKey(f.read(-1), pwd);
+        } else {
+            key = new SSLPrivateKey(cert_data, pwd);
+        }
+    } catch (hash<ExceptionInfo> ex) {
+        # rethrow user-friendly exception
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from path %y: %s: %s",
+            key_path.val() ? key_path : cert_path, ex.err, ex.desc);
+    }
+
+    return <HttpCertInfo>{
+        "cert": cert,
+        "key": key,
+    };
 }
 
 #! this abstract class defines the interface for classes that provide logging methods
-public class HttpServer::AbstractLogger {
+public class AbstractLogger {
     #! called to log information to the registered log code
     /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with vsprintf()
     */
@@ -680,7 +684,7 @@ public class HttpServer::AbstractLogger {
 }
 
 #! this abstract class defines the public interface of the private HttpListener class defined in the HttpServer module
-public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogger {
+public class HttpListenerInterface inherits AbstractLogger {
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     */
@@ -702,18 +706,18 @@ public class HttpServer::HttpListenerInterface inherits HttpServer::AbstractLogg
 
 #! abstract base class for external authentication
 /** This class should be inherited by a class providing real authentication
-  */
-public class HttpServer::AbstractAuthenticator {
+*/
+public class AbstractAuthenticator {
     #! called to check if the connection requires authentication
     /** @return @ref True "True" if authentication is enabled, @ref False "False" if not (@ref False "False" is the default value returned)
-      */
+    */
     bool requiresAuthentication() {
         return False;
     }
 
     #! returns the authentication realm as a string
     /** @return the authentication realm as a string (default: \c "Default Authentication Realm")
-      */
+    */
     string getRealm() {
         return "Default Authentication Realm";
     }
@@ -724,7 +728,7 @@ public class HttpServer::AbstractAuthenticator {
         @param pass the password for the user
 
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must be overridden in child classes; this parent method will never throw any exceptions; all connections are accepted by default)
-      */
+    */
     authenticate(string user, string pass = "") {
     }
 
@@ -734,7 +738,7 @@ public class HttpServer::AbstractAuthenticator {
         @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
 
         @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
-      */
+    */
     authenticateByIP(string ip, reference<string> user) {
     }
 
@@ -841,7 +845,7 @@ public class HttpServer::AbstractAuthenticator {
 }
 
 #! class providing automatic authentication for all requests
-public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAuthenticator {
+public class PermissiveAuthenticator inherits AbstractAuthenticator {
     #! primary method called to authenticate each request
     /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
@@ -896,7 +900,7 @@ public class HttpServer::PermissiveAuthenticator inherits HttpServer::AbstractAu
       returns data, the data is sent in a response chunk; when this method returns @ref nothing, then no more data is
       sent.  Subclasses should re-implement sendImpl() which is called by this method
 */
-public class HttpServer::AbstractStreamRequest {
+public class AbstractStreamRequest {
     public {}
 
     private {
@@ -1086,7 +1090,7 @@ private logChunk(bool send, int size) {
 
     @see AbstractStreamRequest for information about HTTP stream request handlers
   */
-public class HttpServer::AbstractHttpRequestHandler {
+public class AbstractHttpRequestHandler {
     public {
         #! the optional AbstractAuthenticator for requests to this handler
         *AbstractAuthenticator auth;
@@ -1545,7 +1549,7 @@ public class HttpServer::AbstractHttpRequestHandler {
 }
 
 #! abstract class for HTTP request handlers anchored at a specific URL
-public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler {
+public class AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler {
     public {
         #! root part of URL for matching requests
         string url_root;
@@ -1571,10 +1575,23 @@ public class HttpServer::AbstractUrlHandler inherits HttpServer::AbstractHttpReq
     }
 }
 
-#! abstract class that all HTTP dedicated socket handler objects must inherit from
-/** reimplement at least handleRequest() and startImpl() in subclasses
-  */
-public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::AbstractHttpRequestHandler {
+#! Abstract class for HTTP handlers for handling protocol switching
+/** To accept a new dedicated socket connection, make sure the return value of the \c handleRequest() method returns
+    code \c 101 (ie <tt>Switching Protocols</tt>); after which this class's start() and then startImpl() methods are
+    called.
+
+    To accept a dedicated socket connection, \c handleRequest() must return a hash (ideally an
+    @ref HttpServer::HttpResponseInfo hash) with the following keys:
+    - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+    - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+    \n
+    or, to handle the request without a dedicated connection, return a hash with the following keys:
+    - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
+    - \c "body": the message body to return in the response
+    - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+    - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
+*/
+public class AbstractHttpSocketHandlerInterface {
     private {
         #! stop listener flag
         bool stop = False;
@@ -1587,12 +1604,6 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
 
         #! listener reference hash mutex
         Mutex m();
-    }
-
-    #! create the object optionally with the given AbstractAuthenticator
-    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-      */
-    constructor(*AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
     }
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
@@ -1627,7 +1638,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
-     */
+    */
     start(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s) {
         {
             m.lock();
@@ -1671,53 +1682,6 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         stopImpl();
     }
 
-    #! called by the HTTP server to handle incoming HTTP requests
-    /** To accept a new dedicated socket connection, make sure the return value returns code 101 (ie \c "Switching Protocols"); after which this class's start() (and then startImpl()) methods are called
-
-        @param cx call context hash; this hash will have the following keys:
-        - \c header-info: a hash of information about the request header with the following keys:
-          - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
-            any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
-            be set to the first requested character encoding in the list
-          - \c accept-encoding: a hash where keys are values from any \c "Accept-Encoding" header and the values are
-            @ref True
-          - \c body-content-type: this is the \c "Content-Type" header without any charset declaration
-          - \c charset: if there is a charset declaration in the \c "Content-Type" header, the value is returned in
-            this key
-          - \c client-cert: if the server is configured to capture remote client certificates, and the client supplied
-            a certificate, this key will be populated with the @ref Qore::SSLCertificate "SSLCertificate" for the client
-          - \c close: set to @ref True "True" if the connection should be closed after responding,
-            @ref False "False" if not (as derived from the request header)
-          - \c headers-raw: a hash of raw request headers without any case conversions or other processing
-          - \c request-uri: gives the request URI in an HTTP request
-        - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by
-          @ref Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
-        - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
-        - \c id: the unique HTTP connection ID
-        - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-        - \c listener-id: the HTTP server listener ID (see HttpServer::getListenerInfo())
-        - \c user: the current RBAC username (if any)
-        - \c root_path: the root URL path matched if the request was matched by a URL prefix
-        @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
-        - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
-        - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_uri_request()
-        - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
-        @param b message body, if any
-
-        @return to accept a dedicated connection, return a hash (ideally an @ref HttpServer::HttpResponseInfo hash) with the following key:
-        - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
-        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-        \n
-        or, to handle the request without a dedicated connection, return a hash with the following keys:
-        - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-        - \c "body": the message body to return in the response
-        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
-        - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
-     */
-    abstract hash handleRequest(hash<auto> cx, hash<auto> hdr, *data b);
-
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method is called
 
@@ -1746,4 +1710,16 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
     #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
     private stopImpl() {
     }
+}
+
+#! abstract class that all HTTP dedicated socket handler objects must inherit from
+/** reimplement at least handleRequest() and startImpl() in subclasses
+  */
+public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler, AbstractHttpSocketHandlerInterface {
+    #! create the object optionally with the given AbstractAuthenticator
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+      */
+    constructor(*AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
+    }
+}
 }
