@@ -869,7 +869,9 @@ DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 #endif
 
 #if defined(QORE_HAVE_PTHREAD_SETNAME_NP_1) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_2) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_3) || defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+#if defined(HAVE_PTHREAD_GET_NAME_NP) || defined(HAVE_PTHREAD_GETNAME_NP)
 #define QORE_HAVE_THREAD_NAME
+#endif
 #endif
 
 class QorePThreadAttr {
