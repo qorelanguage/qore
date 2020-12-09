@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,9 @@ void QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
 #endif
 
     //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp, QoreTypeInfo::getName(lti));;
-    if (!QoreTypeInfo::parseAccepts(ti, lti)) {
+    // issue #4112: ensure that objects will be subject to runtime checks
+    if (!QoreTypeInfo::parseAccepts(ti, lti)
+        && (!QoreTypeInfo::parseAccepts(ti, objectTypeInfo) || !QoreTypeInfo::parseAccepts(lti, objectTypeInfo))) {
         QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
     }

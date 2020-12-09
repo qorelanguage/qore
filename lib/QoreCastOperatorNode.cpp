@@ -127,9 +127,11 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
             ? QoreTypeInfo::getReturnClass(typeInfo)
             : QoreTypeInfo::getUniqueReturnClass(typeInfo);
         if (qc) {
-                // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
-            if ((QoreTypeInfo::parseReturns(expTypeInfo, qc) == QTI_NOT_EQUAL) &&
-                (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL)) {
+            // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+            // issue #4113: ensure that objects will be subject to runtime checks
+            if ((QoreTypeInfo::parseReturns(expTypeInfo, qc) == QTI_NOT_EQUAL)
+                && (!QoreTypeInfo::parseAccepts(expTypeInfo, objectTypeInfo))
+                && (!or_nothing || QoreTypeInfo::parseReturns(expTypeInfo, NT_NOTHING) == QTI_NOT_EQUAL)) {
                 parse_error(*loc, "cast<%s>(%s) is invalid; cannot cast from %s to %s",
                     QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(expTypeInfo),
                     QoreTypeInfo::getName(expTypeInfo), QoreTypeInfo::getName(typeInfo));
