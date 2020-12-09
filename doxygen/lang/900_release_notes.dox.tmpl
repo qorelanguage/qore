@@ -8,6 +8,9 @@
     Bugfix release; see below for more information
 
     @subsection qore_0911_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>: fixed a bug handling responses to
+      streaming requests with \c HEAD requests with a <tt>Transfer-Encoding: chunked</tt> response
+      (<a href="https://github.com/qorelanguage/qore/issues/4109">issue 4109</a>)
     - <a href="../../modules/ServiceNowRestDataProvider/html/index.html">ServiceNowRestDataProvider</a>: fixed a type
       error in DataProvider API support
       (<a href="https://github.com/qorelanguage/qore/issues/4104">issue 4104</a>)

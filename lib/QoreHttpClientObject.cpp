@@ -1411,7 +1411,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             mess = "<no message>";
         if (!location)
             location = "<no location>";
-        xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; redirect code %d to '%s' ignored (message: '%s')", max_redirects, code, location, mess);
+        xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; " \
+            "redirect code %d to '%s' ignored (message: '%s')", max_redirects, code, location, mess);
         return nullptr;
     }
 
@@ -1505,7 +1506,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         request) is always terminated by the first empty line after the
         header fields, regardless of the entity-header fields present in
         the message.
-        */
+    */
     //printd(5, "qore_httpclient_priv::send_internal() this: %p bodyp: %d code: %d\n", this, bodyp, code);
 
     qore_uncompress_to_string_t dec = 0;
