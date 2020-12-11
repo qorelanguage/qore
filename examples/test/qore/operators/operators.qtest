@@ -605,6 +605,23 @@ class Test inherits QUnit::Test {
             remove a.b.c.c;
             assertEq(("c": ("d": 1)), a.b);
         }
+        {
+            hash<auto> h = {
+                "a": 1,
+                "b": 2,
+            };
+            assertEq({"b": 2}, h{"b","c"});
+            # issue #4122
+            assertEq({"b": 2}, remove h{"b","c"});
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class HashTest; HashTest sub get() { HashTest ht(); ht.a = 1; ht.b = 2; return ht; }", "");
+            object o = p.callFunction("get");
+            assertEq({"b": 2}, o{"b","c"});
+            # issue #4122
+            assertEq({"b": 2}, remove o{"b","c"});
+        }
     }
 
     squareBracketsTest() {

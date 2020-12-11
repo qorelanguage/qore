@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.10
+%requires qore >= 0.9.11
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
@@ -116,6 +116,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http0911 HttpServer 0.9.11
+    - fixed a bug where invalid HTTP responses were send with error messages and chunked transfer encoding
+      (<a href="https://github.com/qorelanguage/qore/issues/4124">issue 4124</a>)
     - fixed a bug where it was not possible for an HTTP stream handler to support switching protocols
       (<a href="https://github.com/qorelanguage/qore/issues/4111">issue 4111</a>)
 
@@ -1596,13 +1598,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         # log exceptions if not "SOCKET-SEND-ERROR" (probably broken pipe)
         try {
-            if (response_msg || chunked_msg) {
-                s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, response_msg);
-                listener.logResponse(cx, code, response_msg, v_hdr);
-            } else {
-                s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, chunked_msg);
-                listener.logResponse(cx, code, chunked_msg, v_hdr);
-            }
+            s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, response_msg ?? chunked_msg);
+            listener.logResponse(cx, code, response_msg ?? chunked_msg, v_hdr);
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
                 string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);

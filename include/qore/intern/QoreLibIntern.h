@@ -708,44 +708,48 @@ class HashMember;
 
 class hash_assignment_priv {
 public:
-   qore_hash_private& h;
-   HashMember* om;
-   qore_object_private* o = nullptr;
+    qore_hash_private& h;
+    HashMember* om;
+    qore_object_private* o = nullptr;
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
-   }
+    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
+    }
 
-   DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = nullptr);
+    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = nullptr);
 
-   DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const std::string &key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const std::string &key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
 
-   DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
 
-   DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
+    DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
 
-   DLLLOCAL QoreValue swapImpl(QoreValue v);
+    DLLLOCAL QoreValue swapImpl(QoreValue v);
 
-   DLLLOCAL QoreValue getImpl() const;
+    DLLLOCAL QoreValue getImpl() const;
 
-   DLLLOCAL QoreValue operator*() const {
-      return getImpl();
-   }
+    DLLLOCAL QoreValue operator*() const {
+        return getImpl();
+    }
 
-   DLLLOCAL void assign(QoreValue v, ExceptionSink* xsink);
+    DLLLOCAL bool exists() const {
+        return (bool)om;
+    }
 
-   DLLLOCAL void assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSink* xsink);
+    DLLLOCAL void assign(QoreValue v, ExceptionSink* xsink);
 
-   DLLLOCAL QoreValue swap(QoreValue v) {
-      return swapImpl(v);
-   }
+    DLLLOCAL void assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSink* xsink);
 
-   DLLLOCAL static hash_assignment_priv* get(HashAssignmentHelper& h) {
-      return h.priv;
-   }
+    DLLLOCAL QoreValue swap(QoreValue v) {
+        return swapImpl(v);
+    }
+
+    DLLLOCAL static hash_assignment_priv* get(HashAssignmentHelper& h) {
+        return h.priv;
+    }
 };
 
 DLLLOCAL void qore_machine_backtrace();

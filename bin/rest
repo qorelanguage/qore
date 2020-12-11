@@ -289,8 +289,7 @@ class RestCmd {
                             if (ex.arg.typeCode() == NT_STRING) {
                                 trim ex.arg;
                                 printf("%y", ex.arg);
-                            }
-                            else
+                            } else
                                 printf("%y", ex.arg);
                         }
                     }

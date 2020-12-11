@@ -1160,7 +1160,7 @@ public namespace RestHandler {
             auto body = b;
 
             # get rest class name
-            *string path = cx.url.path;
+            string path = cx.url.path ?? "";
 
             removeRootPath(\path);
 

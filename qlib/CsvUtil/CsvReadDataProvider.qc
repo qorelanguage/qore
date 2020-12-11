@@ -55,7 +55,104 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(AutoHashType),
                 "desc": "CSV parsing options",
             },
+            "date_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default date format for `date` fields (ex: `DD/MM/YYYY HH:mm:SS`)",
+            },
+            "encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "character encoding for the file (and output data)",
+            },
+            "eol": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the end of line character(s); if not specified, then the end-of-line characters will be "
+                    "auto detected",
+            },
+            "fields": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "the keys are field names as given by the `header_names` or `headers` options (in case "
+                    "neither of these options are used, then field names are numbers starting with `0`) and the "
+                    "values are either strings (one of `bool`, `int`, `float`, `number`, `string`, `date`, "
+                    "optionally prefixed by `*` if the value is optional) or a hash describing the field; also sets "
+                    "`headers` if not set automatically with `header_names`; if no field type is given, the default "
+                    "is `*string`; note that invalid field names given in this option are ignored",
+            },
+            "header_lines": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftIntType),
+                "desc": "the number of headers lines in the file",
+            },
+            "header_names": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` then the object will parse the header names from the first header row, in this "
+                    "case if `header_lines` is not set explicitly, it will be assumed to be `1`",
+            },
+            "header_reorder": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` (the default) then if `headers` are provided, then data fields are reordered to "
+                    "follow headers",
+            },
+            "headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("softlist<string>")),
+                "desc": "list of header / column names for the data iterated; if this is present, then "
+                    "`header_names` must be `false`",
+            },
+            "ignore_empty": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true`, empty lines will be ignored",
+            },
+            "ignore_whitespace": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true`, leading and trailing whitespace will be stripped from non-quoted fields",
+            },
+            "number_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default format for `int`, `float`, and `number` fields as a string giving the thousands "
+                    "separator character followed by the decimal separator character (ex: `.,` for "
+                    "continental-European-style numbers",
+            },
+            "quote": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the field quote character (default: `\"`)",
+            },
+            "separator": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the string separating the fields in the file (default: `,`)",
+            },
+            "timezone": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the timezone region to use when parsing dates (ex: `Europe/Prague`)",
+            },
+            "tolwr": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` (default `false`), all header names will be converted to lower case letters",
+            },
+            "verify_columns": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` (default `false`), if a line is parsed with a different column or field count "
+                    "than other lines, a `CSVFILEITERATOR-DATA-ERROR` exception is raised",
+            },
         };
+
+        #! CSV iteration option list
+        const CsvIterationOptionList = (
+            "date_format",
+            "encoding",
+            "eol",
+            "extended_record",
+            "fields",
+            "header_lines",
+            "header_names",
+            "header_reorder",
+            "headers",
+            "ignore_empty",
+            "ignore_whitespace",
+            "number_format",
+            "quote",
+            "separator",
+            "timezone",
+            "tolwr",
+            "verify_columns",
+        );
     }
 
     private {
@@ -67,7 +164,8 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     /** @param path the input file to iterate
         @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names"
+        is @ref True "True" and \c "headers" is also present; unknown field type
     */
     constructor(string path, *hash<auto> opts) {
         i = new CsvFileIterator(path, opts);
@@ -77,7 +175,8 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     /** @param stream the input stream to iterate
         @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
 
-        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
+        @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names"
+        is @ref True "True" and \c "headers" is also present; unknown field type
     */
     constructor(InputStream stream, *hash<auto> opts) {
         i = new CsvIterator(stream, opts.encoding, opts);
@@ -97,15 +196,15 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new CsvFileIterator(copts.path, copts.opts);
+            i = new CsvFileIterator(copts.path, copts.opts + copts{CsvIterationOptionList});
             return;
         }
         if (copts.stream) {
-            i = new CsvIterator(copts.stream, copts.opts.encoding, copts.opts);
+            i = new CsvIterator(copts.stream, copts.opts.encoding, copts.opts + copts{CsvIterationOptionList});
             return;
         }
         # create a dummy interator with no input
-        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts.opts);
+        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts.opts + copts{CsvIterationOptionList});
     }
 
     #! Returns an iterator for zero or more records matching the search options

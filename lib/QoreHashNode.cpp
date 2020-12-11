@@ -1016,7 +1016,7 @@ void hash_assignment_priv::assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSi
 }
 
 QoreValue hash_assignment_priv::getImpl() const {
-   return om->val;
+    return om->val;
 }
 
 HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const char* key, bool must_already_exist) : priv(new hash_assignment_priv(*h.priv, key, must_already_exist)) {

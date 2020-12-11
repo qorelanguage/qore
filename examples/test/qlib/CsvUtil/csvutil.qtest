@@ -14,18 +14,18 @@
 
 public class CsvUtilTest inherits QUnit::Test {
     private {
-        const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012
-UK,1234567891,\"Sony, Xperia S\",31052012
-UK,1234567892,\"Sony, Xperia S\",31052012
-UK,1234567893,\"Sony, Xperia S\",31052012\n";
+        const CsvInput = "UK,1234567890,\"Sony, Xperia S\",31052012,true
+UK,1234567891,\"Sony, Xperia S\",31052012,true
+UK,1234567892,\"Sony, Xperia S\",31052012,false
+UK,1234567893,\"Sony, Xperia S\",31052012,true\n";
 
-        const CsvInputWithHeader = "CC,serno,desc,received\n" + CsvInput;
+        const CsvInputWithHeader = "CC,serno,desc,received,activated\n" + CsvInput;
 
         const CsvRecords = (
-            ("cc": "UK", "serno": 1234567890, "desc": "Sony, Xperia S", "received": 2012-05-31),
-            ("cc": "UK", "serno": 1234567891, "desc": "Sony, Xperia S", "received": 2012-05-31),
-            ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31),
-            ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31),
+            ("cc": "UK", "serno": 1234567890, "desc": "Sony, Xperia S", "received": 2012-05-31, "activated": True),
+            ("cc": "UK", "serno": 1234567891, "desc": "Sony, Xperia S", "received": 2012-05-31, "activated": True),
+            ("cc": "UK", "serno": 1234567892, "desc": "Sony, Xperia S", "received": 2012-05-31, "activated": False),
+            ("cc": "UK", "serno": 1234567893, "desc": "Sony, Xperia S", "received": 2012-05-31, "activated": True),
         );
         const CsvMultiInput = "1,2016-01,20160401
 2,123,\"Sony, Xperia S\",1,100
@@ -137,6 +137,7 @@ f2:3,00:5:25,34";
                         "received": {
                             "type": "date",
                         },
+                        "activated": "bool",
                     },
                 });
             };
@@ -193,6 +194,7 @@ f2:3,00:5:25,34";
                         "received": {
                             "type": "date",
                         },
+                        "activated": "bool",
                     },
                 });
             };
@@ -237,7 +239,7 @@ f2:3,00:5:25,34";
     issue2746() {
         hash<auto> opts = {
             "header-names": False,
-            "headers": ("CC", "serno", "desc", "received", "na1",),
+            "headers": ("CC", "serno", "desc", "received", "activated", "na1",),
         };
 
         {
@@ -277,6 +279,7 @@ f2:3,00:5:25,34";
                     "type": "date",
                     "format": "DDMMYYYY",
                 },
+                "activated": "bool",
             },
         };
 
@@ -459,9 +462,16 @@ UK,1234567893,28052012";
         testAssertion("double escaping", \equals(), (esc_double, outstr));
 
         hash dmh = ("cc": "XX");
-        w = new CsvStringWriter(("headers": ("XX", "serno", "desc", "received"), "fields": ("received": ("type": "date", "format": "DDMMYYYY")), "datamap": dmh));
+        w = new CsvStringWriter({
+            "headers": ("XX", "serno", "desc", "received", "activated"),
+            "fields": {
+                "received": {"type": "date", "format": "DDMMYYYY"},
+                "activated": "bool",
+            },
+            "datamap": dmh,
+        });
         outstr = w.write(CsvRecords.iterator());
-        assertEq("XX,serno,desc,received\n" + CsvInput, outstr);
+        assertEq("XX,serno,desc,received,activated\n" + CsvInput, outstr);
     }
 
     csvData() {

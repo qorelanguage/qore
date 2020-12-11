@@ -1221,13 +1221,20 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
             rv.assignInitial(rvh);
 #endif
 
+            qore_hash_private* hp = qore_hash_private::get(*h);
+
             ConstListIterator li(l);
             while (li.next()) {
                 QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
                 if (*xsink)
                     return;
 
-                QoreValue n = h->takeKeyValue(mem->c_str());
+                // issue #4122: do not write output for nonexistent keys
+                bool exists;
+                QoreValue n = hp->takeKeyValueIntern(mem->c_str(), exists);
+                if (!exists) {
+                    continue;
+                }
 
                 // note that no exception can occur here
                 rvh->setKeyValue(mem->c_str(), n, xsink);

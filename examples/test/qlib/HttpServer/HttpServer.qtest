@@ -48,6 +48,8 @@ class ReqHandler inherits AbstractHttpRequestHandler {
             return makeResponse(204, "test");
         } else if (rpath =~ /^test304\//) {
             return makeResponse(304, "test");
+        } else if (rpath =~ /^test400close\//) {
+            return makeResponse(400, new StringInputStream("test"), {"Connection": "close"});
         } else if (rpath =~ /^fileupload/) {
             string boundary = (hdr."_qore_orig_content_type" =~ x/boundary="?(.+)"?/i)[0];
             hash<MessageInfo> h = MultiPartMessage::parseBody(boundary, body, True);
@@ -186,6 +188,19 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         assertNothing(mClient.get("/test204/xyz"));
         assertThrows("HTTP-CLIENT-RECEIVE-ERROR", "304", \mClient.head(), "/test304/xyz");
         assertEq("GET, abc, /abc", mClient.get("/abc"));
+
+        mClient.setErrorPassthru(True);
+        on_exit mClient.setErrorPassthru(False);
+        hash<auto> info;
+        hash<auto> resp = mClient.send(NOTHING, "PUT", "/test400close/abc", NOTHING, NOTHING, \info);
+        assertEq("test", resp.body);
+
+        list<auto> http_msgs;
+        code rc = sub (auto http_data) {
+            http_msgs += http_data;
+        };
+        mClient.sendWithRecvCallback(rc, NOTHING, "PUT", "/test400close/abc", NOTHING, NOTHING, NOTHING, \info);
+        assertEq("test", http_msgs[1].data);
     }
 
     issue2805() {

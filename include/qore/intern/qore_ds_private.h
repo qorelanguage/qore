@@ -199,6 +199,12 @@ struct qore_ds_private {
     }
 
     DLLLOCAL void connectionLost(ExceptionSink* xsink) {
+#ifdef DEBUG
+        // issue #4117: get backtrace if connectionLost() called while the connection is closed
+        if (!isopen) {
+            qore_machine_backtrace();
+        }
+#endif
         assert(isopen);
         // close statements but do not clear datasource or statements in the datasource
         transactionDone(false, false, xsink);

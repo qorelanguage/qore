@@ -34,6 +34,8 @@ class CsvHelper {
         const C_OPT2 = 0x2;
         #! supported type codes (hash for quick lookups)
         const Types = {
+            "bool": True,
+            "*bool": True,
             "int": True,
             "*int": True,
             "float": True,

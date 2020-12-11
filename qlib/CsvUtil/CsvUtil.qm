@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.8
+%requires qore >= 0.9.11
 
 %requires Util
 
@@ -36,7 +36,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.7.1";
+    version = "1.7.2";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -200,32 +200,32 @@ while (i.next())
 
 %requires CsvUtil
 
-const spec = (
-    "header": (
-        "type": ("type": "int", "value": 1),
+const Spec = {
+    "header": {
+        "type": {"type": "int", "value": 1},
         "invoice_no": "string",
-        "date": ("type": "date", "format": "YYYYMMDD"),
-    ),
-    "item": (
-        "type": ("type": "int", "value": 2),
+        "date": {"type": "date", "format": "YYYYMMDD"},
+    },
+    "item": {
+        "type": {"type": "int", "value": 2},
         "item_no": "string",
         "item": "string",
         "pcs": "int",
         "price": "number",
-    ),
-    "footer": (
-        "type": ("type": "int", "value": 3),
+    },
+    "footer": {
+        "type": {"type": "int", "value": 3},
         "total": "number",
-    ),
-);
+    },
+};
 
-const opts = {};
+const Opts = {};
 
 FileInputStream input("example-multi-file.csv");
-CsvIterator i(input, NOTHING, spec, ("extended_record": True) + opts);
+CsvIterator i(input, NOTHING, Spec, {"extended_record": True} + Opts);
 
 FileOutputStream output("example-multi-file-copy.csv");
-CsvWriter writer(output, spec, ("write-headers": False, "optimal-quotes" : True, "quote_escape" : "\"") + opts);
+CsvWriter writer(output, Spec, {"write-headers": False, "optimal-quotes": True, "quote_escape": "\"") + Opts);
 while (i.next()) {
     printf("%d: %y\n", i.index(), i.getValue());
     writer.writeLine(i.getValue());
@@ -251,6 +251,10 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_7_2 Version 1.7.2
+    - implemented support for the missing \c bool and <tt>*bool</tt> types
+      (<a href="https://github.com/qorelanguage/qore/issues/4118">issue 4118</a>)
 
     @subsection csvutil_v1_7_1 Version 1.7.1
     - fixed a bug where CSV iteration would fail if a quoted field had a line break in it

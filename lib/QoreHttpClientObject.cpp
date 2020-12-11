@@ -1641,14 +1641,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         }
     }
 
+    if (*xsink) {
+        disconnect_unlocked();
+        return nullptr;
+    }
+
     // check for connection: close header
     if (!keep_alive) {
         disconnect_unlocked();
     } else {
-        if (*xsink) {
-            disconnect_unlocked();
-            return nullptr;
-        }
         if (conn && !strcasecmp(conn, "close"))
             disconnect_unlocked();
     }

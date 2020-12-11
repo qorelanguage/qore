@@ -77,7 +77,7 @@ public class AbstractDataProcessor {
     }
 
     #! Submits the data for processing
-    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
@@ -89,7 +89,7 @@ public class AbstractDataProcessor {
         - Calls submitImpl() on the data to do the actual processing
         - Accept and return type information is not enforced in this method; it must be enforced in submitImpl()
     */
-    auto submit(code enqueue, auto _data) {
+    submit(code enqueue, auto _data) {
         *hash<auto> tld;
         if (thread_local_data) {
             tld = get_all_thread_data();
@@ -100,6 +100,20 @@ public class AbstractDataProcessor {
             save_thread_data(tld);
         }
         return submitImpl(enqueue, _data);
+    }
+
+    #! This method is called for each pipeline element to permit flushing of any pending data at the end of processing
+    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated, then call it once for
+        each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+
+        @note
+        - Calls flushImpl() on the data to do the actual processing
+        - Accept and return type information is not enforced in this method; it must be enforced in flushImpl()
+    */
+    flush(code enqueue) {
+        flushImpl(enqueue);
     }
 
     #! Returns the expected type of data to be submitted, if available
@@ -114,8 +128,23 @@ public class AbstractDataProcessor {
     private *AbstractDataProviderType getReturnTypeImpl() {
     }
 
+    #! This method is called for each pipeline element to permit flushing of any pending data at the end of processing
+    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+        pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
+        onwards, then \a enqueue should be called only once; if multiple records are generated, then call it once for
+        each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
+
+        @note
+        - The default implementation in the base class does nothing; to submit pending data for processing by
+          subsequent elements in the pipeline when pipeline processing is finished, call enqueue with the pending data
+        - No data should be cached or pending after this call; if the object requires closing or purging of internal
+          state to make it reusable, it should be performed in this method
+    */
+    private flushImpl(code enqueue) {
+    }
+
     #! Submits the data for processing
-    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode

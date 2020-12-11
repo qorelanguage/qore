@@ -681,10 +681,10 @@ public namespace RestSchemaValidator {
         private hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
             hash<UriQueryInfo> h = parse_uri_query(path);
 
-            hash<RestRequestServerInfo> rv((
+            hash<RestRequestServerInfo> rv({
                 "path": h.method,
                 "query": h.params,
-            ));
+            });
 
             if (exists http_body) {
                 *hash<auto> dh = DataDeserializationSupport.(headers."content-type");
