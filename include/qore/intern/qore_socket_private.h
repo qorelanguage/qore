@@ -80,7 +80,7 @@ DLLLOCAL void qore_socket_error(ExceptionSink* xsink, const char* err, const cha
 DLLLOCAL void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname = 0, const char* host = 0, const char* svc = 0, const struct sockaddr *addr = 0);
 DLLLOCAL void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_in_op_thread(const char* cname, const char* meth, ExceptionSink* xsink);
-DLLLOCAL void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink);
+DLLLOCAL void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink, const char* extra = nullptr);
 DLLLOCAL void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL void se_closed(const char* cname, const char* mname, ExceptionSink* xsink);
 
@@ -880,7 +880,7 @@ struct qore_socket_private {
         assert(xsink);
         assert(read || write);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink);
+            se_not_open(cname, mname, xsink, "asyncIoWait");
             return -1;
         }
 
@@ -1622,7 +1622,7 @@ struct qore_socket_private {
         assert(xsink);
         assert(meth);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", meth, xsink);
+            se_not_open("Socket", meth, xsink, "readHTTPData");
             rc = QSE_NOT_OPEN;
             return 0;
         }
@@ -1713,7 +1713,7 @@ struct qore_socket_private {
     DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, qore_offset_t bufsize, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", "recv", xsink);
+            se_not_open("Socket", "recv", xsink, "recv");
             rc = QSE_NOT_OPEN;
             return 0;
         }
@@ -1778,7 +1778,7 @@ struct qore_socket_private {
     DLLLOCAL QoreStringNode* recvAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", "recv", xsink);
+            se_not_open("Socket", "recv", xsink, "recvAll");
             rc = QSE_NOT_OPEN;
             return 0;
         }
@@ -1843,7 +1843,7 @@ struct qore_socket_private {
     DLLLOCAL BinaryNode* recvBinary(ExceptionSink* xsink, qore_offset_t bufsize, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", "recvBinary", xsink);
+            se_not_open("Socket", "recvBinary", xsink, "recvBinary");
             rc = QSE_NOT_OPEN;
             return 0;
         }
@@ -1897,7 +1897,7 @@ struct qore_socket_private {
     DLLLOCAL BinaryNode* recvBinaryAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", "recvBinary", xsink);
+            se_not_open("Socket", "recvBinary", xsink, "recvBinaryAll");
             rc = QSE_NOT_OPEN;
             return 0;
         }
@@ -2196,7 +2196,7 @@ struct qore_socket_private {
             return -1;
 
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink);
+            se_not_open(cname, mname, xsink, "runCallback");
             return QSE_NOT_OPEN;
         }
 
@@ -2208,7 +2208,7 @@ struct qore_socket_private {
         assert(!aborted || !(*aborted));
 
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink);
+            se_not_open(cname, mname, xsink, "sendHttpChunkedWithCallback");
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
@@ -2468,7 +2468,7 @@ struct qore_socket_private {
     DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, qore_size_t size, int timeout_ms = -1, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink);
+            se_not_open(cname, mname, xsink, "send");
 
             return QSE_NOT_OPEN;
         }
@@ -3371,7 +3371,7 @@ struct qore_socket_private {
     DLLLOCAL int recvix(const char* meth, int len, void* targ, int timeout_ms, ExceptionSink* xsink) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
-            se_not_open("Socket", meth, xsink);
+            se_not_open("Socket", meth, xsink, "recvix");
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {

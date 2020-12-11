@@ -582,9 +582,15 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
             odata = data;
         }
 
+        // issue #4122: do not return values that are not set in the object
+        bool exists;
         QoreValue n = (getProgram()->getParseOptions64() & PO_STRICT_TYPES)
-            ? odata->priv->swapKeyValue(key, QoreTypeInfo::getDefaultQoreValue(mti), this)
-            : odata->priv->swapKeyValue(key, QoreValue(), this);
+            ? odata->priv->swapKeyValueIfExists(key, QoreTypeInfo::getDefaultQoreValue(mti), this, exists)
+            : odata->priv->swapKeyValueIfExists(key, QoreValue(), this, exists);
+
+        if (!exists) {
+            continue;
+        }
 
         // note that no exception can occur here
         rvh->setKeyValue(key, n, lvh.vl.xsink);

@@ -238,7 +238,9 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
         hash<auto> resp;
         try {
             resp = rest.patch(url, set, \info);
-            #printf("INFO: %N\nRESP: %N\n", info, resp);
+            # the actual values set on the server (which might be different from those requested):
+            #     resp.body.response.result{keys set};
+            # current cannot be used, so we ignore the response
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};

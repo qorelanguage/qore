@@ -41,8 +41,10 @@ public namespace CsvUtil {
         |\c "date_format"|@ref string_type "string"|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
         |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
-        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref True "True")
-        |\c "header_names"|@ref bool_type "bool"|if @ref True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref False "False".
+        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (if not present and \c "header_names" is @ref True "True", assumed to be \c 1)
+        |\c "header_names"|@ref bool_type "bool"|if @ref True "True" then the object will parse the header names from \
+            the first header row, in this case if \c "header_lines" is not set explicitly, it will be assumed to be \
+            \c 1. In case of multi-type lines \c "header_names" must be @ref False "False".
         |\c "header_reorder"|@ref bool_type "bool"|if @ref True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref False "False" then fields not yet specified are pushed at the end of the field definition.
         |\c "ignore_empty"|@ref bool_type "bool"|if @ref True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
@@ -77,6 +79,8 @@ public namespace CsvUtil {
 
         <b>AbstractCsvIterator Option Field Types</b>
         |!Name|!Description
+        |\c "bool"|the value will be unconditionally converted to a @ref bool "bool" using the @ref Qore::parse_boolean() function
+        |\c "*bool"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref bool "bool" using the @ref Qore::parse_boolean() function
         |\c "int"|the value will be unconditionally converted to an @ref integer "integer" using the @ref Qore::int() function
         |\c "*int"|the value will be converted to @ref nothing if empty, otherwise it will be converted to an @ref integer "integer" using the @ref Qore::int() function
         |\c "float"|the value will be unconditionally converted to a @ref float "floating-point value" using the @ref Qore::float() function
@@ -744,6 +748,10 @@ while (i.next()) {
                         else
                             rv = tz ? tz.date(val) : date(val);
                     }
+                    break;
+                }
+                case "bool": {
+                    rv = parse_boolean(val);
                     break;
                 }
                 default:

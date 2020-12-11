@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
-set(VERSION_SUB 10)
+set(VERSION_SUB 11)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -222,10 +222,10 @@ set(QORE_BIN_FILES
     bin/sfrest
     bin/saprest
     bin/sqlutil
-	bin/qdbg
-	bin/qdbg-server
-	bin/qdbg-remote
-	bin/qdbg-vsc-adapter
+    bin/qdbg
+    bin/qdbg-server
+    bin/qdbg-remote
+    bin/qdbg-vsc-adapter
 )
 
 set(QORE_DOX_TMPL_SRC

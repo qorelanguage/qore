@@ -49,9 +49,13 @@ void se_in_op_thread(const char* cname, const char* meth, ExceptionSink* xsink) 
     xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from another thread while a callback operation is in progress on the same socket", cname, meth);
 }
 
-void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink) {
+void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink, const char* extra) {
     assert(xsink);
-    xsink->raiseException("SOCKET-NOT-OPEN", "socket must be opened before %s::%s() call", cname, meth);
+    QoreStringNode* desc = new QoreStringNodeMaker("socket must be opened before %s::%s() call", cname, meth);
+    if (extra) {
+        desc->sprintf(" (%s)", extra);
+    }
+    xsink->raiseException("SOCKET-NOT-OPEN", desc);
 }
 
 void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink) {

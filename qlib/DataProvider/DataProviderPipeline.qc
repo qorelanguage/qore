@@ -114,7 +114,7 @@ public hashdecl PipelineOptionInfo {
 #! Pipeline element
 class PipelineQueue {
     public {
-        #! Pipeline ID
+        #! Queue ID
         int id;
 
         #! Parent lock
@@ -126,11 +126,17 @@ class PipelineQueue {
         #! Queue condition variable
         Condition cond();
 
+        #! Flush condition variable
+        Condition flush_cond();
+
         #! Number of threads waiting data to be removed from the queue
         int queue_waiting = 0;
 
         #! Number of threads waiting on data
         int data_waiting = 0;
+
+        #! Number of threads waiting on the flush cond
+        int flush_waiting = 0;
 
         #! Data queue
         list<auto> queue;
@@ -147,6 +153,12 @@ class PipelineQueue {
             - list of PipelineQueue objects
         */
         list<auto> elems();
+
+        #! Flush pipeline flag
+        bool do_flush;
+
+        #! Data flushed confirmation
+        bool data_flushed;
 
         #! Parent object
         DataProviderPipeline parent;
@@ -224,9 +236,55 @@ class PipelineQueue {
         lck.lock();
         on_exit lck.unlock();
 
+        runIntern();
+    }
+
+    #! Wait for the queue to be empty, then wait for all terminating pipelines to be empty
+    /** @note Called in the pipeline lock
+    */
+    waitDone() {
+        while (!parent.stopping() && queue) {
+            ++queue_waiting;
+            cond.wait(lck);
+            --queue_waiting;
+        }
+
+        if (elems.last().typeCode() == NT_LIST) {
+            map $1.waitDone(), elems.last();
+        }
+
+        do_flush = True;
+        while (!id && !parent.stopping() && do_flush) {
+            if (data_waiting) {
+                cond.broadcast();
+            }
+            ++flush_waiting;
+            flush_cond.wait(lck);
+            --flush_waiting;
+        }
+
+        if (data_flushed) {
+            if (elems.last().typeCode() == NT_LIST) {
+                map $1.waitDone(), elems.last();
+            }
+            remove data_flushed;
+        }
+    }
+
+    /** @note Called in the pipeline lock
+    */
+    private runIntern() {
         #! wait for an event
         while (!parent.stopping()) {
             if (!queue) {
+                if (!id && do_flush) {
+                    flushIntern();
+                    do_flush = False;
+                    if (flush_waiting) {
+                        flush_cond.broadcast();
+                    }
+                }
+
                 ++data_waiting;
                 cond.wait(lck);
                 --data_waiting;
@@ -247,15 +305,20 @@ class PipelineQueue {
             push data_recs, qdata;
 
             try {
+                # iterate each element in the queue
                 foreach auto elem in (elems) {
                     softlist<auto> new_recs;
+                    # iterate each data element in the current data set and submit it to processors
                     foreach auto data_elem in (data_recs) {
                         if (elem instanceof AbstractDataProcessor) {
+                            # new data for the next processor
                             *softlist<auto> new_elem_recs;
+                            # enqueue data for the next processor in the queue
                             code enqueue = sub (auto new_qdata) {
                                 push new_elem_recs, new_qdata;
                             };
                             elem.submit(enqueue, data_elem);
+                            # if we have output data, save it for the next processor
                             if (new_elem_recs) {
                                 # here we need to use += to concatenate lists
                                 new_recs += new_elem_recs;
@@ -274,18 +337,52 @@ class PipelineQueue {
         }
     }
 
-    #! Wait for the queue to be empty, then wait for all terminating pipelines to be empty
-    /** @note Called in the pipeline lock
-    */
-    waitDone() {
-        while (!parent.stopping() && queue) {
-            ++queue_waiting;
-            cond.wait(lck);
-            --queue_waiting;
-        }
-
-        if (elems.last().typeCode() == NT_LIST) {
-            map $1.waitDone(), elems.last();
+    private flushIntern() {
+        try {
+            foreach auto elem in (elems) {
+                if (elem instanceof AbstractDataProcessor) {
+                    *softlist<auto> new_elem_recs;
+                    code enqueue = sub (auto new_qdata) {
+                        push new_elem_recs, new_qdata;
+                    };
+                    elem.flush(enqueue);
+                    if (!new_elem_recs) {
+                        continue;
+                    }
+                    if (!data_flushed) {
+                        data_flushed = True;
+                    }
+                    softlist<auto> data_recs = new_elem_recs;
+                    parent.logDebug("queue %d data processor %y flush output: %y", id, elem.className(), new_elem_recs);
+                    int elem_size = elems.size();
+                    # iterate subsequent processor elements in the queue
+                    for (int i = $# + 1; i < elem_size; ++i) {
+                        softlist<auto> new_recs;
+                        # iterate each data element in the current data set and submit it to processors
+                        foreach auto data_elem in (data_recs) {
+                            if (elems[i] instanceof AbstractDataProcessor) {
+                                AbstractDataProcessor elem2 = cast<AbstractDataProcessor>(elems[i]);
+                                remove new_elem_recs;
+                                elem2.submit(enqueue, data_elem);
+                                if (new_elem_recs) {
+                                    # here we need to use += to concatenate lists
+                                    new_recs += new_elem_recs;
+                                }
+                                parent.logDebug("queue %d data processor %y processing flushed output: %y", id, elem.className(), new_elem_recs);
+                            } else {
+                                # must be the last entry in the list
+                                map $1.submit(data_elem), elems[i];
+                            }
+                        }
+                        data_recs = new_recs;
+                    }
+                } else {
+                    # must be the last entry in the list
+                    map $1.flushIntern(), elem;
+                }
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            parent.reportError(self, ex);
         }
     }
 }
@@ -388,6 +485,9 @@ public class DataProviderPipeline {
 
         # create new pipeline queues
         pmap = map {$1.key: copyPipeline($1.value)}, (remove pmap).pairIterator();
+
+        # rename to label as copy
+        name = sprintf("copy of %s", name);
     }
 
     #! Destroys the object
@@ -871,3 +971,15 @@ public class DataProviderPipeline {
     }
 }
 }
+
+*list sub get_stack() {
+    if (!HAVE_RUNTIME_THREAD_STACK_TRACE)
+        return;
+    *list stack = get_thread_call_stack();
+    if (!stack)
+        return;
+    splice stack, 0, 2;
+    return map $1.type != "new-thread" ? sprintf("%s %s()", get_ex_pos($1), $1.function) : "new-thread", stack;
+}
+
+

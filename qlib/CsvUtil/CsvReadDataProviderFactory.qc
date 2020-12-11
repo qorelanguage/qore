@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore CsvReadDataProviderFactory class definition
 
-/** CsvReadDataProviderFactory.qc Copyright 2019 Qore Technologies, s.r.o.
+/** CsvReadDataProviderFactory.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.10
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere

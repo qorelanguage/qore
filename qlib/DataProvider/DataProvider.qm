@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0.3";
+    version = "1.0.4";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,14 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_5 DataProvider v1.0.5
+    - fixed an issue where it was not possible for pipeline to flush any pending data or to perform reset or purge
+      operations when pipeline processing is complete; for this the
+      @ref DataProvider::AbstractDataProcessor::flush() "AbstractDataProcessor::flush()" and
+      @ref DataProvider::AbstractDataProcessor::flushImpl() "AbstractDataProcessor::flushImpl()" methods were
+      implemented
+      (<a href="https://github.com/qorelanguage/qore/issues/4107">issue 4107</a>)
 
     @subsection dataprovider_v1_0_4 DataProvider v1.0.4
     - fixed type-handling bugs handling data provider options

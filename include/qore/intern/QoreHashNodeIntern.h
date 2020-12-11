@@ -294,6 +294,29 @@ public:
         return rv;
     }
 
+    DLLLOCAL QoreValue takeKeyValueIntern(const char* key, bool& exists) {
+        assert(key);
+
+        hm_hm_t::iterator i = hm.find(key);
+
+        if (i == hm.end()) {
+            exists = false;
+            return QoreValue();
+        }
+        exists = true;
+
+        qhlist_t::iterator li = i->second;
+        hm.erase(i);
+
+        QoreValue rv = (*li)->val;
+        internDeleteKey(li);
+
+        if (needs_scan(rv))
+            incScanCount(-1);
+
+        return rv;
+    }
+
     DLLLOCAL const char* getFirstKey() const  {
         return member_list.empty() ? nullptr : member_list.front()->key.c_str();
     }
@@ -476,6 +499,16 @@ public:
         hm.clear();
         obj_count = 0;
         return true;
+    }
+
+    DLLLOCAL QoreValue swapKeyValueIfExists(const char* key, QoreValue val, qore_object_private* o, bool& exists) {
+        hash_assignment_priv ha(*this, key, true, o);
+        if (!ha.exists()) {
+            exists = false;
+            return QoreValue();
+        }
+        exists = true;
+        return ha.swap(val);
     }
 
     DLLLOCAL QoreValue swapKeyValue(const char* key, QoreValue val, qore_object_private* o) {

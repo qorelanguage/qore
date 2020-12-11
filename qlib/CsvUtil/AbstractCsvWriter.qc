@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore AbstractCsvWriter class definition
 
-/*  AbstractCsvWriter.qc Copyright 2012 - 2019 Qore Technologies, s.r.o.
+/*  AbstractCsvWriter.qc Copyright 2012 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -70,7 +70,7 @@ public namespace CsvUtil {
     public class AbstractCsvWriter inherits private CsvHelper {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
-            const Options = (
+            const Options = {
                 "block": C_OPT1|C_OPT2,
                 "datamap": C_OPT1,
                 "date_format": C_OPT1|C_OPT2,
@@ -91,7 +91,7 @@ public namespace CsvUtil {
                 "verify-columns": C_OPT1|C_OPT2,
                 "write_headers": C_OPT1|C_OPT2,
                 "write-headers": C_OPT1|C_OPT2,
-                );
+            };
 
             #! output file character encoding
             string encoding;
@@ -374,6 +374,18 @@ public namespace CsvUtil {
                     i = m_out_by_idx{type}[j];
                     hash<auto> spec = m_specs{type}{m_out_by_name{type}[j]};
                     switch (spec.type) {
+                        case "bool": {
+                            if (values[i].typeCode() != NT_BOOLEAN)
+                                throw errname, sprintf("Line (%d), Column (%d) does not contain a boolean value: %y", lineNo, j, values[i]);
+                            values[i] = values[i] ? "true": "false";
+                            break;
+                        }
+                        case "*bool": {
+                            if (!values[i].empty() && values[i].typeCode() != NT_BOOLEAN)
+                                throw errname, sprintf("Line (%d), Column (%d) does not contain a boolean value: %y", lineNo, j, values[i]);
+                            values[i] = values[i] ? "true": "false";
+                            break;
+                        }
                         case "int": {
                             if (int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
