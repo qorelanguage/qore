@@ -78,6 +78,29 @@ static int check_response_code(int status_code, ExceptionSink* xsink) {
     return 0;
 }
 
+//! Socket poll info hash
+/** for use with @ref Qore::Sockett::poll() "Socket::poll()""
+*/
+hashdecl Qore::SocketPollInfo {
+    //! Socket poll type; see @ref socket_poll_constants for possible values to be combined with binary or; on input, these are the events to check, on output, this value gives the events found in the timeout period
+    int events;
+    //! the socket to monitor
+    Socket socket;
+}
+
+/** @defgroup zsocket_poll_constants ZSocket Poll Constants
+*/
+//@{
+//! (input and output) for polling for read events
+const SOCK_POLLIN = SOCK_POLLIN;
+
+//! (input and output) for polling for write events
+const SOCK_POLLOUT = SOCK_POLLOUT;
+
+//! (output only) indicates that the socket or connection is closed
+const SOCK_POLLERR = SOCK_POLLERR;
+//@}
+
 /** @defgroup ssl_mode_constants SSL Verification Mode Constants
     These are integer contants to be used with @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
     and are returned by @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
@@ -3272,4 +3295,34 @@ int conn_id = sock.getConnectionId();
 */
 int Socket::getConnectionId() [flags=CONSTANT] {
     return s->getConnectionId();
+}
+
+//! polls multiple sockets and returns all sockets with events
+/** @par Example:
+    @code{.py}
+list<hash<SocketPollInfo>> l(
+    <SocketPollInfo>{
+        "events": SOCK_POLLOUT,
+        "socket": sock1,
+    },
+    <SocketPollInfo>{
+        "events": SOCK_POLLIN | SOCK_POLLOUT,
+        "socket": sock2,
+    },
+);
+l = Socket::poll(l, 2s);
+    @endcode
+
+    @param item list of @ref SocketPollInfo hashes of sockets with events in the timeoutt period
+    @param timeout_ms the poll timeout period; -1 = never timeout
+
+    @return a list of sockets with events in the timeout period
+
+    @throw SOCKET-POLL-ERROR \a socket element in the \a items argument is not assigned or there was an error in the
+    poll operation
+
+    @since %Qore 0.9.11
+*/
+static list<hash<SocketPollInfo>> Socket::poll(list<hash<SocketPollInfo>> items, timeout timeout_ms) {
+    return qore_socket_private::poll(items, timeout_ms, xsink);
 }

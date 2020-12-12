@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1003,14 +1003,14 @@ nothing gethostbyaddr() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-*hash ah = gethostbyname_long(host);
-if (!exists host)
+*hash<auto> ah = gethostbyname_long(host);
+if (!ah)
     printf("address lookup on %y failed; hostname unknown\n", host);
     @endcode
 
     @see gethostbyname() for a version of this function that returns just the first network address corresponding to the hostname
  */
-*hash gethostbyname_long(string name) [flags=CONSTANT;dom=EXTERNAL_INFO] {
+*hash<auto> gethostbyname_long(string name) [flags=CONSTANT;dom=EXTERNAL_INFO] {
    return q_gethostbyname_to_hash(name->getBuffer());
 }
 
@@ -1030,8 +1030,8 @@ nothing gethostbyname_long() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-*hash ah = gethostbyaddr_long("192.168.0.33");
-if (!exists ah)
+*hash<auto> ah = gethostbyaddr_long("192.168.0.33");
+if (!ah)
     printf("address lookup on 192.168.0.33 failed\n", host);
     @endcode
 
@@ -1039,7 +1039,7 @@ if (!exists ah)
 
     @see gethostbyaddr() for a simpler version of this function that returns just a single hostname for the address
  */
-*hash gethostbyaddr_long(string addr, softint type = AF_INET) [flags=CONSTANT;dom=EXTERNAL_INFO] {
+*hash<auto> gethostbyaddr_long(string addr, softint type = AF_INET) [flags=CONSTANT;dom=EXTERNAL_INFO] {
    return q_gethostbyaddr_to_hash(xsink, addr->getBuffer(), type);
 }
 

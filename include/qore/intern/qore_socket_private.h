@@ -72,6 +72,10 @@
 #define DEFAULT_SOCKET_MIN_THRESHOLD_BYTES 1024
 #endif
 
+static constexpr int SOCK_POLLIN  = (1 << 0);
+static constexpr int SOCK_POLLOUT = (1 << 1);
+static constexpr int SOCK_POLLERR = (1 << 2);
+
 DLLLOCAL void concat_target(QoreString& str, const struct sockaddr *addr, const char* type = "target");
 DLLLOCAL int do_read_error(qore_offset_t rc, const char* method_name, int timeout_ms, ExceptionSink* xsink);
 DLLLOCAL int sock_get_raw_error();
@@ -104,6 +108,31 @@ DLLLOCAL int check_windows_rc(int rc);
 #define QORE_INVALID_SOCKET -1
 #define QORE_SOCKET_ERROR -1
 #endif
+
+template <typename T>
+class PrivateDataListHolder {
+public:
+    DLLLOCAL PrivateDataListHolder(ExceptionSink* xsink) : xsink(xsink) {
+    }
+
+    DLLLOCAL ~PrivateDataListHolder() {
+        for (auto& i : pd_vec)
+            i->deref(xsink);
+    }
+
+    DLLLOCAL T* add(const QoreObject* o, qore_classid_t cid) {
+        T* pd = static_cast<T*>(o->getReferencedPrivateData(cid, xsink));
+        if (!pd)
+            return nullptr;
+        pd_vec.push_back(pd);
+        return pd;
+    }
+
+private:
+    typedef std::vector<T*> pd_vec_t;
+    pd_vec_t pd_vec;
+    ExceptionSink* xsink;
+};
 
 struct qore_socketsource_private {
     QoreStringNode* address;
@@ -875,7 +904,7 @@ struct qore_socket_private {
         -1: error
         0: timeout
         > 0: I/O can continue
-        */
+    */
     DLLLOCAL int asyncIoWait(int timeout_ms, bool read, bool write, const char* cname, const char* mname, ExceptionSink* xsink) const {
         assert(xsink);
         assert(read || write);
@@ -908,7 +937,7 @@ struct qore_socket_private {
             arg |= POLLOUT;
         pollfd fds = {sock, arg, 0};
         while (true) {
-            rc = poll(&fds, 1, timeout_ms);
+            rc = ::poll(&fds, 1, timeout_ms);
             if (rc == -1 && errno == EINTR)
                 continue;
             break;
@@ -3560,6 +3589,8 @@ struct qore_socket_private {
     }
 
     DLLLOCAL static void captureRemoteCert(X509_STORE_CTX* x509_ctx);
+
+    DLLLOCAL static QoreListNode* poll(const QoreListNode* poll_list, int timeout_ms, ExceptionSink* xsink);
 };
 
 #endif

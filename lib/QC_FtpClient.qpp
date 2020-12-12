@@ -1234,7 +1234,7 @@ FtpClient::setTimeout(timeout timeout_ms) {
 /** @param cmd the FTP command to send
     @param arg the argument for the command
 
-    @response the response from the FTP server
+    @return the response from the FTP server
 
     @note This method is for commands only on the control connection; no data connection is possible with this method
 

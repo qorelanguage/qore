@@ -171,6 +171,7 @@ DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 DLLLOCAL void preinitTimeZoneClass();
 DLLLOCAL void preinitInputStreamClass();
 DLLLOCAL void preinitOutputStreamClass();
+DLLLOCAL void preinitSocketClass();
 
 StaticSystemNamespace* staticSystemNamespace;
 
@@ -190,7 +191,8 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclHashSerializationInfo,
     * hashdeclListSerializationInfo,
     * hashdeclUrlInfo,
-    * hashdeclFtpResponseInfo;
+    * hashdeclFtpResponseInfo,
+    * hashdeclSocketPollInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -1032,6 +1034,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclListSerializationInfo = init_hashdecl_ListSerializationInfo(qns);
     hashdeclUrlInfo = init_hashdecl_UrlInfo(qns);
     hashdeclFtpResponseInfo = init_hashdecl_FtpResponseInfo(qns);
+    preinitSocketClass();
+    hashdeclSocketPollInfo = init_hashdecl_SocketPollInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
