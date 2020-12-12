@@ -254,28 +254,41 @@ class SocketTest inherits QUnit::Test {
 
         delete s2;
         assertThrows("OBJECT-ALREADY-DELETED", \Socket::poll(), (poll_list, 1s));
-    }
 
-    private waitForError(Socket sock, date timeout_ms = 2s) {
-        list<hash<SocketPollInfo>> poll_list = (
-            <SocketPollInfo>{
-                "events": SOCK_POLLIN | SOCK_POLLOUT,
-                "socket": sock,
-            },
-        );
+        # close socket in background
+        s1.connect("localhost:" + port);
+        s2 = s0.accept();
 
-        date start = now_us();
-        while (True) {
-            list<hash<SocketPollInfo>> new_list = map $1, Socket::poll(poll_list, 100ms), $1.events & SOCK_POLLERR;
-            if (new_list) {
-                return;
+        Counter cnt(1);
+        Queue q();
+        code poll = sub () {
+            list<hash<SocketPollInfo>> new_poll_list = (
+                <SocketPollInfo>{
+                    "events": SOCK_POLLIN,
+                    "socket": s1,
+                },
+                <SocketPollInfo>{
+                    "events": SOCK_POLLIN,
+                    "socket": s2,
+                },
+            );
+            cnt.dec();
+            try {
+                q.push(Socket::poll(new_poll_list, 10s));
+            } catch (hash<ExceptionInfo> ex) {
+                q.push(ex);
             }
-            date delta = now_us() - start;
-            if (delta > timeout_ms) {
-                throw "SOCKET-STATUS-ERROR", sprintf("socket exceeded the timeout of %y to get an error status",
-                    timeout_ms);
-            }
+        };
+        background poll();
+        cnt.waitForZero();
+        usleep(250ms);
+        delete s1;
+        auto v = q.get();
+        on_error {
+            printf("%y\n", v.fullType());
+            map printf("%d: events: %y\n", $#, $1.events), v;
         }
+        assertEq(SOCK_POLLERR, v[0].events);
     }
 
     tls13Test() {
