@@ -181,8 +181,7 @@ class SocketTest inherits QUnit::Test {
             },
         );
 
-        list<hash<SocketPollInfo>> new_list = Socket::poll(poll_list, 0s);
-        assertEq((), new_list);
+        list<hash<SocketPollInfo>> new_list;
 
         if (s0.bind("localhost:0", True)) {
             throw "SOCKET-BIND-ERROR", strerror();
@@ -242,26 +241,18 @@ class SocketTest inherits QUnit::Test {
         assertEq(s2, new_list[1].socket);
 
         s1.close();
-        # wait until s2 gets an error status
-        waitForError(s2);
-        new_list = Socket::poll(poll_list, 5s);
-        assertEq(1, new_list.size());
-        assertEq(SOCK_POLLERR, new_list[0].events);
-        assertEq(s2, new_list[0].socket);
-
-        s2.close();
-        new_list = Socket::poll(poll_list, 0s);
-        assertEq((), new_list);
+        assertThrows("SOCKET-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
 
         new_list = poll_list;
         remove new_list[0].socket;
         assertThrows("SOCKET-POLL-ERROR", \Socket::poll(), (new_list, 1s));
 
+        shift poll_list;
         new_list = poll_list;
         new_list[0].events = 0;
         assertThrows("SOCKET-POLL-ERROR", \Socket::poll(), (new_list, 1s));
 
-        delete s1;
+        delete s2;
         assertThrows("OBJECT-ALREADY-DELETED", \Socket::poll(), (poll_list, 1s));
     }
 

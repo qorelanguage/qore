@@ -809,7 +809,12 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
             return nullptr;
         }
 
-        //DLLLOCAL int poll_intern(ExceptionSink* xsink, int timeout_ms, bool read, bool write) const {
+        if (!sock->isOpen()) {
+            xsink->raiseException("SOCKET-NOT-OPEN", "element " QLLD "/" QLLD " (starting from 1) references a " \
+                "Socket object that is not open", li.index() + 1, poll_list->size());
+            return nullptr;
+        }
+
         short arg = 0;
         if (events & SOCK_POLLIN) {
             arg |= POLLIN;

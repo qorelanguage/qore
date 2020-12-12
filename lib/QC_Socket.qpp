@@ -3318,8 +3318,9 @@ l = Socket::poll(l, 2s);
 
     @return a list of sockets with events in the timeout period
 
-    @throw SOCKET-POLL-ERROR \a socket element in the \a items argument is not assigned or there was an error in the
+    @throw SOCKET-POLL-ERROR \a socket value in the \a items argument is not assigned or there was an error in the
     poll operation
+    @throw SOCKET-NOT-OPEN \a socket value in the \a items argument is closed
 
     @since %Qore 0.9.11
 */
