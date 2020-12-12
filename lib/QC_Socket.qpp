@@ -3322,6 +3322,11 @@ l = Socket::poll(l, 2s);
     poll operation
     @throw SOCKET-NOT-OPEN \a socket value in the \a items argument is closed
 
+    @note If a socket being polled is closed or deleted in a background thread, the poll operation is not interrupted
+    on Linux; other platforms behave differently (macOS / Darwin interrupts the polling process in this case); for
+    proper operation on all platforms, do not assume that the polling operation will return immediately if a socket
+    being polled is deleted in a background thread.
+
     @since %Qore 0.9.11
 */
 static list<hash<SocketPollInfo>> Socket::poll(list<hash<SocketPollInfo>> items, timeout timeout_ms) {
