@@ -32,14 +32,17 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4104">issue 4104</a>)
     - fixed a bug in the @ref remove "remove" operator when used with a slice of a hash or an object; hash keys for
       nonexistent values were returned in a manner inconsistnent with the hash slice operator when not used with the
-      @ref remove "remote" operator
+      @ref remove "remove" operator
       (<a href="https://github.com/qorelanguage/qore/issues/4122">issue 4122</a>)
-    - fixed a bug in the @ref cast "cast<>"; invalid exceptions were raised during parsing for
+    - fixed a bug in the @ref cast "cast<>" operator; invalid exceptions were raised during parsing for
       values that could still inherit the target class; the check must only be made at runtime
       (<a href="https://github.com/qorelanguage/qore/issues/4113">issue 4113</a>)
-    - fixed a bug in the @ref instanceof "instanceof operator"; invalid exceptions were raised during parsing for
+    - fixed a bug in the @ref instanceof "instanceof" operator; invalid exceptions were raised during parsing for
       values that could still inherit the target class; the check must only be made at runtime
       (<a href="https://github.com/qorelanguage/qore/issues/4112">issue 4112</a>)
+    - fixed a bug where it was not possible to poll for I/O on more than one @ref Qore::Socket "Socket" at a time; for
+      this the @ref Qore::Socket::poll() "Socket::poll()" static method was implemented
+      (<a href="https://github.com/qorelanguage/qore/issues/4069">issue 4069</a>)
 
     @section qore_0910 Qore 0.9.10
 

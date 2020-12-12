@@ -99,8 +99,7 @@ int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
       struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
       addr = &(ipv4->sin_addr);
       str.reserve(slen + INET_ADDRSTRLEN + 1);
-   }
-   else if (ai_addr->sa_family == AF_INET6) {
+   } else if (ai_addr->sa_family == AF_INET6) {
       struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
       addr = &(ipv6->sin6_addr);
       str.reserve(slen + INET6_ADDRSTRLEN + 1);
@@ -134,8 +133,7 @@ int q_get_port_from_addr(const struct sockaddr* ai_addr) {
    if (ai_addr->sa_family == AF_INET) {
       const struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
       return ntohs(ipv4->sin_port);
-   }
-   else if (ai_addr->sa_family == AF_INET6) {
+   } else if (ai_addr->sa_family == AF_INET6) {
       const struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
       return ntohs(ipv6->sin6_port);
    }
@@ -316,14 +314,12 @@ char* q_gethostbyaddr(const char* addr, int len, int type) {
         in.sin_family = AF_INET;
         in.sin_addr = *((struct in_addr*)addr);
         rc = getnameinfo(reinterpret_cast<sockaddr*>(&in), sizeof(sockaddr_in), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
-    }
-    else if (type == AF_INET6) {
+    } else if (type == AF_INET6) {
         memset(&in6, 0, sizeof(sockaddr_in6));
         in6.sin6_family = AF_INET6;
         in6.sin6_addr = *((struct in6_addr*)addr);
         rc = getnameinfo(reinterpret_cast<sockaddr*>(&in6), sizeof(sockaddr_in6), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
-    }
-    else {
+    } else {
         return nullptr;
     }
 
@@ -343,12 +339,10 @@ QoreHashNode* q_gethostbyaddr_to_hash(ExceptionSink* xsink, const char* addr, in
     if (type == AF_INET) {
         dst = (void*)&sin_addr;
         len = sizeof(sin_addr);
-    }
-    else if (type == AF_INET6) {
+    } else if (type == AF_INET6) {
         dst = (void*)&sin6_addr;
         len = sizeof(sin6_addr);
-    }
-    else {
+    } else {
         xsink->raiseException("GETHOSTBYADDR-ERROR", "%d is an invalid address type (valid types are AF_INET=%d, AF_INET6=%d", type, AF_INET, AF_INET6);
         return 0;
     }
@@ -400,13 +394,11 @@ QoreStringNode* q_gethostbyaddr_to_string(ExceptionSink* xsink, const char* addr
         memset(&in, 0, sizeof(sockaddr_in));
         in.sin_family = AF_INET;
         dst = (void*)&in.sin_addr;
-    }
-    else if (type == AF_INET6) {
+    } else if (type == AF_INET6) {
         memset(&in6, 0, sizeof(sockaddr_in6));
         in6.sin6_family = AF_INET6;
         dst = (void*)&in6.sin6_addr;
-    }
-    else {
+    } else {
         xsink->raiseException("GETHOSTBYADDR-ERROR", "%d is an invalid address type (valid types are AF_INET=%d, AF_INET6=%d", type, AF_INET, AF_INET6);
         return nullptr;
     }
@@ -421,8 +413,7 @@ QoreStringNode* q_gethostbyaddr_to_string(ExceptionSink* xsink, const char* addr
 
     if (type == AF_INET) {
         rc = getnameinfo(reinterpret_cast<sockaddr*>(&in), sizeof(sockaddr_in), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
-    }
-    else {
+    } else {
         rc = getnameinfo(reinterpret_cast<sockaddr*>(&in6), sizeof(sockaddr_in6), buf, sizeof buf, nullptr, 0, NI_NAMEREQD);
     }
 

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -513,8 +513,6 @@ public:
     DLLEXPORT QoreValue getReferencedValue() const;
 
     //! returns a pointer to the value of the list element
-    /** @deprecated do not use; use get() instead
-    */
     DLLEXPORT QoreValue getValue() const;
 
     //! returns true when the iterator is pointing to the first element in the list
@@ -612,8 +610,6 @@ public:
     DLLEXPORT QoreValue getReferencedValue() const;
 
     //! returns a pointer to the value of the list element
-    /** @deprecated do not use; use get() instead
-    */
     DLLEXPORT const QoreValue getValue() const;
 
     //! returns true when the iterator is pointing to the first element in the list

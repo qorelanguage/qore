@@ -765,6 +765,113 @@ void qore_socket_private::captureRemoteCert(X509_STORE_CTX* x509_ctx) {
     current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(), new QoreSSLCertificate(X509_dup(x509)));
 }
 
+#ifndef HAVE_POLL
+#error requires poll(): HAVE_POLL is not defined
+#endif
+
+QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeout_ms, ExceptionSink* xsink) {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclSocketPollInfo->getTypeInfo(false)), xsink);
+
+    if (poll_list->empty()) {
+        return rv.release();
+    }
+
+    PrivateDataListHolder<QoreSocketObject> pdlh(xsink);
+
+    std::vector<pollfd> fds;
+    fds.reserve(poll_list->size());
+    ConstListIterator li(poll_list);
+    while (li.next()) {
+        const QoreValue v = li.getValue();
+        assert(QoreTypeInfo::getUniqueReturnHashDecl(v.getFullTypeInfo())->equal(hashdeclSocketPollInfo));
+        const QoreHashNode* h = v.get<const QoreHashNode>();
+        assert(h);
+        bool found;
+        int64 events = h->getKeyAsBigInt("events", found);
+
+        // get the socket
+        QoreObject* obj = h->getKeyValue("socket").get<QoreObject>();
+        ReferenceHolder<QoreSocketObject> sock(xsink);
+        if (obj) {
+            sock = reinterpret_cast<QoreSocketObject*>(obj->getReferencedPrivateData(CID_SOCKET, xsink));
+            if (*xsink) {
+                xsink->appendLastDescription(": while processing element " QLLD "/" QLLD " (starting from 1) in " \
+                    "the socket list", li.index() + 1, poll_list->size());
+                return nullptr;
+            }
+        } else {
+            sock = nullptr;
+        }
+
+        if (!sock) {
+            xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) is missing the " \
+                "'socket' value", li.index() + 1, poll_list->size());
+            return nullptr;
+        }
+
+        if (!sock->isOpen()) {
+            xsink->raiseException("SOCKET-NOT-OPEN", "element " QLLD "/" QLLD " (starting from 1) references a " \
+                "Socket object that is not open", li.index() + 1, poll_list->size());
+            return nullptr;
+        }
+
+        short arg = 0;
+        if (events & SOCK_POLLIN) {
+            arg |= POLLIN;
+        }
+        if (events & SOCK_POLLOUT) {
+            arg |= POLLOUT;
+        }
+
+        if (!arg) {
+            xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) has an invalid " \
+                "'events' value; neither SOCK_POLLIN nor SOCK_POLLOUT is set", li.index() + 1, poll_list->size());
+            return nullptr;
+        }
+
+        fds[li.index()] = {sock->getSocket(), arg, 0};
+    }
+
+    int rc;
+    while (true) {
+        rc = ::poll(&fds[0], poll_list->size(), timeout_ms);
+        if (rc == -1 && errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+    if (rc < 0) {
+        qore_socket_error(xsink, "SOCKET-POLL-ERROR", "poll(2) returned an error");
+    }
+
+    // scan results for errors
+    for (unsigned i = 0; i < poll_list->size(); ++i) {
+        int events = 0;
+        if (fds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) {
+            events = SOCK_POLLERR;
+        } else {
+            if (fds[i].revents & POLLIN) {
+                events |= SOCK_POLLIN;
+            }
+            if (fds[i].revents & POLLOUT) {
+                events |= SOCK_POLLOUT;
+            }
+        }
+        if (events) {
+            const QoreHashNode* orig = poll_list->retrieveEntry(i).get<const QoreHashNode>();
+
+            ReferenceHolder<QoreHashNode> entry(new QoreHashNode(hashdeclSocketPollInfo, xsink), xsink);
+            assert(!*xsink);
+            entry->setKeyValue("events", events, xsink);
+            entry->setKeyValue("socket", orig->getKeyValue("socket").refSelf(), xsink);
+            rv->push(entry.release(), xsink);
+            assert(!*xsink);
+        }
+    }
+
+    return rv.release();
+}
+
 void QoreSocket::doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink) {
    assert(xsink);
    switch (rc) {

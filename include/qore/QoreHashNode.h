@@ -243,7 +243,7 @@ public:
 
     //! performs a copy of the hash and returns the new hash
     /** @return a copy of the current QoreHashNode
-        */
+    */
     DLLEXPORT QoreHashNode* copy() const;
 
     DLLEXPORT QoreValue& getKeyValueReference(const char* key);

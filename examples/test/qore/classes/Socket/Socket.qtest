@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 
 %exec-class SocketTest
@@ -143,6 +144,7 @@ class SocketTest inherits QUnit::Test {
     constructor() : QUnit::Test("Socket test", "1.0", \ARGV, MyOpts) {
         process_command_line();
 
+        addTestCase("poll test", \pollTest());
         addTestCase("tls13 test", \tls13Test());
         addTestCase("connection ID", \connectionIdTest());
         addTestCase("Client/Server Socket tests", \clientServerSocketTest());
@@ -162,6 +164,131 @@ class SocketTest inherits QUnit::Test {
         s0.setCertificate(TestCert);
         s0.setPrivateKey(TestCert);
         s0.acceptSSL();
+    }
+
+    pollTest() {
+        Socket s0();
+        Socket s1();
+
+        list<hash<SocketPollInfo>> poll_list = (
+            <SocketPollInfo>{
+                "events": SOCK_POLLIN,
+                "socket": s0,
+            },
+            <SocketPollInfo>{
+                "events": SOCK_POLLOUT,
+                "socket": s1,
+            },
+        );
+
+        list<hash<SocketPollInfo>> new_list;
+
+        if (s0.bind("localhost:0", True)) {
+            throw "SOCKET-BIND-ERROR", strerror();
+        }
+        s0.listen();
+        int port = s0.getSocketInfo().port;
+
+        s1.connect("localhost:" + port);
+        Socket s2 = s0.accept();
+        string test_msg = get_random_string();
+        s2.send(test_msg);
+
+        poll_list = (
+            <SocketPollInfo>{
+                "events": SOCK_POLLIN,
+                "socket": s1,
+            },
+            <SocketPollInfo>{
+                "events": SOCK_POLLOUT,
+                "socket": s2,
+            },
+        );
+
+        new_list = Socket::poll(poll_list, 5s);
+        assertEq(2, new_list.size());
+        assertEq(SOCK_POLLIN, new_list[0].events);
+        assertEq(s1, new_list[0].socket);
+        assertEq(SOCK_POLLOUT, new_list[1].events);
+        assertEq(s2, new_list[1].socket);
+
+        poll_list = (
+            <SocketPollInfo>{
+                "events": SOCK_POLLIN | SOCK_POLLOUT,
+                "socket": s1,
+            },
+            <SocketPollInfo>{
+                "events": SOCK_POLLIN | SOCK_POLLOUT,
+                "socket": s2,
+            },
+        );
+
+        new_list = Socket::poll(poll_list, 5s);
+        assertEq(2, new_list.size());
+        assertEq(SOCK_POLLIN | SOCK_POLLOUT, new_list[0].events);
+        assertEq(s1, new_list[0].socket);
+        assertEq(SOCK_POLLOUT, new_list[1].events);
+        assertEq(s2, new_list[1].socket);
+
+        string msg = s1.recv(-1);
+        assertEq(test_msg, msg);
+
+        new_list = Socket::poll(poll_list, 5s);
+        assertEq(2, new_list.size());
+        assertEq(SOCK_POLLOUT, new_list[0].events);
+        assertEq(s1, new_list[0].socket);
+        assertEq(SOCK_POLLOUT, new_list[1].events);
+        assertEq(s2, new_list[1].socket);
+
+        s1.close();
+        assertThrows("SOCKET-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
+
+        new_list = poll_list;
+        remove new_list[0].socket;
+        assertThrows("SOCKET-POLL-ERROR", \Socket::poll(), (new_list, 1s));
+
+        shift poll_list;
+        new_list = poll_list;
+        new_list[0].events = 0;
+        assertThrows("SOCKET-POLL-ERROR", \Socket::poll(), (new_list, 1s));
+
+        delete s2;
+        assertThrows("OBJECT-ALREADY-DELETED", \Socket::poll(), (poll_list, 1s));
+
+        # close socket in background
+        s1.connect("localhost:" + port);
+        s2 = s0.accept();
+
+        Counter cnt(1);
+        Queue q();
+        code poll = sub () {
+            list<hash<SocketPollInfo>> new_poll_list = (
+                <SocketPollInfo>{
+                    "events": SOCK_POLLIN,
+                    "socket": s1,
+                },
+                <SocketPollInfo>{
+                    "events": SOCK_POLLIN,
+                    "socket": s2,
+                },
+            );
+            cnt.dec();
+            try {
+                q.push(Socket::poll(new_poll_list, 500ms));
+            } catch (hash<ExceptionInfo> ex) {
+                q.push(ex);
+            }
+        };
+        background poll();
+        cnt.waitForZero();
+        usleep(250ms);
+        delete s1;
+        auto v = q.get();
+        on_error {
+            printf("%y\n", v.fullType());
+            map printf("%d: events: %y\n", $#, $1.events), v;
+        }
+        assertEq(SOCK_POLLERR, v[0].events);
     }
 
     tls13Test() {

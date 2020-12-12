@@ -2154,7 +2154,7 @@ protected:
 
             // inject open group marker in block comment if necessary
             if (!open_group && line.find("*/") != std::string::npos) {
-                str += "@{\n";
+                str += "//@{\n";
                 open_group_injected = true;
             } else if (open_group_injected && !line.compare(0, 4, "//@{")) {
                 break;
@@ -2475,7 +2475,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("/** @} */\n", fp);
+        fputs("//@}\n", fp);
 
         outputNamespaceEnd(fp);
 
