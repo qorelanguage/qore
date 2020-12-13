@@ -147,8 +147,8 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     /** @param connect if @ref True "True" then a connection is made by calling @ref Qore::HTTPClient::connect() before returning the object
         @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
     */
-    private Qore::HTTPClient getImpl(bool connect = True, *hash rtopts) {
-        HTTPClient sc(("url": url) + opts);
+    private Qore::HTTPClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        HTTPClient sc({"url": url} + opts);
         if (connect)
             sc.connect();
 

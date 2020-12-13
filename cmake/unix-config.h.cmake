@@ -89,6 +89,7 @@
 #cmakedefine QORE_HAVE_PTHREAD_SETNAME_NP_3
 #cmakedefine QORE_HAVE_PTHREAD_SET_NAME_NP
 #cmakedefine QORE_HAVE_PTHREAD_GETATTR_NP
+#cmakedefine HAVE_PTHREAD_GETNAME_NP
 #cmakedefine HAVE_PUTENV
 #cmakedefine HAVE_RANDOM
 #cmakedefine HAVE_READLINK
