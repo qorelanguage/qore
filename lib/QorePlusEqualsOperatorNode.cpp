@@ -112,6 +112,12 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
                 return QoreValue();
             }
             vtype = v.getType();
+        } else if (QoreTypeInfo::isHashType(typeInfo)) {
+            // issue #4133: automatically promote lvalue to correctly-typed empty list for "*hash..." types
+            if (v.assign(new QoreHashNode(QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo)), "<lvalue for += operator>")) {
+                return QoreValue();
+            }
+            vtype = v.getType();
         } else {
             if (!new_right->isNothing()) {
                 // assign rhs to lhs (take reference for plusequals)
