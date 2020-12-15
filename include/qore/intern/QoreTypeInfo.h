@@ -877,6 +877,14 @@ public:
         return ti->return_vec[0].spec.getType() == NT_LIST;
     }
 
+    //! returns true if the type is an explicit hash type
+    DLLLOCAL static bool isHashType(const QoreTypeInfo* ti) {
+        if (!hasType(ti)) {
+            return false;
+        }
+        return ti->return_vec[0].spec.getType() == NT_HASH;
+    }
+
     //! returns the element type, if any (nullptr if not applicable)
     DLLLOCAL static const QoreTypeInfo* getElementType(const QoreTypeInfo* ti) {
         if (!hasType(ti)) {
