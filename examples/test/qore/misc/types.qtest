@@ -41,6 +41,7 @@ class Issue3887_Child inherits Issue3887_Base { int test(softlist l) { return 1;
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 4133 complex types", \issue4133());
         addTestCase("issue 3887", \issue3887());
         addTestCase("hashdecl types", \hashdeclTypeTest());
         addTestCase("<string>::toBinary()", \stringToBinary());
@@ -64,6 +65,27 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue4133() {
+        {
+           *hash<string, softlist<auto>> h = {"a": 1};
+           assertEq((1,), h.a);
+        }
+        {
+           *hash<string, softlist<auto>> h += {"a": 1};
+           assertEq((1,), h.a);
+        }
+        {
+           *hash<string, softlist<auto>> h;
+           map h = {"a": 1}, 1;
+           assertEq((1,), h.a);
+        }
+        {
+           *hash<string, softlist<auto>> h;
+           map h += {"a": 1}, 1;
+           assertEq((1,), h.a);
+        }
     }
 
     issue3887() {
@@ -216,21 +238,32 @@ class TypeTest inherits QUnit::Test {
             assertEq({}, h);
             assertEq("hash<string, bool>", h.fullType());
         }
-        /*
         {
             hash<string, bool> h = map {$1: True}, x;
             assertEq({}, h);
             assertEq("hash<string, bool>", h.fullType());
         }
-        */
-        /*
         {
-            *list<int> x = ();
-            list<int> v = x;
+            *hash<string, int> x0 = {};
+            assertEq("hash<string, int>", x0.fullType());
+            hash<string, int> v = x0;
+            assertEq({}, v);
+            assertEq("hash<string, int>", v.fullType());
+        }
+        {
+            *list<int> x0 = ();
+            assertEq("list<int>", x0.fullType());
+            list<int> v = x0;
             assertEq((), v);
             assertEq("list<int>", v.fullType());
         }
-        */
+        {
+            *softlist<int> x0 = ();
+            assertEq("list<int>", x0.fullType());
+            softlist<int> v = x0;
+            assertEq((), v);
+            assertEq("list<int>", v.fullType());
+        }
     }
 
     issue3210() {
