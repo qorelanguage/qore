@@ -76,6 +76,8 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 // returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
+// returns a value (i.e. not "or nothing") type for the given type
+DLLLOCAL const QoreTypeInfo* get_value_type(const QoreTypeInfo* typeInfo);
 
 class QoreTypeSpec {
 public:
@@ -162,9 +164,6 @@ public:
         }
         return nullptr;
     }
-
-    // returns true if the type has auto in it somewhere (even for complex types)
-    DLLLOCAL bool isAutoType() const;
 
     DLLLOCAL bool isComplex() const {
         return typespec == QTS_HASHDECL
@@ -686,17 +685,6 @@ public:
         return ti ? ti->getDefaultQoreValueImpl() : QoreValue();
     }
 
-    // returns true if the type has auto in it somewhere (even for complex types)
-    DLLLOCAL static bool isAutoType(const QoreTypeInfo* ti) {
-        if (!ti) {
-            return false;
-        }
-        if (ti == autoTypeInfo) {
-            return true;
-        }
-        return ti->isAutoType();
-    }
-
     // static version of method, checking for null pointer
     DLLLOCAL static bool mayRequireFilter(const QoreTypeInfo* ti, const QoreValue& n) {
         if (!hasType(ti) && ti != autoTypeInfo) {
@@ -1044,16 +1032,6 @@ protected:
         desc->concat(" instead");
         xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
         return -1;
-    }
-
-    // returns true if the type has auto in it somewhere (even for complex types)
-    DLLLOCAL bool isAutoType() const {
-        for (auto& i : accept_vec) {
-            if (i.spec.isAutoType()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // returns true if "this" is a superset of the argument with a strict interpretation that the order of accept and return declarations must also be the same
@@ -3283,14 +3261,14 @@ public:
     DLLLOCAL QoreSoftListTypeInfo() : QoreTypeInfo("softlist", q_accept_vec_t {
             {NT_LIST, map_get_plain_list, true},
             {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
-                QoreListNode* l = new QoreListNode;
-                n.assign(l);
+                    QoreListNode* l = new QoreListNode;
+                    n.assign(l);
                 }
             },
             {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
-                QoreListNode* l = new QoreListNode;
-                l->push(n, nullptr);
-                n.assign(l);
+                    QoreListNode* l = new QoreListNode;
+                    l->push(n, nullptr);
+                    n.assign(l);
                 }
             },
         }, q_return_vec_t {{NT_LIST, true}}) {

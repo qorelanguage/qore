@@ -229,7 +229,7 @@ static type_str_map_t type_str_map;
 
 // map from simple types to "or nothing" types
 typedef std::map<const QoreTypeInfo*, const QoreTypeInfo*> typeinfo_map_t;
-static typeinfo_map_t typeinfo_map;
+static typeinfo_map_t typeinfo_map, typeinfo_or_nothing_map;
 
 static QoreThreadLock ctl; // complex type lock
 
@@ -248,12 +248,13 @@ tmap_t ch_map,          // complex hash map
 static QoreRWLock extern_type_info_map_lock;
 
 static void do_maps(qore_type_t t, const char* name, const QoreTypeInfo* typeInfo, const QoreTypeInfo* orNothingTypeInfo) {
-   str_typeinfo_map[name]          = typeInfo;
-   str_ornothingtypeinfo_map[name] = orNothingTypeInfo;
-   type_typeinfo_map[t]            = typeInfo;
-   type_ornothingtypeinfo_map[t]   = orNothingTypeInfo;
-   type_str_map[t]                 = name;
-   typeinfo_map[typeInfo]          = orNothingTypeInfo;
+   str_typeinfo_map[name]                     = typeInfo;
+   str_ornothingtypeinfo_map[name]            = orNothingTypeInfo;
+   type_typeinfo_map[t]                       = typeInfo;
+   type_ornothingtypeinfo_map[t]              = orNothingTypeInfo;
+   type_str_map[t]                            = name;
+   typeinfo_map[typeInfo]                     = orNothingTypeInfo;
+   typeinfo_or_nothing_map[orNothingTypeInfo] = typeInfo;
 }
 
 // at least the NullString must be created after the default character encoding is set
@@ -342,6 +343,57 @@ void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
    QoreAutoRWWriteLocker al(extern_type_info_map_lock);
    assert(extern_type_info_map.find(t) == extern_type_info_map.end());
    extern_type_info_map[t] = typeInfo;
+}
+
+static const QoreTypeInfo* get_value_type_intern(const QoreTypeInfo* typeInfo) {
+    assert(QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING));
+
+    typeinfo_map_t::iterator i = typeinfo_map.find(typeInfo);
+    if (i != typeinfo_map.end())
+        return i->second;
+
+    // see if we have a complex type
+    {
+        const TypedHashDecl* hd = QoreTypeInfo::getTypedHash(typeInfo);
+        if (hd) {
+            return hd->getTypeInfo();
+        }
+    }
+
+    {
+        const QoreClass* qc = QoreTypeInfo::getReturnClass(typeInfo);
+        if (qc) {
+            return qc->getTypeInfo();
+        }
+    }
+
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
+        if (ti) {
+            return qore_get_complex_hash_type(ti);
+        }
+    }
+
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
+        if (ti) {
+            return qore_get_complex_list_type(ti);
+        }
+    }
+
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getReferenceTarget(typeInfo);
+        if (ti) {
+            return qore_get_complex_reference_type(ti);
+        }
+    }
+
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    return autoTypeInfo;
+}
+
+const QoreTypeInfo* get_value_type(const QoreTypeInfo* typeInfo) {
+   return !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING) ? typeInfo : get_value_type_intern(typeInfo);
 }
 
 // public API
@@ -966,18 +1018,13 @@ static bool type_spec_accept_object(const QoreClass& type_class, const QoreClass
     return false;
 }
 
-bool QoreTypeSpec::isAutoType() const {
-    if (typespec == QTS_COMPLEXHASH || typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST) {
-        return QoreTypeInfo::isAutoType(u.ti);
-    }
-    return false;
-}
-
 bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map,
-    const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
-    LValueHelper* lvhelper) const {
+        const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
+        LValueHelper* lvhelper) const {
     bool priv_error = false;
     bool ok = false;
+
+    //printd(5, "QoreTypeInfo::acceptInput() typeInfo: %s spec: %s arg_type: %s val: %s: OK\n", QoreTypeInfo::getName(&typeInfo), getName(), arg_type, n.getFullTypeName());
 
     switch (typespec) {
         case QTS_CLASS: {
@@ -1000,7 +1047,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
         }
         case QTS_COMPLEXHASH: {
             if (n.getType() == NT_HASH) {
-                if (QoreTypeInfo::isAutoType(&typeInfo)) {
+                if (u.ti == autoTypeInfo) {
                     ok = true;
                     break;
                 }
@@ -1014,7 +1061,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 // try to fold values into our type; value types are not identical;
                 // we have to get a new hash
                 if (!h->is_unique()) {
-                    AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo));
+                    AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(get_value_type(&typeInfo)));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
                     } else {
@@ -1046,7 +1093,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
         case QTS_COMPLEXSOFTLIST:
         case QTS_COMPLEXLIST: {
             if (n.getType() == NT_LIST) {
-                if (QoreTypeInfo::isAutoType(&typeInfo)) {
+                if (u.ti == autoTypeInfo) {
                     ok = true;
                     break;
                 }
@@ -1061,7 +1108,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 // we have to get a new list
                 qore_list_private* lp;
                 if (!l->is_unique()) {
-                    AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(&typeInfo));
+                    AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(get_value_type(&typeInfo)));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
                     } else {
