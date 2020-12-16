@@ -73,6 +73,9 @@ module HttpServerUtil {
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
     @subsection httputil095 HttpServerUtil 0.9.11
+    - fixed a bug where it was not possible to include CORS headers or any context-sensitive information in a 401
+      response
+      (<a href="https://github.com/qorelanguage/qore/issues/4136">issue 4136</a>)
     - fixed a bug that left hanging threads in HTTP operations with I/O callbacks with \c HEAD requests and a
       <tt>Transfer-Encoding: chunked</tt> header in the response
       (<a href="https://github.com/qorelanguage/qore/issues/4109">issue 4109</a>)
@@ -743,7 +746,18 @@ public class AbstractAuthenticator {
     }
 
     #! returns a hash with one item - \c WWW-Authenticate header set to correct realm
+    /** @note This version is never called by Qore; it is provided only for backwards compatibility
+    */
     hash<auto> getAuthHeader() {
+        return {
+            "WWW-Authenticate": sprintf("Basic realm=%y", getRealm()),
+        };
+    }
+
+    #! returns a hash with one item - \c WWW-Authenticate header set to correct realm
+    /** @param cx the call context
+    */
+    hash<auto> getAuthHeader(hash<auto> cx) {
         return {
             "WWW-Authenticate": sprintf("Basic realm=%y", getRealm()),
         };
@@ -751,12 +765,13 @@ public class AbstractAuthenticator {
 
     #! returns a 401 repsonse with the given string argument as the message body
     /** @param msg message body to return
+        @param cx the call context
     */
-    hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server") {
+    hash<HttpResponseInfo> do401(string msg = "Authentication is required to access this server", *hash<auto> cx) {
         return <HttpResponseInfo>{
             "code": 401,
             "body": msg,
-            "hdr": getAuthHeader(),
+            "hdr": getAuthHeader(cx),
         };
     }
 
@@ -802,16 +817,16 @@ public class AbstractAuthenticator {
 
         if (hdr.authorization) {
             if (hdr.authorization !~ /basic /i)
-                return do401("Only basic authentication is supported");
+                return do401("Only basic authentication is supported", cx);
 
             *string bstr = (hdr.authorization =~ x/basic (.*)/i)[0];
             if (!bstr)
-                return do401();
+                return do401(NOTHING, cx);
 
             string str = parse_base64_string_to_string(bstr);
             int i = str.find(":");
             if (i < 1 || i == (str.size() -1))
-                return do401();
+                return do401(NOTHING, cx);
 
             string user = str.substr(0, i);
             *string pass = str.substr(i + 1);
@@ -820,7 +835,7 @@ public class AbstractAuthenticator {
                 authenticate(user, pass);
             catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "AUTHENTICATION-ERROR")
-                    return do401();
+                    return do401(NOTHING, cx);
                 else
                     rethrow;
             }
@@ -840,7 +855,7 @@ public class AbstractAuthenticator {
             string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
             listener.logError(str);
         }
-        return do401();
+        return do401(NOTHING, cx);
     }
 }
 
