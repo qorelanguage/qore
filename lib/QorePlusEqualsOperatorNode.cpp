@@ -115,17 +115,16 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
         } else if (new_right->isNothing()) {
             return QoreValue();
         } else if (QoreTypeInfo::isHashType(typeInfo)) {
-            // issue #4133: automatically promote lvalue to correctly-typed empty list for "*hash..." types
+            // issue #4133: automatically promote lvalue to correctly-typed empty hash for "*hash..." types
             if (v.assign(new QoreHashNode(QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo)), "<lvalue for += operator>")) {
                 return QoreValue();
             }
             vtype = v.getType();
         } else {
-            if (!new_right->isNothing()) {
-                // assign rhs to lhs (take reference for plusequals)
-                if (v.assign(new_right.takeReferencedValue(), "<lvalue for += operator>"))
-                    return QoreValue();
-            }
+            // assign rhs to lhs (take reference for plusequals)
+            if (v.assign(new_right.takeReferencedValue(), "<lvalue for += operator>"))
+                return QoreValue();
+
             // v has been assigned to a value by this point
             // reference return value
             return ref_rv ? v.getReferencedValue() : QoreValue();
