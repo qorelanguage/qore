@@ -24,6 +24,9 @@
       - fixed a bug where HTTP stream handlers could not also implement protocol switching
         (<a href="https://github.com/qorelanguage/qore/issues/4111">issue 4111</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>
+      - fixed a bug where it was not possible to include CORS headers or any context-sensitive information in a 401
+        response
+        (<a href="https://github.com/qorelanguage/qore/issues/4136">issue 4136</a>)
       - fixed a bug where HTTP stream handlers could not also implement protocol switching
         (<a href="https://github.com/qorelanguage/qore/issues/4111">issue 4111</a>)
       - fixed a bug handling responses to streaming requests with \c HEAD requests with a
