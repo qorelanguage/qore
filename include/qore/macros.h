@@ -61,7 +61,7 @@
 #endif // #ifdef __arm__
 
 #ifdef __aarch64__
-#include <qore/macros-arm.h>
+#include <qore/macros-aarch64.h>
 #endif // #ifdef __aarch64__
 
 #endif // #ifndef _QORE_MACROS_H
