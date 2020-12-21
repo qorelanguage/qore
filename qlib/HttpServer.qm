@@ -2885,8 +2885,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # process ascii encodings in url if present
                 cx.raw_path = hdr.path;
                 hdr.path = decode_uri_request(hdr.path);
-                cx.orig_path = hdr.path;
-                cx.masked_path = serv.maskData(cx.orig_path);
+                cx += {
+                    "orig_path": hdr.path,
+                    "masked_path": serv.maskData(hdr.path),
+                };
 
                 # remove leading / if present in path
                 if (hdr.path =~ /^\//)
@@ -2903,6 +2905,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 if (hdr."content-type".typeCode() == NT_LIST) {
                     hdr."content-type" = hdr."content-type"[0];
                 }
+
+                # copy headers to the context var
+                cx.hdr = hdr;
 
                 # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
                 cx.char_encoding = s.getEncoding();
