@@ -51,11 +51,73 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(new Type("OutputStream")),
                 "desc": "an output stream for CSV data; mutually exclusive with \"path\"",
             },
-            "opts": <DataProviderOptionInfo>{
+            "block": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftIntType),
+                "desc": "the block size when generating bulk output",
+            },
+            "datamap": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "CSV generation options",
+                "desc": "a hash mapping actual data key names to the output field names, for use in case the data "
+                    "field names differ; does not have to include every data or output key; keys not present will be "
+                    "assumed to be mapped 1:1",
+            },
+            "date_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default mask for date value formatting",
+            },
+            "encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the character encoding for the data",
+            },
+            "eol": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the end of line / record character(s)",
+            },
+            "fields": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType),
+                "desc": "describes the data to be output",
+            },
+            "headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("softlist<string>")),
+                "desc": "list of field header / column names for the data iterated",
+            },
+            "header_reorder": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` (the default) then if `headers` are provided, then data fields are reordered to "
+                    "follow headers",
+            },
+            "optimal_quotes": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "set to `false` to disable optimal quoting; when optimal quoting is disabled, all fields are "
+                    "quoted regardless of type or content, when it is enabled, then fields are quoted only if they "
+                    "require quoting (i.e. they contain a quote or separator character); the default is `true`",
+            },
+            "quote": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the quote character to quote fields (default: `\"`)",
+            },
+            "quote_escape": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "escape character(s) used for `quote` (default: `\\`)",
+            },
+            "separator": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "string separating fields in the data (default: `,`)",
+            },
+            "verify_columns": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` (the default is `false`) then if a line is parsed with a different column count "
+                    "than other lines, a `CSVFILEWRITER-DATA-ERROR` exception is thrown",
+            },
+            "write_headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "set to `false` to suppress the output of headers; the default is `true`, meaning to output "
+                    "headers if they are present",
             },
         };
+
+        #! CSV generation option list
+        const CsvGenerationOptionList = keys (ConstructorOptions - ("path", "stream"));
     }
 
     private {
@@ -97,15 +159,15 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            writer = new CsvFileWriter(copts.path, copts.opts);
+            writer = new CsvFileWriter(copts.path, copts{CsvGenerationOptionList});
             return;
         }
         if (copts.stream) {
-            writer = new CsvWriter(copts.stream, copts.opts);
+            writer = new CsvWriter(copts.stream, copts{CsvGenerationOptionList});
             return;
         }
         # create a dummy stream output object
-        writer = new CsvWriter(new StringOutputStream(), copts.opts);
+        writer = new CsvWriter(new StringOutputStream(), copts{CsvGenerationOptionList});
     }
 
     #! Returns the description of the record type, if any

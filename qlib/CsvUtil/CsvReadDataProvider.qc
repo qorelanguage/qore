@@ -51,10 +51,6 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(new Type("InputStream")),
                 "desc": "an input stream for CSV data; mutually exclusive with \"path\"",
             },
-            "opts": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "CSV parsing options",
-            },
             "date_format": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the default date format for `date` fields (ex: `DD/MM/YYYY HH:mm:SS`)",
@@ -134,25 +130,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         };
 
         #! CSV iteration option list
-        const CsvIterationOptionList = (
-            "date_format",
-            "encoding",
-            "eol",
-            "extended_record",
-            "fields",
-            "header_lines",
-            "header_names",
-            "header_reorder",
-            "headers",
-            "ignore_empty",
-            "ignore_whitespace",
-            "number_format",
-            "quote",
-            "separator",
-            "timezone",
-            "tolwr",
-            "verify_columns",
-        );
+        const CsvIterationOptionList = keys (ConstructorOptions - ("path", "stream"));
     }
 
     private {
@@ -196,15 +174,15 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new CsvFileIterator(copts.path, copts.opts + copts{CsvIterationOptionList});
+            i = new CsvFileIterator(copts.path, copts{CsvIterationOptionList});
             return;
         }
         if (copts.stream) {
-            i = new CsvIterator(copts.stream, copts.opts.encoding, copts.opts + copts{CsvIterationOptionList});
+            i = new CsvIterator(copts.stream, copts.opts.encoding, copts{CsvIterationOptionList});
             return;
         }
         # create a dummy interator with no input
-        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts.opts + copts{CsvIterationOptionList});
+        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts{CsvIterationOptionList});
     }
 
     #! Returns an iterator for zero or more records matching the search options

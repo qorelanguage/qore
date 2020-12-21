@@ -42,14 +42,14 @@ class Test inherits QUnit::Test {
                     # "timezone" : "UTC", # use global if omitted
                 ),
             ),
-            );
+        );
 
         const GlobalOptions = (
             "encoding"     : "UTF-8",
             "eol"          : "\n",
             "ignore_empty" : True,
             "timezone"     : "UTC", # used if not in some date column specification
-            );
+        );
     }
 
     constructor() : QUnit::Test("FixedLengthDataIterator", "1.0", \ARGV) {

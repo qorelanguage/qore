@@ -253,6 +253,8 @@ while (i.next()) {
     @section csvutil_relnotes Release Notes
 
     @subsection csvutil_v1_7_2 Version 1.7.2
+    - updated read and write data providers to provide verbose option support
+      (<a href="https://github.com/qorelanguage/qore/issues/4139">issue 4139</a>)
     - implemented support for the missing \c bool and <tt>*bool</tt> types
       (<a href="https://github.com/qorelanguage/qore/issues/4118">issue 4118</a>)
 

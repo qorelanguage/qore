@@ -172,6 +172,53 @@ f2:3,00:5:25,34";
         }
 
         {
+            CsvReadDataProvider dp;
+
+            # the CSV data can only be iterated once and then the provide needs to be recreated
+            code reset = sub () {
+                dp = new CsvReadDataProvider({
+                    "stream": new StringInputStream(CsvInputWithHeader),
+                    "header_names": True,
+                    "date_format": "DDMMYYYY",
+                    "fields": {
+                        "received": {
+                            "type": "date",
+                        },
+                        "activated": "bool",
+                    },
+                });
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertFalse(info.supports_bulk_read);
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords();
+                assertEq(4, rows.size());
+
+                reset();
+                *hash<auto> row = dp.searchSingleRecord({"serno": "1234567892"});
+                assertEq(Type::Hash, row.type());
+                assertEq("1234567892", row.serno);
+                assertEq(Type::String, row.serno.type());
+            }
+
+            {
+                reset();
+                AbstractDataProviderBulkRecordInterface i = dp.getBulkRecordInterface();
+                hash<auto> q = i.getValue();
+                assertEq(Type::List, q.firstValue().type());
+                assertEq(4, q.firstValue().lsize());
+            }
+
+        }
+
+        {
             CsvWriteDataProvider dp;
             StringOutputStream stream;
 
@@ -179,6 +226,48 @@ f2:3,00:5:25,34";
             code reset = sub () {
                 stream = new StringOutputStream();
                 dp = new CsvWriteDataProvider(stream, {
+                    "write_headers": False,
+                    "date_format": "DDMMYYYY",
+                    "fields": {
+                        "CC": {
+                            "type": "string",
+                        },
+                        "serno": {
+                            "type": "int",
+                        },
+                        "desc": {
+                            "type": "string",
+                        },
+                        "received": {
+                            "type": "date",
+                        },
+                        "activated": "bool",
+                    },
+                });
+            };
+
+            {
+                reset();
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertTrue(info.has_record);
+                assertTrue(info.supports_create);
+                assertFalse(info.supports_bulk_read);
+
+                map dp.createRecord($1), rows;
+
+                assertEq(CsvInput, stream.getData());
+            }
+        }
+
+        {
+            CsvWriteDataProvider dp;
+            StringOutputStream stream;
+
+            # the CSV data can only be iterated once and then the provide needs to be recreated
+            code reset = sub () {
+                stream = new StringOutputStream();
+                dp = new CsvWriteDataProvider({
+                    "stream": stream,
                     "write_headers": False,
                     "date_format": "DDMMYYYY",
                     "fields": {

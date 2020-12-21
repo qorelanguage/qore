@@ -56,11 +56,50 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
                 "desc": "the fixed-length record specification hash",
                 "required": True,
             },
-            "opts": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "fixed-length generation options",
+            "date_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default global date format for `date` fields",
+            },
+            "encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the encoding for strings",
+            },
+            "eol": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the end of line characters",
+            },
+            "file_flags": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftIntType),
+                "desc": "additional writer file open flags; `O_WRONLY | O_CREAT` is used by default; use `O_EXCL` to "
+                    "ensure not to overwrite the target or `O_TRUNC` to replace any existing file or `O_APPEND` to "
+                    "append to an existing file",
+            },
+            "ignore_empty": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` then empty lines are ignored",
+            },
+            "number_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default global number format for `float` or `number` fields",
+            },
+            "timezone": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "a string giving a time zone region name or an integer offset in seconds east of UTC",
+            },
+            "truncate": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "controls whether to truncate an output field value if its bigger than its specified "
+                    "`length`; the default is `false`",
+            },
+            "tab2space": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftIntType),
+                "desc": "Controls whether to replace tabs with spaces and its value determines how many spaces to "
+                    "output in place of one tab character",
             },
         };
+
+        #! write option list
+        const FixedLengthWriteOptionList = keys (ConstructorOptions - ("path", "stream", "spec"));
     }
 
     private {
@@ -104,15 +143,15 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            writer = new FixedLengthFileWriter(copts.path, copts.spec, copts.opts);
+            writer = new FixedLengthFileWriter(copts.path, copts.spec, copts{FixedLengthWriteOptionList});
             return;
         }
         if (copts.stream) {
-            writer = new FixedLengthWriter(copts.stream, copts.spec, copts.opts);
+            writer = new FixedLengthWriter(copts.stream, copts.spec, copts{FixedLengthWriteOptionList});
             return;
         }
         # create a dummy stream output object
-        writer = new FixedLengthWriter(new StringOutputStream(), copts.spec, copts.opts);
+        writer = new FixedLengthWriter(new StringOutputStream(), copts.spec, copts{FixedLengthWriteOptionList});
     }
 
     #! Returns the description of the record type, if any
