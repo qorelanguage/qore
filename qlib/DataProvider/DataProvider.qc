@@ -34,11 +34,13 @@ public class DataProvider {
         const FactoryMap = {
             "db": "DbDataProvider",
             "swagger": "SwaggerDataProvider",
+            "cdsrest": "CdsRestDataProvider",
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
             "salesforcerest": "SalesforceRestDataProvider",
+            "servicenowrest": "ServiceNowRestDataProvider",
             # provided by the xml module
             "soap": "SoapDataProvider",
         };

@@ -54,11 +54,34 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
                 "desc": "the fixed-length record specification hash",
                 "required": True,
             },
-            "opts": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "fixed-length parsing options",
+            "date_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default global date format for `date` fields",
+            },
+            "encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the encoding for strings",
+            },
+            "eol": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the end of line characters",
+            },
+            "ignore_empty": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftBoolType),
+                "desc": "if `true` then empty lines are ignored",
+            },
+            "number_format": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the default global number format for `float` or `number` fields",
+            },
+            "timezone": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "a string giving a time zone region name or an integer offset in seconds east of UTC",
             },
         };
+
+        #! iteration option list
+        const FixedLengthReadOptionList = keys (ConstructorOptions - ("path", "stream", "spec"));
     }
 
     private {
@@ -107,15 +130,15 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new FixedLengthFileIterator(copts.path, copts.spec, copts.opts);
+            i = new FixedLengthFileIterator(copts.path, copts.spec, copts{FixedLengthReadOptionList});
             return;
         }
         if (copts.stream) {
-            i = new FixedLengthIterator(copts.stream, copts.spec, copts.opts);
+            i = new FixedLengthIterator(copts.stream, copts.spec, copts{FixedLengthReadOptionList});
             return;
         }
         # create a dummy interator with no input
-        i = new FixedLengthIterator(new StringInputStream(""), copts.spec, copts.opts);
+        i = new FixedLengthIterator(new StringInputStream(""), copts.spec, copts{FixedLengthReadOptionList});
     }
 
     #! Returns the object name

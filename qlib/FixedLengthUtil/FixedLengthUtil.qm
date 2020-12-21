@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
-/*  FixedLengthUtil.qm Copyright 2015 - 2019 Qore Technologies, s.r.o.
+/*  FixedLengthUtil.qm Copyright 2015 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 0.9.11
 
 %requires Util
 %requires(reexport) DataProvider
@@ -34,7 +34,7 @@
 %strict-args
 
 module FixedLengthUtil {
-    version = "1.2";
+    version = "1.2.1";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -207,26 +207,29 @@ const Specs = (
 
 %requires FixedLengthUtil
 
-hash specs = (
-    "type1": (
-        "col1": ("length": 5, "type": "int"),
-        "col2": ("length": 2, "type": "string"),
-    ),
-    "type2": (
-        "col3": ("length": 1, "type": "string"),
-        "col4": ("length": 3, "type": "string"),
-        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY",
-        # "timezone": "Europe/Prague", # use global if omitted
-        ),
-    ),
-);
+hash<auto> specs = {
+    "type1": {
+        "col1": {"length": 5, "type": "int"},
+        "col2": {"length": 2, "type": "string"},
+    },
+    "type2": {
+        "col3": {"length": 1, "type": "string"},
+        "col4": {"length": 3, "type": "string"},
+        "col5": {
+            "length": 8,
+            "type": "date",
+            "format": "DDMMYYYY",
+            # "timezone": "Europe/Prague", # use global if omitted
+        },
+    },
+};
 
-hash global_options = (
+hash<auto> global_options = {
     "encoding"    : "UTF-8",
     "eol"         : "\n",
     "ignore_empty": True,
     "timezone"    : "Europe/Prague", # used if not overridden in a date field specification
-);
+};
 
 FixedLengthFileIterator i(file, specs, global_options);
 while (i.next()) {
@@ -245,33 +248,37 @@ while (i.next()) {
 
 %requires FixedLengthUtil
 
-list data = (
-    ("type": "type1", "record": {"col1": 11111, "col2": "bb"}),
-    ("type": "type2", "record": {"col3": "c", "col4": "ddd", "col5": "31122014"}),
-    ("type": "type1", "record": {"col1": 22222, "col2": "gg"}),
+list<hash<auto>> data = (
+    {"type": "type1", "record": {"col1": 11111, "col2": "bb"}},
+    {"type": "type2", "record": {"col3": "c", "col4": "ddd", "col5": "31122014"}},
+    {"type": "type1", "record": {"col1": 22222, "col2": "gg"}},
 );
 
-hash specs = (
-    "type1": (
-        "col1": ("length": 5, "type": "int"),
-        "col2": ("length": 2, "type": "string"),
-    ),
-    "type2": (
-        "col3": ("length": 1, "type": "string"),
-        "col4": ("length": 3, "type": "string"),
-        "col5": ("length": 8, "type": "date", "format": "DDMMYYYY", "timezone": "Europe/Prague"),
-    ),
-);
+hash<auto> specs = {
+    "type1": {
+        "col1": {"length": 5, "type": "int"},
+        "col2": {"length": 2, "type": "string"},
+    },
+    "type2": {
+        "col3": {"length": 1, "type": "string"},
+        "col4": {"length": 3, "type": "string"},
+        "col5": {"length": 8, "type": "date", "format": "DDMMYYYY", "timezone": "Europe/Prague"},
+    },
+};
 
-hash global_options = (
+hash<auto> global_options = {
     "eol": "\n",
-);
+};
 
 FixedLengthFileWriter w(file, specs, global_options);
 w.write(data);
     @endcode
 
     @section fixedlengthutil_relnotes Release Notes
+
+    @subsection fixedlengthutil_v1_2_1 Version 1.2.1
+    - updated read and write data providers to provide verbose option support
+      (<a href="https://github.com/qorelanguage/qore/issues/4139">issue 4139</a>)
 
     @subsection fixedlengthutil_v1_1 Version 1.1
     - added support for streams; the following classes implement fixed-length input and output based on streams:
