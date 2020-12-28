@@ -3,7 +3,7 @@ stages:
 
 test:
   stage: test
-  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:0.9.x
   tags:
     - docker-exec
   services:
