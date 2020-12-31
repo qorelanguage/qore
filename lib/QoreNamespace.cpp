@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -470,6 +470,8 @@ void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
 
     nsl.runtimeAdd(nns->ns, this);
 
+    assert(nns->parent == this);
+
     // see if namespace is attached to the root
     qore_root_ns_private* rns = getRoot();
     if (!rns)
@@ -482,11 +484,15 @@ void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
 }
 
 void qore_ns_private::addNamespace(qore_ns_private* nns) {
+    // set parent namespace unconditionally
+    nns->parent = this;
+
     QoreModuleContext* qmc = get_module_context();
-    if (qmc)
+    if (qmc) {
         addModuleNamespace(nns, *qmc);
-    else
+    } else {
         addCommitNamespaceIntern(nns);
+    }
 }
 
 void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
@@ -680,6 +686,8 @@ QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, con
         assert(!ns->priv->root);
         // do not assert() ns->priv->depth > 0 here; we may be in an unattached namespace tree
         last = nsmap.insert(last, nsmap_t::value_type(i->first, ns));
+
+        //printd(5, "QoreNamespaceList::QoreNamespaceList(old: %p) this: %p po: %lld copied '%s'\n", &old, this, po, ns->getName());
     }
 }
 
@@ -2370,19 +2378,19 @@ void qore_ns_private::parseResolveAbstract() {
 }
 
 void qore_ns_private::parseCommit() {
-   // merge pending user functions
-   func_list.parseCommit();
+    // merge pending user functions
+    func_list.parseCommit();
 
-   // commit pending changes to committed classes
-   classList.parseCommit();
+    // commit pending changes to committed classes
+    classList.parseCommit();
 
-   // parse commit namespaces and repeat for all subnamespaces
-   nsl.parseCommit();
+    // parse commit namespaces and repeat for all subnamespaces
+    nsl.parseCommit();
 }
 
 void qore_ns_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
-   classList.parseCommitRuntimeInit(xsink);
-   nsl.parseCommitRuntimeInit(xsink);
+    classList.parseCommitRuntimeInit(xsink);
+    nsl.parseCommitRuntimeInit(xsink);
 }
 
 void qore_ns_private::parseRollback(ExceptionSink* xsink) {

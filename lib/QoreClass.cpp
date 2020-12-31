@@ -2473,44 +2473,45 @@ QoreValue QoreClass::evalPseudoMethod(const QoreMethod* m, const QoreExternalMet
 }
 
 void QoreClass::setSystem() {
-   priv->sys = true;
-   priv->committed = true;
+    priv->sys = true;
+    priv->committed = true;
+    priv->loc = &loc_builtin;
 }
 
 bool QoreClass::hasMemberGate() const {
-   return priv->memberGate != 0;
+    return priv->memberGate != nullptr;
 }
 
 bool QoreClass::hasMethodGate() const {
-   return priv->methodGate != 0;
+    return priv->methodGate != nullptr;
 }
 
 bool QoreClass::hasMemberNotification() const {
-   return priv->memberNotification != 0;
+    return priv->memberNotification != nullptr;
 }
 
 int64 QoreClass::getDomain() const {
-   return priv->domain;
+    return priv->domain;
 }
 
 const char* QoreClass::getName() const {
-   return priv->name.c_str();
+    return priv->name.c_str();
 }
 
 int QoreClass::numMethods() const {
-   return priv->num_methods;
+    return priv->num_methods;
 }
 
 int QoreClass::numStaticMethods() const {
-   return priv->num_static_methods;
+    return priv->num_static_methods;
 }
 
 int QoreClass::numUserMethods() const {
-   return priv->num_user_methods;
+    return priv->num_user_methods;
 }
 
 int QoreClass::numStaticUserMethods() const {
-   return priv->num_static_user_methods;
+    return priv->num_static_user_methods;
 }
 
 void QoreClass::addBuiltinBaseClass(QoreClass* qc) {
@@ -3101,6 +3102,10 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     priv->qcset.insert(this);
 }
 
+QoreClass::QoreClass(const QoreClass& old, QoreNamespace* ns) : QoreClass(old) {
+    priv->ns = qore_ns_private::get(*ns);
+}
+
 QoreClass::QoreClass(std::string&& nme, int64 dom) : priv(new qore_class_private(this, std::move(nme), dom)) {
     priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
     priv->owns_ornothingtypeinfo = true;
@@ -3136,6 +3141,10 @@ QoreClass* QoreClass::copyImport() {
 
 QoreClass* QoreClass::copy() {
     return new QoreClass(*this);
+}
+
+QoreClass* QoreClass::copy(QoreNamespace* ns) {
+    return new QoreClass(*this, ns);
 }
 
 QoreClass::~QoreClass() {

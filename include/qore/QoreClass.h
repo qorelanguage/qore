@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -297,6 +297,11 @@ public:
     */
     DLLEXPORT QoreClass(const QoreClass& old);
 
+    //! copy constructor
+    /** should be only called under the appropriate lock (ex: program parse lock while parsing)
+    */
+    DLLEXPORT QoreClass(const QoreClass& old, QoreNamespace* ns);
+
     //! Called when a class is copied for import
     /** @since %Qore 0.9.5
     */
@@ -306,6 +311,11 @@ public:
     /** @since %Qore 0.9.5
     */
     DLLEXPORT virtual QoreClass* copy();
+
+    //! Called when a class is copied
+    /** @since %Qore 0.11
+    */
+    DLLEXPORT virtual QoreClass* copy(QoreNamespace* ns);
 
     //! Returns the owning QoreProgram object (if not the static system namespace)
     /** @since Qore 0.9.5

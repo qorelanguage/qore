@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 0.9.11
+Version: 0.10.0
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -32,6 +32,7 @@ development but is also useful as a general purpose language.
 
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
+Provides: qore-module(abi)%{?_isa} = 0.25
 Provides: qore-module(abi)%{?_isa} = 0.24
 Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: qore-module(abi)%{?_isa} = 0.22
@@ -45,8 +46,8 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.6.3.3
-%{_libdir}/libqore.so.6
+%{_libdir}/libqore.so.7.4.0
+%{_libdir}/libqore.so.7
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -174,6 +175,10 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Thu Dec 31 2020 David Nichols <david@qore.org> 0.10.0-1
+- updated version to 0.10.0-1
+- updated libqore version to 7.4.0
+
 * Mon Dec 21 2020 David Nichols <david@qore.org> 0.9.11-1
 - updated version to 0.9.11-1
 

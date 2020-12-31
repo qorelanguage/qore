@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,14 +49,13 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
             if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls)) {
                 continue;
             }
-        }
-        else {
+        } else {
             if (po & PO_NO_INHERIT_SYSTEM_CLASSES) {
                 continue;
             }
         }
         QoreClass* qc = i->second.cls->copy();
-        // do not update namespace; the class always points to the same namespace
+        qore_class_private::get(*qc)->ns = ns;
         addInternal(qc, true);
     }
 }
@@ -82,7 +81,7 @@ void QoreClassList::deleteAll() {
     ns_vars = false;
 }
 
-void QoreClassList::addInternal(QoreClass *oc, bool priv) {
+void QoreClassList::addInternal(QoreClass* oc, bool priv) {
     printd(5, "QCL::addInternal() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
     assert(!find(oc->getName()));
@@ -122,7 +121,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
         }
 
         qc = i->second.cls->copy();
-        // do not update namespace; the class always points to the same namespace
+        qore_class_private::get(*qc)->ns = ns;
         addInternal(qc, true);
     }
 }
@@ -141,7 +140,7 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
             }
             //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
             QoreClass* qc = i->second.cls->copy();
-            // we do not update the namespace in the class; the class always points to the original namespace
+            qore_class_private::get(*qc)->ns = ns;
             addInternal(qc, true);
             ++cnt;
         }

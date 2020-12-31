@@ -99,6 +99,7 @@ class CTestComplex {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("ns path test", \nsPathTest());
         addTestCase("mod name tests", \modNameTests());
         addTestCase("type tests", \typeTests());
         addTestCase("pgm tests", \pgmTests());
@@ -110,6 +111,10 @@ class ReflectionTest inherits QUnit::Test {
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    nsPathTest() {
+        assertEq("Qore::Reflection::AbstractVariant", Class::forName("AbstractVariant").getPathName());
     }
 
     modNameTests() {

@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.11
+Version: 0.10.0
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -86,19 +86,20 @@ development but is also useful as a general purpose language.
 %if 0%{?rhel}
 %global libname libqore
 %else
-%global libname libqore6
+%global libname libqore7
 %endif
 %endif
 
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.25
 Provides: qore-module(abi)%{?_isa} = 0.24
 Provides: qore-module(abi)%{?_isa} = 0.23
 Provides: qore-module(abi)%{?_isa} = 0.22
 %if "%{libname}" == "libqore"
-Provides: libqore6 = %{version}
-Obsoletes: libqore6 < %{version}
+Provides: libqore7 = %{version}
+Obsoletes: libqore7 < %{version}
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -114,8 +115,8 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.6.3.3
-%{_libdir}/libqore.so.6
+%{_libdir}/libqore.so.7.4.0
+%{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
@@ -277,6 +278,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Dec 31 2020 David Nichols <david@qore.org> 0.10.0
+- updated version to 0.10.0
+- updated libqore version to 7.4.0
+
 * Mon Dec 21 2020 David Nichols <david@qore.org> 0.9.11
 - updated version to 0.9.11
 

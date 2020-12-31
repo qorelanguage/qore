@@ -197,4 +197,7 @@ DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const Q
 // @since %Qore 0.9.4
 DLLEXPORT const QoreTypeInfo* qore_get_type_from_string(const char* str, ExceptionSink& xsink);
 
+// @sinvr %Qore 0.10.0
+DLLEXPORT const QoreClass* type_info_get_return_class(const QoreTypeInfo* typeInfo);
+
 #endif // _QORE_QORETYPE_H

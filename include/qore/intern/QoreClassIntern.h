@@ -3242,6 +3242,7 @@ public:
     DLLLOCAL static void setFinal(QoreClass& qc) {
         assert(!qc.priv->final);
         qc.priv->final = true;
+        //printd(5, "class '%s' set to final\n", qc.getName());
     }
 
 protected:

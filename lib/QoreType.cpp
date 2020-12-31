@@ -3,7 +3,7 @@
 
     extensible and type system for the Qore programming language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -94,6 +94,10 @@ int testObjectClassAccess(const QoreObject* obj, const QoreClass* shouldbeclass)
 
 const QoreClass* typeInfoGetUniqueReturnClass(const QoreTypeInfo* typeInfo) {
    return QoreTypeInfo::getUniqueReturnClass(typeInfo);
+}
+
+const QoreClass* type_info_get_return_class(const QoreTypeInfo* typeInfo) {
+   return QoreTypeInfo::getReturnClass(typeInfo);
 }
 
 qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo) {
