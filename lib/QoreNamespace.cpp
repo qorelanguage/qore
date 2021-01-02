@@ -1666,8 +1666,7 @@ void qore_root_ns_private::parseAddClassIntern(const QoreProgramLocation* loc, c
         // add to pending class map if add was successful
         if (!sns->parseAddPendingClass(loc, oc))
             clmap.update(oc->getName(), sns, oc);
-    }
-    else {
+    } else {
         //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope.ostr);
         qore_class_private::get(*oc)->deref(true, true);
     }

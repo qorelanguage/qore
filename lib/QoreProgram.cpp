@@ -255,12 +255,12 @@ volatile unsigned qore_program_private::programIdCounter = 1;
 
 qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm) : qore_program_private_base(n_pgm, n_parse_options, p_pgm), dpgm(0) {
     QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
+#ifdef DEBUG
     qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
     assert(i == qore_program_private::qore_program_to_object_map.end());
-    if (i == qore_program_private::qore_program_to_object_map.end()) {
-        programId = programIdCounter++;
-        qore_program_private::qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, 0));
-    }
+#endif
+    programId = programIdCounter++;
+    qore_program_private::qore_program_to_object_map.insert(qore_program_to_object_map_t::value_type(pgm, nullptr));
     printd(5, "qore_program_private::qore_program_private() this: %p pgm: %p, pgmid: %d\n", this, pgm, programId);
 }
 
@@ -280,6 +280,13 @@ qore_program_private::~qore_program_private() {
     deleteAllBreakpoints();
     QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
     qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
+#ifdef DEBUG
+        if (i == qore_program_to_object_map.end()) {
+            for (auto& pi : qore_program_to_object_map) {
+                printd(0, "qore_program_private::~qore_program_private() pgm: %p ERROR map: %p -> %p\n", pgm, i->first, i->second);
+            }
+        }
+#endif
     assert(i != qore_program_to_object_map.end());
     assert(i->second == 0);
     qore_program_to_object_map.erase(i);

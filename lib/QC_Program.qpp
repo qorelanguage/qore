@@ -2398,7 +2398,7 @@ nothing Program::issueModuleCmd(string module, string cmd) {
         return QoreValue();
     }
 
-    // set program context before issueing module command
+    // set program context before issuing module command
     QoreProgramContextHelper pch(p);
     QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
 }
