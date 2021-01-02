@@ -3,7 +3,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -257,10 +257,10 @@ GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char *n, Qore
    ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, parseTypeInfo);
 }
 
-void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, bool is_new) {
+void VarRefDeclNode::parseInitCommon(LocalVar* oflag, int pflag, int& lvids, bool is_new) {
    if (!typeInfo) {
       typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
-      parseTypeInfo = 0;
+      parseTypeInfo = nullptr;
    }
 #ifdef DEBUG
    else assert(!parseTypeInfo);
@@ -354,27 +354,23 @@ void VarRefNewObjectNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pfl
     if (qc) {
         parseInitConstructorCall(loc, oflag, pflag, lvids, qc);
         vrn_type = VRN_OBJECT;
-    }
-    else {
+    } else {
         const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
         if (hd) {
             parseInitHashDeclInitialization(loc, oflag, pflag, lvids, hd);
             vrn_type = VRN_HASHDECL;
-        }
-        else {
+        } else {
             const QoreTypeInfo* ti = typeInfo == autoHashTypeInfo ? autoTypeInfo : QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
             //printd(5, "VarRefNewObjectNode::parseInitImpl() ti: %p type: '%s' ti: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo), ti, QoreTypeInfo::getName(ti));
             if (ti) {
                 parseInitComplexHashInitialization(loc, oflag, pflag, lvids, ti);
                 vrn_type = VRN_COMPLEXHASH;
-            }
-            else {
+            } else {
                 ti = typeInfo == autoListTypeInfo ? autoTypeInfo : QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
                 if (ti) {
                     parseInitComplexListInitialization(loc, oflag, pflag, lvids, ti);
                     vrn_type = VRN_COMPLEXLIST;
-                }
-                else
+                } else
                     parse_error(*loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
             }
         }

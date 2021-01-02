@@ -406,8 +406,8 @@ class UserVariantBase;
 class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
 private:
     // not implemented
-    DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old);
-    DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig);
+    DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old) = delete;
+    DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig) = delete;
 
 protected:
     // code flags

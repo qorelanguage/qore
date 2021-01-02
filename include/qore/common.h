@@ -427,14 +427,6 @@ typedef void (*q_copy_t)(QoreObject* self, QoreObject* old, AbstractPrivateData*
  */
 typedef void (*q_external_copy_t)(const QoreClass& thisclass, const void* ptr, QoreObject* self, QoreObject* old, AbstractPrivateData* private_data, ExceptionSink* xsink);
 
-//! the typed used for QoreClass deleteBlocker signatures
-/**
-    @param self the QoreObject that the function is being executed on
-    @param private_data the object's private data representing the state of the object for the current builtin class
-    @return false if the object may be deleted normally, true if the deletion should be suppressed
- */
-typedef bool (*q_delete_blocker_t)(QoreObject* self, AbstractPrivateData* private_data);
-
 //! the type used for builtin QoreClass serializer method signatures
 /** @param self the QoreObject that the function is being executed on
     @param data the private data for the builtin class

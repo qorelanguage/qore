@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -343,10 +343,11 @@ public:
 
     // for the thread counter, used only with plock
     QoreCondition pcond;
-    ptid_map_t tidmap;       // map of tids -> thread count in program object
-    unsigned thread_count;   // number of threads currently running in this Program
-    unsigned thread_waiting; // number of threads waiting on all threads to terminate or parsing to complete
-    unsigned parse_count;    // recursive parse count
+    ptid_map_t tidmap;         // map of tids -> thread count in program object
+    unsigned thread_count;     // number of threads currently running in this Program
+    unsigned thread_waiting;   // number of threads waiting on all threads to terminate or parsing to complete
+    unsigned parse_count = 0;  // recursive parse count
+    int parse_tid = -1;        // thread with the parse lock
 
     // file name and unique string storage
     cstr_vector_t str_vec;
@@ -441,7 +442,7 @@ public:
     QoreProgram* pgm;
 
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
-        : thread_count(0), thread_waiting(0), parse_count(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr), pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
+        : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr), pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
             sb(this),
             only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
             requires_exception(false),
@@ -773,16 +774,14 @@ public:
     }
 
     DLLLOCAL int lockParsing(ExceptionSink* xsink) {
+        int tid = q_gettid();
         // grab program-level lock
         AutoLocker al(plock);
 
-        bool curr = (pgm == getProgram());
-        if (!curr) {
-            while (parse_count) {
-                ++thread_waiting;
-                pcond.wait(plock);
-                --thread_waiting;
-            }
+        while (parse_tid != -1 && parse_tid != tid && !ptid) {
+            ++thread_waiting;
+            pcond.wait(plock);
+            --thread_waiting;
         }
 
         if (ptid && ptid != q_gettid()) {
@@ -793,14 +792,20 @@ public:
 
         //printd(5, "qore_program_private::lockParsing() this: %p ptid: %d thread_count: %d parse_count: %d -> %d\n", this, ptid, thread_count, parse_count, parse_count + 1);
         ++parse_count;
+        parse_tid = tid;
         return 0;
     }
 
     DLLLOCAL void unlockParsing() {
         // grab program-level lock
         AutoLocker al(plock);
-        if (!(--parse_count) && thread_waiting)
-            pcond.broadcast();
+        assert(parse_tid == q_gettid());
+        if (!(--parse_count)) {
+            parse_tid = -1;
+            if (thread_waiting) {
+                pcond.broadcast();
+            }
+        }
     }
 
     // called only with plock held

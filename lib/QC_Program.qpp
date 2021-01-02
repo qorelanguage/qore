@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1842,7 +1842,7 @@ auto Program::getDefine(string def) [flags=RET_VALUE_ONLY] {
    @since %Qore 0.8.13
  */
 int Program::getProgramId() [flags=CONSTANT] {
-   return p->getProgramId();
+    return p->getProgramId();
 }
 
 //! Loads a %Qore module into the Program object at run-time
@@ -1876,7 +1876,7 @@ pgm.loadModule("mysql");
     - %Qore 0.9 added the \c warning_mask parameter
 */
 Program::loadModule(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
 }
 
 //! Loads a %Qore module into the Program object at run-time
@@ -2398,6 +2398,8 @@ nothing Program::issueModuleCmd(string module, string cmd) {
         return QoreValue();
     }
 
+    // set program context before issueing module command
+    QoreProgramContextHelper pch(p);
     QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
 }
 
@@ -2442,4 +2444,13 @@ Expression Program::getExpression(string source, string label) {
         return new QoreObject(QC_EXPRESSION, p, exp.release());
     }
     return QoreValue();
+}
+
+//! Returns a list of strings of the builtin and module-supplied features of Qore
+/** @return a list of strings of the builtin and module-supplied features of Qore
+
+    @since %Qore 0.10.0
+*/
+list<string> Program::getFeatureList() [flags=RET_VALUE_ONLY] {
+   return p->getFeatureList();
 }

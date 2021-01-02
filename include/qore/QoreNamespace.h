@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -75,6 +75,14 @@ public:
         @param n the name of the namespace
     */
     DLLEXPORT QoreNamespace(const char* n);
+
+    //! copies the namespace and assigns new parse options to the new namespace
+    /** @param old the old namespace to copy
+        @param po new parse options for the new namespace
+
+        @since %Qore 0.10.0
+    */
+    DLLEXPORT QoreNamespace(const QoreNamespace& old, int64 po);
 
     //! destroys the object and frees memory
     DLLEXPORT virtual ~QoreNamespace();
@@ -164,7 +172,7 @@ public:
     //! adds a namespace to the namespace tree
     /** the namespace must be unique, must also not clash with a class name in the same parent namespace
         @param ns the namespace to add, memory is now owned by parent namespace
-        */
+    */
     DLLEXPORT void addNamespace(QoreNamespace* ns);
 
     //! adds a subnamespace to the namespace

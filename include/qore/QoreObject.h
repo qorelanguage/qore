@@ -38,7 +38,6 @@
 class AutoVLock;
 class VRMutex;
 class BuiltinCopy;
-class BuiltinDeleteBlocker;
 class BuiltinNormalMethodVariantBase;
 class BuiltinCopyVariantBase;
 class QoreExternalMethodVariant;
@@ -465,11 +464,6 @@ protected:
     */
     DLLEXPORT int setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink);
 
-    //! increment the reference count of the object, to be called only from within a delete blocker
-    /** it is an error to call this function from anything other than a delete blocker
-    */
-    DLLEXPORT void deleteBlockerRef() const;
-
     //! call this function when an object's private data is deleted externally
     /** this function will clear the private data and delete the object
         @param key the class ID of the class that owns the private data
@@ -572,9 +566,6 @@ protected:
 
     //! creates the object with the initial data passed as "d", used by the copy constructor
     DLLLOCAL QoreObject(const QoreClass* oc, QoreProgram* p, QoreHashNode* d);
-
-    //! evaluates the delete blocker function for the managed private data
-    DLLLOCAL bool evalDeleteBlocker(qore_classid_t classid_for_method, BuiltinDeleteBlocker* meth);
 
     //! returns true if the class has a memberNotification method
     DLLLOCAL bool hasMemberNotification() const;

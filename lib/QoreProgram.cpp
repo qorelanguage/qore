@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -515,7 +515,7 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
     }
 
     // copy external data if present
-    {
+    if (!p_pgm->priv->extmap.empty()) {
         AutoLocker al(p_pgm->priv->plock);
         for (auto& i : p_pgm->priv->extmap) {
             extmap.insert(extmap_t::value_type(i.first, i.second->copy(pgm)));

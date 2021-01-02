@@ -4,7 +4,7 @@
 
   Qore astparser module
 
-  Copyright (C) 2017 Qore Technologies s.r.o.
+  Copyright (C) 2017 - 2021 Qore Technologies s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 #endif
 
 QoreStringNode *astparser_module_init();
-void astparser_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
+void astparser_module_ns_init(QoreNamespace* rns, QoreNamespace* qns);
 void astparser_module_delete();
 
 // qore module symbols
@@ -54,8 +54,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = astparser_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-
-QoreNamespace AstParserNS("astparser");
+QoreNamespace AstParserNS("Qore::astparser");
 
 QoreStringNode* astparser_module_init() {
     AstParserNS.addSystemClass(initAstTreeClass(AstParserNS));

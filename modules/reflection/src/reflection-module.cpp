@@ -79,7 +79,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = reflection_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-QoreNamespace ReflectionNS("Reflection");
+QoreNamespace ReflectionNS("Qore::Reflection");
 
 const TypedHashDecl* hashdeclClassAccessInfo,
     * hashdeclMethodAccessInfo;
