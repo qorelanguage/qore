@@ -462,13 +462,13 @@ protected:
         return i == map.end() ? 0 : i->second;
     }
 
-    DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
+    DLLLOCAL int loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
         AutoLocker sl(mutex); // make sure checking and loading are atomic
 
-        loadModuleIntern(xsink, xsink, name, pgm);
+        return loadModuleIntern(xsink, xsink, name, pgm);
     }
 
-    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
+    DLLLOCAL int loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr,
         const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
         int warning_mask = QP_WARN_MODULES, qore_binary_module_desc_t mod_desc_func = nullptr);
@@ -522,7 +522,7 @@ public:
         return findModuleUnlocked(name);
     }
 
-    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
+    DLLLOCAL int parseLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         bool reexport = false);
     DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES,
