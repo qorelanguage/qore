@@ -644,11 +644,6 @@ void QoreNamespace::clear(ExceptionSink* xsink) {
     priv->deleteData(true, xsink);
 }
 
-QoreNamespace* QoreNamespace::copy(int po) const {
-    //printd(5, "QoreNamespace::copy() (deprecated) this: %p po: %d %s\n", this, po, priv->name.c_str());
-    return new QoreNamespace(*this, po);
-}
-
 QoreNamespace* QoreNamespace::copy(int64 po) const {
     //printd(5, "QoreNamespace::copy() this: %p po: %lld %s\n", this, po, priv->name.c_str());
     return new QoreNamespace(*this, po);

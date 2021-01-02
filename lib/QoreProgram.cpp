@@ -280,13 +280,6 @@ qore_program_private::~qore_program_private() {
     deleteAllBreakpoints();
     QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
     qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-#ifdef DEBUG
-        if (i == qore_program_to_object_map.end()) {
-            for (auto& pi : qore_program_to_object_map) {
-                printd(0, "qore_program_private::~qore_program_private() pgm: %p ERROR map: %p -> %p\n", pgm, i->first, i->second);
-            }
-        }
-#endif
     assert(i != qore_program_to_object_map.end());
     assert(i->second == 0);
     qore_program_to_object_map.erase(i);
@@ -1561,82 +1554,67 @@ void QoreProgram::setExecClass(const char* ecn) {
 }
 
 QoreNamespace* QoreProgram::getQoreNS() const {
-   return priv->QoreNS;
+    return priv->QoreNS;
 }
 
 void QoreProgram::depRef() {
-   priv->depRef();
+    priv->depRef();
 }
 
 void QoreProgram::depDeref() {
-   priv->depDeref();
+    priv->depDeref();
 }
 
 bool QoreProgram::checkWarning(int code) const {
-   return priv->warnSink && (code & priv->pwo.warn_mask);
+    return priv->warnSink && (code & priv->pwo.warn_mask);
 }
 
 int QoreProgram::getWarningMask() const {
-   return priv->warnSink ? priv->pwo.warn_mask : 0;
+    return priv->warnSink ? priv->pwo.warn_mask : 0;
 }
 
 bool QoreProgram::existsFunction(const char* name) {
-   ExceptionSink xsink;
-   ProgramRuntimeParseAccessHelper pah(&xsink, this);
-   if (xsink) {
-      xsink.clear();
-      return false;
-   }
-   return qore_root_ns_private::runtimeExistsFunction(*priv->RootNS, name) ? true : false;
-}
-
-// DEPRECATED
-void QoreProgram::parseSetParseOptions(int po) {
-   priv->parseSetParseOptions(&loc_builtin, (int64)po);
+    ExceptionSink xsink;
+    ProgramRuntimeParseAccessHelper pah(&xsink, this);
+    if (xsink) {
+        xsink.clear();
+        return false;
+    }
+    return qore_root_ns_private::runtimeExistsFunction(*priv->RootNS, name) ? true : false;
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   priv->parseSetParseOptions(&loc_builtin, po);
+    priv->parseSetParseOptions(&loc_builtin, po);
 }
 
 void QoreProgram::parseDisableParseOptions(int64 po) {
-   priv->parseDisableParseOptions(&loc_builtin, po);
-}
-
-// DEPRECATED
-void QoreProgram::setParseOptions(int po, ExceptionSink* xsink) {
-   priv->setParseOptions((int64)po, xsink);
+    priv->parseDisableParseOptions(&loc_builtin, po);
 }
 
 void QoreProgram::setParseOptions(int64 po, ExceptionSink* xsink) {
-   priv->setParseOptions(po, xsink);
-}
-
-// DEPRECATED
-void QoreProgram::disableParseOptions(int po, ExceptionSink* xsink) {
-   priv->disableParseOptions((int64)po, xsink);
+    priv->setParseOptions(po, xsink);
 }
 
 void QoreProgram::disableParseOptions(int64 po, ExceptionSink* xsink) {
-   priv->disableParseOptions(po, xsink);
+    priv->disableParseOptions(po, xsink);
 }
 
 void QoreProgram::replaceParseOptions(int64 po, ExceptionSink* xsink) {
-   priv->replaceParseOptions(po, xsink);
+    priv->replaceParseOptions(po, xsink);
 }
 
 QoreHashNode* QoreProgram::getThreadData() {
-   return priv->getThreadData();
+    return priv->getThreadData();
 }
 
 QoreValue QoreProgram::run(ExceptionSink* xsink) {
-   if (!priv->exec_class_name.empty()) {
-      runClass(priv->exec_class_name.c_str(), xsink);
-      QoreValue rv = priv->exec_class_rv;
-      priv->exec_class_rv = QoreValue();
-      return rv;
-   }
-   return runTopLevel(xsink);
+    if (!priv->exec_class_name.empty()) {
+        runClass(priv->exec_class_name.c_str(), xsink);
+        QoreValue rv = priv->exec_class_rv;
+        priv->exec_class_rv = QoreValue();
+        return rv;
+    }
+    return runTopLevel(xsink);
 }
 
 void QoreProgram::parse(FILE* fp, const char* name, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
@@ -1742,46 +1720,41 @@ QoreValue QoreProgram::callFunction(const char* name, const QoreListNode* args, 
 }
 
 void QoreProgram::parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-   ProgramRuntimeParseCommitContextHelper pch(xsink, this);
-   if (*xsink)
-      return;
-   priv->parseCommit(xsink, wS, wm);
-}
-
-void QoreProgram::parseRollback() {
-   ExceptionSink xsink;
-   priv->parseRollback(&xsink);
+    ProgramRuntimeParseCommitContextHelper pch(xsink, this);
+    if (*xsink)
+        return;
+    priv->parseCommit(xsink, wS, wm);
 }
 
 int QoreProgram::parseRollback(ExceptionSink* xsink) {
-   return priv->parseRollback(xsink);
+    return priv->parseRollback(xsink);
 }
 
 void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
-   // find class
-   const QoreClass* qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
-   if (!qc) {
-      xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
-      return;
-   }
+    // find class
+    const QoreClass* qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
+    if (!qc) {
+        xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
+        return;
+    }
 
-   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
-      return;
+    if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
+        return;
 
-   //printd(5, "QoreProgram::runClass(%s)\n", classname);
+    //printd(5, "QoreProgram::runClass(%s)\n", classname);
 
-   ProgramThreadCountContextHelper tch(xsink, this, true);
-   if (!*xsink)
-      discard(qc->execConstructor((QoreListNode*)0, xsink), xsink);
+    ProgramThreadCountContextHelper tch(xsink, this, true);
+    if (!*xsink)
+        discard(qc->execConstructor((QoreListNode*)0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   parseFile(filename, &xsink);
+    parseFile(filename, &xsink);
 
-   if (!xsink.isEvent())
-      runClass(classname, &xsink);
+    if (!xsink.isEvent())
+        runClass(classname, &xsink);
 }
 
 void QoreProgram::parseAndRunClass(FILE* fp, const char* name, const char* classname) {

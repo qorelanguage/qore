@@ -126,12 +126,6 @@ public:
     */
     DLLEXPORT void addSystemHashDecl(TypedHashDecl* hashdecl);
 
-    //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
-    /** @param po parse options to use when copying the namespace
-        @return a deep copy of the namespace
-    */
-    DLLEXPORT QoreNamespace* copy(int po) const;
-
     //! returns a deep copy of the namespace
     /** @param po parse options to use when copying the namespace
         @return a deep copy of the namespace

@@ -57,9 +57,6 @@ Summary:        The libraries for the qore runtime and qore clients
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Languages/Other
 Provides:       qore-module(abi)%{?_isa} = 0.25
-Provides:       qore-module(abi)%{?_isa} = 0.24
-Provides:       qore-module(abi)%{?_isa} = 0.23
-Provides:       qore-module(abi)%{?_isa} = 0.22
 
 %description -n libqore7
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -71,7 +68,7 @@ functionality.
 
 %files -n libqore7
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.7.4.0
+%{_libdir}/libqore.so.7.0.0
 %{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 

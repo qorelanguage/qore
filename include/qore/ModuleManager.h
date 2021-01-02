@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,10 +43,10 @@
  */
 
 #define QORE_MODULE_API_MAJOR 0  //!< the major number of the Qore module API implemented
-#define QORE_MODULE_API_MINOR 24 //!< the minor number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 25 //!< the minor number of the Qore module API implemented
 
 #define QORE_MODULE_COMPAT_API_MAJOR 0  //!< the major number of the earliest recommended Qore module API
-#define QORE_MODULE_COMPAT_API_MINOR 24 //!< the minor number of the earliest recommended Qore module API
+#define QORE_MODULE_COMPAT_API_MINOR 25 //!< the minor number of the earliest recommended Qore module API
 
 //! element of qore_mod_api_list;
 struct qore_mod_api_compat_s {
