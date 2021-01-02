@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -405,15 +405,6 @@ public:
     DLLEXPORT void parseCommit(ExceptionSink* xsink, ExceptionSink* warn_sink = 0, int warn_mask = QP_WARN_ALL);
 
     //! rolls back changes to the program object that were added with QoreProgram::parsePending()
-    /**
-        @see QoreProgram::parsePending()
-        @see QoreProgram::parseCommit()
-
-        @deprecated use parseRollback(ExceptionSink*) instead; exceptions raised with this version cannot be caught
-    */
-    DLLEXPORT void parseRollback();
-
-    //! rolls back changes to the program object that were added with QoreProgram::parsePending()
     /** a Qore-language exception could be raised if the parse lock could not be acquired (Program has running threads)
 
         @see QoreProgram::parsePending()
@@ -445,9 +436,6 @@ public:
         @see QoreProgram::parseSetParseOptions()
     */
     DLLEXPORT void setExecClass(const char* ecn = 0);
-
-    //! adds the parse options given to the parse option mask; DEPRECATED: use parseSetParseOptions(int64) instead
-    DLLEXPORT void parseSetParseOptions(int po);
 
     //! adds the parse options given to the parse option mask
     DLLEXPORT void parseSetParseOptions(int64 po);
@@ -498,25 +486,11 @@ public:
     DLLEXPORT int64 getParseOptions64() const;
 
     //! sets the parse options and adds Qore-language exception information if an error occurs
-    /** DEPRECATED: use setParseOptions(int64, ...)
-        @param po the parse options to add to the parse option mask
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-    DLLEXPORT void setParseOptions(int po, ExceptionSink* xsink);
-
-    //! sets the parse options and adds Qore-language exception information if an error occurs
     /**
         @param po the parse options to add to the parse option mask
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
     DLLEXPORT void setParseOptions(int64 po, ExceptionSink* xsink);
-
-    //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
-    /** DEPRECATED: use disableParseOptions(int64, ...) instead
-        @param po the parse options to subtract from the parse option mask
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-    DLLEXPORT void disableParseOptions(int po, ExceptionSink* xsink);
 
     //! turns off the parse options given in the passed mask and adds Qore-language exception information if an error occurs
     /**

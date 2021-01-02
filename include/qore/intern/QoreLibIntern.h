@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -160,23 +160,23 @@ DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 DLLLOCAL AbstractQoreNode* missing_openssl_feature(const char* f, ExceptionSink* xsink);
 
 struct ParseWarnOptions {
-   int64 parse_options;
-   int warn_mask;
+    int64 parse_options;
+    int warn_mask;
 
-   DLLLOCAL ParseWarnOptions() : parse_options(0), warn_mask(0) {
-   }
+    DLLLOCAL ParseWarnOptions() : parse_options(0), warn_mask(0) {
+    }
 
-   DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0) : parse_options(n_parse_options), warn_mask(n_warn_mask) {
-   }
+    DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0) : parse_options(n_parse_options), warn_mask(n_warn_mask) {
+    }
 
-   DLLLOCAL void operator=(const ParseWarnOptions& pwo) {
-      parse_options = pwo.parse_options;
-      warn_mask = pwo.warn_mask;
-   }
+    DLLLOCAL void operator=(const ParseWarnOptions& pwo) {
+        parse_options = pwo.parse_options;
+        warn_mask = pwo.warn_mask;
+    }
 
-   DLLLOCAL bool operator==(const ParseWarnOptions& pwo) const {
-      return parse_options == pwo.parse_options && warn_mask == pwo.warn_mask;
-   }
+    DLLLOCAL bool operator==(const ParseWarnOptions& pwo) const {
+        return parse_options == pwo.parse_options && warn_mask == pwo.warn_mask;
+    }
 };
 
 struct QoreProgramLineLocation {
@@ -991,13 +991,9 @@ DLLLOCAL const char* q_find_last_path_sep(const char* path);
 // reutrns the given file's mode or 0 if the stat() call fails
 DLLLOCAL int q_get_mode(const QoreString& path);
 //! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
-/** FIXME: change return type to qore_offset_t
- */
 DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
 
 //! returns the byte length of the next UTF-16 (big-endian encoded) character or 0 for an encoding error or a negative number if the string is too short to represent the character
-/** FIXME: change return type to qore_offset_t
- */
 DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
 DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 

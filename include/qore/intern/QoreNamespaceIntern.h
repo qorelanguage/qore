@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,6 +54,10 @@ class qore_ns_private {
 public:
     const QoreProgramLocation* loc;
     std::string name;
+    // for namespaces created unattached (such as in binary modules); gives a fully-justified reference
+    std::string ref_path;
+
+    QoreNamespace* ns;
 
     QoreClassList classList;       // class map
     HashDeclList hashDeclList;     // hashdecl map
@@ -71,24 +75,39 @@ public:
         builtin,  // is this namespace builtin?
         imported = false; // was this namespace imported?
 
-    const qore_ns_private* parent = nullptr;       // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
+    // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
+    const qore_ns_private* parent = nullptr;
     q_ns_class_handler_t class_handler = nullptr;
-    QoreNamespace* ns;
 
     // used with builtin namespaces
-    DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), constant(this), pub(true), builtin(true), ns(n_ns) {
+    DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), ns(n_ns), constant(this), pub(true), builtin(true) {
+        size_t i = name.rfind("::");
+        if (i != std::string::npos) {
+            if (i) {
+                ref_path = name.substr(0, i + 2);
+            }
+            if (!ref_path.empty() && ref_path.size() > 1 && ref_path[0] == ':' && ref_path[1] == ':') {
+                ref_path.erase(0, 2);
+            }
+            name.erase(0, i + 2);
+        }
     }
 
     // called when assimilating
-    DLLLOCAL qore_ns_private(const char* n, const qore_ns_private& old) : name(n), constant(this), pub(old.pub),
-        builtin(false), ns(new QoreNamespace(this)), from_module(old.from_module) {
+    DLLLOCAL qore_ns_private(const char* n, const qore_ns_private& old)
+        : name(n),
+            ref_path(old.ref_path),
+            ns(new QoreNamespace(this)),
+            constant(this), pub(old.pub),
+            builtin(false), from_module(old.from_module) {
     }
 
     // called when parsing
     DLLLOCAL qore_ns_private(const QoreProgramLocation* loc);
 
-    DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po)
+    DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po, QoreNamespace* ns)
         : name(old.name),
+            ns(ns),
             classList(old.classList, po, this),
             hashDeclList(old.hashDeclList, po, this),
             constant(old.constant, po, this),
@@ -100,7 +119,7 @@ public:
             pub(old.builtin ? true : false),
             builtin(old.builtin),
             imported(old.imported),
-            class_handler(old.class_handler), ns(nullptr) {
+            class_handler(old.class_handler) {
         if (!old.from_module.empty()) {
             from_module = old.from_module;
         } else {
@@ -111,17 +130,25 @@ public:
     DLLLOCAL ~qore_ns_private() {
     }
 
-    DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
-        const qore_ns_private* w = parent;
-        while (w && (anchored || w->parent)) {
-            //printd(5, "qore_ns_private::getPath() this: %p name: '%s' parent: %p root: %d\n", w, w->name.c_str(), parent, root);
-            str.insert(0, "::");
-            str.insert(0, w->name);
-            w = w->parent;
+    DLLLOCAL void getPath(std::string& str, bool anchored = false, bool need_next = false) const {
+        if (parent) {
+            parent->getPath(str, anchored, true);
+        } else {
+            if (!ref_path.empty()) {
+                str.insert(0, ref_path);
+            }
+            if (anchored) {
+                str.insert(0, "::");
+            }
         }
 
         // append this namespace's name
-        str += name;
+        if (!name.empty()) {
+            str += name;
+            if (need_next) {
+                str += "::";
+            }
+        }
     }
 
     DLLLOCAL const char* getModuleName() const {
@@ -138,11 +165,6 @@ public:
             nsl.push_front(w);
             w = w->parent;
         }
-    }
-
-    DLLLOCAL static QoreNamespace* newNamespace(const qore_ns_private& old, int64 po) {
-        qore_ns_private* p = new qore_ns_private(old, po);
-        return new QoreNamespace(p);
     }
 
     // destroys the object and frees all associated memory
@@ -1535,8 +1557,8 @@ public:
         nsmap.update(this);
     }
 
-    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po, QoreProgram* pgm)
-        : qore_ns_private(old, po), pgm(pgm) {
+    DLLLOCAL qore_root_ns_private(const qore_root_ns_private& old, int64 po, QoreProgram* pgm, RootQoreNamespace* ns)
+            : qore_ns_private(old, po, ns), pgm(pgm) {
         assert(pgm);
         if ((po & PO_NO_API) == PO_NO_API) {
             // create empty Qore namespace
@@ -1558,8 +1580,10 @@ public:
     }
 
     DLLLOCAL RootQoreNamespace* copy(int64 po, QoreProgram* pgm) {
-        qore_root_ns_private* p = new qore_root_ns_private(*this, po, pgm);
-        RootQoreNamespace* rv = new RootQoreNamespace(p);
+        RootQoreNamespace* rv = new RootQoreNamespace(nullptr);
+        qore_root_ns_private* rpriv = new qore_root_ns_private(*this, po, pgm, rv);
+        rv->priv = rv->rpriv = rpriv;
+        rpriv->rns = rv;
         return rv;
     }
 

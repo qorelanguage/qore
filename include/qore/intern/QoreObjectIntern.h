@@ -187,7 +187,7 @@ public:
 
     int scan_private_data = 0;
 
-    bool system_object, delete_blocker_run, in_destructor;
+    bool system_object, in_destructor;
     bool recursive_ref_found;
 
     QoreObject* obj;

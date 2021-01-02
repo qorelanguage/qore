@@ -82,14 +82,16 @@ public:
     // true if assigned to a closure
     bool is_closure : 1;
 
-    DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false), is_closure(false) {
+    DLLLOCAL QoreLValue() : type(QV_Node), fixed_type(false), assigned(false), static_assignment(false),
+            is_closure(false) {
 #ifdef DEBUG
         v.n = 0;
 #endif
         reset();
     }
 
-    DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false), is_closure(false) {
+    DLLLOCAL QoreLValue(valtype_t t) : type(t), fixed_type(t != QV_Node), assigned(false), static_assignment(false),
+            is_closure(false) {
 #ifdef DEBUG
         if (t == QV_Node)
             v.n = 0;
@@ -105,7 +107,8 @@ public:
         set(typeInfo);
     }
 
-    DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type), assigned(old.assigned), static_assignment(false), is_closure(old.is_closure) {
+    DLLLOCAL QoreLValue(const QoreLValue<U>& old) : type(old.type), fixed_type(old.fixed_type),
+            assigned(old.assigned), static_assignment(false), is_closure(old.is_closure) {
         if (!assigned)
             return;
         switch (old.type) {
@@ -115,7 +118,7 @@ public:
             case QV_Node:
                 v.n = old.v.n ? old.v.n->refSelf() : nullptr;
                 if (!is_closure)
-                check_lvalue_object_in_out(v.n, 0);
+                    check_lvalue_object_in_out(v.n, 0);
                 break;
             default: assert(false);
             // no break

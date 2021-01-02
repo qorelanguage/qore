@@ -790,29 +790,6 @@ public:
     }
 };
 
-// not visible to user code, does not follow abstract class pattern
-class BuiltinDeleteBlocker : public BuiltinNormalMethod {
-protected:
-    q_delete_blocker_t delete_blocker;
-
-public:
-    DLLLOCAL BuiltinDeleteBlocker(q_delete_blocker_t m) : BuiltinNormalMethod(0, "<delete_blocker>"), delete_blocker(m) {
-    }
-
-    DLLLOCAL BuiltinDeleteBlocker(const BuiltinDeleteBlocker& old, const QoreClass* n_qc) : BuiltinNormalMethod(old, n_qc), delete_blocker(old.delete_blocker) {
-    }
-
-    DLLLOCAL bool eval(QoreObject* self, AbstractPrivateData* private_data) const {
-        return delete_blocker(self, private_data);
-    }
-
-    DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
-        return new BuiltinDeleteBlocker(*this, n_qc);
-    }
-};
-
-#define BDELB(f) (reinterpret_cast<BuiltinDeleteBlocker*>(f))
-
 class NormalUserMethod : public NormalMethodFunction {
 public:
     DLLLOCAL NormalUserMethod(const QoreClass* n_qc, const char* mname) : NormalMethodFunction(mname, n_qc) {
@@ -898,7 +875,7 @@ public:
 
 protected:
     DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access)
-            : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
+            : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access), init(old.init) {
     }
 
     bool init = false;
@@ -1058,7 +1035,7 @@ public:
     }
 
     DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public)
-            : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
+            : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized), eval_init(old.eval_init) {
     }
 
     DLLLOCAL ~QoreVarInfo() {
@@ -1428,7 +1405,7 @@ public:
     DLLLOCAL void initializeMembers(QoreClass* cls);
 
     // returns -1 if a recursive reference is found, 0 if not
-    DLLLOCAL int initialize(QoreClass* cls, bool& has_delete_blocker);
+    DLLLOCAL int initialize(QoreClass* cls);
 
     DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
 
@@ -1508,7 +1485,7 @@ public:
 
     DLLLOCAL void initializeMembers(QoreClass* thisclass);
 
-    DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker);
+    DLLLOCAL int initialize(QoreClass* thisclass);
 
     // inaccessible methods are ignored
     DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, const char* name, const qore_class_private* class_ctx, bool allow_internal);
@@ -1523,7 +1500,6 @@ public:
 
     DLLLOCAL bool match(const QoreClass* cls);
     DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
-    DLLLOCAL bool execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const;
 
     DLLLOCAL bool runtimeIsPrivateMember(const char* str, bool toplevel) const;
 
@@ -1769,7 +1745,6 @@ public:
         * copyMethod = nullptr,
         * methodGate = nullptr,
         * memberGate = nullptr,
-        * deleteBlocker = nullptr,
         * memberNotification = nullptr;
 
     q_serializer_t serializer = nullptr;
@@ -1784,7 +1759,6 @@ public:
         static_init : 1,                  // has static initialization been called for the class?
         parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
         parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
-        has_delete_blocker : 1,           // has a delete_blocker function somewhere in the hierarchy?
         has_public_memdecl : 1,           // has a public member declaration somewhere in the hierarchy?
         pending_has_public_memdecl : 1,   // has a pending public member declaration in this class?
         owns_typeinfo : 1,                // do we own the typeInfo data or not?
@@ -1933,6 +1907,7 @@ public:
     // used when assimilating a namespace at parse time
     DLLLOCAL void updateNamespace(qore_ns_private* n) {
         assert(ns);
+        assert(ns != n);
         ns = n;
     }
 
@@ -2633,12 +2608,10 @@ public:
     DLLLOCAL void addBuiltinConstructor(BuiltinConstructorVariantBase* variant);
     DLLLOCAL void addBuiltinDestructor(BuiltinDestructorVariantBase* variant);
     DLLLOCAL void addBuiltinCopyMethod(BuiltinCopyVariantBase* variant);
-    DLLLOCAL void setDeleteBlocker(q_delete_blocker_t func);
     DLLLOCAL void setBuiltinSystemConstructor(BuiltinSystemConstructorBase* m);
 
     DLLLOCAL void execBaseClassConstructor(QoreObject* self, BCEAList* bceal, ExceptionSink* xsink) const;
     DLLLOCAL QoreObject* execSystemConstructor(QoreObject* self, int code, va_list args) const;
-    DLLLOCAL bool execDeleteBlocker(QoreObject* self, ExceptionSink* xsink) const;
     DLLLOCAL QoreObject* execCopy(QoreObject* old, ExceptionSink* xsink) const;
 
     // returns a non-static method if it exists in the local class
@@ -3242,6 +3215,7 @@ public:
     DLLLOCAL static void setFinal(QoreClass& qc) {
         assert(!qc.priv->final);
         qc.priv->final = true;
+        //printd(5, "class '%s' set to final\n", qc.getName());
     }
 
 protected:
@@ -3315,7 +3289,7 @@ public:
     }
 
     DLLLOCAL MethodFunctionBase* getFunction() const {
-        return const_cast<MethodFunctionBase* >(func);
+        return const_cast<MethodFunctionBase*>(func);
     }
 
     DLLLOCAL const char* getName() const {
@@ -3349,11 +3323,6 @@ public:
 
     DLLLOCAL void evalBaseClassCopy(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const {
         COPYMF(func)->evalCopy(*parent_class, self, old, nullptr, xsink);
-    }
-
-    DLLLOCAL bool evalDeleteBlocker(QoreObject* self) const {
-        // can only be builtin
-        return self->evalDeleteBlocker(parent_class->priv->methodID, reinterpret_cast<BuiltinDeleteBlocker*>(func));
     }
 
     DLLLOCAL void evalDestructor(QoreObject* self, ExceptionSink* xsink) const {

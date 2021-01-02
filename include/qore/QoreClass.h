@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -466,17 +466,6 @@ public:
         @endcode
     */
     DLLEXPORT void setCopy(const void* ptr, q_external_copy_t m);
-
-    //! sets the deleteBlocker method for the class
-    /** this method will be run when the object is deleted; it should be set only for classes where
-        the objects' lifecycles are or may be managed externally.  This function must be called before
-        this class is added as a parent class to any other class; if it is called classes have added
-        this class as a parent class, then the child classes will not have their delete blocker flag
-        set.
-        @param m the deleteBlocker method to set
-        @note delete blocker methods are called with the object's status lock held, therefore be very careful what you call from within the deleteBlocker function
-    */
-    DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
     //! sets the serializer method for builtin classes
     /** @param m the serializer method
@@ -978,8 +967,6 @@ public:
     DLLLOCAL qore_classid_t getIDForMethod() const;
     // get base class list to add virtual class indexes for private data
     DLLLOCAL BCSMList* getBCSMList() const;
-    // returns true if the class has a delete_blocker function (somewhere in the hierarchy)
-    DLLLOCAL bool has_delete_blocker() const;
 
     DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
     DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
@@ -1032,8 +1019,6 @@ private:
 
     // This function must only be called from QoreObject
     DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
-    // This function must only be called from QoreObject and BCList
-    DLLLOCAL bool execDeleteBlocker(QoreObject* self, ExceptionSink* xsink) const;
     // This function must only be called from QoreObject
     DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 };

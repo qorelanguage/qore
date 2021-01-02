@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,31 +43,29 @@
  */
 class AbstractPrivateData : public QoreReferenceCounter {
 protected:
-   //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
-   DLLLOCAL virtual ~AbstractPrivateData() {}
+    //! as these objects are reference counted, the destructor should be called only when the reference count = 0 and not manually
+    DLLLOCAL virtual ~AbstractPrivateData() {}
 
 public:
-   //! increments the reference count of the object
-   /** FIXME: this function should be const
+    //! increments the reference count of the object
+    DLLLOCAL void ref() const {
+        ROreference();
+    }
+
+    //! decrements the reference count of the object
+    /**
+        @param xsink any Qore-language exception information is stored here
     */
-   DLLLOCAL void ref() {
-      ROreference();
-   }
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        if (ROdereference())
+            delete this;
+    }
 
-   //! decrements the reference count of the object
-   /**
-      @param xsink any Qore-language exception information is stored here
-   */
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference())
-         delete this;
-   }
-
-   //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
-   DLLLOCAL virtual void deref() {
-      if (ROdereference())
-         delete this;
-   }
+    //! decrements the reference count of the object without the possibility of throwing a Qore-language exception
+    DLLLOCAL virtual void deref() {
+        if (ROdereference())
+            delete this;
+    }
 };
 
 #endif // _QORE_ABSTRACTPRIVATEDATA_H

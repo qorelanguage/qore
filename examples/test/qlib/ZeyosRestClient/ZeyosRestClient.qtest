@@ -1,18 +1,20 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-%requires ../../../../qlib/QUnit.qm
-%requires ../../../../qlib/Mime.qm
-%requires ../../../../qlib/ConnectionProvider
-%requires ../../../../qlib/RestClient.qm
-%requires ../../../../qlib/ZeyosRestClient.qm
-%requires ../../../../qlib/HttpServer.qm
-
 %try-module json
 %define NoJson
 %endtry
 
-%requires qore >= 0.9
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%ifndef NoJson
+%requires ../../../../qlib/ZeyosRestClient.qm
+%endif
+%requires ../../../../qlib/HttpServer.qm
+
+%requires qore >= 0.9.11
 
 %new-style
 %strict-args
@@ -22,6 +24,27 @@
 %disable-warning deprecated
 
 %exec-class ZeyosTest
+
+%ifdef NoJson
+class ZeyosRestClient {
+    constructor() {
+        remove argv;
+        throw "NO-MODULE";
+    }
+    auto methodGate() {
+        remove argv;
+    }
+    auto get() {
+        remove argv;
+    }
+}
+class ZeyosRestConnection inherits ZeyosRestClient {
+    auto methodGate() {
+        remove argv;
+    }
+}
+%endif
+
 
 class FakeZeyosRestHandler inherits AbstractHttpRequestHandler {
     private {
@@ -90,7 +113,7 @@ class ZeyosTest inherits QUnit::Test {
         try {
             zeyosRestClient = new ZeyosRestClient({"url": "http://test1:test2@localhost:" + port, "appsecret": "a", "instance": "x"});
         } catch (hash<ExceptionInfo> ex) {
-            if (ex.err == "REST-RESPONSE-ERROR") {
+            if (ex.err == "REST-RESPONSE-ERROR" || ex.err == "NO-MODULE") {
                 printf("no client support: %s: %s\n", ex.err, ex.desc);
             } else {
                 rethrow;
@@ -131,13 +154,13 @@ class ZeyosTest inherits QUnit::Test {
     }
 
     connectionTest() {
-        string url = "http://user:pass@localhost:" + port;
-        ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a", "instance": "x"});
-        assertEq(True, zeyosrc instanceof ZeyosRestConnection);
-
 %ifdef NoJson
         testSkip("no json module present");
 %endif
+
+        string url = "http://user:pass@localhost:" + port;
+        ZeyosRestConnection zeyosrc("test", "test", url, NOTHING, {"appsecret": "a", "instance": "x"});
+        assertEq(True, zeyosrc instanceof ZeyosRestConnection);
 
         ZeyosRestClient client = zeyosrc.get(False);
         assertEq(True, client instanceof ZeyosRestClient);

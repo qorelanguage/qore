@@ -83,8 +83,6 @@ private:
 
     DLLLOCAL void deleteAll();
 
-    DLLLOCAL void remove(hm_qc_t::iterator i);
-
     DLLLOCAL void addInternal(QoreClass* ot, bool priv);
 
 public:

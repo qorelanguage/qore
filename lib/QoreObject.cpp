@@ -41,7 +41,7 @@
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
     RObject(n_obj->references, true),
     theclass(oc), data(n_data), pgm(p), system_object(!p),
-    delete_blocker_run(false), in_destructor(false),
+    in_destructor(false),
     recursive_ref_found(false),
     obj(n_obj) {
     //printd(5, "qore_object_private::qore_object_private() this: %p obj: %p '%s'\n", this, obj, oc->getName());
@@ -818,7 +818,7 @@ void qore_object_private::unsetRealReference() {
 
 void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
     {
-        //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), references, references - 1, tRefs.reference_count(), status, theclass->has_delete_blocker(), delete_blocker_run);
+        //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d\n", this, getClassName(), references, references - 1, tRefs.reference_count(), status);
 
         printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customDeref() this: %p '%s': references %d->%d rrefs %d->%d\n", this, status == OS_OK ? getClassName() : "<deleted>", references.load(), references.load() - 1, rrefs, rrefs - (real ? 1 : 0));
 
@@ -903,16 +903,6 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
             //printd(5, "qore_object_private::customDeref() this: %p obj: %p %s deleting\n", this, obj, getClassName());
             qodh.finalDeref(this);
             return;
-        }
-
-        // if the scope deletion is blocked, then do not run the destructor
-        if (!delete_blocker_run && theclass->has_delete_blocker()) {
-            if (theclass->execDeleteBlocker(obj, xsink)) {
-                //printd(5, "qore_object_private::customDeref() this: %p class: %s blocking delete\n", this, getClassName());
-                delete_blocker_run = true;
-                //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-                return;
-            }
         }
 
         in_destructor = true;
@@ -1027,21 +1017,6 @@ void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const
     }
 
     check_meth_eval(priv->theclass, "copy", &thisclass, xsink);
-}
-
-// note that the lock is already held when this method is called
-bool QoreObject::evalDeleteBlocker(qore_classid_t classid_for_method, BuiltinDeleteBlocker *meth) {
-    // FIXME: eliminate reference counts for private data, private data should be destroyed after the destructor terminates
-
-    // get referenced object
-    ExceptionSink xsink;
-    ReferenceHolder<AbstractPrivateData> pd(priv->privateData->getReferencedPrivateData(classid_for_method), &xsink);
-
-    if (pd)
-        return meth->eval(this, *pd);
-
-    //printd(5, "QoreObject::evalBuiltingMethodWithPrivateData() this: %p, method class ID: %d\n", this, classid_for_method);
-    return false;
 }
 
 bool QoreObject::validInstanceOf(qore_classid_t cid) const {
@@ -1233,14 +1208,6 @@ void qore_object_private::customRefIntern(bool real) {
 void QoreObject::customRef() const {
    AutoLocker al(priv->rlck);
    priv->customRefIntern(false);
-}
-
-void QoreObject::deleteBlockerRef() const {
-#ifdef QORE_DEBUG_OBJ_REFS
-    printd(QORE_DEBUG_OBJ_REFS, "QoreObject::deleteBlockerRef() this: %p '%s' references %d->%d\n", this, getClassName(), references.load(), references.load() + 1);
-#endif
-    AutoLocker al(priv->rlck);
-    ++references;
 }
 
 bool QoreObject::derefImpl(ExceptionSink* xsink) {

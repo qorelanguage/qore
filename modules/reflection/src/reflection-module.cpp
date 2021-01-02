@@ -4,7 +4,7 @@
 
     Qore reflection module
 
-    Copyright (C) 2017 - 2018 Qore Technologies s.r.o.
+    Copyright (C) 2017 - 2021 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ DLLEXPORT qore_module_delete_t qore_module_delete = reflection_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-QoreNamespace ReflectionNS("Reflection");
+QoreNamespace ReflectionNS("Qore::Reflection");
 
 const TypedHashDecl* hashdeclClassAccessInfo,
     * hashdeclMethodAccessInfo;

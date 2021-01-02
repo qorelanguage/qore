@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -904,16 +904,14 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                && str[0] != '\t' && str[0] != '\n' && str[0] != '\r') {
                                               parse_error(*get_loc(yylloc), "invalid %%try-module declaration c: %c", str[0]);
                                               ok = false;
-                                           }
-                                           else {
+                                           } else {
                                               str.trim();
                                               QoreString var;
                                               bool require_dollar = !(getProgram()->getParseOptions64() & PO_REQUIRE_BARE_REFS);
                                               if (str.empty()) {
                                                  parse_error(*get_loc(yylloc), "missing argument to %%try-module");
                                                  ok = false;
-                                              }
-                                              else {
+                                              } else {
                                                  const char* p = str.getBuffer();
                                                  const char* op = strchr(p, '(');
                                                  if (op) {
@@ -926,8 +924,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                     if (!cp) {
                                                        parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                        ok = false;
-                                                    }
-                                                    else {
+                                                    } else {
                                                        // get variable name
                                                        var.concat(p, cp - p);
                                                        var.trim("\t ");
@@ -935,8 +932,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                        if (var.empty()) {
                                                           parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                           ok = false;
-                                                       }
-                                                       else {
+                                                       } else {
                                                           // remove preface from string leaving only the rest
                                                           str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
                                                           if (!is_identifier(var.getBuffer())) {
@@ -951,8 +947,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                               if (!ok) {
                                                  BEGIN(p_skip_to_endtry);
                                                  //BEGIN(INITIAL);
-                                              }
-                                              else {
+                                              } else {
                                                  str.trim();
                                                  if (str.empty()) {
                                                     if (var.empty())
@@ -960,22 +955,20 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                     else
                                                        parse_error(*get_loc(yylloc), "%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
                                                     BEGIN(INITIAL);
-                                                 }
-                                                 else {
+                                                 } else {
                                                     //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                     QoreProgram* pgm = getProgram();
                                                     ExceptionSink xsink;
-                                                    QMM.parseLoadModule(xsink, xsink, str.getBuffer(), pgm, parse_get_try_reexport());
+                                                    int err = QMM.parseLoadModule(xsink, xsink, str.c_str(), pgm, parse_get_try_reexport());
+                                                    //printd(5, "'%s': xsink: %d err: %d var: '%s'\n", str.c_str(), (bool)xsink, err, var.c_str());
                                                     if (!xsink) {
                                                        BEGIN(p_skip_to_endtry);
-                                                    }
-                                                    else {
+                                                    } else {
                                                        BEGIN(INITIAL);
                                                        if (var.empty()) {
                                                           // ignore exception in this case
                                                           xsink.clear();
-                                                       }
-                                                       else {
+                                                       } else {
                                                           yylval->trymod = new TryModuleError(var.giveBuffer(), xsink.catchException());
                                                           return TRY_MODULE_ERROR;
                                                        }
@@ -1086,8 +1079,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            if (parse_is_defined(yylloc, yytext)) {
                                               //printd(5, "ifdef: '%s' is defined\n", yytext);
                                               BEGIN(INITIAL);
-                                           }
-                                           else {
+                                           } else {
                                               //printd(5, "ifdef: '%s' is not defined\n", yytext);
                                               // skip to the next %else or %endif
                                               BEGIN(p_skip_to_endif_or_else);
@@ -1105,8 +1097,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            if (!parse_is_defined(yylloc, yytext)) {
                                               //printd(5, "ifndef: '%s' is not defined\n", yytext);
                                               BEGIN(INITIAL);
-                                           }
-                                           else {
+                                           } else {
                                               //printd(5, "ifndef: '%s' is defined\n", yytext);
                                               // skip to the next %else or %endif
                                               BEGIN(p_skip_to_endif_or_else);
@@ -1119,8 +1110,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%else{WS}*$                            {
                                               if (!parse_cond_else()) {
                                                  parse_error(*get_loc(yylloc), "%%else found without %%if");
-                                              }
-                                              else {
+                                              } else {
                                                  BEGIN(p_skip_to_endif);
                                               }
                                         }
@@ -1214,12 +1204,10 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            if (pgm->getParseOptions64() & PO_NO_FILESYSTEM) {
                                               parse_error(*get_loc(yylloc), "cannot use the %%include parse directive when PO_NO_FILESYSTEM is in force");
                                               BEGIN(INITIAL);
-                                           }
-                                           else if (fname->empty()) {
+                                           } else if (fname->empty()) {
                                               parse_error(*get_loc(yylloc), "missing argument to %%include", yytext);
                                               BEGIN(INITIAL);
-                                           }
-                                           else {
+                                           } else {
                                               // re-get the buffer pointer
                                               fn = fname->getBuffer();
                                               // check if regular file
@@ -1230,14 +1218,12 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  if (xsink)
                                                     xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
                                                  BEGIN(INITIAL);
-                                              }
-                                              else {
+                                              } else {
                                                  //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
                                                  if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
                                                     parse_error(*get_loc(yylloc), "cannot include \"%s\"; is not a regular file", fn);
                                                     BEGIN(INITIAL);
-                                                 }
-                                                 else {
+                                                 } else {
                                                     FILE *save_yyin = yyin;
                                                     yyin = fopen(fn, "r");
 
@@ -1245,8 +1231,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                        parse_error(*get_loc(yylloc), "cannot open include file \"%s\"", fn);
                                                        yyin = save_yyin;
                                                        BEGIN(INITIAL);
-                                                    }
-                                                    else {
+                                                    } else {
                                                        // save file name string in QoreProgram's list
                                                        const char* str = qore_program_private::get(*pgm)->addString(fname->c_str());
                                                        beginParsing(str, (void*)YY_CURRENT_BUFFER);
@@ -1274,12 +1259,10 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                               val = ascii_to_octal(*(yytext + 3))
                                                  + (8 * ascii_to_octal(*(yytext + 2)))
                                                  + (64 * ascii_to_octal(*(yytext + 1)));
-                                           }
-                                           else if (token_length == 3) {
+                                           } else if (token_length == 3) {
                                               val = ascii_to_octal(*(yytext + 2))
                                                  + (8 * ascii_to_octal(*(yytext + 1)));
-                                           }
-                                           else { // here token_length == 2
+                                           } else { // here token_length == 2
                                               val = ascii_to_octal(*(yytext + 1));
                                            }
                                            if (val >= 0400)
