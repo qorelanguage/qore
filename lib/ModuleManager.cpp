@@ -1747,7 +1747,11 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
     mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
 }
 
+#define QORE_MAX_MODULE_ERROR_DESC 200
 void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
+    // ensure the program is in context
+    QoreProgramContextHelper pch(pgm);
+
     AutoLocker al(mutex); // make sure checking and loading are atomic
     loadModuleIntern(*xsink, *xsink, mname, pgm);
     if (*xsink) {
@@ -1757,16 +1761,17 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
     QoreAbstractModule* mi = findModule(mname);
     assert(mi);
 
-    // ensure the program is in context
-    QoreProgramContextHelper pch(pgm);
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
 
     // enrich exception description if present
     if (*xsink) {
-        // truncate command at first eol
+        // truncate command at first eol or at max 200 chars
         qore_offset_t i = cmd.find('\n');
         if (i == -1) {
             i = cmd.find('\r');
+        }
+        if (((i == -1) && (cmd.size() > QORE_MAX_MODULE_ERROR_DESC)) || (i > QORE_MAX_MODULE_ERROR_DESC)) {
+            i = QORE_MAX_MODULE_ERROR_DESC;
         }
         if (i > 0) {
             QoreString cmd_copy(&cmd, i);

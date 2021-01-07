@@ -1180,15 +1180,15 @@ auto result = pgm.callFunction("func_name", arg1, arg2);
     @note The function called could also cause other exceptions to be thrown
  */
 auto Program::callFunction(string name, ...) {
-   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
+    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return QoreValue();
 
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   if (args->size() > 1)
-      vargs = args->copyListFrom(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    if (args->size() > 1)
+        vargs = args->copyListFrom(1);
 
-   return p->callFunction(tmp->getBuffer(), *vargs, xsink);
+    return p->callFunction(tmp->getBuffer(), *vargs, xsink);
 }
 
 //! Calls a function in the program object giving the arguments to the function as a list and returns the return value
@@ -2398,8 +2398,6 @@ nothing Program::issueModuleCmd(string module, string cmd) {
         return QoreValue();
     }
 
-    // set program context before issuing module command
-    QoreProgramContextHelper pch(p);
     QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
 }
 
