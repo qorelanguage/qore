@@ -979,18 +979,33 @@ private:
  */
 class AbstractQoreProgramExternalData {
 public:
-   DLLEXPORT virtual ~AbstractQoreProgramExternalData();
+    //! Destroys the object
+    /** The base class implementation is empty
+     */
+    DLLEXPORT virtual ~AbstractQoreProgramExternalData();
 
-   //! for reference-counted classes, returns the same object with the reference count incremented
-   /** This function is called for external data when a new program object is created that inherits the configuration of the parent.
-       The call is made after the child program has been completely set up.
+    //! For reference-counted classes, returns the same object with the reference count incremented
+    /** This function is called for external data when a new program object is created that inherits the configuration
+        of the parent.
 
-       @param pgm the new (child) QoreProgram object after setup
+        The call is made after the child program has been completely set up.
+
+        @param pgm the new (child) QoreProgram object after setup
+
+        @note this function is called with the program parse lock held; use init() for any operations that need to be
+        called unlocked
     */
-   virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const = 0;
+    virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const = 0;
 
-   //! for non-reference counted classes, deletes the object immediately
-   virtual void doDeref() = 0;
+    //! Called after copy() on the new object
+    /** The base class implementation is empty
+
+        @since %Qore 0.10.0
+     */
+    virtual void init();
+
+    //! For non-reference counted classes, deletes the object immediately
+    virtual void doDeref() = 0;
 };
 
 typedef std::list<AbstractStatement*> AbstractStatementList_t;

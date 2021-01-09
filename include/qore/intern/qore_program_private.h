@@ -61,7 +61,8 @@ typedef std::vector<AbstractStatement*> stmt_vec_t;
 
 class QoreParseLocationHelper {
 public:
-    DLLLOCAL QoreParseLocationHelper(const char* file, const char* src, int offset) {
+    DLLLOCAL QoreParseLocationHelper(const char* file, const char* src = nullptr, int offset = 0) {
+        // cls and ns are output vars
         thread_set_class_and_ns(nullptr, nullptr, cls, ns);
         beginParsing(file, nullptr, src, offset);
     }
@@ -786,11 +787,13 @@ public:
 
         if (ptid && ptid != q_gettid()) {
             if (xsink)
-                xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed");
+                xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and " \
+                    "therefore cannot be accessed");
             return -1;
         }
 
-        //printd(5, "qore_program_private::lockParsing() this: %p ptid: %d thread_count: %d parse_count: %d -> %d\n", this, ptid, thread_count, parse_count, parse_count + 1);
+        //printd(5, "qore_program_private::lockParsing() this: %p ptid: %d thread_count: %d parse_count: %d -> %d\n",
+        //  this, ptid, thread_count, parse_count, parse_count + 1);
         ++parse_count;
         parse_tid = tid;
         return 0;
@@ -800,12 +803,17 @@ public:
         // grab program-level lock
         AutoLocker al(plock);
         assert(parse_tid == q_gettid());
+        assert(parse_count > 0);
         if (!(--parse_count)) {
             parse_tid = -1;
             if (thread_waiting) {
                 pcond.broadcast();
             }
         }
+    }
+
+    DLLLOCAL bool parsingLocked() const {
+        return parse_tid == q_gettid();
     }
 
     // called only with plock held
@@ -906,8 +914,10 @@ public:
     DLLLOCAL void internParseRollback(ExceptionSink* xsink);
 
     // call must push the current program on the stack and pop it afterwards
-    DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label, const char* orig_src = nullptr, int offset = 0, bool standard_parse = true) {
-        //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
+    DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label,
+            const char* orig_src = nullptr, int offset = 0, bool standard_parse = true) {
+        //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n",
+        //    code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
         assert(code && code[0]);
 
@@ -921,13 +931,12 @@ public:
             addFile(sname);
         }
 
+        // also calls beginParsing() and endParsing() to ensure that the source location is in place even after
+        // the lexer completes scanning the input and pops the source location off the stack; this means that
+        // the source location is stored twice, however
         QoreParseLocationHelper qplh(sname, src, offset);
 
-        /*
-           beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
-           then endParsing() coredump with "Assertion `td->plStack' failed"
-           Seems endParsing() should do rather "if (!td->plStack) return".
-        */
+        // endParsing() is called by yyparse() below
         beginParsing(sname, nullptr, src, offset);
 
         if (!parsing_in_progress) {
@@ -1075,13 +1084,12 @@ public:
             const char* sname = name;
             addFile(sname);
 
-            QoreParseLocationHelper qplh(sname, nullptr, 0);
+            // also calls beginParsing() and endParsing() to ensure that the source location is in place even after
+            // the lexer completes scanning the input and pops the source location off the stack; this means that
+            // the source location is stored twice, however
+            QoreParseLocationHelper qplh(sname);
 
-            /*
-                beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
-                then endParsing() coredump with "Assertion `td->plStack' failed"
-                Seems endParsing() should do rather "if (!td->plStack) return".
-            */
+            // endParsing() is called by yyparse() below
 			beginParsing(sname);
 
             if (!parsing_in_progress) {
@@ -1109,7 +1117,8 @@ public:
             fprintf(stderr, "\n%d exception(s) skipped\n\n", exceptions_raised);
     }
 
-    DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = nullptr, int offset = 0) {
+    DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS,
+            int wm, const QoreString* source = nullptr, int offset = 0) {
         assert(xsink);
         if (!str->strlen())
             return;
@@ -1128,10 +1137,11 @@ public:
         if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
             return;
 
-        parse(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
+        parse(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
     }
 
-    DLLLOCAL void parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = 0, int offset = 0) {
+    DLLLOCAL void parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm,
+            const char* orig_src = nullptr, int offset = 0) {
         //printd(5, "qore_program_private::parse(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
 
         assert(code && code[0]);

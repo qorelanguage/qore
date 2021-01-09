@@ -423,8 +423,8 @@ class ProgramTest inherits QUnit::Test {
         try {
             p4.parse("error", "error", 0, "source", 10);
             assertEq(True, False);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
+            on_error printf("%s\n", get_exception_string(ex));
             assertEq("source", ex.source);
             assertEq(10, ex.offset);
         }
