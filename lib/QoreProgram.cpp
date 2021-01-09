@@ -1714,6 +1714,8 @@ QoreValue QoreProgram::callFunction(const char* name, const QoreListNode* args, 
         return QoreValue();
     }
 
+    QoreProgramContextHelper pch(this);
+
     // we assign the args to 0 below so that they will not be deleted
     fc = new FunctionCallNode(get_runtime_location(), fe, const_cast<QoreListNode*>(args), this);
     QoreValue rv = !*xsink ? fc->eval(xsink) : QoreValue();
@@ -1763,80 +1765,79 @@ void QoreProgram::parseFileAndRunClass(const char* filename, const char* classna
 }
 
 void QoreProgram::parseAndRunClass(FILE* fp, const char* name, const char* classname) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   parse(fp, name, &xsink);
+    parse(fp, name, &xsink);
 
-   if (!xsink.isEvent())
-      runClass(classname, &xsink);
+    if (!xsink.isEvent())
+        runClass(classname, &xsink);
 }
 
 void QoreProgram::parseAndRunClass(const char* str, const char* name, const char* classname) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   parse(str, name, &xsink);
+    parse(str, name, &xsink);
 
-   if (!xsink.isEvent())
-      runClass(classname, &xsink);
+    if (!xsink.isEvent())
+        runClass(classname, &xsink);
 }
 
 void QoreProgram::parseFileAndRun(const char* filename) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   parseFile(filename, &xsink);
+    parseFile(filename, &xsink);
 
-   if (!xsink.isEvent()) {
-      // get class name
-      if (priv->exec_class) {
-         if (!priv->exec_class_name.empty())
-            runClass(priv->exec_class_name.c_str(), &xsink);
-         else {
-            char* c, *bn = q_basenameptr(filename);
-            if (!(c = strrchr(bn, '.')))
-               runClass(filename, &xsink);
+    if (!xsink.isEvent()) {
+        // get class name
+        if (priv->exec_class) {
+            if (!priv->exec_class_name.empty())
+                runClass(priv->exec_class_name.c_str(), &xsink);
             else {
-               QoreString qcn; // for possible class name
-               qcn.concat(bn, c - bn);
-               runClass(qcn.getBuffer(), &xsink);
+                char* c, *bn = q_basenameptr(filename);
+                if (!(c = strrchr(bn, '.')))
+                    runClass(filename, &xsink);
+                else {
+                    QoreString qcn; // for possible class name
+                    qcn.concat(bn, c - bn);
+                    runClass(qcn.getBuffer(), &xsink);
+                }
             }
-         }
-      }
-      else
-         run(&xsink);
-   }
+        } else
+            run(&xsink);
+    }
 }
 
 void QoreProgram::parseAndRun(FILE* fp, const char* name) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   if (priv->exec_class && priv->exec_class_name.empty())
-      xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from stdin");
-   else {
-      parse(fp, name, &xsink);
+    if (priv->exec_class && priv->exec_class_name.empty())
+        xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from stdin");
+    else {
+        parse(fp, name, &xsink);
 
-      if (!xsink.isEvent())
-         run(&xsink);
-   }
+        if (!xsink.isEvent())
+            run(&xsink);
+    }
 }
 
 void QoreProgram::parseAndRun(const char* str, const char* name) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   if (priv->exec_class && priv->exec_class_name.empty())
-      xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from a direct string");
-   else {
-      parse(str, name, &xsink);
+    if (priv->exec_class && priv->exec_class_name.empty())
+        xsink.raiseException("EXEC-CLASS-ERROR", "class name required if executing from a direct string");
+    else {
+        parse(str, name, &xsink);
 
-      if (!xsink.isEvent())
-         run(&xsink);
-   }
+        if (!xsink.isEvent())
+            run(&xsink);
+    }
 }
 
 bool QoreProgram::checkFeature(const char* f) const {
-   bool b = priv->featureList.find(f);
-   if (!b)
-      b = priv->userFeatureList.find(f);
-   return b;
+    bool b = priv->featureList.find(f);
+    if (!b)
+        b = priv->userFeatureList.find(f);
+    return b;
 }
 
 void QoreProgram::addFeature(const char* f) {
@@ -1844,76 +1845,76 @@ void QoreProgram::addFeature(const char* f) {
 }
 
 QoreListNode* QoreProgram::getFeatureList() const {
-   return priv->getFeatureList();
+    return priv->getFeatureList();
 }
 
 QoreListNode* QoreProgram::getVarList() {
-   return priv->getVarList();
+    return priv->getVarList();
 }
 
 const char* QoreProgram::parseGetScriptDir() const {
-   return priv->parseGetScriptDir();
+    return priv->parseGetScriptDir();
 }
 
 QoreStringNode* QoreProgram::getScriptDir() const {
-   return priv->getScriptDir();
+    return priv->getScriptDir();
 }
 
 QoreStringNode* QoreProgram::getScriptPath() const {
-   return priv->getScriptPath();
+    return priv->getScriptPath();
 }
 
 QoreStringNode* QoreProgram::getScriptName() const {
-   return priv->getScriptName();
+    return priv->getScriptName();
 }
 
 void QoreProgram::setScriptPath(const char* path) {
-   priv->setScriptPathExtern(path);
+    priv->setScriptPathExtern(path);
 }
 
 const LVList* QoreProgram::getTopLevelLVList() const {
-   return priv->sb.getLVList();
+    return priv->sb.getLVList();
 }
 
 QoreValue QoreProgram::getGlobalVariableVal(const char* var, bool& found) const {
-   const qore_ns_private* vns = 0;
-   Var* v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
-   if (!v) {
-      found = false;
-      return QoreValue();
-   }
-   found = true;
-   return v->eval();
+    const qore_ns_private* vns = nullptr;
+    Var* v = qore_root_ns_private::runtimeFindGlobalVar(*(priv->RootNS), var, vns);
+    if (!v) {
+        found = false;
+        return QoreValue();
+    }
+    found = true;
+    return v->eval();
 }
 
 QoreValue QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
-   return getGlobalVariableVal(var, found);
+    return getGlobalVariableVal(var, found);
 }
 
 // only called when parsing, therefore in the parse thread lock
 void QoreProgram::parseSetIncludePath(const char* path) {
-   priv->include_path = path;
+    priv->include_path = path;
 }
 
 // only called when parsing, therefore in the parse thread lock
 const char* QoreProgram::parseGetIncludePath() const {
-   return priv->include_path.empty() ? 0 : priv->include_path.c_str();
+    return priv->include_path.empty() ? 0 : priv->include_path.c_str();
 }
 
 const AbstractQoreZoneInfo* QoreProgram::currentTZ() const {
-   return priv->currentTZ();
+    return priv->currentTZ();
 }
 
 void QoreProgram::setTZ(const AbstractQoreZoneInfo* n_TZ) {
-   priv->setTZ(n_TZ);
+    priv->setTZ(n_TZ);
 }
 
 bool QoreProgram::parseExceptionRaised() const {
-   return priv->parseExceptionRaised();
+    return priv->parseExceptionRaised();
 }
 
 void QoreProgram::parseSetTimeZone(const char* zone) {
-   return priv->parseSetTimeZone(zone);
+    return priv->parseSetTimeZone(zone);
 }
 
 QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char* str, QoreString& arg, bool& ok) {
@@ -1953,8 +1954,7 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char
                 return QoreValue();
             }
             flt = true;
-        }
-        else if (isalpha(*p)) {
+        } else if (isalpha(*p)) {
             parse_error(*loc, "'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
             ok = false;
             return QoreValue();
@@ -1967,15 +1967,15 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char
 }
 
 void QoreProgram::parseDefine(const char* str, QoreValue val) {
-   priv->parseDefine(&qoreCommandLineLocation, str, val);
+    priv->parseDefine(&qoreCommandLineLocation, str, val);
 }
 
 void QoreProgram::parseDefine(const char* str, const char* val) {
-   priv->parseDefine(&qoreCommandLineLocation, str, new QoreStringNode(val));
+    priv->parseDefine(&qoreCommandLineLocation, str, new QoreStringNode(val));
 }
 
 void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
-   parseCmdLineDefines(xs, ws, wm, defmap);
+    parseCmdLineDefines(xs, ws, wm, defmap);
 }
 
 void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int wm, const std::map<std::string, std::string>& defmap) {
@@ -2009,34 +2009,34 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
 }
 
 QoreProgram* QoreProgram::programRefSelf() const {
-   const_cast<QoreProgram*>(this)->ref();
-   return const_cast<QoreProgram*>(this);
+    const_cast<QoreProgram*>(this)->ref();
+    return const_cast<QoreProgram*>(this);
 }
 
 void QoreProgram::setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
-   priv->setExternalData(owner, pud);
+    priv->setExternalData(owner, pud);
 }
 
 AbstractQoreProgramExternalData* QoreProgram::getExternalData(const char* owner) const {
-   return priv->getExternalData(owner);
+    return priv->getExternalData(owner);
 }
 
 AbstractQoreProgramExternalData* QoreProgram::removeExternalData(const char* owner) {
-   return priv->removeExternalData(owner);
+    return priv->removeExternalData(owner);
 }
 
 QoreHashNode* QoreProgram::getGlobalVars() const {
-   return priv->getGlobalVars();
+    return priv->getGlobalVars();
 }
 
 int QoreProgram::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
-   return priv->setGlobalVarValue(name, val, xsink);
+    return priv->setGlobalVarValue(name, val, xsink);
 }
 
 QoreListNode* QoreProgram::getThreadList() const {
-   ReferenceHolder<QoreListNode> rv(new QoreListNode(bigIntTypeInfo), nullptr);
-   priv->getThreadList(**rv);
-   return rv.release();
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(bigIntTypeInfo), nullptr);
+    priv->getThreadList(**rv);
+    return rv.release();
 }
 
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
@@ -2046,17 +2046,17 @@ void AbstractQoreProgramExternalData::init() {
 }
 
 int get_warning_code(const char* str) {
-   for (unsigned i = 0; i < NUM_WARNINGS; i++)
-      if (!strcasecmp(str, qore_warnings[i]))
-         return 1 << i;
-   return 0;
+    for (unsigned i = 0; i < NUM_WARNINGS; i++)
+        if (!strcasecmp(str, qore_warnings[i]))
+            return 1 << i;
+    return 0;
 }
 
 QoreDebugProgram::QoreDebugProgram(): priv(new qore_debug_program_private(this)) {};
 
 QoreDebugProgram::~QoreDebugProgram() {
-   printd(5, "QoreDebugProgram::~QoreDebugProgram() this: %p\n", this);
-   delete priv;
+    printd(5, "QoreDebugProgram::~QoreDebugProgram() this: %p\n", this);
+    delete priv;
 }
 
 void QoreDebugProgram::onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement* &rts, ExceptionSink* xsink) {
@@ -2085,56 +2085,56 @@ void QoreDebugProgram::onExit(QoreProgram *pgm, const StatementBlock *statement,
 }
 
 void QoreDebugProgram::addProgram(QoreProgram *pgm, ExceptionSink* xsink) {
-   printd(5, "QoreDebugProgram::addProgram(), this: %p, pgm: %p\n", this, pgm);
-   priv->addProgram(pgm, xsink);
+    printd(5, "QoreDebugProgram::addProgram(), this: %p, pgm: %p\n", this, pgm);
+    priv->addProgram(pgm, xsink);
 }
 
 void QoreDebugProgram::removeProgram(QoreProgram *pgm) {
-   printd(5, "QoreDebugProgram::removeProgram(), this: %p, pgm: %p\n", this, pgm);
-   priv->removeProgram(pgm);
+    printd(5, "QoreDebugProgram::removeProgram(), this: %p, pgm: %p\n", this, pgm);
+    priv->removeProgram(pgm);
 }
 
 QoreListNode* QoreDebugProgram::getAllProgramObjects() {
-   return priv->getAllProgramObjects();
+    return priv->getAllProgramObjects();
 }
 
 int QoreDebugProgram::breakProgramThread(QoreProgram *pgm, int tid) const {
-   printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
-   return priv->breakProgramThread(pgm, tid);
+    printd(5, "QoreDebugProgram::breakProgramThread(), this: %p, pgm: %p, tid: %d\n", this, pgm, tid);
+    return priv->breakProgramThread(pgm, tid);
 }
 
 int QoreDebugProgram::breakProgram(QoreProgram *pgm) const {
-   printd(5, "QoreDebugProgram::breakProgram(), this: %p, pgm: %p\n", this, pgm);
-   return priv->breakProgram(pgm);
+    printd(5, "QoreDebugProgram::breakProgram(), this: %p, pgm: %p\n", this, pgm);
+    return priv->breakProgram(pgm);
 }
 
 void QoreDebugProgram::waitForTerminationAndClear(ExceptionSink* xsink) {
-   printd(5, "QoreDebugProgram::waitForTerminationAndClear(), this: %p\n", this);
-   priv->waitForTerminationAndClear(xsink);
+    printd(5, "QoreDebugProgram::waitForTerminationAndClear(), this: %p\n", this);
+    priv->waitForTerminationAndClear(xsink);
 }
 
 int QoreDebugProgram::getInterruptedCount() {
-   return priv->getInterruptedCount();
+    return priv->getInterruptedCount();
 }
 
 void QoreProgram::assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink) {
-   priv->assignBreakpoint(bkpt, xsink);
+    priv->assignBreakpoint(bkpt, xsink);
 }
 
 void QoreProgram::deleteAllBreakpoints() {
-   priv->deleteAllBreakpoints();
+    priv->deleteAllBreakpoints();
 }
 
 void QoreProgram::getBreakpoints(QoreBreakpointList_t &bkptList) {
-   priv->getBreakpoints(bkptList);
+    priv->getBreakpoints(bkptList);
 }
 
 void QoreProgram::getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList) {
-   priv->getStatementBreakpoints(statement, bkptList);
+    priv->getStatementBreakpoints(statement, bkptList);
 }
 
 AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) const {
-   return priv->getStatementFromIndex(fileName, line);
+    return priv->getStatementFromIndex(fileName, line);
 }
 
 AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreListNode* params, ExceptionSink* xsink) const {
@@ -2149,59 +2149,59 @@ AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, 
 }
 
 unsigned long QoreProgram::getStatementId(const AbstractStatement* statement) const {
-   return priv->getStatementId(statement);
+    return priv->getStatementId(statement);
 }
 
 AbstractStatement* QoreProgram::resolveStatementId(unsigned long statementId) const {
-   return priv->resolveStatementId(statementId);
+    return priv->resolveStatementId(statementId);
 }
 
 QoreHashNode* QoreProgram::getSourceFileNames(ExceptionSink* xsink) const {
-   return priv->getSourceFileNames(xsink);
+    return priv->getSourceFileNames(xsink);
 }
 
 QoreHashNode* QoreProgram::getSourceLabels(ExceptionSink* xsink) const {
-   return priv->getSourceLabels(xsink);
+    return priv->getSourceLabels(xsink);
 }
 
 unsigned QoreProgram::getProgramId() const {
-   return priv->getProgramId();
+    return priv->getProgramId();
 }
 
 QoreProgram* QoreProgram::resolveProgramId(unsigned programId) {
-   return qore_program_private::resolveProgramId(programId);
+    return qore_program_private::resolveProgramId(programId);
 }
 
 void QoreProgram::registerQoreObject(QoreObject *o, ExceptionSink* xsink) const {
-   priv->registerQoreObject(o, xsink);
+    priv->registerQoreObject(o, xsink);
 }
 
 void QoreProgram::unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) const {
-   priv->unregisterQoreObject(o, xsink);
+    priv->unregisterQoreObject(o, xsink);
 }
 
 QoreObject* QoreProgram::findQoreObject() const {
-   return priv->findQoreObject();
+    return priv->findQoreObject();
 }
 
 QoreObject* QoreProgram::getQoreObject(QoreProgram* pgm) {
-   return qore_program_private::getQoreObject(pgm);
+    return qore_program_private::getQoreObject(pgm);
 }
 
 QoreListNode* QoreProgram::getAllQoreObjects(ExceptionSink* xsink) {
-   return qore_program_private::getAllQoreObjects(xsink);
+    return qore_program_private::getAllQoreObjects(xsink);
 }
 
 bool QoreProgram::checkAllowDebugging(ExceptionSink* xsink) {
-   return priv->checkAllowDebugging(xsink);
+    return priv->checkAllowDebugging(xsink);
 }
 
 const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const {
-   return priv->runtimeFindCall(name, params, xsink);
+    return priv->runtimeFindCall(name, params, xsink);
 }
 
 QoreListNode* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
-   return priv->runtimeFindCallVariants(name, xsink);
+    return priv->runtimeFindCallVariants(name, xsink);
 }
 
 const QoreClass* QoreProgram::findClass(const char* cls_path, ExceptionSink* xsink) const {
