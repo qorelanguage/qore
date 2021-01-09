@@ -516,9 +516,14 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
 
     // copy external data if present
     if (!p_pgm->priv->extmap.empty()) {
-        AutoLocker al(p_pgm->priv->plock);
-        for (auto& i : p_pgm->priv->extmap) {
-            extmap.insert(extmap_t::value_type(i.first, i.second->copy(pgm)));
+        {
+            AutoLocker al(p_pgm->priv->plock);
+            for (auto& i : p_pgm->priv->extmap) {
+                extmap.insert(extmap_t::value_type(i.first, i.second->copy(pgm)));
+            }
+        }
+        for (auto& i : extmap) {
+            i.second->init();
         }
     }
 }
@@ -2035,6 +2040,9 @@ QoreListNode* QoreProgram::getThreadList() const {
 }
 
 AbstractQoreProgramExternalData::~AbstractQoreProgramExternalData() {
+}
+
+void AbstractQoreProgramExternalData::init() {
 }
 
 int get_warning_code(const char* str) {

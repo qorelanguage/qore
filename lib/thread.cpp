@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1167,10 +1167,12 @@ void advanceOnBlockExit() {
 // new file name, current parse state
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
     ThreadData* td = thread_data.get();
-    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
+    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)",
+    //  (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
 
     // store current position
-    ProgramParseContext* pl = new ProgramParseContext(td->parse_file, td->parse_source, td->parse_offset, td->parseState, td->pcs, td->plStack);
+    ProgramParseContext* pl = new ProgramParseContext(td->parse_file, td->parse_source, td->parse_offset,
+        td->parseState, td->pcs, td->plStack);
     td->plStack = pl;
 
     // set new position
@@ -1888,28 +1890,29 @@ ThreadLocalProgramData* ProgramThreadCountContextHelper::getContextFrame(int& fr
                 frame, ch, tlpd);
             return nullptr;
         }
-        printd(5, "ProgramThreadCountContextHelper::getContextFrame() L: frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d, inst:%d init_tlpd:%d\n",
-            frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm, pgm->getProgramId(), tlpd->inst, ch ? ch->init_tlpd: -1
-        );
+        printd(5, "ProgramThreadCountContextHelper::getContextFrame() L: frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p " \
+            "pgmid:%d, inst:%d init_tlpd:%d\n", frame, ch, tlpd, ch ? ch->save_frameCount : -1, frameCount, pgm,
+            pgm->getProgramId(), tlpd->inst, ch ? ch->init_tlpd: -1);
     }
     if (!pgm->checkAllowDebugging(xsink)) {
         return nullptr;
     }
     /* now we know that desired frame should be in tlpd and we must add frame index to consider frames above */
     frame += tlpd->lvstack.getFrameCount() - frameCount;
-    printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p pgmid:%d inst:%d\n",
-        frame, ch, tlpd, frameCount, tlpd->lvstack.getFrameCount(), pgm, pgm->getProgramId(), tlpd->inst
-    );
+    printd(5, "ProgramThreadCountContextHelper::getContextFrame(): frame:%d ch:%p tlpd:%p (%d/%d) pgm:%p " \
+        "pgmid:%d inst:%d\n", frame, ch, tlpd, frameCount, tlpd->lvstack.getFrameCount(), pgm, pgm->getProgramId(),
+        tlpd->inst);
     return tlpd;
 }
 
-ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink, QoreProgram* pgm) :
-      old_pgm(0), old_tlpd(0), restore(false) {
+ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(ExceptionSink* xsink,
+        QoreProgram* pgm) : old_pgm(0), old_tlpd(0), restore(false) {
     if (!pgm)
         return;
 
     ThreadData* td = thread_data.get();
-    printd(5, "ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+    printd(5, "ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper() current_pgm: %p " \
+        "new_pgm: %p\n", td->current_pgm, pgm);
     if (pgm != td->current_pgm) {
         // try to increment thread count
         if (qore_program_private::lockParsing(*pgm, xsink))
@@ -1921,6 +1924,8 @@ ProgramRuntimeParseCommitContextHelper::ProgramRuntimeParseCommitContextHelper(E
         old_tlpd = td->tlpd;
         td->current_pgm = pgm;
         td->tpd->saveProgram(false, 0);
+    } else {
+        assert(qore_program_private::get(*pgm)->parsingLocked());
     }
 }
 
@@ -1932,14 +1937,16 @@ ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper(
     ThreadData* td = thread_data.get();
 
     QoreProgram* pgm = td->current_pgm;
-    printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+    printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p " \
+        "restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
     td->current_pgm = old_pgm;
     td->tlpd        = old_tlpd;
 
     qore_program_private::unlockParsing(*pgm);
 }
 
-ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
+ProgramRuntimeParseContextHelper::ProgramRuntimeParseContextHelper(ExceptionSink* xsink, QoreProgram* pgm)
+        : restore(false) {
     if (!pgm)
         return;
 
