@@ -141,7 +141,6 @@ class Main {
 
     private exportObjects(string input, string objectType) {
         cout("Exporting objects: %s, for: %s", objectType, input);
-        string rx = makeRxString(input);
         AbstractReverseObject o = SchemaReverse::get_object(objectType, m_ds, input);
         printf("%s\n", o.toString());
     }
