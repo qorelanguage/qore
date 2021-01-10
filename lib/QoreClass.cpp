@@ -535,7 +535,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         hash(old.hash),
         ptr(old.ptr),
         mud(old.mud ? old.mud->copy() : nullptr),
-        spgm(old.spgm ? old.spgm->programRefSelf() : nullptr),
+        spgm(old.spgm && old.deref_source_program ? old.spgm->programRefSelf() : old.spgm),
+        deref_source_program(old.deref_source_program),
         from_module(old.from_module) {
     system_constructor = old.system_constructor ? old.system_constructor->copy(cls) : nullptr;
 
@@ -596,50 +597,51 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
 // only called while the parse lock for the QoreProgram owning "old" is held
 qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm,
         const char* new_name, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub)
-    // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
-    : name(new_name ? new_name : old.name.c_str()),
-     ns(ns),
-     ahm(old.ahm),
-     constlist(old.constlist, 0, this),    // committed constants
-     serializer(old.serializer),
-     deserializer(old.deserializer),
-     classID(old.classID),
-     methodID(old.methodID),
-     sys(old.sys),
-     initialized(true),
-     static_init(true),
-     parse_init_called(false),
-     parse_init_partial_called(false),
-     has_public_memdecl(old.has_public_memdecl),
-     pending_has_public_memdecl(false),
-     owns_typeinfo(false),
-     resolve_copy_done(false),
-     has_new_user_changes(false),
-     has_sig_changes(false),
-     owns_ornothingtypeinfo(false),
-     pub(set_pub == CSP_UNCHANGED ? old.pub : (set_pub == CSP_SETPUB)),
-     final(old.final),
-     inject(inject),
-     gate_access(old.gate_access),
-     committed(true),
-     parse_resolve_hierarchy(true),
-     parse_resolve_class_members(true),
-     parse_resolve_abstract(true),
-     has_transient_member(old.has_transient_member),
-     domain(old.domain),
-     num_methods(old.num_methods),
-     num_user_methods(old.num_user_methods),
-     num_static_methods(old.num_static_methods),
-     num_static_user_methods(old.num_static_user_methods),
-     typeInfo(nullptr),
-     orNothingTypeInfo(nullptr),
-     injectedClass(injectedClass),
-     selfid(old.selfid),
-     hash(old.hash),
-     ptr(old.ptr),
-     mud(old.mud ? old.mud->copy() : nullptr),
-     spgm(spgm ? spgm->programRefSelf() : nullptr),
-     from_module(old.from_module) {
+        // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
+        : name(new_name ? new_name : old.name.c_str()),
+        ns(ns),
+        ahm(old.ahm),
+        constlist(old.constlist, 0, this),    // committed constants
+        serializer(old.serializer),
+        deserializer(old.deserializer),
+        classID(old.classID),
+        methodID(old.methodID),
+        sys(old.sys),
+        initialized(true),
+        static_init(true),
+        parse_init_called(false),
+        parse_init_partial_called(false),
+        has_public_memdecl(old.has_public_memdecl),
+        pending_has_public_memdecl(false),
+        owns_typeinfo(false),
+        resolve_copy_done(false),
+        has_new_user_changes(false),
+        has_sig_changes(false),
+        owns_ornothingtypeinfo(false),
+        pub(set_pub == CSP_UNCHANGED ? old.pub : (set_pub == CSP_SETPUB)),
+        final(old.final),
+        inject(inject),
+        gate_access(old.gate_access),
+        committed(true),
+        parse_resolve_hierarchy(true),
+        parse_resolve_class_members(true),
+        parse_resolve_abstract(true),
+        has_transient_member(old.has_transient_member),
+        domain(old.domain),
+        num_methods(old.num_methods),
+        num_user_methods(old.num_user_methods),
+        num_static_methods(old.num_static_methods),
+        num_static_user_methods(old.num_static_user_methods),
+        typeInfo(nullptr),
+        orNothingTypeInfo(nullptr),
+        injectedClass(injectedClass),
+        selfid(old.selfid),
+        hash(old.hash),
+        ptr(old.ptr),
+        mud(old.mud ? old.mud->copy() : nullptr),
+        spgm(old.spgm && old.deref_source_program ? old.spgm->programRefSelf() : old.spgm),
+        deref_source_program(old.deref_source_program),
+        from_module(old.from_module) {
     QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
     if (!old.initialized)
         const_cast<qore_class_private&>(old).initialize();
@@ -5262,6 +5264,12 @@ QoreClassHolder::~QoreClassHolder() {
     if (c) {
         qore_class_private::get(*c)->deref(true, true);
     }
+}
+
+QoreBuiltinClass::QoreBuiltinClass(QoreProgram* pgm, const char* name, int64 n_domain) : QoreClass(name, n_domain) {
+    setSystem();
+    priv->spgm = pgm;
+    priv->deref_source_program = false;
 }
 
 QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass(name, n_domain) {

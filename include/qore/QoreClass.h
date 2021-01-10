@@ -248,6 +248,7 @@ class QoreClass {
     friend class QoreMethodIterator;
     friend class QoreStaticMethodIterator;
     friend class ConstructorMethodFunction;
+    friend class QoreBuiltinClass;
 
 public:
     //! creates the QoreClass object and assigns the name and the functional domain
@@ -1079,6 +1080,14 @@ private:
 //! creates a builtin class
 class QoreBuiltinClass : public QoreClass {
 public:
+    //! Creates the object and marks it as a builtin class
+    /** Also marks the source program for the class, however the source program's reference count is not increased
+        in this call, and in the destructor no dereference is made either
+
+        @since %Qore 0.10
+    */
+    DLLEXPORT QoreBuiltinClass(QoreProgram* pgm, const char* name, int64 n_domain = QDOM_DEFAULT);
+
     //! creates the object and marks it as a builtin class
     DLLEXPORT QoreBuiltinClass(const char* name, int64 n_domain = QDOM_DEFAULT);
 
