@@ -443,7 +443,8 @@ public:
     QoreProgram* pgm;
 
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
-        : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr), pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
+            : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr),
+            pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
             sb(this),
             only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
             requires_exception(false),
@@ -624,7 +625,7 @@ private:
     unsigned programId;
 
 public:
-    DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm=nullptr);
+    DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr);
 
     DLLLOCAL ~qore_program_private();
 

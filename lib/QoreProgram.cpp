@@ -148,16 +148,26 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_INHERIT_SYSTEM_HASHDECLS, "PO_NO_INHERIT_SYSTEM_HASHDECLS");
     // 49
     doMap(PO_ALLOW_WEAK_REFERENCES, "PO_ALLOW_WEAK_REFERENCES");
-    // 50
-    doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER", "DEBUGGER");
     // 51
-    doMap(PO_ALLOW_STATEMENT_NO_EFFECT, "PO_ALLOW_STATEMENT_NO_EFFECT");
+    doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER", "DEBUGGER");
     // 52
-    doMap(PO_NO_REFLECTION, "PO_NO_REFLECTION", "REFLECTION");
+    doMap(PO_ALLOW_STATEMENT_NO_EFFECT, "PO_ALLOW_STATEMENT_NO_EFFECT");
     // 53
-    doMap(PO_NO_TRANSIENT, "PO_NO_TRANSIENT");
+    doMap(PO_NO_REFLECTION, "PO_NO_REFLECTION", "REFLECTION");
     // 54
+    doMap(PO_NO_TRANSIENT, "PO_NO_TRANSIENT");
+    // 55
     doMap(PO_BROKEN_SPRINTF, "PO_BROKEN_SPRINTF");
+    // 56
+    doMap(PO_BROKEN_CAST, "PO_BROKEN_CAST");
+    // 57
+    doMap(PO_ALLOW_RETURNS, "PO_ALLOW_RETURNS");
+    // 58
+    doMap(PO_STRICT_TYPES, "PO_STRICT_TYPES");
+    // 59
+    doMap(PO_BROKEN_RANGE, "PO_BROKEN_RANGE");
+    // 60
+    doMap(PO_NO_INHERIT_PROGRAM_DATA, "PO_NO_INHERIT_PROGRAM_DATA");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
@@ -427,6 +437,7 @@ void qore_program_private_base::newProgram() {
 
     // setup namespaces
     RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options, pgm);
+
     QoreNS = RootNS->rootGetQoreNamespace();
     assert(QoreNS);
 
@@ -484,8 +495,7 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
         pwo.parse_options |= p_pgm->priv->pwo.parse_options;
         // make sure all options that give more freedom and are off in the parent program are turned off in the child
         pwo.parse_options &= (p_pgm->priv->pwo.parse_options | ~PO_POSITIVE_OPTIONS);
-    }
-    else {
+    } else {
         pwo.parse_options = n_parse_options;
         po_locked = !(n_parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
     }
@@ -515,7 +525,7 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
     }
 
     // copy external data if present
-    if (!p_pgm->priv->extmap.empty()) {
+    if (!(n_parse_options & PO_NO_INHERIT_PROGRAM_DATA) && !p_pgm->priv->extmap.empty()) {
         {
             AutoLocker al(p_pgm->priv->plock);
             for (auto& i : p_pgm->priv->extmap) {
@@ -875,14 +885,17 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
     qore_root_ns_private::get(*RootNS)->rebuildAllIndexes();
 }
 
-void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject, q_setpub_t set_pub) {
+void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path,
+        const char* new_name, bool inject, q_setpub_t set_pub) {
     if (&from_pgm == this) {
-        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target " \
+            "Program objects", path);
         return;
     }
 
     if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
-        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a " \
+            "Program object without PO_ALLOW_INJECTION set", path);
         return;
     }
 
@@ -899,7 +912,8 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
         // must mark injected class so it can claim type compatibility with the class it's substituting
         if (inject && c) {
             const qore_ns_private* tcns = nullptr;
-            const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
+            const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS,
+                new_name ? new_name : path, tcns);
             if (oc) {
                 // get injected target class pointer for new injected class
                 injectedClass = qore_class_private::get(*oc);
@@ -907,20 +921,29 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
                 qore_class_private* wc = const_cast<qore_class_private*>(qore_class_private::get(*c));
                 if (wc->injectedClass != injectedClass) {
                     if (wc->injectedClass) {
-                        xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" has already been injected to impersonate class '%s' and therefore cannot be injected to impersonate class '%s'; only a single class can be impersonated by any one source class", c->getName(), wc->injectedClass->name.c_str(), injectedClass->name.c_str());
+                        xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" has already been injected to " \
+                            "impersonate class '%s' and therefore cannot be injected to impersonate class '%s'; " \
+                            "only a single class can be impersonated by any one source class", c->getName(),
+                            wc->injectedClass->name.c_str(), injectedClass->name.c_str());
                         return;
                     }
                     // mark source class as compatible with the injected target class as well
                     wc->injectedClass = injectedClass;
                 }
             }
-            //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
+            //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path,
+            //  new_name ? new_name : "n/a", oc);
         }
     }
 
     if (!c) {
         xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in the source Program", path);
         return;
+    }
+
+    QoreProgram* src_pgm = c->getProgram();
+    if (!src_pgm) {
+        src_pgm = from_pgm.pgm;
     }
 
     // get exclusive access to program object for parsing
@@ -933,18 +956,25 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
     if (new_name && strstr(new_name, "::")) {
         NamedScope nscope(new_name);
 
-        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c), !c->isSystem());
-        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, set_pub, nscope.getIdentifier(), inject, injectedClass);
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c),
+            !c->isSystem());
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, src_pgm, set_pub, nscope.getIdentifier(),
+            inject, injectedClass);
     } else {
         tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns, !c->isSystem());
-        //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, set_pub, new_name, inject, injectedClass);
+        printd(5, "qore_program_private::importClass() this: %p pgm: %p path: '%s' tns: %p '%s' RootNS: %p '%s' " \
+            "(fp: %p p: %p)\n", this, pgm, path, tns, tns->getName(), RootNS, RootNS->getName(), from_pgm.pgm,
+            src_pgm);
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, src_pgm, set_pub, new_name, inject,
+            injectedClass);
     }
 }
 
-void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, q_setpub_t set_pub) {
+void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path,
+        const char* new_name, q_setpub_t set_pub) {
     if (&from_pgm == this) {
-        xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
+        xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and " \
+            "target Program objects", path);
         return;
     }
 
@@ -974,11 +1004,15 @@ void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_pri
     if (new_name && strstr(new_name, "::")) {
         NamedScope nscope(new_name);
 
-        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic(), !hd->isSystem());
-        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, set_pub, nscope.getIdentifier());
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope,
+            typed_hash_decl_private::get(*hd)->isPublic(), !hd->isSystem());
+        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, set_pub,
+            nscope.getIdentifier());
     } else {
-        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns, !hd->isSystem());
-        //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns,
+            !hd->isSystem());
+        //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n",
+        //  this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, set_pub, new_name);
     }
 }

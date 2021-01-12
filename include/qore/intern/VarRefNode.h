@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -58,7 +58,7 @@ protected:
             assert(false);
             ref.cvv->deref(xsink);
 #ifdef DEBUG
-            ref.cvv = 0;
+            ref.cvv = nullptr;
 #endif
         }
         return true;
@@ -76,7 +76,7 @@ protected:
     DLLLOCAL virtual const QoreTypeInfo* parseGetTypeInfo() const {
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
             return ref.id->parseGetTypeInfo();
-        if (type == VT_GLOBAL)
+        if (type == VT_GLOBAL || VT_THREAD_LOCAL)
             return ref.var->parseGetTypeInfo();
         return 0;
     }
@@ -85,7 +85,7 @@ protected:
         const QoreTypeInfo* rv;
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
             rv = ref.id->parseGetTypeInfoForInitialAssignment();
-        } else if (type == VT_GLOBAL) {
+        } else if (type == VT_GLOBAL || VT_THREAD_LOCAL) {
             rv = ref.var->parseGetTypeInfoForInitialAssignment();
         } else {
             rv = nullptr;
@@ -106,12 +106,16 @@ protected:
         type = VT_CLOSURE;
     }
 
-    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, ClosureVarValue* cvv) : ParseNode(loc, NT_VARREF, true, false), name(n), type(VT_IMMEDIATE), new_decl(false), explicit_scope(false) {
+    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, ClosureVarValue* cvv)
+            : ParseNode(loc, NT_VARREF, true, false), name(n), type(VT_IMMEDIATE), new_decl(false),
+            explicit_scope(false) {
         ref.cvv = cvv;
         cvv->ref();
     }
 
-    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, Var* n_var, bool n_has_effect = false, bool n_new_decl = true) : ParseNode(loc, NT_VARREF, true, n_has_effect), name(n), type(VT_GLOBAL), new_decl(n_new_decl), explicit_scope(false) {
+    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, Var* n_var, bool n_has_effect = false,
+            bool n_new_decl = true, qore_var_t type = VT_GLOBAL) : ParseNode(loc, NT_VARREF, true, n_has_effect), name(n), type(type),
+            new_decl(n_new_decl), explicit_scope(false) {
         ref.var = n_var;
     }
 
@@ -123,13 +127,16 @@ public:
     } ref;
 
     // takes over memory for "n"
-    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, qore_var_t t, bool n_has_effect = false) : ParseNode(loc, NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL), explicit_scope(false) {
+    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, qore_var_t t, bool n_has_effect = false)
+            : ParseNode(loc, NT_VARREF, true, n_has_effect), name(n), type(t), new_decl(t == VT_LOCAL),
+            explicit_scope(false) {
         if (type == VT_LOCAL)
             ref.id = nullptr;
         assert(type != VT_GLOBAL);
     }
 
-    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, LocalVar* n_id, bool in_closure) : ParseNode(loc, NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
+    DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, LocalVar* n_id, bool in_closure)
+            : ParseNode(loc, NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
         ref.id = n_id;
         if (in_closure) {
             setClosureIntern();
@@ -149,7 +156,7 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
             return ref.id->getTypeInfo();
-        if (type == VT_GLOBAL)
+        if (type == VT_GLOBAL || VT_THREAD_LOCAL)
             return ref.var->getTypeInfo();
         return 0;
     }
@@ -238,14 +245,17 @@ public:
 class GlobalVarRefNode : public VarRefNode {
 protected:
 public:
-   DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, Var* v) : VarRefNode(loc, n, v, false, false) {
-      explicit_scope = true;
-   }
+    DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, Var* v, qore_var_t type = VT_GLOBAL)
+        : VarRefNode(loc, n, v, false, false, type) {
+        explicit_scope = true;
+    }
 
-   DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo = 0);
-   DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, QoreParseTypeInfo* parseTypeInfo);
+    DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo = nullptr,
+        qore_var_t type = VT_GLOBAL);
+    DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, QoreParseTypeInfo* parseTypeInfo,
+        qore_var_t type = VT_GLOBAL);
 
-   DLLLOCAL void reg();
+    DLLLOCAL void reg();
 };
 
 class RSetHelper;

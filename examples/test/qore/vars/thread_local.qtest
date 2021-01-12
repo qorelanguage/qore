@@ -1,0 +1,71 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ThreadLocalVarTest
+
+public class ThreadLocalVarTest inherits QUnit::Test {
+    constructor() : Test("ThreadLocalVar test", "1.0") {
+        addTestCase("main test", \mainTest());
+
+        thread_local int i = 1;
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    mainTest() {
+        assertEq(1, i);
+        reference<int> r = \i;
+        assertEq(1, r);
+
+        Queue q();
+        background sub () {
+            q.push(i);
+            q.push(r);
+        }();
+
+        assertEq(NOTHING, q.get());
+        assertEq(NOTHING, q.get());
+
+        code test = auto sub () {
+            return i;
+        };
+        assertEq(1, test());
+        background sub () {
+            q.push(test());
+        }();
+        assertEq(NOTHING, q.get());
+
+        set_thread_init(sub () { i = 2; });
+
+        assertEq(1, i);
+        assertEq(1, r);
+
+        background sub () {
+            q.push(i);
+            q.push(r);
+        }();
+        assertEq(2, q.get());
+        assertEq(2, q.get())
+;
+        int x = 1;
+        thread_local reference<int> tlr = \x;
+        assertEq(1, x);
+        assertEq(1, tlr);
+
+        background sub () {
+            q.push(tlr);
+            q.push(x);
+        }();
+
+        assertEq(NOTHING, q.get());
+        assertEq(1, q.get());
+    }
+}

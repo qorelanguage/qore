@@ -42,6 +42,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/StatementBlock.h"
 #include "qore/intern/Sequence.h"
+#include "qore/intern/Variable.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -252,6 +253,9 @@ typedef std::set<const lvalue_ref*> ref_set_t;
 typedef std::map<int, q_user_tld> u_tld_map_t;
 static Sequence u_tld_seq;
 
+// for thread-local vars
+typedef std::map<void*, QoreLValue<qore_gvar_ref_u>> tlvmap_t;
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -375,9 +379,13 @@ public:
     // user thread-local data
     u_tld_map_t u_tld_map;
 
+    // thread-local values
+    tlvmap_t tlvmap;
+
     bool
         foreign : 1, // true if the thread is a foreign thread
-        try_reexport : 1;
+        try_reexport : 1,
+        finalizing : 1;
 
     DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
         tid(ptid),
@@ -385,7 +393,8 @@ public:
         current_pgm(p),
         tpd(new ThreadProgramData(this)),
         foreign(n_foreign),
-        try_reexport(false) {
+        try_reexport(false),
+        finalizing(false) {
 
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
@@ -440,9 +449,14 @@ public:
     }
 
     DLLLOCAL void del(ExceptionSink* xsink) {
+        finalizing = true;
+        for (auto& i : tlvmap) {
+            i.second.discard(xsink);
+        }
+
         tpd->del(xsink);
         tpd->deref();
-        tpd = 0;
+        tpd = nullptr;
     }
 
     DLLLOCAL void pushName(const char* name) {
@@ -707,8 +721,7 @@ public:
             qore_program_private::decThreadCount(*pgm, tid);
             //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
             pgm->depDeref();
-        }
-        else if (registered)
+        } else if (registered)
             qore_program_private::cancelPreregistration(*pgm);
 
         delete this;
@@ -832,6 +845,21 @@ int check_stack(ExceptionSink* xsink) {
 }
 #endif
 
+void get_thread_local_lvalue(void* ptr, QoreLValue<qore_gvar_ref_u>*& lvar, bool& is_new, bool& finalized) {
+    ThreadData* td = thread_data.get();
+    if (td->finalizing) {
+        finalized = true;
+    }
+    tlvmap_t::iterator i = td->tlvmap.lower_bound(ptr);
+    if (i == td->tlvmap.end() || i->first != ptr) {
+        i = td->tlvmap.insert(i, tlvmap_t::value_type(ptr, QoreLValue<qore_gvar_ref_u>()));
+        is_new = true;
+    } else {
+        is_new = false;
+    }
+    lvar = &i->second;
+}
+
 QoreProgram* get_set_program_call_context(QoreProgram* new_pgm) {
     ThreadData* td = thread_data.get();
     QoreProgram* pgm = td->call_program_context;
@@ -859,8 +887,7 @@ QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, b
     if (rv & 1) {
         old_reexport = true;
         rv ^= 1;
-    }
-    else
+    } else
         old_reexport = false;
 
     td->qmi = (uintptr_t)m;
@@ -917,8 +944,9 @@ void thread_uninstantiate_self() {
 }
 
 LocalVarValue* thread_find_lvar(const char* id) {
-   ThreadData* td = thread_data.get();
-   return td->tlpd->lvstack.find(id);
+    ThreadData* td = thread_data.get();
+    //printd(5, "thread_find_lvar() pgm: %p tlpd: %p id: %s\n", td->current_pgm, td->tlpd, id);
+    return td->tlpd->lvstack.find(id);
 }
 
 ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
@@ -964,67 +992,67 @@ void parse_set_try_reexport(bool tr) {
 }
 
 bool parse_get_try_reexport() {
-   return thread_data.get()->try_reexport;
+    return thread_data.get()->try_reexport;
 }
 
 void thread_set_closure_parse_env(ClosureParseEnvironment* cenv) {
-   thread_data.get()->closure_parse_env = cenv;
+    thread_data.get()->closure_parse_env = cenv;
 }
 
 ClosureVarValue* thread_get_runtime_closure_var(const LocalVar* id) {
-   return thread_data.get()->closure_rt_env->find(id);
+    return thread_data.get()->closure_rt_env->find(id);
 }
 
 ClosureParseEnvironment* thread_get_closure_parse_env() {
-   return thread_data.get()->closure_parse_env;
+    return thread_data.get()->closure_parse_env;
 }
 
 void thread_push_frame_boundary() {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.pushFrameBoundary();
-   td->tlpd->cvstack.pushFrameBoundary();
+    ThreadData* td = thread_data.get();
+    td->tlpd->lvstack.pushFrameBoundary();
+    td->tlpd->cvstack.pushFrameBoundary();
 }
 
 void thread_pop_frame_boundary() {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.popFrameBoundary();
-   td->tlpd->cvstack.popFrameBoundary();
+    ThreadData* td = thread_data.get();
+    td->tlpd->lvstack.popFrameBoundary();
+    td->tlpd->cvstack.popFrameBoundary();
 }
 
 QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
-   ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
-   if (tlpd) {
-      tlpd->lvstack.getLocalVars(**rv, frame, xsink);
-      if (*xsink)
-         return nullptr;
-      tlpd->cvstack.getLocalVars(**rv, frame, xsink);
-      if (*xsink)
-         return nullptr;
-   }
-   return rv.release();
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
+    if (tlpd) {
+        tlpd->lvstack.getLocalVars(**rv, frame, xsink);
+        if (*xsink)
+            return nullptr;
+        tlpd->cvstack.getLocalVars(**rv, frame, xsink);
+        if (*xsink)
+            return nullptr;
+    }
+    return rv.release();
 }
 
 // returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
 int thread_set_local_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
-   return tlpd ? tlpd->lvstack.setVarValue(frame, name, val, xsink) : 1;
+    ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
+    return tlpd ? tlpd->lvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
 // returns 0 = OK, 1 = no such variable or inaccessible frame, -1 exception setting variable
 int thread_set_closure_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
-   return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
+    ThreadLocalProgramData* tlpd = ProgramThreadCountContextHelper::getContextFrame(frame, xsink);
+    return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
 void parse_push_name(const char* name) {
-   ThreadData* td = thread_data.get();
-   td->pushName(name);
+    ThreadData* td = thread_data.get();
+    td->pushName(name);
 }
 
 std::string parse_pop_name() {
-   ThreadData* td = thread_data.get();
-   return td->popName();
+    ThreadData* td = thread_data.get();
+    return td->popName();
 }
 
 void set_thread_resource(AbstractThreadResource* atr) {
@@ -1389,32 +1417,32 @@ const AbstractQoreZoneInfo* currentTZ() {
 }
 
 void set_thread_tz(const AbstractQoreZoneInfo* tz) {
-   ThreadData* td = thread_data.get();
-   if (!td->tlpd) {
-      printd(0, "set_thread_tz(%p '%s') ignored - no current thread-local program data\n", tz, tz ? tz->getRegionName() : "(null)");
-      return;
-   }
-   td->tlpd->setTZ(tz);
+    ThreadData* td = thread_data.get();
+    if (!td->tlpd) {
+        printd(0, "set_thread_tz(%p '%s') ignored - no current thread-local program data\n", tz, tz ? tz->getRegionName() : "(null)");
+        return;
+    }
+    td->tlpd->setTZ(tz);
 }
 
 const AbstractQoreZoneInfo* get_thread_tz(bool& set) {
-   ThreadData* td = thread_data.get();
-   if (!td->tlpd) {
-      printd(0, "get_thread_tz() ignored - no current thread-local program data\n");
-      set = false;
-      return 0;
-   }
-   set = td->tlpd->tz_set;
-   return td->tlpd->tz;
+    ThreadData* td = thread_data.get();
+    if (!td->tlpd) {
+        printd(0, "get_thread_tz() ignored - no current thread-local program data\n");
+        set = false;
+        return 0;
+    }
+    set = td->tlpd->tz_set;
+    return td->tlpd->tz;
 }
 
 void clear_thread_tz() {
-   ThreadData* td = thread_data.get();
-   if (!td->tlpd) {
-      printd(0, "clear_thread_tz() ignored - no current thread-local program data\n");
-      return;
-   }
-   td->tlpd->clearTZ();
+    ThreadData* td = thread_data.get();
+    if (!td->tlpd) {
+        printd(0, "clear_thread_tz() ignored - no current thread-local program data\n");
+        return;
+    }
+    td->tlpd->clearTZ();
 }
 
 ThreadProgramData* get_thread_program_data() {
@@ -1461,47 +1489,47 @@ int get_pop_argv_ref() {
 
 // clears the argv reference stack
 void clear_argv_ref() {
-   thread_data.get()->argv_refs.clear();
+    thread_data.get()->argv_refs.clear();
 }
 
 int get_implicit_element() {
-   return thread_data.get()->getElement();
+    return thread_data.get()->getElement();
 }
 
 int save_implicit_element(int n_element) {
-   return thread_data.get()->saveElement(n_element);
+    return thread_data.get()->saveElement(n_element);
 }
 
 void end_signal_thread(ExceptionSink* xsink) {
-   thread_data.get()->tpd->del(xsink);
+    thread_data.get()->tpd->del(xsink);
 }
 
 void set_module_context(QoreModuleContext* qmc) {
-   thread_data.get()->qmc = qmc;
+    thread_data.get()->qmc = qmc;
 }
 
 QoreModuleContext* get_module_context() {
-   return thread_data.get()->qmc;
+    return thread_data.get()->qmc;
 }
 
 QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd) {
-   ThreadData* td = thread_data.get();
-   QoreModuleDefContext* rv = td->qmd;
-   td->qmd = qmd;
-   return rv;
+    ThreadData* td = thread_data.get();
+    QoreModuleDefContext* rv = td->qmd;
+    td->qmd = qmd;
+    return rv;
 }
 
 QoreModuleDefContext* get_module_def_context() {
-   return thread_data.get()->qmd;
+    return thread_data.get()->qmd;
 }
 
 void parse_set_module_def_context_name(const char* name) {
-   ThreadData* td = thread_data.get();
-   if (td->qmd) {
-      QoreUserModuleDefContextHelper* uqmd = static_cast<QoreUserModuleDefContextHelper*>(td->qmd);
-      // set name and setup for parsing any header closures / call references
-      uqmd->setNameInit(name);
-   }
+    ThreadData* td = thread_data.get();
+    if (td->qmd) {
+        QoreUserModuleDefContextHelper* uqmd = static_cast<QoreUserModuleDefContextHelper*>(td->qmd);
+        // set name and setup for parsing any header closures / call references
+        uqmd->setNameInit(name);
+    }
 }
 
 const char* set_user_module_context_name(const char* n) {
@@ -1528,15 +1556,15 @@ const char* get_module_context_name() {
 }
 
 void ModuleContextNamespaceList::clear() {
-   for (mcnl_t::iterator i = begin(), e = end(); i != e; ++i)
-      delete (*i).nns;
-   mcnl_t::clear();
+    for (mcnl_t::iterator i = begin(), e = end(); i != e; ++i)
+        delete (*i).nns;
+    mcnl_t::clear();
 }
 
 void ModuleContextFunctionList::clear() {
-   for (mcfl_t::iterator i = begin(), e = end(); i != e; ++i)
-      (*i).v->deref();
-   mcfl_t::clear();
+    for (mcfl_t::iterator i = begin(), e = end(); i != e; ++i)
+        (*i).v->deref();
+    mcfl_t::clear();
 }
 
 LVarStackBreakHelper::LVarStackBreakHelper() {
@@ -1652,7 +1680,8 @@ OptionalObjectOnlySubstitutionHelper::~OptionalObjectOnlySubstitutionHelper() {
     }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c,
+        ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
     ThreadData* td  = thread_data.get();
     old_code = td->current_code;
     td->current_code = code;
@@ -1670,7 +1699,14 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
     }
 
     // issue #3024: ensure that the program call context is saved & updated
-    QoreProgram* call_program_context = obj ? obj->getProgram() : nullptr;
+    QoreProgram* call_program_context;
+    if (c && c->spgm) {
+        call_program_context = c->spgm;
+    } else if (obj) {
+        call_program_context = obj->getProgram();
+    } else {
+        call_program_context = nullptr;
+    }
     if (!call_program_context && c) {
         call_program_context = c->spgm;
     }
@@ -1698,18 +1734,18 @@ CodeContextHelperBase::~CodeContextHelperBase() {
 }
 
 ArgvContextHelper::ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink) : xsink(n_xsink) {
-   ThreadData* td  = thread_data.get();
-   old_argv = td->current_implicit_arg;
-   td->current_implicit_arg = argv;
-   //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv: %p\n", argv);
+    ThreadData* td  = thread_data.get();
+    old_argv = td->current_implicit_arg;
+    td->current_implicit_arg = argv;
+    //printd(5, "ArgvContextHelper::ArgvContextHelper() setting argv: %p\n", argv);
 }
 
 ArgvContextHelper::~ArgvContextHelper() {
-   ThreadData* td  = thread_data.get();
-   if (td->current_implicit_arg)
-      td->current_implicit_arg->deref(xsink);
-   td->current_implicit_arg = old_argv;
-   //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv: %p\n", old_argv);
+    ThreadData* td  = thread_data.get();
+    if (td->current_implicit_arg)
+        td->current_implicit_arg->deref(xsink);
+    td->current_implicit_arg = old_argv;
+    //printd(5, "ArgvContextHelper::~ArgvContextHelper() setting argv: %p\n", old_argv);
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink) : xsink(n_xsink) {
@@ -1825,7 +1861,10 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
     ThreadData* td = thread_data.get();
 
     QoreProgram* pgm = td->current_pgm;
-    printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d, restoring old pgm:%p old_pgmid:%d old tlpd:%p old_ctx:%p savefc:%d oldfc:%d init_tlpd:%d\n", this, td->current_pgm, td->current_pgm?td->current_pgm->getProgramId():-1, old_pgm, old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, save_frameCount, old_frameCount, init_tlpd);
+    printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() this: %p current_pgm: %p " \
+        "pgmid: %d, restoring old pgm: %p old_pgmid: %d old tlpd: %p old_ctx: %p savefc: %d oldfc: %d " \
+        "init_tlpd: %d\n", this, td->current_pgm, td->current_pgm?td->current_pgm->getProgramId():-1, old_pgm,
+        old_pgm?old_pgm->getProgramId():-1, old_tlpd, old_ctx, save_frameCount, old_frameCount, init_tlpd);
     if (td->tlpd->dbgIsAttached()) {
         // find if tlpd is in lower context and if not then notify dbgDetach()
         if (isFirstThreadLocalProgramData(td->tlpd)) {
@@ -1989,16 +2028,18 @@ CurrentProgramRuntimeExternalParseContextHelper::CurrentProgramRuntimeExternalPa
     ThreadData* td = thread_data.get();
     // attach to and lock current program for parsing - cannot fail with a running program
     // but current_pgm can be null when loading binary modules
-    if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0))
+    if (!td->current_pgm || qore_program_private::lockParsing(*td->current_pgm, 0)) {
         valid = false;
+    }
 }
 
 CurrentProgramRuntimeExternalParseContextHelper::~CurrentProgramRuntimeExternalParseContextHelper() {
     if (valid) {
         ThreadData* td = thread_data.get();
         // current_pgm can be null when loading binary modules
-        if (td->current_pgm)
+        if (td->current_pgm) {
             qore_program_private::unlockParsing(*td->current_pgm);
+        }
     }
 }
 
@@ -2354,7 +2395,7 @@ namespace {
             ExceptionSink xsink;
 
             {
-                ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+                ThreadLocalProgramData* tlpd = get_thread_local_program_data();
                 if (tlpd) {
                     tlpd->dbgAttach(&xsink);
                 }

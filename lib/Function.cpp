@@ -1722,7 +1722,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
     return 0;
 }
 
-QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
+QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const {
     QoreValue val;
     if (statements) {
         // self might be 0 if instantiated by a constructor call
@@ -1776,20 +1776,20 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreO
 }
 
 // primary function for executing user code
-QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, QoreObject *self, ExceptionSink* xsink, const qore_class_private* qc) const {
-   QORE_TRACE("UserVariantBase::eval()");
-   //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
+QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc) const {
+    QORE_TRACE("UserVariantBase::eval()");
+    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
 
-   assert(!self || (ceh ? ceh->getClass() : qc));
+    assert(!self || (ceh ? ceh->getClass() : qc));
 
-   // UserVariantExecHelper sets the Program thread context
-   UserVariantExecHelper uveh(this, ceh, xsink);
-   if (!uveh)
-      return QoreValue();
+    // UserVariantExecHelper sets the Program thread context
+    UserVariantExecHelper uveh(this, ceh, xsink);
+    if (!uveh)
+        return QoreValue();
 
-   CodeContextHelper cch(xsink, CT_USER, name, self, qc ? qc : (ceh ? ceh->getClass() : nullptr));
+    CodeContextHelper cch(xsink, CT_USER, name, self, qc ? qc : (ceh ? ceh->getClass() : nullptr));
 
-   return evalIntern(uveh.getArgv(), self, xsink);
+    return evalIntern(uveh.getArgv(), self, xsink);
 }
 
 void UserVariantBase::parseCommit() {

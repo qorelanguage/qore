@@ -650,7 +650,9 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
     cls = old.cls->copyImport();
     cls->priv = this;
 
-    //printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys);
+    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p " \
+        "old: %p sys: %d pgm: %p -> %p\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys, old.spgm,
+        spgm);
 
     // issue #3368: create new type info objects as the class ptr is derived from the typeInfo object in some cases
     typeInfo = new QoreClassTypeInfo(cls, name.c_str());
@@ -4649,37 +4651,37 @@ int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, Cod
 }
 
 UserConstructorVariant::~UserConstructorVariant() {
-   delete bcal;
+    delete bcal;
 }
 
 void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
-   UserVariantExecHelper uveh(this, &ceh, xsink);
-   if (!uveh)
-      return;
+    UserVariantExecHelper uveh(this, &ceh, xsink);
+    if (!uveh)
+        return;
 
-   CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass), false);
+    CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass), false);
 
-   // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
-   assert(signature.selfid);
-   signature.selfid->instantiateSelf(self);
+    // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
+    assert(signature.selfid);
+    signature.selfid->instantiateSelf(self);
 
-   // instantiate argv and push id on stack for base class constructors
-   if (bcl) {
-      ReferenceHolder<QoreListNode>& argv = uveh.getArgv();
-      signature.argvid->instantiate(argv ? argv->refSelf() : 0);
-      ArgvContextHelper argv_helper(argv ? argv->listRefSelf() : 0, xsink);
-   }
+    // instantiate argv and push id on stack for base class constructors
+    if (bcl) {
+        ReferenceHolder<QoreListNode>& argv = uveh.getArgv();
+        signature.argvid->instantiate(argv ? argv->refSelf() : 0);
+        ArgvContextHelper argv_helper(argv ? argv->listRefSelf() : 0, xsink);
+    }
 
-   if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink)) {
-      evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
-   }
+    if (!constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink)) {
+        evalIntern(uveh.getArgv(), 0, xsink).discard(xsink);
+    }
 
-   // uninstantiate argv
-   if (bcl)
-      signature.argvid->uninstantiate(xsink);
+    // uninstantiate argv
+    if (bcl)
+        signature.argvid->uninstantiate(xsink);
 
-   // if self then uninstantiate
-   signature.selfid->uninstantiateSelf();
+    // if self then uninstantiate
+    signature.selfid->uninstantiateSelf();
 }
 
 void UserConstructorVariant::parseInit(QoreFunction* f) {

@@ -4,7 +4,7 @@
 
     QORE programming language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -97,6 +97,7 @@
 #define PO_ALLOW_RETURNS                    (1LL << 57)  //!< allows the use of the deprecated "returns" keyword
 #define PO_STRICT_TYPES                     (1LL << 58)  //!< enforce strict type checking and setting default values
 #define PO_BROKEN_RANGE                     (1LL << 59)  //!< allow for old pre-%Qore 0.9.5 "range()" and "xrange()" behavior where the upper limit was included in the result
+#define PO_NO_INHERIT_PROGRAM_DATA          (1LL << 60)  //!< do not inherit module-specific Program data from the parent
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -136,10 +137,12 @@
     |PO_BROKEN_LOOP_STATEMENT|PO_BROKEN_REFERENCES|PO_BROKEN_SPRINTF|PO_BROKEN_RANGE)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
-#define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS|PO_NO_INHERIT_USER_HASHDECLS)
+#define PO_USER_INHERITANCE_OPTIONS   (PO_NO_INHERIT_USER_CLASSES|PO_NO_INHERIT_USER_FUNC_VARIANTS \
+    |PO_NO_INHERIT_GLOBAL_VARS|PO_NO_INHERIT_USER_CONSTANTS|PO_NO_INHERIT_USER_HASHDECLS)
 
 //! mask of options that affect the way a child Program inherits user code from the parent
-#define PO_SYSTEM_INHERITANCE_OPTIONS (PO_NO_INHERIT_SYSTEM_CLASSES|PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS|PO_NO_INHERIT_SYSTEM_CONSTANTS|PO_NO_INHERIT_SYSTEM_HASHDECLS)
+#define PO_SYSTEM_INHERITANCE_OPTIONS (PO_NO_INHERIT_SYSTEM_CLASSES|PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS|PO_NO_INHERIT_SYSTEM_CONSTANTS \
+    |PO_NO_INHERIT_SYSTEM_HASHDECLS|PO_NO_INHERIT_PROGRAM_DATA)
 
 //! mask of options that affect the way a child Program inherits code from the parent
 #define PO_INHERITANCE_OPTIONS        (PO_USER_INHERITANCE_OPTIONS|PO_SYSTEM_INHERITANCE_OPTIONS)
