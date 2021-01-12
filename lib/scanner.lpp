@@ -1461,6 +1461,7 @@ sub                                     { new_argv_ref(); return TOK_SUB; }
 const                                   return TOK_CONST;
 return                                  return TOK_RETURN;
 returns                                 return TOK_RETURNS;
+thread_local                            return TOK_THREAD_LOCAL;
 my                                      return TOK_MY;
 our                                     return TOK_OUR;
 break                                   return TOK_BREAK;

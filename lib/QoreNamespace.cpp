@@ -197,9 +197,11 @@ const TypedHashDecl* hashdeclStatInfo,
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
 
-GVEntryBase::GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo) :
+GVEntryBase::GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo,
+        QoreParseTypeInfo* parseTypeInfo, qore_var_t type) :
     name(new NamedScope(n)),
-    var(typeInfo ? new Var(loc, name->getIdentifier(), typeInfo) : new Var(loc, name->getIdentifier(), parseTypeInfo)) {
+    var(typeInfo ? new Var(loc, name->getIdentifier(), typeInfo) : new Var(loc, name->getIdentifier(), parseTypeInfo,
+        type == VT_THREAD_LOCAL)) {
 }
 
 void GVEntryBase::clear() {
@@ -2163,18 +2165,30 @@ void qore_ns_private::deleteData(bool deref_vars, ExceptionSink* xsink) {
 
 void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {
     int64 po = parse_get_parse_options();
-    if (po & PO_NO_GLOBAL_VARS)
-        parse_error(*v->getParseLocation(), "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
+    if ((po & PO_NO_GLOBAL_VARS) && v->isGlobal()) {
+        parse_error(*v->getParseLocation(), "illegal reference to new global variable '%s' (conflicts with parse " \
+            "option NO_GLOBAL_VARS)", vname.ostr);
+    }
+    if ((po & PO_NO_THREAD_CONTROL) && v->isThreadLocal()) {
+        parse_error(*v->getParseLocation(), "illegal reference to new thread_local variable '%s' (conflicts with parse " \
+            "option NO_THREAD_CONTROL)", vname.ostr);
+    }
 
     if (!v->hasTypeInfo() && (po & PO_REQUIRE_TYPES))
-        parse_error(*v->getParseLocation(), "global variable '%s' declared without type information, but parse options require all declarations to have type information", vname.ostr);
+        parse_error(*v->getParseLocation(), "%s variable '%s' declared without type information, but parse " \
+            "options require all declarations to have type information",
+            v->isThreadLocal() ? "thread_local" : "global", vname.ostr);
 
     if (!imported && !pub && v->isPublic() && (po & PO_IN_MODULE))
-        qore_program_private::makeParseWarning(getProgram(), *v->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "global variable '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), v->getName(), name.c_str());
+        qore_program_private::makeParseWarning(getProgram(), *v->getParseLocation(), QP_WARN_INVALID_OPERATION,
+            "INVALID-OPERATION", "%s variable '%s::%s' is declared public but the enclosing namespace '%s::' " \
+            "is not public", v->isThreadLocal() ? "thread_local" : "global", name.c_str(), v->getName(),
+            name.c_str());
 }
 
-void qore_ns_private::parseAddGlobalVarDecl(const QoreProgramLocation* loc, char* name, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, bool pub) {
-    GVEntryBase e(loc, name, typeInfo, parseTypeInfo);
+void qore_ns_private::parseAddGlobalVarDecl(const QoreProgramLocation* loc, char* name, const QoreTypeInfo* typeInfo,
+        QoreParseTypeInfo* parseTypeInfo, bool pub, qore_var_t type) {
+    GVEntryBase e(loc, name, typeInfo, parseTypeInfo, type);
     if (pub)
         e.var->setPublic();
     pend_gvblist.push_back(e);
@@ -2236,23 +2250,26 @@ bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
     return ok;
 }
 
-Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const QoreProgramLocation* loc, const NamedScope& vname, const QoreTypeInfo* typeInfo) {
-    Var* v = new Var(loc, vname.getIdentifier(), typeInfo);
+Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const QoreProgramLocation* loc, const NamedScope& vname,
+        const QoreTypeInfo* typeInfo, qore_var_t type) {
+    Var* v = new Var(loc, vname.getIdentifier(), typeInfo, false, type == VT_THREAD_LOCAL);
     pend_gvlist.push_back(GVEntry(this, vname, v));
 
     checkGlobalVarDecl(v, vname);
     return v;
 }
 
-Var* qore_root_ns_private::parseAddGlobalVarDefIntern(const QoreProgramLocation* loc, const NamedScope& vname, QoreParseTypeInfo* typeInfo) {
-    Var* v = new Var(loc, vname.getIdentifier(), typeInfo);
+Var* qore_root_ns_private::parseAddGlobalVarDefIntern(const QoreProgramLocation* loc, const NamedScope& vname,
+        QoreParseTypeInfo* typeInfo, qore_var_t type) {
+    Var* v = new Var(loc, vname.getIdentifier(), typeInfo, type == VT_THREAD_LOCAL);
     pend_gvlist.push_back(GVEntry(this, vname, v));
 
     checkGlobalVarDecl(v, vname);
     return v;
 }
 
-Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLocation* loc, const NamedScope& vname, const QoreTypeInfo* typeInfo) {
+Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLocation* loc, const NamedScope& vname,
+        const QoreTypeInfo* typeInfo) {
     Var* rv;
 
     qore_ns_private* tns;
@@ -2279,13 +2296,13 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
         else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
             parseException(*loc, "ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
         else
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_UNDECLARED_VAR,
+                "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
 
         assert(!tns->var_list.parseFindVar(vname.getIdentifier()));
         rv = tns->var_list.parseCreatePendingVar(loc, vname.getIdentifier(), typeInfo);
         varmap.update(rv->getName(), this, rv);
-    }
-    else
+    } else
         rv->checkAssignType(loc, typeInfo);
 
     return rv;

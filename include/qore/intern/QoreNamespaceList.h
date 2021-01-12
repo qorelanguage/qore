@@ -64,7 +64,8 @@ struct GVEntryBase {
     DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
     }
 
-    DLLLOCAL GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
+    DLLLOCAL GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo,
+        QoreParseTypeInfo* parseTypeInfo, qore_var_t type);
 
     DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
     }

@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -733,7 +733,7 @@ public:
     DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
     DLLLOCAL ~ProgramThreadCountContextHelper();
     static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
-    bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
+    DLLLOCAL bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
 
 protected:
     QoreProgram* old_pgm = nullptr;
@@ -741,7 +741,7 @@ protected:
     ProgramThreadCountContextHelper* old_ctx = nullptr;
     // frame count of tlpd when context is started
     int save_frameCount = 0;
-    int old_frameCount;
+    int old_frameCount = 0;
     bool restore = false;
     bool init_tlpd = false;
 };

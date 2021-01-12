@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -283,18 +283,24 @@ struct GVarSingleDecl : public GVarDecl {
     char* name;
     const QoreTypeInfo* typeInfo;
     QoreParseTypeInfo* parseTypeInfo;
+    qore_var_t type;
 
-    DLLLOCAL GVarSingleDecl(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti, bool p, bool bare) : GVarDecl(loc, p), name(n), typeInfo(ti), parseTypeInfo(pti) {
+    DLLLOCAL GVarSingleDecl(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* ti, QoreParseTypeInfo* pti,
+            bool p, bool bare, qore_var_t type = VT_GLOBAL) : GVarDecl(loc, p), name(n), typeInfo(ti), parseTypeInfo(pti),
+            type(type) {
         //printd(5, "GVarSingleDecl::GVarSingleDecl() '%s' %d-%d\n", n, loc.start_line, loc.end_line);
         if (bare) {
             if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-                parse_error(*loc, "global variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set", n);
+                parse_error(*loc, "%s variable '%s' declared without '$' prefix, but parse option 'allow-bare-refs' is not set",
+                    type == VT_GLOBAL ? "global" : "thread_local", n);
         } else {
             if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
-                parse_error(*loc, "reference to variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", n);
+                parse_error(*loc, "reference to %s variable '$%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set",
+                    type == VT_GLOBAL ? "global" : "thread_local", n);
         }
         if (qore_program_private::get(*getProgram())->expression_mode) {
-            parse_error(*loc, "global variable declaration '%s' not allowed in expressions' is set", n);
+            parse_error(*loc, "%s variable declaration '%s' not allowed in expressions' is set",
+                type == VT_GLOBAL ? "global" : "thread_local", n);
         }
     }
 
@@ -318,14 +324,14 @@ struct GVarSingleDecl : public GVarDecl {
     }
 
     DLLLOCAL virtual void add(qore_ns_private& ns) {
-        ns.parseAddGlobalVarDecl(loc, takeName(), typeInfo, takeParseTypeInfo(), pub);
+        ns.parseAddGlobalVarDecl(loc, takeName(), typeInfo, takeParseTypeInfo(), pub, type);
         delete this;
     }
 
     DLLLOCAL virtual AbstractQoreNode* makeVar() {
         GlobalVarRefNode* gv = typeInfo
-            ? new GlobalVarRefNode(loc, takeName(), typeInfo)
-            : new GlobalVarRefNode(loc, takeName(), takeParseTypeInfo());
+            ? new GlobalVarRefNode(loc, takeName(), typeInfo, type)
+            : new GlobalVarRefNode(loc, takeName(), takeParseTypeInfo(), type);
         if (pub)
             gv->setPublic();
 
@@ -336,8 +342,11 @@ struct GVarSingleDecl : public GVarDecl {
 
 struct GVarListDecl : public GVarDecl {
     QoreParseListNode* l;
+    qore_var_t type;
 
-    DLLLOCAL GVarListDecl(const QoreProgramLocation* loc, QoreParseListNode* list, bool p) : GVarDecl(loc, p), l(list) {
+    DLLLOCAL GVarListDecl(const QoreProgramLocation* loc, QoreParseListNode* list, bool p,
+            qore_var_t type = VT_GLOBAL)
+            : GVarDecl(loc, p), l(list), type(type) {
         bool bareok = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
         QoreParseListNode::nvec_t& vl = l->getValues();
@@ -347,19 +356,22 @@ struct GVarListDecl : public GVarDecl {
             if (t == NT_BAREWORD) {
                 BarewordNode* b = n.get<BarewordNode>();
                 if (!bareok)
-                    parse_error(*loc, "global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
-            }
-            else if (t == NT_VARREF) {
+                    parse_error(*loc, "variable '%s' in %s variable declaration list declared without '$' " \
+                        "prefix, but parse option 'allow-bare-refs' is not set", b->str,
+                        type == VT_GLOBAL ? "global" : "thread_local");
+            } else if (t == NT_VARREF) {
                 VarRefNode* vrn = n.get<VarRefNode>();
                 if (vrn->explicitScope()) {
                     if (vrn->getType() == VT_LOCAL)
-                        parse_error(*loc, "illegal use of 'my %s' in global variable declaration list", vrn->getName());
+                        parse_error(*loc, "illegal use of 'my %s' in %s variable declaration list", vrn->getName(),
+                            type == VT_GLOBAL ? "global" : "thread_local");
                     else if (vrn->getType() == VT_GLOBAL)
-                        parse_error(*loc, "illegal use of 'our %s' in global variable declaration list", vrn->getName());
+                        parse_error(*loc, "illegal use of 'our %s' in %s variable declaration list", vrn->getName(),
+                            type == VT_GLOBAL ? "global" : "thread_local");
                 }
-            }
-            else
-                parse_error(*loc, "element %d in list following 'our' is not a variable reference (%s)", i, n.getTypeName());
+            } else
+                parse_error(*loc, "element %d in list following '%s' is not a variable reference (%s)", i,
+                    type == VT_GLOBAL ? "our" : "thread_local", n.getTypeName());
         }
     }
 
@@ -382,16 +394,15 @@ struct GVarListDecl : public GVarDecl {
             qore_type_t t = n.getType();
             if (t == NT_BAREWORD) {
                 BarewordNode* b = n.get<BarewordNode>();
-                ns.parseAddGlobalVarDecl(loc, b->takeString(), 0, 0, pub);
-            }
-            else if (t == NT_VARREF) {
+                ns.parseAddGlobalVarDecl(loc, b->takeString(), 0, 0, pub, type);
+            } else if (t == NT_VARREF) {
                 VarRefNode* vrn = n.get<VarRefNode>();
                 if (!vrn->explicitScope()) {
                     VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
                     if (vrdn)
-                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
+                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub, type);
                     else
-                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub);
+                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub, type);
                 }
             }
         }
@@ -408,11 +419,10 @@ struct GVarListDecl : public GVarDecl {
             VarRefNode* vrn = nullptr;
             if (t == NT_BAREWORD) {
                 BarewordNode* b = n.get<BarewordNode>();
-                GlobalVarRefNode* v = new GlobalVarRefNode(loc, b->takeString());
+                GlobalVarRefNode* v = new GlobalVarRefNode(loc, b->takeString(), (const QoreTypeInfo*)nullptr, type);
                 b->deref();
                 n = vrn = v;
-            }
-            else if (t == NT_VARREF) {
+            } else if (t == NT_VARREF) {
                 vrn = n.get<VarRefNode>();
                 if (!vrn->explicitScope()) {
                     vrn->makeGlobal();
@@ -1578,6 +1588,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 // define string aliases for token names for more user-friendly error reporting
 %token TOK_RETURN "return"
 %token TOK_RETURNS "returns"
+%token TOK_THREAD_LOCAL "thread_local"
 %token TOK_MY "my"
 %token TOK_DO "do"
 %token TOK_TRY "try"
@@ -1988,6 +1999,48 @@ gvardecl:
         | ppub TOK_OUR '(' list ')' {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             $$ = new GVarListDecl(loc, $4, $1);
+        }
+        | ppub TOK_THREAD_LOCAL uncqtypedef SCOPED_REF {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
+            // see if strong encapsulation is enabled
+            check_strong_encapsulation(loc, "thread_local variable", $4);
+            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
+            $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true, VT_THREAD_LOCAL);
+            delete $3;
+        }
+        | ppub TOK_THREAD_LOCAL SCOPED_REF {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
+            // see if strong encapsulation is enabled
+            check_strong_encapsulation(loc, "thread_local variable", $3);
+            $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true, VT_THREAD_LOCAL);
+        }
+        | ppub TOK_THREAD_LOCAL uncqtypedef IDENTIFIER {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
+            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
+            $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true, VT_THREAD_LOCAL);
+            delete $3;
+        }
+        | ppub TOK_THREAD_LOCAL IDENTIFIER {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
+            $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true, VT_THREAD_LOCAL);
+        }
+        | ppub TOK_THREAD_LOCAL qtypedef SCOPED_VREF {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
+            // see if strong encapsulation is enabled
+            check_strong_encapsulation(loc, "thread_local variable", $4);
+            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
+            $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false, VT_THREAD_LOCAL);
+            delete $3;
+        }
+        | ppub TOK_THREAD_LOCAL qtypedef VAR_REF {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
+            const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
+            $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false, VT_THREAD_LOCAL);
+            delete $3;
+        }
+        | ppub TOK_THREAD_LOCAL '(' list ')' {
+            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
+            $$ = new GVarListDecl(loc, $4, $1, VT_THREAD_LOCAL);
         }
         ;
 
@@ -3382,8 +3435,7 @@ exp_c:
             if ($2) {
                 v = new VarRefDeclNode(loc, $3, VT_LOCAL, ParserTypeStruct::getTypeInfo($2), ParserTypeStruct::getParseTypeInfo($2));
                 delete $2;
-            }
-            else {
+            } else {
                 // see if types are required
                 if (parse_check_parse_option(PO_REQUIRE_TYPES))
                     parse_error(*loc, "local variable '%s' declared without type information, but parse options require all declarations to have type information", $3);
@@ -3411,8 +3463,7 @@ exp_c:
                     v->setExplicitScope();
                     b->deref();
                     n = v;
-                }
-                else if (t == NT_VARREF) {
+                } else if (t == NT_VARREF) {
                     VarRefNode* v = n.get<VarRefNode>();
                     // see if types are required
                     if (parse_check_parse_option(PO_REQUIRE_TYPES) && !v->isDecl())
@@ -3422,12 +3473,10 @@ exp_c:
                             parse_error(*loc, "illegal use of 'my %s' in local variable declaration list", v->getName());
                         else if (v->getType() == VT_GLOBAL)
                             parse_error(*loc, "illegal use of 'our %s' in local variable declaration list", v->getName());
-                    }
-                    else
+                    } else
                         v->makeLocal();
                     v->setExplicitScope();
-                }
-                else
+                } else
                     parse_error(*loc, "element %d in list following 'my' is not a variable reference (%s)", i, n.getTypeName());
             }
             $$.set($3);

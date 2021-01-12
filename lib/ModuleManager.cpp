@@ -316,7 +316,7 @@ void QoreBuiltinModule::addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink)
     pgm->addFeature(name.c_str());
 
     // make sure getProgram() returns this Program when module_ns_init() is called
-    QoreProgramContextHelper pch(pgm);
+    ProgramCallContextHelper pch(pgm);
 
     RootQoreNamespace* rns = pgm->getRootNS();
     QoreNamespace* qns = pgm->getQoreNS();

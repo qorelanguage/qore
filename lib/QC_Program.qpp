@@ -748,6 +748,11 @@ const PO_ALLOW_RETURNS = PO_ALLOW_RETURNS;
     @since %Qore 0.9.4
 */
 const PO_STRICT_TYPES = PO_STRICT_TYPES;
+
+//! Do not inherit module-specific Program data from the parent
+/** @since %Qore 0.10
+*/
+const PO_NO_INHERIT_PROGRAM_DATA = PO_NO_INHERIT_PROGRAM_DATA;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -906,18 +911,21 @@ const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
 qclass Program [arg=QoreProgram* p];
 
 //! Creates the program object and optionally sets program capabilities (@ref parse_options "parse options")
-/** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is created, then
-    the created Program object will have the parent's parse options added to its parse options as given by the argument to the constructor.
+/** Note that if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set in the parent Program when the new Program object is
+    created, then the created Program object will have the parent's parse options added to its parse options as given
+    by the argument to the constructor.
 
-    In other words, if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set, it's not possible to create a child Program object with fewer
-    restrictions than the parent Program object (any attempt to do so will be silently ignored).
+    In other words, if @ref PO_NO_CHILD_PO_RESTRICTIONS is not set, it's not possible to create a child Program
+    object with fewer restrictions than the parent Program object (any attempt to do so will be silently ignored).
 
-    However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument to the constructor
-    will be applied literally to the child object.
+    However, if @ref PO_NO_CHILD_PO_RESTRICTIONS is set in the parent Program object, then the parse option argument
+    to the constructor will be applied literally to the child object.  Additionally in this case module-specific-
+    program data is not imported into the child Program object.
 
     @ref Qore::ProgramControl "ProgramControl" provides internal Program data for debugging purposes.
 
-    Use the @ref Qore::ProgramControl::getProgram() "ProgramControl::getProgram()" method to attach to the currently running program
+    Use the @ref Qore::ProgramControl::getProgram() "ProgramControl::getProgram()" method to attach to the currently
+    running program
 
     @param po A binary OR'ed product of @ref parse_options "parse options"
 
@@ -929,17 +937,17 @@ Program pgm();
     @throw PROGRAM-OPTION-ERROR invalid parse options used
  */
 Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
-   if (po & PO_SYSTEM_OPS) {
-      xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
-      return;
-   }
+    if (po & PO_SYSTEM_OPS) {
+        xsink->raiseException("PROGRAM-OPTION-ERROR", "parse options (0x" QLLX ") contain restricted options that can only be set by the system", po);
+        return;
+    }
 
-   QoreProgram* pgm = new QoreProgram(getProgram(), po);
-   //pgm->registerQoreObject(self, xsink);
-   assert(!xsink->isEvent());
+    QoreProgram* pgm = new QoreProgram(getProgram(), po);
+    //pgm->registerQoreObject(self, xsink);
+    assert(!xsink->isEvent());
 
-   self->setPrivate(CID_PROGRAM, pgm);
-   printd(5, "Program::constructor() pgm: %p, pgmid: %d, self: %p\n", pgm, pgm->getProgramId(), self);
+    self->setPrivate(CID_PROGRAM, pgm);
+    printd(5, "Program::constructor() pgm: %p, pgmid: %d, self: %p\n", pgm, pgm->getProgramId(), self);
 }
 
 //! Throws an exception to prevent objects of this class from being copied
@@ -947,18 +955,18 @@ Program::constructor(softint po = PO_DEFAULT) [dom=EMBEDDED_LOGIC] {
     @throw PROGRAM-COPY-ERROR copying Program objects is currently unsupported
  */
 Program::copy() {
-   xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
+    xsink->raiseException("PROGRAM-COPY-ERROR", "copying Program objects is currently unsupported");
 }
 
 //! Waits for all threads to finish executing, then deletes all global variables, dereferences the internal Program object and deletes the %Qore object
 /**
  */
 Program::destructor() {
-   printd(5, "Program::destructor() pgm: %p pgmid: %d self: %p\n", p, p->getProgramId(), self);
-   // inherited system object destructor is not executed
-   //p->unregisterQoreObject(self, xsink);
+    printd(5, "Program::destructor() pgm: %p pgmid: %d self: %p\n", p, p->getProgramId(), self);
+    // inherited system object destructor is not executed
+    //p->unregisterQoreObject(self, xsink);
 
-   p->waitForTerminationAndDeref(xsink);
+    p->waitForTerminationAndDeref(xsink);
 }
 
 //! Parses the string argument and adds the code to the Program object
@@ -1004,18 +1012,17 @@ while (wh) {
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
 *hash<ExceptionInfo> Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
+    if (warning_mask) {
+        ExceptionSink wsink;
+        p->parse(code, label, xsink, &wsink, warning_mask, source, offset);
+        if (!wsink.isException())
+            return QoreValue();
 
-   if (warning_mask) {
-      ExceptionSink wsink;
-      p->parse(code, label, xsink, &wsink, warning_mask, source, offset);
-      if (!wsink.isException())
-         return QoreValue();
+        QoreException *e = wsink.catchException();
+        return e->makeExceptionObjectAndDelete(xsink);
+    }
 
-      QoreException *e = wsink.catchException();
-      return e->makeExceptionObjectAndDelete(xsink);
-   }
-
-   p->parse(code, label, xsink, 0, 0, source, offset);
+    p->parse(code, label, xsink, 0, 0, source, offset);
 }
 
 //! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
@@ -1064,7 +1071,6 @@ pgm.parseCommit();
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
 *hash<ExceptionInfo> Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
-
    if (warning_mask) {
       ExceptionSink wsink;
       p->parsePending(code, label, xsink, &wsink, warning_mask, source, offset);
@@ -1103,7 +1109,7 @@ pgm.parseCommit();
     @since %Qore 0.9 parsing can only be executed once per %Program object
  */
 nothing Program::parseCommit() {
-   p->parseCommit(xsink);
+    p->parseCommit(xsink);
 }
 
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
@@ -1135,13 +1141,13 @@ while (exists wh) {
     @since %Qore 0.9 parsing can only be executed once per %Program object
  */
 *hash<ExceptionInfo> Program::parseCommit(int warning_mask) {
-   ExceptionSink wsink;
-   p->parseCommit(xsink, &wsink, warning_mask);
-   if (!wsink.isException())
-      return QoreValue();
+    ExceptionSink wsink;
+    p->parseCommit(xsink, &wsink, warning_mask);
+    if (!wsink.isException())
+        return QoreValue();
 
-   QoreException *e = wsink.catchException();
-   return e->makeExceptionObjectAndDelete(xsink);
+    QoreException *e = wsink.catchException();
+    return e->makeExceptionObjectAndDelete(xsink);
 }
 
 //! Removes all partially or fully-parsed code from the object along with other builtin objects; a %Program object is not usable after calling this method; do not use this method but instead destroy the %Program object
@@ -1157,7 +1163,7 @@ while (exists wh) {
     @deprecated if parsing fails or is rolled back, the %Program object is no longer usable
  */
 nothing Program::parseRollback() [flags=DEPRECATED] {
-   p->parseRollback(xsink);
+    p->parseRollback(xsink);
 }
 
 //! Calls a function in the program object and returns the return value
@@ -1211,10 +1217,10 @@ auto result = pgm.callFunctionArgs("func_name", (arg1, arg2));
     @note The function called could also cause other exceptions to be thrown
  */
 auto Program::callFunctionArgs(string name, *softlist<auto> vargs) {
-   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
-   return p->callFunction(tmp->getBuffer(), vargs, xsink);
+    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return QoreValue();
+    return p->callFunction(tmp->getBuffer(), vargs, xsink);
 }
 
 //! Calls a static method of an object, passing the arguments to the function as arguments to the method
@@ -1295,10 +1301,10 @@ if (pgm.existsFunction("my_func"))
     @throw ENCODING-CONVERSION-ERROR the function name could not be converted to the @ref default_encoding "default character encoding"
  */
 bool Program::existsFunction(string name) [flags=RET_VALUE_ONLY] {
-   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return false;
-   return p->existsFunction(tmp->getBuffer());
+    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return false;
+    return p->existsFunction(tmp->getBuffer());
 }
 
 //! Runs the program and optionally returns a value if the top-level code exits with a @ref return "return statement
@@ -1310,7 +1316,7 @@ pgm.run();
     @endcode
  */
 auto Program::run() {
-   return p->run(xsink);
+    return p->run(xsink);
 }
 
 //! Imports a function into the program object's space; any calls to the imported function will run with the parent Program object's permissions
@@ -1330,10 +1336,10 @@ pgm.importFunction("log");
     @since %Qore 0.8.4 the function name can include a namespace path (ex \c "Namespace::func")
  */
 nothing Program::importFunction(string func) {
-   TempEncodingHelper tmp(func, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
-   qore_program_private::exportFunction(getProgram(), xsink, p, tmp->getBuffer());
+    TempEncodingHelper tmp(func, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return QoreValue();
+    qore_program_private::exportFunction(getProgram(), xsink, p, tmp->getBuffer());
 }
 
 //! Imports a function into the program object's space and gives it a new name; any calls to the imported function will run with the parent Program object's permissions
@@ -1365,16 +1371,16 @@ pgm.importFunction("service_log", "log");
     - %Qore 0.8.12 added the \a inject parameter
  */
 nothing Program::importFunction(string func, string new_name, *softbool inject) {
-   TempEncodingHelper tfunc(func, QCS_DEFAULT, xsink);
-   if (!tfunc)
-      return QoreValue();
-   TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
-   if (!tnew_name)
-      return QoreValue();
-   if (tnew_name->empty())
-      xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
+    TempEncodingHelper tfunc(func, QCS_DEFAULT, xsink);
+    if (!tfunc)
+        return QoreValue();
+    TempEncodingHelper tnew_name(new_name, QCS_DEFAULT, xsink);
+    if (!tnew_name)
+        return QoreValue();
+    if (tnew_name->empty())
+        xsink->raiseException("FUNCTION-IMPORT-ERROR", "the new function name while importing function '%s' may not be empty", func);
 
-   qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer(), inject);
+    qore_program_private::exportFunction(getProgram(), xsink, p, tfunc->getBuffer(), tnew_name->getBuffer(), inject);
 }
 
 //! Imports a global variable into the program object's space
@@ -1392,10 +1398,10 @@ pgm.importGlobalVariable("var");
     @throw ENCODING-CONVERSION-ERROR the global variablt name could not be converted to the @ref default_encoding "default character encoding"
  */
 nothing Program::importGlobalVariable(string varname, bool readonly = False) {
-   TempEncodingHelper tmp(varname, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
-   qore_program_private::exportGlobalVariable(getProgram(), tmp->getBuffer(), readonly, p, xsink);
+    TempEncodingHelper tmp(varname, QCS_DEFAULT, xsink);
+    if (!tmp)
+        return QoreValue();
+    qore_program_private::exportGlobalVariable(getProgram(), tmp->getBuffer(), readonly, p, xsink);
 }
 
 //! Imports a class into the program object's space; any calls to the imported class's code will run with the parent Program object's permissions

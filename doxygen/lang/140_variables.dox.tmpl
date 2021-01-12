@@ -126,4 +126,25 @@ list<int> l1(1);
     Unlike local variables, global variables are members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the global variable will be assumed to be in the root namespace.  Global variables declared in @ref qore_namespaces "namespaces" cannot be initialized at the same time as the declaration, but instead have to be initialized elsewhere.
 
     When defining a @ref user_modules "user module", the \b our keyword can be preceded by @ref mod_public "public", which means that the global variable will be available (imported) in the @ref Qore::Program "Program" object importing the module.  See @ref mod_public "public" for more information.
+
+    @section thread_local_variables Thread-Local Global Variables
+
+    @subsection thread_local The "thread_local" Keyword
+    Variables declared with \b thread_local have global scope and are additionally thread local; they are never subject
+    to mutual exclusion locks.  Each %Qore thread will have a different value for the variable, for example.
+
+    <b>thread_local Example</b>\n
+    @code{.py} thread_local int i = 1;@endcode
+
+    Note that the \b thread_local keyword is always required when declaring a global thread-local variable.
+
+    Like standard @ref global_variables "global variables" but unlike local variables, thread-local variables are
+    members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the thread-local variable will
+    be assumed to be in the unnamed root namespace.  Thread-local variables declared in
+    @ref qore_namespaces "namespaces" cannot be initialized at the same time as the declaration, but instead have to be
+    initialized elsewhere.
+
+    When defining a @ref user_modules "user module", the \b thread_local keyword can be preceded by
+    @ref mod_public "public", which means that the thread_local variable will be available (imported) in
+    @ref Qore::Program "Program" objects importing the module.  See @ref mod_public "public" for more information.
 */

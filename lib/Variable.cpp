@@ -4,7 +4,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -73,14 +73,119 @@ int qore_gvar_ref_u::write(ExceptionSink* xsink) const {
     return 0;
 }
 
+Var::Var(Var* ref, bool ro, bool is_thread_local) : loc(ref->loc), val(QV_Ref), name(ref->name),
+        typeInfo(ref->typeInfo), pub(false), finalized(false), is_thread_local(false) {
+    ref->ROreference();
+    // set local reference
+    val.v.setPtr(ref, ro);
+}
+
+const Var* Var::parseGetVar() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+    return (val.type == QV_Ref) ? val.v.getPtr()->parseGetVar() : this;
+}
+
+void Var::checkAssignType(const QoreProgramLocation* loc, const QoreTypeInfo *n_typeInfo) {
+    //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
+    if (!QoreTypeInfo::hasType(n_typeInfo))
+        return;
+
+    if (val.type == QV_Ref) {
+        val.v.getPtr()->checkAssignType(loc, n_typeInfo);
+        return;
+    }
+
+    // here we know that n_typeInfo is not null
+    // if no previous type was declared, take the new type
+    if (parseTypeInfo || typeInfo) {
+        doDoubleDeclarationError(loc);
+        return;
+    }
+
+    typeInfo = n_typeInfo;
+    refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
+
+#ifdef DEBUG
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+    assert(!val.removeValue(true));
+#endif
+}
+
+const QoreTypeInfo* Var::parseGetTypeInfoForInitialAssignment() {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
+    // imported variables have already been initialized
+    if (val.type == QV_Ref)
+        return val.v.getPtr()->getTypeInfo();
+
+    parseInit();
+    return typeInfo;
+}
+
+const QoreTypeInfo* Var::parseGetTypeInfo() {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
+    // imported variables have already been initialized
+    if (val.type == QV_Ref)
+        return val.v.getPtr()->getTypeInfo();
+
+    parseInit();
+    return refTypeInfo ? refTypeInfo : typeInfo;
+}
+
+const QoreTypeInfo* Var::getTypeInfo() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
+    assert(!parseTypeInfo);
+    if (val.type == QV_Ref)
+        return val.v.getPtr()->getTypeInfo();
+
+    return typeInfo;
+}
+
+bool Var::hasTypeInfo() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
+    if (val.type == QV_Ref)
+        return val.v.getPtr()->hasTypeInfo();
+
+    return parseTypeInfo || typeInfo;
+}
+
+bool Var::isRef() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+    return val.type == QV_Ref;
+}
+
+// only called with a new object declaration expression (ie our <class> $x())
+const char* Var::getClassName() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
+    if (val.type == QV_Ref)
+        return val.v.getPtr()->getClassName();
+
+    if (typeInfo) {
+        assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+        return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
+    }
+    assert(parseTypeInfo);
+    assert(parseTypeInfo->cscope);
+    return parseTypeInfo->cscope->getIdentifier();
+}
+
 int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
     if (val.type == QV_Ref) {
         if (val.v.write(lvh.vl.xsink))
             return -1;
         return val.v.getPtr()->getLValue(lvh, for_remove);
     }
 
-    lvh.setAndLock(rwl);
+    if (!is_thread_local) {
+        lvh.setAndLock(rwl);
+    }
+
     if (checkFinalized(lvh.vl.xsink))
         return -1;
 
@@ -89,6 +194,8 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
 }
 
 void Var::remove(LValueRemoveHelper& lvrh) {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
     if (val.type == QV_Ref) {
         if (val.v.write(lvrh.getExceptionSink()))
             return;
@@ -96,11 +203,17 @@ void Var::remove(LValueRemoveHelper& lvrh) {
         return;
     }
 
-    QoreAutoVarRWWriteLocker al(rwl);
-    lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
+    if (is_thread_local) {
+        lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
+    } else {
+        QoreAutoVarRWWriteLocker al(rwl);
+        lvrh.doRemove((QoreLValueGeneric&)val, typeInfo);
+    }
 }
 
 void Var::del(ExceptionSink* xsink) {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
+
     if (val.type == QV_Ref) {
         printd(4, "Var::~Var() refptr: %p\n", val.v.getPtr());
         val.v.getPtr()->deref(xsink);
@@ -111,6 +224,7 @@ void Var::del(ExceptionSink* xsink) {
 }
 
 bool Var::isImported() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
     return val.type == QV_Ref;
 }
 
@@ -119,8 +233,15 @@ const char* Var::getName() const {
 }
 
 QoreValue Var::eval() const {
+    QoreLValue<qore_gvar_ref_u>& val = getVal();
     if (val.type == QV_Ref)
         return val.v.getPtr()->eval();
+    if (is_thread_local) {
+        if (val.getType() == NT_WEAKREF) {
+            return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+        }
+        return val.getReferencedValue();
+    }
     QoreAutoVarRWReadLocker al(rwl);
     if (val.getType() == NT_WEAKREF) {
         return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
@@ -420,7 +541,7 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
 
     //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
 
-    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
+    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->c_str());
 
     // clear ocvec when we get to an object
     ocvec.clear();
@@ -430,9 +551,9 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
     const qore_class_private* class_ctx = runtime_get_class();
     if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
         class_ctx = nullptr;
-    if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, class_ctx, for_remove, vl.xsink)) {
+    if (!qore_object_private::getLValue(*o, mem->c_str(), *this, class_ctx, for_remove, vl.xsink)) {
         if (!class_ctx)
-            vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
+            vl.addMemberNotification(o, mem->c_str()); // add member notification for external updates
     }
     if (*vl.xsink) {
         return -1;

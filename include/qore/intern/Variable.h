@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,13 @@
 #define _QORE_VARIABLE_H
 
 enum qore_var_t {
-    VT_UNRESOLVED = 1,
-    VT_LOCAL      = 2,
-    VT_GLOBAL     = 3,
-    VT_CLOSURE    = 4,
-    VT_LOCAL_TS   = 5,         // thread-safe variables, not closure-bound
-    VT_IMMEDIATE  = 6,         // used in references with immediate variable storage
-    VT_GLOBAL_THREAD_LOCAL = 7
+    VT_UNRESOLVED   = 1,
+    VT_LOCAL        = 2,
+    VT_GLOBAL       = 3,
+    VT_CLOSURE      = 4,
+    VT_LOCAL_TS     = 5,         // thread-safe variables, not closure-bound
+    VT_IMMEDIATE    = 6,         // used in references with immediate variable storage
+    VT_THREAD_LOCAL = 7
 };
 
 #include "qore/intern/RSet.h"
@@ -93,6 +93,8 @@ union qore_gvar_ref_u {
     DLLLOCAL int write(ExceptionSink* xsink) const;
 };
 
+DLLLOCAL void get_thread_local_lvalue(void* ptr, QoreLValue<qore_gvar_ref_u>*& lvar, bool& is_new, bool& finalized);
+
 class LValueHelper;
 class LValueRemoveHelper;
 class RSetHelper;
@@ -104,12 +106,12 @@ private:
     QoreLValue<qore_gvar_ref_u> val;
     std::string name;
     mutable QoreVarRWLock rwl;
-    QoreParseTypeInfo* parseTypeInfo;
-    const QoreTypeInfo* typeInfo;
+    QoreParseTypeInfo* parseTypeInfo = nullptr;
+    const QoreTypeInfo* typeInfo = nullptr;
     const QoreTypeInfo* refTypeInfo = nullptr;
-    bool pub,                          // is this global var public (valid and set for modules only)
-        finalized;                     // has this var already been cleared during Program destruction?
-
+    bool pub;                           // is this global var public (valid and set for modules only)
+    mutable bool finalized;             // has this var already been cleared during Program destruction?
+    bool is_thread_local;               // is this a thread_local var?
     DLLLOCAL void del(ExceptionSink* xsink);
 
     // not implemented
@@ -122,26 +124,47 @@ protected:
 
     DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
         if (finalized) {
-            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable " \
+                "destruction");
             return -1;
         }
         return 0;
     }
 
+    QoreLValue<qore_gvar_ref_u>& getVal() const {
+        if (is_thread_local) {
+            QoreLValue<qore_gvar_ref_u>* lvar;
+            bool is_new;
+            get_thread_local_lvalue((void*)this, lvar, is_new, finalized);
+            if (is_new) {
+                if (val.type == QV_Ref) {
+                    lvar->set(QV_Ref);
+                    lvar->v.setPtr(val.v.getPtr(), val.v.isReadOnly());
+                } else if (typeInfo) {
+                    lvar->set(typeInfo);
+                }
+            }
+            return *lvar;
+        }
+        return const_cast<QoreLValue<qore_gvar_ref_u>&>(val);
+    }
+
 public:
-    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(nullptr), typeInfo(nullptr), pub(false), finalized(false) {
+    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, bool is_thread_local = false)
+            : loc(loc), name(n_name), pub(false), finalized(false), is_thread_local(is_thread_local) {
     }
 
-    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
+    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, QoreParseTypeInfo* n_parseTypeInfo,
+            bool is_thread_local = false) : loc(loc), name(n_name), parseTypeInfo(n_parseTypeInfo),
+            pub(false), finalized(false), is_thread_local(is_thread_local) {
     }
 
-    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, const QoreTypeInfo *n_typeInfo, bool builtin = false) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false), builtin(builtin) {
+    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, const QoreTypeInfo* n_typeInfo,
+            bool builtin = false, bool is_thread_local = false) : loc(loc), val(n_typeInfo), name(n_name),
+            typeInfo(n_typeInfo), pub(false), finalized(false), is_thread_local(is_thread_local), builtin(builtin) {
     }
 
-    DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(nullptr), typeInfo(ref->typeInfo), pub(false), finalized(false) {
-        ref->ROreference();
-        val.v.setPtr(ref, ro);
-    }
+    DLLLOCAL Var(Var* ref, bool ro = false, bool is_thread_local = false);
 
     DLLLOCAL const char* getName() const;
 
@@ -153,10 +176,19 @@ public:
         return builtin;
     }
 
+    DLLLOCAL bool isThreadLocal() const {
+        return is_thread_local;
+    }
+
+    DLLLOCAL bool isGlobal() const {
+        return !is_thread_local;
+    }
+
     DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
     DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
     DLLLOCAL void clearLocal(ExceptionSink* xsink) {
+        QoreLValue<qore_gvar_ref_u>& val = getVal();
         if (val.type != QV_Ref) {
             ValueHolder h(xsink);
             QoreAutoVarRWWriteLocker al(rwl);
@@ -180,15 +212,14 @@ public:
     }
 
     DLLLOCAL void setInitial(AbstractQoreNode* v) {
+        QoreLValue<qore_gvar_ref_u>& val = getVal();
         assert(val.type == QV_Node);
         // try to set an optimized value type for the value holder if possible
         val.set(typeInfo);
         discard(val.assignInitial(v), nullptr);
     }
 
-    DLLLOCAL const Var* parseGetVar() const {
-        return (val.type == QV_Ref) ? val.v.getPtr()->parseGetVar() : this;
-    }
+    DLLLOCAL const Var* parseGetVar() const;
 
     DLLLOCAL bool isImported() const;
 
@@ -208,30 +239,11 @@ public:
         }
     }
 
-    DLLLOCAL void checkAssignType(const QoreProgramLocation* loc, const QoreTypeInfo *n_typeInfo) {
-        //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
-        if (!QoreTypeInfo::hasType(n_typeInfo))
-            return;
-
-        if (val.type == QV_Ref) {
-            val.v.getPtr()->checkAssignType(loc, n_typeInfo);
-            return;
-        }
-
-        // here we know that n_typeInfo is not null
-        // if no previous type was declared, take the new type
-        if (parseTypeInfo || typeInfo) {
-            doDoubleDeclarationError(loc);
-            return;
-        }
-
-        typeInfo = n_typeInfo;
-        refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
-
-        assert(!val.removeValue(true));
-    }
+    DLLLOCAL void checkAssignType(const QoreProgramLocation* loc, const QoreTypeInfo *n_typeInfo);
 
     DLLLOCAL void parseInit() {
+        QoreLValue<qore_gvar_ref_u>& val = getVal();
+
         if (val.type == QV_Ref)
             return;
 
@@ -252,56 +264,18 @@ public:
         return parseTypeInfo ? parseTypeInfo->copy() : nullptr;
     }
 
-    DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment() {
-        // imported variables have already been initialized
-        if (val.type == QV_Ref)
-            return val.v.getPtr()->getTypeInfo();
+    DLLLOCAL const QoreTypeInfo* parseGetTypeInfoForInitialAssignment();
 
-        parseInit();
-        return typeInfo;
-    }
+    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo();
 
-    DLLLOCAL const QoreTypeInfo* parseGetTypeInfo() {
-        // imported variables have already been initialized
-        if (val.type == QV_Ref)
-            return val.v.getPtr()->getTypeInfo();
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const;
 
-        parseInit();
-        return refTypeInfo ? refTypeInfo : typeInfo;
-    }
+    DLLLOCAL bool hasTypeInfo() const;
 
-    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-        assert(!parseTypeInfo);
-        if (val.type == QV_Ref)
-            return val.v.getPtr()->getTypeInfo();
-
-        return typeInfo;
-    }
-
-    DLLLOCAL bool hasTypeInfo() const {
-        if (val.type == QV_Ref)
-            return val.v.getPtr()->hasTypeInfo();
-
-        return parseTypeInfo || typeInfo;
-    }
-
-    DLLLOCAL bool isRef() const {
-        return val.type == QV_Ref;
-    }
+    DLLLOCAL bool isRef() const;
 
     // only called with a new object declaration expression (ie our <class> $x())
-    DLLLOCAL const char* getClassName() const {
-        if (val.type == QV_Ref)
-            return val.v.getPtr()->getClassName();
-
-        if (typeInfo) {
-            assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-            return QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName();
-        }
-        assert(parseTypeInfo);
-        assert(parseTypeInfo->cscope);
-        return parseTypeInfo->cscope->getIdentifier();
-    }
+    DLLLOCAL const char* getClassName() const;
 
     DLLLOCAL bool isPublic() const {
         return pub;
@@ -319,22 +293,22 @@ public:
 
 DLLLOCAL void delete_global_variables();
 
-DLLLOCAL extern QoreHashNode *ENV;
+DLLLOCAL extern QoreHashNode* ENV;
 
 //typedef std::set<const void*> lvid_set_t;
 typedef vector_set_t<const void*> lvid_set_t;
 
 // track obj count changes
 struct ObjCountRec {
-   // container
-   const AbstractQoreNode* con;
-   // initial count (true = possible recursive cycle, false = no cycle possible)
-   bool before;
+    // container
+    const AbstractQoreNode* con;
+    // initial count (true = possible recursive cycle, false = no cycle possible)
+    bool before;
 
-   DLLLOCAL ObjCountRec(const QoreListNode* c);
-   DLLLOCAL ObjCountRec(const QoreHashNode* c);
-   DLLLOCAL ObjCountRec(const QoreObject* c);
-   DLLLOCAL int getDifference();
+    DLLLOCAL ObjCountRec(const QoreListNode* c);
+    DLLLOCAL ObjCountRec(const QoreHashNode* c);
+    DLLLOCAL ObjCountRec(const QoreObject* c);
+    DLLLOCAL int getDifference();
 };
 
 typedef std::vector<ObjCountRec> ocvec_t;

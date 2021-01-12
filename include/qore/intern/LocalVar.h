@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -422,7 +422,8 @@ public:
     }
 
     DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, bool initial_assignment) const {
-        //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d ti: '%s' rti: '%s'\n", this, getName(), for_remove, closure_use, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+        //printd(5, "LocalVar::getLValue() this: %p '%s' for_remove: %d closure_use: %d ti: '%s' rti: '%s'\n", this,
+        //  getName(), for_remove, closure_use, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
         if (!closure_use) {
             return get_var()->getLValue(lvh, for_remove, typeInfo, refTypeInfo);
         }
