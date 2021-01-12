@@ -608,7 +608,7 @@ gvardecl:
             $$ = new ASTVariableDeclaration(mods, std::move(typeName), std::move(name));
             $$->loc.set(@1, @4);
         }
-        | ppub TOK_OUR SCOPED_REF {
+        | ppub TOK_THREAD_LOCAL SCOPED_REF {
             ASTModifiers mods(ASTModifier::AM_Our);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
