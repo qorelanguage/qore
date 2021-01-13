@@ -372,12 +372,12 @@ class StreamReaderTest inherits QUnit::Test {
         assertEq(" kůň úpěl ďábelské ódy.", sr.readString(-1));
         assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
 
-        s1 = convert_encoding(s1, "utf-16");
+        s1 = convert_encoding(s1, "utf-16le");
         is = new StringInputStream(s1);
-        sr = new StreamReader(is, "utf-16");
+        sr = new StreamReader(is, "utf-16le");
 
-        assertEq(80, s1.size());
-        assertEq(40, s1.length());
+        assertEq(78, s1.size());
+        assertEq(39, s1.length());
 
         assertEq("Příliš", sr.readString(6));
         assertEq(" žluťoučký", sr.readString(10));
@@ -385,7 +385,7 @@ class StreamReaderTest inherits QUnit::Test {
         assertThrows("END-OF-STREAM-ERROR", \sr.readu1());
 
         is = new StringInputStream(s1);
-        sr = new StreamReader(is, "utf-16");
+        sr = new StreamReader(is, "utf-16le");
         assertEq(s1, sr.readLine());
         assertEq(NOTHING, sr.readLine());
     }
