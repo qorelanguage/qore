@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -462,11 +462,15 @@ QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xs
         case NT_FIND:
             return n.eval(xsink);
 
-        case NT_VARREF:
-            if (n.get<const VarRefNode>()->getType() != VT_GLOBAL) {
+        case NT_VARREF: {
+            const VarRefNode* var_ref = n.get<const VarRefNode>();
+            printd(5, "copy_value_and_resolve_lvar_refs() '%s' (%s): %d (tl: %d)\n", var_ref->getName(),
+                var_ref->getTypeName(), var_ref->getType(), var_ref->ref.var->isThreadLocal());
+            if (var_ref->getType() != VT_GLOBAL) {
                 return n.eval(xsink);
             }
             break;
+        }
 
         case NT_FUNCREFCALL:
             return call_ref_call_copy(n.get<const CallReferenceCallNode>(), xsink);

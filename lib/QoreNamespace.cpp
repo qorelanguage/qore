@@ -200,8 +200,10 @@ DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
 GVEntryBase::GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo,
         QoreParseTypeInfo* parseTypeInfo, qore_var_t type) :
     name(new NamedScope(n)),
-    var(typeInfo ? new Var(loc, name->getIdentifier(), typeInfo) : new Var(loc, name->getIdentifier(), parseTypeInfo,
-        type == VT_THREAD_LOCAL)) {
+    var(typeInfo
+        ? new Var(loc, name->getIdentifier(), typeInfo, false, type == VT_THREAD_LOCAL)
+        : new Var(loc, name->getIdentifier(), parseTypeInfo, type == VT_THREAD_LOCAL)
+    ) {
 }
 
 void GVEntryBase::clear() {
@@ -2277,8 +2279,7 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
         rv = parseFindGlobalVarIntern(vname.ostr);
         // for backwards-compatibility, assume the root namespace for all unscoped global variables
         tns = this;
-    }
-    else {
+    } else {
         tns = parseResolveNamespace(loc, vname);
         if (!tns)
             tns = this;
@@ -2437,7 +2438,8 @@ bool qore_ns_private::addGlobalVars(qore_root_ns_private& rns) {
 
         Var* v = var_list.parseFindVar(n.getIdentifier());
         if (v) {
-            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times", name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times", name.c_str(),
+                n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
             if (ok) {
                 ok = false;
             }
@@ -2445,7 +2447,8 @@ bool qore_ns_private::addGlobalVars(qore_root_ns_private& rns) {
         }
 
         v = (*i).takeVar();
-        //printd(5, "qore_root_ns_private::addGlobalVars() resolved '%s::%s' ('%s') %p ns\n", name.c_str(), n.getIdentifier(), n.ostr, v);
+        //printd(5, "qore_root_ns_private::addGlobalVars() resolved '%s::%s' ('%s') %p ns\n", name.c_str(),
+        //  n.getIdentifier(), n.ostr, v);
         var_list.parseAdd(v);
         rns.varmap.update(v->getName(), this, v);
     }
@@ -2461,7 +2464,8 @@ bool qore_ns_private::addGlobalVars(qore_root_ns_private& rns) {
 void qore_ns_private::addGlobalVars(gvlist_t& pend_gvlist) {
     // take global variable decls
     for (unsigned i = 0; i < pend_gvblist.size(); ++i) {
-        //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
+        //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the " \
+            "root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
         pend_gvlist.push_back(GVEntry(pend_gvblist[i], this));
     }
     pend_gvblist.zero();

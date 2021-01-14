@@ -113,11 +113,13 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
         else
             type = VT_LOCAL;
 
-        printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id, in_closure);
+        printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id,
+            in_closure);
     } else {
         ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(loc, name, typeInfo);
-        type = VT_GLOBAL;
-        printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p)\n", name.ostr, ref.var);
+        type = ref.var->isThreadLocal() ? VT_THREAD_LOCAL : VT_GLOBAL;
+        printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p type: %d)\n", name.ostr, ref.var,
+            type);
     }
 }
 
@@ -209,7 +211,7 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(QoreValue args) {
     if (ref.var->hasTypeInfo()) {
         QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
         VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), ref.var,
-            make_args(loc, args), pti ? 0 : ref.var->getTypeInfo(), pti);
+            make_args(loc, args), pti ? nullptr : ref.var->getTypeInfo(), pti);
         deref();
         return rv;
     }
@@ -223,12 +225,12 @@ AbstractQoreNode* VarRefNode::makeNewCall(QoreValue args) {
         : nullptr;
 }
 
-void VarRefNode::makeGlobal() {
-    assert(type != VT_GLOBAL);
-    assert(type == VT_UNRESOLVED || !ref.id);
+void VarRefNode::makeGlobal(qore_var_t type) {
+    assert(this->type != VT_GLOBAL);
+    assert(this->type == VT_UNRESOLVED || !ref.id);
 
-    type = VT_GLOBAL;
-    ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, nullptr);
+    ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, nullptr, type);
+    this->type = type;
     new_decl = true;
 }
 
@@ -273,13 +275,13 @@ bool VarRefNode::scanMembers(RSetHelper& rsh) {
 }
 
 GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo,
-        qore_var_t type) : VarRefNode(loc, n, 0, false, true, type) {
+        qore_var_t type) : VarRefNode(loc, n, nullptr, false, true, type) {
     explicit_scope = true;
     ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(loc, name, typeInfo, type);
 }
 
 GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char* n, QoreParseTypeInfo* parseTypeInfo,
-        qore_var_t type) : VarRefNode(loc, n, 0, false, true, type) {
+        qore_var_t type) : VarRefNode(loc, n, nullptr, false, true, type) {
     explicit_scope = true;
     ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, parseTypeInfo, type);
 }
@@ -324,15 +326,16 @@ AbstractQoreNode* VarRefDeclNode::makeNewCall(QoreValue args) {
     return rv;
 }
 
-void VarRefDeclNode::makeGlobal() {
+void VarRefDeclNode::makeGlobal(qore_var_t type) {
     // could be tagged as local if allow-bare-refs is enabled
-    assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS)));
+    assert(this->type == VT_UNRESOLVED || (this->type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS)));
 
-    type = VT_GLOBAL;
-    if (parseTypeInfo)
+    if (parseTypeInfo) {
         ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, takeParseTypeInfo(), type);
-    else
+    } else {
         ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(loc, name, typeInfo, type);
+    }
+    this->type = type;
     new_decl = true;
 }
 
