@@ -111,6 +111,7 @@ public class BarerefTest inherits QUnit::Test {
         our any c = 2.1;
         my (int a1, string b1, any c1) = (2, "four", "hi");
         our (int a2, string b2, any c2) = (4, "eight", "hello");
+        thread_local (int a3, string b3, auto c3) = (4, "eight", "hello");
 
         testAssertionValue("var test 1", a, 1);
         testAssertionValue("var test 2", b, "1");
@@ -121,14 +122,17 @@ public class BarerefTest inherits QUnit::Test {
         testAssertionValue("var test 7", a2, 4);
         testAssertionValue("var test 8", b2, "eight");
         testAssertionValue("var test 9", c2, "hello");
+        testAssertionValue("var test 10", a3, 4);
+        testAssertionValue("var test 11", b3, "eight");
+        testAssertionValue("var test 12", c3, "hello");
     }
 
     derefTest() {
         string a = "b";
-        hash h = (
+        hash h = {
             "a": "a",
             "b": "b",
-            );
+        };
 
         assertEq("a", h.a);
         # the following line should use the lvar a's value "b" to dereference the hash

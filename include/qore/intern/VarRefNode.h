@@ -76,7 +76,7 @@ protected:
     DLLLOCAL virtual const QoreTypeInfo* parseGetTypeInfo() const {
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
             return ref.id->parseGetTypeInfo();
-        if (type == VT_GLOBAL || VT_THREAD_LOCAL)
+        if (type == VT_GLOBAL || type == VT_THREAD_LOCAL)
             return ref.var->parseGetTypeInfo();
         return 0;
     }
@@ -85,7 +85,7 @@ protected:
         const QoreTypeInfo* rv;
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
             rv = ref.id->parseGetTypeInfoForInitialAssignment();
-        } else if (type == VT_GLOBAL || VT_THREAD_LOCAL) {
+        } else if (type == VT_GLOBAL || type == VT_THREAD_LOCAL) {
             rv = ref.var->parseGetTypeInfoForInitialAssignment();
         } else {
             rv = nullptr;
@@ -156,7 +156,7 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS)
             return ref.id->getTypeInfo();
-        if (type == VT_GLOBAL || VT_THREAD_LOCAL)
+        if (type == VT_GLOBAL || type == VT_THREAD_LOCAL)
             return ref.var->getTypeInfo();
         return 0;
     }
@@ -210,7 +210,7 @@ public:
         ref.id = nullptr;
     }
     // called when a list of variables is declared
-    DLLLOCAL virtual void makeGlobal();
+    DLLLOCAL virtual void makeGlobal(qore_var_t type);
 
     // takes the name - caller owns the memory
     DLLLOCAL char* takeName() {
@@ -329,7 +329,7 @@ public:
         assert(!parseTypeInfo);
         return typeInfo;
     }
-    DLLLOCAL virtual void makeGlobal();
+    DLLLOCAL virtual void makeGlobal(qore_var_t type);
 
     DLLLOCAL void parseInitCommon(LocalVar* oflag, int pflag, int& lvids, bool is_new = false);
 };

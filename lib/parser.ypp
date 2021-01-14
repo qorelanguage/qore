@@ -399,10 +399,12 @@ struct GVarListDecl : public GVarDecl {
                 VarRefNode* vrn = n.get<VarRefNode>();
                 if (!vrn->explicitScope()) {
                     VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
-                    if (vrdn)
-                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub, type);
-                    else
+                    if (vrdn) {
+                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(),
+                            vrdn->takeParseTypeInfo(), pub, type);
+                    } else {
                         ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub, type);
+                    }
                 }
             }
         }
@@ -425,8 +427,10 @@ struct GVarListDecl : public GVarDecl {
             } else if (t == NT_VARREF) {
                 vrn = n.get<VarRefNode>();
                 if (!vrn->explicitScope()) {
-                    vrn->makeGlobal();
+                    vrn->makeGlobal(type);
                     vrn->setExplicitScope();
+                    //printd(5, "GVarListDecl::makeVar() '%s' t: %d set global with explicit scope\n",
+                    //  vrn ? vrn->getName() : "n/a", type);
                 }
             }
 
