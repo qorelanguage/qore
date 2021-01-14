@@ -245,8 +245,8 @@ public:
 class GlobalVarRefNode : public VarRefNode {
 protected:
 public:
-    DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, Var* v, qore_var_t type = VT_GLOBAL)
-        : VarRefNode(loc, n, v, false, false, type) {
+    DLLLOCAL GlobalVarRefNode(const QoreProgramLocation* loc, char* n, Var* v)
+        : VarRefNode(loc, n, v, false, false, v && v->isThreadLocal() ? VT_THREAD_LOCAL : VT_GLOBAL) {
         explicit_scope = true;
     }
 

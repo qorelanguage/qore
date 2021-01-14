@@ -113,11 +113,13 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
         else
             type = VT_LOCAL;
 
-        printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id, in_closure);
+        printd(5, "VarRefNode::resolve(): local var %s resolved (id: %p, in_closure: %d)\n", name.ostr, ref.id,
+            in_closure);
     } else {
         ref.var = qore_root_ns_private::parseCheckImplicitGlobalVar(loc, name, typeInfo);
-        type = VT_GLOBAL;
-        printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p)\n", name.ostr, ref.var);
+        type = ref.var->isThreadLocal() ? VT_THREAD_LOCAL : VT_GLOBAL;
+        printd(5, "VarRefNode::resolve(): implicit global var %s resolved (var: %p type: %d)\n", name.ostr, ref.var,
+            type);
     }
 }
 
@@ -227,8 +229,8 @@ void VarRefNode::makeGlobal() {
     assert(type != VT_GLOBAL);
     assert(type == VT_UNRESOLVED || !ref.id);
 
-    type = VT_GLOBAL;
     ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, nullptr);
+    type = ref.var->isThreadLocal() ? VT_THREAD_LOCAL : VT_GLOBAL;
     new_decl = true;
 }
 
@@ -328,7 +330,6 @@ void VarRefDeclNode::makeGlobal() {
     // could be tagged as local if allow-bare-refs is enabled
     assert(type == VT_UNRESOLVED || (type == VT_LOCAL && parse_check_parse_option(PO_ALLOW_BARE_REFS)));
 
-    type = VT_GLOBAL;
     if (parseTypeInfo)
         ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, takeParseTypeInfo(), type);
     else

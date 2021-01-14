@@ -67,5 +67,12 @@ public class ThreadLocalVarTest inherits QUnit::Test {
 
         assertEq(NOTHING, q.get());
         assertEq(1, q.get());
+
+        test = sub (*int val) {
+            q.push(val);
+        };
+
+        background test(i);
+        assertEq(i, q.get());
     }
 }
