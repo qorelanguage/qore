@@ -765,11 +765,11 @@ void qore_socket_private::captureRemoteCert(X509_STORE_CTX* x509_ctx) {
     current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(), new QoreSSLCertificate(X509_dup(x509)));
 }
 
-#ifndef HAVE_POLL
-#error requires poll(): HAVE_POLL is not defined
-#endif
-
 QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeout_ms, ExceptionSink* xsink) {
+#ifndef HAVE_POLL
+    xsink->raiseException("MISSING-FEATURE-ERROR", "no support for async I/O polling on this platform");
+    return nullptr;
+#else
     ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclSocketPollInfo->getTypeInfo(false)), xsink);
 
     if (poll_list->empty()) {
@@ -870,6 +870,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
     }
 
     return rv.release();
+#endif
 }
 
 void QoreSocket::doException(int rc, const char* meth, int timeout_ms, ExceptionSink* xsink) {
