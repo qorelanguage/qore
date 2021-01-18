@@ -2,7 +2,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -27,46 +27,24 @@
     information.
 */
 
-#ifndef _QORE_MACROS_H
-#define _QORE_MACROS_H
+#ifndef _QORE_CONFIG_MACHINE_MACROS_H
 
-// include the right assembly macro file for the current architecture
+#define _QORE_CONFIG_MACHINE_MACROS_H
 
-#ifdef __i386
-#include <qore/macros-i386.h>
-#endif // #ifdef __i386
+#define STACK_DIRECTION_DOWN 1
 
-#ifdef __x86_64
-#include <qore/macros-x86_64.h>
-#endif // #ifdef __x86_64
+#ifdef __GNUC__
 
-#ifdef __sparc
-#include <qore/macros-sparc.h>
-#endif // #ifdef __sparc
+#define HAVE_CHECK_STACK_POS
 
-#if defined(__ppc) || defined(__ppc__)
-#include <qore/macros-powerpc.h>
-#endif // #ifdef __ppc
+#define QORE_STACK_GUARD (16 * 1024)
 
-#if defined(__ppc64) || defined(__ppc64__)
-#include <qore/macros-ppc64.h>
-#endif // #ifdef __ppc64
+static inline size_t get_stack_pos() {
+   size_t addr;
+   __asm("mr %0, r1" : "=r" (addr) );
+   return addr;
+}
 
-#ifdef __hppa
-#include <qore/macros-parisc.h>
-#endif // #ifdef __hppa
+#endif
 
-#ifdef __ia64
-#include <qore/macros-ia64.h>
-#endif // #ifdef __ia64
-
-#ifdef __arm__
-#include <qore/macros-arm.h>
-#endif // #ifdef __arm__
-
-#ifdef __aarch64__
-#include <qore/macros-aarch64.h>
-#endif // #ifdef __aarch64__
-
-#endif // #ifndef _QORE_MACROS_H
-
+#endif
