@@ -4,7 +4,7 @@
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -149,8 +149,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             if (d->members.size() > 0) {
                 for (size_t i = 0, count = d->members.size(); i < count; i++)
                     printExpression(os, d->members[i], indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;
@@ -164,8 +163,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             if (d->declarations.size() > 0) {
                 for (size_t i = 0, count = d->declarations.size(); i < count; i++)
                     printDeclaration(os, d->declarations[i], indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;
@@ -194,8 +192,7 @@ void AstTreePrinter::printDeclaration(std::ostream& os, ASTDeclaration* decl, in
             printModifiers(os, d->modifiers, indent+1);
             if (d->variables.get()) {
                 printExpression(os, d->variables.get(), indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;
@@ -269,8 +266,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             printLocation(os, e->loc, 0);
             if (e->defaultCase) {
                 printString(os, "<default case>\n", indent+1);
-            }
-            else {
+            } else {
                 printString(os, "op: ", indent+1);
                 printOperator(os, e->op, 0, true);
                 printString(os, "caseExpr:\n", indent+1);
@@ -409,8 +405,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             if (e->elements.size() > 0) {
                 for (size_t i = 0, count = e->elements.size(); i < count; i++)
                     printExpression(os, e->elements[i], indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;
@@ -523,8 +518,7 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             if (e->cases.size() > 0) {
                 for (size_t i = 0, count = e->cases.size(); i < count; i++)
                     printExpression(os, e->cases[i], indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;
@@ -586,6 +580,12 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
         if (notFirst)
             os << " ";
         os << "our";
+        notFirst = true;
+    }
+    if (mods.contains(AM_ThreadLocal)) {
+        if (notFirst)
+            os << " ";
+        os << "thread_local";
         notFirst = true;
     }
     if (mods.contains(AM_My)) {
@@ -653,8 +653,7 @@ void AstTreePrinter::printName(std::ostream& os, ASTName& name, int indent, bool
     if (location) {
         os <<  "\" ";
         printLocation(os, name.loc, 0, newline);
-    }
-    else {
+    } else {
         os <<  "\"";
         if (newline)
             os << "\n";
@@ -880,8 +879,7 @@ void AstTreePrinter::printStatement(std::ostream& os, ASTStatement* stmt, int in
             if (s->statements.size() > 0) {
                 for (size_t i = 0, count = s->statements.size(); i < count; i++)
                     printStatement(os, s->statements[i], indent+1);
-            }
-            else {
+            } else {
                 printString(os, "<empty>\n", indent+1);
             }
             break;

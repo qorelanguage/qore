@@ -592,9 +592,8 @@ gvardecl:
             $$ = new ASTVarListDeclaration(mods, $4);
             $$->loc.set(@1, @5);
         }
-        |
-        ppub TOK_THREAD_LOCAL uncqtypedef SCOPED_REF {
-            ASTModifiers mods(ASTModifier::AM_Our);
+        | ppub TOK_THREAD_LOCAL uncqtypedef SCOPED_REF {
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -609,7 +608,7 @@ gvardecl:
             $$->loc.set(@1, @4);
         }
         | ppub TOK_THREAD_LOCAL SCOPED_REF {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -621,7 +620,7 @@ gvardecl:
             $$->loc.set(@1, @3);
         }
         | ppub TOK_THREAD_LOCAL uncqtypedef IDENTIFIER {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -636,7 +635,7 @@ gvardecl:
             $$->loc.set(@1, @4);
         }
         | ppub TOK_THREAD_LOCAL IDENTIFIER {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -648,7 +647,7 @@ gvardecl:
             $$->loc.set(@1, @3);
         }
         | ppub TOK_THREAD_LOCAL qtypedef SCOPED_VREF {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -666,7 +665,7 @@ gvardecl:
             $$->loc.set(@1, @4);
         }
         | ppub TOK_THREAD_LOCAL qtypedef VAR_REF {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             if ($1)
                 mods.add(ASTModifier::AM_Public);
             mods.loc.set(@1, @2);
@@ -684,7 +683,7 @@ gvardecl:
             $$->loc.set(@1, @4);
         }
         | ppub TOK_THREAD_LOCAL '(' list ')' {
-            ASTModifiers mods(ASTModifier::AM_Our);
+            ASTModifiers mods(ASTModifier::AM_ThreadLocal);
             $$ = new ASTVarListDeclaration(mods, $4);
             $$->loc.set(@1, @5);
         }
