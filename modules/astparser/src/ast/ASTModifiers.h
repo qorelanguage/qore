@@ -4,7 +4,7 @@
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,12 +41,13 @@ enum ASTModifier {
     AM_Static              = 1 << 3,   //!< The `static` modifier.
     AM_Synchronized        = 1 << 4,   //!< The `synchronized` modifier.
     AM_Our                 = 1 << 5,   //!< The `our` modifier.
-    AM_My                  = 1 << 6,   //!< The `my` modifier.
-    AM_Public              = 1 << 7,   //!< The `public` modifier.
-    AM_Private             = 1 << 8,   //!< The `private` modifier.
-    AM_PrivateHierarchy    = 1 << 9,   //!< The `private:hierarchy` modifier.
-    AM_PrivateInternal     = 1 << 10,   //!< The `private:internal` modifier.
-    AM_Transient           = 1 << 11,   //!< The `transient` modifier.
+    AM_ThreadLocal         = 1 << 6,   //!< The `thread_local` modifier.
+    AM_My                  = 1 << 7,   //!< The `my` modifier.
+    AM_Public              = 1 << 8,   //!< The `public` modifier.
+    AM_Private             = 1 << 9,   //!< The `private` modifier.
+    AM_PrivateHierarchy    = 1 << 10,   //!< The `private:hierarchy` modifier.
+    AM_PrivateInternal     = 1 << 11,   //!< The `private:internal` modifier.
+    AM_Transient           = 1 << 12,   //!< The `transient` modifier.
 };
 
 class ASTModifiers : public ASTNode {

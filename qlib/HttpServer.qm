@@ -1929,7 +1929,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
 
         try {
-            if (hdr.expect) {
+            if (!handler && defaultHandler) {
+                handler = defaultHandler.obj;
+                cx.handler_name = defaultHandler.name;
+            }
+
+            if (handler && hdr.expect) {
                 if (hdr.expect == "100-continue") {
                     hash<HttpResponseInfo> resp = handler.handleExpectHeader(cx, hdr);
                     sendReply(listener, s, handler, resp, \cx, hdr, head, \dedicated);
@@ -1979,11 +1984,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             #printf("HTTP DEBUG: B: handler: %y strict-bool-eval: %y\n", cx.handler_name, get_parse_options() & PO_STRICT_BOOLEAN_EVAL);
             #printf("HTTP DEBUG: B: handler: %y: context: %y, hdr: %y, body: %y\n", cx.handler_name, cx, hdr, body);
             #printf("HTTP DEBUG: BEFORE handler=%s", dbg_node_info(handlers.(cx.handler_name)));
-
-            if (!handler && defaultHandler) {
-                handler = defaultHandler.obj;
-                cx.handler_name = defaultHandler.name;
-            }
 
             #printf("HTTP DEBUG: A: cid: %d handler: %y auth: %y\n", cx.id, cx.handler_name, boolean(handler.auth));
 
@@ -2380,7 +2380,11 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         }
 
         # save socket port/path
-        socket_info = getSocketInfo() + {"ssl": ssl};
+        socket_info = getSocketInfo() + {
+            "ssl": ssl,
+            "name": name,
+            "id": id,
+        } + opts.ext_info;
 
         # make 'desc' key for logging
         socket_info.desc = socket_info.address_desc;
