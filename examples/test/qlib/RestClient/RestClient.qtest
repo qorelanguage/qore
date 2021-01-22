@@ -81,10 +81,6 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
     }
 }
 
-sub log(string str) {
-    delete argv;
-}
-
 public class Main inherits QUnit::Test {
     private {
         HttpServer m_http;
@@ -106,7 +102,15 @@ public class Main inherits QUnit::Test {
     }
 
     setUp() {
-        m_http = new HttpServer(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        m_http = new HttpServer(http_opts);
         m_http.setHandler("/api_text", "/api_text", MimeTypeText, new SimpleStringHandler(MimeTypeText, VALUE_TEXT.input));
         m_http.setHandler("/api_xml", "/api_xml", MimeTypeXmlApp, new SimpleStringHandler(MimeTypeXmlApp, VALUE_XML.input));
         m_http.setHandler("/api_rpc", "/api_rpc", MimeTypeXml, new SimpleStringHandler(MimeTypeXml, VALUE_XMLRPC.input));
@@ -266,3 +270,17 @@ public class Main inherits QUnit::Test {
         });
     }
 } # class Main
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
+    }
+}

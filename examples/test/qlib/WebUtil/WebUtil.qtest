@@ -8,16 +8,13 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/WebUtil.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class WebUtilTest
-
-sub log(string str) {
-    printf("", argv);
-}
 
 class TestFileHandler inherits FileHandler {
     public {
@@ -67,12 +64,20 @@ public class WebUtilTest inherits QUnit::Test {
             stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
             assertTrue(True);
         }
-
     }
 
     fileHandlerTest() {
         TestFileHandler fh(get_script_dir());
-        HttpServer server(\log(), \log());
+
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        HttpServer server(http_opts);
         server.setHandler("fh", "/", MimeTypeHtml, fh);
         server.setDefaultHandler("fh", fh);
         int port = server.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
@@ -97,5 +102,19 @@ public class WebUtilTest inherits QUnit::Test {
         respHdr."content-type" =~ s/;.*//;
         assertEq(MimeTypeHtml, respHdr."content-type");
         assertTrue(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

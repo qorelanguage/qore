@@ -132,7 +132,7 @@ public class GetFileFromUrlTest inherits QUnit::Test {
         try {
             file_data = get_file_from_url(url, options);
         } catch (hash<ExceptionInfo> ex) {
-            testSkip("cannot sun SFTP retrieval tests with URL %y: %s: %s", url, ex.err, ex.desc);
+            testSkip("cannot run SFTP retrieval tests with URL %y: %s: %s", url, ex.err, ex.desc);
         }
 
         assertEq(NT_STRING, file_data.typeCode());
