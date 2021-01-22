@@ -372,7 +372,6 @@ void ConstantList::mergeUserPublic(const ConstantList& src) {
         assert(!inList(i->first));
 
         ConstantEntry* n = new ConstantEntry(*i->second);
-        n->pub = false;
         cnemap[n->getName()] = n;
     }
 }
