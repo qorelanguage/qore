@@ -329,6 +329,8 @@ struct pgmloc_vec_t : public std::vector<QoreProgramLocation*> {
     }
 };
 
+typedef std::set<const char*, ltstr> charptrset_t;
+
 class qore_program_private_base {
     friend class QoreProgramAccessHelper;
 
@@ -367,7 +369,7 @@ public:
     // features present in this Program object
     CharPtrList featureList;
     // user modules present in this Program object
-    CharPtrList userFeatureList;
+    charptrset_t userFeatureList;
 
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
@@ -906,8 +908,9 @@ public:
         for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
             l->push(new QoreStringNode(*i), nullptr);
 
-        for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i), nullptr);
+        for (auto& i : userFeatureList) {
+            l->push(new QoreStringNode(i), nullptr);
+        }
 
         return l;
     }
@@ -1851,14 +1854,19 @@ public:
         }
     }
 
-    DLLLOCAL void addUserFeature(const char* f) {
+    DLLLOCAL int addUserFeature(const char* f) {
         //printd(5, "qore_program_private::addUserFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
-        assert(!userFeatureList.find(f));
-        userFeatureList.push_back(f);
+        charptrset_t::iterator i = userFeatureList.lower_bound(f);
+        if (i != userFeatureList.end() && !strcmp(f, *i)) {
+            return -1;
+        }
+
+        userFeatureList.insert(i, f);
+        return 0;
     }
 
     DLLLOCAL void removeUserFeature(const char* f) {
-        CharPtrList::iterator i = userFeatureList.safe_dslist<std::string>::find(f);
+        charptrset_t::iterator i = userFeatureList.find(f);
         assert(i != userFeatureList.end());
         userFeatureList.erase(i);
     }
@@ -1982,10 +1990,6 @@ public:
 
     DLLLOCAL static void clearThreadData(QoreProgram& pgm, ExceptionSink* xsink) {
         pgm.priv->clearThreadData(xsink);
-    }
-
-    DLLLOCAL static void addUserFeature(QoreProgram& pgm, const char* f) {
-        pgm.priv->addUserFeature(f);
     }
 
     DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {

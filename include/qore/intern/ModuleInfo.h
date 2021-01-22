@@ -81,7 +81,7 @@ public:
     }
 
     DLLLOCAL const char* operator*() const {
-        return ver.getBuffer();
+        return ver.c_str();
     }
 };
 
@@ -140,7 +140,7 @@ public:
     }
 
     DLLLOCAL virtual ~QoreAbstractModule() {
-        //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.getBuffer());
+        //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.c_str());
         if (next) {
             assert(next->prev == this);
             next->prev = prev;
@@ -152,11 +152,11 @@ public:
     }
 
     DLLLOCAL const char* getName() const {
-        return name.getBuffer();
+        return name.c_str();
     }
 
     DLLLOCAL const char* getFileName() const {
-        return filename.getBuffer();
+        return filename.c_str();
     }
 
     DLLLOCAL const QoreString& getFileNameStr() const {
@@ -164,7 +164,7 @@ public:
     }
 
     DLLLOCAL const char* getDesc() const {
-        return desc.getBuffer();
+        return desc.c_str();
     }
 
     DLLLOCAL const char* getVersion() const {
@@ -172,11 +172,11 @@ public:
     }
 
     DLLLOCAL const char* getURL() const {
-        return url.getBuffer();
+        return url.c_str();
     }
 
     DLLLOCAL const char* getOrigName() const {
-        return orig_name.empty() ? 0 : orig_name.getBuffer();
+        return orig_name.empty() ? nullptr : orig_name.c_str();
     }
 
     DLLLOCAL void resetName() {
@@ -389,7 +389,7 @@ public:
                 str.sprintf("'%s',", (*si).c_str());
             str.concat("]");
 
-            printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.getBuffer());
+            printd(0, " + %s '%s' -> %s\n", name, i->first.c_str(), str.c_str());
         }
     }
 #endif
@@ -568,7 +568,7 @@ public:
             for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
                 str.sprintf("'%s',", (*si).c_str());
             str.concat("]");
-            //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
+            //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.c_str());
         }
         */
 #endif
@@ -647,7 +647,8 @@ public:
     }
 
     DLLLOCAL virtual ~QoreBuiltinModule() {
-        printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
+        printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.c_str(),
+            filename.c_str(), module_delete);
         module_delete();
         // we do not close binary modules because we may have thread local data that needs to be
         // destroyed when exit() is called

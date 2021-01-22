@@ -377,7 +377,11 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
         return;
     }
     // issue #3592: must add feature first
-    qore_program_private::addUserFeature(*tpgm, name.c_str());
+    if (qore_program_private::get(*tpgm)->addUserFeature(name.c_str())) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
+            "this Program container", filename.c_str(), name.c_str());
+        return;
+    }
 
     QoreModuleContextHelper qmc(name.c_str(), tpgm, xsink);
     ProgramThreadCountContextHelper ptcch(&xsink, tpgm, false);
@@ -984,7 +988,11 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         mpgm->setScriptPath(modulePath.c_str());
     }
     // issue #3592: must add feature first
-    qore_program_private::addUserFeature(*mpgm, feature);
+    if (qore_program_private::get(*mpgm)->addUserFeature(feature)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
+            "this Program container", path.c_str(), feature);
+        return nullptr;
+    }
 
     std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(td, modulePath.c_str(), feature, mpgm,
         load_opt, warning_mask));
@@ -1247,7 +1255,11 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
         pgm = new QoreProgram(po);
     }
     // issue #3592: add feature to module container program immediately
-    qore_program_private::get(*pgm)->addUserFeature(feature);
+    if (qore_program_private::get(*pgm)->addUserFeature(feature)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
+            "this Program container", path, feature);
+        return nullptr;
+    }
 
     //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD
     //  " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po,
@@ -1306,7 +1318,11 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
         pgm = new QoreProgram(po);
     }
     // issue #3592: add feature to module container program immediately
-    qore_program_private::get(*pgm)->addUserFeature(feature);
+    if (qore_program_private::get(*pgm)->addUserFeature(feature)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
+            "this Program container", path, feature);
+        return nullptr;
+    }
 
     std::unique_ptr<QoreUserModule> mi(new QoreUserModule(nullptr, path, feature, pgm, QMLO_NONE));
 
