@@ -9,6 +9,7 @@
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/Mime.qm
 %requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/Logger.qm
 %requires ../../../../../qlib/HttpServerUtil.qm
 %requires ../../../../../qlib/HttpServer.qm
 
@@ -153,7 +154,8 @@ class RealTestHttpServer inherits HttpServer {
         int port;
     }
 
-    constructor(*string cert_path, *string key_path, *hash<HttpListenerOptionInfo> listener_opts) : HttpServer(\RealTestHttpServer::log(), \RealTestHttpServer::log()) {
+    constructor(*string cert_path, *string key_path, *hash<HttpListenerOptionInfo> listener_opts)
+            : HttpServer(RealTestHttpServer::getOptions()) {
         setDefaultHandler("echo-handler", eh);
         if (!listener_opts) {
             listener_opts = <HttpListenerOptionInfo>{};
@@ -170,10 +172,15 @@ class RealTestHttpServer inherits HttpServer {
         return port;
     }
 
-    static log(string fmt) {
+    hash<HttpServerOptionInfo> getOptions() {
+        Logger logger("test", LoggerLevel::getLevelInfo());
         if (Main::verbose > 2) {
-            vprintf("HTTP: " + fmt + "\n", argv);
+            logger.addAppender(new TestAppender());
         }
+        return <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
     }
 }
 
@@ -867,5 +874,19 @@ class TempFile {
 
     string getPath() {
         return path;
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }
