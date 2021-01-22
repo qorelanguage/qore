@@ -22,9 +22,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.10
+%requires qore >= 0.10.0
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
+%requires Logger
 
 %new-style
 %require-types
@@ -32,7 +33,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "0.9.11";
+    version = "0.10.0";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -45,34 +46,58 @@ module HttpServerUtil {
 
     @section httpserverutilintro HttpServerUtil Introduction
 
-    The %HttpServerUtil module provides a base code for the <a href="../../HttpServer/html/index.html">HttpServer</a> module and code requiring HttpServer definitions but not the entire <a href="../../HttpServer/html/index.html">HttpServer</a> module itself.
+    The %HttpServerUtil module provides a base code for the <a href="../../HttpServer/html/index.html">HttpServer</a>
+    module and code requiring HttpServer definitions but not the entire
+    <a href="../../HttpServer/html/index.html">HttpServer</a> module itself.
 
     To use this module, use \c "%requires HttpServerUtil" in your code.
 
     All the public symbols in the module are defined in the HttpServer namespace
 
     The main classes are:
-    - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and authorization info to the server
-    - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to provide the real work of the HttpServer handling connections
-    - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to implement a dedicated socket handler for protcol changes (for an example, see the <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
-    - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes providing basic logging methods
-    - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP chunked requests and responses
-    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes that serve requests anchored at a particular URL
-    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstract class provides the interface for the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a> module
-    - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator that accepts all requests
+    - @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator": can be implemented to provide authentication and
+      authorization info to the server
+    - @ref HttpServer::AbstractHttpRequestHandler "AbstractHttpRequestHandler": this class must be subclassed to
+      provide the real work of the HttpServer handling connections
+    - @ref HttpServer::AbstractHttpSocketHandler "AbstractHttpSocketHandler": this class must be subclassed to
+      implement a dedicated socket handler for protcol changes (for an example, see the
+      <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a> module)
+    - @ref HttpServer::AbstractLogger "AbstractLogger": this abstract class provides an interface for classes
+      providing basic logging methods
+    - @ref HttpServer::AbstractStreamRequest "AbstractStreamRequest": this class is used to directly handle HTTP
+      chunked requests and responses
+    - @ref HttpServer::AbstractUrlHandler "AbstractUrlHandler": this class serves as a base class for handler classes
+      that serve requests anchored at a particular URL
+    - @ref HttpServer::HttpListenerInterface "HttpListenerInterface": this abstract class provides the interface for
+      the private HttpListener class implemented in the <a href="../../HttpServer/html/index.html">HttpServer</a>
+      module
+    - @ref HttpServer::PermissiveAuthenticator "PermissiveAuthenticator": this class implements a dummy authenticator
+      that accepts all requests
 
     See also:
-    - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
-    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
-    - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
-    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
+    - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this
+      module for implementing server-side REST services
+    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework
+      for this module for implementing server-side WebSocket services
+    - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this
+      module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml
+      files which are a mix of HTML and Qore code)
+    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>:
+      provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>:
+      provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>:
+      provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides
+      infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
-    @subsection httputil095 HttpServerUtil 0.9.11
+    @subsection httputil0_10_0 HttpServerUtil 0.10.0
+    - added support for the Logger module for logging
+      (<a href="https://github.com/qorelanguage/qore/issues/4157">issue 4157</a>)
+
+    @subsection httputil0911 HttpServerUtil 0.9.11
     - fixed a bug where it was not possible to include CORS headers or any context-sensitive information in a 401
       response
       (<a href="https://github.com/qorelanguage/qore/issues/4136">issue 4136</a>)
@@ -88,11 +113,14 @@ module HttpServerUtil {
       (<a href="https://github.com/qorelanguage/qore/issues/3702">issue 3702</a>)
 
     @subsection httputil03121 HttpServerUtil 0.3.12.1
-    - improved sensitive data masking in log messages (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
+    - improved sensitive data masking in log messages
+      (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
 
     @subsection httputil0312 HttpServerUtil 0.3.12
-    - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
-    - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
+    - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
+    - added logic to allow sensitive data to be masked in log messages
+      (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
     - updated for complex types (<a href="https://github.com/qorelanguage/qore/issues/1724">issue 1724</a>)
     - moved @ref HttpServer::parse_uri_query() to the @ref utilintro "Util" module
 
@@ -104,11 +132,15 @@ module HttpServerUtil {
 
     @subsection httputil0311 HttpServerUtil 0.3.11
     - initial version of the module
-    - implemented support for notifying persistent connections when the connection is terminated while a persistent connection is in place
+    - implemented support for notifying persistent connections when the connection is terminated while a persistent
+      connection is in place
     - removed unused AbstractStreamRequestHandler class
-    - fixed @ref HttpServer::parse_uri_query() to always return \a params as a hash (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
-    - added \c root_path to the context hash if the path was matched by a URL path prefix (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
-    - implemented support for custom timeout values in stream handlers (<a href="https://github.com/qorelanguage/qore/issues/719">issue 719</a>)
+    - fixed @ref HttpServer::parse_uri_query() to always return \a params as a hash
+      (<a href="https://github.com/qorelanguage/qore/issues/569">issue 569</a>)
+    - added \c root_path to the context hash if the path was matched by a URL path prefix
+      (<a href="https://github.com/qorelanguage/qore/issues/570">issue 570</a>)
+    - implemented support for custom timeout values in stream handlers
+      (<a href="https://github.com/qorelanguage/qore/issues/719">issue 719</a>)
  */
 
 #! the main namespace for the HttpServer and HttpServerUtil modules
@@ -154,10 +186,12 @@ public const HttpCodes = {
     "205": "Reset Content",
     "206": "Partial Content",
 
-    # RFC 4918: WebDAV: The message body that follows is an XML message and can contain a number of separate response codes, depending on how many sub-requests were made
+    # RFC 4918: WebDAV: The message body that follows is an XML message and can contain a number of separate response
+    #           codes, depending on how many sub-requests were made
     "207": "Multi-Status",
 
-    # RFC 5842: WebDAV: The members of a DAV binding have already been enumerated in a previous reply to this request, and are not being included again
+    # RFC 5842: WebDAV: The members of a DAV binding have already been enumerated in a previous reply to this request,
+    #           and are not being included again
     "208": "Already Reported",
 
     # RFC 3229
@@ -208,16 +242,20 @@ public const HttpCodes = {
     # RFC 4918: WebDAV: The request failed due to failure of a previous request (e.g. a PROPPATCH)
     "424": "Failed Dependency",
 
-    # Internet draft: Defined in drafts of "WebDAV Advanced Collections Protocol", but not present in "Web Distributed Authoring and Versioning (WebDAV) Ordered Collections Protocol"
+    # Internet draft: Defined in drafts of "WebDAV Advanced Collections Protocol", but not present in "Web Distributed
+    #                 Authoring and Versioning (WebDAV) Ordered Collections Protocol"
     "425": "Unordered Collection",
 
     # RFC 2817: The client should switch to a different protocol such as TLS/1.0
     "426": "Upgrade Required",
 
-    # RFC 6585: The origin server requires the request to be conditional. Intended to prevent "the 'lost update' problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when meanwhile a third party has modified the state on the server, leading to a conflict."
+    # RFC 6585: The origin server requires the request to be conditional. Intended to prevent "the 'lost update'
+    #           problem, where a client GETs a resource's state, modifies it, and PUTs it back to the server, when
+    #           meanwhile a third party has modified the state on the server, leading to a conflict."
     "428": "Precondition Required",
 
-    # RFC 6585: The user has sent too many requests in a given amount of time. Intended for use with rate limiting schemes
+    # RFC 6585: The user has sent too many requests in a given amount of time. Intended for use with rate limiting
+    #           schemes
     "429": "Too Many Requests",
 
     # RFC 6585
@@ -235,7 +273,9 @@ public const HttpCodes = {
     # RFC 2774: Further extensions to the request are required for the server to fulfill it
     "510": "Not Extended",
 
-    # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot)
+    # RFC 6585: The client needs to authenticate to gain network access. Intended for use by intercepting proxies used
+    #           to control access to the network (e.g. "captive portals" used to require agreement to Terms of Service
+    #           before granting full Internet access via a Wi-Fi hotspot)
     "511": "Network Authentication Required",
 };
 
@@ -285,7 +325,7 @@ public hashdecl HttpResponseInfo {
     #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
     string errlog;
 
-    #! additional information to be added to the context (cx) variable's \a user_state key if the connection is not closed
+    #! additional info to be added to the context (cx) variable's \a user_state key if the connection is not closed
     *hash<auto> user_state;
 }
 
@@ -312,7 +352,7 @@ public hashdecl HttpHandlerResponseInfo {
     #! a string can be returned here which will be logged in the HTTP server's error log file (if any)
     string errlog;
 
-    #! additional information to be added to the context (cx) variable's \a user_state key if the connection is not closed
+    #! additional info to be added to the context (cx) variable's \a user_state key if the connection is not closed
     *hash<auto> user_state;
 }
 
@@ -344,11 +384,8 @@ public hashdecl HttpListenerOptionInfo {
     #! handler info
     *hash<string, hash<HttpHandlerConfigInfo>> handler_info;
 
-    #! logger info logger closure
-    *code logger;
-
-    #! errorlogger error logger closure
-    *code errorlogger;
+    #! logger
+    *Logger logger;
 
     #! stopc stop notification closure
     *code stopc;
@@ -396,7 +433,8 @@ public hashdecl HttpHandlerConfigInfo {
 
 #! returns a complete URL from a bind address
 /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
-    @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
+    @param host the hostname to use in case the bind string is only a port number; if none is passed or the value
+    passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
 */
 public string sub http_get_url_from_bind(softstring bind, *string host) {
     hash h = parse_url(bind);
@@ -429,8 +467,9 @@ public string sub http_get_url_from_bind(softstring bind, *string host) {
                     h.port ? sprintf(":%d", h.port) : "");
 }
 
-#! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
-/** @param path the URI path to parse
+#! parses a URI path for a arguments and a method
+/** @param path the URI path to parse; where the method is the part of the path before the first \c "?" character, and
+    arguments are after
 
     @return a @ref Util::UriQueryInfo hash
 
@@ -509,7 +548,8 @@ public string sub http_mask_data(string msg) {
 
     @return a listener option info hash
 */
-public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, *softstring service, *string cert_path, *string key_path, *string key_password) {
+public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, *softstring service,
+        *string cert_path, *string key_path, *string key_password) {
     hash<HttpListenerOptionInfo> rv({
         "node": node,
         "service": service,
@@ -528,7 +568,8 @@ public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, 
 
     @return a listener option info hash
 */
-public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_path, *string key_path, *string key_password) {
+public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_path,
+        *string key_path, *string key_password) {
     hash<HttpListenerOptionInfo> rv();
     if (cert_path) {
         rv += http_get_ssl_objects(cert_path, key_path, key_password);
@@ -552,7 +593,8 @@ public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*sof
 
     @return a listener option info hash
 */
-public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, hash<auto> listener_params, hash<HttpListenerOptionInfo> opts = <HttpListenerOptionInfo>{}) {
+public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind,
+        hash<auto> listener_params, hash<HttpListenerOptionInfo> opts = <HttpListenerOptionInfo>{}) {
     hash<HttpCertInfo> cert_info = http_get_ssl_objects(listener_params);
     if (cert_info.cert) {
         opts += cert_info;
@@ -580,7 +622,8 @@ public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*sof
 */
 public hash<HttpCertInfo> sub http_get_ssl_objects(hash<auto> listener_params) {
     if (listener_params.cert_path && !listener_params.cert) {
-        return http_get_ssl_objects(listener_params.cert_path, listener_params.key_path, listener_params.key_password);
+        return http_get_ssl_objects(listener_params.cert_path, listener_params.key_path,
+            listener_params.key_password);
     }
 
     hash<HttpCertInfo> ssl_info();
@@ -679,12 +722,14 @@ public hash<HttpCertInfo> sub http_get_ssl_objects(string cert_path, *string key
 #! this abstract class defines the interface for classes that provide logging methods
 public class AbstractLogger {
     #! called to log information to the registered log code
-    /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with vsprintf()
+    /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with
+        vsprintf()
     */
     abstract log(string fmt);
 
     #! called to log error information to the registered error log code
-    /** @param fmt the error message to log, can be a format string, in which case additional arguments are processed with vsprintf()
+    /** @param fmt the error message to log, can be a format string, in which case additional arguments are processed
+        with vsprintf()
     */
     abstract logError(string fmt);
 
@@ -708,12 +753,14 @@ public class AbstractLogger {
 #! this abstract class defines the public interface of the private HttpListener class defined in the HttpServer module
 public class HttpListenerInterface inherits AbstractLogger {
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
-    /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
+    /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this
+        listener
     */
     abstract addUserThreadContext(hash<auto> uctx);
 
-    #! removes the given key from the \c "uctx" context key; if no argument is provided, then the \c "uctx" context hash is removed entirely
-    /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx" context hash is removed entirely
+    #! removes the given key from the \c "uctx" context key
+    /** @param k the key to remove from the \c "uctx" context hash; if no argument is provided, then the \c "uctx"
+        context hash is removed entirely
     */
     abstract auto removeUserThreadContext(*string k);
 
@@ -731,7 +778,8 @@ public class HttpListenerInterface inherits AbstractLogger {
 */
 public class AbstractAuthenticator {
     #! called to check if the connection requires authentication
-    /** @return @ref True "True" if authentication is enabled, @ref False "False" if not (@ref False "False" is the default value returned)
+    /** @return @ref True "True" if authentication is enabled, @ref False "False" if not (@ref False "False" is the
+        default value returned)
     */
     bool requiresAuthentication() {
         return False;
@@ -749,17 +797,22 @@ public class AbstractAuthenticator {
         @param user the username to authenticate
         @param pass the password for the user
 
-        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must be overridden in child classes; this parent method will never throw any exceptions; all connections are accepted by default)
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (must
+        be overridden in child classes; this parent method will never throw any exceptions; all connections are
+        accepted by default)
     */
     authenticate(string user, string pass = "") {
     }
 
     #! called when the connection requires authentication, but no authentication credentials were supplied, to try to authenticate the connection based on the source IP address
-    /** This method will only be called if requiresAuthentication() returns @ref True "True" and no authentication credentials are supplied with the request
+    /** This method will only be called if requiresAuthentication() returns @ref True "True" and no authentication
+        credentials are supplied with the request
         @param ip the IP address of the source connection
-        @param user a reference to a string that will be populated with the username to use if the request can be authenticated based on the source IP address (this method returns the string \c "admin")
+        @param user a reference to a string that will be populated with the username to use if the request can be
+        authenticated based on the source IP address (this method returns the string \c "admin")
 
-        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated (however this base class method as implemented here will never throw any exceptions
+        @throw AUTHENTICATION-ERROR subclasses should throw this exception if the user cannot be authenticated
+        (however this base class method as implemented here will never throw any exceptions
     */
     authenticateByIP(string ip, reference<string> user) {
     }
@@ -797,7 +850,8 @@ public class AbstractAuthenticator {
     #! primary method called to authenticate each request
     /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
-        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was
+        identified and authorized; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
@@ -816,7 +870,8 @@ public class AbstractAuthenticator {
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by
+          @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
@@ -824,12 +879,14 @@ public class AbstractAuthenticator {
         - \c user: the current RBAC username (if any)
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
 
-        @return returns @ref nothing if there were no errors, otherwise returns a hash with the following keys to indicate an authentication or authorization error:
+        @return returns @ref nothing if there were no errors, otherwise returns a hash with the following keys to
+        indicate an authentication or authorization error:
         - \c "code": the HTTP response code
         - \c "body": the error message body
         - \c "hdr": an optional hash of headers for the error response
     */
-    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash<auto> hdr, reference<hash<auto>> cx) {
+    *hash<HttpResponseInfo> authenticateRequest(HttpListenerInterface listener, hash<auto> hdr,
+            reference<hash<auto>> cx) {
         #printf("HTTP DEBUG %s::authenticateRequest() called\n", self.className());
         if (!requiresAuthentication())
             return;
@@ -883,7 +940,8 @@ public class PermissiveAuthenticator inherits AbstractAuthenticator {
     #! primary method called to authenticate each request
     /** @param listener an HttpListenerInterface object for the listener serving the request for logging purposes
         @param hdr a hash of request headers
-        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was identified and authorized; this hash will have the following keys:
+        @param cx a reference to the call context hash; set the \c "user" key to the user name if a user was
+        identified and authorized; this hash will have the following keys:
         - \c header-info: a hash of information about the request header with the following keys:
           - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if
             any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will
@@ -966,7 +1024,8 @@ public class AbstractStreamRequest {
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param body any message body in the request already received from the incoming socket
     */
-    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body) {
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx,
+            hash<auto> hdr, auto body) {
         self.listener = listener;
         self.handler = handler;
         self.s = s;
@@ -1002,9 +1061,12 @@ public class AbstractStreamRequest {
     }
 
     #! called to either create the response hash or send a chunked response directly
-    /** This method calls getResponseHeaderMessageImpl() to get the response code, headers and optionally a response message body.
-        If a \c "Transfer-Encoding: chunked" header is included, then the response is sent chunked using the send() callback;
-        in this case the \c "reply_sent" key in the response is set to @ref True "True".
+    /** This method calls getResponseHeaderMessageImpl() to get the response code, headers and optionally a response
+        message body.
+
+        If a \c "Transfer-Encoding: chunked" header is included, then the response is sent chunked using the send()
+        callback; in this case the \c "reply_sent" key in the response is set to @ref True "True".
+
         Otherwise, any message body is immediately encoded (if accepted by the requestor).
     */
     private hash<HttpHandlerResponseInfo> sendResponse() {
@@ -1016,7 +1078,8 @@ public class AbstractStreamRequest {
         http_set_reply_headers(s, cx, \rv);
 
         # send chunked response
-        s.sendHTTPResponseWithCallback(\send(), rv."code", HttpServer::HttpCodes{rv."code"}, "1.1", rv.hdr, timeout_ms);
+        s.sendHTTPResponseWithCallback(\send(), rv."code", HttpServer::HttpCodes{rv."code"}, "1.1", rv.hdr,
+            timeout_ms);
         rv.reply_sent = True;
         listener.logResponse(cx, rv);
         return rv;
@@ -1026,8 +1089,10 @@ public class AbstractStreamRequest {
     /**
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent
+          immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed
+          when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
@@ -1049,7 +1114,10 @@ public class AbstractStreamRequest {
         recvImpl(v);
     }
 
-    #! this is the primary callback for sending chunked responses; first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if required
+    #! this is the primary callback for sending chunked responses
+    /** first sendImpl() is called to get the raw data, and then any chunked data is encoded by this method if
+        required
+    */
     private auto send() {
         auto v = sendImpl();
         switch (v.typeCode()) {
@@ -1076,13 +1144,17 @@ private logChunk(bool send, int size) {
     }
 
     #! this method should return the response message description hash
-    /** The default implementation in this class is to return a 501 Not Implemented response; override in subclasses to return a custom response.
-        Omit the \c "body" key to ensure that a chunked response is sent and the send() and sendImpl() callbacks are called.
+    /** The default implementation in this class is to return a 501 Not Implemented response; override in subclasses
+        to return a custom response.
+        Omit the \c "body" key to ensure that a chunked response is sent and the send() and sendImpl() callbacks are
+        called.
 
         @return a hash with the following keys:
         - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
-        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+        - \c "body": the message body to return in the response; if this key is returned, then the reply is sent
+          immediately; a chunked reply is not made, and send() and sendImpl() are not called
+        - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed
+          when the handler returns
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
         @note this method is called after the message body has been received
@@ -1097,21 +1169,33 @@ private logChunk(bool send, int size) {
 
     #! callback method for receiving chunked data; the default implementation in this base class does nothing
     /**
-        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
+        @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then
+        with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once
+        for each chunk; when the message has been received, then this method is called with a hash representing any
+        trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body
+        or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data
+        calls have the following keys:
         - \c "data": the string or binary data
-        - \c "chunked": @ref True "True" if the data was received with chunked transfer encoding, @ref False "False" if not
+        - \c "chunked": @ref True "True" if the data was received with chunked transfer encoding, @ref False "False"
+          if not
         .
         Header or trailer data is placed in a hash with the following keys:
-        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+        - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no
+          trailers were included in a chunked message
+        - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as,
+          for example, socket character encoding)
     */
     private nothing recvImpl(hash<auto> v) {
     }
 
-    #! callback method for sending chunked data; the default implementation in this base class does nothing and returns nothing
+    #! callback method for sending chunked data
     /**
-        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
-        */
+        The default implementation in this base class does nothing and returns nothing
+
+        @return The chunked HTTP data to send; this method must return either a string or a binary value each time it
+        is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can
+        be returned or simply @ref nothing which will close the chunked message
+    */
     private auto sendImpl() {
     }
 }
@@ -1119,8 +1203,8 @@ private logChunk(bool send, int size) {
 #! abstract class that all HTTP request handler objects must inherit from
 /** Reimplement handleRequest() in subclasses
 
-    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref True "True" in the constructor() method
-    and implement getStreamRequestImpl() to return the HTTP stream request handler.
+    For handlers supporting chunked data (both for receiving and sending), set \a stream to @ref True "True" in the
+    constructor() method and implement getStreamRequestImpl() to return the HTTP stream request handler.
 
     @see AbstractStreamRequest for information about HTTP stream request handlers
   */
@@ -1132,7 +1216,9 @@ public class AbstractHttpRequestHandler {
         #! if POSTed data should be decompressed automatically if there is content-encoding
         bool decompress = True;
 
-        #! if automatically decompressed POSTed data should be converted to a string (if @ref False "False", then it will be decompressed to a binary)
+        #! if automatically decompressed POSTed data should be converted to a string
+        /** if @ref False "False", then it will be decompressed to a binary
+        */
         bool decompress_to_string = True;
 
         #! if the handler supports streaming requests/responses with chunked data
@@ -1149,8 +1235,10 @@ public class AbstractHttpRequestHandler {
     }
 
     #! create the object optionally with the given AbstractAuthenticator
-    /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-        @param n_stream if @ref True "True" then stream (i.e. HTTP chunked) requests and responses are handled and getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
+    /** @param n_auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no
+        AbstractAuthenticator object is passed, then by default no authentication will be required
+        @param n_stream if @ref True "True" then stream (i.e. HTTP chunked) requests and responses are handled and
+        getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
       */
     constructor(*AbstractAuthenticator n_auth, softbool n_stream = False) {
         auth = n_auth;
@@ -1217,7 +1305,8 @@ public class AbstractHttpRequestHandler {
     private nothing checkPersistent(hash<auto> cx, hash<auto> hdr) {
         # Socket::readHTTPHeader() sets the value in cx.close according to the HTTP version and the Connection header
         if (cx.close)
-            throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP level is %y and the Connection header is %y", hdr.http_version, hdr.connection);
+            throw "PERSISTENT-ERROR", sprintf("a persistent connection cannot be granted because the requesting HTTP "
+                "level is %y and the Connection header is %y", hdr.http_version, hdr.connection);
     }
 
     #! Called if the request contains an \c "Expect: 100-continue" header
@@ -1327,7 +1416,8 @@ public class AbstractHttpRequestHandler {
     }
 
     #! top-level request handling method
-    hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+    hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr,
+            *data body) {
         # classic, non-streaming interface
         if (!stream) {
             auto rv = handleRequest(cx, hdr, body ?? getMessageBody(s, hdr, body));
@@ -1345,7 +1435,8 @@ public class AbstractHttpRequestHandler {
     }
 
     #! returns the AbstractStreamRequest object for handling chunked requests
-    private AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+    private AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx,
+            hash<auto> hdr, *data body) {
         return new AbstractStreamRequest(listener, self, s, cx, hdr, body);
     }
 
@@ -1354,7 +1445,9 @@ public class AbstractHttpRequestHandler {
         switch (content_encoding) {
             case "deflate":
             case "x-deflate":
-                return string_encoding ? uncompress_to_string(binary(body), string_encoding) : uncompress_to_binary(body);
+                return string_encoding
+                    ? uncompress_to_string(binary(body), string_encoding)
+                    : uncompress_to_binary(body);
             case "gzip":
             case "x-gzip":
                 return string_encoding ? gunzip_to_string(binary(body), string_encoding) : gunzip_to_binary(body);
@@ -1364,7 +1457,8 @@ public class AbstractHttpRequestHandler {
             case "identity":
                 return string_encoding ? binary_to_string(body, string_encoding) : body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", content_encoding);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y",
+            content_encoding);
     }
 
     #! encodes a message body with content-encoding
@@ -1379,18 +1473,22 @@ public class AbstractHttpRequestHandler {
             case "identity":
                 return body;
         }
-        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y", content_encoding);
+        throw "UNSUPPORTED-CONTENT-ENCODING", sprintf("don't know how to handle content-encoding %y",
+            content_encoding);
     }
 
     #! optionally retrieves and post-processes any message body
     *data getMessageBody(Socket s, hash<auto> hdr, *data body, bool decode = True) {
         if (!body && hdr."transfer-encoding" == "chunked") {
-            hdr += (hdr."content-encoding" ? s.readHTTPChunkedBodyBinary(timeout_ms) : s.readHTTPChunkedBody(timeout_ms));
+            hdr += (hdr."content-encoding"
+                ? s.readHTTPChunkedBodyBinary(timeout_ms)
+                : s.readHTTPChunkedBody(timeout_ms));
             body = remove hdr.body;
         }
 
         if (decode && body && hdr."content-encoding" && decompress)
-            body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body, decompress_to_string ? s.getEncoding() : NOTHING);
+            body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body,
+                decompress_to_string ? s.getEncoding() : NOTHING);
 
         return body;
     }
@@ -1415,7 +1513,8 @@ public class AbstractHttpRequestHandler {
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
         - \c socket-info: a hash of socket information for the listening socket (as returned by
           @ref Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by
+          @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
@@ -1457,7 +1556,9 @@ public class AbstractHttpRequestHandler {
                 else if (arg.typeCode() == NT_HASH && arg) {
                     args += "{";
                     args += foldl $1 + "," + $2,
-                        (map $1 == api.maskkey ? sprintf("%s: <masked>", $1) : sprintf("%s: %y", $1, arg.$1), keys arg);
+                        (map $1 == api.maskkey
+                            ? sprintf("%s: <masked>", $1)
+                            : sprintf("%s: %y", $1, arg.$1), keys arg);
                     args += "}, ";
                 } else
                     args += sprintf("%y, ", arg);
@@ -1470,15 +1571,17 @@ public class AbstractHttpRequestHandler {
         return sprintf("%s(%s)", msg, args);
     }
 
-    #! called before handleRequest() any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
-    /** @note the default implementation does nothing
-      */
+    #! called before handleRequest()
+    /** Any data returned here will be given to restoreThreadLocalData() after the handleRequest() call
+
+        @note the default implementation does nothing
+    */
     *hash<auto> saveThreadLocalData() {
     }
 
     #! called after handleRequest() with any data returned from saveThreadData()
     /** @note the default implementation does nothing
-      */
+    */
     restoreThreadLocalData(*hash<auto> data) {
     }
 
@@ -1570,7 +1673,8 @@ public class AbstractHttpRequestHandler {
     }
 
     #! generates a redirect hash for the given path
-    static hash<HttpResponseInfo> redirect(hash<auto> cx, hash<auto> request_hdr, string path, int status_code = 301, *hash<auto> response_hdr) {
+    static hash<HttpResponseInfo> redirect(hash<auto> cx, hash<auto> request_hdr, string path, int status_code = 301,
+            *hash<auto> response_hdr) {
         # make sure no forward slashes are doubled in the path
         path =~ s/\/+/\//g;
         string uri = sprintf("http%s://%s/%s", cx.ssl ? "s" : "", request_hdr.host, path);
@@ -1591,7 +1695,8 @@ public class AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler 
 
     #! creates the object based on the URL root and optional authenticator
     /** @param n_url_root the root part of the URL path without the leading \c "/"
-        @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
+        @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no
+        AbstractAuthenticator object is passed, then by default no authentication will be required
      */
     constructor(string n_url_root, *AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
         if (n_url_root =~ /\//)
@@ -1599,7 +1704,10 @@ public class AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler 
         url_root = n_url_root;
     }
 
-    #! returns the relative path anchored from the url_root if possible; URI query arguments are stripped off, if the url_root cannot be matched then the path is returned with URI query arguments removed
+    #! returns the relative path anchored from the url_root if possible
+    /** URI query arguments are stripped off, if the url_root cannot be matched then the path is returned with URI
+        query arguments removed
+    */
     string getRelativePath(string path) {
         if (url_root && path.equalPartialPath(url_root))
             path = path.substr(url_root.size() + 1);
@@ -1616,13 +1724,15 @@ public class AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler 
 
     To accept a dedicated socket connection, \c handleRequest() must return a hash (ideally an
     @ref HttpServer::HttpResponseInfo hash) with the following keys:
-    - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
+    - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be
+      called with the @ref Qore::Socket "Socket object" for the new connection
     - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
     \n
     or, to handle the request without a dedicated connection, return a hash with the following keys:
     - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
     - \c "body": the message body to return in the response
-    - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+    - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when
+      the handler returns
     - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 */
 public class AbstractHttpSocketHandlerInterface {
@@ -1690,8 +1800,12 @@ public class AbstractHttpSocketHandlerInterface {
         startImpl(lid, cx, hdr, s);
     }
 
-    #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped; the start() method for all connections on the particular listener should return as soon as possible after this method is called
-    /** child classes should implement the stopImpl(string) method which is called from this method to implement custom stop actions for particular listeners
+    #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped
+    /** The start() method for all connections on the particular listener should return as soon as possible after this
+        method is called.
+
+        Child classes should implement the stopImpl(string) method which is called from this method to implement
+        custom stop actions for particular listeners.
 
         @param lid the listener ID
     */
@@ -1708,22 +1822,28 @@ public class AbstractHttpSocketHandlerInterface {
         stopImpl(lid);
     }
 
-    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
-    /** child classes should implement the stopImpl() method which is called from this method to implement custom stop actions
-     */
+    #! called from the HTTP server when the socket should be closed due to an external request
+    /** The start() method should return as soon as possible after this method is called
+
+        Child classes should implement the stopImpl() method which is called from this method to implement custom stop
+        actions.
+    */
     stop() {
         stop = True;
         stopImpl();
     }
 
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
-    /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method is called
+    /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method
+        is called
 
         @param lid the listener ID
         @param cx call context hash; this hash will have the following keys:
         - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-        - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
-        - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+        - \c socket-info: a hash of socket information for the listening socket (as returned by
+          @ref Qore::Socket::getSocketInfo())
+        - \c peer-info: a hash of socket information for the remote socket (as returned by
+          @ref Qore::Socket::getPeerInfo())
         - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
         - \c id: the unique HTTP connection ID
         - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
@@ -1735,13 +1855,18 @@ public class AbstractHttpSocketHandlerInterface {
      */
     private abstract startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s);
 
-    #! called from the HTTP server when the socket should be closed because the listener is stopping; the start() method for all connections handled by the given listener should return as soon as possible after this method is called
-    /** @param lid the listener ID
+    #! called from the HTTP server when the socket should be closed because the listener is stopping
+    /** The start() method for all connections handled by the given listener should return as soon as possible after
+        this method is called
+
+        @param lid the listener ID
     */
     private stopImpl(string lid) {
     }
 
-    #! called from the HTTP server when the socket should be closed due to an external request; the start() method should return as soon as possible after this method is called
+    #! called from the HTTP server when the socket should be closed due to an external request
+    /** The start() method should return as soon as possible after this method is called
+    */
     private stopImpl() {
     }
 }
@@ -1751,8 +1876,9 @@ public class AbstractHttpSocketHandlerInterface {
   */
 public class AbstractHttpSocketHandler inherits AbstractHttpRequestHandler, AbstractHttpSocketHandlerInterface {
     #! create the object optionally with the given AbstractAuthenticator
-    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no AbstractAuthenticator object is passed, then by default no authentication will be required
-      */
+    /** @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no
+        AbstractAuthenticator object is passed, then by default no authentication will be required
+    */
     constructor(*AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
     }
 }

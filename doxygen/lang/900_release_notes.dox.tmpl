@@ -12,6 +12,20 @@
       @ref thread_local "thread_local" keyword
     - new constants:
       - @ref Qore::PO_NO_INHERIT_PROGRAM_DATA "PO_NO_INHERIT_PROGRAM_DATA"
+    - module updates:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+        - integrated the <a href="../../modules/Logger/html/index.html">Logger</a> module
+        - removed deprecated APIs
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>
+        - integrated the <a href="../../modules/Logger/html/index.html">Logger</a> module
+
+    @subsection qore_0_10_0_compatibility Fixes That Can Affect Backwards-Compatibility
+    - Some server-side APIs have changed due to the integration of the
+      <a href="../../modules/Logger/html/index.html">Logger</a> module in the
+      <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and the
+      <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> modules, in particular the
+      \a errorlogger listener option has been removed, and the type of the \a logger listener option has been
+      updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
 
     @subsection qore_0_10_0_bug_fixes Bug Fixes in Qore
     - fixed bugs handling namespaces in imported binary classes

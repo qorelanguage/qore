@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 - 2020 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1126,7 +1126,7 @@ public namespace Logger {
             event not accepted on queue, etc)
         */
         public bool post(LoggerEvent event) {
-            if(!active) {
+            if (!active) {
                 return False;
             }
             {
@@ -2442,10 +2442,29 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param n_name the name of the object
+            @param name the name of the object
         */
-        constructor(*string n_name) {
-            name = n_name ?? "";
+        constructor(string name = "") {
+            self.name = name;
+        }
+
+        #! Creates the object
+        /**
+            @param name the name of the object
+            @param level the initial level for the logger
+        */
+        constructor(string name, LoggerLevel level) {
+            self.name = name;
+            currentLevel = level;
+        }
+
+        #! Creates the object with an empty name and the given initial level
+        /**
+            @param level the initial level for the logger
+        */
+        constructor(LoggerLevel level) {
+            self.name = "";
+            currentLevel = level;
         }
 
         destructor() {
@@ -2631,7 +2650,10 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list<auto> args, *hash<CallStackInfo> location,
-            bool check_throwable, date time_stamp = now_us()) {
+                bool check_throwable, date time_stamp = now_us()) {
+
+            #printf("lI: level: %y msg: %y args: %y loc: %y c: %y t: %y", level, message, args, location, check_throwable, time_stamp);
+
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && check_throwable) {
@@ -2649,7 +2671,6 @@ public namespace Logger {
                         parent.logIntern(level, message, args, location, throwable, time_stamp);
                     }
                 }
-
             } else {
                 AutoReadLock awl(lock);
                 if (parent && getAdditivity()) {
@@ -2660,7 +2681,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list<auto> args, *hash<CallStackInfo> location,
-            *hash<ExceptionInfo> throwable, date time_stamp) {
+                *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
