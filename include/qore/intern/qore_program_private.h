@@ -78,22 +78,6 @@ private:
     qore_ns_private* ns;
 };
 
-class CharPtrList : public safe_dslist<std::string> {
-public:
-    // returns true for found, false for not found
-    // FIXME: use STL find algorithm
-    DLLLOCAL bool find(const char* str) const {
-        const_iterator i = begin();
-        while (i != end()) {
-            if (*i == str)
-                return true;
-            ++i;
-        }
-
-        return false;
-    }
-};
-
 // local variable container
 typedef safe_dslist<LocalVar*> local_var_list_t;
 
@@ -329,8 +313,6 @@ struct pgmloc_vec_t : public std::vector<QoreProgramLocation*> {
     }
 };
 
-typedef std::set<const char*, ltstr> charptrset_t;
-
 class qore_program_private_base {
     friend class QoreProgramAccessHelper;
 
@@ -367,9 +349,7 @@ public:
     loc_set_t loc_set;
 
     // features present in this Program object
-    CharPtrList featureList;
-    // user modules present in this Program object
-    charptrset_t userFeatureList;
+    strset_t featureList;
 
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
@@ -905,10 +885,7 @@ public:
     DLLLOCAL QoreListNode* getFeatureList() const {
         QoreListNode* l = new QoreListNode(stringTypeInfo);
 
-        for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i), nullptr);
-
-        for (auto& i : userFeatureList) {
+        for (auto& i : featureList) {
             l->push(new QoreStringNode(i), nullptr);
         }
 
@@ -1854,32 +1831,25 @@ public:
         }
     }
 
-    DLLLOCAL int addUserFeature(const char* f) {
-        //printd(5, "qore_program_private::addUserFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
-        charptrset_t::iterator i = userFeatureList.lower_bound(f);
-        if (i != userFeatureList.end() && !strcmp(f, *i)) {
+    DLLLOCAL int addFeature(const char* f) {
+        //printd(5, "qore_program_private::addFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
+        strset_t::iterator i = featureList.lower_bound(f);
+        if (i != featureList.end() && (*i == f)) {
             return -1;
         }
 
-        userFeatureList.insert(i, f);
+        featureList.insert(i, f);
         return 0;
     }
 
-    DLLLOCAL void removeUserFeature(const char* f) {
-        charptrset_t::iterator i = userFeatureList.find(f);
-        assert(i != userFeatureList.end());
-        userFeatureList.erase(i);
-    }
-
-    DLLLOCAL void addFeature(const char* f) {
-        assert(!featureList.find(f));
-        featureList.push_back(f);
-    }
-
     DLLLOCAL void removeFeature(const char* f) {
-        CharPtrList::iterator i = featureList.safe_dslist<std::string>::find(f);
+        strset_t::iterator i = featureList.find(f);
         assert(i != featureList.end());
         featureList.erase(i);
+    }
+
+    DLLLOCAL bool hasFeature(const char* f) {
+        return featureList.find(f) != featureList.end();
     }
 
     DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);

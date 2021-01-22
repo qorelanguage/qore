@@ -496,6 +496,7 @@ void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool forei
     assert(status == QTS_NA || status == QTS_RESERVED);
     ptid = n_ptid;
     assert(!thread_data);
+    assert(!::thread_data.get());
     thread_data = new ThreadData(tid, p, foreign);
     ::thread_data.set(thread_data);
     status = QTS_ACTIVE;
@@ -1503,7 +1504,8 @@ void end_signal_thread(ExceptionSink* xsink) {
 }
 
 void set_module_context(QoreModuleContext* qmc) {
-    thread_data.get()->qmc = qmc;
+    ThreadData* td = thread_data.get();
+    td->qmc = qmc;
 }
 
 QoreModuleContext* get_module_context() {
@@ -2068,7 +2070,8 @@ ProgramRuntimeParseAccessHelper::~ProgramRuntimeParseAccessHelper() {
 
 QoreProgram* getProgram() {
     ThreadData* td = thread_data.get();
-    printd(5, "getProgram(): (td: %p) %p\n", &thread_data, td->current_pgm);
+    printd(5, "getProgram(): (td: %p) %p\n", td, td ? td->current_pgm : nullptr);
+    assert(td);
     QoreProgram* rv = td->current_pgm;
     return rv ? rv : td->call_program_context;
 }
@@ -2248,7 +2251,7 @@ int q_register_foreign_thread() {
         return QFT_ERROR;
     }
 
-    thread_list.activate(tid, pthread_self(), 0, true);
+    thread_list.activate(tid, pthread_self(), nullptr, true);
 
     return QFT_OK;
 }
@@ -2932,7 +2935,7 @@ QoreHashNode* QoreThreadList::getCallStackHash(const QoreStackLocation& stack_lo
 
 void QoreThreadList::deleteData(int tid) {
     delete thread_data.get();
-    thread_data.set(0);
+    thread_data.set(nullptr);
 
     AutoLocker al(lck);
     entry[tid].thread_data = nullptr;
@@ -2940,7 +2943,7 @@ void QoreThreadList::deleteData(int tid) {
 
 void QoreThreadList::deleteDataRelease(int tid) {
     delete thread_data.get();
-    thread_data.set(0);
+    thread_data.set(nullptr);
 
     AutoLocker al(lck);
     entry[tid].thread_data = nullptr;
@@ -2949,7 +2952,7 @@ void QoreThreadList::deleteDataRelease(int tid) {
 }
 
 void QoreThreadList::deleteDataReleaseSignalThread() {
-    thread_data.get()->del(0);
+    thread_data.get()->del(nullptr);
     deleteDataRelease(0);
 }
 

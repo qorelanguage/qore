@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -372,6 +372,7 @@ void ConstantList::mergeUserPublic(const ConstantList& src) {
         assert(!inList(i->first));
 
         ConstantEntry* n = new ConstantEntry(*i->second);
+        n->pub = false;
         cnemap[n->getName()] = n;
     }
 }

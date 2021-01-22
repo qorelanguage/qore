@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -154,7 +154,7 @@ finish:
         return 0;
     }
 
-    DLLLOCAL void activate(int tid, pthread_t ptid = pthread_self(), QoreProgram* p = 0, bool foreign = false) {
+    DLLLOCAL void activate(int tid, pthread_t ptid = pthread_self(), QoreProgram* p = nullptr, bool foreign = false) {
         AutoLocker al(lck);
         entry[tid].activate(tid, ptid, p, foreign);
     }
@@ -178,7 +178,7 @@ finish:
             return -1;
         }
 
-        entry[tid].activate(tid, pthread_self(), 0, true);
+        entry[tid].activate(tid, pthread_self(), nullptr, true);
         return 0;
     }
 

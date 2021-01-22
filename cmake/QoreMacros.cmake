@@ -219,14 +219,13 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     set(_mod_target_dir ${QORE_MODULES_DIR}${_install_suffix})
 
     set_target_properties(${_module_name} PROPERTIES PREFIX "" SUFFIX "-api-${QORE_API_VERSION}.qmod")
-    target_link_libraries(${_module_name} ${QORE_LIBRARY} ${_libs})
-    # this line breaks jhbuild "chroot": install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
-    #install( TARGETS ${_module_name} DESTINATION ${QORE_MODULES_DIR})
+
+    # issue #3802: do not link with the qore library
+
     install( TARGETS ${_module_name} DESTINATION ${_mod_target_dir})
 
     if (APPLE)
-        # TODO/FIXME: @Niclas: please verify if it's correct
-        # It should allow to use full path in the module refernce itself. otool -L /path/to/module.qmod, 1st line.
+        # It should allow to use full path in the module reference itself. otool -L /path/to/module.qmod, 1st line.
         set_target_properties(${_module_name} PROPERTIES INSTALL_NAME_DIR ${QORE_MODULES_DIR})
     endif (APPLE)
     set_target_properties(${_module_name} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

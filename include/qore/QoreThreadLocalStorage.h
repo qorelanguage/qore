@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,50 +43,53 @@
 template<typename T>
 class QoreThreadLocalStorage {
 protected:
-   //! the actual thread local storage key wrapped in this class
-   pthread_key_t key;
-   
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreThreadLocalStorage(const QoreThreadLocalStorage&);
-   
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreThreadLocalStorage& operator=(const QoreThreadLocalStorage&);
+    //! the actual thread local storage key wrapped in this class
+    pthread_key_t key;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreThreadLocalStorage(const QoreThreadLocalStorage&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreThreadLocalStorage& operator=(const QoreThreadLocalStorage&);
 
 public:
-   //! creates the key
-   DLLLOCAL QoreThreadLocalStorage() {
-      create();
-   }
+    //! creates the key
+    DLLLOCAL QoreThreadLocalStorage() {
+        create();
+    }
 
-   //! destroys the key
-   DLLLOCAL ~QoreThreadLocalStorage() {
-      destroy();
-   }
+    //! destroys the key
+    DLLLOCAL ~QoreThreadLocalStorage() {
+        destroy();
+    }
 
-   //! creates the key
-   DLLLOCAL void create() {
-      pthread_key_create(&key, 0);
-   }
+    //! creates the key
+    DLLLOCAL void create() {
+        pthread_key_create(&key, 0);
+    }
 
-   //! destroys the key
-   DLLLOCAL void destroy() {
-      pthread_key_delete(key);
-   }
+    //! destroys the key
+    DLLLOCAL void destroy() {
+        pthread_key_delete(key);
+    }
 
-   //! retrieves the key's value
-   DLLLOCAL T *get() {
-      return (T *)pthread_getspecific(key);
-   }
+    //! retrieves the key's value
+    DLLLOCAL T *get() {
+        return (T *)pthread_getspecific(key);
+    }
 
-   //! sets the key's value
-   DLLLOCAL void set(T *ptr) {
+    //! sets the key's value
+    DLLLOCAL void set(T *ptr) {
 #ifndef DEBUG
-      pthread_setspecific(key, (void *)ptr);
+        pthread_setspecific(key, (void *)ptr);
 #else
-      int rc = pthread_setspecific(key, (void *)ptr);
-      assert(!rc);
+        // make sure we are not overwriting data
+        assert(!ptr || !pthread_getspecific(key));
+
+        int rc = pthread_setspecific(key, (void *)ptr);
+        assert(!rc);
 #endif
-   }
+    }
 };
 
 #endif // _QORE_QORETHREADLOCALSTORAGE_H

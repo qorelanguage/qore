@@ -515,6 +515,7 @@ public:
     DLLLOCAL void addModule(QoreAbstractModule* m) {
         assert(map.find(m->getName()) == map.end());
         map.insert(module_map_t::value_type(m->getName(), m));
+        //printd(5, "QoreModuleManager::addModule() m: %p '%s'\n", m, m->getName());
     }
 
     DLLLOCAL QoreAbstractModule* findModule(const char* name) {

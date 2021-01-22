@@ -137,8 +137,15 @@ void QoreAbstractModule::reexport(ExceptionSink& xsink, QoreProgram* pgm) const 
     // import also any modules that should be reexported from the loaded module
     for (name_vec_t::const_iterator i = rmod.begin(), e = rmod.end(); i != e; ++i) {
         //printd(5, "QoreAbstractModule::reexport() '%s' pgm: %p '%s'\n", getName(), pgm, i->c_str());
-        QMM.loadModuleIntern(xsink, xsink, i->c_str(), pgm);
+
+        if (!qore_program_private::get(*pgm)->hasFeature(i->c_str())) {
+            QMM.loadModuleIntern(xsink, xsink, i->c_str(), pgm);
+        }
     }
+}
+
+QoreModuleContext::QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs)
+        : name(n), rns(n_rns), parent(get_module_context()), xsink(xs) {
 }
 
 void QoreModuleContext::error(const char* fmt, ...) {
@@ -252,7 +259,7 @@ QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* 
 }
 
 QoreModuleContextHelper::~QoreModuleContextHelper() {
-    set_module_context(nullptr);
+    set_module_context(parent);
 }
 
 QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
@@ -377,7 +384,7 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
         return;
     }
     // issue #3592: must add feature first
-    if (qore_program_private::get(*tpgm)->addUserFeature(name.c_str())) {
+    if (qore_program_private::get(*tpgm)->addFeature(name.c_str())) {
         xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
             "this Program container", filename.c_str(), name.c_str());
         return;
@@ -388,7 +395,7 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
     if (xsink) {
         // rollback all module changes
         qmc.rollback();
-        qore_program_private::get(*tpgm)->removeUserFeature(name.c_str());
+        qore_program_private::get(*tpgm)->removeFeature(name.c_str());
         return;
     }
 
@@ -398,7 +405,7 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
     if (qmc.hasError()) {
         // rollback all module changes
         qmc.rollback();
-        qore_program_private::get(*tpgm)->removeUserFeature(name.c_str());
+        qore_program_private::get(*tpgm)->removeFeature(name.c_str());
         return;
     }
 
@@ -582,8 +589,8 @@ int ModuleManager::runTimeLoadModule(ExceptionSink* xsink, const char* name, Qor
 }
 
 int QoreModuleManager::runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
-    QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask, bool reexport,
-    qore_binary_module_desc_t mod_desc_func) {
+        QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt, int warning_mask, bool reexport,
+        qore_binary_module_desc_t mod_desc_func) {
     // grab the parse lock
     ProgramRuntimeParseContextHelper pah(&xsink, pgm);
     if (xsink)
@@ -676,7 +683,6 @@ static void check_module_version(QoreAbstractModule* mi, mod_op_e op, version_li
 
 static int qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, version_list_t* version, QoreProgram* pgm, ExceptionSink& xsink) {
     if (xsink) {
-        assert(!mi);
         return -1;
     }
 
@@ -715,8 +721,8 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
 }
 
 int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
-    QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
-    unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
+        QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
+        unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
     assert(!version || (version && op != MOD_OP_NONE));
 
     //printd(5, "QoreModuleManager::loadModuleIntern() '%s' reexport: %d pgm: %p\n", name, reexport, pgm);
@@ -733,7 +739,7 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
     module_map_t::iterator mmi = map.find(name);
     assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
-    QoreAbstractModule* mi = (mmi == map.end() ? 0 : mmi->second);
+    QoreAbstractModule* mi = (mmi == map.end() ? nullptr : mmi->second);
 
     // handle module reloads
     if (load_opt & QMLO_RELOAD) {
@@ -756,7 +762,8 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
         assert(mi->isUser());
         addModule(mi);
 
-        QoreAbstractModule* nmi = loadUserModuleFromPath(xsink, wsink, mi->getFileName(), mi->getOrigName(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : nullptr, load_opt, warning_mask);
+        QoreAbstractModule* nmi = loadUserModuleFromPath(xsink, wsink, mi->getFileName(), mi->getOrigName(), pgm,
+            reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : nullptr, load_opt, warning_mask);
         if (xsink) {
             mmi = map.find(mi->getName());
             assert(mmi != map.end());
@@ -775,10 +782,11 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
 
     // if the feature already exists in this program, then return
     if (pgm && pgm->checkFeature(name)) {
-        //printd(5, "QoreModuleManager::loadModuleIntern() '%s' pgm has feature\n" , name);
+        //printd(5, "QoreModuleManager::loadModuleIntern() '%s' pgm has feature\n", name);
 
         if (load_opt & QMLO_INJECT)
-            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded", name);
+            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module " \
+                "has already been loaded", name);
 
         // check version if necessary
         if (version) {
@@ -796,7 +804,8 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
 
     // check if parse options allow loading any modules at all
     if (pgm && (pgm->getParseOptions64() & PO_NO_MODULES)) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "cannot load modules ('%s' requested) into the current Program object because PO_NO_MODULES is set", name);
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "cannot load modules ('%s' " \
+            "requested) into the current Program object because PO_NO_MODULES is set", name);
         return -1;
     }
 
@@ -805,7 +814,9 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
     if (mi) {
         if (!(load_opt & QMLO_REINJECT)) {
             if (load_opt & QMLO_INJECT) {
-                xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the module has already been loaded; to reinject a module, call Program::loadApplyToUserModule() with the reinject flag set to True", name);
+                xsink.raiseException("LOAD-MODULE-ERROR", "cannot load module '%s' for injection because the " \
+                    "module has already been loaded; to reinject a module, call Program::loadApplyToUserModule() " \
+                    "with the reinject flag set to True", name);
                 return -1;
             }
 
@@ -942,19 +953,23 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
         ++w;
     }
 
-    QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could be found in the module path: ", name);
+    QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could " \
+        "be found in the module path: ", name);
     moduleDirList.appendPath(*desc);
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
     return -1;
 }
 
 QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink, ExceptionSink& wsink,
-    const QoreString& path, const char* feature, QoreProgram* pgm, bool reexport, QoreProgram* mpgm,
-    QoreProgram* path_pgm, unsigned load_opt, int warning_mask) {
+        const QoreString& path, const char* feature, QoreProgram* pgm, bool reexport, QoreProgram* mpgm,
+        QoreProgram* path_pgm, unsigned load_opt, int warning_mask) {
     assert(feature);
-    printd(5, "QoreModuleManager::loadSeparatedModule() path: %s, feature: %s, pgm: %p, reexport: %d, mpgm: %p, path_pgm: %p, load_opt: %d warning_mask: %d\n", path.c_str(), feature, pgm, reexport, mpgm, path_pgm, load_opt, warning_mask);
+    printd(5, "QoreModuleManager::loadSeparatedModule() path: %s, feature: %s, pgm: %p, reexport: %d, mpgm: %p, " \
+        "path_pgm: %p, load_opt: %d warning_mask: %d\n", path.c_str(), feature, pgm, reexport, mpgm, path_pgm,
+        load_opt, warning_mask);
     if (module_load_check(feature)) {
-        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", feature);
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency " \
+            "detected", feature);
         return nullptr;
     }
     ON_BLOCK_EXIT(module_load_clear, feature);
@@ -962,7 +977,8 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     QoreParseCountContextHelper pcch;
     // parse options for the module
     int64 parseOptions = USER_MOD_PO;
-    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+    // add in parse options from the current program, if any, disabling style and types options already set with
+    // USER_MOD_PO
     if (pgm) {
         parseOptions |= (pgm->getParseOptions64() & ~(PO_FREE_OPTIONS | PO_REQUIRE_TYPES | PO_NO_GLOBAL_VARS));
     }
@@ -988,7 +1004,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         mpgm->setScriptPath(modulePath.c_str());
     }
     // issue #3592: must add feature first
-    if (qore_program_private::get(*mpgm)->addUserFeature(feature)) {
+    if (qore_program_private::get(*mpgm)->addFeature(feature)) {
         xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
             "this Program container", path.c_str(), feature);
         return nullptr;
@@ -1005,6 +1021,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     // issue #3212: warning sink
     userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, warning_mask);
     if (xsink) {
+        xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature, path.c_str());
         return nullptr;
     }
 
@@ -1012,6 +1029,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
     ReferenceHolder<QoreListNode> fileList(moduleDir.list(&xsink, S_IFREG, &regexClassesFunc), &xsink);
     if (xsink) {
+        xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature, path.c_str());
         return nullptr;
     }
     for (size_t i = 0; i < fileList->size(); ++i) {
@@ -1022,11 +1040,15 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         std::string fileCode = QoreDir::get_file_content(filePath);
         userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink, warning_mask);
         if (xsink) {
+            xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature,
+                path.c_str());
             return nullptr;
         }
     }
     userModule->getProgram()->parseCommit(&xsink);
     if (xsink) {
+        xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature, path.c_str());
+
         return nullptr;
     }
 
@@ -1049,7 +1071,7 @@ QoreStringNode* ModuleManager::parseLoadModule(const char* name, QoreProgram* pg
 }
 
 int QoreModuleManager::parseLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
-    QoreProgram* pgm, bool reexport) {
+        QoreProgram* pgm, bool reexport) {
     //printd(5, "ModuleManager::parseLoadModule(name: %s, pgm: %p, reexport: %d)\n", name, pgm, reexport);
 
     assert(!xsink);
@@ -1121,10 +1143,11 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
     if (omi)
         qmd.setDuplicate();
 
-    //printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
+    printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
 
-    if (xsink)
+    if (xsink) {
         return nullptr;
+    }
 
     const char* name = qmd.get("name");
 
@@ -1193,8 +1216,9 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
     QoreString license_str(license ? license : "unknown");
 
     // init & run module initialization code if any
-    if (qmd.init(*mi->getProgram(), xsink))
+    if (qmd.init(*mi->getProgram(), xsink)) {
         return nullptr;
+    }
 
     mi->set(desc, version, author, url, license_str, qmd.takeDel());
 
@@ -1219,6 +1243,9 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
     //  "orig: %s\n", mi->getFileName(), name, mi->getName(), mi->isInjected(), mi->isReInjected(),
     //  mi->getOrigName() ? mi->getOrigName() : "n/a");
 
+    // add own feature into current module's Program
+    qore_program_private::get(*mi->getProgram())->addFeature(mi->getName());
+
     omi = mi.release();
     addModule(omi);
     trySetUserModule(name);
@@ -1227,16 +1254,19 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, ExceptionSink& wsink,
-    const char* path, const char* feature, QoreProgram* tpgm, bool reexport, QoreProgram* pgm, QoreProgram* path_pgm,
-    unsigned load_opt, int warning_mask) {
+        const char* path, const char* feature, QoreProgram* tpgm, bool reexport, QoreProgram* pgm,
+        QoreProgram* path_pgm, unsigned load_opt, int warning_mask) {
     assert(feature);
-    //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p ('%s') path_pgm: %p ('%s')\n", path, feature, tpgm, tpgm && tpgm->parseGetScriptDir() ? tpgm->parseGetScriptDir() : "n/a", path_pgm, path_pgm && path_pgm->parseGetScriptDir() ? path_pgm->parseGetScriptDir() : "n/a");
+    printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p ('%s') path_pgm: %p " \
+        "('%s')\n", path, feature, tpgm, tpgm && tpgm->parseGetScriptDir() ? tpgm->parseGetScriptDir() : "n/a",
+        path_pgm, path_pgm && path_pgm->parseGetScriptDir() ? path_pgm->parseGetScriptDir() : "n/a");
 
     QoreParseCountContextHelper pcch;
 
     // parse options for the module
     int64 po = USER_MOD_PO;
-    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+    // add in parse options from the current program, if any, disabling style and types options already set with
+    // USER_MOD_PO
     if (tpgm) {
         po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES|PO_NO_GLOBAL_VARS));
     }
@@ -1255,7 +1285,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
         pgm = new QoreProgram(po);
     }
     // issue #3592: add feature to module container program immediately
-    if (qore_program_private::get(*pgm)->addUserFeature(feature)) {
+    if (qore_program_private::get(*pgm)->addFeature(feature)) {
         xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
             "this Program container", path, feature);
         return nullptr;
@@ -1298,8 +1328,8 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, ExceptionSink& wsink,
-    const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm,
-    int warning_mask) {
+        const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm,
+        int warning_mask) {
     assert(feature);
     //printd(5, "QoreModuleManager::loadUserModuleFromSource() path: %s feature: %s tpgm: %p\n", path, feature, tpgm);
 
@@ -1318,7 +1348,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
         pgm = new QoreProgram(po);
     }
     // issue #3592: add feature to module container program immediately
-    if (qore_program_private::get(*pgm)->addUserFeature(feature)) {
+    if (qore_program_private::get(*pgm)->addFeature(feature)) {
         xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; feature '%s' is already loaded in " \
             "this Program container", path, feature);
         return nullptr;
@@ -1332,11 +1362,16 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
     mi->getProgram()->parse(src, path, &xsink, &wsink, warning_mask);
 
+    if (xsink) {
+        xsink.appendLastDescription(" (while loading user module \"%s\" from source with given path \"%s\")", feature,
+            path);
+    }
+
     return setupUserModule(xsink, mi, qmd);
 }
 
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
-    const char* feature, QoreProgram* pgm, bool reexport, qore_binary_module_desc_t mod_desc) {
+        const char* feature, QoreProgram* pgm, bool reexport, qore_binary_module_desc_t mod_desc) {
     QoreModuleInfo mod_info;
 
     void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
@@ -1463,7 +1498,7 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 }
 
 QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
-    QoreModuleInfo& mod_info, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
+        QoreModuleInfo& mod_info, const char* path, const char* feature, QoreProgram* pgm, bool reexport) {
     // take info hash immediately, if any
     ReferenceHolder<QoreHashNode> info(mod_info.info, &xsink);
 
@@ -1628,6 +1663,10 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& x
     // this is needed for backwards-compatibility for modules that add builtin functions in the module initialization code
     QoreModuleContextHelper qmc(name, pgm, xsink);
     try {
+        printd(5, "QoreModuleManager::loadBinaryModuleFromPath(%s) %s: calling module_init@%p (tid: %d)\n", path,
+            name, *mod_info.init, q_gettid());
+        assert(q_gettid());
+
         QoreStringNode* str = (*mod_info.init)();
         if (str) {
             // rollback all module changes

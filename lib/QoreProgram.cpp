@@ -431,7 +431,7 @@ void qore_program_private_base::newProgram() {
 
     // copy global feature list to local list
     for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
-        featureList.push_back((*i).c_str());
+        featureList.insert((*i).c_str());
 
     QoreProgramContextHelper pch(pgm);
 
@@ -512,7 +512,10 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
     QoreNS = RootNS->rootGetQoreNamespace();
 
     // copy parent feature list
-    p_pgm->priv->featureList.populate(&featureList);
+    for (auto& i : p_pgm->priv->featureList) {
+        assert(featureList.find(i) == featureList.end());
+        featureList.insert(i);
+    }
 
     // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
     const LVList* lvl = p_pgm->priv->sb.getLVList();
@@ -1565,7 +1568,7 @@ QoreListNode* QoreProgram::getUserFunctionList() {
     ProgramRuntimeParseAccessHelper pah(&xsink, this);
     if (xsink) {
         xsink.clear();
-        return 0;
+        return nullptr;
     }
     return qore_ns_private::getUserFunctionList(*priv->RootNS);
 }
@@ -1866,12 +1869,8 @@ void QoreProgram::parseAndRun(const char* str, const char* name) {
 }
 
 bool QoreProgram::checkFeature(const char* f) const {
-    bool b = priv->featureList.find(f);
-    if (!b) {
-        charptrset_t::const_iterator i = priv->userFeatureList.find(f);
-        b = (i != priv->userFeatureList.end());
-    }
-    return b;
+    strset_t::const_iterator i = priv->featureList.find(f);
+    return (i != priv->featureList.end());
 }
 
 void QoreProgram::addFeature(const char* f) {
