@@ -63,7 +63,7 @@ class FtpTest inherits QUnit::Test {
     }
 
     FtpClient getClient() {
-        hash h = parse_url(url);
+        hash<UrlInfo> h = parse_url(url);
         if (!exists h.path)
             throw "FTP-ERROR", sprintf("url %y is missing a path to retrieve", url);
         if (!exists h.host)
@@ -231,13 +231,12 @@ class FtpTest inherits QUnit::Test {
         FtpClient fc;
         try {
             fc = getClient();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             testSkip(sprintf("FtpClient object is not valid: %s: %s", ex.err, ex.desc));
             return;
         }
 
-        testAssertion("FtpClient::connect()", \fc.connect(), NOTHING, new TestResultValue(NOTHING));
+        assertNothing(fc.connect());
 
         string local_read_path = tmp_location() + '/ftptest-read';
         unlink(local_read_path);
@@ -261,7 +260,7 @@ class FtpTest inherits QUnit::Test {
         testAssertion("FtpClient mode-2", \fc.getMode(), NOTHING, new TestResultValue("auto"));
         fc.setModePASV();
 
-        testAssertion("FtpClient::connect() PASV", \fc.connect(), NOTHING, new TestResultValue(NOTHING));
+        assertNothing(fc.connect());
 
         testAssertion("FtpClient mode-3", \fc.getMode(), NOTHING, new TestResultValue("pasv"));
         fc.disconnect();
