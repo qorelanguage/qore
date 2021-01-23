@@ -1278,7 +1278,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
     //  "orig: %s\n", mi->getFileName(), name, mi->getName(), mi->isInjected(), mi->isReInjected(),
     //  mi->getOrigName() ? mi->getOrigName() : "n/a");
 
-    assert(qore_program_private::get(*mi->getProgram())->hasUserFeature(mi->getName()));
+    qore_program_private::get(*mi->getProgram())->addUserFeature(mi->getName());
 
     omi = mi.release();
     addModule(omi);
