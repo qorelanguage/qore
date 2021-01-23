@@ -200,18 +200,18 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     # setup the target
     set (_libs "")
     foreach (value ${ARGN})
-        set(_libs "${_libs};${value}")
+        set(_libs "${_libs} ${value}")
     endforeach (value)
 
     # add pthread library on Windows
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        set(_libs "${_libs};pthread")
+        set(_libs "${_libs} pthread")
     endif()
 
     # add additional libraries
     if(DEFINED QORE_POST_LIBS)
         foreach (value ${QORE_POST_LIBS})
-            set(_libs "${_libs};${value}")
+            set(_libs "${_libs} ${value}")
         endforeach (value)
     endif()
 
@@ -221,6 +221,9 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     set_target_properties(${_module_name} PROPERTIES PREFIX "" SUFFIX "-api-${QORE_API_VERSION}.qmod")
 
     # issue #3802: do not link with the qore library
+
+    # ensure that modules use dynamic lookups; works with g++ & clang++
+    set(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-Wl,-undefined -Wl,dynamic_lookup ${_libs}")
 
     install( TARGETS ${_module_name} DESTINATION ${_mod_target_dir})
 

@@ -118,10 +118,6 @@ add_custom_target(REFLECTION_QPP_GENERATED_FILES DEPENDS qpp ${REFLECTION_QPP_SO
 # prepare reflection module target
 set(reflection_module_name "reflection")
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_SHaRED_LINKER_FLAGS} "-undefined dynamic_lookup")
-endif ()
-
 if (SINGLE_COMPILATION_UNIT)
     add_library(${reflection_module_name} MODULE src/reflection_scu.cpp)
 else (SINGLE_COMPILATION_UNIT)

@@ -351,6 +351,9 @@ public:
     // features present in this Program object
     strset_t featureList;
 
+    // user features present in this Program object
+    strset_t userFeatureList;
+
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
 
@@ -1848,8 +1851,30 @@ public:
         featureList.erase(i);
     }
 
-    DLLLOCAL bool hasFeature(const char* f) {
-        return featureList.find(f) != featureList.end();
+    DLLLOCAL int addUserFeature(const char* f) {
+        //printd(5, "qore_program_private::addFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
+        strset_t::iterator i = userFeatureList.lower_bound(f);
+        if (i != userFeatureList.end() && (*i == f)) {
+            return -1;
+        }
+
+        userFeatureList.insert(i, f);
+        return 0;
+    }
+
+    DLLLOCAL bool hasUserFeature(const std::string feature) const {
+        return userFeatureList.find(feature) != userFeatureList.end();
+    }
+
+    DLLLOCAL void removeUserFeature(const char* f) {
+        strset_t::iterator i = userFeatureList.find(f);
+        assert(i != userFeatureList.end());
+        userFeatureList.erase(i);
+    }
+
+    DLLLOCAL bool hasFeature(const char* f) const {
+        return (featureList.find(f) != featureList.end())
+            || (userFeatureList.find(f) != userFeatureList.end());
     }
 
     DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
