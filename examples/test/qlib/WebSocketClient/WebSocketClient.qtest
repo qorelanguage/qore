@@ -9,6 +9,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/WebSocketUtil.qm
@@ -74,7 +75,15 @@ class WebSocketClientTest inherits QUnit::Test {
         addTestCase("WebSocketClient tests", \webSocketClientTests());
         addTestCase("connection tests", \connectionTests());
 
-        mServer = new HttpServer(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        mServer = new HttpServer(http_opts);
         mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
         mServer.setDefaultHandler("ws-handler", wsHandler);
         port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
@@ -139,5 +148,19 @@ class WebSocketClientTest inherits QUnit::Test {
     private log(string str) {
         if (m_options.verbose > 2)
             vprintf(str + "\n", argv);
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

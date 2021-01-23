@@ -2477,12 +2477,16 @@ void qore_ns_private::addGlobalVars(gvlist_t& pend_gvlist) {
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
     std::unique_ptr<QoreNamespace> nnsh(nns);
 
-    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d gvars: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub, nns->priv->pend_gvblist.size());
+    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d gvars: %d\n",
+    //  this, name.c_str(), nns->getName(), pub, nns->priv->pub, nns->priv->pend_gvblist.size());
 
     if (!imported && !pub && nns->priv->pub && parse_check_parse_option(PO_IN_MODULE))
-        qore_program_private::makeParseWarning(getProgram(), *nns->priv->loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
+        qore_program_private::makeParseWarning(getProgram(), *nns->priv->loc, QP_WARN_INVALID_OPERATION,
+        "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public",
+        name.c_str(), nns->getName(), name.c_str());
 
-    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s' adding %p '%s' (exists %p)\n", this, getName(), ns, ns->getName(), priv->nsl.find(ns->getName()));
+    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s' adding %p '%s' (exists %p)\n", this, getName(),
+    //  ns, ns->getName(), priv->nsl.find(ns->getName()));
 
     // raise an exception if namespace collides with an object name
     if (classList.find(nns->getName())) {
@@ -2503,24 +2507,28 @@ qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const char* cname, QoreValue value, bool cpub) {
-   ValueHolder vh(value, 0);
+cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const char* cname,
+        QoreValue value, bool cpub) {
+    ValueHolder vh(value, 0);
 
-   if (constant.inList(cname)) {
-      std::string path;
-      getPath(path, true);
-      parse_error(*loc, "constant '%s' has already been defined in '%s'", cname, path.c_str());
-      return constant.end();
-   }
+    if (constant.inList(cname)) {
+        std::string path;
+        getPath(path, true);
+        parse_error(*loc, "constant '%s' has already been defined in '%s'", cname, path.c_str());
+        return constant.end();
+    }
 
-   if (!imported && cpub && !pub && parse_check_parse_option(PO_IN_MODULE))
-      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname, name.c_str());
+    if (!imported && cpub && !pub && parse_check_parse_option(PO_IN_MODULE))
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+        "constant '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), cname,
+        name.c_str());
 
-   return constant.parseAdd(loc, cname, vh.release(), 0, cpub);
+    return constant.parseAdd(loc, cname, vh.release(), 0, cpub);
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const NamedScope& nscope, QoreValue value, bool cpub) {
+void qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const NamedScope& nscope, QoreValue value,
+        bool cpub) {
    ValueHolder vh(value, 0);
 
    QoreNamespace* sns = resolveNameScope(loc, nscope);
@@ -2536,12 +2544,15 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
     qore_class_private_holder och(oc);
 
     if (!imported && !pub && qore_class_private::isPublic(*oc) && parse_check_parse_option(PO_IN_MODULE))
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), oc->getName(), name.c_str());
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+        "class '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(),
+        oc->getName(), name.c_str());
 
     //printd(5, "qore_ns_private::parseAddPendingClass() adding str: %s (%p)\n", oc->name, oc);
     // raise an exception if object name collides with a namespace
     if (nsl.find(oc->getName())) {
-        parse_error(*loc, "class name '%s' collides with previously-defined namespace '%s'", oc->getName(), oc->getName());
+        parse_error(*loc, "class name '%s' collides with previously-defined namespace '%s'", oc->getName(),
+            oc->getName());
         return -1;
     }
 
@@ -2554,7 +2565,8 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
     {
         QoreClass* c = classList.find(oc->getName());
         if (c) {
-            // see if the conflicting class in place has the injected flag set; if so, ignore the new class by returning -1 without raising an exception
+            // see if the conflicting class in place has the injected flag set; if so, ignore the new class by
+            // returning -1 without raising an exception
             if (!qore_class_private::injected(*c))
                 parse_error(*loc, "class '%s' already exists in namespace '%s::'", oc->getName(), name.c_str());
             return -1;
@@ -2569,7 +2581,8 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
     qore_class_private::get(*oc)->setNamespace(this);
     och.release();
     if (!strcmp(oc->getName(), "AbstractSqlUtilBase")) {
-        //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc, oc->getName(), this, name.c_str(), parent);
+        //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc,
+        //  oc->getName(), this, name.c_str(), parent);
     }
 
     return 0;
@@ -2592,8 +2605,11 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, const 
 int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, TypedHashDecl* hashdecl) {
     TypedHashDeclHolder thd(hashdecl);
 
-    if (!imported && !pub && typed_hash_decl_private::get(*hashdecl)->isPublic() && parse_check_parse_option(PO_IN_MODULE))
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), hashdecl->getName(), name.c_str());
+    if (!imported && !pub && typed_hash_decl_private::get(*hashdecl)->isPublic()
+        && parse_check_parse_option(PO_IN_MODULE))
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            "hashdecl '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(),
+            hashdecl->getName(), name.c_str());
 
     typed_hash_decl_private::get(*hashdecl)->setNamespace(this);
     if (hashDeclList.add(hashdecl)) {
@@ -2607,7 +2623,8 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, Typ
 }
 
 // public, only called when parsing unattached namespaces
-int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, const NamedScope& n, TypedHashDecl* hashdecl) {
+int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, const NamedScope& n,
+        TypedHashDecl* hashdecl) {
    TypedHashDeclHolder thd(hashdecl);
 
    //printd(5, "qore_ns_private::parseAddPendingClass() adding ns: %s (%s, %p)\n", n.ostr, oc->getName(), oc);
@@ -2618,7 +2635,8 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, con
    return sns->priv->parseAddPendingHashDecl(loc, thd.release());
 }
 
-int qore_ns_private::parseAddMethodToClass(const QoreProgramLocation* loc, const NamedScope& mname, MethodVariantBase* qcmethod, bool static_flag) {
+int qore_ns_private::parseAddMethodToClass(const QoreProgramLocation* loc, const NamedScope& mname,
+        MethodVariantBase* qcmethod, bool static_flag) {
    std::unique_ptr<MethodVariantBase> v(qcmethod);
 
    unsigned m = 0;
@@ -2633,7 +2651,8 @@ int qore_ns_private::parseAddMethodToClass(const QoreProgramLocation* loc, const
 }
 
 void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
-    //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(), &mns, mns.name.c_str());
+    //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(),
+    //  &mns, mns.name.c_str());
 
     // check user constants
     {
@@ -2664,8 +2683,7 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
                     qore_class_private::get(*c), qore_class_private::get(*cli.get()),
                     qore_class_private::injected(*c), qore_class_private::injected(*cli.get()));
                 */
-            }
-            else if (hashDeclList.find(cli.getName()))
+            } else if (hashDeclList.find(cli.getName()))
                 qmc.error("duplicate hashdecl %s::%s", name.c_str(), cli.getName());
         }
     }
@@ -2735,7 +2753,7 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 }
 
 void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
-    //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
+    printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
 
     // merge in source constants
     constant.mergeUserPublic(mns.constant);

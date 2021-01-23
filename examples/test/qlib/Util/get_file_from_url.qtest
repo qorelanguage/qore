@@ -2,6 +2,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestSchemaValidator.qm
@@ -68,7 +69,15 @@ public class GetFileFromUrlTest inherits QUnit::Test {
     }
 
     testGetFileFromUrlHttp() {
-        HttpServer http(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        HttpServer http(http_opts);
         on_exit delete http;
         http.setHandler("text", "/text", MimeTypeText, new SimpleStringHandler());
         int http_port = http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
@@ -123,7 +132,7 @@ public class GetFileFromUrlTest inherits QUnit::Test {
         try {
             file_data = get_file_from_url(url, options);
         } catch (hash<ExceptionInfo> ex) {
-            testSkip("cannot sun SFTP retrieval tests with URL %y: %s: %s", url, ex.err, ex.desc);
+            testSkip("cannot run SFTP retrieval tests with URL %y: %s: %s", url, ex.err, ex.desc);
         }
 
         assertEq(NT_STRING, file_data.typeCode());
@@ -147,3 +156,18 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         return makeResponse(200, "test", {"Content-Type": MimeTypeText});
     }
 }
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
+    }
+}
+

@@ -9,6 +9,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
@@ -44,10 +45,6 @@ class FakeSewioRestHandler inherits AbstractHttpRequestHandler {
     }
 }
 
-sub log(string str) {
-    delete argv;
-}
-
 const VALUE_JSON = (
     "input": "{\"foo\":{\"bar\":1}}",
     "output": ("foo": ("bar": 1)),
@@ -70,7 +67,15 @@ public class Main inherits QUnit::Test {
     }
 
     setUp() {
-        m_http = new HttpServer(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        m_http = new HttpServer(http_opts);
         m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new FakeSewioRestHandler(MimeTypeJson, VALUE_JSON.input));
         port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
     }
@@ -125,3 +130,17 @@ public class Main inherits QUnit::Test {
         assertEq(45000, client.getConnectTimeout());
     }
 } # class Main
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
+    }
+}

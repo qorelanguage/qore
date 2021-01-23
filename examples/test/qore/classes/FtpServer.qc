@@ -17,7 +17,7 @@ class FtpServer {
 
         *string pwd;
 
-        const PollInterval = 500ms;
+        const PollInterval = 250ms;
     }
 
     constructor(int port, int verbose = 0, string address = "localhost") {

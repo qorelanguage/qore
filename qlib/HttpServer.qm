@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file HttpServer.qm HTTP multi-threaded server module definition
 
-/*  HttpServer.qm Copyright (C) 2012 - 2020 Qore Technologies, s.r.o.
+/*  HttpServer.qm Copyright (C) 2012 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9.11
+%requires qore >= 0.10.0
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.9.11
+%requires(reexport) HttpServerUtil >= 0.10.0
+%requires Logger
 
 %new-style
 
 module HttpServer {
-    version = "0.9.11";
+    version = "0.10.0";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +116,11 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
+    @subsection http0_10_0 HttpServer 0.10.0
+    - added support for the Logger module for logging
+      (<a href="https://github.com/qorelanguage/qore/issues/4157">issue 4157</a>)
+    - removed deprecated APIs
+
     @subsection http0911 HttpServer 0.9.11
     - fixed a bug shutting down dedicated socket I/O handlers
       (<a href="https://github.com/qorelanguage/qore/issues/4130">issue 4130</a>)
@@ -148,7 +154,7 @@ log("started listener on %s", lh.desc);
       @ref HttpServer::HttpServer::addHttpMethod() "HttpServer::addHttpMethod()" method
       (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
 
-    @subsection http0312 HttpServer 0.3.12.1
+    @subsection http03121 HttpServer 0.3.12.1
     - fixed \c HEAD and other responses that cannot have a message body
       (<a href="https://github.com/qorelanguage/qore/issues/3116">bug 3116</a>)
 
@@ -221,7 +227,8 @@ log("started listener on %s", lh.desc);
     - fixed a race condition in tracking active requests in dynamic HTTP handlers and removing dynamic HTTP handlers
 
     @subsection http035 HttpServer 0.3.5
-    - fixed bugs in regexes in the @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners()" and @ref HttpServer::HttpServer::addListenersWithHandler() "HttpServer::addListenersWithHandler()" methods
+    - fixed bugs in regexes in the @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners()" and
+      \c HttpServer::addListenersWithHandler() methods
     - updated module example code in summary
     - added \c "listener-id" to request context hash
 
@@ -296,307 +303,36 @@ log("started listener on %s", lh.desc);
     All the public symbols in the module are defined in this namespace
  */
 public namespace HttpServer {
-    #! returns a multi-line string from the exception hash argument suitable for logging or output on the console
-    /** @param ex the exception hash to process
+#! returns a multi-line string from the exception hash argument suitable for logging or output on the console
+/** @param ex the exception hash to process
 
-        @return a multi-line string from the exception hash argument suitable for logging or output on the console
+    @return a multi-line string from the exception hash argument suitable for logging or output on the console
 
-        @note reexported from the Util module
-    */
-    public string sub get_exception_string(hash<auto> ex) {
-        return Util::get_exception_string(ex);
-    }
+    @note reexported from the Util module
+*/
+public string sub get_exception_string(hash<auto> ex) {
+    return Util::get_exception_string(ex);
 }
 
-# class containing handler info
-class HttpServer::HandlerInfo {
-    public {
-        string name;
-        HttpServer::AbstractHttpRequestHandler obj;
-        string path;
-        bool isregex;
-        # content type map
-        *hash<string, bool> content_type_map;
-        *list<string> special_header_list;
-    }
+#! Hash for HttpServer options
+public hashdecl HttpServerOptionInfo {
+    #! HTTP server name
+    string name = HttpServer::HttpServerString;
 
-    #! Creates the object from the parameters
-    /** @throw HANDLER-ERROR the handler is missing from the \a info argument
-    */
-    constructor(string name, hash<HttpHandlerConfigInfo> info) {
-        self.name = name;
-        if (!info.handler) {
-            throw "HANDLER-ERROR", sprintf("missing \"handler\" from handler config: %y", info);
-        }
-        obj = info.handler;
-        path = info.path;
-        isregex = info.isregex;
-        content_type_map = map {$1: True}, info.content_types;
-        special_header_list = map $1.lwr(), info.headers;
-    }
+    #! Debug flag
+    bool debug = False;
 
-    bool matchContentType(string ct) {
-        return content_type_map{ct} ? True : False;
-    }
+    #! Headers to add in responses
+    hash<auto> hdr = {
+        "X-Powered-By": "Qore/" + Qore::VersionString,
+    };
 
-    #! called when matching a request; returns a code giving the match level; 0 = no match, 1 = only the Content-Type matches, 2 = special header matches, 3 = URL matches
-    int matchRequest(hash<auto> hdr, int score) {
-        if (path && hdr.path && isregex && regex(hdr.path, path)) {
-            return 3;
-        }
-        # the case where isregex is False was already handled by HttpServer::HttpHandlerList::findHandler using TreeMap
-        # we get here only if the path does not match
-
-        if (score >= 2) {
-            return 0;
-        }
-
-        if (hdr{special_header_list}) {
-            return 2;
-        }
-
-        if (score || !content_type_map) {
-            return 0;
-        }
-
-        return content_type_map.(hdr."content-type") ? 1 : 0;
-    }
-
-    stop() {
-        # stop handler if it is a dedicated socket handler
-        if (obj instanceof HttpServer::AbstractHttpSocketHandlerInterface) {
-            cast<HttpServer::AbstractHttpSocketHandlerInterface>(obj).stop();
-        }
-    }
-}
-
-# class to implement handler-handling (private)
-class HttpServer::HttpHandlerList {
-    public {
-        hash<string, HandlerInfo> handlers;
-        TreeMap treeMap();
-    }
-
-    /*
-    private static checkSpecialHeaders(reference sh) {
-        foreach auto h in (\sh) {
-            if (h.typeCode() != NT_STRING)
-                throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, h.type());
-            # make sure header is in lower case for matching
-            h = tolower(h);
-        }
-    }
-    */
-
-    #! sets a request handler according to the arguments given
-    setHandler(string name, hash<HttpHandlerConfigInfo> info) {
-        if (handlers{name}) {
-            throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", name);
-        }
-        # paths are passed without the leading "/", so they have to be like this in the treemap
-        if (info.path =~ /^\//) {
-            info.path = info.path.substr(1);
-        }
-        # for backwards-compatibility, isregex = True if not set
-        if (!exists info.isregex) {
-            info.isregex = True;
-        }
-
-        HandlerInfo handlerInfo(name, info);
-        handlers{name} = handlerInfo;
-
-        if (!info.isregex && info.path) {
-            treeMap.put(info.path, handlerInfo);
-        }
-    }
-
-    #! remove handler from the list by it's name
-    /**
-        @throw INVALID-HANDLER-ERROR invalid handler name passed
-    */
-    removeHandler(string handler_name) {
-        if (!handlers.hasKey(handler_name)) {
-            throw "INVALID-HANDLER-ERROR", sprintf("handler with name %y is not present", handler_name);
-        }
-
-        HandlerInfo hi = handlers{handler_name};
-        treeMap.take(hi.path);
-        remove handlers{handler_name};
-        hi.stop();
-    }
-
-    #! remove handler from the list
-    /**
-        @throw INVALID-HANDLER-ERROR invalid handler passed
-    */
-    removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
-        *string name;
-        foreach hash<auto> h in (handlers.pairIterator()) {
-            if (h.value.obj == handler) {
-                name = h.key;
-                break;
-            }
-        }
-        if (name == NOTHING) {
-            throw "INVALID-HANDLER-ERROR", "handler not present";
-        }
-
-        HandlerInfo hi = handlers{name};
-        treeMap.take(hi.path);
-        remove handlers{name};
-        hi.stop();
-    }
-
-    # matches a handler to the request
-    *HandlerInfo findHandler(hash<auto> hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
-        if (!handlers)
-            return;
-
-        # if there is only one handler and final is true, then return the only handler
-        if (finalv && handlers.size() == 1)
-            return handlers.firstValue();
-
-        *HandlerInfo handlerInfo = treeMap.get(hdr.path);
-        if (handlerInfo) {
-            # must set score to 3 to stop searching; a path match trumps all other matches
-            score = 3;
-            root_path = handlerInfo.path;
-            return handlerInfo;
-        }
-
-        # find a handler for the request
-        HandlerInfo rv;
-
-        foreach HandlerInfo hi in (handlers.iterator()) {
-            int scr = hi.matchRequest(hdr, score);
-            #printf("findHandler() path: %s ct: %y %y score: %d (regex: %y)\n", hdr.path, hdr."content-type", hi.name, scr, hi.isregex);
-            if (scr > score) {
-                rv = hi;
-                score = scr;
-                if (scr == 3)
-                    break;
-            }
-        }
-        return rv;
-    }
-
-    bool empty() {
-        return handlers.empty();
-    }
-
-    int size() {
-        return handlers.size();
-    }
-}
-
-# class containing dynamic handler info
-class HttpServer::DynamicHandlerInfo inherits HttpServer::HandlerInfo {
-    public {
-        Counter counter();
-    }
-
-    constructor(string name, hash<HttpHandlerConfigInfo> info) : HandlerInfo(name, info) {
-    }
-}
-
-# maintains the request count for dynamic handlers (private)
-class HttpServer::DynamicHandlerHelper {
-    public {}
-
-    private {
-        Counter c;
-    }
-
-    constructor(Counter n_c) {
-        c = n_c;
-        c.inc();
-    }
-
-    destructor() {
-        c.dec();
-    }
-}
-
-# for dynamic handler-handling (private)
-class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
-    private {
-        RWLock dhl();
-    }
-
-    #! sets a dynamic request handler according to the arguments given
-    setHandler(string name, hash<HttpHandlerConfigInfo> info) {
-        # paths are passed without the leading "/", so they have to be like this in the treemap
-        if (info.path =~ /^\//) {
-            info.path = info.path.substr(1);
-        }
-        # for backwards-compatibility, isregex = True if not set
-        if (!exists info.isregex) {
-            info.isregex = True;
-        }
-
-        DynamicHandlerInfo dhi(name, info);
-
-        {
-            dhl.writeLock();
-            on_exit dhl.writeUnlock();
-
-            if (handlers{name}) {
-                throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists (dynamic handlers: %y)", name, keys handlers);
-            }
-
-            handlers{name} = dhi;
-        }
-
-        if (!info.isregex && info.path) {
-            treeMap.put(info.path, dhi);
-        }
-    }
-
-    #! remove dynamic handler
-    removeHandler(string name) {
-        Counter c;
-        {
-            # grab exclusive lock
-            dhl.writeLock();
-            on_exit dhl.writeUnlock();
-
-            # if no such handler exists, throw an exception
-            if (!handlers{name})
-                throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", name);
-
-            # remove the handler from the list
-            DynamicHandlerInfo dhi = remove handlers{name};
-
-            # remove handler from treemap if applicable
-            if (!dhi.isregex && exists dhi.path)
-                treeMap.take(dhi.path);
-
-            # take a copy of a reference to the Counter
-            c = dhi.counter;
-
-            # stop handler if it is a dedicated socket handler
-            dhi.stop();
-        }
-
-        # wait for the call counter to reach zero
-        c.waitForZero();
-    }
-
-    *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
-        dhl.readLock();
-        on_exit dhl.readUnlock();
-
-        *DynamicHandlerInfo h = HttpHandlerList::findHandler(hdr, \score, False, \root_path);
-        if (!h)
-            return;
-
-        dhh = new DynamicHandlerHelper(h.counter);
-        return h;
-    }
+    #! HTTP server logger
+    *Logger logger;
 }
 
 #! The HttpServer class implements a multithreaded HTTP server
-public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
+public class HttpServer inherits HttpServer::AbstractLogger {
     public {
         #! version of the HttpServer's implementation
         const Version = HttpServer::HttpServerVersion;
@@ -669,9 +405,6 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
     #! @cond nodoc
     private {
-        *code logfunc;
-        *code errlogfunc;
-
         # for masking HTTP request log msgs
         *code maskfunc;
 
@@ -726,26 +459,74 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         #! valid HTTP methods
         hash<string, bool> http_methods = HttpMethods;
+
+        #! logger
+        *Logger logger;
     }
     #! @endcond
 
     #! creates the HttpServer
     /** call @ref addListener() to add and start listeners
 
-        @param n_logfunc an optional closure or call reference that will be called with logging information; must take an initial string with optional arguments; ex: @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
-        @param n_errlogfunc an optional closure or call reference that will be called with error information; must take an initial string with optional arguments; ex: @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
-        @param n_dbg if this parameter is set to @ref True "True", then additional information will be logged when errors occur
-        @param n_name the name of the HTTP server as returned in the Server header (should be formatted according to RFC 2616 section 3.8 http://tools.ietf.org/html/rfc2616#section-3.8)
-        @param n_hdr a hash of headers to return in every response by default; to clear the default send an empty hash as the argument here
-     */
-    constructor(*code logfunc, *code errlogfunc, bool dbg = False, string name = HttpServer::HttpServerString, hash<auto> hdr = {"X-Powered-By": "Qore/" + Qore::VersionString}) {
-        self.logfunc = logfunc;
-        self.errlogfunc = errlogfunc;
-        debug = dbg;
+        @param logfunc an optional closure or call reference that will be called with logging information; must take
+        an initial string with optional arguments; ex:
+        @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param errlogfunc an optional closure or call reference that will be called with error information; must
+        take an initial string with optional arguments; ex:
+        @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @param dbg if this parameter is set to @ref True "True", then additional information will be logged when
+        errors occur; note that this parameter is only used if \a log is not provided
+        @param name the name of the HTTP server as returned in the Server header (should be formatted according to
+        <a href="http://tools.ietf.org/html/rfc2616#section-3.8">RFC 2616 section 3.8</a>)
+        @param hdr a hash of headers to return in every response by default; to clear the default send an empty hash
+        as the argument here
+
+        @note A new Logger object is created for the HTTP server using either \a logfunc or \a errfunc; if both are
+        given then only \a logfunc is used and all log messages (including errors) are directed to \a logfunc.  The
+        Logger object's logging level is set according to which of these parameters is included.  If neither are
+        included, then no logging is performed
+
+        @deprecated use constructor(hash<HttpServerOptionInfo>) instead
+    */
+    deprecated constructor(*code logfunc, *code errlogfunc, bool dbg = False,
+            string name = HttpServer::HttpServerString,
+            hash<auto> hdr = {"X-Powered-By": "Qore/" + Qore::VersionString}) {
         http_server_string = name;
+        debug = dbg;
         hdr = {
             "Server": name,
-         } + hdr;
+        } + hdr;
+
+        logger = new Logger(http_server_string);
+        if (logfunc || errlogfunc) {
+            logger.addAppender(new HttpServerCallbackAppender(logfunc ?? errlogfunc));
+            if (logfunc) {
+                logger.setLevel(LoggerLevel::INFO);
+            } else {
+                logger.setLevel(LoggerLevel::ERROR);
+            }
+        } else {
+            logger.setLevel(LoggerLevel::INFO);
+        }
+    }
+
+    #! Creates the server with the given options
+    /** @param opts see @ref HttpServerOptionInfo for more info
+    */
+    constructor(hash<HttpServerOptionInfo> opts) {
+        http_server_string = opts.name;
+        debug = opts.debug;
+        hdr = opts.hdr;
+        logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
+    }
+
+    #! Creates the server with default options and an empty logger
+    constructor() {
+        hash<HttpServerOptionInfo> opts();
+        http_server_string = opts.name;
+        debug = opts.debug;
+        hdr = opts.hdr;
+        logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
     }
 
     #! calls stop() and destroys the object
@@ -810,11 +591,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! adds one or more dedicated listeners to the server with the given bind address
-    /** @param bind the bind address for the dedicated listener; this can be a port number or an address (or
-        hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021"); the bind address will overwrite
-        any \a node and \a service addresses in the \a info hash; all possible addresses will be bound to new
-        listeners
-        @param info a listener information hash
+    /** @param info a listener information hash
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the
         description of each hash element in the list returned by this method
@@ -835,6 +612,20 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! adds a single global listener to the server
+    /** @param port the port number
+
+        @return a listener info hash; see the return value of HttpServer::HttpServer::getListenerInfo() for the
+        description of the hash returned by this method
+
+        @throw HTTPSERVER-ADDLISTENER-ERROR invalid options; duplicate bind address
+     */
+    hash<auto> addListener(int port) {
+        return addListenerIntern(<HttpListenerOptionInfo>{
+            "service": port,
+        }).getInfo();
+    }
+
+    #! adds a single global listener to the server
     /** @param opts the listener options
 
         @return a listener info hash; see the return value of HttpServer::HttpServer::getListenerInfo() for the
@@ -847,230 +638,6 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
      */
     hash<auto> addListener(hash<HttpListenerOptionInfo> opts) {
         return addListenerIntern(opts).getInfo();
-    }
-
-    #! adds a dedicated listener to the server with an explicit/dedicated handler for incoming connections
-    /** @param hname the name of the handler
-        @param handler the HttpServer::AbstractHttpRequestHandler object that will handle incoming connections
-        @param lp a hash with the following keys:
-        - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
-        - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
-        - \c key_password: (optional) an optional string giving the password for the private key (PEM format only)
-        - \c cert: (optional) a Qore::SSLCertificate object for HTTPS listeners
-        - \c key: (optional) a Qore::SSLPrivateKey object for HTTPS listeners
-        - \c url: (required) the path for matching incoming requests (use "/" for dedicated listeners); this is more important for handlers on the global listeners; this is a regular expression unless \a isregex is @ref False "False"
-        - \c isregex: (optional) a boolean value determining if the \a url (= path value) is a regular expression or a simple string; if this key is not present, then \a url is assumed to the a regular expression
-        - \c bind: (required) the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
-        - \c content_type: (optional) an optional string or list of string content types to match
-        - \c special_headers: (optional) a string or a list of strings giving special headers that when matched will direct requests to the given handler
-        @param logger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
-        @param errorlogger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
-        @param stopc an optional @ref closure "closure" or @ref call_reference "call reference" that will be called immediately after the listener is stopped
-        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-        @param family one of the following @ref network_address_family_constants "network family constants":
-        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
-
-        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
-
-        @throw SETHANDLER-ERROR HTTP request handler already exists with the given name; non-string entry in special_header list
-        @throw HTTPSERVER-ADDLISTENER-ERROR missing or invalid \c "bind" or \c "url" entry in the \c lp argument; duplicate bind address
-
-        @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
-
-        @deprecated use addListeners(string, hash<HttpListenerOptionInfo>) instead
-     */
-    deprecated final list<hash<auto>> addListenersWithHandler(string hname, HttpServer::AbstractHttpRequestHandler handler, hash<auto> lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
-        if (lp.bind.typeCode() != NT_STRING) {
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'bind' entry in listener description giving the bind address; expecting type 'string', got type '%s'", lp.bind.type());
-        }
-
-        if (lp.url.typeCode() != NT_STRING) {
-            throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing or invalid 'url' entry in listener description giving the path; expecting type 'string', got type '%s'", lp.url.type());
-        }
-
-        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(lp);
-
-        # setup all listener option info except node and service
-        hash<HttpListenerOptionInfo> info({
-            "name": name,
-            "cert": ssl_info.cert,
-            "key": ssl_info.key,
-            "handler_info": {
-                hname: <HttpHandlerConfigInfo>{
-                    "path": lp.url,
-                    "isregex": lp.isregex,
-                    "content_types": lp.content_type,
-                    "handler": handler,
-                    "headers": lp.special_headers,
-                },
-            },
-            "logger": logger,
-            "errorlogger": errorlogger,
-            "stopc": stopc,
-            "family": family,
-        });
-
-        return addListeners(lp.bind, info);
-    }
-
-    #! adds a dedicated listener to the server
-    /** @param bind the bind address for the dedicated listener; this can be a port number or an address (or hostname) and a port number separated by a colon (ex: \c "192.168.20.4:8021")
-        @param lp a hash with the following keys:
-        - \c cert_path: (optional) a path to an X509 certificate for HTTPS listeners
-        - \c key_path: (optional) a path to a private key file for an X509 certificate for HTTPS listeners
-        - \c key_password: (optional) an optional string giving the password for the private key (PEM format only)
-        - \c cert: (optional) a Qore::SSLCertificate object for HTTPS listeners
-        - \c key: (optional) a Qore::SSLPrivateKey object for HTTPS listeners
-        @param logger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with logging information; if this is not set, then the logger set in the HttpServer::constructor() will be used instead
-        @param errorlogger an optional @ref closure "closure" or @ref call_reference "call reference" that will be called with error information; if this is not set, then the error logger set in the HttpServer::constructor() will be used instead
-        @param stopc an optional @ref closure "closure" or @ref call_reference "call reference" that will be called immediately after the listener is stopped
-        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-        @param family one of the following @ref network_address_family_constants "network family constants":
-        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
-
-        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
-
-        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-
-        @note if \c bind begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
-
-        @since HttpServer 0.3.11
-
-        @deprecated use addListeners(string, hash<HttpListenerOptionInfo>) instead
-     */
-    final list<hash<auto>> addListeners(string bind, hash<auto> lp, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
-        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(lp);
-
-        # setup all listener option info except node and service
-        hash<HttpListenerOptionInfo> info({
-            "name": name,
-            "cert": ssl_info.cert,
-            "key": ssl_info.key,
-            "logger": logger,
-            "errorlogger": errorlogger,
-            "stopc": stopc,
-            "family": family,
-        });
-
-        return addListeners(bind, info);
-    }
-
-    #! adds a single global listener to the server
-    /** @param sock the bind address for the listener
-        @param cert_path an optional path to an X509 certificate for HTTPS listeners
-        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
-        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-        @param family one of the following @ref network_address_family_constants "network family constants":
-        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
-        @param pwd an optional password for the private key file (PEM format only)
-
-        @return a listener info hash; see the return value of HttpServer::HttpServer::getListenerInfo() for the description of the hash returned by this method
-
-        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-
-        @note if \a sock begins with a "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
-
-        @deprecated use addListener(string, hash<HttpListenerOptionInfo>) instead
-    */
-    deprecated hash<auto> addListener(softstring bind, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-        hash<HttpCertInfo> ssl_info;
-        if (cert_path) {
-            ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
-        }
-
-        # setup all listener option info except node and service
-        hash<HttpListenerOptionInfo> info({
-            "name": name,
-            "cert": ssl_info.cert,
-            "key": ssl_info.key,
-            "family": family,
-        });
-
-        if (bind =~ /:\w+/) {
-            (info.node, info.service) = (bind =~ x/(.+):(\w+)/);
-        } else if (bind =~ /^[0-9]+$/) {
-            info.service = bind;
-        } else {
-            info.node = bind;
-        }
-
-        return addListenerIntern(info).getInfo();
-    }
-
-    #! adds one or more global listeners according to the bind address
-    /** @param bind the bind address for the listener
-        @param cert_path an optional path to an X509 certificate for HTTPS listeners
-        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
-        @param name an optional name for the listener; the actual listener name will have the listener id appended to it and will be returned in the \c "name" key in each hash element in the return value for each listener started
-        @param family one of the following @ref network_address_family_constants "network family constants":
-        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
-        @param pwd an optional password for the private key file (PEM format only)
-
-        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
-
-        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-
-        @note if \a sock begins with a \c "/" character then it is assumed to be a UNIX socket path and the \a family argument is ignored
-
-        @deprecated use addListeners(string, hash<HttpListenerOptionInfo>) instead
-     */
-    deprecated softlist<hash<auto>> addListeners(softstring bind, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-        hash<HttpCertInfo> ssl_info;
-        if (cert_path) {
-            ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
-        }
-
-        # setup all listener option info except node and service
-        hash<HttpListenerOptionInfo> info({
-            "name": name,
-            "cert": ssl_info.cert,
-            "key": ssl_info.key,
-            "family": family,
-        });
-
-        return addListeners(bind, info);
-    }
-
-    #! adds one or more global listeners according to the bind address
-    /** @param node the bind address for the listener; if not given then the listener will be bound on all interfaces
-        @param service a service name (which will be lookup up to derive a port number) or port number to bind on
-        @param cert_path an optional path to an X509 certificate for HTTPS listeners
-        @param key_path an optional path to a private key file for an X509 certificate for HTTPS listeners
-        @param name an optional name fo the listener
-        @param family one of the following @ref network_address_family_constants "network family constants":
-        - @ref Qore::AF_INET "AF_INET": for binding an IPv4 socket
-        - @ref Qore::AF_INET6 "AF_INET6": for binding an IPv6 socket
-        - @ref Qore::AF_UNSPEC "AF_UNSPEC": for binding a socket with any available address family
-        @param pwd an optional password for the private key file (PEM format only)
-
-        @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the description of each hash element in the list returned by this method
-
-        @throw HTTPSERVER-ADDLISTENER-ERROR duplicate bind address
-
-        @deprecated use addINETListeners(hash<HttpListenerOptionInfo>) instead
-     */
-    deprecated list<hash<auto>> addINETListeners(*string node, softstring service, *string cert_path, *string key_path, *string name, int family = AF_UNSPEC, *string pwd) {
-        hash<HttpCertInfo> ssl_info = http_get_ssl_objects(cert_path, key_path, pwd);
-
-        # setup all listener option info except node and service
-        hash<HttpListenerOptionInfo> info({
-            "node": node,
-            "service": service,
-            "name": name,
-            "cert": ssl_info.cert,
-            "key": ssl_info.key,
-            "family": family,
-        });
-
-        return addINETListenersIntern(info);
     }
 
     #! throws an exception; these objects do not support copying
@@ -1119,12 +686,17 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
 
         @return a hash of listener information with the following keys:
         - \c name: the listener name
-        - \c hostname: the listening interface name if available (ex: "localhost"; note that this key is not present when retrieving information about UNIX sockets)
-        - \c hostname_desc: a descriptive string giving the hostname and the address family if the hostname is available (ex: "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX sockets)
+        - \c hostname: the listening interface name if available (ex: "localhost"; note that this key is not present
+          when retrieving information about UNIX sockets)
+        - \c hostname_desc: a descriptive string giving the hostname and the address family if the hostname is
+          available (ex: "ipv6[localhost]"; note that this key is not present when retrieving information about UNIX
+          sockets)
         - \c address: a string giving the address (ex: "::ffff:0.0.0.0")
         - \c address_desc: a descriptive string giving the address and the address family (ex: "ipv6[::ffff:0.0.0.0]")
-        - \c port: an integer port number if available (note that this key is not present when retrieving information about UNIX sockets)
-        - \c family: the network address family (see @ref network_address_family_constants "Network Address Family Constants")
+        - \c port: an integer port number if available (note that this key is not present when retrieving information
+          about UNIX sockets)
+        - \c family: the network address family (see
+          @ref network_address_family_constants "Network Address Family Constants")
         - \c familystr: a string describing the network address family (ex: "ipv4")
         - \c proto: the protocol used; either \c "http" or \c "https" for secure listeners
         - \c id: the listener ID
@@ -1208,7 +780,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! stops a single listener based on its name or bind address; does not return until all connections on the listener have closed
-    /** @param id listener bind address
+    /** @param bind listener bind address
 
         @throw INVALID-LISTENER-ERROR invalid listener bind address
         @throw HTTP-SERVER-ERROR cannot stop last listener
@@ -1321,19 +893,6 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         listeners{id}.addHandlers({name: info});
     }
 
-    #! adds a request handler to a listener given the listener's name or bind address
-    /** @deprecated use addHandlerToListener(softstring, string, hash<HttpHandlerConfigInfo>) instead
-    */
-    deprecated addHandlerToListener(softstring bind, string name, string path, *softlist<softstring> content_types, HttpServer::AbstractHttpRequestHandler obj, *softlist<softstring> special_headers, bool isregex = True) {
-        addHandlerToListener(bind, name, <HttpHandlerConfigInfo>{
-            "path": path,
-            "isregex": isregex,
-            "content_types": content_types,
-            "handler": obj,
-            "headers": special_headers,
-        });
-    }
-
     #! adds a request handler to a listener given the listener's id
     /** @param id listener id
         @param name handler name
@@ -1358,10 +917,13 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         @param path handler path
         @param content_type handler's content type
         @param obj handler object
+        @param special_headers headers to match
+        @param isregex is the path a regular expression
 
         @throw INVALID-LISTENER-ERROR invalid listener id passed
     */
-    addHandlerToListenerID(softint id, string name, string path, *softlist content_type, HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
+    addHandlerToListenerID(softint id, string name, string path, *softlist content_type,
+            HttpServer::AbstractHttpRequestHandler obj, *softlist special_headers, bool isregex = True) {
         addHandlerToListenerID(id, name, <HttpHandlerConfigInfo>{
             "path": path,
             "isregex": isregex,
@@ -1525,22 +1087,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! called to log information to the registered log code
     log(string fmt) {
-        if (logfunc) {
-            softlist<auto> args = "HttpServer: " + fmt;
-            if (argv)
-                args += argv;
-            call_function_args(logfunc, args);
-        }
+        logger.log(LoggerLevel::INFO, "HttpServer: " + fmt, argv);
     }
 
     #! called to log error information to the registered error log code
     logError(string fmt) {
-        if (errlogfunc) {
-            softlist<auto> args = "HttpServer: " + fmt;
-            if (argv)
-                args += argv;
-            call_function_args(errlogfunc, args);
-        }
+        logger.log(LoggerLevel::ERROR, "HttpServer: " + fmt, argv);
     }
 
     #! sends an HTTP error message on the socket
@@ -1707,7 +1259,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
-    final private HttpListener addListenerIntern(*string node, *softstring service, *Qore::SSLCertificate cert, *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
+    final private HttpListener addListenerIntern(*string node, *softstring service, *Qore::SSLCertificate cert,
+            *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *Logger logger,
+            *code stopc, *string name, int family = AF_UNSPEC) {
         return addListenerIntern(<HttpListenerOptionInfo>{
             "node": node,
             "service": service,
@@ -1715,7 +1269,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             "key": key,
             "handler_info": handler_info,
             "logger": logger,
-            "errorlogger": errorlogger,
             "stopc": stopc,
             "family": family,
         });
@@ -1724,13 +1277,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     final private HttpListener addListenerIntern(hash<HttpListenerOptionInfo> info) {
         if (!exists info.node && !exists info.service) {
             throw "HTTPSERVER-ADDLISTENER-ERROR", sprintf("missing both \"node\" and \"service\" from listener option hash: %y", info);
-        }
-
-        if (!info.logger && logfunc) {
-            info.logger = logfunc;
-        }
-        if (!info.errorlogger && errlogfunc) {
-            info.errorlogger = errlogfunc;
         }
 
         string sock = (exists info.service ? sprintf("%s:%s", info.node ?? "*", info.service) : info.node);
@@ -1768,24 +1314,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             smap{nsock} = remove smap{sock};
         }
         return l;
-    }
-
-    # don't reimplement this method; fix/enhance it in the module
-    deprecated final private list<hash<auto>> addINETListenersIntern(*string node, softstring service, *hash sd, *hash<auto> handler_info, *code logger, *code errorlogger, *code stopc, *string name, int family = AF_UNSPEC) {
-        if (sd.cert_path && !sd.cert)
-            sd += http_get_ssl_objects(sd.cert_path, sd.key_path, sd.key_password);
-        return addINETListenersIntern(<HttpListenerOptionInfo>{
-            "node": node,
-            "service": service,
-            "cert": sd.cert,
-            "key": sd.key,
-            "handler_info": (map {$1.key: cast<hash<HttpHandlerConfigInfo>>($1.value)}, handler_info.pairIterator()),
-            "logger": logger,
-            "errorlogger": errorlogger,
-            "stopc": stopc,
-            "name": name,
-            "family": family,
-        });
     }
 
     # don't reimplement this method; fix/enhance it in the module
@@ -1883,10 +1411,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         # add logging functions and url
         cx += {
-            "logfunc"     : logfunc,
-            "errlogfunc"  : errlogfunc,
-            "url"         : url,
-            "debug"       : debug,
+            "logger": logger,
+            "url": url,
+            "debug": debug,
         };
 
         HttpServer::AbstractHttpRequestHandler handler;
@@ -2198,7 +1725,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     #! @endcond
 }
 
-class HttpServer::HttpPersistentHandlerInfo {
+class HttpPersistentHandlerInfo {
     public {
         *DynamicHandlerHelper dhh;
         *HttpServer::AbstractHttpRequestHandler handler;
@@ -2226,7 +1753,7 @@ class HttpServer::HttpPersistentHandlerInfo {
 #! this class implements the listeners for the @ref HttpServer::HttpServer "HttpServer" class
 /** this class is private; it's not exported in the module API
 */
-class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
+class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
     private {
         HttpServer serv;
         Sequence ss;
@@ -2251,9 +1778,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         # mutex
         Mutex m();
 
-        # code references to external logging functions
-        *code logger;
-        *code errorlogger;
+        #! listener-specific logger; if not present, then the server's logger will be used
+        *Logger logger;
 
         # stop notification closure
         *code stopc;
@@ -2328,7 +1854,6 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         self.id = id;
         self.ss = ss;
         self.logger = opts.logger;
-        self.errorlogger = opts.errorlogger;
         self.stopc = opts.stopc;
 
         if (opts.handler_info) {
@@ -2404,14 +1929,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
     }
 
     # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer server, int id, Sequence ss, *string node, *softstring service, *Qore::SSLCertificate cert, *Qore::SSLPrivateKey key, *hash<auto> hi, *code logger, *code errorlogger, *code stopc, string name, int family = AF_UNSPEC) {
-    }
-
-    #! add handlers to the listener
-    /** @deprecated use addHandlers(hash<string, hash<HttpHandlerConfigInfo>>) instead
-    */
-    deprecated addHandlers(hash<auto> handler_info) {
-        addHandlers(map {$1.key: cast<hash<HttpHandlerConfigInfo>>($1.value)}, handler_info.pairIterator());
+    constructor(HttpServer server, int id, Sequence ss, *string node, *softstring service,
+            *Qore::SSLCertificate cert, *Qore::SSLPrivateKey key, *hash<auto> hi, *Logger logger, *code stopc,
+            string name, int family = AF_UNSPEC) {
     }
 
     #! add handlers to the listener
@@ -2454,7 +1974,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
     setDefaultHandler(string name) {
         if (!handlers.handlers{name})
-            throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", name, handlers.handlers.keys());
+            throw "HTTPLISTENER-SETDEFAULTHANDLER-ERROR", sprintf("handler %y is unknown (known handlers: %y)", name,
+                handlers.handlers.keys());
 
         defaultHandler = handlers.handlers{name};
     }
@@ -2532,7 +2053,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                         string etxt = serv.getDebug()
                             ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                             : get_exception_string(ex);
-                        string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+                        string str = sprintf("%s: received from %s via %s", etxt, info.address_desc,
+                            socket_info.address_desc);
                         logError(str);
                         logError(sprintf("hdr=%y", hdr));
                     }
@@ -2654,7 +2176,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 call_function(stopc, name);
             } catch (hash<ExceptionInfo> ex) {
-                serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc, get_ex_pos(ex), ex.err, ex.desc);
+                serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc,
+                    get_ex_pos(ex), ex.err, ex.desc);
             }
         }
     }
@@ -2712,7 +2235,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (logger) {
             args[0] = "HTTP" + (ssl ? "S" : "") + " " + args[0];
             try {
-                call_function_args(logger, args);
+                logger.log(LoggerLevel::INFO, args[0], args[1..]);
             } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
@@ -2726,10 +2249,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (argv)
             args += argv;
         args[0] = sprintf("%y (%s): %s", name, socket_info.desc, args[0]);
-        if (errorlogger) {
+        if (logger) {
             args[0] = "HTTP " + args[0];
             try {
-                call_function_args(errorlogger, args);
+                logger.log(LoggerLevel::ERROR, args[0], args[1..]);
             } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
@@ -2992,4 +2515,314 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
 
         remove shh{id};
     }
+}
+}
+
+#! Private namespace
+namespace Priv {
+# class containing handler info
+class HandlerInfo {
+    public {
+        string name;
+        HttpServer::AbstractHttpRequestHandler obj;
+        string path;
+        bool isregex;
+        # content type map
+        *hash<string, bool> content_type_map;
+        *list<string> special_header_list;
+    }
+
+    #! Creates the object from the parameters
+    /** @throw HANDLER-ERROR the handler is missing from the \a info argument
+    */
+    constructor(string name, hash<HttpHandlerConfigInfo> info) {
+        self.name = name;
+        if (!info.handler) {
+            throw "HANDLER-ERROR", sprintf("missing \"handler\" from handler config: %y", info);
+        }
+        obj = info.handler;
+        path = info.path;
+        isregex = info.isregex;
+        content_type_map = map {$1: True}, info.content_types;
+        special_header_list = map $1.lwr(), info.headers;
+    }
+
+    bool matchContentType(string ct) {
+        return content_type_map{ct} ? True : False;
+    }
+
+    #! called when matching a request; returns a code giving the match level; 0 = no match, 1 = only the Content-Type matches, 2 = special header matches, 3 = URL matches
+    int matchRequest(hash<auto> hdr, int score) {
+        if (path && hdr.path && isregex && regex(hdr.path, path)) {
+            return 3;
+        }
+        # the case where isregex is False was already handled by HttpHandlerList::findHandler using TreeMap
+        # we get here only if the path does not match
+
+        if (score >= 2) {
+            return 0;
+        }
+
+        if (hdr{special_header_list}) {
+            return 2;
+        }
+
+        if (score || !content_type_map) {
+            return 0;
+        }
+
+        return content_type_map.(hdr."content-type") ? 1 : 0;
+    }
+
+    stop() {
+        # stop handler if it is a dedicated socket handler
+        if (obj instanceof HttpServer::AbstractHttpSocketHandlerInterface) {
+            cast<HttpServer::AbstractHttpSocketHandlerInterface>(obj).stop();
+        }
+    }
+}
+
+# class to implement handler-handling (private)
+class HttpHandlerList {
+    public {
+        hash<string, HandlerInfo> handlers;
+        TreeMap treeMap();
+    }
+
+    /*
+    private static checkSpecialHeaders(reference sh) {
+        foreach auto h in (\sh) {
+            if (h.typeCode() != NT_STRING)
+                throw "SETHANDLER-ERROR", sprintf("entry %d in the special header list is not a string; type: %s", $#, h.type());
+            # make sure header is in lower case for matching
+            h = tolower(h);
+        }
+    }
+    */
+
+    #! sets a request handler according to the arguments given
+    setHandler(string name, hash<HttpHandlerConfigInfo> info) {
+        if (handlers{name}) {
+            throw "SETHANDLER-ERROR", sprintf("HTTP request handler %y already exists", name);
+        }
+        # paths are passed without the leading "/", so they have to be like this in the treemap
+        if (info.path =~ /^\//) {
+            info.path = info.path.substr(1);
+        }
+        # for backwards-compatibility, isregex = True if not set
+        if (!exists info.isregex) {
+            info.isregex = True;
+        }
+
+        HandlerInfo handlerInfo(name, info);
+        handlers{name} = handlerInfo;
+
+        if (!info.isregex && info.path) {
+            treeMap.put(info.path, handlerInfo);
+        }
+    }
+
+    #! remove handler from the list by it's name
+    /**
+        @throw INVALID-HANDLER-ERROR invalid handler name passed
+    */
+    removeHandler(string handler_name) {
+        if (!handlers.hasKey(handler_name)) {
+            throw "INVALID-HANDLER-ERROR", sprintf("handler with name %y is not present", handler_name);
+        }
+
+        HandlerInfo hi = handlers{handler_name};
+        treeMap.take(hi.path);
+        remove handlers{handler_name};
+        hi.stop();
+    }
+
+    #! remove handler from the list
+    /**
+        @throw INVALID-HANDLER-ERROR invalid handler passed
+    */
+    removeHandler(HttpServer::AbstractHttpRequestHandler handler) {
+        *string name;
+        foreach hash<auto> h in (handlers.pairIterator()) {
+            if (h.value.obj == handler) {
+                name = h.key;
+                break;
+            }
+        }
+        if (name == NOTHING) {
+            throw "INVALID-HANDLER-ERROR", "handler not present";
+        }
+
+        HandlerInfo hi = handlers{name};
+        treeMap.take(hi.path);
+        remove handlers{name};
+        hi.stop();
+    }
+
+    # matches a handler to the request
+    *HandlerInfo findHandler(hash<auto> hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
+        if (!handlers)
+            return;
+
+        # if there is only one handler and final is true, then return the only handler
+        if (finalv && handlers.size() == 1)
+            return handlers.firstValue();
+
+        *HandlerInfo handlerInfo = treeMap.get(hdr.path);
+        if (handlerInfo) {
+            # must set score to 3 to stop searching; a path match trumps all other matches
+            score = 3;
+            root_path = handlerInfo.path;
+            return handlerInfo;
+        }
+
+        # find a handler for the request
+        HandlerInfo rv;
+
+        foreach HandlerInfo hi in (handlers.iterator()) {
+            int scr = hi.matchRequest(hdr, score);
+            #printf("findHandler() path: %s ct: %y %y score: %d (regex: %y)\n", hdr.path, hdr."content-type", hi.name, scr, hi.isregex);
+            if (scr > score) {
+                rv = hi;
+                score = scr;
+                if (scr == 3)
+                    break;
+            }
+        }
+        return rv;
+    }
+
+    bool empty() {
+        return handlers.empty();
+    }
+
+    int size() {
+        return handlers.size();
+    }
+}
+
+# class containing dynamic handler info
+class DynamicHandlerInfo inherits HandlerInfo {
+    public {
+        Counter counter();
+    }
+
+    constructor(string name, hash<HttpHandlerConfigInfo> info) : HandlerInfo(name, info) {
+    }
+}
+
+# maintains the request count for dynamic handlers (private)
+class DynamicHandlerHelper {
+    public {}
+
+    private {
+        Counter c;
+    }
+
+    constructor(Counter n_c) {
+        c = n_c;
+        c.inc();
+    }
+
+    destructor() {
+        c.dec();
+    }
+}
+
+# for dynamic handler-handling (private)
+class DynamicHttpHandlerList inherits HttpHandlerList {
+    private {
+        RWLock dhl();
+    }
+
+    #! sets a dynamic request handler according to the arguments given
+    setHandler(string name, hash<HttpHandlerConfigInfo> info) {
+        # paths are passed without the leading "/", so they have to be like this in the treemap
+        if (info.path =~ /^\//) {
+            info.path = info.path.substr(1);
+        }
+        # for backwards-compatibility, isregex = True if not set
+        if (!exists info.isregex) {
+            info.isregex = True;
+        }
+
+        DynamicHandlerInfo dhi(name, info);
+
+        {
+            dhl.writeLock();
+            on_exit dhl.writeUnlock();
+
+            if (handlers{name}) {
+                throw "SETHANDLER-ERROR", sprintf("dynamic HTTP request handler %y already exists (dynamic handlers: %y)", name, keys handlers);
+            }
+
+            handlers{name} = dhi;
+        }
+
+        if (!info.isregex && info.path) {
+            treeMap.put(info.path, dhi);
+        }
+    }
+
+    #! remove dynamic handler
+    removeHandler(string name) {
+        Counter c;
+        {
+            # grab exclusive lock
+            dhl.writeLock();
+            on_exit dhl.writeUnlock();
+
+            # if no such handler exists, throw an exception
+            if (!handlers{name})
+                throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", name);
+
+            # remove the handler from the list
+            DynamicHandlerInfo dhi = remove handlers{name};
+
+            # remove handler from treemap if applicable
+            if (!dhi.isregex && exists dhi.path)
+                treeMap.take(dhi.path);
+
+            # take a copy of a reference to the Counter
+            c = dhi.counter;
+
+            # stop handler if it is a dedicated socket handler
+            dhi.stop();
+        }
+
+        # wait for the call counter to reach zero
+        c.waitForZero();
+    }
+
+    *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
+        dhl.readLock();
+        on_exit dhl.readUnlock();
+
+        *DynamicHandlerInfo h = HttpHandlerList::findHandler(hdr, \score, False, \root_path);
+        if (!h)
+            return;
+
+        dhh = new DynamicHandlerHelper(h.counter);
+        return h;
+    }
+}
+
+class HttpServerCallbackAppender inherits LoggerAppenderWithLayout {
+    private {
+        code logfunc;
+    }
+
+    constructor(code logfunc) : LoggerAppenderWithLayout("HttpServer", new LoggerLayoutPattern("%d T%t [%p]: %m")) {
+        self.logfunc = logfunc;
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                call_function(logfunc, params);
+                break;
+        }
+    }
+}
 }

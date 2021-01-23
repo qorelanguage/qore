@@ -9,6 +9,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 
@@ -120,14 +121,16 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         set_return_value(main());
     }
 
-    log(string fmt) {
-        if (m_options.verbose > 2) {
-            vprintf("HTTP: " + fmt + "\n", argv);
-        }
-    }
-
     globalSetUp() {
-        mServer = new HttpServer(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        mServer = new HttpServer(http_opts);
         mHandler = new ReqHandler();
         mServer.setHandler("my-handler", "", MimeTypeHtml, mHandler);
         mServer.setHandler("alt-handler", "/alt1", MimeTypeHtml, new AltHandler());
@@ -170,15 +173,39 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         f.write(CertPem);
         f.close();
         on_exit unlink(real_fn);
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, empty_fn, empty_fn));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \mServer.addListener(), (10132, invalid_fn, empty_fn));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \mServer.addListener(), (10132, get_random_string(), empty_fn));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, real_fn, empty_fn));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \mServer.addListener(), (10132, real_fn, invalid_fn));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \mServer.addListener(), (10132, real_fn, get_random_string()));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \http_get_ssl_objects(), {
+            "cert_path": empty_fn,
+            "key_path": empty_fn,
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \http_get_ssl_objects(), {
+            "cert_path": invalid_fn,
+            "key_path": empty_fn,
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \http_get_ssl_objects(), {
+            "cert_path": get_random_string(),
+            "key_path": empty_fn,
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \http_get_ssl_objects(), {
+            "cert_path": real_fn,
+            "key_path": empty_fn,
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", \http_get_ssl_objects(), {
+            "cert_path": real_fn,
+            "key_path": invalid_fn,
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "inaccessible", \http_get_ssl_objects(), {
+            "cert_path": real_fn,
+            "key_path": get_random_string(),
+        });
 %ifdef Unix
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, real_fn, "/dev/null"));
-        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \mServer.addListener(), (10132, "/dev/null", "/dev/null"));
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \http_get_ssl_objects(), {
+            "cert_path": real_fn,
+            "key_path": "/dev/null",
+        });
+        assertThrows("HTTPSERVER-SSL-SETUP-ERROR", "empty", \http_get_ssl_objects(), {
+            "cert_path": "/dev/null",
+            "key_path": "/dev/null",
+        });
 %endif
     }
 
@@ -210,10 +237,16 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
     }
 
     secondWildcardListener() {
-        hash h = mServer.addListener("localhost:0");
+        hash<auto> h = mServer.addListener(<HttpListenerOptionInfo>{
+            "node": "localhost",
+            "service": 0,
+        });
         assertEq(Type::String, h.bind.type());
         # issue #2155 this call will fail without the fix
-        h = mServer.addListener("localhost:0");
+        h = mServer.addListener(<HttpListenerOptionInfo>{
+            "node": "localhost",
+            "service": 0,
+        });
         assertEq(Type::String, h.bind.type());
     }
 
@@ -267,5 +300,19 @@ F5zjFeWIP+8vw1/WLUD8yUr3uaFq7ptPvd4K3B1NmruJeNZR/JWyuYHIUE3vlST6
         assertEq(MimeTypePng, info."response-headers"."content-type");
         assertEq(BinImage, img);
         assertEq("chunked", info."response-headers"."transfer-encoding");
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

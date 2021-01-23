@@ -153,8 +153,7 @@ public:
     ModuleContextNamespaceList mcnl;
     ModuleContextFunctionList mcfl;
 
-    DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
-    }
+    DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs);
 
     DLLLOCAL ~QoreModuleContext() {
         assert(!err);
@@ -185,6 +184,7 @@ protected:
     const char* name;
     qore_root_ns_private* rns;
     QoreStringNode* err = nullptr;
+    QoreModuleContext* parent;
     ExceptionSink& xsink;
 };
 

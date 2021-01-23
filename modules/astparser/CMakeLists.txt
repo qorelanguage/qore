@@ -67,9 +67,9 @@ add_custom_target(ASTPARSER_FLEX_GENERATED_FILES DEPENDS ${FLEX_ast_scanner_OUTP
 set(astparser_module_name "astparser")
 
 if (SINGLE_COMPILATION_UNIT)
-    add_library(${astparser_module_name} SHARED src/astparser_scu.cpp)
+    add_library(${astparser_module_name} MODULE src/astparser_scu.cpp)
 else (SINGLE_COMPILATION_UNIT)
-    add_library(${astparser_module_name} SHARED ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
+    add_library(${astparser_module_name} MODULE ${ASTPARSER_CPP_SRC} ${ASTPARSER_QPP_SOURCES})
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(${astparser_module_name} libqore ASTPARSER_QPP_GENERATED_FILES ASTPARSER_BISON_GENERATED_FILES ASTPARSER_FLEX_GENERATED_FILES)

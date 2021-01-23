@@ -78,22 +78,6 @@ private:
     qore_ns_private* ns;
 };
 
-class CharPtrList : public safe_dslist<std::string> {
-public:
-    // returns true for found, false for not found
-    // FIXME: use STL find algorithm
-    DLLLOCAL bool find(const char* str) const {
-        const_iterator i = begin();
-        while (i != end()) {
-            if (*i == str)
-                return true;
-            ++i;
-        }
-
-        return false;
-    }
-};
-
 // local variable container
 typedef safe_dslist<LocalVar*> local_var_list_t;
 
@@ -365,9 +349,10 @@ public:
     loc_set_t loc_set;
 
     // features present in this Program object
-    CharPtrList featureList;
-    // user modules present in this Program object
-    CharPtrList userFeatureList;
+    strset_t featureList;
+
+    // user features present in this Program object
+    strset_t userFeatureList;
 
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
@@ -903,11 +888,9 @@ public:
     DLLLOCAL QoreListNode* getFeatureList() const {
         QoreListNode* l = new QoreListNode(stringTypeInfo);
 
-        for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i), nullptr);
-
-        for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i), nullptr);
+        for (auto& i : featureList) {
+            l->push(new QoreStringNode(i), nullptr);
+        }
 
         return l;
     }
@@ -1851,27 +1834,47 @@ public:
         }
     }
 
-    DLLLOCAL void addUserFeature(const char* f) {
-        //printd(5, "qore_program_private::addUserFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
-        assert(!userFeatureList.find(f));
-        userFeatureList.push_back(f);
+    DLLLOCAL int addFeature(const char* f) {
+        //printd(5, "qore_program_private::addFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
+        strset_t::iterator i = featureList.lower_bound(f);
+        if (i != featureList.end() && (*i == f)) {
+            return -1;
+        }
+
+        featureList.insert(i, f);
+        return 0;
+    }
+
+    DLLLOCAL void removeFeature(const char* f) {
+        strset_t::iterator i = featureList.find(f);
+        assert(i != featureList.end());
+        featureList.erase(i);
+    }
+
+    DLLLOCAL int addUserFeature(const char* f) {
+        //printd(5, "qore_program_private::addFeature() this: %p pgm: %p '%s'\n", this, pgm, f);
+        strset_t::iterator i = userFeatureList.lower_bound(f);
+        if (i != userFeatureList.end() && (*i == f)) {
+            return -1;
+        }
+
+        userFeatureList.insert(i, f);
+        return 0;
+    }
+
+    DLLLOCAL bool hasUserFeature(const std::string feature) const {
+        return userFeatureList.find(feature) != userFeatureList.end();
     }
 
     DLLLOCAL void removeUserFeature(const char* f) {
-        CharPtrList::iterator i = userFeatureList.safe_dslist<std::string>::find(f);
+        strset_t::iterator i = userFeatureList.find(f);
         assert(i != userFeatureList.end());
         userFeatureList.erase(i);
     }
 
-    DLLLOCAL void addFeature(const char* f) {
-        assert(!featureList.find(f));
-        featureList.push_back(f);
-    }
-
-    DLLLOCAL void removeFeature(const char* f) {
-        CharPtrList::iterator i = featureList.safe_dslist<std::string>::find(f);
-        assert(i != featureList.end());
-        featureList.erase(i);
+    DLLLOCAL bool hasFeature(const char* f) const {
+        return (featureList.find(f) != featureList.end())
+            || (userFeatureList.find(f) != userFeatureList.end());
     }
 
     DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
@@ -1982,10 +1985,6 @@ public:
 
     DLLLOCAL static void clearThreadData(QoreProgram& pgm, ExceptionSink* xsink) {
         pgm.priv->clearThreadData(xsink);
-    }
-
-    DLLLOCAL static void addUserFeature(QoreProgram& pgm, const char* f) {
-        pgm.priv->addUserFeature(f);
     }
 
     DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {

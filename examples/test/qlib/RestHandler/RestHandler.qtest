@@ -12,6 +12,7 @@
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/RestSchemaValidator.qm
@@ -339,7 +340,15 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     globalSetUp() {
-        mServer = new HttpServer(\log(), \log());
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+        mServer = new HttpServer(http_opts);
         mServer.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler, NOTHING, False);
 %ifndef NoJson
         mServer.setHandler("swagger-handler", "/swagger", MimeTypeJson, swaggerHandler, NOTHING, False);
@@ -701,10 +710,6 @@ public class RestHandlerTest inherits QUnit::Test {
         h = mClient.get("test?action=echoArgs", NOTHING, \info);
         assertEq({}, h.body);
     }
-
-    log(string str) {
-        delete argv;
-    }
 }
 
 class NullOutputProvider inherits AbstractDataProvider {
@@ -729,5 +734,19 @@ class NullOutputProvider inherits AbstractDataProvider {
     }
 
     private *AbstractDataProviderType getRequestTypeImpl() {
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

@@ -250,119 +250,120 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 
 static QoreString* get_include_file_name(char* file) {
 #ifdef _Q_WINDOWS
-   // convert UNIX-style '/' character to '\'
-   for (char* p = file; *p; ++p)
-      if (*p == '/')
-         *p = '\\';
+    // convert UNIX-style '/' character to '\'
+    for (char* p = file; *p; ++p)
+        if (*p == '/')
+            *p = '\\';
 #endif
 
-   // if the filename begins with an environment variable, then try to do environment variable substitution
-   if (file[0] == '$') {
-      QoreString* rv = new QoreString;
+    // if the filename begins with an environment variable, then try to do environment variable substitution
+    if (file[0] == '$') {
+        QoreString* rv = new QoreString;
 
-      QoreString var;
-      char* p = file + 1;
-      while (*p && (*p == '_' || isalnum(*p))) {
-         var.concat(*p);
-         ++p;
-      }
+        QoreString var;
+        char* p = file + 1;
+        while (*p && (*p == '_' || isalnum(*p))) {
+            var.concat(*p);
+            ++p;
+        }
 
-      QoreString val;
-      if (SystemEnvironment::get(var.getBuffer(), val))
-         rv->concat(file);
-      else {
-         rv->concat(&val);
-         rv->concat(file + var.size() + 1);
-      }
+        QoreString val;
+        if (SystemEnvironment::get(var.getBuffer(), val))
+            rv->concat(file);
+        else {
+            rv->concat(&val);
+            rv->concat(file + var.size() + 1);
+        }
 
-      return rv;
-   }
+        return rv;
+    }
 
-   //printd(5, "get_include_file_name(%s)\n", file);
-   // FIXME: UNIX-specific - need to check for drive name on windows
-   if (file[0] == QORE_DIR_SEP)
-      return new QoreString(file);
+    //printd(5, "get_include_file_name(%s)\n", file);
+    // FIXME: UNIX-specific - need to check for drive name on windows
+    if (file[0] == QORE_DIR_SEP)
+        return new QoreString(file);
 
-   QoreString *rv;
+    QoreString *rv;
 
-   // check in current directory of script first
-   const char* sp = getProgram()->parseGetScriptDir();
-   if (sp) {
-      rv = findFileInPath(file, sp);
-      if (rv)
-         return rv;
-   }
+    // check in current directory of script first
+    const char* sp = getProgram()->parseGetScriptDir();
+    if (sp) {
+        rv = findFileInPath(file, sp);
+        if (rv)
+            return rv;
+    }
 
-   rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
-   if (!rv) {
-       const char* pp = getProgram()->parseGetIncludePath();
-       if (pp)
-           rv = findFileInPath(file, pp);
-       if (!rv)
-           rv = new QoreString(file);
-   }
+    rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
+    if (!rv) {
+        const char* pp = getProgram()->parseGetIncludePath();
+        if (pp)
+            rv = findFileInPath(file, pp);
+        if (!rv)
+            rv = new QoreString(file);
+    }
 
-   return rv;
+    return rv;
 }
 
 static void append_module_path(const char* path) {
-   char* ip = trim(path);
-   if (!ip)
-      return;
-   ON_BLOCK_EXIT(free, ip);
+    char* ip = trim(path);
+    if (!ip)
+        return;
+    ON_BLOCK_EXIT(free, ip);
 
-   QoreString npath; // for new path
+    QoreString npath; // for new path
 
-   scanner_process_path(npath, ip);
+    scanner_process_path(npath, ip);
 
-   //printd(5, "appending module path: '%s'\n", npath.getBuffer());
-   QMM.addModuleDirList(npath.getBuffer());
-   //getProgram()->parseSetIncludePath(npath.getBuffer());
+    //printd(5, "appending module path: '%s'\n", npath.getBuffer());
+    QMM.addModuleDirList(npath.getBuffer());
+    //getProgram()->parseSetIncludePath(npath.getBuffer());
 }
 
 static void set_include_path(const char* path) {
-   char* ip = trim(path);
-   if (!ip)
-      return;
-   ON_BLOCK_EXIT(free, ip);
+    char* ip = trim(path);
+    if (!ip)
+        return;
+    ON_BLOCK_EXIT(free, ip);
 
-   QoreString npath; // for new path
+    QoreString npath; // for new path
 
-   scanner_process_path(npath, ip);
+    scanner_process_path(npath, ip);
 
-   //printd(5, "setting include path: '%s'\n", npath.getBuffer());
-   getProgram()->parseSetIncludePath(npath.getBuffer());
+    //printd(5, "setting include path: '%s'\n", npath.getBuffer());
+    getProgram()->parseSetIncludePath(npath.getBuffer());
 }
 
 static char* remove_quotes(char* str) {
-   str[strlen(str) - 1] = '\0';
-   return str + 1;
+    str[strlen(str) - 1] = '\0';
+    return str + 1;
 }
 
 static int check_reexport(YYLTYPE* yylloc, const char* directive, char*& cn, bool& reexport) {
-   if (*cn != '(')
-      return 0;
-   char* p = strchr(cn, ')');
-   if (!p) {
-      parse_error(*get_loc(yylloc), "missing end parenthesis in %%%s directive", directive);
-      return -1;
-   }
+    if (*cn != '(')
+        return 0;
+    char* p = strchr(cn, ')');
+    if (!p) {
+        parse_error(*get_loc(yylloc), "missing end parenthesis in %%%s directive", directive);
+        return -1;
+    }
 
-   const char* ropt = cn + 1;
-   *p = '\0';
-   cn = p + 1;
-   if (strcmp(ropt, "reexport")) {
-      parse_error(*get_loc(yylloc), "unrecognized %%%s option '%s'; expected 'reexport'", directive, ropt);
-      return -1;
-   }
+    const char* ropt = cn + 1;
+    *p = '\0';
+    cn = p + 1;
+    if (strcmp(ropt, "reexport")) {
+        parse_error(*get_loc(yylloc), "unrecognized %%%s option '%s'; expected 'reexport'", directive, ropt);
+        return -1;
+    }
 
-   reexport = true;
-   cn = trim_inplace(cn);
-   if (!cn) {
-      parse_error(*get_loc(yylloc), "missing argument to %%%s", directive);
-      return -1;
-   }
-   return 0;
+    reexport = true;
+    cn = trim_inplace(cn);
+    if (!cn) {
+        parse_error(*get_loc(yylloc), "missing argument to %%%s", directive);
+        return -1;
+    }
+
+    return 0;
 }
 
 static DateTimeNode *makeYears(int years) {

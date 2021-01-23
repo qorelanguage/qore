@@ -23,7 +23,6 @@
 */
 
 %requires reflection
-#%requires Util
 
 #! Contains all public definitions in the ConnectionProvider module
 public namespace ConnectionProvider {
