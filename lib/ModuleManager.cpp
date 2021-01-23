@@ -486,7 +486,7 @@ void QoreModuleManager::init(bool se) {
 }
 
 /* this internal helper function solves an issue with modules
-   on MS Windows (or maybe OSX later).
+   on MS Windows (or maybe macOS later).
 
    The problem with Windows is that we are distributing zip
    files which can be extracted anywhere. But these binaries
@@ -534,7 +534,7 @@ std::string module_dir_prefix(const char * path) {
 #else // _Q_WINDOWS
 #warning MODULES_RELATIVE_PATH has been set but the operating system is not supported yet
 #endif
-    // this can be used for OSX maybe (regarding Qt5)
+    // this can be used for macOS maybe (regarding Qt5)
     //QCFType<CFURLRef> bundleURL(CFBundleCopyExecutableURL(CFBundleGetMainBundle()));
     //if(bundleURL) {
     //    QCFString cfPath(CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle));
@@ -716,6 +716,20 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
     addModule(mi);
 }
 
+static const char* get_feature_from_path(QoreString& tmp) {
+    char* buf = q_basename(tmp.c_str());
+    size_t len = strlen(buf);
+    tmp.set(buf, len, len + 1, QCS_DEFAULT);
+    qore_offset_t i = tmp.find('-');
+    if (i < 0) {
+        i = tmp.find('.');
+    }
+    if (i > 0) {
+        tmp.terminate(i);
+    }
+    return tmp.c_str();
+}
+
 int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
         QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
         unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
@@ -729,21 +743,15 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
     bool is_bin;
     // see if "name" is a path
     if (strchrs(name, "./\\")) {
-        tmp_buf = q_basenameptr(name);
+        tmp_buf = name;
         raw_path = name;
 
         if (tmp_buf.size() > 5 && !strcasecmp(".qmod", tmp_buf.c_str() + tmp_buf.size() - 5)) {
-            tmp_buf.terminate(tmp_buf.size() - 5);
             is_bin = true;
         } else {
-            qore_offset_t i = tmp_buf.find('.');
-            // ignore if the "." is in the first position
-            if (i > 0) {
-                tmp_buf.terminate(i);
-            }
             is_bin = false;
         }
-        name = tmp_buf.c_str();
+        name = get_feature_from_path(tmp_buf);
     } else {
         raw_path = nullptr;
         is_bin = false;
@@ -1420,17 +1428,8 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     if (!mod_desc) {
         if (!feature) {
-            feature = q_basenameptr(path);
-            const char* p = strchr(feature, '-');
-            if (!p) {
-                p = strchr(feature, '.');
-            }
-            if (p) {
-                feature_str.concat(feature, p - feature);
-            } else {
-                feature_str.set(feature);
-            }
-            feature = feature_str.c_str();
+            feature_str = feature;
+            feature = get_feature_from_path(feature_str);
         }
         // check for new-style module declaration
         QoreStringMaker sym("%s_qore_module_desc", feature);
