@@ -1418,7 +1418,8 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
     if (!ptr) {
-        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s", path, dlerror());
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s",
+            path, dlerror());
         return nullptr;
     }
 

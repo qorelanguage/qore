@@ -1087,12 +1087,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     #! called to log information to the registered log code
     log(string fmt) {
-        logger.log(LoggerLevel::INFO, "HttpServer: " + fmt, argv);
+        logger.logArgs(LoggerLevel::INFO, "HttpServer: " + fmt, argv);
     }
 
     #! called to log error information to the registered error log code
     logError(string fmt) {
-        logger.log(LoggerLevel::ERROR, "HttpServer: " + fmt, argv);
+        logger.logArgs(LoggerLevel::ERROR, "HttpServer: " + fmt, argv);
     }
 
     #! sends an HTTP error message on the socket
@@ -2235,7 +2235,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         if (logger) {
             args[0] = "HTTP" + (ssl ? "S" : "") + " " + args[0];
             try {
-                logger.log(LoggerLevel::INFO, args[0], args[1..]);
+                logger.logArgs(LoggerLevel::INFO, args[0], args[1..]);
             } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
@@ -2252,7 +2252,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         if (logger) {
             args[0] = "HTTP " + args[0];
             try {
-                logger.log(LoggerLevel::ERROR, args[0], args[1..]);
+                logger.logArgs(LoggerLevel::ERROR, args[0], args[1..]);
             } catch (hash<ExceptionInfo> ex) {
                 args[0] = sprintf("cannot write to listener log: %s: %s: msg: %s", ex.err, ex.desc, args[0]);
                 serv.logErrorArgs(args);
@@ -2467,6 +2467,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 if (get_remote_certs) {
                     cx."client-cert" = s.getRemoteCertificate();
                 }
+
                 serv.handleRequest(self, s, \cx, hdr, hdr.method == "HEAD", phi, info, \dedicated);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
