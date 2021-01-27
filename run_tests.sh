@@ -131,11 +131,15 @@ if [ $MEASURE_TIME -eq 1 ]; then
     fi
 fi
 
+LD_PRELOAD=$LIBQORE
+
 # Print info about used variables etc.
 echo "Using qore: $QORE"
 echo "Using libqore: $LIBQORE"
 echo "QORE_INCLUDE_DIR=$QORE_INCLUDE_DIR"
 echo "QORE_MODULE_DIR=$QORE_MODULE_DIR"
+echo "LD_PRELOAD=$LD_PRELOAD"
+export LD_LIBRARY_PATH=$LD_PRELOAD:$LD_LIBRARY_PATH
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 if [ $MEASURE_TIME -eq 1 ]; then
     printf "TIME_CMD: %s\n" "$TIME_CMD"
@@ -157,15 +161,15 @@ for test in $TESTS; do
         echo "====================================="
         echo "Running test ($i/$TEST_COUNT): $test"
         echo "-------------------------------------"
-        echo "cmdline: LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT"
+        echo "cmdline: $QORE $test $TEST_OUTPUT_FORMAT"
         echo "-------------------------------------"
     fi
 
     # Run single test.
     if [ $MEASURE_TIME -eq 1 ]; then
-        eval LD_PRELOAD=$LIBQORE $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
+        eval $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
     else
-        LD_PRELOAD=$LIBQORE $QORE $test $TEST_OUTPUT_FORMAT
+        $QORE $test $TEST_OUTPUT_FORMAT
     fi
 
     if [ $? -eq 0 ]; then
@@ -178,6 +182,8 @@ for test in $TESTS; do
     i=`expr $i + 1`
     if [ $PRINT_TEXT -eq 1 ]; then echo "-------------------------------------"; echo; fi
 done
+
+unset LD_PRELOAD
 
 # Print test summary.
 if [ $PRINT_TEXT -eq 1 ]; then
