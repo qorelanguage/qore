@@ -2510,13 +2510,14 @@ public namespace Logger {
             if (effective) {
                 AutoReadLock awhl(Logger::hierarchyLock);
                 *Logger l = self;
-                while (!exists l.getLevel(False)) {
+                *LoggerLevel rv;
+                while (!exists (rv = l.getLevel(False))) {
                     l = l.getParent();
                     if (!exists l) {
                         throw "LOGGER-ERROR", "Cannot get effective level";
                     }
                 }
-                return l.getLevel(False);
+                return rv;
             } else {
                 return currentLevel;
             }

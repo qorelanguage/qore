@@ -339,7 +339,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         #! default read timeout in ms
         const ReadTimeout = HttpServer::ReadTimeout;  # recvs timeout after 30 seconds
         #! default poll timeout in ms
-        const PollTimeout = 5000;   # check for exit every 5 seconds while waiting
+        const PollTimeout = 250ms;
 
         # logging options
         const LP_LOGPARAMS = HttpServer::LP_LOGPARAMS;
@@ -552,6 +552,16 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
     string getDefaultTextEncoding() {
         return override_encoding ? override_encoding : "iso-8859-1";
+    }
+
+    #! To call a listener's stop callback
+    callListenerStopCallback(code stopc, string name, hash<auto> socket_info) {
+        try {
+            call_function(stopc, name);
+        } catch (hash<ExceptionInfo> ex) {
+            logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc,
+                get_ex_pos(ex), ex.err, ex.desc);
+        }
     }
 
     #! adds one or more dedicated listeners to the server with the given bind address
@@ -856,7 +866,8 @@ public class HttpServer inherits HttpServer::AbstractLogger {
     }
 
     #! sets a dynamic request handler according to the arguments given
-    setDynamicHandler(string name, string path, *softlist<softstring> content_types, HttpServer::AbstractHttpRequestHandler obj, *softlist<softstring> special_headers, bool isregex = True) {
+    setDynamicHandler(string name, string path, *softlist<softstring> content_types,
+            HttpServer::AbstractHttpRequestHandler obj, *softlist<softstring> special_headers, bool isregex = True) {
         dhandlers.setHandler(name, <HttpHandlerConfigInfo>{
             "path": path,
             "isregex": isregex,
@@ -2035,7 +2046,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
     doLogRecvBody(*data body, hash<auto> cx, hash<auto> hdr, hash<auto> info) {
         if (body) {
-            string lstr = sprintf("cid %d src %y: %s %s HTTP/%s body (%db): ", cx.cid, cx."peer-info".address_desc,
+            string lstr = sprintf("cid %d src %y: %s %s HTTP/%s body (%db): ", cx.id, cx."peer-info".address_desc,
                 hdr.method, cx.masked_path, hdr.http_version, body.size());
             if (body.typeCode() == NT_STRING) {
                 try {
@@ -2173,12 +2184,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         serv.listenerStopped(self);
         if (stopc) {
-            try {
-                call_function(stopc, name);
-            } catch (hash<ExceptionInfo> ex) {
-                serv.logError("%y (%s): error calling stop notification closure: %s: %s: %s", name, socket_info.desc,
-                    get_ex_pos(ex), ex.err, ex.desc);
-            }
+            serv.callListenerStopCallback(stopc, name, socket_info);
         }
     }
 
@@ -2357,10 +2363,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         HttpPersistentHandlerInfo phi();
 
         try {
-            while (True) {
-                if (exit)
-                    break;
-
+            while (!exit) {
                 delete body;
                 delete hdr;
 
