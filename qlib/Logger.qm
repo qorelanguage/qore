@@ -368,7 +368,7 @@ public namespace Logger {
 
         #! Returns closest lower logger level
         /**
-            @param \c Loggerlevel
+            @param level the logger level
             @return \c Loggerlevel or \c NOTHING if there is no lower level
 
             @throw LOGGER-ERROR if level not found
@@ -388,7 +388,7 @@ public namespace Logger {
 
         #! Returns closest higher logger level
         /**
-            @param \c Loggerlevel
+            @param level the logger level
             @return \c Loggerlevel or \c NOTHING if there is no higher level
 
             @throw LOGGER-ERROR if level not found
@@ -2743,6 +2743,7 @@ public namespace Logger {
         /**
             @param level the logging level.
             @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+            @param args any format string arguments to the log message
         */
         public logArgs(int level, string message, *softlist<auto> args) {
             logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
@@ -2752,6 +2753,7 @@ public namespace Logger {
         /**
             @param level The logging level.
             @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+            @param args any format string arguments to the log message
         */
         public logArgs(string level, string message, *softlist<auto> args) {
             logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
