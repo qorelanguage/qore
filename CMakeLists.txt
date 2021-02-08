@@ -681,7 +681,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 6.3.3)
+    set_target_properties(libqore PROPERTIES VERSION 6.3.4)
     set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
