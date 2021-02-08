@@ -8,7 +8,11 @@
     Bugfix release; see below for more information
 
     @subsection qore_0912_bug_fixes Bug Fixes in Qore
-    - fixed path handling on Windows to respect the \c ';' separator
+    - fixes in modules
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+        - fixed a bug handling \c 100-continue requests when no handler is matched
+          (<a href="https://github.com/qorelanguage/qore/issues/4155">issue 4155</a>)
+    - fixed module path handling on Windows to respect the \c ';' separator
       (<a href="https://github.com/qorelanguage/qore/issues/4154">issue 4154</a>)
 
     @section qore_0911 Qore 0.9.11
