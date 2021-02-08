@@ -222,14 +222,21 @@ public namespace Logger {
     */
     public class LoggerLevel {
         public {
-            #! built-in logger levels
+            #! The highest logger level
             const OFF = MAXINT;
+            #! Logger level for fatal errors
             const FATAL = 50000;
+            #! Logger level for (non-fatal) errors
             const ERROR = 40000;
+            #! Logger level for warnings
             const WARN = 30000;
+            #! Logger level for informational messages
             const INFO = 20000;
+            #! Logger level for debugging messages
             const DEBUG = 10000;
+            #! Logger level for trace messages
             const TRACE = 5000;
+            #! The lowest logger level
             const ALL = MININT;
         }
 
