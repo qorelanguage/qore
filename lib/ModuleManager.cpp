@@ -287,11 +287,19 @@ void UniqueDirectoryList::addDirList(const char* str) {
     QoreString plist(str);
     str = (char*)plist.getBuffer();
 
+    char sep_char;
+#ifdef _Q_WINDOWS
+    // suport both ";" and ":" for path separators on Windows
+    sep_char = strchr(str, ';') ? ';' : ':';
+#else
+    sep_char = ':';
+#endif
+
     // add each directory
     while (char* p = (char*)strchr(str, ':')) {
 #ifdef _Q_WINDOWS
         // don't match ':' as the second character in a path as a path separator
-        if (p == str + 1) {
+        if (sep_char == ':' && (p == str + 1)) {
             p = (char*)strchr(p + 1, ':');
             if (!p)
                 break;
@@ -534,10 +542,6 @@ std::string module_dir_prefix(const char * path) {
 #else // _Q_WINDOWS
 #warning MODULES_RELATIVE_PATH has been set but the operating system is not supported yet
 #endif
-    // this can be used for macOS maybe (regarding Qt5)
-    //QCFType<CFURLRef> bundleURL(CFBundleCopyExecutableURL(CFBundleGetMainBundle()));
-    //if(bundleURL) {
-    //    QCFString cfPath(CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle));
 #else // MODULES_RELATIVE_PATH
     return path;
 #endif // MODULES_RELATIVE_PATH
