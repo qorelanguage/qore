@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 0.10
 
 %require-types
 %enable-all-warnings
@@ -33,7 +33,7 @@
 %requires Util
 
 module Logger {
-    version = "0.1.1";
+    version = "0.2";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -205,6 +205,11 @@ module Logger {
     # wait till finished
     @endcode
 
+    @subsection logger_v0_2 v0.2
+    - enable serialization for @ref Logger::LoggerEvent "LoggerEvent" objects as well as for them to be submitted
+      directly to @ref Logger::Logger "Logger" objects
+      (<a href="https://github.com/qorelanguage/qore/issues/4164">issue 4164</a>)
+
     @subsection logger_v0_1_1 v0.1.1
     - added Logger::Logger::logArgs() "Logger::logArgs()"
       (<a href="https://github.com/qorelanguage/qore/issues/3492">issue 3492</a>)
@@ -220,7 +225,7 @@ public namespace Logger {
         The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
         custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
     */
-    public class LoggerLevel {
+    public class LoggerLevel inherits Serializable {
         public {
             #! The highest logger level
             const OFF = MAXINT;
@@ -482,7 +487,7 @@ public namespace Logger {
         an exception then exception instance is passed for formatting. So it should be considered if format string and
         use for example "%y" to get readable data.
     */
-    public class LoggerEvent {
+    public class LoggerEvent inherits Serializable {
         private:internal {
             #! origin stamp to calculate relative time
             static date startTime = now_us();
@@ -491,7 +496,7 @@ public namespace Logger {
             string fqcn;
 
             #! Logger reference
-            *Logger logger;
+            transient *Logger logger;
 
             #! The category (logger) name.
             string categoryName;
@@ -503,7 +508,7 @@ public namespace Logger {
             string messageFmt;
 
             #! arguments to be rendered
-            *list messageArgs;
+            *list<auto> messageArgs;
 
             #! The application supplied message rendered through the rendering mechanism.
             *string renderedMessage;
@@ -531,56 +536,57 @@ public namespace Logger {
         /**
             The category becomes logger name and fqcn logger class name
 
-            @param n_logger Instance of the Logger class
-            @param n_level The event level
-            @param n_message The payload as format for @ref sprintf()
-            @param n_args The arguments for formatting
-            @param n_location_info code location related to logging event
-            @param n_thread_id thread related to the event, Default: @ref gettid()
-            @param n_time_stamp logging event timestamp. Default value is @ref now_us
-            @param n_throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
+            @param logger Instance of the Logger class
+            @param level The event level
+            @param message The payload as format for @ref sprintf()
+            @param args The arguments for formatting
+            @param location_info code location related to logging event
+            @param thread_id thread related to the event, Default: @ref gettid()
+            @param time_stamp logging event timestamp. Default value is @ref now_us
+            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
         */
-        constructor(Logger n_logger, LoggerLevel n_level, string n_message, *list n_args, *hash<CallStackInfo> n_location_info,
-                    int n_thread_id = gettid(), date n_time_stamp = now_us(), *hash<ExceptionInfo> n_throwable) {
-            fqcn = get_class_name(n_logger);
-            logger = n_logger;
-            categoryName = n_logger.getName();
-            level = n_level;
-            messageFmt = n_message;
-            messageArgs = n_args;
-            locationInfo = n_location_info;
-            threadId = n_thread_id;
-            timeStamp = n_time_stamp;
-            if (n_throwable) {
-                throwableInfo = n_throwable;
+        constructor(Logger logger, LoggerLevel level, string message, *list<auto> args,
+                *hash<CallStackInfo> location_info, int thread_id = gettid(), date time_stamp = now_us(),
+                *hash<ExceptionInfo> throwable) {
+            fqcn = get_class_name(logger);
+            self.logger = logger;
+            categoryName = logger.getName();
+            self.level = level;
+            messageFmt = message;
+            messageArgs = args;
+            locationInfo = location_info;
+            threadId = thread_id;
+            timeStamp = time_stamp;
+            if (throwable) {
+                throwableInfo = throwable;
             }
         }
 
         #! Instantiates a LoggingEvent from the supplied parameters.
         /**
-            @param n_fqcn name of the caller class.
-            @param n_category The event category.
-            @param n_level The event level
-            @param n_message The payload as format for @ref sprintf()
-            @param n_args The arguments for formatting
-            @param n_location_info code location related to logging event
-            @param n_thread_id thread related to the event, Default: @ref gettid()
-            @param n_time_stamp logging event timestamp. Default value is @ref now_us
-            @param n_throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
+            @param fqcn name of the caller class.
+            @param category The event category.
+            @param level The event level
+            @param message The payload as format for @ref sprintf()
+            @param args The arguments for formatting
+            @param location_info code location related to logging event
+            @param thread_id thread related to the event, Default: @ref gettid()
+            @param time_stamp logging event timestamp. Default value is @ref now_us
+            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
         */
-        constructor(string n_fqcn, softstring n_category, LoggerLevel n_level, string n_message, *list n_args,
-                    *hash<CallStackInfo> n_location_info, int n_thread_id = gettid(), date n_time_stamp = now_us(),
-                    *hash<ExceptionInfo> n_throwable) {
-            fqcn = n_fqcn;
-            categoryName = n_category;
-            level = n_level;
-            messageFmt = n_message;
-            messageArgs = n_args;
-            locationInfo = n_location_info;
-            threadId = n_thread_id;
-            timeStamp = n_time_stamp;
-            if (n_throwable) {
-                throwableInfo = n_throwable;
+        constructor(string fqcn, softstring category, LoggerLevel level, string message, *list<auto> args,
+                *hash<CallStackInfo> location_info, int thread_id = gettid(), date time_stamp = now_us(),
+                *hash<ExceptionInfo> throwable) {
+            self.fqcn = fqcn;
+            categoryName = category;
+            self.level = level;
+            messageFmt = message;
+            messageArgs = args;
+            locationInfo = location_info;
+            threadId = thread_id;
+            timeStamp = time_stamp;
+            if (throwable) {
+                throwableInfo = throwable;
             }
         }
 
@@ -724,7 +730,7 @@ public namespace Logger {
         */
         public process(timeout ms = 0) {
             while (True) {
-                *hash rec = getEvent(ms);
+                *hash<auto> rec = getEvent(ms);
                 if (!rec) {
                     break;
                 }
@@ -749,7 +755,7 @@ public namespace Logger {
 
             @return the next event from queue or @ref nothing if there is no event available within the timeout period
         */
-        private *hash getEvent(timeout ms) {
+        private *hash<auto> getEvent(timeout ms) {
             if (queue.size() > 0 || ms != 0) {
                 try {
                     if (ms == 0) {
@@ -2426,7 +2432,7 @@ public namespace Logger {
     public class Logger {
         private:internal {
             #! The lock to protect object manipulation
-            RWLock lock();
+            transient RWLock lock();
 
             #! The lock to protect access to parent/child hierarchy
             static RWLock hierarchyLock();
@@ -2595,19 +2601,19 @@ public namespace Logger {
             return additivity;
         }
 
-        #! Returns the call location where the log function was called from
-        private hash<CallStackInfo> getLocation() {
-            list<hash<CallStackInfo>> loc = get_thread_call_stack();
-            return loc[2];   # get location at stack-2
-        }
-
         #! Forwards the given logging event to all linked appenders.
         /**
             @param event the event to forward
         */
-        private callAppenders(LoggerEvent event) {
+        public callAppenders(LoggerEvent event) {
             AutoReadLock arl(lock);
             map $1.post(event), appenders;
+        }
+
+        #! Returns the call location where the log function was called from
+        private hash<CallStackInfo> getLocation() {
+            list<hash<CallStackInfo>> loc = get_thread_call_stack();
+            return loc[2];   # get location at stack-2
         }
 
         #! Adds an appender to the appender list
