@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -143,6 +143,11 @@ public:
 
     //! copies the c-string passed and sets the value of the string and its encoding
     DLLEXPORT void set(const char* str, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
+
+    //! copies the c-string passed and sets the value of the string up to the byte position given
+    /** @since %Qore 0.10.0
+    */
+    DLLEXPORT void set(const char* str, size_t len);
 
     //! copies the string passed and sets the value of the string and its encoding
     DLLEXPORT void set(const std::string& str, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
