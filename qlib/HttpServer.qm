@@ -1264,7 +1264,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! helper method to set HTTP response headers
-    static nothing setReplyHeaders(Socket s, hash<auto> cx, reference<hash> rv) {
+    static nothing setReplyHeaders(Socket s, hash<auto> cx, reference<hash<auto>> rv) {
         return HttpServer::http_set_reply_headers(s, cx, \rv);
     }
 
@@ -1645,6 +1645,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
         }
 
+        HttpServer::http_set_reply_headers(s, cx, \rv);
+
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
             doResponse(listener, s, cx, rv);
@@ -1655,7 +1657,6 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             sendHttpError(listener, cx, s, rv.code, rv.body, rv.hasKey("chunked_body") ? rv.chunked_body : NOTHING,
                 rv.hdr, cx."response-encoding", head);
         } else {
-            HttpServer::http_set_reply_headers(s, cx, \rv);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
 
             # compress body if eligible for compression

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -492,8 +492,10 @@ struct qore_socket_private {
                 const char* key = hi.getKey();
                 if (addsize && !strcasecmp(key, "transfer-encoding"))
                     addsize = false;
-                if (addsize && !strcasecmp(key, "content-length"))
-                    addsize = false;
+                if ((addsize || size) && !strcasecmp(key, "content-length")) {
+                    // ignore Content-Length given manually
+                    continue;
+                }
                 if (v.getType() == NT_LIST) {
                     ConstListIterator li(v.get<const QoreListNode>());
                     while (li.next())

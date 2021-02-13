@@ -94,6 +94,8 @@ module HttpServerUtil {
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
     @subsection httputil0_10_0 HttpServerUtil 0.10.0
+    - added a definition for the <tt>308 Permanent Redirect</tt> response
+      (<a href="https://github.com/qorelanguage/qore/issues/4169">issue 4169</a>)
     - added support for the Logger module for logging
       (<a href="https://github.com/qorelanguage/qore/issues/4157">issue 4157</a>)
 
@@ -206,6 +208,7 @@ public const HttpCodes = {
     "305": "Use Proxy",
     #"306": "(Reserved)",
     "307": "Temporary Redirect",
+    "308": "Permanent Redirect",
 
     # 400s: Client Errors
     "400": "Bad Request",
