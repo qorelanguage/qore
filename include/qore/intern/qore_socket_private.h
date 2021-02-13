@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 202` Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -484,6 +484,7 @@ struct qore_socket_private {
     DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = true) {
         // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
         // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
+        bool has_content_length = false;
         if (headers) {
             ConstHashIterator hi(headers);
 
@@ -492,8 +493,10 @@ struct qore_socket_private {
                 const char* key = hi.getKey();
                 if (addsize && !strcasecmp(key, "transfer-encoding"))
                     addsize = false;
-                if (addsize && !strcasecmp(key, "content-length"))
+                if (addsize && !strcasecmp(key, "content-length")) {
                     addsize = false;
+                    has_content_length = true;
+                }
                 if (v.getType() == NT_LIST) {
                     ConstListIterator li(v.get<const QoreListNode>());
                     while (li.next())
@@ -503,7 +506,7 @@ struct qore_socket_private {
             }
         }
         // add data and content-length header if necessary
-        if (size || addsize) {
+        if (!has_content_length && (size || addsize)) {
             hdr.sprintf("Content-Length: " QSD "\r\n", size);
         }
 
