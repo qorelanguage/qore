@@ -48,6 +48,10 @@
 #include <qore/macros-powerpc.h>
 #endif // #ifdef __ppc
 
+#if defined(__ppc64) || defined(__ppc64__)
+#include <qore/macros-ppc64.h>
+#endif // #ifdef __ppc64
+
 #ifdef __hppa
 #include <qore/macros-parisc.h>
 #endif // #ifdef __hppa
@@ -65,4 +69,3 @@
 #endif // #ifdef __aarch64__
 
 #endif // #ifndef _QORE_MACROS_H
-
