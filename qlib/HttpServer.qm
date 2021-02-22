@@ -117,6 +117,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http0_10_0 HttpServer 0.10.0
+    - allow dynamic handlers to be disabled before being removed
+      (<a href="https://github.com/qorelanguage/qore/issues/4173">issue 4173</a>)
     - added support for the Logger module for logging
       (<a href="https://github.com/qorelanguage/qore/issues/4157">issue 4157</a>)
     - removed deprecated APIs
@@ -831,6 +833,27 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         listeners{id}.stop();
     }
 
+    #! starts the shutdown process for a listener based on its listener ID; returns immediately
+    /** @param id listener id
+
+        @throw INVALID-LISTENER-ERROR invalid listener ID
+        @throw HTTP-SERVER-ERROR cannot stop last listener
+    */
+    stopListenerIDNoWait(softint id) {
+        lm.enter();
+        on_exit lm.exit();
+
+        if (!listeners.hasKey(id)) {
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
+        }
+
+        if (smap.size() == 1) {
+            throw "HTTP-SERVER-ERROR", "cannot stop last listener";
+        }
+
+        background listeners{id}.stop();
+    }
+
     #! gets the TID of a listener based on its listener ID
     int getListenerTID(softint id) {
         return listeners{id}.tid;
@@ -1091,7 +1114,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         return getListenerLogOptionsUnlocked(id);
     }
 
+    #! Disable dynamic handler
+    /** @throw DISABLEHANDLER-ERROR if the given dynamic handler does not exist
+    */
+    disableDynamicHandler(string name) {
+        dhandlers.disableHandler(name);
+    }
+
     #! remove dynamic handler
+    /** @throw REMOVEHANDLER-ERROR if the given dynamic handler does not exist
+    */
     removeDynamicHandler(string name) {
         dhandlers.removeHandler(name);
     }
@@ -2627,7 +2659,7 @@ class HttpHandlerList {
         }
     }
 
-    #! remove handler from the list by it's name
+    #! remove handler from the list by its name
     /**
         @throw INVALID-HANDLER-ERROR invalid handler name passed
     */
@@ -2738,6 +2770,9 @@ class DynamicHandlerHelper {
 class DynamicHttpHandlerList inherits HttpHandlerList {
     private {
         RWLock dhl();
+
+        # issue #4173: allow dynamic handlers to be disabled before being removed
+        hash<string, bool> disable_map;
     }
 
     #! sets a dynamic request handler according to the arguments given
@@ -2770,6 +2805,8 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
     }
 
     #! remove dynamic handler
+    /** @throw REMOVEHANDLER-ERROR if the given dynamic handler does not exist
+    */
     removeHandler(string name) {
         Counter c;
         {
@@ -2793,10 +2830,29 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
 
             # stop handler if it is a dedicated socket handler
             dhi.stop();
+
+            # issue #4173: remove disabled entry, if any
+            remove disable_map{name};
         }
 
         # wait for the call counter to reach zero
         c.waitForZero();
+    }
+
+    #! Disable dynamic handler
+    /** @throw DISABLEHANDLER-ERROR if the given dynamic handler does not exist
+    */
+    disableHandler(string name) {
+        # grab exclusive lock
+        dhl.writeLock();
+        on_exit dhl.writeUnlock();
+
+        # if no such handler exists, throw an exception
+        if (!handlers{name}) {
+            throw "DISABLEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", name);
+        }
+
+        disable_map{name} = True;
     }
 
     *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
@@ -2804,8 +2860,9 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
         on_exit dhl.readUnlock();
 
         *DynamicHandlerInfo h = HttpHandlerList::findHandler(hdr, \score, False, \root_path);
-        if (!h)
+        if (!h || disable_map{h.name}) {
             return;
+        }
 
         dhh = new DynamicHandlerHelper(h.counter);
         return h;
