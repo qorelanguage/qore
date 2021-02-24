@@ -36,6 +36,8 @@
       updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
 
     @subsection qore_0_10_0_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling \c private:internal members in base classes with multiple inheritance
+      (<a href="https://github.com/qorelanguage/qore/issues/4175">issue 4175</a>)
     - fixed a bug in @ref Qore::Socket "Socket" where multiple \c Content-Length headers could be sent in HTTP
       responses
       (<a href="https://github.com/qorelanguage/qore/issues/4168">issue 4168</a>)

@@ -1152,8 +1152,20 @@ public:
     }
 
     DLLLOCAL T* find(const char* name) const {
-        typename member_list_t::const_iterator i = std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e) -> bool {return !strcmp(e.first, name); });
+        typename member_list_t::const_iterator i =
+            std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e)
+                -> bool {return !strcmp(e.first, name); });
         return i == member_list.end() ? nullptr : i->second.get();
+    }
+
+    DLLLOCAL T* replace(const char* name, T* info) {
+        typename member_list_t::iterator i =
+            std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e)
+                -> bool {return !strcmp(e.first, name); });
+        assert(i != member_list.end());
+        T* rv = i->second.release();
+        i->second = std::unique_ptr<T>(info);
+        return rv;
     }
 
     DLLLOCAL bool empty() const {
@@ -2137,7 +2149,6 @@ public:
         @param mem the member name
         @param access output variable for the access of the member
         @param class_ctx the current class context; class_ctx is only set if it is present and accessible, so we only need to check for internal access here
-        @param internal_member output variable; true if the member found was a private:internal member of class_ctx
 
         @return the member found or nullptr if not found
     */

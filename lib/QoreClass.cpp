@@ -2832,7 +2832,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
         assert(qc.name != name || nspath0 != nspath1);
     }
 #endif
-    //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
+    printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialized before merging
     qc.members.parseInit(qc.selfid);
     for (auto& i : qc.members.member_list) {
@@ -2841,13 +2841,25 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             // issue #2970: if the member is declared as private:internal in this class
             // or if the current or new member are inaccessible, add contextual access information
             // so that the member can be properly accessed from base classes
-            if (mi->isLocalInternal() || i.second->access >= Internal || mi->access == Inaccessible) {
-                //printd(5, "qore_class_private::parseImportMembers() this: %p importing '%s' <- '%s::%s' this: '%s' other: '%s' context access\n", this, name.c_str(), qc.name.c_str(), i.first, privpub(mi->access), privpub(i.second->access));
+            if (mi->access == Inaccessible && i.second->access < Internal) {
+                printd(5, "qore_class_private::parseImportMembers() this: %p swapping '%s' <- '%s::%s' this: '%s' " \
+                    "other: '%s' context access\n", this, name.c_str(), qc.name.c_str(), i.first, privpub(mi->access),
+                    privpub(i.second->access));
+                i.second->parseInit(i.first, selfid);
+                QoreMemberInfo* nmi = new QoreMemberInfo(*i.second, this, access);
+                std::unique_ptr<QoreMemberInfo> old = std::unique_ptr<QoreMemberInfo>(members.replace(i.first, nmi));
+                nmi->addContextAccess(*old->getClass()->members.find(i.first));
+                //nmi->addContextAccess(*old.get());
+                continue;
+            } else if (mi->isLocalInternal() || i.second->access >= Internal || mi->access == Inaccessible) {
+                printd(5, "qore_class_private::parseImportMembers() this: %p importing '%s' <- '%s::%s' this: '%s' " \
+                    "other: '%s' context access\n", this, name.c_str(), qc.name.c_str(), i.first, privpub(mi->access),
+                    privpub(i.second->access));
                 mi->addContextAccess(*i.second);
                 continue;
             }
 
-            //printd(5, "qore_class_private::parseImportMembers() this: %p importing '%s' <- '%s::%s' ('%s') parent access: '%s' this access: '%s'\n", this, name.c_str(), qc.name.c_str(), i.first, i.second->exp.getTypeName(), privpub(access), privpub(mi->access));
+            printd(5, "qore_class_private::parseImportMembers() this: %p importing '%s' <- '%s::%s' ('%s') parent access: '%s' this access: '%s'\n", this, name.c_str(), qc.name.c_str(), i.first, i.second->exp.getTypeName(), privpub(access), privpub(mi->access));
 
             if (!mi->getClass()->equal(*i.second->getClass())) {
                 mi->getClass()->parseCheckClassHierarchyMembers(i.first, *(i.second), *mi);
@@ -2856,7 +2868,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
         }
         i.second->parseInit(i.first, selfid);
         QoreMemberInfo* nmi = new QoreMemberInfo(*i.second, this, access);
-        //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' importing <- '%s::%s' ('%s') new access: '%s' old: '%s'\n", this, name.c_str(), qc.name.c_str(), i.first, i.second->exp.getTypeName(), privpub(nmi->access), privpub(i.second->access));
+        printd(5, "qore_class_private::parseImportMembers() this: %p '%s' importing <- '%s::%s' ('%s') new access: '%s' old: '%s'\n", this, name.c_str(), qc.name.c_str(), i.first, i.second->exp.getTypeName(), privpub(nmi->access), privpub(i.second->access));
         members.addInheritedNoCheck(strdup(i.first), nmi);
     }
 }
