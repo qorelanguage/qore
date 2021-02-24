@@ -10,6 +10,71 @@
 
 %exec-class ClassesTest
 
+class Issue4175_BaseA {
+    private:internal {
+        int i;
+    }
+
+    constructor() {
+        i = 2;
+    }
+
+    int getA() {
+        return i;
+    }
+}
+
+class Issue4175_BaseB {
+    private:internal {
+        int i;
+    }
+
+    constructor() {
+        i = 3;
+    }
+
+    int getB() {
+        return i;
+    }
+}
+
+class Issue4175_Base {
+    public {
+        int i;
+    }
+
+    constructor(int i) {
+        self.i = i;
+    }
+}
+
+class Issue4175_1 inherits public Issue4175_BaseA, Issue4175_BaseB, Issue4175_Base {
+    constructor(int i) : Issue4175_Base(i) {
+    }
+
+    int get() {
+        return self.i;
+    }
+}
+
+class Issue4175_2 inherits public Issue4175_BaseA, Issue4175_Base, Issue4175_BaseB {
+    constructor(int i) : Issue4175_Base(i) {
+    }
+
+    int get() {
+        return self.i;
+    }
+}
+
+class Issue4175_3 inherits public Issue4175_Base, Issue4175_BaseA, Issue4175_BaseB {
+    constructor(int i) : Issue4175_Base(i) {
+    }
+
+    int get() {
+        return self.i;
+    }
+}
+
 class Issue_3901 {
     private:internal {
         int i = 1;
@@ -679,6 +744,7 @@ class Issue4051_B inherits Issue4051_A;
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 4175", \issue4175());
         addTestCase("issue 4051", \issue4051());
         addTestCase("issue 4045", \issue4045());
         addTestCase("issue 3901", \issue3901());
@@ -705,6 +771,23 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4175() {
+        Issue4175_1 obj1(1);
+        assertEq(1, obj1.get());
+        assertEq(2, obj1.getA());
+        assertEq(3, obj1.getB());
+
+        Issue4175_2 obj2(1);
+        assertEq(1, obj2.get());
+        assertEq(2, obj2.getA());
+        assertEq(3, obj2.getB());
+
+        Issue4175_1 obj3(1);
+        assertEq(1, obj3.get());
+        assertEq(2, obj3.getA());
+        assertEq(3, obj3.getB());
     }
 
     issue4051() {
@@ -945,7 +1028,7 @@ public class ClassesTest inherits QUnit::Test {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(481, ex.callstack[0].line);
+        assertEq(546, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
