@@ -206,6 +206,8 @@ module Logger {
     @endcode
 
     @subsection logger_v0_2 v0.2
+    - added support for the \c %%h and \c %%P patterns for hostname and PID, respectively
+      (<a href="https://github.com/qorelanguage/qore/issues/4179">issue 4179</a>)
     - allow file appenders to be reopened
       (<a href="https://github.com/qorelanguage/qore/issues/4171">issue 4171</a>)
     - enable serialization for @ref Logger::LoggerEvent "LoggerEvent" objects as well as for them to be submitted
@@ -1386,12 +1388,14 @@ public namespace Logger {
         | \c %%d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}" |
         | \c %%E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
         | \c %%F | Used to output the file name where the logging request was issued |
+        | \c %%h | Used to output the hostname where the logging event was generated |
         | \c %%l | Used to output location information of the caller which generated the logging event, i.e. \c "file:line [function()]" |
         | \c %%L | Used to output the line number from where the logging request was issued, option may specify @ref sprintf() format, e.g. \c "%.3d" |
         | \c %%m | Used to output the application supplied message associated with the logging event |
         | \c %%M | Used to output the method name where the logging request was issued |
         | \c %%n | Outputs the platform dependent line separator character or characters |
         | \c %%p | Used to output the priority of the logging event |
+        | \c %%P | Used to output the PID where the logging event was generated |
         | \c %%r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
         | \c %%t | Used to output the thread id that generated the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
         | \c %%u | Used to output logging event unique id, option may specify @ref sprintf() format, e.g. \c "%.3d" |
@@ -1410,6 +1414,8 @@ public namespace Logger {
             const DEFAULT_PATTERN = "%r [%t] %p %c - %m%n";
             #! default date format
             const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
+            #! This hostname
+            const HostName = gethostname();
         }
 
         #! Creates the object
@@ -1468,6 +1474,9 @@ public namespace Logger {
                 case "F":
                     res = event.getLocationInfo().file;
                     break;
+                case "h":
+                    res = HostName;
+                    break;
                 case "l":
                     hash<CallStackInfo> csi = event.getLocationInfo();
                     res = sprintf("%s:%d [%s()]", csi.file, csi.line, csi.function);
@@ -1486,6 +1495,9 @@ public namespace Logger {
                     break;
                 case "p":
                     res = event.getLevel().getStr();
+                    break;
+                case "P":
+                    res = getpid().toString();
                     break;
                 case "r":
                     res = sprintf(option ?? "%d", get_duration_milliseconds(event.getTimeStamp() - LoggerEvent::getStartTime()));
