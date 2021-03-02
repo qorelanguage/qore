@@ -516,9 +516,8 @@ void ThreadEntry::cleanup() {
     assert(!thread_data);
 #endif
 
-    if (status != QTS_NA && status != QTS_RESERVED) {
-        if (!joined)
-            pthread_detach(ptid);
+    if (status != QTS_NA && status != QTS_RESERVED && !joined && ptid) {
+        pthread_detach(ptid);
     }
     status = QTS_AVAIL;
 }
