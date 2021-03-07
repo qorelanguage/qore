@@ -824,13 +824,12 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
+                    // fall down to next case
+                default: {
                     if (typespec == QTS_COMPLEXSOFTLIST) {
                         // see if type matches the complex type
-                        return match_type(u.ti, getTypeInfoForType(t.u.t), may_not_match, may_need_filter);
+                        return match_type(u.ti, t.getTypeInfo(), may_not_match, may_need_filter);
                     }
-                    break;
-                    // fall down to the next case
-                default: {
                     break;
                 }
             }
