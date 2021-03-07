@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -232,17 +232,17 @@ public:
         if (needle.strlen() + pos > len)
             return -1;
 
-        return bindex(needle.getBuffer(), pos);
+        return bindex(needle.c_str(), pos, needle.size());
     }
 
     DLLLOCAL qore_offset_t bindex(const std::string &needle, qore_offset_t pos) const {
         if (needle.size() + pos > len)
             return -1;
 
-        return bindex(needle.c_str(), pos);
+        return bindex(needle.c_str(), pos, needle.size());
     }
 
-    DLLLOCAL qore_offset_t bindex(const char *needle, qore_offset_t pos) const {
+    DLLLOCAL qore_offset_t bindex(const char *needle, qore_offset_t pos, size_t nsize = 0) const {
         if (pos < 0) {
             pos = len + pos;
             if (pos < 0) {
@@ -252,7 +252,10 @@ public:
             return -1;
         }
 
-        return index_simple(buf, len, needle, strlen(needle), pos);
+        if (!nsize) {
+            nsize = strlen(needle);
+        }
+        return index_simple(buf, len, needle, nsize, pos);
     }
 
     // finds the last occurrence of needle in haystack at or before position pos
@@ -339,16 +342,35 @@ public:
     }
 
     DLLLOCAL qore_offset_t brindex(const char *needle, qore_size_t needle_len, qore_offset_t pos) const {
-        if (needle_len + pos > len)
-            return -1;
-
         if (pos < 0)
             pos = len + pos;
 
-        if (pos < 0)
+        if (pos >= len) {
+            pos = len - 1;
+        }
+
+        if (pos < 0) {
+            if (pos == -1 && !len && !needle_len) {
+                return 0;
+            }
+            return -1;
+        }
+
+        if (needle_len + (len - pos) > len)
             return -1;
 
         return rindex_simple(buf, len, needle, needle_len, pos);
+    }
+
+    DLLLOCAL bool startsWith(const char* str, size_t ssize) const {
+        return !strncmp(str, buf, ssize);
+    }
+
+    DLLLOCAL bool endsWith(const char* str, size_t ssize) const {
+        if (ssize > len) {
+            return false;
+        }
+        return strncmp(str, buf + len - ssize, ssize);
     }
 
     DLLLOCAL bool isDataPrintableAscii() const {
