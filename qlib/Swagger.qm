@@ -1623,7 +1623,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @throws SERIALIZATION-ERROR unsupported path, message body MIME type requested, or missing serialization module
     */
-    private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types, bool compact_serialization) {
+    private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path,
+            auto body, *hash<auto> headers, *softlist<string> content_types, bool compact_serialization) {
         # remove basePath if present
         fixPath(\path);
 
@@ -1700,9 +1701,12 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             return rv;
 
         if (content_types == MimeContentTypes)
-            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): "
+                "%y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
         else
-            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
+            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): "
+                "%y; available MIME types: %y; available serialization modules: %y", method.upr(), path,
+                content_types, mime_types, SerializationModules);
     }
 
     #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible

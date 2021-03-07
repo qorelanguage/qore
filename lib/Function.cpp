@@ -2078,17 +2078,6 @@ void QoreFunction::parseCommit() {
 
 void QoreFunction::parseRollback() {
     // noop: object will be destroyed
-    /*
-    if (!same_return_type)
-        same_return_type = true;
-
-    parse_rt_done = true;
-    parse_init_done = true;
-
-    if (check_parse) {
-        check_parse = false;
-    }
-    */
 }
 
 void QoreFunction::parseInit(qore_ns_private* ns) {

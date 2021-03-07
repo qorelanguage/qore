@@ -824,6 +824,11 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                         may_not_match = true;
                         return QTI_AMBIGUOUS;
                     }
+                    if (typespec == QTS_COMPLEXSOFTLIST) {
+                        // see if type matches the complex type
+                        return match_type(u.ti, getTypeInfoForType(t.u.t), may_not_match, may_need_filter);
+                    }
+                    break;
                     // fall down to the next case
                 default: {
                     break;
@@ -1147,10 +1152,10 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
 
                 ok = true;
             } else if (typespec == QTS_COMPLEXSOFTLIST) {
-                QoreValue val = n;
-                n.swap(val);
-                n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
-                ok = true;
+                // see if value matches
+                if (QoreTypeInfo::runtimeAcceptsValue(u.ti, n) > 0) {
+                    ok = true;
+                }
             }
             break;
         }
@@ -1305,7 +1310,17 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                 if (ti && QoreTypeInfo::equal(u.ti, ti))
                     return exact ? QTI_IDENT : QTI_AMBIGUOUS;
             }
-            return typespec == QTS_COMPLEXSOFTLIST ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+            if (typespec == QTS_COMPLEXSOFTLIST) {
+                qore_type_result_e rv = QoreTypeInfo::runtimeAcceptsValue(u.ti, n);
+                if (rv > 0) {
+                    // do not return an exact match if we have to convert to a list
+                    if (rv == QTI_IDENT) {
+                        rv = QTI_NEAR;
+                    }
+                    return rv;
+                }
+            }
+            return QTI_NOT_EQUAL;
 
         case QTS_COMPLEXREF:
             if (ot == NT_REFERENCE) {
@@ -1736,7 +1751,8 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
                     if (n.getType() != NT_LIST || n.get<const QoreListNode>()->getValueTypeInfo() != vti) {
                         QoreValue val;
                         n.swap(val);
-                        n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
+                        n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val,
+                            xsink));
                     }
                 },
                 true
@@ -1764,24 +1780,51 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
 
 QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti)
     : QoreComplexListOrNothingTypeInfo(q_accept_vec_t {
-        {QoreComplexSoftListTypeSpec(vti), nullptr},
-        {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
-                QoreValue val;
-                n.swap(val);
-                n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
-            }
-        },
-        {NT_NOTHING, nullptr},
-        {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-        {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
-                QoreValue val;
-                n.swap(val);
-                n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
-            }
-        },
-    },
-    q_return_vec_t {{QoreComplexSoftListTypeSpec(vti)}, {NT_NOTHING}},
-    QoreStringMaker("*softlist<%s>", QoreTypeInfo::getName(vti))) {
+            {
+                QoreComplexSoftListTypeSpec(vti),
+                [vti] (QoreValue& n, ExceptionSink* xsink) {
+                    switch (n.getType()) {
+                        case NT_NOTHING:
+                            break;
+                        case NT_NULL: {
+                            QoreValue val;
+                            n.swap(val);
+                            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val,
+                                xsink));
+                            break;
+                        }
+                        default:
+                           if (n.getType() != NT_LIST || n.get<const QoreListNode>()->getValueTypeInfo() != vti) {
+                                QoreValue val;
+                                n.swap(val);
+                                n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti),
+                                    val, xsink));
+                            }
+                            break;
+                    }
+                },
+                true
+            },
+            {
+                NT_LIST,
+                [vti] (QoreValue& n, ExceptionSink* xsink) {
+                    QoreValue val;
+                    n.swap(val);
+                    n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
+                }
+            },
+            {
+                NT_NOTHING,
+                nullptr
+            },
+            {
+                NT_NULL,
+                [] (QoreValue& n, ExceptionSink* xsink) {
+                    n.assignNothing();
+                }
+            },
+        }, q_return_vec_t {{QoreComplexSoftListTypeSpec(vti)}, {NT_NOTHING}
+        }, QoreStringMaker("*softlist<%s>", QoreTypeInfo::getName(vti))) {
     assert(vti);
 }
 

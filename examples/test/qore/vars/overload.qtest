@@ -15,7 +15,12 @@ hashdecl MyHash {
     int x = 1;
 }
 
-int sub sl_test(int i, softlist<*Mutex> l) {
+int sub sl_test_1(int i, softlist<*Mutex> l) {
+    delete argv;
+    return 1;
+}
+
+int sub sl_test_2(int i, *softlist<*Mutex> l) {
     delete argv;
     return 1;
 }
@@ -144,10 +149,18 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     softlistOverloadTest() {
-        Program p(PO_NEW_STYLE);
-        p.importFunction("sl_test");
-        assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sl_test(1, new Sequence());", "test"));
-        assertThrows("RUNTIME-TYPE-ERROR", \sl_test(), (1, new Sequence()));
+        {
+            Program p(PO_NEW_STYLE);
+            p.importFunction("sl_test_1");
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sl_test_1(1, new Sequence());", "test"));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \sl_test_1(), (1, new Sequence()));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.importFunction("sl_test_2");
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sl_test_2(1, new Sequence());", "test"));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \sl_test_2(), (1, new Sequence()));
+        }
     }
 
     issue3861() {
