@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -174,6 +174,13 @@ DLLEXPORT const TypedHashDecl* typeInfoGetTypedHash(const QoreTypeInfo* typeInfo
 
 DLLEXPORT qore_type_result_e typeInfoAcceptsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
 DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, const QoreTypeInfo* otherTypeInfo);
+
+// Returns a non "or nothing" type for the given "or nothing" type
+/** if the type is not an "or nothing" type, then the same type is returned
+
+    @since %Qore 0.10
+ */
+DLLEXPORT const QoreTypeInfo* qore_get_value_type(const QoreTypeInfo* typeInfo);
 
 DLLEXPORT const QoreTypeInfo* qore_get_or_nothing_type(const QoreTypeInfo* typeInfo);
 

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1381,7 +1381,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                     if (rc == QTI_UNASSIGNED) {
                         bool may_not_match = false;
                         rc = QoreTypeInfo::parseAccepts(t, a, may_not_match);
-                        //printd(5, "QoreFunction::parseFindVariant() %s(%s) rc: %d may_not_match: %d\n", getName(), sig->getSignatureText(), rc, may_not_match);
+                        printd(5, "QoreFunction::parseFindVariant() %s(%s) pi: %d (%s <= %s) rc: %d may_not_match: %d\n",
+                            getName(), sig->getSignatureText(), pi, QoreTypeInfo::getName(t), QoreTypeInfo::getName(a),
+                            rc, may_not_match);
                         // if we might not match, we need to match at runtime
                         if (may_not_match) {
                             variant_runtime_match = true;
@@ -1411,7 +1413,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                     break;
                 }
 
-                //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d variant_runtime_match: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_pmatch, variant_nperfect, nperfect, variant_runtime_match);
+                printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d " \
+                    "variant_pmatch: %d variant_nperfect: %d nperfect: %d variant_runtime_match: %d\n", this,
+                    getName(), sig->getSignatureText(), ok, count, match, variant_pmatch, variant_nperfect, nperfect,
+                    variant_runtime_match);
                 if (!ok)
                     continue;
 
@@ -1480,8 +1485,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         desc->concat("' can be found; ");
         if (!cnt) {
             desc->concat("no variants were accessible in this context");
-        }
-        else {
+        } else {
             desc->concat("the following variants were tested:");
 
             last_class = 0;
@@ -1493,7 +1497,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                 bool stop;
                 aqf = ilist.getFunction(class_ctx, last_class, aqfi, internal_access, stop);
                 if (!aqf)
-                break;
+                    break;
                 const char* class_name = aqf->className();
 
                 for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -1514,7 +1518,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                     desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
                 }
                 if (stop)
-                break;
+                    break;
             }
         }
         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
@@ -1543,7 +1547,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     }
     */
 
-    //printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld num_args: %d\n", this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll, num_args);
+    printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld num_args: %d " \
+        "(line: %d)\n",
+        this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(),
+        variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll,
+        num_args, loc ? loc->start_line : -1);
 
     return variant;
 }
