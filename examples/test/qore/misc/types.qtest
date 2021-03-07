@@ -287,7 +287,7 @@ class TypeTest inherits QUnit::Test {
         {
             Program p(PO_NEW_STYLE);
             p.parse("sub test() { softlist<string> l(); auto x = 1; l = x; }", "");
-            assertThrows("RUNTIME-TYPE-ERROR", "list assignment.*list<string>", \p.callFunction(), "test");
+            assertThrows("RUNTIME-TYPE-ERROR", "list<string>", \p.callFunction(), "test");
         }
     }
 
@@ -734,7 +734,7 @@ class TypeTest inherits QUnit::Test {
             assertEq(False, l0.complexType());
             l0 += "a";
             assertEq("a", l0[1]);
-            hash ih = testAnyArg(l);
+            hash<auto> ih = testAnyArg(l);
             assertEq(True, ih.complex);
             assertEq("list<softint>", ih.type);
             l += "2";

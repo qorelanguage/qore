@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1759,7 +1759,7 @@ public:
 
 protected:
     DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
-        const QoreString& tname) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
+            const QoreString& tname) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 
     DLLLOCAL virtual bool hasDefaultValueImpl() const {
@@ -1789,8 +1789,8 @@ public:
 
 protected:
     DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
-        const QoreString& tname)
-        : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
+            const QoreString& tname)
+            : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 };
 
@@ -1800,16 +1800,16 @@ public:
 
 protected:
     DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
-        const QoreString& tname)
-         : QoreComplexListOrNothingTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
+            const QoreString& tname)
+            : QoreComplexListOrNothingTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
     }
 };
 
 class QoreHardReferenceTypeInfo : public QoreTypeInfo {
 public:
     DLLLOCAL QoreHardReferenceTypeInfo()
-        : QoreTypeInfo(q_accept_vec_t {
-                {QoreHardReferenceTypeSpec(), nullptr, true},
+            : QoreTypeInfo(q_accept_vec_t {
+                    {QoreHardReferenceTypeSpec(), nullptr, true},
             },
             q_return_vec_t {
                 {QoreHardReferenceTypeSpec(), true},

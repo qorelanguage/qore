@@ -15,6 +15,16 @@ hashdecl MyHash {
     int x = 1;
 }
 
+int sub sl_test_1(int i, softlist<*Mutex> l) {
+    delete argv;
+    return 1;
+}
+
+int sub sl_test_2(int i, *softlist<*Mutex> l) {
+    delete argv;
+    return 1;
+}
+
 string sub f1_test(string x) {
     return type(x);
 }
@@ -126,6 +136,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("softlist overload test", \softlistOverloadTest());
         addTestCase("issue 3861", \issue3861());
         addTestCase("issue 3441", \issue3441());
         addTestCase("Values test", \testValues());
@@ -135,6 +146,21 @@ public class OverloadTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    softlistOverloadTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.importFunction("sl_test_1");
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sl_test_1(1, new Sequence());", "test"));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \sl_test_1(), (1, new Sequence()));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.importFunction("sl_test_2");
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sl_test_2(1, new Sequence());", "test"));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \sl_test_2(), (1, new Sequence()));
+        }
     }
 
     issue3861() {

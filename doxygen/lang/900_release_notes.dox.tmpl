@@ -39,6 +39,9 @@
       updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
 
     @subsection qore_0_10_0_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling @ref softlist_complex_type "complex softlist<...>" values where illegal matches were
+      allowed under some circumstances leading to runtime errors
+      (<a href="https://github.com/qorelanguage/qore/issues/4184">issue 4184</a>)
     - fixed a bug handling \c private:internal members in base classes with multiple inheritance
       (<a href="https://github.com/qorelanguage/qore/issues/4175">issue 4175</a>)
     - fixed a bug in @ref Qore::Socket "Socket" where multiple \c Content-Length headers could be sent in HTTP
