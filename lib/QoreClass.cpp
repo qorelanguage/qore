@@ -96,10 +96,10 @@ ClassAccess qore_method_private::getAccess() const {
 }
 
 void SignatureHash::set(const QoreString& str) {
-    DigestHelper dh(str.getBuffer(), str.size());
+    DigestHelper dh(str.c_str(), str.size());
     dh.doDigest(0, EVP_sha1());
     assert(dh.size() == SH_SIZE);
-    memcpy(buf, dh.getBuffer(), dh.size());
+    memcpy(buf, dh.c_str(), dh.size());
 }
 
 void SignatureHash::update(const QoreString& str) {
@@ -4266,83 +4266,83 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qor
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_class_private& oc) const {
-   qore_type_result_e rv = runtimeCheckCompatibleClassIntern(oc);
-   if (rv != QTI_NOT_EQUAL)
-      return rv;
-   if (injectedClass) {
-      rv = injectedClass->runtimeCheckCompatibleClassIntern(oc);
-      if (rv != QTI_NOT_EQUAL)
-         return rv;
-   }
-   return QTI_NOT_EQUAL;
+    qore_type_result_e rv = runtimeCheckCompatibleClassIntern(oc);
+    if (rv != QTI_NOT_EQUAL)
+        return rv;
+    if (injectedClass) {
+        rv = injectedClass->runtimeCheckCompatibleClassIntern(oc);
+        if (rv != QTI_NOT_EQUAL)
+            return rv;
+    }
+    return QTI_NOT_EQUAL;
 }
 
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const {
-   if (equal(oc))
-      return QTI_IDENT;
+    if (equal(oc))
+        return QTI_IDENT;
 
-   ClassAccess access = Public;
-   if (!oc.scl || !oc.scl->getClass(*this, access, true))
-      return QTI_NOT_EQUAL;
+    ClassAccess access = Public;
+    if (!oc.scl || !oc.scl->getClass(*this, access, true))
+        return QTI_NOT_EQUAL;
 
-   if (access == Public)
-      return QTI_AMBIGUOUS;
+    if (access == Public)
+        return QTI_AMBIGUOUS;
 
-   return runtimeCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+    return runtimeCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
 bool QoreClass::hasParentClass() const {
-   return (bool)priv->scl;
+    return (bool)priv->scl;
 }
 
 const QoreMethod* QoreClass::getConstructor() const {
-   return priv->constructor;
+    return priv->constructor;
 }
 
 const QoreMethod* QoreClass::getSystemConstructor() const {
-   return priv->system_constructor;
+    return priv->system_constructor;
 }
 
 const QoreMethod* QoreClass::getDestructor() const {
-   return priv->destructor;
+    return priv->destructor;
 }
 
 const QoreMethod* QoreClass::getCopyMethod() const {
-   return priv->copyMethod;
+    return priv->copyMethod;
 }
 
 const QoreMethod* QoreClass::getMemberGateMethod() const {
-   return priv->memberGate;
+    return priv->memberGate;
 }
 
 const QoreMethod* QoreClass::getMethodGate() const {
-   return priv->methodGate;
+    return priv->methodGate;
 }
 
 const QoreMethod* QoreClass::getMemberNotificationMethod() const {
-   return priv->memberNotification;
+    return priv->memberNotification;
 }
 
 const QoreTypeInfo* QoreClass::getTypeInfo() const {
-   return priv->getTypeInfo();
+    return priv->getTypeInfo();
 }
 
 const QoreTypeInfo* QoreClass::getOrNothingTypeInfo() const {
-   return priv->getOrNothingTypeInfo();
+    return priv->getOrNothingTypeInfo();
 }
 
 bool QoreClass::parseHasPublicMembersInHierarchy() const {
-   return priv->parseHasPublicMembersInHierarchy();
+    return priv->parseHasPublicMembersInHierarchy();
 }
 
 bool QoreClass::runtimeHasPublicMembersInHierarchy() const {
-   return priv->has_public_memdecl;
+    return priv->has_public_memdecl;
 }
 
 void QoreClass::parseSetEmptyPublicMemberDeclaration() {
-   priv->pending_has_public_memdecl = true;
-   if (!priv->has_new_user_changes)
-      priv->has_new_user_changes = true;
+    priv->pending_has_public_memdecl = true;
+    if (!priv->has_new_user_changes)
+        priv->has_new_user_changes = true;
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) const {
@@ -4358,24 +4358,24 @@ bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) cons
 }
 
 bool QoreClass::hasPrivateCopyMethod() const {
-   return priv->copyMethod && priv->copyMethod->isPrivate();
+    return priv->copyMethod && priv->copyMethod->isPrivate();
 }
 
 bool QoreClass::parseHasPrivateCopyMethod() const {
-   return priv->copyMethod && (qore_method_private::getAccess(*priv->copyMethod) > Public);
+    return priv->copyMethod && (qore_method_private::getAccess(*priv->copyMethod) > Public);
 }
 
 bool QoreClass::parseHasMethodGate() const {
-   return priv->parseHasMethodGate();
+    return priv->parseHasMethodGate();
 }
 
 void QoreClass::recheckBuiltinMethodHierarchy() {
-   priv->recheckBuiltinMethodHierarchy();
+    priv->recheckBuiltinMethodHierarchy();
 }
 
 void QoreClass::unsetPublicMemberFlag() {
-   assert(priv->has_public_memdecl);
-   priv->has_public_memdecl = false;
+    assert(priv->has_public_memdecl);
+    priv->has_public_memdecl = false;
 }
 
 void QoreClass::addBuiltinConstant(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
@@ -4387,17 +4387,17 @@ void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAcce
 }
 
 void QoreClass::rescanParents() {
-   // rebuild parent class data
-   if (priv->scl)
-      priv->scl->rescanParents(this);
+    // rebuild parent class data
+    if (priv->scl)
+        priv->scl->rescanParents(this);
 }
 
 void QoreClass::setPublicMemberFlag() {
-   priv->has_public_memdecl = true;
+    priv->has_public_memdecl = true;
 }
 
 void QoreClass::setGateAccessFlag() {
-   priv->gate_access = true;
+    priv->gate_access = true;
 }
 
 const QoreExternalNormalMember* QoreClass::findLocalMember(const char* name) const {

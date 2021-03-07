@@ -3100,35 +3100,51 @@ qore_offset_t QoreString::bindex(const QoreString& needle, qore_offset_t pos) co
 }
 
 qore_offset_t QoreString::bindex(const char* needle, qore_offset_t pos) const {
-   return priv->bindex(needle, pos);
+    return priv->bindex(needle, pos);
 }
 
 qore_offset_t QoreString::bindex(const std::string& needle, qore_offset_t pos) const {
-   return priv->bindex(needle, pos);
+    return priv->bindex(needle, pos);
 }
 
 qore_offset_t QoreString::rindex(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const {
-   return priv->rindex(needle, pos, xsink);
+    return priv->rindex(needle, pos, xsink);
 }
 
 qore_offset_t QoreString::brindex(const QoreString& needle, qore_offset_t pos) const {
-   return priv->brindex(needle, pos);
+    return priv->brindex(needle, pos);
 }
 
 qore_offset_t QoreString::brindex(const char* needle, qore_offset_t pos) const {
-   return priv->brindex(needle, ::strlen(needle), pos);
+    return priv->brindex(needle, ::strlen(needle), pos);
 }
 
 qore_offset_t QoreString::brindex(const std::string& needle, qore_offset_t pos) const {
-   return priv->brindex(needle, pos);
+    return priv->brindex(needle, pos);
 }
 
 qore_offset_t QoreString::find(char c, qore_offset_t pos) const {
-   return priv->find(c, pos);
+    return priv->find(c, pos);
 }
 
 qore_offset_t QoreString::rfind(char c, qore_offset_t pos) const {
-   return priv->rfind(c, pos);
+    return priv->rfind(c, pos);
+}
+
+qore_offset_t QoreString::find(const char* str, qore_offset_t pos) const {
+    return priv->bindex(str, pos);
+}
+
+qore_offset_t QoreString::rfind(const char* str, qore_offset_t pos) const {
+    return priv->brindex(str, ::strlen(str), pos);
+}
+
+qore_offset_t QoreString::find(const std::string& str, qore_offset_t pos) const {
+    return priv->bindex(str, pos);
+}
+
+qore_offset_t QoreString::rfind(const std::string& str, qore_offset_t pos) const {
+    return priv->brindex(str, pos);
 }
 
 qore_offset_t QoreString::findAny(const char* str, qore_offset_t pos) const {
@@ -3137,6 +3153,22 @@ qore_offset_t QoreString::findAny(const char* str, qore_offset_t pos) const {
 
 qore_offset_t QoreString::rfindAny(const char* str, qore_offset_t pos) const {
    return priv->rfindAny(str, pos);
+}
+
+bool QoreString::startsWith(const char* str) const {
+    return priv->startsWith(str, ::strlen(str));
+}
+
+bool QoreString::startsWith(const std::string& str) const {
+    return priv->startsWith(str.c_str(), str.size());
+}
+
+bool QoreString::endsWith(const char* str) const {
+    return priv->endsWith(str, ::strlen(str));
+}
+
+bool QoreString::endsWith(const std::string& str) const {
+    return priv->endsWith(str.c_str(), str.size());
 }
 
 bool QoreString::isDataPrintableAscii() const {

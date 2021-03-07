@@ -1684,8 +1684,7 @@ public:
         if (!other.is_set) {
             assert(false);
             clear();
-        }
-        else {
+        } else {
             if (!is_set)
                 is_set = true;
             copyHash(other);
@@ -1699,9 +1698,22 @@ public:
 
     // appends the hash to the string
     DLLLOCAL void toString(QoreString& str) const {
-        for (unsigned i = 0; i < SH_SIZE; ++i)
+        for (unsigned i = 0; i < SH_SIZE; ++i) {
             str.sprintf("%02x", buf[i]);
+        }
     }
+
+#ifdef DEBUG
+    // for debugging only; uses a static buffer
+    DLLLOCAL const char* debugToString() const {
+        static QoreString str;
+        str.clear();
+        for (unsigned i = 0; i < SH_SIZE; ++i) {
+            str.sprintf("%02x", buf[i]);
+        }
+        return str.c_str();
+    }
+#endif
 
     DLLLOCAL char* getHash() const {
         assert(is_set);

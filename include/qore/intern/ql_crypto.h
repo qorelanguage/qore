@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,7 @@ protected:
     unsigned int md_len;
 
     DLLLOCAL void setInput(const QoreString& str) {
-        input = (unsigned char*)str.getBuffer();
+        input = (unsigned char*)str.c_str();
         input_len = str.strlen();
     }
 
@@ -89,6 +89,10 @@ public:
     }
 
     DLLLOCAL const void* getBuffer() const {
+        return (const void*)md_value;
+    }
+
+    DLLLOCAL const void* c_str() const {
         return (const void*)md_value;
     }
 

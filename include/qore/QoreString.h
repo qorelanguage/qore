@@ -435,6 +435,26 @@ public:
     */
     DLLEXPORT bool equalPartialPath(const QoreString& str, ExceptionSink* xsink) const;
 
+    //! returns true if the current string starts with the argument string (bytes)
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT bool startsWith(const char* str) const;
+
+    //! returns true if the current string starts with the argument string (bytes)
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT bool startsWith(const std::string& str) const;
+
+    //! returns true if the current string ends with the argument string (bytes)
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT bool endsWith(const char* str) const;
+
+    //! returns true if the current string ends with the argument string (bytes)
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT bool endsWith(const std::string& str) const;
+
     //! terminates the string at byte position "size", the string is reallocated if necessary
     DLLEXPORT void terminate(qore_size_t size);
 
@@ -822,7 +842,7 @@ public:
 
     //! returns the byte (not character) at the given location; if the location is invalid, returns 0
     /** @param pos offset in string, negative offsets are form the end of the string
-         @return the byte (not character) at the given location; if the location is invalid, returns 0
+        @return the byte (not character) at the given location; if the location is invalid, returns 0
 
         FIXME: return value should be int and should return -1 if location is invalid
     */
@@ -841,13 +861,13 @@ public:
     DLLEXPORT qore_offset_t index(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
     //! returns the byte position of a substring within the string or -1 if not found
-    DLLEXPORT qore_offset_t bindex(const QoreString& needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t bindex(const QoreString& needle, qore_offset_t pos = 0) const;
 
     //! returns the byte position of a substring within the string or -1 if not found
-    DLLEXPORT qore_offset_t bindex(const char* needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t bindex(const char* needle, qore_offset_t pos = 0) const;
 
     //! returns the byte position of a substring within the string or -1 if not found
-    DLLEXPORT qore_offset_t bindex(const std::string& needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t bindex(const std::string& needle, qore_offset_t pos = 0) const;
 
     //! returns the character position of a substring searching in reverse from a given position or -1 if not found
     /** @param needle the string to find
@@ -859,19 +879,39 @@ public:
     DLLEXPORT qore_offset_t rindex(const QoreString& needle, qore_offset_t pos, ExceptionSink* xsink) const;
 
     //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
-    DLLEXPORT qore_offset_t brindex(const QoreString& needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t brindex(const QoreString& needle, qore_offset_t pos = -1) const;
 
     //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
-    DLLEXPORT qore_offset_t brindex(const char* needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t brindex(const char* needle, qore_offset_t pos = -1) const;
 
     //! returns the byte position of a substring within the string searching in reverse from a given position or -1 if not found
-    DLLEXPORT qore_offset_t brindex(const std::string& needle, qore_offset_t pos) const;
+    DLLEXPORT qore_offset_t brindex(const std::string& needle, qore_offset_t pos = -1) const;
 
     //! returns the byte position of a character (byte) within the string or -1 if not found
     DLLEXPORT qore_offset_t find(char c, qore_offset_t pos = 0) const;
 
     //! returns the last byte position of a character (byte) within the string or -1 if not found
     DLLEXPORT qore_offset_t rfind(char c, qore_offset_t pos = -1) const;
+
+    //! returns the byte position of a string byte sequence) within the string or -1 if not found
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT qore_offset_t find(const char* str, qore_offset_t pos = 0) const;
+
+    //! returns the last byte position of a string (byte sequence) within the string or -1 if not found
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT qore_offset_t rfind(const char* str, qore_offset_t pos = -1) const;
+
+    //! returns the byte position of a string byte sequence) within the string or -1 if not found
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT qore_offset_t find(const std::string& str, qore_offset_t pos = 0) const;
+
+    //! returns the last byte position of a string (byte sequence) within the string or -1 if not found
+    /** @since %Qore 0.10
+     */
+    DLLEXPORT qore_offset_t rfind(const std::string& str, qore_offset_t pos = -1) const;
 
     //! returns the byte position of any of the given characters (bytes) within the string or -1 if not found
     DLLEXPORT qore_offset_t findAny(const char *str, qore_offset_t pos = 0) const;
