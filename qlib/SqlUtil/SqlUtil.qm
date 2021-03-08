@@ -5457,10 +5457,12 @@ int num = l.size();
 *list<auto> l = tables.getDropAllForeignConstraintsOnTableSql(name);
             @endcode
 
-            Make sure that all relevant tables are cached before calling this method; if the table is not cached, then @ref nothing is returned
+            Make sure that all relevant tables are cached before calling this method; if the table is not cached, then
+            @ref nothing is returned
 
             @param name the name of the table to find all the foreigjn constraints for
-            @param opt a hash of options for the SQL strings; see @ref AbstractDatabase::DropSchemaOptions for common options; each driver can support additional driver-specific options
+            @param opt a hash of options for the SQL strings; see @ref AbstractDatabase::DropSchemaOptions for common
+            options; each driver can support additional driver-specific options
 
             @return a list of SQL strings that can be used to drop all the foreign constraints on a particular table
 
@@ -5472,10 +5474,11 @@ int num = l.size();
 
             AbstractTable t = h{name};
 
-            list l = ();
+            list<auto> l = ();
             foreach AbstractUniqueConstraint uk in (t.getUniqueConstraintIterator()) {
                 foreach hash<auto> sch in (uk.getSourceConstraintIterator()) {
-                    l += AbstractDatabase::doCallback(opt, sch.fk.getDropSql(sch.table), AbstractDatabase::AC_Drop, "foreign constraint", sch.fk.getName(), sch.table);
+                    l += AbstractDatabase::doCallback(opt, sch.fk.getDropSql(sch.table), AbstractDatabase::AC_Drop,
+                        "foreign constraint", sch.fk.getName(), sch.table);
                     string tn = sch.table;
                     tn =~ s/.*\.//;
                     if (opt.sql_callback_executed && h{tn})
@@ -6342,23 +6345,49 @@ AbstractConstraint ix = constraints.uk_jobs;
     }
 
     #! the API for a constraint with columns
-    public class AbstractColumnSupportingConstraint inherits AbstractConstraint, Columns {
+    public class AbstractColumnConstraint inherits AbstractConstraint, Columns {
         private {
-            #! a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
-            *hash sourceConstraints;
-
             #! the index supporting the constraint
             *string index;
         }
 
         #! creates the object from the name and a hash of column information
-        constructor(string n, *hash c, *string n_index) : AbstractConstraint(n), Columns(c) {
-            index = n_index;
+        constructor(string name, *hash<auto> cols, *string index) : AbstractConstraint(name), Columns(cols) {
+            self.index = index;
         }
 
         #! creates the object from the name and a Columns object
-        constructor(string n, Columns c, *string n_index) : AbstractConstraint(n), Columns(c) {
-            index = n_index;
+        constructor(string name, Columns cols, *string index) : AbstractConstraint(name), Columns(cols) {
+            self.index = index;
+        }
+
+        #! returns @ref True "True" if the object supports an index property and is set, @ref False "False" if not
+        bool setIndexBase(string ix) {
+            if (index && index != ix)
+                return False;
+            index = ix;
+            return True;
+        }
+
+        #! clears any index base for the constraint
+        clearIndex() {
+            delete index;
+        }
+    }
+
+    #! the API for a constraint with columns
+    public class AbstractColumnSupportingConstraint inherits AbstractColumnConstraint {
+        private {
+            #! a hash of ForeignConstraintSources, keyed by table name, the value is a hash of foreign constraints keyed by constraint name
+            *hash<string, hash<string, AbstractForeignConstraint>> sourceConstraints;
+        }
+
+        #! creates the object from the name and a hash of column information
+        constructor(string name, *hash<auto> cols, *string index) : AbstractColumnConstraint(name, cols, index) {
+        }
+
+        #! creates the object from the name and a Columns object
+        constructor(string name, Columns cols, *string index) : AbstractColumnConstraint(name, cols, index) {
         }
 
         #! returns an iterator through all known source foreign constraints on the current table
@@ -6367,11 +6396,11 @@ AbstractConstraint ix = constraints.uk_jobs;
             - \c table: the table name
         */
         Qore::AbstractIterator getSourceConstraintIterator() {
-            list l = ();
+            list<hash<auto>> l = ();
             if (sourceConstraints) {
                 HashIterator i(sourceConstraints);
                 while (i.next())
-                    map l += ("fk": $1, "table": i.getKey()), i.getValue().iterator();
+                    map l += {"fk": $1, "table": i.getKey()}, i.getValue().iterator();
             }
 
             return l.iterator();
@@ -6379,10 +6408,10 @@ AbstractConstraint ix = constraints.uk_jobs;
 
         #! returns lists of SQL strings to disable this constraint plus any dependent constraints and another list of SQL strings to reenable the same constraints; used when updating indexes that depend on constraints
         hash<auto> getDisableReenableSql(AbstractDatasource ds, string table_name, *hash<auto> opts) {
-            hash<auto> ch = (
+            hash<auto> ch = {
                 "disable": (),
                 "enable": (),
-                );
+            };
 
             HashIterator i(sourceConstraints);
             while (i.next()) {
@@ -6416,8 +6445,7 @@ AbstractConstraint ix = constraints.uk_jobs;
                 AbstractIndex ix = indexes{name};
                 if (ix.columns.matchKeys(h) && setIndexBase(ix.name))
                     ix.setSupportingConstraint(self);
-            }
-            else {
+            } else {
                 # search for an index with matching columns
                 foreach AbstractIndex ix in (indexes.iterator()) {
                     if (ix.columns.matchKeys(h)) {
@@ -6442,13 +6470,14 @@ uk.addSourceConstraint(table_name, constraint_name);
         */
         addSourceConstraint(string tname, AbstractForeignConstraint fk) {
             if (sourceConstraints{tname}{fk.getName()})
-                throw "SOURCE-CONSTRAINT-ERROR", sprintf("unique constraint %y: already has a source constraint from table %y from foreign constraint %y", name, tname, fk.getName());
+                throw "SOURCE-CONSTRAINT-ERROR", sprintf("unique constraint %y: already has a source constraint from "
+                    "table %y from foreign constraint %y", name, tname, fk.getName());
             sourceConstraints{tname}{fk.getName()} = fk;
             #printf("added source constraint to %y: %s.%s\n", name, tname, fk.getName());
         }
 
         #! removes a source constraint
-        removeSourceConstraint(string tname, list cols) {
+        removeSourceConstraint(string tname, list<auto> cols) {
             if (matchKeys(cols))
                 remove sourceConstraints{tname};
         }
@@ -6474,19 +6503,6 @@ uk.addSourceConstraint(table_name, constraint_name);
             return (self.keys() != cast<AbstractColumnSupportingConstraint>(c).keys()) ? False : True;
         }
 
-        #! returns @ref True "True" if the object supports an index property and is set, @ref False "False" if not
-        bool setIndexBase(string ix) {
-            if (index && index != ix)
-                return False;
-            index = ix;
-            return True;
-        }
-
-        #! clears any index base for the constraint
-        clearIndex() {
-            delete index;
-        }
-
         #! returns a string that can be used to create the constraint in the database
         abstract string getCreateSql(string table_name, *hash<auto> opts);
     }
@@ -6494,7 +6510,7 @@ uk.addSourceConstraint(table_name, constraint_name);
     #! represents a unique column constraint
     public class AbstractUniqueConstraint inherits AbstractColumnSupportingConstraint {
         #! creates the object from the name an a hash of column information
-        constructor(string n, *hash c, *string n_index) : AbstractColumnSupportingConstraint(n, c, n_index) {
+        constructor(string n, *hash<auto> c, *string n_index) : AbstractColumnSupportingConstraint(n, c, n_index) {
         }
     }
 
@@ -6503,13 +6519,13 @@ uk.addSourceConstraint(table_name, constraint_name);
         constructor() : AbstractUniqueConstraint("") {
         }
 
-        constructor(string n, *hash c) : AbstractUniqueConstraint(n, c) {
+        constructor(string n, *hash<auto> c) : AbstractUniqueConstraint(n, c) {
         }
     }
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
-        constructor(*hash c) : AbstractHashContainer(c) {
+        constructor(*hash<auto> c) : AbstractHashContainer(c) {
         }
 
         #! adds the given value to the hash with the given key name
@@ -6525,7 +6541,8 @@ uk.addSourceConstraint(table_name, constraint_name);
         #! find an index with columns equal to the index passed
         *AbstractForeignConstraint findEqual(AbstractForeignConstraint fk) {
             foreach AbstractForeignConstraint fk2 in (h.iterator()) {
-                if (fk2.matchKeys(fk) && fk2.target.table == fk.target.table && fk2.target.columns.matchKeys(fk.target.columns))
+                if (fk2.matchKeys(fk) && fk2.target.table == fk.target.table
+                    && fk2.target.columns.matchKeys(fk.target.columns))
                     return fk2;
             }
         }
@@ -6551,7 +6568,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         }
 
         #! returns either a hash of AbstractColumn information or @ref nothing if no foreign constraint can be found that matches the arguments
-        *hash findConstraintOn(string table, softlist cols) {
+        *hash<auto> findConstraintOn(string table, softlist<auto> cols) {
             foreach AbstractForeignConstraint fk in (h.iterator()) {
                 if (fk.target.table == table && fk.target.columns.matchKeys(cols))
                     return fk.getHash();
@@ -6587,13 +6604,13 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! the base class for foreign key constraint information
-    public class AbstractForeignConstraint inherits AbstractColumnSupportingConstraint {
+    public class AbstractForeignConstraint inherits AbstractColumnConstraint {
         public {
             #! a ForeignConstraintTarget object to describe the target table and columns
             ForeignConstraintTarget target;
         }
 
-        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractColumnSupportingConstraint(n, c) {
+        constructor(string name, Columns cols, ForeignConstraintTarget t) : AbstractColumnConstraint(name, cols) {
             target = t;
         }
 
