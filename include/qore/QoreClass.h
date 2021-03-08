@@ -957,6 +957,53 @@ public:
     */
     DLLEXPORT const char* getModuleName() const;
 
+    //! Sets a key value in the class's key-value store unconditionally
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return any value previously stored in that key; must be dereferenced by the caller
+
+        @note All class key-value operations are atomic
+
+        @since %Qore 0.10
+    */
+    DLLEXPORT QoreValue setKeyValue(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the class's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return returns \a value if another value already exists for that key, otherwise returns no value
+
+        @note
+        - All class key-value operations are atomic
+        - if \a value is returned, the caller must dereference it
+
+        @since %Qore 0.10
+    */
+    DLLEXPORT QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the class's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the string to store; will be converted to a QoreStringNode if stored
+
+        @note All class key-value operations are atomic
+
+        @since %Qore 0.10
+    */
+    DLLEXPORT void setKeyValueIfNotSet(const std::string& key, const char* str);
+
+    //! Returns a referenced key value from the class's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @note All class key-value operations are atomic
+
+        @since %Qore 0.10
+    */
+    DLLEXPORT QoreValue getReferencedKeyValue(const std::string& key) const;
+
     // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
     DLLLOCAL const QoreMethod* parseFindCommittedMethod(const char* nme);
 
