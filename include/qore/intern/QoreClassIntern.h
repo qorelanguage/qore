@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1731,7 +1731,7 @@ public:
 #define QCCM_NORMAL (1 << 0)
 #define QCCM_STATIC (1 << 1)
 
-// set of QoreClass pointers associted to a qore_class_private object
+// set of QoreClass pointers associated to a qore_class_private object
 typedef vector_set_t<QoreClass*> qc_set_t;
 //typedef std::set<QoreClass*> qc_set_t;
 
@@ -1839,13 +1839,57 @@ public:
     // the module that defined this class, if any
     std::string from_module;
 
+    // class key-value store
+    typedef std::map<std::string, QoreValue> kvmap_t;
+    kvmap_t kvmap;
+
     DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
     // only called while the parse lock for the QoreProgram owning "old" is held
     // called for injected classes only
     DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub);
 
-public:
+    //! Sets a key value in the class's key-value store
+    /** @param key the key to store
+        @param value the value to store
+
+        @return any value previously stored in that key; must be dereferenced by the caller
+
+        @since %Qore 0.10
+    */
+    DLLLOCAL QoreValue setKeyValue(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the class's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return returns \a value if another value already exists for that key, otherwise returns no value
+
+        @note if \a value is returned, the caller must dereference it
+
+        @since %Qore 0.10
+    */
+    DLLLOCAL QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the class's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the string to store; will be converted to a QoreStringNode if stored
+
+        @note All class key-value operations are atomic
+
+        @since %Qore 0.10
+    */
+    DLLLOCAL void setKeyValueIfNotSet(const std::string& key, const char* str);
+
+    //! Returns a referenced key value from the class's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @since %Qore 0.10
+    */
+    DLLLOCAL QoreValue getReferencedKeyValue(const std::string& key) const;
+
     // add a base class to this class
     DLLLOCAL void addBaseClass(QoreClass* qc, bool virt);
 
@@ -2584,6 +2628,12 @@ public:
             // delete vars again if possible
             vars.del(xsink);
         }
+
+        // delete key-value data
+        for (auto& i : kvmap) {
+            i.second.discard(xsink);
+        }
+        kvmap.clear();
 
         /*
         if (!const_refs.reference_count()) {

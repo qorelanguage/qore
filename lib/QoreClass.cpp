@@ -4291,6 +4291,61 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const q
     return runtimeCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
 
+QoreValue qore_class_private::setKeyValue(const std::string& key, QoreValue val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(gate.asl_lock);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        QoreValue rv = i->second;
+        i->second = val;
+        return rv;
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, val));
+    return QoreValue();
+}
+
+QoreValue qore_class_private::setKeyValueIfNotSet(const std::string& key, QoreValue val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(gate.asl_lock);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        if (i->second) {
+            return val;
+        }
+        i->second = val;
+        return QoreValue();
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, val));
+    return QoreValue();
+}
+
+void qore_class_private::setKeyValueIfNotSet(const std::string& key, const char* val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(gate.asl_lock);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        if (!i->second) {
+            i->second = new QoreStringNode(val);
+        }
+        return;
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, new QoreStringNode(val)));
+}
+
+QoreValue qore_class_private::getReferencedKeyValue(const std::string& key) const {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(gate.asl_lock);
+
+    kvmap_t::const_iterator i = kvmap.find(key);
+    if (i == kvmap.end()) {
+        return QoreValue();
+    }
+    return i->second.refSelf();
+}
+
 bool QoreClass::hasParentClass() const {
     return (bool)priv->scl;
 }
@@ -4439,6 +4494,22 @@ const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
 
 const QoreNamespace* QoreClass::getNamespace() const {
     return priv->ns->ns;
+}
+
+QoreValue QoreClass::setKeyValue(const std::string& key, QoreValue val) {
+    return priv->setKeyValue(key, val);
+}
+
+QoreValue QoreClass::setKeyValueIfNotSet(const std::string& key, QoreValue val) {
+    return priv->setKeyValueIfNotSet(key, val);
+}
+
+void QoreClass::setKeyValueIfNotSet(const std::string& key, const char* val) {
+    priv->setKeyValueIfNotSet(key, val);
+}
+
+QoreValue QoreClass::getReferencedKeyValue(const std::string& key) const {
+    return priv->getReferencedKeyValue(key);
 }
 
 void MethodFunctionBase::parseInit() {
