@@ -1622,8 +1622,7 @@ QoreValue qore_root_ns_private::parseFindReferencedConstantValueIntern(const Qor
 
     if (m != (scname.size() - 1)) {
         parse_error(*loc, "cannot resolve namespace '%s' in constant reference '%s'", scname[m], scname.ostr);
-    }
-    else {
+    } else {
         QoreString err;
         err.sprintf("cannot find constant '%s' in any namespace '", scname.getIdentifier());
         for (unsigned i = 0; i < (scname.size() - 1); i++) {

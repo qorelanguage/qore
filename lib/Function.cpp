@@ -43,11 +43,15 @@
 #include <cstdio>
 
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
-    parseException(*sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
+    parseException(*sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared",
+        cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
 }
 
-static void ambiguousDuplicateSignatureException(const char* cname, const char* name, const AbstractFunctionSignature* sig1, const UserSignature* sig2) {
-    parseException(*sig2->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant %s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name, sig1->getSignatureText());
+static void ambiguousDuplicateSignatureException(const char* cname, const char* name,
+        const AbstractFunctionSignature* sig1, const UserSignature* sig2) {
+    parseException(*sig2->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) matches already declared variant " \
+        "%s(%s)", cname ? cname : "", cname ? "::" : "", name, sig2->getSignatureText(), name,
+        sig1->getSignatureText());
 }
 
 QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class,
@@ -148,14 +152,15 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-    const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self,
-    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self,
+        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
         tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
     if (self && !self->isValid()) {
         assert(n_qc);
-        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been " \
+            "deleted", qc->name.c_str(), func->getName());
         return;
     }
 
@@ -169,14 +174,15 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-    const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self,
-    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self,
+        const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
         tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
     if (self && !self->isValid()) {
         assert(n_qc);
-        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been " \
+            "deleted", qc->name.c_str(), func->getName());
         return;
     }
 
@@ -211,9 +217,9 @@ void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-    const qore_class_private* cctx, QoreObject* self) {
-    printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d variant: %p cctx: %p (%s)\n", this, func->getName(),
-        loc->getFile(), loc->start_line, variant, cctx, cctx ? cctx->name.c_str() : "n/a");
+        const qore_class_private* cctx, QoreObject* self) {
+    printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d variant: %p cctx: %p (%s)\n", this,
+        func->getName(), loc->getFile(), loc->start_line, variant, cctx, cctx ? cctx->name.c_str() : "n/a");
 
     if (!variant) {
         const qore_class_private* class_ctx = qc ? (cctx ? cctx : runtime_get_class()) : nullptr;
@@ -231,8 +237,10 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         if (qc) {
             const MethodVariant* mv = reinterpret_cast<const MethodVariant*>(variant);
             ClassAccess va = mv->getAccess();
-            if ((va > Public && !class_ctx) || (va == Internal && !qore_class_private::get(*mv->getClass())->equal(*qc))) {
-                xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s(%s) is not accessible in this context", mv->className(), func->getName(), mv->getSignature()->getSignatureText());
+            if ((va > Public && !class_ctx) || (va == Internal
+                && !qore_class_private::get(*mv->getClass())->equal(*qc))) {
+                xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s(%s) is not accessible in this context",
+                    mv->className(), func->getName(), mv->getSignature()->getSignatureText());
                 return;
             }
         }
@@ -316,7 +324,8 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
         return 0;
     unsigned nparams = sig->numParams();
 
-    //printd(5, "processDefaultArgs() %s nargs: %d nparams: %d flags: %lld po: %d\n", func->getName(), nargs, nparams, variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
+    //printd(5, "processDefaultArgs() %s nargs: %d nparams: %d flags: %lld po: %d\n", func->getName(), nargs, nparams,
+    //  variant->getFlags(), (bool)(getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)));
     //if (nargs > nparams && (getProgram()->getParseOptions64() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS))) {
     if (nargs > nparams) {
         // use the target program (if different than the current pgm) to check for argument errors
@@ -332,7 +341,8 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
 
             if (!(flags & QCF_USES_EXTRA_ARGS)) {
                 for (unsigned i = nparams; i < nargs; ++i) {
-                    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, tmp->retrieveEntry(i).isNothing());
+                    //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i,
+                    //  tmp->retrieveEntry(i).isNothing());
                     if (!tmp->retrieveEntry(i).isNothing()) {
                         QoreStringNode* desc = new QoreStringNode("call to ");
                         do_call_name(*desc, func);
@@ -342,7 +352,8 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
                         do_call_name(*desc, func);
                         add_args(*desc, *tmp);
                         unsigned diff = nargs - nparams;
-                        desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
+                        desc->sprintf(") with %d excess argument%s, which is an error when PO_REQUIRE_TYPES or " \
+                            "PO_STRICT_ARGS is set", diff, diff == 1 ? "" : "s");
                         xsink->raiseException("CALL-WITH-TYPE-ERRORS", desc);
                         return -1;
                     }
@@ -1784,9 +1795,12 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode>& argv, QoreO
 }
 
 // primary function for executing user code
-QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc) const {
+QoreValue UserVariantBase::eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink,
+        const qore_class_private* qc) const {
     QORE_TRACE("UserVariantBase::eval()");
-    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name, ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc, qc ? qc->name.c_str() : "n/a");
+    //printd(5, "UserVariantBase::eval() this: %p '%s()' args: %p (size: %d) self: %p class: %p '%s'\n", this, name,
+    //  ceh ? ceh->getArgs() : 0, ceh && ceh->getArgs() ? ceh->getArgs()->size() : 0, self, qc,
+    //  qc ? qc->name.c_str() : "n/a");
 
     assert(!self || (ceh ? ceh->getClass() : qc));
 

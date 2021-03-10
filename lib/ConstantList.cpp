@@ -216,6 +216,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
             val.discard(&xsink);
             val = nv;
             typeInfo = val.getTypeInfo();
+            assert(!val.getInternalNode() || !val.getInternalNode()->needs_eval());
         } else {
             typeInfo = nothingTypeInfo;
         }
@@ -231,6 +232,14 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     }
 
     return 0;
+}
+
+QoreValue ConstantEntry::getReferencedValue() const {
+    if (val.getType() == NT_RTCONSTREF) {
+        return val.get<const RuntimeConstantRefNode>()->getConstantEntry()->saved_node->refSelf();
+    } else {
+        return val.refSelf();
+    }
 }
 
 ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p) {

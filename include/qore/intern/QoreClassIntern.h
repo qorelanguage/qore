@@ -275,13 +275,14 @@ public:
 
 class MethodVariant : public MethodVariantBase {
 public:
-   DLLLOCAL MethodVariant(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool is_abstract = false) : MethodVariantBase(n_access, n_final, n_flags, n_is_user, is_abstract) {
-   }
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const = 0;
-   DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      assert(false);
-      return QoreValue();
-   }
+    DLLLOCAL MethodVariant(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false,
+            bool is_abstract = false) : MethodVariantBase(n_access, n_final, n_flags, n_is_user, is_abstract) {
+    }
+    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const = 0;
+    DLLLOCAL virtual QoreValue evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+        assert(false);
+        return QoreValue();
+    }
 };
 
 #define METHV(f) (reinterpret_cast<MethodVariant*>(f))
@@ -289,14 +290,14 @@ public:
 
 class ConstructorMethodVariant : public MethodVariantBase {
 protected:
-   // evaluates base class constructors and initializes members
-   DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper& ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+    // evaluates base class constructors and initializes members
+    DLLLOCAL int constructorPrelude(const QoreClass &thisclass, CodeEvaluationHelper& ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL ConstructorMethodVariant(ClassAccess n_access, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_access, false, n_flags, n_is_user) {
-   }
-   DLLLOCAL virtual const BCAList* getBaseClassArgumentList() const = 0;
-   DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const = 0;
+    DLLLOCAL ConstructorMethodVariant(ClassAccess n_access, int64 n_flags, bool n_is_user = false) : MethodVariantBase(n_access, false, n_flags, n_is_user) {
+    }
+    DLLLOCAL virtual const BCAList* getBaseClassArgumentList() const = 0;
+    DLLLOCAL virtual void evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const = 0;
 };
 
 #define CONMV(f) (reinterpret_cast<ConstructorMethodVariant*>(f))
@@ -305,10 +306,10 @@ public:
 class DestructorMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, false, QCF_NO_FLAGS, n_is_user) {
-   }
+    DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, false, QCF_NO_FLAGS, n_is_user) {
+    }
 
-   DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const = 0;
+    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const = 0;
 };
 
 #define DESMV(f) (reinterpret_cast<DestructorMethodVariant*>(f))
@@ -331,7 +332,10 @@ protected:
     bool synchronized;
 
 public:
-    DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
+    DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line,
+            int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract)
+            : MethodVariant(n_access, n_final, n_flags, true, is_abstract),
+            UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
     }
 
     DLLLOCAL ~UserMethodVariant() {
