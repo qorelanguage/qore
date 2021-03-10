@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -259,7 +259,7 @@ const QoreTypeInfo* QoreExternalConstant::getTypeInfo() const {
 }
 
 QoreValue QoreExternalConstant::getReferencedValue() const {
-    return reinterpret_cast<const ConstantEntry*>(this)->val.refSelf();
+    return reinterpret_cast<const ConstantEntry*>(this)->getReferencedValue();
 }
 
 const QoreExternalProgramLocation* QoreExternalConstant::getSourceLocation() const {

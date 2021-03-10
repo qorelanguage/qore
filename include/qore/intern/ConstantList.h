@@ -122,14 +122,16 @@ public:
         }
     }
 
-    DLLLOCAL void ref() {
+    DLLLOCAL void ref() const {
         ROreference();
     }
 
-    DLLLOCAL ConstantEntry* refSelf() {
+    DLLLOCAL ConstantEntry* refSelf() const {
         ref();
-        return this;
+        return const_cast<ConstantEntry*>(this);
     }
+
+    DLLLOCAL QoreValue getReferencedValue() const;
 
     DLLLOCAL int parseInit(ClassNs ptr);
 
@@ -279,7 +281,8 @@ public:
 
     DLLLOCAL const ConstantEntry* findEntry(const char* name) const;
 
-    DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access, bool& found);
+    DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access,
+            bool& found);
 
     DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, bool& found) {
         ClassAccess access;
@@ -414,7 +417,8 @@ class RuntimeConstantRefNode : public ParseNode {
 protected:
     ConstantEntry* ce;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+            const QoreTypeInfo*& typeInfo) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -431,8 +435,13 @@ protected:
     }
 
 public:
-    DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation* loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
+    DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation* loc, ConstantEntry* n_ce) : ParseNode(loc,
+            NT_RTCONSTREF, true, false), ce(n_ce) {
         assert(ce->saved_node);
+    }
+
+    DLLLOCAL ConstantEntry* getConstantEntry() const {
+        return ce;
     }
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {

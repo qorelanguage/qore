@@ -419,7 +419,8 @@ public:
         ns.priv->addNamespace(nns->priv);
     }
 
-    DLLLOCAL static QoreValue parseResolveReferencedClassConstant(const QoreProgramLocation* loc, QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo, bool& found);
+    DLLLOCAL static QoreValue parseResolveReferencedClassConstant(const QoreProgramLocation* loc, QoreClass* qc,
+            const char* name, const QoreTypeInfo*& typeInfo, bool& found);
 
     DLLLOCAL static ConstantList& getConstantList(const QoreNamespace* ns) {
         return ns->priv->constant;
