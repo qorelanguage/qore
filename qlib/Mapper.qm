@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.3";
+    version = "1.5.4";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -301,6 +301,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_4 Mapper v1.5.4
+    - fixed a bug handling the \c struct key in mappers
+      (<a href="https://github.com/qorelanguage/qore/issues/4189">issue 4189</a>)
 
     @subsection mapperv1_5_3 Mapper v1.5.3
     - fixed a bug handling external runtime keys with bulk input for keys that do not require the current input value
@@ -1339,7 +1343,7 @@ Mapper mapv(DataMap);
         } else if (fh.runtime) {
             if (!m_runtime.hasKey(fh.runtime))
                 error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
-        } else if (!fh."code" && !have_output_value && input && !fh.output_key_path) {
+        } else if (!fh."code" && !have_output_value && input && !fh.output_key_path && !fh.struct) {
             checkInputField(k, k);
         }
 
