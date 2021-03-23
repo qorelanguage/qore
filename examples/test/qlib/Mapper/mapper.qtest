@@ -477,6 +477,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("struct test", \structTest());
         addTestCase("submapper test", \submapperTest());
         addTestCase("ignore_missing_input test", \ignoreMissingInputTest());
         addTestCase("use_input_record test", \useInputRecordTest());
@@ -505,6 +506,24 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    structTest() {
+        hash<auto> mappings = {
+            "out": {
+                "struct": "a.b",
+            },
+        };
+        Mapper mapper(mappings, {"input": {
+            "a": {},
+        }});
+        hash<auto> input = {
+            "a": {
+                "b": 1,
+            },
+        };
+        hash<auto> output = mapper.mapData(input);
+        assertEq(1, output.out);
     }
 
     # issue #3414
