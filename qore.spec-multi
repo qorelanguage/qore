@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.9.12
+Version: 0.9.13
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -277,6 +277,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Mar 23 2021 David Nichols <david@qore.org> 0.9.13
+- updated version to 0.9.13
+
 * Mon Feb 8 2021 David Nichols <david@qore.org> 0.9.12
 - updated version to 0.9.12
 - updated libqore version to 6.3.4
