@@ -1081,6 +1081,15 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
 } # class RestClient
 
+class KubernetesRestClient inherits RestClient {
+    constructor(*hash<auto> opts, *softbool do_not_connect)
+        : RestClient(opts + {"url": "https://kubernetes.default.svc.cluster.local"}, do_not_connect)
+    {
+        string token = ReadOnlyFile::readTextFile("/var/run/secrets/kubernetes.io/serviceaccount/token");
+        headers.Authorization = "Bearer " + token;
+    }
+}
+
 #! class for REST HTTP connections; returns @ref RestClient::RestClient objects
 /** supports the following options:
     - \c "connect_timeout": connection timeout to use in milliseconds
