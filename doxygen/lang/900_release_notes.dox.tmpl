@@ -14,14 +14,14 @@
     - new constants:
       - @ref Qore::PO_NO_INHERIT_PROGRAM_DATA "PO_NO_INHERIT_PROGRAM_DATA"
     - module updates:
-      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module:
         - allow dynamic handlers to be disabled before being removed
           (<a href="https://github.com/qorelanguage/qore/issues/4173">issue 4173</a>)
         - integrated the <a href="../../modules/Logger/html/index.html">Logger</a> module
         - removed deprecated APIs
-      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>
+      - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module:
         - integrated the <a href="../../modules/Logger/html/index.html">Logger</a> module
-      - <a href="../../modules/Logger/html/index.html">Logger</a>
+      - <a href="../../modules/Logger/html/index.html">Logger</a> module:
         - added support for the \c %%h and \c %%P patterns for hostname and PID, respectively
           (<a href="https://github.com/qorelanguage/qore/issues/4179">issue 4179</a>)
         - allow file appenders to be reopened
@@ -39,6 +39,9 @@
       updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
 
     @subsection qore_0_10_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/Qdx/html/index.html">Qdx</a> module
+      - fixed stripping the final \c "\" character in multi-line entries in tables
+        (<a href="https://github.com/qorelanguage/qore/issues/4195>issue 4195</a>)
     - fixed a bug handling @ref softlist_complex_type "complex softlist<...>" values where illegal matches were
       allowed under some circumstances leading to runtime errors
       (<a href="https://github.com/qorelanguage/qore/issues/4184">issue 4184</a>)

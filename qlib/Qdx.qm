@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Qdx.qm Qore user module for documentation generation with doxygen
 
-/*  Qdx.qm Copyright 2016 - 2020 Qore Technologies, s.r.o.
+/*  Qdx.qm Copyright 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.9
+%requires qore >= 0.9.13
 
 %require-types
 %enable-all-warnings
@@ -31,7 +31,7 @@
 %requires Util
 
 module Qdx {
-    version = "1.1";
+    version = "1.1.1";
     desc    = "module providing support for documentation generation with doxygen";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -57,6 +57,10 @@ module Qdx {
     - @ref Qdx::QorePostProcessingTexInputStreamLineIterator "QorePostProcessingTexInputStreamLineIterator"
 
     @section qdxrelnotes Release Notes
+
+    @subsection qdx_1_1_1 Qdx v1.1.1
+    - fixed stripping the final \c "\" character in multi-line entries in tables
+      (<a href="https://github.com/qorelanguage/qore/issues/4195>issue 4195</a>)
 
     @subsection qdx_1_1 Qdx v1.1
     - do not apply %Qore-specific post-processing doc fixes to non-Qore docs
@@ -128,6 +132,11 @@ public namespace Qdx {
 
     #! a line-based input stream iterator that converts specially-formatted input line text to HTML table output
     public class DocumentTableInputStreamLineIterator inherits Qore::InputStreamLineIterator, private:internal DocumentTableHelper {
+        private {
+            #! Trim the input text
+            bool do_trim;
+        }
+
         /** Creates the DocumentTableInputStreamLineIterator for iterating over the given
             @ref Qore::InputStream "InputStream"
 
@@ -147,6 +156,7 @@ public namespace Qdx {
             @note table cell docs may span multiple lines as long as the lines end in a \c "\" character
         */
         constructor(Qore::InputStream is, *string encoding, *string eol, bool do_trim = True) : InputStreamLineIterator(is, encoding, eol, do_trim) {
+            self.do_trim = do_trim;
         }
 
         #! Returns the current line in the data or throws an \c ITERATOR-ERROR exception if the iterator is invalid
@@ -194,7 +204,7 @@ public namespace Qdx {
                     throw "LINE-CONTINUATION-ERROR", "line ends in '\\' at the end of the input stream";
                 }
 
-                splice line, -1, 1;
+                splice line, (do_trim ? -1 : -2), 1;
                 line += InputStreamLineIterator::getValue();
             }
             return process(line);
