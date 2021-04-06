@@ -13,6 +13,7 @@ public class ParseMemorySizeTest inherits QUnit::Test {
     public {
         const PositiveTests = {
             "1k": 1000,
+            "10 KB": 10 * 1000,
             "1 kb": 1000,
             "1 kilobyte": 1000,
             "2 kilobytes": 2000,
@@ -20,6 +21,7 @@ public class ParseMemorySizeTest inherits QUnit::Test {
             "1 kibibytes": 1024,
 
             "1MB": 1000 * 1000,
+            "10 MB": 10 * 1000 * 1000,
             "1 mb": 1000 * 1000,
             "1 megabyte": 1000 * 1000,
             "2 megabytes": 2000 * 1000,
@@ -27,6 +29,7 @@ public class ParseMemorySizeTest inherits QUnit::Test {
             "1 Mebibyte": 1024 * 1024,
 
             "1GB": 1000 * 1000 * 1000,
+            "10 GB": 10 * 1000 * 1000 * 1000,
             "1 gb": 1000 * 1000 * 1000,
             "1 gigabyte": 1000 * 1000 * 1000,
             "2 gigabytes": 2000 * 1000 * 1000,
@@ -35,6 +38,7 @@ public class ParseMemorySizeTest inherits QUnit::Test {
             "1.5GB": (1.5 * 1000 * 1000 * 1000).toInt(),
 
             "3 PB": 3 * 1000 * 1000 * 1000 * 1000 * 1000,
+            "10 PB": 10 * 1000 * 1000 * 1000 * 1000 * 1000,
             "3 PiB": 3 * 1024 * 1024 * 1024 * 1024 * 1024,
         };
 
