@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2020 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.13
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.6";
+    version = "1.6.1";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -87,6 +87,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_6_1 Util 1.6.1
+    - fixed a bug in \c parse_memory_size() with numbers larger than \c 9
+      (<a href="https://github.com/qorelanguage/qore/issues/4198">issue 4198</a>)
 
     @subsection util_1_6 Util 1.6
     - added the @ref Util::parse_memory_size() "parse_memory_size()" function
@@ -194,7 +198,7 @@ public namespace Util {
         @throw MEMORY-SIZE-ERROR: cannot parse string
     */
     public int sub parse_memory_size(string str, *bool use_binary) {
-        (*string num, *string suffix) = (str =~ x/^\s*([0-9](?:\.[0-9]+)?+)\s*([a-z]+)?$/i);
+        (*string num, *string suffix) = (str =~ x/^\s*([0-9]+(?:\.[0-9]+)?+)\s*([a-z]+)?$/i);
         if (!num) {
             throw "MEMORY-SIZE-ERROR", sprintf("cannot parse input string %y as a memory size", str);
         }
