@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Swagger.qm Swagger: https://swagger.io/, OpenAPI: https://github.com/OAI/OpenAPI-Specification
 
-/*  Swagger.qm Copyright (C) 2017 - 2020 Qore Technologies, s.r.o.
+/*  Swagger.qm Copyright (C) 2017 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.7
+%requires qore >= 0.9.13
 
 # try importing JSON and YAML modules
 %try-module json
@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.4";
+    version = "2.0.5";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_5 Swagger v2.0.5
+    - fixed a bug where unknown string format types were not ignored but instead caused an exception to be thrown
+      (<a href="https://github.com/qorelanguage/qore/issues/4203">issue 4203</a>)
 
     @subsection swagger_2_0_4 Swagger v2.0.4
     - fixed a type error in @ref Swagger::Swagger::getBasePath() "Swagger::getBasePath()" for the case when the base
@@ -434,6 +438,7 @@ class SchemaBase {
                     case "binary": return <feedface>;
                     case "date": return 1987-05-23;
                     case "date-time": return 1987-05-23T07:45:30Z;
+                    case "uuid": return "d242e639-4ed6-4930-a375-b139c13f89da";
                     default:
                         return "value";
                 }
@@ -652,8 +657,7 @@ class SchemaBase {
                 case "byte":
                     try {
                         value = parse_base64_string(v);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
                     }
                     break;
@@ -661,8 +665,7 @@ class SchemaBase {
                 case "binary":
                     try {
                         value = binary(v);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
                     }
                     break;
@@ -672,8 +675,7 @@ class SchemaBase {
                     try {
                         # https://xml2rfc.tools.ietf.org/public/rfc/html/rfc3339.html#anchor14
                         value = date(v);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
                     }
                     break;
@@ -3135,8 +3137,6 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                 throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid integer type format value passed: %y", name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
                 throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid number type format value passed: %y", name, format);
-            else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid string type format value passed: %y", name, format);
         }
 
         optional_field(objType, oh, "allowEmptyValue", NT_BOOLEAN, \allowEmptyValue);
@@ -3166,24 +3166,21 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                         case "date-time":
                             try {
                                 value = date(value);
-                            }
-                            catch (hash<ExceptionInfo> ex) {
+                            } catch (hash<ExceptionInfo> ex) {
                                 throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"date\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
                             }
                             break;
                         case "binary":
                             try {
                                 value = binary(value);
-                            }
-                            catch (hash<ExceptionInfo> ex) {
+                            } catch (hash<ExceptionInfo> ex) {
                                 throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
                             }
                             break;
                         case "byte":
                             try {
                                 value = parse_base64_string(value);
-                            }
-                            catch (hash<ExceptionInfo> ex) {
+                            } catch (hash<ExceptionInfo> ex) {
                                 throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
                             }
                             break;
@@ -3421,8 +3418,6 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
                 throw "INVALID-FIELD-VALUE", "Header Object: invalid integer type format value passed: " + format;
             else if (type == "number" && !ValidNumberFormatsHash{format})
                 throw "INVALID-FIELD-VALUE", "Header Object: invalid number type format value passed: " + format;
-            else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", "Header Object: invalid string type format value passed: " + format;
         }
 
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
@@ -3650,8 +3645,6 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid integer type format value passed: %y", name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid number type format value passed: %y", name, format);
-            else if (type == "string" && !ValidStringFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid string type format value passed: %y", name, format);
         }
 
         optional_field(objType, oh, "title", NT_STRING, \title);
