@@ -1234,7 +1234,8 @@ public class SwaggerTest inherits QUnit::Test {
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "password"}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "format": "a"}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        # issue 4203: ignore unknown string format
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # allowEmptyValue checks
         p = base.parameters + {"a": {"name": "a", "in": "query", "type": "string", "allowEmptyValue": 5}};
@@ -1350,7 +1351,8 @@ public class SwaggerTest inherits QUnit::Test {
         p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "password"}}};
         assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
         p = base.parameters + {"a": paramBase + {"items": {"type": "string", "format": "a"}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"parameters": p}));
+        # issue 4203: ignore unknown string format
+        assertTrue(loadyaml(my_make_yaml(base + {"parameters": p})));
 
         # collectionFormat checks
         p = base.parameters + {"a": paramBase + {"items": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}};
@@ -1495,7 +1497,8 @@ public class SwaggerTest inherits QUnit::Test {
         r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "password"}}}};
         assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
         r = {"a": {"description": "a", "headers": {"a": {"type": "string", "format": "a"}}}};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"responses": r}));
+        # issue 4203: ignore unknown string format
+        assertTrue(loadyaml(my_make_yaml(base + {"responses": r})));
 
         # collectionFormat checks
         r = {"a": {"description": "a", "headers": {"a": {"type": "array", "collectionFormat": "csv", "items": {"type": "string"}}}}};
@@ -1630,7 +1633,7 @@ public class SwaggerTest inherits QUnit::Test {
         s = {"type": "string", "format": "password"};
         assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
         s = {"type": "string", "format": "a"};
-        assertThrows("INVALID-FIELD-VALUE", loadyaml, my_make_yaml(base + {"definitions": {"a": s}}));
+        assertTrue(loadyaml(my_make_yaml(base + {"definitions": {"a": s}})));
 
         # title checks
         s = {"type": "string", "title": "a"};
