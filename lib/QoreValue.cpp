@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -302,29 +302,16 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
     return rv;
 }
 
-AbstractQoreNode* QoreValue::assignAndSanitize(const QoreValue n) {
+AbstractQoreNode* QoreValue::assign(const QoreValue n) {
     AbstractQoreNode* rv = takeIfNode();
-    switch (n.getType()) {
-        case NT_NOTHING:
-            type = QV_Node;
-            v.n = nullptr;
-            break;
-        case NT_INT:
-            type = QV_Int;
-            v.i = n.getAsBigInt();
-            break;
-        case NT_FLOAT:
-            type = QV_Float;
-            v.f = n.getAsFloat();
-            break;
-        case NT_BOOLEAN:
-            type = QV_Bool;
-            v.b = n.getAsBool();
-            break;
-        default:
-            type = QV_Node;
-            v.n = n.v.n;
-            break;
+    type = n.type;
+    switch (type) {
+        case QV_Bool: v.b = n.v.b; break;
+        case QV_Int: v.i = n.v.i; break;
+        case QV_Float: v.f = n.v.f; break;
+        case QV_Node: v.n = n.v.n; break;
+        default: assert(false);
+            // no break
     }
     return rv;
 }
@@ -392,12 +379,6 @@ bool QoreValue::isEqualValue(const QoreValue n) {
             assert(false);
     }
     return false;
-}
-
-void QoreValue::sanitize() {
-    if (type == QV_Node && v.n && v.n->getType() == NT_NOTHING) {
-        v.n = nullptr;
-    }
 }
 
 void QoreValue::discard(ExceptionSink* xsink) {
@@ -539,8 +520,9 @@ QoreValue ValueHolder::release() {
 }
 
 ValueOptionalRefHolder::~ValueOptionalRefHolder() {
-    if (needs_deref)
-        discard(v.getInternalNode(), xsink);
+    if (needs_deref) {
+        v.discard(xsink);
+    }
 }
 
 void ValueOptionalRefHolder::ensureReferencedValue() {
@@ -578,23 +560,6 @@ QoreValue ValueOptionalRefHolder::takeReferencedValue() {
         needs_deref = false;
     }
     return v;
-}
-
-void ValueOptionalRefHolder::sanitize() {
-    if (v.type != QV_Node || !v.v.n) {
-        if (needs_deref) {
-            needs_deref = false;
-        }
-        return;
-    }
-    switch (v.v.n->getType()) {
-        case NT_NOTHING: {
-            v.v.n = nullptr;
-            if (needs_deref)
-                needs_deref = false;
-            break;
-        }
-    }
 }
 
 ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs) : ValueOptionalRefHolder(xs) {

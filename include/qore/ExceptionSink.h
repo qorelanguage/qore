@@ -234,7 +234,9 @@ public:
     //! assimilates all entries of the "xs" argument by appending them to the internal list and clears the "xs" argument
     DLLEXPORT void assimilate(ExceptionSink &xs);
 
-    //! intended to be used to handle out of memory errors FIXME: not yet fully implemented
+    //! intended to be used to handle out of memory errors
+    /** @note Currently causes the program to exit immedaitely
+     */
     DLLEXPORT void outOfMemory();
 
     //! deletes the exception list immediately

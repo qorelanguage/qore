@@ -2228,7 +2228,7 @@ int hextoint(string str) {
    int64 rc = 0;
    int64 pow = 0;
    const char* buf = str->getBuffer();
-   qore_size_t len = str->size();
+   size_t len = str->size();
    if (*buf == '0' && *(buf + 1) == 'x') {
       buf += 2;
       len -= 2;

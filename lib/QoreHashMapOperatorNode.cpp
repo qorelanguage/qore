@@ -210,7 +210,7 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
     bool vcommon = false;
     const QoreTypeInfo* valueType = nullptr;
 
-    qore_size_t i = 0;
+    size_t i = 0;
     // set offset in thread-local data for "$#"
     while (true) {
         bool has_next = h.next(xsink);

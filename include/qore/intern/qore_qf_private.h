@@ -300,7 +300,7 @@ struct qore_qf_private {
 #endif
 
     // unlocked, assumes file is open
-    DLLLOCAL qore_size_t read(void *buf, qore_size_t bs) const {
+    DLLLOCAL size_t read(void *buf, size_t bs) const {
         qore_offset_t rc;
         while (true) {
             rc = ::read(fd, buf, bs);
@@ -316,7 +316,7 @@ struct qore_qf_private {
     }
 
     // unlocked, assumes file is open
-    DLLLOCAL qore_size_t write(const void* buf, qore_size_t len, ExceptionSink* xsink = 0) const {
+    DLLLOCAL size_t write(const void* buf, size_t len, ExceptionSink* xsink = 0) const {
         qore_offset_t rc;
         while (true) {
             rc = ::write(fd, buf, len);
@@ -344,7 +344,7 @@ struct qore_qf_private {
     // private function, unlocked
     DLLLOCAL int readUnicode(int* n_len = 0) const;
 
-    DLLLOCAL qore_offset_t readData(void* dest, qore_size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
+    DLLLOCAL qore_offset_t readData(void* dest, size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
         // wait for data
         if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
             if (!*xsink)
@@ -372,8 +372,8 @@ struct qore_qf_private {
     }
 
     DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
-        qore_size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
-        qore_size_t br = 0;
+        size_t bs = size > 0 && size < DEFAULT_FILE_BUFSIZE ? size : DEFAULT_FILE_BUFSIZE;
+        size_t br = 0;
         char* buf = (char* )malloc(sizeof(char) * bs);
         char* bbuf = 0;
 
@@ -412,7 +412,7 @@ struct qore_qf_private {
             if (size > 0) {
                 if (size - br < bs)
                     bs = size - br;
-                if (br >= (qore_size_t)size)
+                if (br >= (size_t)size)
                     break;
             }
         }
@@ -752,7 +752,7 @@ struct qore_qf_private {
         return rc;
     }
 
-    DLLLOCAL qore_size_t getPos() const {
+    DLLLOCAL size_t getPos() const {
         AutoLocker al(m);
 
         if (!is_open)

@@ -62,11 +62,11 @@ public:
 
     DLLLOCAL int64 read(void* ptr, int64 limit, ExceptionSink* xsink) override {
         assert(limit > 0);
-        qore_size_t count = len - offset;
+        size_t count = len - offset;
         if (count == 0) {
             return 0;
         }
-        if (count > static_cast<qore_size_t>(limit)) {
+        if (count > static_cast<size_t>(limit)) {
             count = limit;
         }
         memcpy(ptr, static_cast<const uint8_t*>(this->ptr) + offset, count);
@@ -84,7 +84,7 @@ private:
     const void* ptr;
     size_t len;
     SimpleRefHolder<SimpleQoreNode> src;
-    qore_size_t offset = 0;                          //!< @invariant offset >= 0 && offset <= src->size()
+    size_t offset = 0;                          //!< @invariant offset >= 0 && offset <= src->size()
 };
 
 #endif // _QORE_BINARYINPUTSTREAM_H

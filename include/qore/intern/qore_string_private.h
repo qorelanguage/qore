@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_string_private.h
+    qore_string_private.h
 
-  QoreString private implementation
+    QoreString private implementation
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef QORE_QORE_STRING_PRIVATE_H
@@ -54,10 +54,10 @@ struct qore_string_private {
 private:
 
 public:
-    qore_size_t len = 0;
-    qore_size_t allocated = 0;
+    size_t len = 0;
+    size_t allocated = 0;
     char* buf = nullptr;
-    const QoreEncoding* charset = nullptr;
+    const QoreEncoding* encoding = nullptr;
 
     DLLLOCAL qore_string_private() {
     }
@@ -70,7 +70,7 @@ public:
         if (len)
             memcpy(buf, p.buf, len);
         buf[len] = '\0';
-        charset = p.getEncoding();
+        encoding = p.getEncoding();
     }
 
     DLLLOCAL ~qore_string_private() {
@@ -78,25 +78,25 @@ public:
             free(buf);
     }
 
-    DLLLOCAL void check_char(qore_size_t i) {
+    DLLLOCAL void check_char(size_t i) {
         if (i >= allocated) {
-            qore_size_t d = i >> 2;
+            size_t d = i >> 2;
             allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
             allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
             buf = (char*)realloc(buf, allocated * sizeof(char));
         }
     }
 
-    DLLLOCAL qore_size_t check_offset(qore_offset_t offset) {
+    DLLLOCAL size_t check_offset(qore_offset_t offset) {
         if (offset < 0) {
             offset = len + offset;
             return offset < 0 ? 0 : offset;
         }
 
-        return ((qore_size_t)offset > len) ? len : offset;
+        return ((size_t)offset > len) ? len : offset;
     }
 
-    DLLLOCAL void check_offset(qore_offset_t offset, qore_offset_t num, qore_size_t &n_offset, qore_size_t &n_num) {
+    DLLLOCAL void check_offset(qore_offset_t offset, qore_offset_t num, size_t &n_offset, size_t &n_num) {
         n_offset = check_offset(offset);
 
         if (num < 0) {
@@ -116,8 +116,7 @@ public:
             pos = len + pos;
             if (pos < 0)
                 pos = 0;
-        }
-        else if (pos > 0 && pos > (qore_offset_t)len)
+        } else if (pos > 0 && pos > (qore_offset_t)len)
             return -1;
         const char* p;
         if (!(p = strchr(buf + pos, c)))
@@ -131,8 +130,7 @@ public:
             pos = len + pos;
             if (pos < 0)
                 return -1;
-        }
-        else if (pos > 0 && pos > (qore_offset_t)len)
+        } else if (pos > 0 && pos > (qore_offset_t)len)
             pos = len - 1;
 
         const char* p = buf + pos;
@@ -150,8 +148,7 @@ public:
             pos = len + pos;
             if (pos < 0)
                 pos = 0;
-        }
-        else if (pos > 0 && pos > (qore_offset_t)len)
+        } else if (pos > 0 && pos > (qore_offset_t)len)
             return -1;
         const char* p;
         if (!(p = strstr(buf + pos, str)))
@@ -165,8 +162,7 @@ public:
             pos = len + pos;
             if (pos < 0)
                 return -1;
-        }
-        else if (pos > 0 && pos > (qore_offset_t)len)
+        } else if (pos > 0 && pos > (qore_offset_t)len)
             pos = len - 1;
 
         const char* p = buf + pos;
@@ -260,8 +256,8 @@ public:
 
     // finds the last occurrence of needle in haystack at or before position pos
     // pos must be a non-negative valid byte offset in haystack
-    DLLLOCAL static qore_offset_t rindex_simple(const char* haystack, qore_size_t hlen, const char* needle,
-        qore_size_t nlen, qore_offset_t pos = -1) {
+    DLLLOCAL static qore_offset_t rindex_simple(const char* haystack, size_t hlen, const char* needle,
+        size_t nlen, qore_offset_t pos = -1) {
         if (pos < 0) {
             pos = hlen + pos;
             if (pos < 0) {
@@ -280,7 +276,7 @@ public:
     }
 
     // start is a byte offset that has to point to the start of a valid character
-    DLLLOCAL int findByteOffset(qore_offset_t& pos, ExceptionSink* xsink, qore_size_t start = 0) const {
+    DLLLOCAL int findByteOffset(qore_offset_t& pos, ExceptionSink* xsink, size_t start = 0) const {
         assert(xsink);
         assert(getEncoding()->isMultiByte());
         if (!pos)
@@ -288,7 +284,7 @@ public:
         // get positive character offset if negative
         if (pos < 0) {
             // get the length of the string in characters
-            qore_size_t clen = getEncoding()->getLength(buf + start, buf + len, xsink);
+            size_t clen = getEncoding()->getLength(buf + start, buf + len, xsink);
             if (*xsink)
                 return -1;
             pos = clen + pos;
@@ -341,7 +337,7 @@ public:
         return brindex(needle.c_str(), needle.size(), pos);
     }
 
-    DLLLOCAL qore_offset_t brindex(const char *needle, qore_size_t needle_len, qore_offset_t pos) const {
+    DLLLOCAL qore_offset_t brindex(const char *needle, size_t needle_len, qore_offset_t pos) const {
         if (pos < 0)
             pos = len + pos;
 
@@ -374,7 +370,7 @@ public:
     }
 
     DLLLOCAL bool isDataPrintableAscii() const {
-        for (qore_size_t i = 0; i < len; ++i) {
+        for (size_t i = 0; i < len; ++i) {
             if (buf[i] < 32 || buf[i] > 126)
                 return false;
         }
@@ -382,14 +378,14 @@ public:
     }
 
     DLLLOCAL bool isDataAscii() const {
-        for (qore_size_t i = 0; i < len; ++i) {
+        for (size_t i = 0; i < len; ++i) {
             if ((unsigned char)(buf[i]) > 127)
                 return false;
         }
         return true;
     }
 
-    DLLLOCAL void concat_intern(const char* p, qore_size_t plen) {
+    DLLLOCAL void concat_intern(const char* p, size_t plen) {
         assert(p);
         assert(plen);
         check_char(len + plen);
@@ -483,15 +479,14 @@ public:
         return 0;
     }
 
-    DLLLOCAL qore_offset_t getByteOffset(qore_size_t i, ExceptionSink* xsink) const {
+    DLLLOCAL qore_offset_t getByteOffset(size_t i, ExceptionSink* xsink) const {
         assert(xsink);
-        qore_size_t rc;
+        size_t rc;
         if (i) {
             rc = getEncoding()->getByteLen(buf, buf + len, i, xsink);
             if (*xsink)
                 return -1;
-        }
-        else
+        } else
             rc = 0;
         return rc > len ? -1 : (qore_offset_t)rc;
     }
@@ -512,7 +507,7 @@ public:
     }
 
     DLLLOCAL void concat(const qore_string_private* str) {
-        assert(!str || (str->charset == charset) || !str->charset);
+        assert(!str || (str->encoding == encoding) || !str->encoding);
 
         // if it's not a null string
         if (str && str->len) {
@@ -528,7 +523,7 @@ public:
     DLLLOCAL void concat(const char *str) {
         // if it's not a null string
         if (str) {
-            qore_size_t i = 0;
+            size_t i = 0;
             // iterate through new string
             while (str[i]) {
                 // if priv->buffer needs to be resized
@@ -564,7 +559,8 @@ public:
 #ifdef HPUX
         // vsnprintf failed but didn't tell us how big the buffer should be
         if (i < 0) {
-            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD
+            //    " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
             // resize buffer
             allocated += STR_CLASS_EXTRA;
             allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
@@ -574,7 +570,8 @@ public:
         }
 #else
         if (i >= free) {
-            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD
+            //    " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
             // resize buffer
             allocated = len + i + STR_CLASS_EXTRA;
             allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
@@ -618,6 +615,20 @@ public:
         return 0;
     }
 
+    DLLLOCAL void splice_simple(size_t offset, size_t length, QoreString* extract = nullptr);
+    DLLLOCAL void splice_simple(size_t offset, size_t length, const char* str, size_t str_len,
+            QoreString* extract = nullptr);
+    DLLLOCAL void splice_complex(qore_offset_t offset, ExceptionSink* xsink, QoreString* extract = nullptr);
+    DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink,
+            QoreString* extract = nullptr);
+    DLLLOCAL void splice_complex(qore_offset_t offset, qore_offset_t length, const QoreString* str,
+            ExceptionSink* xsink, QoreString* extract = nullptr);
+    DLLLOCAL int substr_simple(QoreString* str, qore_offset_t offset) const;
+    DLLLOCAL int substr_simple(QoreString* str, qore_offset_t offset, qore_offset_t length) const;
+    DLLLOCAL int substr_complex(QoreString* str, qore_offset_t offset, ExceptionSink* xsink) const;
+    DLLLOCAL int substr_complex(QoreString* str, qore_offset_t offset, qore_offset_t length,
+            ExceptionSink* xsink) const;
+
     DLLLOCAL int trimLeading(ExceptionSink* xsink, const intvec_t& vec);
     DLLLOCAL int trimLeading(ExceptionSink* xsink, const qore_string_private* chars);
     DLLLOCAL int trimTrailing(ExceptionSink* xsink, const intvec_t& vec);
@@ -627,11 +638,12 @@ public:
 
     DLLLOCAL int concatUnicode(unsigned code);
 
-    DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query = false);
+    DLLLOCAL int concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str,
+            bool detect_query = false);
 
     DLLLOCAL int concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str);
 
-    DLLLOCAL unsigned int getUnicodePointFromBytePos(qore_size_t offset, unsigned& len, ExceptionSink* xsink) const;
+    DLLLOCAL unsigned int getUnicodePointFromBytePos(size_t offset, unsigned& len, ExceptionSink* xsink) const;
 
     DLLLOCAL int concatEncode(ExceptionSink* xsink, const QoreString& str, unsigned code = CE_XHTML);
     DLLLOCAL int concatDecode(ExceptionSink* xsink, const QoreString& str, unsigned code = CD_ALL);
@@ -649,23 +661,23 @@ public:
         return 0;
     }
 
-        DLLLOCAL int allocate(unsigned requested_size) {
-            if ((unsigned)allocated >= requested_size)
-                return 0;
-            requested_size = (requested_size / 0x10 + 1) * 0x10; // fill complete cache line
-            char* aux = (char*)realloc(buf, requested_size * sizeof(char));
-            if (!aux) {
-                assert(false);
-                // FIXME: std::bad_alloc() should be thrown here;
-                return -1;
-            }
-            buf = aux;
-            allocated = requested_size;
+    DLLLOCAL int allocate(unsigned requested_size) {
+        if ((unsigned)allocated >= requested_size)
             return 0;
+        requested_size = (requested_size / 0x10 + 1) * 0x10; // fill complete cache line
+        char* aux = (char*)realloc(buf, requested_size * sizeof(char));
+        if (!aux) {
+            assert(false);
+            // FIXME: std::bad_alloc() should be thrown here;
+            return -1;
         }
+        buf = aux;
+        allocated = requested_size;
+        return 0;
+    }
 
     DLLLOCAL const QoreEncoding* getEncoding() const {
-        return charset ? charset : QCS_USASCII;
+        return encoding ? encoding : QCS_USASCII;
     }
 
     DLLLOCAL size_t getCharWidth(ExceptionSink* xsink) const;
@@ -691,7 +703,8 @@ public:
         return -1;
     }
 
-    DLLLOCAL static int convert_encoding_intern(const char* src, qore_size_t src_len, const QoreEncoding* from, QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink);
+    DLLLOCAL static int convert_encoding_intern(const char* src, size_t src_len, const QoreEncoding* from,
+            QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink);
 };
 
 #endif

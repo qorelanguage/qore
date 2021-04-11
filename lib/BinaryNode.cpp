@@ -33,7 +33,7 @@
 #include <cstdlib>
 #include <cstring>
 
-BinaryNode::BinaryNode(void* p, qore_size_t size) : SimpleValueQoreNode(NT_BINARY) {
+BinaryNode::BinaryNode(void* p, size_t size) : SimpleValueQoreNode(NT_BINARY) {
     ptr = p;
     len = size;
 }
@@ -74,7 +74,7 @@ int BinaryNode::compare(const BinaryNode *obj) const {
     return memcmp(ptr, obj->ptr, len);
 }
 
-qore_size_t BinaryNode::size() const {
+size_t BinaryNode::size() const {
     return len;
 }
 
@@ -95,7 +95,7 @@ const void* BinaryNode::getPtr() const {
     return ptr;
 }
 
-void BinaryNode::append(const void *nptr, qore_size_t size) {
+void BinaryNode::append(const void *nptr, size_t size) {
     bool self_copy = nptr == ptr;
     ptr = realloc(ptr, len + size);
     if (self_copy) {
@@ -114,7 +114,7 @@ void BinaryNode::append(const BinaryNode &b) {
     append(b.ptr, b.len);
 }
 
-void BinaryNode::prepend(const void *nptr, qore_size_t size) {
+void BinaryNode::prepend(const void *nptr, size_t size) {
     ptr = realloc(ptr, len + size);
     // move memory forward
     memmove((char*)ptr + size, ptr, len);
@@ -175,7 +175,7 @@ const char *BinaryNode::getTypeName() const {
     return getStaticTypeName();
 }
 
-int BinaryNode::preallocate(qore_size_t size) {
+int BinaryNode::preallocate(size_t size) {
     //printd(5, "BinaryNode::preallocate(" QLLD ") this: %p ptr: %p len: " QLLD "\n", size, this, ptr, len);
     ptr = q_realloc(ptr, size);
     if (ptr) {
@@ -186,7 +186,7 @@ int BinaryNode::preallocate(qore_size_t size) {
     return -1;
 }
 
-int BinaryNode::setSize(qore_size_t size) {
+int BinaryNode::setSize(size_t size) {
     if (size > len)
         return -1;
 
@@ -212,7 +212,7 @@ void BinaryNode::checkOffset(qore_offset_t& offset) const {
             offset = 0;
         return;
     }
-    if ((qore_size_t)offset > len)
+    if ((size_t)offset > len)
         offset = len;
     return;
 }
@@ -235,7 +235,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, BinaryNode* 
     if (offset == (qore_offset_t)len || !length)
         return;
 
-    qore_size_t end;
+    size_t end;
     if (length > (qore_offset_t)(len - offset)) {
         end = len;
         length = len - offset;
@@ -255,7 +255,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, BinaryNode* 
     len -= length;
 }
 
-void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* data, qore_size_t data_len, BinaryNode* extract) {
+void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* data, size_t data_len, BinaryNode* extract) {
     //printd(5, "BinaryNode::splice() before offset: %lld length: %lld (len: %lld data_len: %lld)\n", offset, length, len, data_len);
     checkOffset(offset, length);
 
@@ -267,7 +267,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
 
     //printd(5, "BinaryNode::splice(offset=" QSD ", length=" QSD ", priv->len=" QSD ")\n", offset, length, len);
 
-    qore_size_t end;
+    size_t end;
     if (length > (qore_offset_t)(len - offset)) {
         end = len;
         length = len - offset;
@@ -281,7 +281,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
 
     // get number of entries to insert
     if ((qore_offset_t)data_len > length) { // make bigger
-        qore_size_t ol = len;
+        size_t ol = len;
 
         // resize buffer
         ptr = q_realloc(ptr, len - length + data_len);

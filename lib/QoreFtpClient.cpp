@@ -261,7 +261,7 @@ struct qore_ftp_private {
                 return nullptr;
             }
         } else {
-            qore_size_t len = buffer.strlen();
+            size_t len = buffer.strlen();
             resp = new QoreStringNode(buffer.giveBuffer(), len, len + 1, buffer.getEncoding());
         }
         // see if we got the whole response
@@ -1060,7 +1060,7 @@ int QoreFtpClient::put(InputStream *is, const char* remotename, ExceptionSink* x
 }
 
 // public locked
-int QoreFtpClient::putData(const void *data, qore_size_t len, const char* remotename, ExceptionSink* xsink) {
+int QoreFtpClient::putData(const void *data, size_t len, const char* remotename, ExceptionSink* xsink) {
    assert(remotename);
 
    printd(5, "QoreFtpClient::putData(%p, %ld, %s)\n", data, len, remotename);

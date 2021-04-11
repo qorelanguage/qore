@@ -56,17 +56,17 @@ public:
             return 0;
         }
         BinaryNode *buf = bufHolder->get<BinaryNode>();
-        qore_size_t count = buf->size();
+        size_t count = buf->size();
         if (count == 0) {
             xsink->raiseException("INPUT-STREAM-ERROR",
                 "%s::read() returned an empty binary; NOTHING should be used to indicate the end of the stream",
                 self->getClassName());
             return 0;
         }
-        if (count > static_cast<qore_size_t>(limit)) {
+        if (count > static_cast<size_t>(limit)) {
             xsink->raiseException("INPUT-STREAM-ERROR",
                 "%s::rRead() returned %lu bytes which is more than the specified limit of %lu",
-                self->getClassName(), count, static_cast<qore_size_t>(limit));
+                self->getClassName(), count, static_cast<size_t>(limit));
             return 0;
         }
         memcpy(ptr, buf->getPtr(), count);

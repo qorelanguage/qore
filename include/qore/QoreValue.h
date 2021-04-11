@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -319,17 +319,17 @@ public:
     //! references the contained value if type == QV_Node, returns itself
     DLLEXPORT QoreValue refSelf() const;
 
-    //! the QoreValue object takes the reference of the argument
-    /** @param n the new node value of the object, sets type to QV_Node
-         @return any node value held before; if type != QV_Node before the assignment, returns NULL
-        */
-    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
-
     //! sets the value of the object and returns any node value held previously
     /** @param n the new value of the object
          @return any node value held before; if type != QV_Node before the assignment, returns NULL
     */
-    DLLEXPORT AbstractQoreNode* assignAndSanitize(const QoreValue n);
+    DLLEXPORT AbstractQoreNode* assign(const QoreValue n);
+
+    //! the QoreValue object takes the reference of the argument
+    /** @param n the new node value of the object, sets type to QV_Node
+         @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
+    DLLEXPORT AbstractQoreNode* assign(AbstractQoreNode* n);
 
     //! sets the value of the object and returns any node value held previously
     /** @param n the new value of the object; sets type to QV_Int
@@ -583,10 +583,6 @@ public:
 
     //! returns a QoreValue after incrementing the reference count of any node value stored if necessary
     DLLEXPORT QoreValue takeReferencedValue();
-
-    // FIXME: remove with new API/ABI
-    //! converts pointers to efficient representations and manages the reference count
-    DLLLOCAL void sanitize();
 };
 
 //! evaluates an AbstractQoreNode and dereferences the stored value in the destructor

@@ -220,7 +220,6 @@ bool QoreFunctionalMapListOperator::getNextImpl(ValueOptionalRefHolder& val, Exc
     SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
     ValueEvalRefHolder tval(map->left, xsink);
     if (!*xsink) {
-        tval.sanitize();
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
     }
@@ -237,7 +236,6 @@ bool QoreFunctionalMapSingleValueOperator::getNextImpl(ValueOptionalRefHolder& v
     v.clear();
     ValueEvalRefHolder tval(map->left, xsink);
     if (!*xsink) {
-        tval.sanitize();
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
     }
@@ -261,7 +259,6 @@ bool QoreFunctionalMapIteratorOperator::getNextImpl(ValueOptionalRefHolder& val,
     SingleArgvContextHelper argv_helper(iv.release(), xsink);
     ValueEvalRefHolder tval(map->left, xsink);
     if (!*xsink) {
-        tval.sanitize();
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
     }
@@ -279,7 +276,6 @@ bool QoreFunctionalMapOperator::getNextImpl(ValueOptionalRefHolder& val, Excepti
     SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
     ValueEvalRefHolder tval(map->left, xsink);
     if (!*xsink) {
-        tval.sanitize();
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
     }

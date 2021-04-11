@@ -472,7 +472,7 @@ nothing setgroups(softlist<softint> gids) [dom=PROCESS] {
     }
     ON_BLOCK_EXIT(free, l);
 #endif
-    for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
+    for (size_t i = 0, e = gids->size(); i < e; ++i) {
         l[i] = (int)gids->retrieveEntry(i).getAsBigInt();
     }
     if (setgroups(gids->size(), l))

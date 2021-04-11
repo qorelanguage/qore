@@ -315,7 +315,7 @@ int QoreFile::readUntil(const char* bytes, QoreString& str, bool incl_bytes) {
    return priv->readUntil(bytes, str, incl_bytes);
 }
 
-qore_size_t QoreFile::setPos(qore_size_t pos) {
+size_t QoreFile::setPos(size_t pos) {
    AutoLocker al(priv->m);
 
    if (!priv->is_open)
@@ -325,11 +325,11 @@ qore_size_t QoreFile::setPos(qore_size_t pos) {
 }
 
 // FIXME: deleteme
-qore_size_t QoreFile::getPos() {
+size_t QoreFile::getPos() {
    return priv->getPos();
 }
 
-qore_size_t QoreFile::getPos() const {
+size_t QoreFile::getPos() const {
    return priv->getPos();
 }
 
@@ -400,7 +400,7 @@ QoreStringNode *QoreFile::getchar() {
     return str;
 }
 
-int QoreFile::write(const void *data, qore_size_t len, ExceptionSink *xsink) {
+int QoreFile::write(const void *data, size_t len, ExceptionSink *xsink) {
     AutoLocker al(priv->m);
 
     if (priv->check_write_open(xsink))
@@ -534,7 +534,7 @@ BinaryNode *QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
    return new BinaryNode(buf, size);
 }
 
-qore_size_t QoreFile::read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink) {
+size_t QoreFile::read(void *ptr, size_t limit, int timeout_ms, ExceptionSink *xsink) {
    if (timeout_ms >= 0 && !priv->isDataAvailable(timeout_ms, xsink)) {
       xsink->raiseException("FILE-READ-TIMEOUT-ERROR", "timeout limit exceeded (%d ms) reading file", timeout_ms);
       return 0;
@@ -544,7 +544,7 @@ qore_size_t QoreFile::read(void *ptr, qore_size_t limit, int timeout_ms, Excepti
       xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file");
       return 0;
    }
-   return (qore_size_t)rc;
+   return (size_t)rc;
 }
 
 int QoreFile::writei1(char i, ExceptionSink *xsink) {

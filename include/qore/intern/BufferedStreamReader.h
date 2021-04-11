@@ -74,7 +74,7 @@ private:
 
        @return amount of data read, -1 in case of error
     */
-   DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, qore_size_t limit, bool require_all = true) override {
+   DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, size_t limit, bool require_all = true) override {
       assert(dest);
       assert(limit);
 
@@ -157,7 +157,7 @@ private:
    }
 
    //! returns 0 = no data read (end of stream or error), > 0 = number of bytes read, increments bufCount
-   DLLLOCAL int64 fillBuffer(qore_size_t bytes, ExceptionSink* xsink) {
+   DLLLOCAL int64 fillBuffer(size_t bytes, ExceptionSink* xsink) {
       assert(bytes);
       assert(bufCount + bytes <= bufCapacity);
       int64 rc = in->read(buf + bufCount, bytes, xsink);
@@ -167,7 +167,7 @@ private:
       return rc;
    }
 
-   DLLLOCAL bool prepareEnoughData(qore_size_t bytes, ExceptionSink* xsink) {
+   DLLLOCAL bool prepareEnoughData(size_t bytes, ExceptionSink* xsink) {
       if (bytes > bufCapacity) {
          xsink->raiseException("STREAM-BUFFER-ERROR", "a read of " QSD " bytes was attempted on a BufferedStreamReader with a capacity of " QSD " bytes", bytes, bufCapacity);
          return false;
@@ -189,7 +189,7 @@ private:
       return true;
    }
 
-   DLLLOCAL void shiftBuffer(qore_size_t bytes) {
+   DLLLOCAL void shiftBuffer(size_t bytes) {
       assert(bytes <= bufCount && bytes > 0);
       bufCount -= bytes;
       memmove(buf, buf+bytes, bufCount);
@@ -200,7 +200,7 @@ private:
        @param eolLen size of eol in bytes
        @param endOfStream whether this is end of the stream
     */
-   DLLLOCAL const char* findEolInBuffer(const QoreStringNode* eol, qore_size_t& eolLen, bool endOfStream, char& pmatch) const {
+   DLLLOCAL const char* findEolInBuffer(const QoreStringNode* eol, size_t& eolLen, bool endOfStream, char& pmatch) const {
       pmatch = '\0';
       if (eol) {
          const char* p = strstr(buf, eol->getBuffer());
@@ -219,7 +219,7 @@ private:
                }
                // '\r' is the last character in the buffer, '\n' could be next in the stream.
                // Unless this is the end of the stream.
-               else if (static_cast<qore_size_t>(p - buf + 1) == bufCount) {
+               else if (static_cast<size_t>(p - buf + 1) == bufCount) {
                   eolLen = 1;
                   if (!endOfStream) {
                      pmatch = *p;
@@ -239,8 +239,8 @@ private:
    }
 
 private:
-   qore_size_t bufCapacity; //! Total capacity of buf.
-   qore_size_t bufCount; //! Current size of data in buf.
+   size_t bufCapacity; //! Total capacity of buf.
+   size_t bufCount; //! Current size of data in buf.
    char* buf;
 };
 

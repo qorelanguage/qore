@@ -1967,7 +1967,7 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char
         // string is OK, remove quotes
         arg.trim_single_trailing(c);
         arg.trim_single_leading(c);
-        qore_size_t len = arg.strlen();
+        size_t len = arg.strlen();
         return new QoreStringNode(arg.giveBuffer(), len, len + 1, QCS_DEFAULT);
     }
 

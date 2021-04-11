@@ -173,7 +173,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
-    DLLEXPORT int putData(const void *data, qore_size_t len, const char *remotename, ExceptionSink *xsink);
+    DLLEXPORT int putData(const void *data, size_t len, const char *remotename, ExceptionSink *xsink);
 
     //! gets a file from the remote server and returns it as a string
     /** the connection must be already established before this function is called or an error will be raised.

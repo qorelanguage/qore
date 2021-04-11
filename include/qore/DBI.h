@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -222,7 +222,6 @@ typedef QoreValue (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* x
 */
 typedef QoreValue (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
 
-// FIXME: document
 //! prepare statement and process placeholder specifications and bind parameters
 /** @returns -1 = an exception occurred, 0 = OK
  */
@@ -278,159 +277,163 @@ typedef QoreValue (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
 */
 typedef QoreHashNode* (*q_dbi_describe_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
-#define DBI_OPT_NUMBER_OPT "optimal-numbers"      //!< numeric/decimal/number values converted to optimal Qore type (either int or number)
-#define DBI_OPT_NUMBER_STRING "string-numbers"    //!< numeric/decimal/number values converted to Qore strings (original solution)
-#define DBI_OPT_NUMBER_NUMERIC "numeric-numbers"  //!< numeric/decimal/number values converted to arbitrary-precision number values
-#define DBI_OPT_TIMEZONE "timezone"               //!< set server=side timezone rules for automatic conversions/date-time value tagging
+//! numeric/decimal/number values converted to optimal Qore type (either int or number)
+#define DBI_OPT_NUMBER_OPT "optimal-numbers"
+//! numeric/decimal/number values converted to Qore strings (original solution)
+#define DBI_OPT_NUMBER_STRING "string-numbers"
+//! numeric/decimal/number values converted to arbitrary-precision number values
+#define DBI_OPT_NUMBER_NUMERIC "numeric-numbers"
+//! set server=side timezone rules for automatic conversions/date-time value tagging
+#define DBI_OPT_TIMEZONE "timezone"
 
 //! this is the data structure Qore DBI drivers will use to pass the supported DBI methods
 /** the minimum methods that must be supported are: open, close, select, selectRows, execSQL, execRawSQL, commit, and rollback
  */
 class qore_dbi_method_list {
-   friend struct qore_dbi_mlist_private;
+    friend struct qore_dbi_mlist_private;
 
 private:
-   struct qore_dbi_mlist_private* priv; // private implementation
+    struct qore_dbi_mlist_private* priv; // private implementation
 
-   // not implemented
-   DLLLOCAL qore_dbi_method_list(const qore_dbi_method_list&);
-   DLLLOCAL qore_dbi_method_list& operator=(const qore_dbi_method_list&);
+    // not implemented
+    DLLLOCAL qore_dbi_method_list(const qore_dbi_method_list&);
+    DLLLOCAL qore_dbi_method_list& operator=(const qore_dbi_method_list&);
 
 public:
-   DLLEXPORT qore_dbi_method_list();
-   DLLEXPORT ~qore_dbi_method_list();
+    DLLEXPORT qore_dbi_method_list();
+    DLLEXPORT ~qore_dbi_method_list();
 
-   // covers open, commit, rollback, and begin transaction
-   DLLEXPORT void add(int code, q_dbi_open_t method);
-   // for close
-   DLLEXPORT void add(int code, q_dbi_close_t method);
-   // covers select, select_rows, select, and exec
-   DLLEXPORT void add(int code, q_dbi_select_t method);
-   // covers select_row
-   DLLEXPORT void add(int code, q_dbi_select_row_t method);
-   // covers execRaw
-   DLLEXPORT void add(int code, q_dbi_execraw_t method);
-   // covers get_server_version
-   DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
-   // covers get_client_version
-   DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
+    // covers open, commit, rollback, and begin transaction
+    DLLEXPORT void add(int code, q_dbi_open_t method);
+    // for close
+    DLLEXPORT void add(int code, q_dbi_close_t method);
+    // covers select, select_rows, select, and exec
+    DLLEXPORT void add(int code, q_dbi_select_t method);
+    // covers select_row
+    DLLEXPORT void add(int code, q_dbi_select_row_t method);
+    // covers execRaw
+    DLLEXPORT void add(int code, q_dbi_execraw_t method);
+    // covers get_server_version
+    DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
+    // covers get_client_version
+    DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
 
-   // covers prepare
-   DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);
-   // covers prepare_raw
-   DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
-   // covers bind, bind_placeholders, bind_values
-   DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
-   // covers exec, close, affected_rows, define, and exec_describe
-   DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
-   // covers fetch_row, get_output, and get_output_rows
-   DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
-   // covers fetch_columns
-   DLLEXPORT void add(int code, q_dbi_stmt_fetch_columns_t method);
-   // covers fetch_rows
-   DLLEXPORT void add(int code, q_dbi_stmt_fetch_rows_t method);
-   // covers next
-   DLLEXPORT void add(int code, q_dbi_stmt_next_t method);
+    // covers prepare
+    DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);
+    // covers prepare_raw
+    DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
+    // covers bind, bind_placeholders, bind_values
+    DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
+    // covers exec, close, affected_rows, define, and exec_describe
+    DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
+    // covers fetch_row, get_output, and get_output_rows
+    DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);
+    // covers fetch_columns
+    DLLEXPORT void add(int code, q_dbi_stmt_fetch_columns_t method);
+    // covers fetch_rows
+    DLLEXPORT void add(int code, q_dbi_stmt_fetch_rows_t method);
+    // covers next
+    DLLEXPORT void add(int code, q_dbi_stmt_next_t method);
 
-   // covers set option
-   DLLEXPORT void add(int code, q_dbi_option_set_t method);
-   // covers get option
-   DLLEXPORT void add(int code, q_dbi_option_get_t method);
+    // covers set option
+    DLLEXPORT void add(int code, q_dbi_option_set_t method);
+    // covers get option
+    DLLEXPORT void add(int code, q_dbi_option_get_t method);
 
-   // for registering valid options
-   DLLEXPORT void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0);
+    // for registering valid options
+    DLLEXPORT void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0);
 };
 
 //! this class provides the internal link to the database driver for Qore's DBI layer
 /**
-   most of these functions are not exported; the Datasource class should be used
-   instead of using the DBIDriver class directly
-   @see Datasource
+     most of these functions are not exported; the Datasource class should be used
+    instead of using the DBIDriver class directly
+    @see Datasource
 */
 class DBIDriver {
-   friend struct qore_dbi_private;
+    friend struct qore_dbi_private;
 
 private:
-   //! private implementation
-   struct qore_dbi_private* priv;
+    //! private implementation
+    struct qore_dbi_private* priv;
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL DBIDriver(const DBIDriver&);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL DBIDriver& operator=(const DBIDriver&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL DBIDriver(const DBIDriver&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL DBIDriver& operator=(const DBIDriver&);
 
 public:
-   //! this is the only public exported function available in this class
-   /**
-      @return the name of the driver (ex: "oracle")
-   */
-   DLLEXPORT const char* getName() const;
-
-   //! returns true if the driver supports the statement API
-   DLLEXPORT bool hasStatementAPI() const;
-
-   //! returns the valid options for this driver with descriptions
-   /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
-       - \c "desc": a string description of the option
-       - \c "type": a string giving the data type restriction for the option
-
-       The caller owns the reference count for the hash returned
+    //! this is the only public exported function available in this class
+    /**
+         @return the name of the driver (ex: "oracle")
     */
-   DLLEXPORT QoreHashNode* getOptionHash() const;
+    DLLEXPORT const char* getName() const;
 
-   DLLLOCAL DBIDriver(struct qore_dbi_private* p);
-   DLLLOCAL ~DBIDriver();
+    //! returns true if the driver supports the statement API
+    DLLEXPORT bool hasStatementAPI() const;
+
+    //! returns the valid options for this driver with descriptions
+    /** @return a hash where the keys are valid option names, and the values are hashes with the following keys:
+        - \c "desc": a string description of the option
+        - \c "type": a string giving the data type restriction for the option
+
+        The caller owns the reference count for the hash returned
+    */
+    DLLEXPORT QoreHashNode* getOptionHash() const;
+
+    DLLLOCAL DBIDriver(struct qore_dbi_private* p);
+    DLLLOCAL ~DBIDriver();
 };
 
 struct qore_dbi_dlist_private;
 
 //! this class is used to register and find DBI drivers loaded in qore
 /**
-   this class will all use the ModuleManager to try and load a driver if it is not already loaded when find() is called
-   @see ModuleManager
+    this class will all use the ModuleManager to try and load a driver if it is not already loaded when find() is called
+    @see ModuleManager
 */
 class DBIDriverList {
 private:
-   //! private implementation
-   struct qore_dbi_dlist_private *priv;
+    //! private implementation
+    struct qore_dbi_dlist_private *priv;
 
-   DLLLOCAL DBIDriver* find_intern(const char* name) const;
+    DLLLOCAL DBIDriver* find_intern(const char* name) const;
 
 public:
-   //! registers a new DBI driver
-   /**
-      @param name the name of the driver (ex: "oracle")
-      @param methods the list of methods the driver supports
-      @param caps the capabilities the driver supports
+    //! registers a new DBI driver
+    /**
+        @param name the name of the driver (ex: "oracle")
+        @param methods the list of methods the driver supports
+        @param caps the capabilities the driver supports
 
-      @return the DBIDriver object created
-   */
-   DLLEXPORT DBIDriver* registerDriver(const char* name, const qore_dbi_method_list &methods, int caps);
+        @return the DBIDriver object created
+    */
+    DLLEXPORT DBIDriver* registerDriver(const char* name, const qore_dbi_method_list &methods, int caps);
 
-   //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
-   /**
-      @param name the name of the driver to find (or load)
+    //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+    /**
+        @param name the name of the driver to find (or load)
 
-      @return the DBIDriver found or 0 if not found and was not loaded
+        @return the DBIDriver found or 0 if not found and was not loaded
 
-      @see ModuleManager
-   */
-   DLLEXPORT DBIDriver* find(const char* name) const;
+        @see ModuleManager
+    */
+    DLLEXPORT DBIDriver* find(const char* name) const;
 
-   //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
-   /**
-       @param name the name of the driver to find (or load)
-       @param xsink Qore-language exceptions saved here if any occur
+    //! finds a driver, will try to load the driver using the ModuleManager if no such driver is already present
+    /**
+        @param name the name of the driver to find (or load)
+        @param xsink Qore-language exceptions saved here if any occur
 
-       @return the DBIDriver found or 0 if not found and was not loaded
+        @return the DBIDriver found or 0 if not found and was not loaded
 
-       @see ModuleManager
-   */
-   DLLEXPORT DBIDriver* find(const char* name, ExceptionSink* xsink) const;
+        @see ModuleManager
+    */
+    DLLEXPORT DBIDriver* find(const char* name, ExceptionSink* xsink) const;
 
-   DLLLOCAL DBIDriverList();
-   DLLLOCAL ~DBIDriverList();
-   DLLLOCAL QoreListNode* getDriverList() const;
+    DLLLOCAL DBIDriverList();
+    DLLLOCAL ~DBIDriverList();
+    DLLLOCAL QoreListNode* getDriverList() const;
 };
 
 //! list of DBI drivers currently reigsted by the Qore library

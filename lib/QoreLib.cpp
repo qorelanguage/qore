@@ -962,7 +962,7 @@ static void concatASCII(QoreString &str, unsigned char c) {
     }
 }
 
-static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink* xsink) {
+static char getBase64Value(const char* buf, size_t &offset, bool end_ok, ExceptionSink* xsink) {
     while (buf[offset] == '\n' || buf[offset] == '\r') {
         ++offset;
     }
@@ -1008,8 +1008,8 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
     char* binbuf = (char*)malloc(sizeof(char) * (len + 3));
     int blen = 0;
 
-    qore_size_t pos = 0;
-    while (pos < (qore_size_t)len) {
+    size_t pos = 0;
+    while (pos < (size_t)len) {
         // add first 6 bits
         char b = getBase64Value(buf, pos, true, xsink);
         if (xsink->isEvent()) {

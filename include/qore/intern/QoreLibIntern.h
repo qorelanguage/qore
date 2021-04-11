@@ -102,7 +102,7 @@ extern char* strcasestr(const char* s1, const char* s2);
 // for arbitrary-precision numeric support
 #include <mpfr.h>
 
-// printf format for size_t or qore_size_t integers
+// printf format for size_t or size_t integers
 #if TARGET_BITS == 64
 #define QSD QLLD
 #else
@@ -650,7 +650,7 @@ private:
     int& lvids;
     QoreListNode* l;
     bool finished;
-    qore_size_t pos = -1;
+    size_t pos = -1;
     const QoreTypeInfo* singleTypeInfo = nullptr;
 
 public:
@@ -960,7 +960,7 @@ DLLLOCAL void ignore_return_value(QoreSimpleValue& n);
 
 DLLLOCAL void qore_string_init();
 
-DLLLOCAL QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding* enc, bool with_separator = false);
+DLLLOCAL QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl, const QoreEncoding* enc, bool with_separator = false);
 DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
     const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h = nullptr,
@@ -991,11 +991,11 @@ DLLLOCAL const char* q_find_last_path_sep(const char* path);
 // reutrns the given file's mode or 0 if the stat() call fails
 DLLLOCAL int q_get_mode(const QoreString& path);
 //! returns the byte length of the next UTF-8 character or 0 for an encoding error or a negative number if the string is too short to represent the character
-DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, qore_size_t valid_len);
+DLLLOCAL qore_offset_t q_UTF8_get_char_len(const char* p, size_t valid_len);
 
 //! returns the byte length of the next UTF-16 (big-endian encoded) character or 0 for an encoding error or a negative number if the string is too short to represent the character
-DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, qore_size_t valid_len);
-DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
+DLLLOCAL qore_offset_t q_UTF16BE_get_char_len(const char* p, size_t valid_len);
+DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, size_t len);
 
 DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 

@@ -105,11 +105,11 @@ QoreStringNode* QoreTransliteration::exec(const QoreString* str, ExceptionSink* 
       return nullptr;
 
    SimpleRefHolder<QoreStringNode> ns(new QoreStringNode);
-   for (qore_size_t i = 0; i < tstr->strlen(); ++i) {
+   for (size_t i = 0; i < tstr->strlen(); ++i) {
       char c = (**tstr)[i];
       const char *p = strchr(source.c_str(), c);
       if (p) {
-         qore_size_t pos = p - source.c_str();
+         size_t pos = p - source.c_str();
          if (target.strlen() <= pos)
             pos = target.strlen() - 1;
          ns->concat(target[pos]);

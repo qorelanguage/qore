@@ -170,7 +170,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
           if (p != lp) {
              QoreString tpath;
              tpath.concat(lp, p - lp);
-             const char* sp = tpath.getBuffer();
+             const char* sp = tpath.c_str();
              //printd(5, "got path string: '%s'\n", sp);
 
              const char* i, *spt;
@@ -187,23 +187,23 @@ static void scanner_process_path(QoreString& npath, char* ip) {
                    char save = *ep;
                    *ep = '\0';
                    TempString val(SystemEnvironment::get(i));
-                   //printd(5, "set_include_path() found variable '$%s' = %s\n", i, val->getBuffer());
+                   //printd(5, "set_include_path() found variable '$%s' = %s\n", i, val->c_str());
                    *ep = save;
                    if (val && val->strlen()) {
                       // see if environment value ends in the directory separator char, if so, and the
                       // rest of the string starts with the directory separator char, then make sure the
                       // character is not doubled (can cause problems on windows)
-                      if (val->getBuffer()[val->strlen() - 1] == QORE_DIR_SEP
+                      if (val->c_str()[val->strlen() - 1] == QORE_DIR_SEP
                             && *ep == QORE_DIR_SEP)
                          ++ep;
 
                       // replace with value
                       int pos = (int)(i - sp);
-                      //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->getBuffer(), ep - i + 1);
-                      tpath.replace(pos - 1, ep - i + 1, *val);
+                      //printd(5, "got $%s = '%s' (replacing %d char(s))\n", i, val->c_str(), ep - i + 1);
+                      tpath.replace(pos - 1, ep - i + 1, val->c_str());
                       // re-assign sp in case it's changed
                       int diff = (int)(pos + val->strlen());
-                      sp = tpath.getBuffer();
+                      sp = tpath.c_str();
                       spt = sp + diff;
                       //printd(5, "new string = '%s' ('%s')\n", sp, spt);
                    }
@@ -245,7 +245,7 @@ static void scanner_process_path(QoreString& npath, char* ip) {
 
        ++p;
     }
-    //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.getBuffer());
+    //printd(5, "ip: '%s' npath: '%s'\n", ip, npath.c_str());
 }
 
 static QoreString* get_include_file_name(char* file) {
@@ -268,7 +268,7 @@ static QoreString* get_include_file_name(char* file) {
         }
 
         QoreString val;
-        if (SystemEnvironment::get(var.getBuffer(), val))
+        if (SystemEnvironment::get(var.c_str(), val))
             rv->concat(file);
         else {
             rv->concat(&val);
@@ -315,9 +315,9 @@ static void append_module_path(const char* path) {
 
     scanner_process_path(npath, ip);
 
-    //printd(5, "appending module path: '%s'\n", npath.getBuffer());
-    QMM.addModuleDirList(npath.getBuffer());
-    //getProgram()->parseSetIncludePath(npath.getBuffer());
+    //printd(5, "appending module path: '%s'\n", npath.c_str());
+    QMM.addModuleDirList(npath.c_str());
+    //getProgram()->parseSetIncludePath(npath.c_str());
 }
 
 static void set_include_path(const char* path) {
@@ -330,8 +330,8 @@ static void set_include_path(const char* path) {
 
     scanner_process_path(npath, ip);
 
-    //printd(5, "setting include path: '%s'\n", npath.getBuffer());
-    getProgram()->parseSetIncludePath(npath.getBuffer());
+    //printd(5, "setting include path: '%s'\n", npath.c_str());
+    getProgram()->parseSetIncludePath(npath.c_str());
 }
 
 static char* remove_quotes(char* str) {
@@ -615,7 +615,7 @@ static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
     QoreString str(pstr);
     // trim trailing and leading whitespace
     str.trim();
-    const char* p = strchr(str.getBuffer(), ' ');
+    const char* p = strchr(str.c_str(), ' ');
     QoreString arg;
     if (p) {
         // copy arg to arg string
@@ -623,7 +623,7 @@ static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
         // trim leading whitespace, if any
         arg.trim_leading();
         // remove argument from define string
-        str.terminate(p - str.getBuffer());
+        str.terminate(p - str.c_str());
     }
     // check define string
     if (str.empty()) {
@@ -634,12 +634,12 @@ static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
     QoreValue v;
     if (!arg.empty()) {
         bool ok;
-        v = qore_parse_get_define_value(get_loc(yylloc), str.getBuffer(), arg, ok);
+        v = qore_parse_get_define_value(get_loc(yylloc), str.c_str(), arg, ok);
         if (!ok)
             return;
     }
 
-    qore_program_private::parseDefine(getProgram(), get_loc(yylloc), str.getBuffer(), v);
+    qore_program_private::parseDefine(getProgram(), get_loc(yylloc), str.c_str(), v);
 }
 
 static bool parse_is_defined(YYLTYPE* yylloc, const char* pstr, bool def = true) {
@@ -649,7 +649,7 @@ static bool parse_is_defined(YYLTYPE* yylloc, const char* pstr, bool def = true)
       parse_error(*get_loc(yylloc), "missing argument to %%if%sdef", def ? "" : "n");
       return false;
    }
-   return qore_program_private::parseIsDefined(getProgram(), str.getBuffer());
+   return qore_program_private::parseIsDefined(getProgram(), str.c_str());
 }
 
 static bool is_identifier(const char *str) {
@@ -693,7 +693,7 @@ static bool angle_balanced(const char* p) {
    return ob == cb;
 }
 
-#define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
+#define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
       /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
@@ -913,17 +913,17 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  parse_error(*get_loc(yylloc), "missing argument to %%try-module");
                                                  ok = false;
                                               } else {
-                                                 const char* p = str.getBuffer();
+                                                 const char* p = str.c_str();
                                                  const char* op = strchr(p, '(');
                                                  if (op) {
                                                     if (op != p) {
-                                                       parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; extra text before '('; text given: '%%try-module %s'", require_dollar ? "$" : "", str.c_str());
                                                        ok = false;
                                                     }
                                                     ++p;
                                                     const char* cp = strchr(p, ')');
                                                     if (!cp) {
-                                                       parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing close parenthesis ')' after variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.c_str());
                                                        ok = false;
                                                     } else {
                                                        // get variable name
@@ -931,12 +931,12 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                        var.trim("\t ");
 
                                                        if (var.empty()) {
-                                                          parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                          parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; missing exception variable name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.c_str());
                                                           ok = false;
                                                        } else {
                                                           // remove preface from string leaving only the rest
-                                                          str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
-                                                          if (!is_identifier(var.getBuffer())) {
+                                                          str.replace(0, cp - str.c_str() + 1, (const char*)0);
+                                                          if (!is_identifier(var.c_str())) {
                                                              parse_error(*get_loc(yylloc), "%%try-module not in format '%%try-module (%svarname) <module>'; invalid exception variable name; text given: '%%try-module (%s)'", require_dollar ? "$" : "", var.c_str(), str.c_str());
                                                              ok = false;
                                                           }
@@ -952,9 +952,9 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  str.trim();
                                                  if (str.empty()) {
                                                     if (var.empty())
-                                                       parse_error(*get_loc(yylloc), "%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.getBuffer());
+                                                       parse_error(*get_loc(yylloc), "%%try-module not in format %%try-module <module>; missing module name; text given: '%%try-module %s'", str.c_str());
                                                     else
-                                                       parse_error(*get_loc(yylloc), "%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.getBuffer());
+                                                       parse_error(*get_loc(yylloc), "%%try-module not in format %%try-module (%svarname) <module>; missing module name; text given: '%%try-module %s'", require_dollar ? "$" : "", str.c_str());
                                                     BEGIN(INITIAL);
                                                  } else {
                                                     //printd(5, "scanner requesting feature: '%s'\n", cn);
@@ -1035,7 +1035,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 <module_cmd>[^\n\r]+                    {
                                            QoreString str(yytext);
                                            str.trim();
-                                           const char* p = str.getBuffer();
+                                           const char* p = str.c_str();
                                            const char* op = strchr(p, '(');
                                            if (!op)
                                               parse_error(*get_loc(yylloc), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing open parenthesis '(' before module name; text given: '%%module-cmd %s'", p);
@@ -1043,20 +1043,20 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                               p = op + 1;
                                               const char* cp = strchr(p, ')');
                                               if (!cp)
-                                                 parse_error(*get_loc(yylloc), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.getBuffer());
+                                                 parse_error(*get_loc(yylloc), "%%module-cmd not in format '%%module-cmd(<module-name>) <command>'; missing close parenthesis ')' after module name; text given: '%%module-cmd %s'", str.c_str());
                                               else {
                                                  // get module name
                                                  QoreString module(p, cp - p);
                                                  module.trim();
 
                                                  // remove preface from string leaving only command
-                                                 str.replace(0, cp - str.getBuffer() + 1, (const char*)0);
+                                                 str.replace(0, cp - str.c_str() + 1, (const char*)0);
                                                  str.trim();
                                                  const QoreProgramLocation* loc = get_loc(yylloc);
                                                  if (str.empty())
-                                                    parse_error(*loc, "%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
+                                                    parse_error(*loc, "%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.c_str());
                                                  else {
-                                                    QMM.issueParseCmd(loc, module.getBuffer(), str);
+                                                    QMM.issueParseCmd(loc, module.c_str(), str);
                                                  }
                                               }
                                            }
@@ -1192,7 +1192,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 <incl>{WS}*                             // ignore white space
 <incl>[^\n\r]+                          {
                                            TempString fname(get_include_file_name(yytext));
-                                           const char* fn = fname->getBuffer();
+                                           const char* fn = fname->c_str();
                                            // remove enclosing quotes if any
                                            if (fname->strlen()
                                                && ((fn[0] == '\"' && fn[fname->strlen() - 1] == '\"')
@@ -1210,7 +1210,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                               BEGIN(INITIAL);
                                            } else {
                                               // re-get the buffer pointer
-                                              fn = fname->getBuffer();
+                                              fn = fname->c_str();
                                               // check if regular file
                                               struct stat sbuf;
                                               int rc = stat(fn, &sbuf);
@@ -1220,7 +1220,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                     xsink->raiseErrnoException("PARSE-ERROR", errno, "stat() failed on include file: \"%s\"", fn);
                                                  BEGIN(INITIAL);
                                               } else {
-                                                 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->getBuffer(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
+                                                 //printd(0, "%s: mode=%o, s_ifmt=%o, &=%o, reg=%o comp=%s\n", fname->c_str(), sbuf.st_mode, S_IFMT, sbuf.st_mode & S_IFMT, S_IFREG, (sbuf.st_mode & S_IFMT) != S_IFREG ? "true" : "false");
                                                  if ((sbuf.st_mode & S_IFMT) != S_IFREG) {
                                                     parse_error(*get_loc(yylloc), "cannot include \"%s\"; is not a regular file", fn);
                                                     BEGIN(INITIAL);

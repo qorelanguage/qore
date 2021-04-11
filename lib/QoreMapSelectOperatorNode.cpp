@@ -207,7 +207,6 @@ bool QoreFunctionalMapSelectListOperator::getNextImpl(ValueOptionalRefHolder& va
 
         ValueEvalRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
-            tval.sanitize();
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);
         }
@@ -234,7 +233,6 @@ bool QoreFunctionalMapSelectSingleValueOperator::getNextImpl(ValueOptionalRefHol
 
     ValueEvalRefHolder tval(map->e[0], xsink);
     if (!*xsink) {
-        tval.sanitize();
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
     }
@@ -267,7 +265,6 @@ bool QoreFunctionalMapSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder
 
         ValueEvalRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
-            tval.sanitize();
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);
         }
@@ -298,7 +295,6 @@ bool QoreFunctionalMapSelectOperator::getNextImpl(ValueOptionalRefHolder& val, E
 
         ValueEvalRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
-            tval.sanitize();
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);
         }

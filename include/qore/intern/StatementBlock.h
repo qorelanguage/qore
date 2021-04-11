@@ -64,7 +64,7 @@ public:
     DLLLOCAL ~LVList() {
     }
 
-    DLLLOCAL qore_size_t size() const {
+    DLLLOCAL size_t size() const {
         return lv.size();
     }
 

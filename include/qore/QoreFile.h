@@ -227,7 +227,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return returns the number of bytes written (-1 if an exception was thrown)
     */
-    DLLEXPORT int write(const void *data, qore_size_t len, ExceptionSink *xsink);
+    DLLEXPORT int write(const void *data, size_t len, ExceptionSink *xsink);
 
     //! writes 1-byte binary integer data to the file and returns the number of bytes written (normally 1)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -487,23 +487,23 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return the number of bytes read, 0 means EOF
     */
-    DLLEXPORT qore_size_t read(void *ptr, qore_size_t limit, int timeout_ms, ExceptionSink *xsink);
+    DLLEXPORT size_t read(void *ptr, size_t limit, int timeout_ms, ExceptionSink *xsink);
 
     //! sets the absolute file position to "pos"
     /** @param pos the file position in bytes to set (starting with byte position 0)
         */
-    DLLEXPORT qore_size_t setPos(qore_size_t pos);
+    DLLEXPORT size_t setPos(size_t pos);
 
     //! returns the absolute byte position in the file
     /** @return the absolute byte position in the file
         * @deprecated: only the const variant will remain in the future
         */
-    DLLEXPORT qore_size_t getPos();
+    DLLEXPORT size_t getPos();
 
     //! returns the absolute byte position in the file
     /** @return the absolute byte position in the file
         */
-    DLLEXPORT qore_size_t getPos() const;
+    DLLEXPORT size_t getPos() const;
 
     //! reads a single byte from the file and returns it as a new string, caller owns the reference count returned
     /** note that this function is not guaranteed to read a character if the File's encoding is a multi-byte character encoding
