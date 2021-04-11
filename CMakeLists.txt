@@ -21,6 +21,12 @@ option(ICONV_TRANSLIT
        "Force //Translit to iconv encoding to do transliteration, if OFF it is tested for"
        OFF)
 
+STRING(LENGTH ${VERSION_MINOR} MINOR_LEN)
+if (${MINOR_LEN} EQUAL 1)
+    set(VERSION_FORMATTED_MINOR 0${VERSION_MINOR})
+else()
+    set(VERSION_FORMATTED_MINOR ${VERSION_MINOR})
+endif()
 STRING(LENGTH ${VERSION_SUB} SUB_LEN)
 if (${SUB_LEN} EQUAL 1)
     set(VERSION_FORMATTED_SUB 0${VERSION_SUB})
