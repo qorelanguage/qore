@@ -133,7 +133,7 @@ public:
 
         SimpleRefHolder<QoreStringNode> str(new QoreStringNode(enc));
 
-        qore_size_t eolpos = 0;
+        size_t eolpos = 0;
 
         while (true) {
             signed char c;
@@ -331,7 +331,7 @@ public:
 
         @since %Qore 0.9
     */
-    DLLLOCAL virtual qore_offset_t read(ExceptionSink* xsink, void* dest, qore_size_t limit, bool require_all = true) {
+    DLLLOCAL virtual qore_offset_t read(ExceptionSink* xsink, void* dest, size_t limit, bool require_all = true) {
         return readData(xsink, dest, limit, require_all);
     }
 
@@ -356,11 +356,11 @@ private:
 
         @return amount of data read, -1 in case of error
     */
-    DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, qore_size_t limit, bool require_all = true) {
+    DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, size_t limit, bool require_all = true) {
         assert(dest);
         assert(limit > 0);
         char* destPtr = static_cast<char*>(dest);
-        qore_size_t read = 0;
+        size_t read = 0;
         while (true) {
             int64 rc = in->read(destPtr + read, limit - read, xsink);
             if (*xsink)

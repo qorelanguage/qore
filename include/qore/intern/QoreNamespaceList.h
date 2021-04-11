@@ -181,7 +181,7 @@ public:
         return nsmap.empty();
     }
 
-    DLLLOCAL qore_size_t size() const {
+    DLLLOCAL size_t size() const {
         return nsmap.size();
     }
 

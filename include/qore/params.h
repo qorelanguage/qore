@@ -62,7 +62,7 @@ static inline unsigned num_params(const QoreListNode* n) {
    @param i the offset in the list to test (first element is offset 0)
    @return a ReferenceNode pointer for the argument position given or 0 if there is no argument there or if the argument is not a ReferenceNode
  */
-static inline const ReferenceNode* test_reference_param(const QoreListNode* n, qore_size_t i) {
+static inline const ReferenceNode* test_reference_param(const QoreListNode* n, size_t i) {
     if (!n) return nullptr;
     QoreValue p = n->retrieveEntry(i);
     // the following is faster than a dynamic_cast
@@ -75,7 +75,7 @@ static inline const ReferenceNode* test_reference_param(const QoreListNode* n, q
    @param i the offset in the list to test (first element is offset 0)
    @return the argument in the position given or 0 if there is none
  */
-static inline QoreValue get_param_value(const QoreListNode* n, qore_size_t i) {
+static inline QoreValue get_param_value(const QoreListNode* n, size_t i) {
     if (!n)
         return QoreValue();
     return n->retrieveEntry(i);
@@ -83,13 +83,13 @@ static inline QoreValue get_param_value(const QoreListNode* n, qore_size_t i) {
 
 //! returns the given type for hard typed parameters
 template <typename T>
-static inline T* get_hard_value_or_nothing_param(const QoreListNode* n, qore_size_t i) {
+static inline T* get_hard_value_or_nothing_param(const QoreListNode* n, size_t i) {
     assert(n);
     return n->retrieveEntry(i).get<T>();
 }
 
 //! returns the given type for hard typed parameters
-static QoreValue get_hard_value_param(const QoreListNode* n, qore_size_t i) {
+static QoreValue get_hard_value_param(const QoreListNode* n, size_t i) {
     assert(n);
     return n->retrieveEntry(i);
 }
@@ -143,12 +143,12 @@ static QoreValue get_hard_value_param(const QoreListNode* n, qore_size_t i) {
 #define HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(vname, Type, list, i, cid, xsink) HARD_QORE_VALUE_OR_NOTHING_PARAM(obj_##vname, const QoreObject, list, i); Type* vname = obj_##vname ? reinterpret_cast<Type*>(obj_##vname->getReferencedPrivateData(cid, xsink)) : 0;
 
 //! returns the QoreEncoding corresponding to the string passed or a default encoding
-static inline const QoreEncoding* get_value_encoding_param(const QoreListNode* n, qore_size_t i, const QoreEncoding* def = QCS_DEFAULT) {
+static inline const QoreEncoding* get_value_encoding_param(const QoreListNode* n, size_t i, const QoreEncoding* def = QCS_DEFAULT) {
     const QoreStringNode* str = HARD_QORE_VALUE_STRING(n, i);
     return str ? QEM.findCreate(str) : def;
 }
 
-static inline const QoreEncoding* get_hard_qore_value_encoding_param(const QoreListNode* n, qore_size_t i) {
+static inline const QoreEncoding* get_hard_qore_value_encoding_param(const QoreListNode* n, size_t i) {
     HARD_QORE_VALUE_PARAM(str, const QoreStringNode, n, i);
     return QEM.findCreate(str);
 }

@@ -83,7 +83,7 @@ public:
    DLLLOCAL BinaryNode* compress(const void* ptr, unsigned long len, ExceptionSink* xsink) {
       char* p = (char*)ptr;
 
-      qore_size_t bs = len >> 3;
+      size_t bs = len >> 3;
       if (!bs)
 	 bs = 1;
 
@@ -148,7 +148,7 @@ public:
    DLLLOCAL BinaryNode* decompress(const void* ptr, unsigned long len, ExceptionSink* xsink) {
       char* p = (char*)ptr;
 
-      qore_size_t bs = len << 1;
+      size_t bs = len << 1;
 
       next_in = p;
       avail_in = len;

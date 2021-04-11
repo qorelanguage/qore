@@ -187,7 +187,6 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d type: '%s'\n", this,
     //  name.c_str(), node, get_type_name(node), node->is_value(), QoreTypeInfo::getName(typeInfo));
 
-    val.sanitize();
     if (!val.hasNode() || !val.getInternalNode()->needs_eval()) {
         if (!QoreTypeInfo::hasType(typeInfo))
             typeInfo = val.getTypeInfo();
@@ -212,7 +211,6 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
         if (!xsink) {
             QoreValue nv = v.takeReferencedValue();
-            nv.sanitize();
             val.discard(&xsink);
             val = nv;
             typeInfo = val.getTypeInfo();

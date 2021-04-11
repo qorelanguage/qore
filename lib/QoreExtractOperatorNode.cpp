@@ -129,7 +129,7 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     // no exception can occur here
     val.ensureUnique();
 
-    qore_size_t offset = (qore_size_t)eoffset->getAsBigInt();
+    size_t offset = (size_t)eoffset->getAsBigInt();
 
 #ifdef DEBUG
     if (vt == NT_LIST) {
@@ -149,7 +149,7 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
         if (!length_exp && !new_exp)
             rv = vl->extract(offset);
         else {
-            qore_size_t length = (qore_size_t)elength->getAsBigInt();
+            size_t length = (size_t)elength->getAsBigInt();
             if (!new_exp)
                 rv = vl->extract(offset, length);
             else
@@ -161,7 +161,7 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
         if (!length_exp && !new_exp)
             rv = vs->extract(offset, xsink);
         else {
-            qore_size_t length = (qore_size_t)elength->getAsBigInt();
+            size_t length = (size_t)elength->getAsBigInt();
             if (!new_exp)
                 rv = vs->extract(offset, length, xsink);
             else
@@ -175,7 +175,7 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
         if (!length_exp && !new_exp)
             b->splice(offset, b->size(), bout);
         else {
-            qore_size_t length = (qore_size_t)elength->getAsBigInt();
+            size_t length = (size_t)elength->getAsBigInt();
             if (!new_exp)
                 b->splice(offset, length, bout);
             else {

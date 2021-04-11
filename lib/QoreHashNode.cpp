@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -525,7 +525,7 @@ void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
    return priv->removeKey(key, xsink);
 }
 
-qore_size_t QoreHashNode::size() const {
+size_t QoreHashNode::size() const {
    return priv->size();
 }
 
@@ -579,7 +579,7 @@ int QoreHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) c
     str.concat("hash: (");
 
     if (foff != FMT_NONE) {
-        qore_size_t elements = size();
+        size_t elements = size();
         str.sprintf("%lu member%s)\n", elements, elements == 1 ? "" : "s");
     }
 
@@ -609,7 +609,7 @@ int QoreHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) c
 
 QoreString* QoreHashNode::getAsString(bool &del, int foff, ExceptionSink* xsink) const {
     del = false;
-    qore_size_t elements = size();
+    size_t elements = size();
     if (!elements && foff != FMT_YAML_SHORT)
         return &EmptyHashString;
 
@@ -948,7 +948,6 @@ void hash_assignment_priv::reassign(const char* key, bool must_already_exist) {
 QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
     assert(om);
     QoreValue old = om->val;
-    v.sanitize();
     om->val = v;
 
     bool before = needs_scan(old);
@@ -960,8 +959,7 @@ QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
             else
                 h.incScanCount(-1);
         }
-    }
-    else if (after) {
+    } else if (after) {
         if (o)
             o->incScanCount(1);
         else

@@ -1357,7 +1357,7 @@ public:
     // returns 0 = can add, non-0 = cannot add
     DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
 
-    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
+    DLLLOCAL const QoreClass* getClass(qore_classid_t cid) const;
     //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
     DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
     DLLLOCAL void execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const;
@@ -3485,8 +3485,7 @@ public:
     DLLLOCAL bool next() {
         if (i == obj.end()) {
             i = obj.begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return (i != obj.end());

@@ -66,7 +66,7 @@ static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink)
     QoreString t(fmt.getBuffer(), off, fmt.getEncoding());
     tmp.replaceAll(t.getBuffer(), "");
 
-    if (fmt.size() <= (qore_size_t)off)
+    if (fmt.size() <= (size_t)off)
         return 0;
 
     t.clear();
@@ -84,7 +84,7 @@ static int fix_num(QoreString& tmp, const QoreString& fmt, ExceptionSink* xsink)
     return 0;
 }
 
-static const char* memstr(const char* str, const char* pattern, qore_size_t pl, qore_size_t len) {
+static const char* memstr(const char* str, const char* pattern, size_t pl, size_t len) {
     while (true) {
         const char* p = (const char*)memchr(str, pattern[0], len);
         if (!p)
@@ -97,7 +97,7 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
             return nullptr;
 
         bool found = true;
-        for (qore_size_t i = 1; i < pl; ++i) {
+        for (size_t i = 1; i < pl; ++i) {
             if (pattern[i] != p[i]) {
                 len -= (p - str + 1);
                 str = p + 1;
@@ -125,7 +125,7 @@ static void split_add_element(QoreListNode* l, const char* str, unsigned len, co
     }
 }
 
-QoreListNode* split_intern(const char* pattern, qore_size_t pl, const char* str, qore_size_t sl, const QoreEncoding *enc, bool with_separator) {
+QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl, const QoreEncoding *enc, bool with_separator) {
     QoreListNode* l = new QoreListNode(enc ? stringTypeInfo : binaryTypeInfo);
     const char* ostr = str;
     while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
@@ -179,14 +179,14 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
 
     ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
     const char* ostr = str->c_str();
-    qore_size_t sl = str->strlen();
+    size_t sl = str->strlen();
     const char* tpattern = pat->c_str();
-    qore_size_t pl = pat->strlen();
+    size_t pl = pat->strlen();
 
     const char* ststr = ostr;
 
     // remaining byte length
-    qore_size_t len = sl;
+    size_t len = sl;
 
     //printd(5, "split_with_quote() '%s' len: " QSD "\n", ststr, len);
 
@@ -1012,7 +1012,7 @@ int i = ord(str);
     @note ord() only works on byte offsets and returns byte values
  */
 int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
-   if (offset < 0 || (qore_size_t)offset >= str->strlen())
+   if (offset < 0 || (size_t)offset >= str->strlen())
       return -1;
 
    return (unsigned char)str->getBuffer()[offset];
@@ -1408,7 +1408,7 @@ string replace(string str, string source, string target, int start = 0, int end 
         const char* pattern = t1->c_str();
 
         bool has_length = false;
-        qore_size_t length = 0;
+        size_t length = 0;
 
         if (start) {
             if (start < 0) {
@@ -1417,7 +1417,7 @@ string replace(string str, string source, string target, int start = 0, int end 
                 start = length + start;
             }
             const char* cn = cstr + str->size();
-            qore_size_t i = ccs->getByteLen(cstr, cn, start, xsink);
+            size_t i = ccs->getByteLen(cstr, cn, start, xsink);
             if (*xsink) {
                 return QoreValue();
             }
@@ -1441,7 +1441,7 @@ string replace(string str, string source, string target, int start = 0, int end 
             }
             const char* cn = str->c_str() + str->size();
             // get the byte length to the character after the requested one
-            qore_size_t i = ccs->getByteLen(str->c_str(), cn, end + 1, xsink);
+            size_t i = ccs->getByteLen(str->c_str(), cn, end + 1, xsink);
             if (*xsink) {
                 return QoreValue();
             }
@@ -1745,7 +1745,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    if (!tmp)
       return QoreValue();
 
-   if (tmp->strlen() < (qore_size_t)len) {
+   if (tmp->strlen() < (size_t)len) {
       len = tmp->strlen();
       return new QoreStringNode(tmp.giveBuffer(), len, len + 1, enc);
    }

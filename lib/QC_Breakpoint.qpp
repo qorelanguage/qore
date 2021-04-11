@@ -225,7 +225,7 @@ list<int> Breakpoint::getThreadIds() {
  */
 nothing Breakpoint::setThreadIds(softlist<softint> tidList) {
     TidList_t tl;
-    for (qore_size_t i = 0, e = tidList->size(); i < e; ++i) {
+    for (size_t i = 0, e = tidList->size(); i < e; ++i) {
         QoreValue n = tidList->retrieveEntry(i);
         if (!n.isNothing()) {
             tl.push_back((int)n.getAsBigInt());

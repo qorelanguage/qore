@@ -58,9 +58,9 @@ public:
     }
 
     DLLLOCAL int64 peek(ExceptionSink *xsink) override {
-        qore_size_t pos = f.getPos(); // Save initial position.
+        size_t pos = f.getPos(); // Save initial position.
         unsigned char c;
-        qore_size_t rc = f.read(&c, 1, -1, xsink);
+        size_t rc = f.read(&c, 1, -1, xsink);
         if (*xsink)
             return -2;
         if (rc == 0)

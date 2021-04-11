@@ -331,7 +331,7 @@ public:
     //! returns the number of members in the hash, executes in constant time
     /** @return the number of members in the hash
         */
-    DLLEXPORT qore_size_t size() const;
+    DLLEXPORT size_t size() const;
 
     //! returns true if the hash has no members, false if not
     /** @return true if the hash has no members, false if not

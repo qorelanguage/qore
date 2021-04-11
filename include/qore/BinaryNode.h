@@ -43,7 +43,7 @@ private:
     //! pointer to memory owned by the object
     void *ptr;
     //! size of the memory block owned by the object
-    qore_size_t len;
+    size_t len;
 
     // not yet implemented
     DLLLOCAL BinaryNode(const BinaryNode&);
@@ -61,7 +61,7 @@ public:
     /** @param p a pointer to the memory, the BinaryNode object takes over ownership of this pointer
         @param size the byte length of the memory
     */
-    DLLEXPORT BinaryNode(void *p = 0, qore_size_t size = 0);
+    DLLEXPORT BinaryNode(void *p = 0, size_t size = 0);
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -113,7 +113,7 @@ public:
     DLLEXPORT int compare(const BinaryNode *obj) const;
 
     //! returns the number of bytes in the object
-    DLLEXPORT qore_size_t size() const;
+    DLLEXPORT size_t size() const;
 
     //! returns true if empty
     DLLEXPORT bool empty() const;
@@ -128,7 +128,7 @@ public:
     DLLEXPORT const void *getPtr() const;
 
     //! resizes the object and appends a copy of the data passed to the object
-    DLLEXPORT void append(const void *nptr, qore_size_t size);
+    DLLEXPORT void append(const void *nptr, size_t size);
 
     //! resizes the object and appends a copy of the data passed to the object
     DLLEXPORT void append(const BinaryNode *b);
@@ -137,7 +137,7 @@ public:
     DLLEXPORT void append(const BinaryNode &b);
 
     //! resizes the object and prepends a copy of the data passed to the beginning of the object
-    DLLEXPORT void prepend(const void *nptr, qore_size_t size);
+    DLLEXPORT void prepend(const void *nptr, size_t size);
 
     //! returns the data being managed and leaves this object empty
     /**
@@ -154,7 +154,7 @@ public:
         @param size the number of bytes to pre-allocate
         @return 0 for OK, -1 for error (memory could not be allocated)
     */
-    DLLEXPORT int preallocate(qore_size_t size);
+    DLLEXPORT int preallocate(size_t size);
 
     //! sets the buffer size after preallocation
     /** This function is designed to be used with BinaryNode::preallocate().  The
@@ -162,7 +162,7 @@ public:
         @param size the size of the BinaryNode to set
         @return 0 for OK, -1 for error (size > current size)
     */
-    DLLEXPORT int setSize(qore_size_t size);
+    DLLEXPORT int setSize(size_t size);
 
     //! removes "length" characters from the binary data starting at position "offset"
     /** @param offset byte position to start (rest of the data is removed) (offset starts with 0, negative offset means that many positions from the end of the data)
@@ -182,7 +182,7 @@ public:
 
         @since Qore 0.8.8
     */
-    DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const void* data, qore_size_t data_len, BinaryNode* extract = 0);
+    DLLEXPORT void splice(qore_offset_t offset, qore_offset_t length, const void* data, size_t data_len, BinaryNode* extract = 0);
 
     //! copies data to the BinaryNode argument starting with byte position "offset"
     /** @param b the target for copying the data

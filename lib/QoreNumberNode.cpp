@@ -53,10 +53,10 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
    // if it's a regular number, then format accordingly
    if (number()) {
       int sgn = sign();
-      qore_size_t len = str.size() + (sgn < 0 ? 1 : 0);
+      size_t len = str.size() + (sgn < 0 ? 1 : 0);
       //printd(5, "qore_number_private::getAsString() this: %p '%s' exp " QLLD " len: " QLLD "\n", this, buf, exp, len);
 
-      qore_size_t dp = 0;
+      size_t dp = 0;
 
       str.concat(buf);
       // trim the trailing zeros off the end
@@ -70,15 +70,15 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 	    str.insertch('0', len + 2, exp);
       } else {
 	 // get remaining length of string (how many characters were added)
-	 qore_size_t rlen = str.size() - len;
+	 size_t rlen = str.size() - len;
 
 	 //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " rlen: " QLLD "\n", this, str.getBuffer(), exp, rlen);
 
 	 // assert that we have added at least 1 character
 	 assert(rlen > 0);
-	 if ((qore_size_t)exp > rlen)
+	 if ((size_t)exp > rlen)
 	    str.insertch('0', str.size(), exp - rlen);
-	 else if ((qore_size_t)exp < rlen) {
+	 else if ((size_t)exp < rlen) {
 	    str.insertch('.', len + exp, 1);
 	    dp = len + exp;
 	 }
@@ -92,11 +92,11 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
    //printd(5, "qore_number_private::getAsString() this: %p returning '%s'\n", this, str.getBuffer());
 }
 
-void qore_number_private::applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last,
+void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, size_t last,
     int round_threshold_1, int round_threshold_2) {
     // the position of the last significant digit
     qore_offset_t pos = (qore_offset_t)dp;
-    qore_size_t i = dp;
+    size_t i = dp;
     // the last digit found in the sequence
     char lc = 0;
     // 0 or 9 count
@@ -183,7 +183,7 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
    assert(!num.empty());
    assert(num.getEncoding() == fmt.getEncoding());
    // get the length of the format string in characters (not bytes)
-   qore_size_t fl = fmt.length();
+   size_t fl = fmt.length();
    if (fmt.empty()) {
       printd(5, "qore_number_private::formatNumberString() invalid format string: '%s' for number: '%s'\n", fmt.getBuffer(), num.getBuffer());
       return 0;
@@ -256,7 +256,7 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
    qore_offset_t dp = num.find('.');
    if (dp != -1) {
       // how many digits do we have now after the decimal point
-      qore_size_t d = num.strlen() - dp - 1;
+      size_t d = num.strlen() - dp - 1;
       assert(d);
       if (prec >= 0) {
          if ((int)d < prec)

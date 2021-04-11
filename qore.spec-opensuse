@@ -19,7 +19,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        0.10.0
+Version:        1.0
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -56,7 +56,7 @@ development but is also useful as a general purpose language.
 Summary:        The libraries for the qore runtime and qore clients
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Languages/Other
-Provides:       qore-module(abi)%{?_isa} = 0.25
+Provides:       qore-module(abi)%{?_isa} = 1.0
 
 %description -n libqore7
 Qore is a scripting language supporting threading and embedded logic, designed

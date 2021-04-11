@@ -140,12 +140,12 @@ public:
     }
 
     // returns the current iterator position in the list or -1 if not pointing at a valid element
-    DLLLOCAL qore_size_t index() const {
+    DLLLOCAL size_t index() const {
         return i;
     }
 
     // returns the number of elements in the list
-    DLLLOCAL qore_size_t max() const {
+    DLLLOCAL size_t max() const {
         return limit;
     }
 

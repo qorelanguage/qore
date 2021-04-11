@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 0.10.0
+Version: 1.0
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -32,7 +32,7 @@ development but is also useful as a general purpose language.
 
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
-Provides: qore-module(abi)%{?_isa} = 0.25
+Provides: qore-module(abi)%{?_isa} = 1.0
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -172,10 +172,10 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Thu Dec 31 2020 David Nichols <david@qore.org> 0.10.0-1
-- updated version to 0.10.0-1
+* Thu Dec 31 2020 David Nichols <david@qore.org> 1.0-1
+- updated version to 1.0-1
 - updated libqore version to 7.4.0
-- updated ABI version to 0.25 only
+- updated ABI version to 0.25; removed all others
 
 * Mon Dec 21 2020 David Nichols <david@qore.org> 0.9.11-1
 - updated version to 0.9.11-1

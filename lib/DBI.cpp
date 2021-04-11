@@ -752,7 +752,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                     break;
                 char* eq = strchr(p, '=');
                 char* oend = strchr(p, ',');
-                qore_size_t len = 0;
+                size_t len = 0;
                 // if there is only an option left with no more options and no value
                 if (!eq && !oend) {
                     opt->setKeyValue(p, true, nullptr);

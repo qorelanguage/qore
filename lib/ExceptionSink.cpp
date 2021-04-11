@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -301,8 +301,9 @@ void ExceptionSink::raiseException(const QoreProgramLocation& loc, const char* e
 }
 
 void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *err, QoreValue arg,
-    const char *fmt, ...) {
-    QoreStringNode *desc = new QoreStringNode;
+        const char *fmt, ...) {
+
+    QoreStringNodeHolder desc(new QoreStringNode);
 
     va_list args;
 
@@ -315,7 +316,7 @@ void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *e
         }
     }
 
-    raiseException(loc, err, arg, desc);
+    raiseException(loc, err, arg, desc.release());
 }
 
 void ExceptionSink::rethrow(QoreException *old) {
@@ -332,20 +333,8 @@ void ExceptionSink::assimilate(ExceptionSink& xs) {
 }
 
 void ExceptionSink::outOfMemory() {
-#ifdef QORE_OOM
-    // get pre-allocated out of memory exception for this thread
-    QoreException* ex = getOutOfMemoryException();
-    // if it's already been used then return
-    if (!ex)
-        return;
-    ex->set(QoreProgramLocation(RuntimeLocation));
-    // there is no callstack in an out-of-memory exception
-    // add exception to list
-    priv->insert(ex);
-#else
     printf("OUT OF MEMORY: aborting\n");
     _Exit(1);
-#endif
 }
 
 // static member function

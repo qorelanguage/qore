@@ -77,11 +77,11 @@ public:
         return pos == (max_pos - 1);
     }
 
-    DLLLOCAL qore_size_t getPos() const {
+    DLLLOCAL size_t getPos() const {
         return pos;
     }
 
-    DLLLOCAL qore_size_t getTotal() const {
+    DLLLOCAL size_t getTotal() const {
         return max_pos;
     }
 

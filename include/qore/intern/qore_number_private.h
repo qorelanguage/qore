@@ -545,7 +545,7 @@ public:
     }
 
     // try to remove noise from the binary -> decimal conversion process in insignificant digits
-    DLLLOCAL static void applyRoundingHeuristic(QoreString& str, qore_size_t dp, qore_size_t last,
+    DLLLOCAL static void applyRoundingHeuristic(QoreString& str, size_t dp, size_t last,
         int round_threshold_1 = QORE_MPFR_ROUND_THRESHOLD, int round_threshold_2 = QORE_MPFR_ROUND_THRESHOLD_2);
 
     // try to remove noise from the binary -> decimal conversion process in insignificant digits

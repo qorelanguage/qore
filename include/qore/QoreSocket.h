@@ -577,7 +577,7 @@ public:
 
         @return 0 for OK, not 0 if an error occured
     */
-    DLLEXPORT int send(const char* buf, qore_size_t size);
+    DLLEXPORT int send(const char* buf, size_t size);
 
     //! sends binary data on a connected socket
     /**
@@ -587,7 +587,7 @@ public:
 
         @return 0 for OK, not 0 if an error occured
     */
-    DLLEXPORT int send(const char* buf, qore_size_t size, ExceptionSink* xsink);
+    DLLEXPORT int send(const char* buf, size_t size, ExceptionSink* xsink);
 
     //! sends binary data on a connected socket
     /**
@@ -598,7 +598,7 @@ public:
 
         @return 0 for OK, not 0 if an error occured
     */
-    DLLEXPORT int send(const char* buf, qore_size_t size, int timeout_ms, ExceptionSink* xsink);
+    DLLEXPORT int send(const char* buf, size_t size, int timeout_ms, ExceptionSink* xsink);
 
     //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
     /**
@@ -1259,7 +1259,7 @@ public:
         @param source the event source code for socket events
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
+    DLLEXPORT int sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
 
     //! send an HTTP request message on the socket
     /** The socket must be connected before this call is made.
@@ -1273,7 +1273,7 @@ public:
         @param source the event source code for socket events
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
+    DLLEXPORT int sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
 
     //! send an HTTP request message on the socket
     /** The socket must be connected before this call is made.
@@ -1290,7 +1290,7 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
+    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
 
     //! send an HTTP request message on the socket with a timeout value
     /** The socket must be connected before this call is made.
@@ -1308,7 +1308,7 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source, int timeout_ms);
+    DLLEXPORT int sendHTTPMessage(ExceptionSink* xsink, QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source, int timeout_ms);
 
     //! send an HTTP request message on the socket with a timeout value with a chunked message body using a calback
     /** The socket must be connected before this call is made.
@@ -1340,7 +1340,7 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
+    DLLEXPORT int sendHTTPResponse(int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
 
     //! send an HTTP response message on the socket
     /** The socket must be connected before this call is made.
@@ -1356,7 +1356,7 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source = QORE_SOURCE_SOCKET);
+    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
 
     //! send an HTTP response message on the socket
     /** The socket must be connected before this call is made.
@@ -1373,7 +1373,7 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source, int timeout_ms);
+    DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, int code, const char* desc, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source, int timeout_ms);
 
     //! send an HTTP response message on the socket
     /** The socket must be connected before this call is made.
@@ -1394,7 +1394,7 @@ public:
         @since %Qore 0.9.4
     */
     DLLEXPORT int sendHTTPResponse(ExceptionSink* xsink, QoreHashNode* info, int code, const char* desc,
-        const char* http_version, const QoreHashNode* headers, const void* data, qore_size_t size, int source,
+        const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source,
         int timeout_ms);
 
     //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
