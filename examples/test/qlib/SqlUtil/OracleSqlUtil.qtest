@@ -197,15 +197,14 @@ class OracleTest inherits SqlTestBase {
             #raw
             #bfile
             #long
-            );
+        );
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
@@ -236,6 +235,7 @@ class OracleTest inherits SqlTestBase {
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
 
+            addTestCase("for update and limit", \forupdateAndLimitTest());
             addTestCase("issue 2795", \issue2785());
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("pseudo-columns", \testPseudoColumns());
@@ -251,6 +251,21 @@ class OracleTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    forupdateAndLimitTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash<auto> sh = {
+            "where": {
+                "id": op_in(1, 2, 3),
+            },
+            "limit": 2,
+            "forupdate": True,
+        };
+
+        assertThrows("ORACLE-SELECT-ERROR", \table.selectRows(), sh);
     }
 
     issue2785() {
@@ -409,8 +424,7 @@ class OracleTest inherits SqlTestBase {
         # negative test
         try {
             table.addCustomCopOperator("as", hash());
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("CUSTOM-OPERATOR-ERROR", ex.err, "Operator 'as' must be already registered");
         }
 

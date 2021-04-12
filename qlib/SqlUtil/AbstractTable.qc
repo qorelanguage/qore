@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractTable class definition
 
-/** AbstractTable.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** AbstractTable.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -459,7 +459,7 @@ table.create();
         inDb = False;
     }
 
-    private doTableOptions(*hash nopts) {
+    private doTableOptions(*hash<auto> nopts) {
         validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
         if (nopts.native_case)
             native_case = True;
@@ -4624,12 +4624,12 @@ string sql = table.getSelectSql(sh, \args);
                     throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
                 doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
-            }
-            else
+            } else {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
-        }
-        else if (qh.limit)
+            }
+        } else if (qh.limit) {
             doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
+        }
 
         #printf("SQL: %s\nargs: %y\n", sql, args);
 
