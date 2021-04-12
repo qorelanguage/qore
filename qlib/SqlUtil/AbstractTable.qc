@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! the base abstract class for the table implementation
@@ -4809,10 +4798,16 @@ string sql = table.getSelectSql(sh, \args);
             splice cv, 0, tp.size() + 1;
 
             if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
-        } else if (psch{cv} && psch{cv}.typeCode() == NT_STRING) {
-            # substitute aliases with their actual definition
-            return psch{cv};
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to "
+                    "table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(),
+                    keys jch{tp}.describe());
+        } else if (psch{cv}) {
+            if (psch{cv}.typeCode() == NT_STRING) {
+                # substitute aliases with their actual definition
+                return psch{cv};
+            } else {
+                return cv;
+            }
         } else if (ch) {
             if (!ch{cv} && !psch{cv})
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());

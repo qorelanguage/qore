@@ -58,7 +58,7 @@ module DbDataProvider {
 
     @tableofcontents
 
-    @section dbdataproviderintro Introduction to the DbTableDataProvider Module
+    @section dbdataproviderintro Introduction to the DbDataProvider Module
 
     The %DbDataProvider module provides a data provider API for databases and supports creating, reading, updating,
     and deleting DB records, as well as high-performance bulk operations as well as upserts through the

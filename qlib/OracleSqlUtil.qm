@@ -260,6 +260,8 @@ hash schema = (
     @section ora_relnotes Release Notes
 
     @subsection v141 OracleSqlUtil v1.4.1
+    - fixed a bug where pseudocolumn names were quoted in queries leading to errors
+      (<a href="https://github.com/qorelanguage/qore/issues/4210">issue 4210</a>)
     - added an exception when \c offset or \c limit are used with \c forupdate
       (<a href="https://github.com/qorelanguage/qore/issues/4206">issue 4206</a>)
 
