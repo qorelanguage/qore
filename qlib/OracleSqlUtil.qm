@@ -91,10 +91,6 @@ $ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rown
 $ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows fetch next %v rows only", ("user", 200, 100));
     @endcode
 
-    @note Oracle does not support \c "for update" clauses with paging in standard SQL; use a PL/SQL block to open a
-    cursor to the desired target row set to implement this instead.  Any attempt to use the \c limit or \c offset
-    options with the \c forupdate option will cause an \c "ORACLE-SELECT-ERROR" exception to be thrown.
-
     @subsection ora_in_operator IN Operator on Oracle
 
     In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed statements), the %OracleSqlUtil
@@ -262,7 +258,7 @@ hash schema = (
     @subsection v141 OracleSqlUtil v1.4.1
     - fixed a bug where pseudocolumn names were quoted in queries leading to errors
       (<a href="https://github.com/qorelanguage/qore/issues/4210">issue 4210</a>)
-    - added an exception when \c offset or \c limit are used with \c forupdate
+    - fixed a bug generating queries with \c limit and \c forupdate
       (<a href="https://github.com/qorelanguage/qore/issues/4206">issue 4206</a>)
 
     @subsection v14 OracleSqlUtil v1.4
@@ -1049,7 +1045,7 @@ auto v = c.name;
             #! oracle-specific generic creation options
             const OracleCreationOptions = AbstractDatabase::CreationOptions + (
                 "compute_statistics": Type::Boolean,
-                );
+            );
 
             #! oracle-specific schema description / alignment options
             const OracleAlignSchemaOptions = AbstractDatabase::AlignSchemaOptions
@@ -1078,13 +1074,13 @@ auto v = c.name;
 
                 #"synonyms": Type::Hash,
                 #"synonym_map": Type::Hash,
-                );
+            );
 
             #! oracle-specific package description options
             const OraclePackageDescriptionOptions = (
                 "src": Type::String,
                 "body": Type::String,
-                );
+            );
 
             #! oracle-specific materialized view description options
             const OracleMaterializedViewDescriptionOptions = (
@@ -1092,7 +1088,7 @@ auto v = c.name;
                 "use_index": Type::Boolean,
                 "tablespace": Type::String,
                 "src": Type::String,
-                );
+            );
 
             #! hash of reserved words
             const OracleReservedWords = (
@@ -1207,7 +1203,7 @@ auto v = c.name;
                 "mode": True,
                 "rows": True,
                 "with": True,
-                );
+            );
 
             #! Options for rebuildIndex()
             const OracleRebuildIndexOptions = (
@@ -1218,7 +1214,7 @@ auto v = c.name;
                 "cond_rebuild"      : Type::Boolean,
                 "cond_maxheight"    : Type::Int,
                 "cond_maxleafpct"   : Type::Int,
-                );
+            );
 
             #! Options for computeStatistics()
             const OracleComputeStatisticsOptions = ComputeStatisticsOptions + (
@@ -1232,7 +1228,7 @@ auto v = c.name;
                 "statid"            : Type::String,
                 "options"           : Type::String,
                 "statown"           : Type::String,
-                );
+            );
         }
 
         #! creates the object from the arguments given
@@ -1980,7 +1976,8 @@ auto v = c.name;
                         }
 
                         if (count)
-                            return cn + " in (" + (map "select column_value from table(%v)", xrange(count)).join(" union all ") + ")";
+                            return cn + " in (" + (map "select column_value from table(%v)",
+                                xrange(count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
 %else
@@ -2092,17 +2089,17 @@ auto v = c.name;
                         return sprintf("cast (%s as date)", arg1);
                     }
                 )
-                );
+            );
 
             #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
             const OracleTruncDate = (
-                    DT_YEAR     : "'YYYY'",
-                    DT_MONTH    : "'MM'",
-                    DT_DAY      : "'DD'",
-                    DT_HOUR     : "'HH24'",
-                    DT_MINUTE   : "'MI'",
-                    DT_SECOND   : NOTHING,
-                );
+                DT_YEAR     : "'YYYY'",
+                DT_MONTH    : "'MM'",
+                DT_DAY      : "'DD'",
+                DT_HOUR     : "'HH24'",
+                DT_MINUTE   : "'MI'",
+                DT_SECOND   : NOTHING,
+            );
 
             #! a hash of default value operator descriptions for Oracle
             const OracleIopMap = DefaultIopMap + (
@@ -2120,7 +2117,7 @@ auto v = c.name;
                         return sprintf("%s.currval", arg);
                     },
                 ),
-                );
+            );
 
             #! a hash of default update operator definitions for Oracle
             const OracleUopMap = DefaultUopMap + (
@@ -2136,7 +2133,7 @@ auto v = c.name;
                         return sprintf("%s.currval", arg);
                     }
                 ),
-                );
+            );
 
             #! a hash of valid pseudocolumns
             const OraclePseudoColumnHash = (
@@ -2145,7 +2142,7 @@ auto v = c.name;
                 "object_id": True,
                 "object_value": True,
                 "ora_rowscn": True,
-                );
+            );
         }
 
         private {
@@ -2174,21 +2171,21 @@ auto v = c.name;
             # An internal cache to find the highest priority available
             # system dictionary object. Priority: DBA > ALL
             hash<string, string> m_sys_views = {
-                    "dba_col_comments"      : "all_col_comments",
-                    "dba_cons_columns"      : "all_cons_columns",
-                    "dba_constraints"       : "all_constraints",
-                    "dba_db_links"          : "all_db_links",
-                    "dba_ind_columns"       : "all_ind_columns",
-                    "dba_ind_expressions"   : "all_ind_expressions",
-                    "dba_indexes"           : "all_indexes",
-                    "dba_objects"           : "all_objects",
-                    "dba_sequences"         : "all_sequences",
-                    "dba_synonyms"          : "all_synonyms",
-                    "dba_tab_columns"       : "all_tab_columns",
-                    "dba_tab_comments"      : "all_tab_comments",
-                    "dba_tables"            : "all_tables",
-                    "dba_triggers"          : "all_triggers",
-                    "dba_views"             : "all_views",
+                "dba_col_comments"      : "all_col_comments",
+                "dba_cons_columns"      : "all_cons_columns",
+                "dba_constraints"       : "all_constraints",
+                "dba_db_links"          : "all_db_links",
+                "dba_ind_columns"       : "all_ind_columns",
+                "dba_ind_expressions"   : "all_ind_expressions",
+                "dba_indexes"           : "all_indexes",
+                "dba_objects"           : "all_objects",
+                "dba_sequences"         : "all_sequences",
+                "dba_synonyms"          : "all_synonyms",
+                "dba_tab_columns"       : "all_tab_columns",
+                "dba_tab_comments"      : "all_tab_comments",
+                "dba_tables"            : "all_tables",
+                "dba_triggers"          : "all_triggers",
+                "dba_views"             : "all_views",
             };
         }
 
@@ -2304,7 +2301,8 @@ auto v = c.name;
         }
 
         private setDblinkSchema() {
-            *hash dblr = ds.selectRow("select * from " + systemView("dba_db_links") + " where owner in ('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
+            *hash dblr = ds.selectRow("select * from " + systemView("dba_db_links") + " where owner in "
+                "('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
             if (!dblr)
                 throw "TABLE-ERROR", sprintf("dblink %y is unknown", dblink);
             schema = dblr.username;
@@ -2493,52 +2491,22 @@ auto v = c.name;
         */
         private bool optimizedLimit(*hash<auto> qh) {
             # Oracle 12c+ supports limit (fetch) and offset
-            if (ora_major >= 12 && !qh.forupdate && !qh.hadforupdate) {
+            if (ora_major >= 12 && !qh.forupdate) {
                 return True;
             }
             return False;
         }
 
-        private throwForUpdateLimitException() {
-            throw "ORACLE-SELECT-ERROR", "Oracle only supports 'limit' or 'offset' and 'for update' functionality in "
-                "PL/SQL; implement this by opening a cursor to the target row set instead";
-        }
-
-        private getSelectWhereSqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
-                *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
-            AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch, psch);
-            if (optimizedLimit(qh)) {
-                return;
-            }
-
-            if (qh.limit && !qh.orderby) {
-                # issue #4206 Oracle only supports "limit" and "for each" in PL/SQL by opening a cursor to the target
-                # row set
-                if (qh.forupdate) {
-                    throwForUpdateLimitException();
-                }
-                if (!qh."where")
-                    sql += " where ";
-                else
-                    sql += " and ";
-                sql += "rownum <= %v";
-                args += qh.limit;
-                # insert optimizer hint
-                int i = sql.find(" from ");
-                # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
-                # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
-                splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
-            }
+        private insertLimitOptimizerHint(reference<string> sql, softint limit, *string tag) {
+            # insert optimizer hint
+            int i = sql.find(" from ");
+            # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
+            # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
+            splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d)%s */", limit, tag);
         }
 
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args,
                 *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {
-            # issue #4206 Oracle only supports "limit" and "for each" in PL/SQL by opening a cursor to the target
-            # row set
-            if ((qh.limit || qh.offset) && qh.forupdate) {
-                throwForUpdateLimitException();
-            }
-
             # Oracle 12c+ supports limit (fetch) and offset
             if (optimizedLimit(qh)) {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
@@ -2573,12 +2541,6 @@ auto v = c.name;
             if (!qh.limit)
                 return;
 
-            # issue #4206 Oracle only supports "limit" and "for each" in PL/SQL by opening a cursor to the target
-            # row set
-            if (qh.forupdate) {
-                throwForUpdateLimitException();
-            }
-
             # Oracle 12c+ supports limit (fetch) and offset
             if (optimizedLimit(qh)) {
                 sql += " fetch next %v rows only";
@@ -2586,10 +2548,18 @@ auto v = c.name;
                 return;
             }
 
-            # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
-            sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s%s) a where "
-                "rownum <= %v)", qh.limit, sql);
+            if (!qh."where") {
+                sql += " where ";
+            } else {
+                int i = sql.find(" where ");
+                splice sql, i + 7, 0, "(";
+                sql += ") and ";
+            }
+            sql += "rownum <= %v";
             args += qh.limit;
+            if (sql.find(" first_rows(") == -1) {
+                insertLimitOptimizerHint(\sql, qh.limit);
+            }
         }
 
         private Columns describeImpl() {
@@ -2597,13 +2567,24 @@ auto v = c.name;
                 setTableInfoIntern();
 
             # get column descriptions
-            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from " + systemView("dba_tab_columns") + (dblink ? "@" + dblink : "") + " col, " + systemView("dba_col_comments") + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
-            if (!qh.column_name)
-                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y.%y in %y", schema, name, dsdesc);
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, "
+                "nullable, data_default, char_length, char_used, comments from " + systemView("dba_tab_columns")
+                + (dblink ? "@" + dblink : "") + " col, " + systemView("dba_col_comments")
+                + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and "
+                "com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name "
+                "order by column_id", schema.upr(), name.upr());
+            if (!qh.column_name) {
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y.%y in %y", schema, name,
+                    dsdesc);
+            }
 
-            # now we have to find unvalidated but enabled not null constraints - because these cause the column to appear to be "nullable" when it really isn't
-            # also we can't filter by search_condition, because it's a LONG, otherwise we could make a left join above :(
-            *hash nnq = ds.select("select * from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
+            # now we have to find unvalidated but enabled not null constraints - because these cause the column to
+            # appear to be "nullable" when it really isn't
+            # also we can't filter by search_condition, because it's a LONG, otherwise we could make a left join
+            # above :(
+            *hash nnq = ds.select("select * from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") +
+                " where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' "
+                "and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
             hash cnh;
             context (nnq) {
                 *string cn = (%search_condition =~ x/"([^"]+)" IS NOT NULL$/)[0];
@@ -2656,9 +2637,11 @@ auto v = c.name;
 
                 OracleColumn c;
                 if (row.data_precision || row.data_type == "number")
-                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable, row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
+                    c = new OracleNumberColumn(row.column_name, row.data_type, th.qore, row.data_precision, nullable,
+                        row.data_default, row.comments ? row.comments : NOTHING, row.data_length, row.data_scale);
                 else
-                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default, row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
+                    c = new OracleColumn(row.column_name, row.data_type, th.qore, size, nullable, row.data_default,
+                        row.comments ? row.comments : NOTHING, th.is_char, row.char_used == "C", row.data_length);
 
                 rv.(row.column_name) = c;
             }

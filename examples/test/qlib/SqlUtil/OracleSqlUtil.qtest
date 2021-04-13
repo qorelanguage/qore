@@ -280,7 +280,11 @@ class OracleTest inherits SqlTestBase {
             "forupdate": True,
         };
 
-        assertThrows("ORACLE-SELECT-ERROR", \table.selectRows(), sh);
+        table.getDatasource().beginTransaction();
+        on_exit table.rollback();
+
+        hash<SqlResultInfo> rv = table.selectRowsWithInfo(sh);
+        assertEq(2, rv.result.size());
     }
 
     issue2785() {
