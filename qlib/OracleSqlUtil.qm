@@ -2487,7 +2487,7 @@ auto v = c.name;
         }
 
         #! Returns True if the current connection supports optimized \c limit option handling
-        /** @note <tt>FETCH NEXT x ROWS ONLY</tt> is not supported with \c FOREACH
+        /** @note <tt>FETCH NEXT x ROWS ONLY</tt> is not supported with <tt>FOR UPDATE</tt>
         */
         private bool optimizedLimit(*hash<auto> qh) {
             # Oracle 12c+ supports limit (fetch) and offset
