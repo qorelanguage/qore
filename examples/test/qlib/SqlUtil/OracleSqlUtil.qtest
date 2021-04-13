@@ -44,14 +44,15 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "blob_f": c_blob(True),
                 "clob_f": c_clob(True),
                 # data for test of driver specific opts merged into tolevel hash
-                "drv_test" : ( "qore_type" : SqlUtil::VARCHAR,
-                               "size" : 1,
-                               "driver" : (
-                                   "oracle" : (
-                                      "qore_type" : SqlUtil::NUMERIC,
-                                   ),
-                               ),
-                             ),
+                "drv_test" : (
+                    "qore_type" : SqlUtil::VARCHAR,
+                    "size" : 1,
+                    "driver" : (
+                        "oracle" : (
+                            "qore_type" : SqlUtil::NUMERIC,
+                        ),
+                    ),
+                ),
                 # default value test for
                 # SqlUtil: schema alignment: default values can be complex statement instead of simple value only #1428
                 "def_test1" : c_date(C_NOT_NULL) + ("driver" : ("oracle" : ("default_value" : "to_date('1.1.2000', 'dd.mm.yyyy')", "default_value_native" : True))),
@@ -197,15 +198,14 @@ class OracleTest inherits SqlTestBase {
             #raw
             #bfile
             #long
-            );
+        );
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
             # skip tests if we can't create the datasource
@@ -236,6 +236,8 @@ class OracleTest inherits SqlTestBase {
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
 
+            addTestCase("rownum test", \rownumTest());
+            addTestCase("for update and limit", \forupdateAndLimitTest());
             addTestCase("issue 2795", \issue2785());
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("pseudo-columns", \testPseudoColumns());
@@ -251,6 +253,40 @@ class OracleTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    rownumTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash<auto> sh = {
+            "comment": " from a_table where something > 1",
+            "where": {
+                "rownum": 1,
+            },
+        };
+        hash<auto> row = table.selectRow(sh);
+        assertEq("hash", row.type());
+    }
+
+    forupdateAndLimitTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash<auto> sh = {
+            "comment": " from a_table where something > 1",
+            "where": {
+                "id": op_in(1, 2, 3),
+            },
+            "limit": 2,
+            "forupdate": True,
+        };
+
+        table.getDatasource().beginTransaction();
+        on_exit table.rollback();
+
+        hash<SqlResultInfo> rv = table.selectRowsWithInfo(sh);
+        assertEq(2, rv.result.size());
     }
 
     issue2785() {
@@ -409,8 +445,7 @@ class OracleTest inherits SqlTestBase {
         # negative test
         try {
             table.addCustomCopOperator("as", hash());
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("CUSTOM-OPERATOR-ERROR", ex.err, "Operator 'as' must be already registered");
         }
 

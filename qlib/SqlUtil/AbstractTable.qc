@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractTable class definition
 
-/** AbstractTable.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** AbstractTable.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
 
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
@@ -459,7 +448,7 @@ table.create();
         inDb = False;
     }
 
-    private doTableOptions(*hash nopts) {
+    private doTableOptions(*hash<auto> nopts) {
         validateOptionsIntern("OPTION-ERROR", getTableOptions(), \nopts);
         if (nopts.native_case)
             native_case = True;
@@ -4471,16 +4460,7 @@ string sql = table.getSelectSql(sh, \args);
         } else
             cstr = "*";
 
-        # comment handling
-        string comment = '';
-        if (qh.comment) {
-            comment += sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
-        }
-        if (qh.hint) {
-            comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
-        }
-
-        string sql = sprintf("select %s%s from %s", comment, cstr, getFromIntern(from, qh));
+        string sql = sprintf("select %s from %s", cstr, getFromIntern(from, qh));
         if (qh.alias)
             sql += " " + qh.alias;
 
@@ -4506,8 +4486,7 @@ string sql = table.getSelectSql(sh, \args);
                 if (!jch{jh.ta})
                     throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: %y", getDesc(), jh.ta, list(getName()) + jch.keys());
                 jt = jch{jh.ta};
-            }
-            else
+            } else
                 jt = self;
 
             # set join table name
@@ -4517,8 +4496,7 @@ string sql = table.getSelectSql(sh, \args);
                 jt.getPrimaryKey();
                 jt.getForeignConstraints();
                 jtn = jh.ta;
-            }
-            else {
+            } else {
                 getPrimaryKeyUnlocked();
                 getForeignConstraintsUnlocked();
                 jtn = qh.alias ?? getSqlName();
@@ -4624,17 +4602,31 @@ string sql = table.getSelectSql(sh, \args);
                     throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
                 doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
-            }
-            else
+            } else {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
-        }
-        else if (qh.limit)
+            }
+        } else if (qh.limit) {
             doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
+        }
 
         #printf("SQL: %s\nargs: %y\n", sql, args);
 
         if (qh.forupdate && !qh.superquery)
             doForUpdate(\sql);
+
+        # issue #4206: splice comments and hints into the SQL query string last
+        if (qh.comment || qh.hint) {
+            string comment;
+            if (qh.comment) {
+                comment = sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
+            }
+            if (qh.hint) {
+                comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
+            }
+            # splice comment / hint test right before the " from " text in the query
+            int i = sql.find(" from ");
+            splice sql, i + 1, 0, comment;
+        }
 
         if (qh.superquery) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
@@ -4809,10 +4801,16 @@ string sql = table.getSelectSql(sh, \args);
             splice cv, 0, tp.size() + 1;
 
             if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(), jch{tp}.describe().keys());
-        } else if (psch{cv} && psch{cv}.typeCode() == NT_STRING) {
-            # substitute aliases with their actual definition
-            return psch{cv};
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to "
+                    "table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(),
+                    keys jch{tp}.describe());
+        } else if (psch{cv}) {
+            if (psch{cv}.typeCode() == NT_STRING) {
+                # substitute aliases with their actual definition
+                return psch{cv};
+            } else {
+                return cv;
+            }
         } else if (ch) {
             if (!ch{cv} && !psch{cv})
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
