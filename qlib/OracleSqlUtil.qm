@@ -2497,20 +2497,9 @@ auto v = c.name;
             return False;
         }
 
-        #! Search for the first instance of a substring in the query string ignoring comments and hints
-        private int findFirst(*hash<auto> qh, string sql, string text) {
-            if (qh.comment && (qh.comment.find(text) >= 0)) {
-                sql = replace(sql, "/* " + qh.comment + " */", strmul(" ", qh.comment.length() + 6));
-            }
-            if (qh.hint && (qh.hint.find(text) >= 0)) {
-                sql = replace(sql, "/* " + qh.hint + " */", strmul(" ", qh.hint.length() + 6));
-            }
-            return sql.find(text);
-        }
-
         private insertLimitOptimizerHint(hash<auto> qh, reference<string> sql) {
             # insert optimizer hint
-            int i = findFirst(qh, sql, " from ");
+            int i = sql.find(" from ");
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
             splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
@@ -2562,7 +2551,7 @@ auto v = c.name;
             if (!qh."where") {
                 sql += " where ";
             } else {
-                int i = findFirst(qh, sql, " where ");
+                int i = sql.find(" where ");
                 splice sql, i + 7, 0, "(";
                 sql += ") and ";
             }

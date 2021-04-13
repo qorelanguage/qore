@@ -4460,16 +4460,7 @@ string sql = table.getSelectSql(sh, \args);
         } else
             cstr = "*";
 
-        # comment handling
-        string comment = '';
-        if (qh.comment) {
-            comment += sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
-        }
-        if (qh.hint) {
-            comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
-        }
-
-        string sql = sprintf("select %s%s from %s", comment, cstr, getFromIntern(from, qh));
+        string sql = sprintf("select %s from %s", cstr, getFromIntern(from, qh));
         if (qh.alias)
             sql += " " + qh.alias;
 
@@ -4495,8 +4486,7 @@ string sql = table.getSelectSql(sh, \args);
                 if (!jch{jh.ta})
                     throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: %y", getDesc(), jh.ta, list(getName()) + jch.keys());
                 jt = jch{jh.ta};
-            }
-            else
+            } else
                 jt = self;
 
             # set join table name
@@ -4506,8 +4496,7 @@ string sql = table.getSelectSql(sh, \args);
                 jt.getPrimaryKey();
                 jt.getForeignConstraints();
                 jtn = jh.ta;
-            }
-            else {
+            } else {
                 getPrimaryKeyUnlocked();
                 getForeignConstraintsUnlocked();
                 jtn = qh.alias ?? getSqlName();
@@ -4624,6 +4613,20 @@ string sql = table.getSelectSql(sh, \args);
 
         if (qh.forupdate && !qh.superquery)
             doForUpdate(\sql);
+
+        # issue #4206: splice comments and hints into the SQL query string last
+        if (qh.comment || qh.hint) {
+            string comment;
+            if (qh.comment) {
+                comment = sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
+            }
+            if (qh.hint) {
+                comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
+            }
+            # splice comment / hint test right before the " from " text in the query
+            int i = sql.find(" from ");
+            splice sql, i + 1, 0, comment;
+        }
 
         if (qh.superquery) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
