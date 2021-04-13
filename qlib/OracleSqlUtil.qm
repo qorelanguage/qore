@@ -2528,6 +2528,10 @@ auto v = c.name;
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
+            # NOTE: the subquery is necessary because the ORDER BY clause is enforced *after* the ROWNUM
+            # is calculated; see:
+            # - https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/ROWNUM-Pseudocolumn.html#GUID-2E40EC12-3FCF-4A4F-B5F2-6BC669021726
+            # - https://stackoverflow.com/questions/15091849/how-to-use-oracle-order-by-and-rownum-correctly/15091900
             sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s%s) a "
                 "where rownum <= %v%s) where rnum > %v", qh.limit, sql, sort, qh.desc ? " desc" : "");
             if (qh.offset)
