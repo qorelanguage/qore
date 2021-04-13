@@ -260,6 +260,7 @@ class OracleTest inherits SqlTestBase {
             testSkip("no DB connection");
 
         hash<auto> sh = {
+            "comment": " from a_table where something > 1",
             "where": {
                 "rownum": 1,
             },
@@ -273,6 +274,7 @@ class OracleTest inherits SqlTestBase {
             testSkip("no DB connection");
 
         hash<auto> sh = {
+            "comment": " from a_table where something > 1",
             "where": {
                 "id": op_in(1, 2, 3),
             },
