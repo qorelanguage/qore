@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -461,7 +461,7 @@ hash<auto> GetOpt::parse3(softlist<auto> pgm_args) [dom=PROCESS] {
 //! Parses the given options and returns a hash of the parsed options
 /** @par Example:
     @code{.py}
-hash<auto> o = getopt.parse(\ARGV);
+hash<auto> o = GetOpt::parse(\ARGV);
 if (exists o."_ERRORS_") {
     foreach string err in (o."_ERRORS_")
         stderr.printf("%s\n", err);
@@ -510,12 +510,7 @@ static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_arg
 //! Parses the given options and returns a hash of the parsed options and throws and exception if there are any errors
 /** @par Example:
     @code{.py}
-hash<auto> o = getopt.parse(\ARGV);
-if (exists o."_ERRORS_") {
-    foreach string err in (o."_ERRORS_")
-        stderr.printf("%s\n", err);
-    exit(1);
-}
+hash<auto> o = GetOpt::parseEx(\ARGV);
     @endcode
 
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
@@ -561,12 +556,7 @@ static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_a
 //! Parses the given options and returns a hash of the parsed options; prints out an error message and exits the program if there are any errors
 /** @par Example:
     @code{.py}
-hash<auto> o = getopt.parse(\ARGV);
-if (exists o."_ERRORS_") {
-    foreach string err in (o."_ERRORS_")
-        stderr.printf("%s\n", err);
-    exit(1);
-}
+hash<auto> o = GetOpt::parseExit(\ARGV);
     @endcode
 
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
