@@ -461,7 +461,7 @@ hash<auto> GetOpt::parse3(softlist<auto> pgm_args) [dom=PROCESS] {
 //! Parses the given options and returns a hash of the parsed options
 /** @par Example:
     @code{.py}
-hash<auto> o = GetOpt::parse(\ARGV);
+hash<auto> o = GetOpt::parse(Opts, \ARGV);
 if (exists o."_ERRORS_") {
     foreach string err in (o."_ERRORS_")
         stderr.printf("%s\n", err);
@@ -510,7 +510,7 @@ static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_arg
 //! Parses the given options and returns a hash of the parsed options and throws and exception if there are any errors
 /** @par Example:
     @code{.py}
-hash<auto> o = GetOpt::parseEx(\ARGV);
+hash<auto> o = GetOpt::parseEx(Opts, \ARGV);
     @endcode
 
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
@@ -556,7 +556,7 @@ static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_a
 //! Parses the given options and returns a hash of the parsed options; prints out an error message and exits the program if there are any errors
 /** @par Example:
     @code{.py}
-hash<auto> o = GetOpt::parseExit(\ARGV);
+hash<auto> o = GetOpt::parseExit(Opts, \ARGV);
     @endcode
 
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
