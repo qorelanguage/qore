@@ -256,8 +256,6 @@ class OracleTest inherits SqlTestBase {
         set_return_value(main());
     }
 
-<<<<<<< HEAD
-=======
     rownumTest() {
         if (!table)
             testSkip("no DB connection");
@@ -286,7 +284,6 @@ class OracleTest inherits SqlTestBase {
         assertThrows("ORACLE-SELECT-ERROR", \table.selectRows(), sh);
     }
 
->>>>>>> 6f71d4a70... refs #4210 fixed a bug where pseudocolumn names were quoted in queries leading to errors
     issue2785() {
         if (!table)
             testSkip("no DB connection");
