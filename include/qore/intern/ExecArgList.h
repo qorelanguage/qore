@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2021 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,25 +34,32 @@
 #define _QORE_EXECARGLIST_H
 
 class ExecArgList {
-private:
-   char** arg;
-   int allocated;
-   int len;
-
-   DLLLOCAL char* getString(const char* start, int size);
-   DLLLOCAL void addArgIntern(char* str);
-
 public:
-   DLLLOCAL ExecArgList();
-   DLLLOCAL ExecArgList(const char* str);
-   DLLLOCAL ~ExecArgList();
+    DLLLOCAL ExecArgList() {
+    }
 
-   DLLLOCAL void addArg(const char* str);
-   DLLLOCAL char* getFile();
-   DLLLOCAL char** getArgs();
+    DLLLOCAL ExecArgList(const char* str);
+
+    DLLLOCAL ~ExecArgList();
+
+    DLLLOCAL void addArg(const char* str);
+
+    DLLLOCAL char* getFile();
+
+    DLLLOCAL char** getArgs();
+
 #ifdef DEBUG
-   DLLLOCAL void showArgs();
+    DLLLOCAL void showArgs();
 #endif
+
+private:
+    char** arg = nullptr;
+    int allocated = 0;
+    int len = 0;
+
+    DLLLOCAL char* getString(const char* start, int size);
+
+    DLLLOCAL void addArgIntern(char* str);
 };
 
 #endif
