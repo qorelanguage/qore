@@ -464,6 +464,18 @@ const char* QoreValue::getFullTypeName() const {
     return nullptr;
 }
 
+const char* QoreValue::getFullTypeName(bool with_namespaces) const {
+    switch (type) {
+        case QV_Bool: return qoreBoolTypeName;
+        case QV_Int: return qoreIntTypeName;
+        case QV_Float: return qoreFloatTypeName;
+        case QV_Node: return get_full_type_name(v.n, with_namespaces);
+        default: assert(false);
+            // no break
+    }
+    return nullptr;
+}
+
 bool QoreValue::hasNode() const {
     return type == QV_Node && v.n;
 }

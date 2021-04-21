@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -448,28 +448,28 @@ void StatementBlock::parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBa
 }
 
 void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls) {
-   QORE_TRACE("StatementBlock::parseInitConstructor");
+    QORE_TRACE("StatementBlock::parseInitConstructor");
 
-   BCList* bcl = qore_class_private::getBaseClassList(cls);
+    BCList* bcl = qore_class_private::getBaseClassList(cls);
 
-   VariableBlockHelper vbh;
+    VariableBlockHelper vbh;
 
-   UserParamListLocalVarHelper ph(uvb, typeInfo);
+    UserParamListLocalVarHelper ph(uvb, typeInfo);
 
-   // if there is a base constructor list, resolve all classes and
-   // ensure that all classes referenced are base classes of this class
-   if (bcal) {
-      // ensure that parse flags are set before initializing
-      ParseWarnHelper pwh(pwo);
+    // if there is a base constructor list, resolve all classes and
+    // ensure that all classes referenced are base classes of this class
+    if (bcal) {
+        // ensure that parse flags are set before initializing
+        ParseWarnHelper pwh(pwo);
 
-      for (auto& i : *bcal) {
-         assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-         i->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
-      }
-   }
+        for (auto& i : *bcal) {
+            assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
+            i->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
+        }
+    }
 
-   // initialize code block
-   parseInitImpl(qore_class_private::getSelfId(cls));
+    // initialize code block
+    parseInitImpl(qore_class_private::getSelfId(cls));
 }
 
 void StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf) {

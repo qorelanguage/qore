@@ -54,10 +54,10 @@ class qore_ns_private {
 public:
     const QoreProgramLocation* loc;
     std::string name;
-    // for namespaces created unattached (such as in binary modules); gives a fully-justified reference
-    std::string ref_path;
+    // the fully-justified reference including the namespace name
+    std::string path;
 
-    QoreNamespace* ns;
+    QoreNamespace* ns = nullptr;
 
     QoreClassList classList;       // class map
     HashDeclList hashDeclList;     // hashdecl map
@@ -82,21 +82,25 @@ public:
     // used with builtin namespaces
     DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), ns(n_ns), constant(this), pub(true), builtin(true) {
         size_t i = name.rfind("::");
-        if (i != std::string::npos) {
-            if (i) {
-                ref_path = name.substr(0, i + 2);
+        path = name;
+        if (i == std::string::npos) {
+            // add the root '::' prefix to the path
+            path.insert(0, "::");
+        } else {
+            if (!i) {
+                name.erase(0, 2);
+            } else {
+                name.erase(0, i + 2);
+                // add the root '::' prefix to the path
+                path.insert(0, "::");
             }
-            if (!ref_path.empty() && ref_path.size() > 1 && ref_path[0] == ':' && ref_path[1] == ':') {
-                ref_path.erase(0, 2);
-            }
-            name.erase(0, i + 2);
         }
     }
 
     // called when assimilating
     DLLLOCAL qore_ns_private(const char* n, const qore_ns_private& old)
         : name(n),
-            ref_path(old.ref_path),
+            path(old.path),
             ns(new QoreNamespace(this)),
             constant(this), pub(old.pub),
             builtin(false), from_module(old.from_module) {
@@ -107,6 +111,7 @@ public:
 
     DLLLOCAL qore_ns_private(const qore_ns_private& old, int64 po, QoreNamespace* ns)
         : name(old.name),
+            path(old.path),
             ns(ns),
             classList(old.classList, po, this),
             hashDeclList(old.hashDeclList, po, this),
@@ -130,24 +135,19 @@ public:
     DLLLOCAL ~qore_ns_private() {
     }
 
-    DLLLOCAL void getPath(std::string& str, bool anchored = false, bool need_next = false) const {
-        if (parent) {
-            parent->getPath(str, anchored, true);
-        } else {
-            if (!ref_path.empty()) {
-                str.insert(0, ref_path);
-            }
-            if (anchored) {
-                str.insert(0, "::");
-            }
-        }
+    // get the full namespace path with the leading "::"
+    DLLLOCAL const char* getPath() const {
+        assert(!path.empty());
+        return path.c_str();
+    }
 
-        // append this namespace's name
-        if (!name.empty()) {
-            str += name;
-            if (need_next) {
-                str += "::";
-            }
+    DLLLOCAL void getPath(std::string& str, bool anchored = false, bool need_next = false) const {
+        str = path;
+        if (!anchored) {
+            str.erase(0, 2);
+        }
+        if (need_next && !root) {
+            str.append("::");
         }
     }
 

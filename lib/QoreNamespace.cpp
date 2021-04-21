@@ -312,9 +312,9 @@ void QoreNamespace::addInitialNamespace(QoreNamespace* ns) {
     priv->addNamespace(ns->priv);
 }
 
-qore_ns_private::qore_ns_private(const QoreProgramLocation* loc) : loc(loc), constant(this), pub(false), builtin(false), ns(nullptr) {
+qore_ns_private::qore_ns_private(const QoreProgramLocation* loc) : loc(loc), constant(this), pub(false), builtin(false) {
     new QoreNamespace(this);
-    name = parse_pop_name();
+    name = parse_pop_ns_name(path);
     setModuleName();
 }
 
@@ -493,6 +493,7 @@ void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
 }
 
 void qore_ns_private::addNamespace(qore_ns_private* nns) {
+    assert(nns != this);
     // set parent namespace unconditionally
     nns->parent = this;
 
@@ -838,7 +839,10 @@ QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope
 QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool user, bool& is_new, qore_root_ns_private* rns) {
     QoreNamespace* ns = nsl.find(nsn);
     if (!ns) {
-        ns = new QoreNamespace(nsn);
+        std::string new_path;
+        getPath(new_path, false, true);
+        new_path.append(nsn);
+        ns = new QoreNamespace(new_path.c_str());
         if (user) {
             ns->priv->builtin = false;
         }
@@ -1148,12 +1152,12 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     init_qore_constants(qns);
 
     // set up Option namespace for Qore options
-    QoreNamespace* option = new QoreNamespace("Option");
+    QoreNamespace* option = new QoreNamespace("Qore::Option");
     init_option_constants(*option);
     qore_ns_private::addNamespace(qns, option);
 
     // create Qore::SQL namespace
-    QoreNamespace* sqlns = new QoreNamespace("SQL");
+    QoreNamespace* sqlns = new QoreNamespace("Qore::SQL");
 
     sqlns->addSystemClass(initAbstractSQLStatementClass(*sqlns));
     sqlns->addSystemClass(initAbstractDatasourceClass(*sqlns));
@@ -1166,11 +1170,11 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qore_ns_private::addNamespace(qns, sqlns);
 
     // create get Qore::Err namespace with ERRNO constants
-    QoreNamespace* Err = new QoreNamespace("Err");
+    QoreNamespace* Err = new QoreNamespace("Qore::Err");
     init_errno_constants(*Err);
     qore_ns_private::addNamespace(qns, Err);
 
-    QoreNamespace* tns = new QoreNamespace("Type");
+    QoreNamespace* tns = new QoreNamespace("Qore::Type");
     init_type_constants(*tns);
     qore_ns_private::addNamespace(qns, tns);
 

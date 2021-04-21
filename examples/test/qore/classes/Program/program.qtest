@@ -863,7 +863,13 @@ class ProgramTest inherits QUnit::Test {
         assertEq(1, v.size());
         try {
             assertEq(
-                "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, *object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, *reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, *softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, *softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, Test test, TestNS testns, NS::TestNS nsttestns)",
+                "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, "
+                    "number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, "
+                    "*object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, "
+                    "*reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, "
+                    "*softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, "
+                    "*softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, "
+                    "object<::Test> test, object<::NS::TestNS> testns, object<::NS::TestNS> nsttestns)",
                 v[0].desc # TODO: class: Test ????, *softlist,  namespaces ignored, closure, callref as code
             );
         } catch (hash<ExceptionInfo> ex) {
@@ -871,7 +877,14 @@ class ProgramTest inherits QUnit::Test {
         }
         try {
             assertEq(
-                ("int", "*int", "string", "*string", "bool", "*bool", "float", "*float", "number", "*number", "binary", "*binary", "list", "*list", "hash", "*hash", "object", "*object", "any", "date", "*date", "code", "*code", "data", "*data", "reference", "*reference", "softint", "*softint", "softfloat", "*softfloat", "softnumber", "*softnumber", "softbool", "*softbool", "softstring", "*softstring", "softdate", "*softdate", "softlist", "*softlist", "timeout", "*timeout", "code", "code", "object<Test>", "object<TestNS>", "object<TestNS>"),
+                (
+                    "int", "*int", "string", "*string", "bool", "*bool", "float", "*float", "number", "*number",
+                    "binary", "*binary", "list", "*list", "hash", "*hash", "object", "*object", "any", "date",
+                    "*date", "code", "*code", "data", "*data", "reference", "*reference", "softint", "*softint",
+                    "softfloat", "*softfloat", "softnumber", "*softnumber", "softbool", "*softbool", "softstring",
+                    "*softstring", "softdate", "*softdate", "softlist", "*softlist", "timeout", "*timeout", "code",
+                    "code", "object<::Test>", "object<::NS::TestNS>", "object<::NS::TestNS>",
+                ),
                 v[0].params
             );
         } catch (hash<ExceptionInfo> ex) {

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -138,10 +138,12 @@ str = m.fullType();
     - <value>::type()
     - <value>::fullType()
 
-    @since %Qore 0.8.13
+    @since
+    - %Qore 0.8.13
+    - %Qore 1.0 added the \a with_namespaces argument
 */
-string <value>::fullType() [flags=CONSTANT] {
-    return new QoreStringNode(v.getFullTypeName());
+string <value>::fullType(*bool with_namespaces) [flags=CONSTANT] {
+    return new QoreStringNode(v.getFullTypeName(with_namespaces));
 }
 
 //! Returns @ref True; this method will be reimplemented in container types where it may return @ref False

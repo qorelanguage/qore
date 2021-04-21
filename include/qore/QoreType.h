@@ -178,7 +178,7 @@ DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, c
 // Returns a non "or nothing" type for the given "or nothing" type
 /** if the type is not an "or nothing" type, then the same type is returned
 
-    @since %Qore 0.10
+    @since %Qore 1.0
  */
 DLLEXPORT const QoreTypeInfo* qore_get_value_type(const QoreTypeInfo* typeInfo);
 
@@ -204,7 +204,7 @@ DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const Q
 // @since %Qore 0.9.4
 DLLEXPORT const QoreTypeInfo* qore_get_type_from_string(const char* str, ExceptionSink& xsink);
 
-// @sinvr %Qore 0.10.0
+// @since %Qore 1.0
 DLLEXPORT const QoreClass* type_info_get_return_class(const QoreTypeInfo* typeInfo);
 
 #endif // _QORE_QORETYPE_H

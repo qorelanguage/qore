@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1775,6 +1775,7 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
             { QoreComplexSoftListTypeSpec(vti), true }
         }, QoreStringMaker("softlist<%s>", QoreTypeInfo::getName(vti))) {
     assert(vti);
+    pname = QoreStringMaker("softlist<%s>", QoreTypeInfo::getPath(vti));
 }
 
 QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti)
@@ -1825,6 +1826,7 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
         }, q_return_vec_t {{QoreComplexSoftListTypeSpec(vti)}, {NT_NOTHING}
         }, QoreStringMaker("*softlist<%s>", QoreTypeInfo::getName(vti))) {
     assert(vti);
+    pname = QoreStringMaker("*softlist<%s>", QoreTypeInfo::getPath(vti));
 }
 
 void map_get_plain_hash_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {

@@ -1000,7 +1000,7 @@ public:
     //! Called after copy() on the new object
     /** The base class implementation is empty
 
-        @since %Qore 0.10.0
+        @since %Qore 1.0
      */
     virtual void init();
 

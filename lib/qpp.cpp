@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -353,6 +353,13 @@ static int get_dox_comment(const char* fileName, unsigned &lineNumber, std::stri
     return 0;
 }
 
+static void strip_leading_spaces(std::string& str) {
+    size_t i = str.find_first_not_of(' ');
+    if (i > 0) {
+        str.erase(0, i);
+    }
+}
+
 static void get_string_list(strlist_t& l, const std::string& str, char separator = ',') {
     size_t start = 0;
     while (true) {
@@ -361,16 +368,15 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
             break;
         }
         std::string element(str, start, sep - start);
-
         // remove leading whitespace from strings
-        element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+        strip_leading_spaces(element);
         l.push_back(element);
         start = sep + 1;
     }
 
-    // remove leading whitespace from strings
     std::string element(str, start);
-    element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+    // remove leading whitespace from strings
+    strip_leading_spaces(element);
     l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
@@ -392,8 +398,7 @@ static void output_file(FILE* fp, const std::string& text) {
             ++nc;
             if (nc > 2)
                 continue;
-        }
-        else
+        } else
             nc = 0;
         fputc(c, fp);
     }
@@ -2839,8 +2844,23 @@ public:
     }
 
     virtual int serializeCpp(FILE* fp) {
+        std::string ns_path;
+        if (ns.empty()) {
+            ns_path = "::Qore::";
+            ns_path += name;
+        } else {
+            if (ns[0] == ':') {
+                ns_path = ns;
+            } else {
+                ns_path = "::";
+                ns_path += ns;
+            }
+            ns_path += "::";
+            ns_path += name;
+        }
+
         fprintf(fp, "TypedHashDecl* init_hashdecl_%s(QoreNamespace& ns) {\n", name.c_str());
-        fprintf(fp, "    TypedHashDecl* hd = new TypedHashDecl(\"%s\");\n", name.c_str());
+        fprintf(fp, "    TypedHashDecl* hd = new TypedHashDecl(\"%s\", \"%s\");\n", name.c_str(), ns_path.c_str());
 
         // get type name to substitute references to self if necessary
         std::string tname = "hashdecl" + name;
@@ -3596,6 +3616,21 @@ public:
     virtual int serializeCpp(FILE* fp) {
         fprintf(fp, "/* Qore class %s::%s */\n\n", ns.empty()? "Qore" : ns.c_str(), name.c_str());
 
+        std::string ns_path;
+        if (ns.empty()) {
+            ns_path = "::Qore::";
+            ns_path += name;
+        } else {
+            if (ns[0] == ':') {
+                ns_path = ns;
+            } else {
+                ns_path = "::";
+                ns_path += ns;
+            }
+            ns_path += "::";
+            ns_path += name;
+        }
+
         std::string UC;
         for (unsigned i = 0; i < name.size(); ++i)
             UC += toupper(name[i]);
@@ -3624,7 +3659,8 @@ public:
             i->second->serializeStaticCppMethod(fp, lname.c_str(), arg.c_str());
         }
 
-        fprintf(fp, "DLLLOCAL void preinit%sClass() {\n    QC_%s = new QoreClass(\"%s\", ", lname.c_str(), UC.c_str(), name.c_str());
+        fprintf(fp, "DLLLOCAL void preinit%sClass() {\n    QC_%s = new QoreClass(\"%s\", \"%s\", ", lname.c_str(),
+            UC.c_str(), name.c_str(), ns_path.c_str());
         dom_output_cpp(fp, dom);
         fprintf(fp, ");\n    CID_%s = QC_%s->getID();\n", UC.c_str(), UC.c_str());
         fprintf(fp, "    QC_%s->setSystem();\n}\n\n", UC.c_str());
@@ -4071,7 +4107,9 @@ public:
 
         cppFileName = !ofn.empty()? ofn : dir + "/" + base + ".cpp";
         doxFileName = !dfn.empty()? dfn : dir + "/" + base + ".dox.h";
-        unitTestFileName = !unit_test_fn.empty()? unit_test_fn : dir + "/" + base + ".qtest";
+        if (!unit_test_fn.empty()) {
+            unitTestFileName = unit_test_fn;
+        }
 
         if (parse())
             valid = false;
@@ -4089,6 +4127,9 @@ public:
     }
 
     int serializeUnitTest() {
+        if (unitTestFileName.empty()) {
+            return 0;
+        }
         FILE* fp = fopen(unitTestFileName.c_str(), cpp_open_flag);
         if (!fp) {
             error("%s: %s\n", unitTestFileName.c_str(), strerror(errno));

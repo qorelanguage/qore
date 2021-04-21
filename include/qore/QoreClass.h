@@ -249,6 +249,7 @@ class QoreClass {
     friend class QoreStaticMethodIterator;
     friend class ConstructorMethodFunction;
     friend class QoreBuiltinClass;
+    friend class QoreParseClass;
 
 public:
     //! creates the QoreClass object and assigns the name and the functional domain
@@ -258,9 +259,9 @@ public:
 
         @see QoreProgram
 
-        @since %Qore 0.9.5
+        @since %Qore 1.0
     */
-    DLLEXPORT QoreClass(std::string&& n_name, int64 n_domain = QDOM_DEFAULT);
+    DLLEXPORT QoreClass(std::string&& n_name, std::string&& ns_path, int64 n_domain = QDOM_DEFAULT);
 
     //! creates the QoreClass object and assigns the name and the functional domain
     /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
@@ -269,29 +270,27 @@ public:
 
         @see QoreProgram
 
-        @since %Qore 0.8.13
+        @since %Qore 1.0
     */
-    DLLEXPORT QoreClass(const char* n_name, int64 n_domain = QDOM_DEFAULT);
-
-    //! creates the QoreClass object and assigns the name and the functional domain
-    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
-        @param n_name the name of the class
-        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
-        @see QoreProgram
-
-        @deprecated use QoreClass(const char*, int64) instead
-    */
-    DLLEXPORT explicit QoreClass(const char* n_name, int n_domain);
+    DLLEXPORT QoreClass(const char* n_name, const char* ns_path, int64 n_domain = QDOM_DEFAULT);
 
     //! creates the QoreClass object and assigns the name, the functional domain, and a custom QoreTypeInfo object created with AbstractQoreClassTypeInfoHelper
-    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name as a subnamespace within a namespace and vice-versa
+    /** @note class names and subnamespaces names must be unique in a namespace; i.e. no class may have the same name
+        as a subnamespace within a namespace and vice-versa
+
         @param n_name the name of the class
-        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a Program object
+        @param ns_path the full pathname of the class with namespaces, including the root "::" namespace as the
+        leading element
+        @param n_domain the functional domain of the class to be used to enforce functional restrictions within a
+        Program object
         @param n_typeInfo the custom QoreTypeInfo object created with AbstractQoreClassTypeInfoHelper
+
         @see QoreProgram
         @see AbstractQoreClassTypeInfoHelper
+
+        @since %Qore 1.0
     */
-    DLLEXPORT QoreClass(const char* n_name, int64 n_domain, const QoreTypeInfo* n_typeInfo);
+    DLLEXPORT QoreClass(const char* n_name, const char* ns_path, int64 n_domain, const QoreTypeInfo* n_typeInfo);
 
     //! copy constructor
     /** should be only called under the appropriate lock (ex: program parse lock while parsing)
@@ -922,6 +921,13 @@ public:
     */
     DLLEXPORT std::string getNamespacePath(bool anchored = false) const;
 
+    //! Returns the root-justified namespace path of the class including the class name
+    /** @note equivalent to getNamespacePath(true)
+
+        @since %Qore 1.0
+    */
+    DLLEXPORT const char* getPath() const;
+
     //! returns true if the classes are equal
     /** @since %Qore 0.9
     */
@@ -970,7 +976,7 @@ public:
 
         @note All class key-value operations are atomic
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLEXPORT QoreValue setKeyValue(const std::string& key, QoreValue val);
 
@@ -984,7 +990,7 @@ public:
         - All class key-value operations are atomic
         - if \a value is returned, the caller must dereference it
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLEXPORT QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
 
@@ -994,7 +1000,7 @@ public:
 
         @note All class key-value operations are atomic
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLEXPORT void setKeyValueIfNotSet(const std::string& key, const char* str);
 
@@ -1005,7 +1011,7 @@ public:
 
         @note All class key-value operations are atomic
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLEXPORT QoreValue getReferencedKeyValue(const std::string& key) const;
 
@@ -1136,12 +1142,12 @@ public:
     /** Also marks the source program for the class, however the source program's reference count is not increased
         in this call, and in the destructor no dereference is made either
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
-    DLLEXPORT QoreBuiltinClass(QoreProgram* pgm, const char* name, int64 n_domain = QDOM_DEFAULT);
+    DLLEXPORT QoreBuiltinClass(QoreProgram* pgm, const char* name, const char* path, int64 n_domain = QDOM_DEFAULT);
 
     //! creates the object and marks it as a builtin class
-    DLLEXPORT QoreBuiltinClass(const char* name, int64 n_domain = QDOM_DEFAULT);
+    DLLEXPORT QoreBuiltinClass(const char* name, const char* path, int64 n_domain = QDOM_DEFAULT);
 
     //! copies the object
     DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);

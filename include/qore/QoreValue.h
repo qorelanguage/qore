@@ -405,8 +405,19 @@ public:
     */
     DLLEXPORT const QoreTypeInfo* getFullTypeInfo() const;
 
-    //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
+    //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+    /** differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
+    */
     DLLEXPORT const char* getFullTypeName() const;
+
+    //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+    /** differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
+
+        @param with_namespaces if true then class and hashdecl names are given with full namespace paths
+
+        @since %Qore 1.0
+    */
+    DLLEXPORT const char* getFullTypeName(bool with_namespaces) const;
 
     //! returns true if the object contains a non-null AbstractQoreNode pointer (ie type == QV_Node && v.n is not 0)
     DLLEXPORT bool hasNode() const;

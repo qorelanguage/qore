@@ -750,7 +750,7 @@ const PO_ALLOW_RETURNS = PO_ALLOW_RETURNS;
 const PO_STRICT_TYPES = PO_STRICT_TYPES;
 
 //! Do not inherit module-specific Program data from the parent
-/** @since %Qore 0.10
+/** @since %Qore 1.0
 */
 const PO_NO_INHERIT_PROGRAM_DATA = PO_NO_INHERIT_PROGRAM_DATA;
 //@}
@@ -2453,7 +2453,7 @@ Expression Program::getExpression(string source, string label) {
 //! Returns a list of strings of the builtin and module-supplied features of Qore
 /** @return a list of strings of the builtin and module-supplied features of Qore
 
-    @since %Qore 0.10.0
+    @since %Qore 1.0
 */
 list<string> Program::getFeatureList() [flags=RET_VALUE_ONLY] {
    return p->getFeatureList();

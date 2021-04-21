@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -71,10 +71,14 @@ protected:
     std::string str;
 
 public:
-    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr) : returnTypeInfo(n_returnTypeInfo) {
+    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr)
+            : returnTypeInfo(n_returnTypeInfo) {
     }
 
-    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
+    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList,
+            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names)
+            : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList),
+                names(n_names) {
     }
 
     DLLLOCAL virtual ~AbstractFunctionSignature() {
@@ -116,9 +120,18 @@ public:
 
     DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
         for (unsigned i = 0; i < typeList.size(); ++i) {
-            str.append(QoreTypeInfo::getName(typeList[i]));
-            if (i != typeList.size() - 1)
-                str.append(",");
+            str.append(QoreTypeInfo::getPath(typeList[i]));
+            const char* vname = getName(i);
+            if (vname) {
+                str.append(" ");
+                str.append(vname);
+            }
+            if (hasDefaultArg(i)) {
+                addDefaultArgument(str, defaultArgList[i]);
+            }
+            if (i != typeList.size() - 1) {
+                str.append(", ");
+            }
         }
     }
 
@@ -144,7 +157,7 @@ public:
     }
 
     // adds a description of the given default argument to the signature string
-    DLLLOCAL void addDefaultArgument(QoreValue arg);
+    DLLLOCAL static void addDefaultArgument(std::string& str, QoreValue arg);
 
     DLLLOCAL const char* getName(unsigned i) const {
         return i < names.size() ? names[i].c_str() : 0;
@@ -222,7 +235,7 @@ public:
     }
 
     // resolves all parse types to the final types
-    DLLLOCAL void resolve();
+    DLLLOCAL virtual void resolve();
 
     DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
         if (resolved) {
@@ -232,7 +245,7 @@ public:
 
         for (unsigned i = 0; i < parseTypeList.size(); ++i) {
             if (!parseTypeList[i] && typeList.size() > i && typeList[i])
-                str.append(QoreTypeInfo::getName(typeList[i]));
+                str.append(QoreTypeInfo::getPath(typeList[i]));
             else
                 str.append(QoreParseTypeInfo::getName(parseTypeList[i]));
             if (i != parseTypeList.size() - 1)
@@ -472,6 +485,14 @@ public:
     DLLLOCAL const char* className() const {
         const QoreClass* qc = getClass();
         return qc ? qc->getName() : nullptr;
+    }
+
+    DLLLOCAL std::string classPath() const {
+        const QoreClass* qc = getClass();
+        if (!qc) {
+            return std::string();
+        }
+        return qc->getNamespacePath(true);
     }
 
     DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
@@ -846,6 +867,14 @@ public:
     DLLLOCAL const char* className() const {
         const QoreClass* qc = getClass();
         return qc ? qc->getName() : nullptr;
+    }
+
+    DLLLOCAL std::string classPath() const {
+        const QoreClass* qc = getClass();
+        if (!qc) {
+            return std::string();
+        }
+        return qc->getNamespacePath(true);
     }
 
     DLLLOCAL void addAncestor(QoreFunction* ancestor, ClassAccess access) {
@@ -1254,6 +1283,13 @@ public:
 
     DLLLOCAL const char* getClassName() const {
         return qc->getName();
+    }
+
+    DLLLOCAL std::string classPath() const {
+        if (!qc) {
+            return std::string();
+        }
+        return qc->getNamespacePath(true);
     }
 
     DLLLOCAL bool isStatic() const {

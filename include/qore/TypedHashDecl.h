@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@ class TypedHashDecl {
     friend class typed_hash_decl_private;
 
 public:
-    DLLEXPORT TypedHashDecl(const char* name);
+    DLLEXPORT TypedHashDecl(const char* name, const char* path);
 
     DLLEXPORT TypedHashDecl(const TypedHashDecl& old);
 
