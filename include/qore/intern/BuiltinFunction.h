@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,23 +41,26 @@ class BCEAList;
 
 class BuiltinSignature : public AbstractFunctionSignature {
 public:
-    DLLLOCAL BuiltinSignature(bool extra_args, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
+    DLLLOCAL BuiltinSignature(bool extra_args, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList,
+            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names)
+            : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
         for (unsigned i = 0; i < typeList.size(); ++i) {
             bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
             if (typeList[i]) {
                 ++num_param_types;
                 if (!hasDefaultArg)
-                ++min_param_types;
+                    ++min_param_types;
             }
 
-            QoreTypeInfo::concatName(typeList[i], str);
+            str.append(QoreTypeInfo::getPath(typeList[i]));
             if (names.size() > i && !names[i].empty()) {
                 str.append(" ");
                 str.append(names[i]);
             }
 
-            if (hasDefaultArg)
-                addDefaultArgument(defaultArgList[i]);
+            if (hasDefaultArg) {
+                addDefaultArgument(str, defaultArgList[i]);
+            }
 
             // add a comma to the signature string if it's not the last parameter
             if (i != (typeList.size() - 1))

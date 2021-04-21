@@ -145,7 +145,7 @@ public:
     DLLEXPORT void set(const char* str, const QoreEncoding* new_qorecharset = QCS_DEFAULT);
 
     //! copies the c-string passed and sets the value of the string up to the byte position given
-    /** @since %Qore 0.10.0
+    /** @since %Qore 1.0
     */
     DLLEXPORT void set(const char* str, size_t len);
 
@@ -436,22 +436,22 @@ public:
     DLLEXPORT bool equalPartialPath(const QoreString& str, ExceptionSink* xsink) const;
 
     //! returns true if the current string starts with the argument string (bytes)
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT bool startsWith(const char* str) const;
 
     //! returns true if the current string starts with the argument string (bytes)
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT bool startsWith(const std::string& str) const;
 
     //! returns true if the current string ends with the argument string (bytes)
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT bool endsWith(const char* str) const;
 
     //! returns true if the current string ends with the argument string (bytes)
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT bool endsWith(const std::string& str) const;
 
@@ -885,22 +885,22 @@ public:
     DLLEXPORT qore_offset_t rfind(char c, qore_offset_t pos = -1) const;
 
     //! returns the byte position of a string byte sequence) within the string or -1 if not found
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT qore_offset_t find(const char* str, qore_offset_t pos = 0) const;
 
     //! returns the last byte position of a string (byte sequence) within the string or -1 if not found
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT qore_offset_t rfind(const char* str, qore_offset_t pos = -1) const;
 
     //! returns the byte position of a string byte sequence) within the string or -1 if not found
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT qore_offset_t find(const std::string& str, qore_offset_t pos = 0) const;
 
     //! returns the last byte position of a string (byte sequence) within the string or -1 if not found
-    /** @since %Qore 0.10
+    /** @since %Qore 1.0
      */
     DLLEXPORT qore_offset_t rfind(const std::string& str, qore_offset_t pos = -1) const;
 

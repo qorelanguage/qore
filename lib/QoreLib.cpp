@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -2767,23 +2767,38 @@ int q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
 }
 
 const char* get_full_type_name(const AbstractQoreNode* n) {
+    return get_full_type_name(n, false);
+}
+
+const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) {
     switch (get_node_type(n)) {
         case NT_HASH: {
             const qore_hash_private* h = qore_hash_private::get(*static_cast<const QoreHashNode*>(n));
-            if (h->hashdecl)
-                return QoreTypeInfo::getName(h->hashdecl->getTypeInfo());
-            if (h->complexTypeInfo)
-                return QoreTypeInfo::getName(h->complexTypeInfo);
+            if (h->hashdecl) {
+                return with_namespaces
+                    ? QoreTypeInfo::getPath(h->hashdecl->getTypeInfo())
+                    : QoreTypeInfo::getName(h->hashdecl->getTypeInfo());
+            }
+            if (h->complexTypeInfo) {
+                return with_namespaces
+                    ? QoreTypeInfo::getPath(h->complexTypeInfo)
+                    : QoreTypeInfo::getName(h->complexTypeInfo);
+            }
             break;
         }
         case NT_LIST: {
             const qore_list_private* l = qore_list_private::get(*static_cast<const QoreListNode*>(n));
-            if (l->complexTypeInfo)
-                return QoreTypeInfo::getName(l->complexTypeInfo);
+            if (l->complexTypeInfo) {
+                return with_namespaces
+                    ? QoreTypeInfo::getPath(l->complexTypeInfo)
+                    : QoreTypeInfo::getName(l->complexTypeInfo);
+            }
             break;
         }
         case NT_OBJECT:
-            return QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
+            return with_namespaces
+                ? QoreTypeInfo::getPath(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo())
+                : QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
         default:
             break;
     }

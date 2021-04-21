@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -342,6 +342,11 @@ private:
 
 //! returns the name of the type; the argument may be nullptr meaning no type restrictions
 DLLEXPORT const char* qore_type_get_name(const QoreTypeInfo* ti);
+
+//! returns the full namespace path of the type; the argument may be nullptr meaning no type restrictions
+/** @since %Qore 1.0
+*/
+DLLEXPORT const char* qore_type_get_path(const QoreTypeInfo* ti);
 
 //! returns true if the types are equal; either argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);

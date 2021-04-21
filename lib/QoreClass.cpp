@@ -36,6 +36,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreParseClass.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -441,8 +442,10 @@ public:
     DLLLOCAL operator bool() const { return m != nullptr; }
 };
 
-qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom, QoreTypeInfo* n_typeInfo)
+qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, std::string&& path, int64 dom,
+        QoreClassTypeInfo* n_typeInfo)
         : name(nme),
+        path(path),
         cls(n_cls),
         constlist(this),        // constants
         classID(classIDSeq.next()),
@@ -473,13 +476,26 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
         num_user_methods(0),
         num_static_methods(0),
         num_static_user_methods(0),
-        typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str())),
+        typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str(), path.c_str())),
         orNothingTypeInfo(nullptr),
-        selfid("self", typeInfo),
+        selfid("self", n_cls),
         spgm(getProgram()),
         deref_source_program(false) {
     assert(methodID == classID);
     assert(!name.empty());
+
+    if (!n_typeInfo) {
+        orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
+        owns_ornothingtypeinfo = true;
+    } else {
+        // see if typeinfo already accepts NOTHING
+        if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
+            orNothingTypeInfo = reinterpret_cast<QoreClassOrNothingTypeInfo*>(typeInfo);
+        else {
+            orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
+            owns_ornothingtypeinfo = true;
+        }
+    }
 
     const char* mod_name = get_module_context_name();
     if (mod_name) {
@@ -599,6 +615,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         const char* new_name, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub)
         // issue #3179: we force a deep copy of "name" to work around COW issues with std::string with GNU libstdc++ 6+
         : name(new_name ? new_name : old.name.c_str()),
+        path(old.path),
         ns(ns),
         ahm(old.ahm),
         constlist(old.constlist, 0, this),    // committed constants
@@ -646,6 +663,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
     if (!old.initialized)
         const_cast<qore_class_private&>(old).initialize();
 
+    if (new_name) {
+        size_t i = path.rfind(old.name);
+        assert(i != std::string::npos);
+        path.replace(i, old.name.length(), new_name);
+    }
+
     // create new class object
     cls = old.cls->copyImport();
     cls->priv = this;
@@ -655,9 +678,9 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         spgm);
 
     // issue #3368: create new type info objects as the class ptr is derived from the typeInfo object in some cases
-    typeInfo = new QoreClassTypeInfo(cls, name.c_str());
+    typeInfo = new QoreClassTypeInfo(cls, name.c_str(), path.c_str());
     owns_typeinfo = true;
-    orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str());
+    orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
     owns_ornothingtypeinfo = true;
 
     system_constructor = old.system_constructor ? old.system_constructor->copy(cls) : nullptr;
@@ -3178,6 +3201,9 @@ QoreClass::QoreClass() : priv(nullptr) {
 }
 
 QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
+    assert(priv->typeInfo);
+    assert(priv->orNothingTypeInfo);
+
     priv->pgmRef();
 
     // ensure atomicity when writing to qcset
@@ -3185,33 +3211,21 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     priv->qcset.insert(this);
 }
 
-QoreClass::QoreClass(std::string&& nme, int64 dom) : priv(new qore_class_private(this, std::move(nme), dom)) {
-    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
-    priv->owns_ornothingtypeinfo = true;
+QoreClass::QoreClass(std::string&& nme, std::string&& ns_path, int64 dom) : priv(new qore_class_private(this, std::move(nme), std::move(ns_path), dom)) {
+    assert(priv->typeInfo);
+    assert(priv->orNothingTypeInfo);
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
-    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-    priv->owns_ornothingtypeinfo = true;
+QoreClass::QoreClass(const char* nme, const char* ns_path, int64 dom) : priv(new qore_class_private(this, std::string(nme), std::string(ns_path), dom)) {
+    assert(priv->typeInfo);
+    assert(priv->orNothingTypeInfo);
 }
 
-QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
-    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-    priv->owns_ornothingtypeinfo = true;
-}
-
-QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) : priv(new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo))) {
-    assert(typeInfo);
-
-    printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
-
-    // see if typeinfo already accepts NOTHING
-    if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
-        priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
-    else {
-        priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-        priv->owns_ornothingtypeinfo = true;
-    }
+QoreClass::QoreClass(const char* nme, const char* ns_path, int64 dom, const QoreTypeInfo* typeInfo)
+        : priv(new qore_class_private(this, std::string(nme), std::string(ns_path), dom,
+        const_cast<QoreClassTypeInfo*>(reinterpret_cast<const QoreClassTypeInfo*>(typeInfo)))) {
+    assert(priv->typeInfo);
+    assert(priv->orNothingTypeInfo);
 }
 
 QoreClass* QoreClass::copyImport() {
@@ -4460,15 +4474,21 @@ const QoreExternalStaticMember* QoreClass::findLocalStaticMember(const char* nam
 
 std::string QoreClass::getNamespacePath(bool anchored) const {
     std::string path;
-    priv->ns->getPath(path);
-    if (!path.empty()) {
-        path += "::";
+    if (priv && priv->ns) {
+        priv->ns->getPath(path);
+        if (!path.empty()) {
+            path += "::";
+        }
+        if (anchored) {
+            path.insert(0, "::");
+        }
+        path += getName();
     }
-    if (anchored) {
-        path.insert(0, "::");
-    }
-    path += getName();
     return path;
+}
+
+const char* QoreClass::getPath() const {
+    return priv->path.c_str();
 }
 
 bool QoreClass::isEqual(const QoreClass& cls) const {
@@ -5368,13 +5388,13 @@ QoreClassHolder::~QoreClassHolder() {
     }
 }
 
-QoreBuiltinClass::QoreBuiltinClass(QoreProgram* pgm, const char* name, int64 n_domain) : QoreClass(name, n_domain) {
+QoreBuiltinClass::QoreBuiltinClass(QoreProgram* pgm, const char* name, const char* path, int64 n_domain) : QoreClass(name, path, n_domain) {
     setSystem();
     priv->spgm = pgm;
     priv->deref_source_program = false;
 }
 
-QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass(name, n_domain) {
+QoreBuiltinClass::QoreBuiltinClass(const char* name, const char* path, int64 n_domain) : QoreClass(name, path, n_domain) {
     setSystem();
 }
 
@@ -5382,6 +5402,14 @@ QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old)
 }
 
 QoreBuiltinClass::QoreBuiltinClass() {
+}
+
+QoreParseClass::QoreParseClass(const QoreProgramLocation* loc) {
+    std::string path;
+    std::string name = parse_pop_name(path);
+
+    priv = new qore_class_private(this, std::move(name), std::move(path), QDOM_DEFAULT);
+    priv->loc = loc;
 }
 
 class qore_parent_class_iterator_private {

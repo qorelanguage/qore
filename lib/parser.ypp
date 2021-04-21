@@ -61,6 +61,7 @@
 #include "parser.hpp"
 
 #include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QoreParseClass.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/qore_list_private.h"
@@ -2509,8 +2510,7 @@ class_def:
         | nsc_modifiers CLASS_STRING inheritance_list ';' {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             // class name is set automatically from name saved in scanner
-            QoreClass* qc = new QoreClass(parse_pop_name());
-            qore_class_private::get(*qc)->loc = loc;
+            QoreClass* qc = new QoreParseClass(loc);
             check_classmod(loc, $1, *qc);
             qore_class_private::parseSetBaseClassList(*qc, $3);
             $$ = new ObjClassDef(loc, $2, qc);
@@ -2520,8 +2520,7 @@ class_def:
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "class", $2->ostr);
             // class name is set automatically from name saved in scanner
-            QoreClass* qc = new QoreClass(parse_pop_name());
-            qore_class_private::get(*qc)->loc = loc;
+            QoreClass* qc = new QoreParseClass(loc);
             check_classmod(loc, $1, *qc);
             $$ = new ObjClassDef(loc, $2, qc);
             qore_class_private::parseSetBaseClassList(*qc, $3);
@@ -2529,8 +2528,7 @@ class_def:
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             // class name is set automatically from name saved in scanner
-            QoreClass* qc = new QoreClass(parse_pop_name());
-            qore_class_private::get(*qc)->loc = loc;
+            QoreClass* qc = new QoreParseClass(loc);
             check_classmod(loc, $1, *qc);
             qore_class_private::parseSetBaseClassList(*qc, $3);
             $$ = new ObjClassDef(loc, $2, qc);
@@ -2540,8 +2538,7 @@ class_def:
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "class", $2->ostr);
             // class name is set automatically from name saved in scanner
-            QoreClass* qc = new QoreClass(parse_pop_name());
-            qore_class_private::get(*qc)->loc = loc;
+            QoreClass* qc = new QoreParseClass(loc);
             check_classmod(loc, $1, *qc);
             $$ = new ObjClassDef(loc, $2, qc);
             qore_class_private::parseSetBaseClassList(*qc, $3);
@@ -2620,18 +2617,17 @@ hashdecl_attrs:
             }
         }
         | hashdecl_attrs hashdecl_member {
-           if ($2) {
-              if ($1->hasMember($2->name)) {
-                 parse_error(*$2->loc, "duplicate hashdecl member declaration '%s'", $2->name);
-              }
-              else {
-                 // add new member to list
-                 $1->parseAdd($2->getHashMemPair());
-              }
-              delete $2;
-           }
+            if ($2) {
+                if ($1->hasMember($2->name)) {
+                    parse_error(*$2->loc, "duplicate hashdecl member declaration '%s'", $2->name);
+                } else {
+                    // add new member to list
+                    $1->parseAdd($2->getHashMemPair());
+                }
+                delete $2;
+            }
 
-           $$ = $1;
+            $$ = $1;
         }
         ;
 
@@ -2674,35 +2670,30 @@ hashdecl_member:
 
 class_attributes:
         inline_methoddef {
-           $$ = new QoreClass(parse_pop_name());
-           qore_class_private::get(*$$)->loc = $1->getLoc();
+           $$ = new QoreParseClass($1->getLoc());
            $1->addAndDelete($$);
         }
         | internal_member_list {
-            $$ = new QoreClass(parse_pop_name());
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
-            qore_class_private::get(*$$)->loc = loc;
+            $$ = new QoreParseClass(loc);
             $1->merge($$, Internal);
             delete $1;
         }
         | private_member_list {
-            $$ = new QoreClass(parse_pop_name());
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
-            qore_class_private::get(*$$)->loc = loc;
+            $$ = new QoreParseClass(loc);
             $1->merge($$, Private);
             delete $1;
         }
         | public_member_list {
-            $$ = new QoreClass(parse_pop_name());
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
-            qore_class_private::get(*$$)->loc = loc;
+            $$ = new QoreParseClass(loc);
             $1->merge($$, Public);
             delete $1;
         }
         | unscoped_const_decl {
-            $$ = new QoreClass(parse_pop_name());
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
-            qore_class_private::get(*$$)->loc = loc;
+            $$ = new QoreParseClass(loc);
             qore_class_private::parseAddConstant(*($$), loc, $1->getName(), $1->takeValue(), Public);
             delete $1;
         }

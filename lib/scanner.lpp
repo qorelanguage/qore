@@ -1,42 +1,42 @@
 %{
 /*
-  scanner.lpp
+    scanner.lpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 
-  Flex scanner:
-    no string length limits,
-    no include file depth limits,
-    thread-safe
+    Flex scanner:
+        no string length limits,
+        no include file depth limits,
+        thread-safe
 
-  requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
-  so a thread-safe scanner can be generated
+    requires flex 2.5.31 or better (2.5.37+ recommended, 2.5.4 will not work)
+    so a thread-safe scanner can be generated
 
-  see: http://flex.sourceforge.net/
+    see: http://flex.sourceforge.net/
 */
 
 #include <qore/Qore.h>
@@ -1674,7 +1674,7 @@ cast<\*{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,\*]+>)?{WS}*> yylval->stri
 class{WS}+({WORD}::)+{WORD}             { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+(::{WORD})+                   { yylval->nscope = new NamedScope(trim(yytext + 6)); parse_push_name(yylval->nscope->getIdentifier()); return CLASS_SCOPED_REF; }
 class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); parse_push_name(yylval->string); return CLASS_STRING; }
-namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
+namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_ns_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
 {WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
 \<{WORD}\>\{                            {

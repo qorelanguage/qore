@@ -80,7 +80,7 @@ public:
     /** @param old the old namespace to copy
         @param po new parse options for the new namespace
 
-        @since %Qore 0.10.0
+        @since %Qore 1.0
     */
     DLLEXPORT QoreNamespace(const QoreNamespace& old, int64 po);
 

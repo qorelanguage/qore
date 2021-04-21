@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -330,10 +330,21 @@ static inline const char* get_type_name(const AbstractQoreNode* n) {
    return n ? n->getTypeName() : "nothing";
 }
 
-//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
-/** @since %Qore 0.8.13
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+/** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
+
+    @since %Qore 0.8.13
 */
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
+
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+/** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
+
+    @param with_namespaces if true then class and hashdecl names are given with full namespace paths
+
+    @since %Qore 1.0
+*/
+DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces);
 
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;

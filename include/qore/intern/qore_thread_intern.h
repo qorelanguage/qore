@@ -302,7 +302,12 @@ DLLLOCAL unsigned parse_try_module_get();
 DLLLOCAL void parse_try_module_set(unsigned c);
 
 DLLLOCAL void parse_push_name(const char* name);
-DLLLOCAL std::string parse_pop_name();
+DLLLOCAL std::string parse_pop_name(std::string& path);
+
+DLLLOCAL void parse_push_ns_name(const char* name);
+DLLLOCAL std::string parse_pop_ns_name(std::string& path);
+
+DLLLOCAL std::string get_ns_path(const char* name);
 
 DLLLOCAL void set_module_context(QoreModuleContext* qmc);
 DLLLOCAL QoreModuleContext* get_module_context();

@@ -358,9 +358,11 @@ public:
     // Maintains the %try-module block count for each file
     ParseCountHelper tm;
 
-    // for capturing namespace and class names while parsing
+    // for capturing class names while parsing
     typedef std::vector<std::string> npvec_t;
     npvec_t npvec;
+    // for capturing namespace names while parsing
+    npvec_t nspvec;
 
     // used for error handling when merging module code into a Program object
     QoreModuleContext* qmc = nullptr;
@@ -461,11 +463,43 @@ public:
         npvec.push_back(name);
     }
 
-    DLLLOCAL std::string popName() {
+    DLLLOCAL std::string popName(std::string& path) {
         assert(!npvec.empty());
+        for (auto& i : nspvec) {
+            path.append("::");
+            path.append(i);
+        }
+        path.append("::");
         std::string rv = npvec.back();
         npvec.pop_back();
+        path.append(rv);
         return rv;
+    }
+
+    DLLLOCAL void pushNsName(const char* name) {
+        nspvec.push_back(name);
+    }
+
+    DLLLOCAL std::string popNsName(std::string& path) {
+        assert(!nspvec.empty());
+        for (auto& i : nspvec) {
+            path.append("::");
+            path.append(i);
+        }
+        std::string rv = nspvec.back();
+        nspvec.pop_back();
+        return rv;
+    }
+
+    DLLLOCAL std::string getNsPath(const char* name) {
+        std::string path;
+        for (auto& i : nspvec) {
+            path.append("::");
+            path.append(i);
+        }
+        path.append("::");
+        path.append(name);
+        return path;
     }
 
     DLLLOCAL void parseRollback() {
@@ -1043,14 +1077,29 @@ int thread_set_closure_var_value(int frame, const char* name, const QoreValue& v
     return tlpd ? tlpd->cvstack.setVarValue(frame, name, val, xsink) : 1;
 }
 
+void parse_push_ns_name(const char* name) {
+    ThreadData* td = thread_data.get();
+    td->pushNsName(name);
+}
+
+std::string parse_pop_ns_name(std::string& path) {
+    ThreadData* td = thread_data.get();
+    return td->popNsName(path);
+}
+
 void parse_push_name(const char* name) {
     ThreadData* td = thread_data.get();
     td->pushName(name);
 }
 
-std::string parse_pop_name() {
+std::string parse_pop_name(std::string& path) {
     ThreadData* td = thread_data.get();
-    return td->popName();
+    return td->popName(path);
+}
+
+std::string get_ns_path(const char* name) {
+    ThreadData* td = thread_data.get();
+    return td->getNsPath(name);
 }
 
 void set_thread_resource(AbstractThreadResource* atr) {
@@ -2724,7 +2773,7 @@ QoreRecursiveThreadLock::QoreRecursiveThreadLock() : QoreThreadLock(&ma_recursiv
 
 QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
    // create Qore::Thread namespace
-   QoreNamespace* Thread = new QoreNamespace("Thread");
+   QoreNamespace* Thread = new QoreNamespace("Qore::Thread");
 
    Thread->addSystemClass(initQueueClass(*Thread));
    Thread->addSystemClass(initAbstractSmartLockClass(*Thread));

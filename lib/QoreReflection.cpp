@@ -50,6 +50,10 @@ const char* qore_type_get_name(const QoreTypeInfo* ti) {
     return QoreTypeInfo::getName(ti);
 }
 
+const char* qore_type_get_path(const QoreTypeInfo* ti) {
+    return QoreTypeInfo::getPath(ti);
+}
+
 bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
     return QoreTypeInfo::equal(ti1, ti2);
 }

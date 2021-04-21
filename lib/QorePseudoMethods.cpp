@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -59,8 +59,9 @@ static QoreValue PSEUDONULL_typeCode(QoreObject *ignored, AbstractQoreNode *node
 }
 
 // create pseudo-class for type
-static QoreClass* do_type_code(const char *name, q_method_n_t f) {
-    QoreClass* qc = new QoreClass(name);
+static QoreClass* do_type_code(const char* name, q_method_n_t f) {
+    QoreStringMaker path("::Qore::%s", name);
+    QoreClass* qc = new QoreClass(name, path.c_str());
     qc->addBuiltinVirtualBaseClass(QC_PSEUDOVALUE);
     qc->addMethod("typeCode", f, Public, QCF_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
     return qc;

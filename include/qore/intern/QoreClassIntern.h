@@ -1745,6 +1745,7 @@ class qore_class_private {
 public:
     const QoreProgramLocation* loc; // location of declaration
     std::string name;               // the name of the class
+    std::string path;               // the full namespace path for the class
     QoreClass* cls;                 // parent class
     qore_ns_private* ns = nullptr;  // parent namespace
     BCList* scl = nullptr;          // base class list
@@ -1814,8 +1815,8 @@ public:
 
     // type information for the class, may not have a pointer to the same QoreClass
     // as the actual owning class in case of a copy
-    QoreTypeInfo* typeInfo,
-        *orNothingTypeInfo;
+    QoreClassTypeInfo* typeInfo = nullptr;
+    QoreClassOrNothingTypeInfo* orNothingTypeInfo = nullptr;
 
     const qore_class_private* injectedClass = nullptr;
 
@@ -1847,11 +1848,13 @@ public:
     typedef std::map<std::string, QoreValue> kvmap_t;
     kvmap_t kvmap;
 
-    DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
+    DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, std::string&& path, int64 dom = QDOM_DEFAULT,
+            QoreClassTypeInfo* n_typeinfo = nullptr);
 
     // only called while the parse lock for the QoreProgram owning "old" is held
     // called for injected classes only
-    DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub);
+    DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm,
+            const char* nme, bool inject, const qore_class_private* injectedClass, q_setpub_t set_pub);
 
     //! Sets a key value in the class's key-value store
     /** @param key the key to store
@@ -3121,7 +3124,8 @@ public:
         return qc.priv->inject;
     }
 
-    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, qore_ns_private* ns, q_setpub_t set_pub) {
+    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject,
+            const qore_class_private* injectedClass, qore_ns_private* ns, q_setpub_t set_pub) {
         qore_class_private* priv = new qore_class_private(*qc.priv, ns, spgm, nme, inject, injectedClass, set_pub);
         //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
         return priv->cls;

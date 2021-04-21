@@ -2052,3 +2052,15 @@ AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation* loc, 
     //printd(5, "ClosureVarValue::getReference() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
     return new VarRefImmediateNode(loc, strdup(name), this, typeInfo);
 }
+
+const QoreTypeInfo* LocalVar::getTypeInfo() {
+    if (!typeInfo) {
+        if (qc) {
+            qore_class_private::get(*qc)->initialize();
+            typeInfo = qc->getTypeInfo();
+            qc = nullptr;
+            refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
+        }
+    }
+    return typeInfo;
+}

@@ -788,6 +788,7 @@ noinst_HEADERS = \
 	include/qore/intern/EncodingConvertor.h \
 	include/qore/intern/QoreListNodeEvalOptionalRefHolder.h \
 	include/qore/intern/QoreSerializable.h \
+	include/qore/intern/QoreParseClass.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

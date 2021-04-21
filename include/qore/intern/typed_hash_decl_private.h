@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,9 @@ class typed_hash_decl_private;
 
 class HashDeclMemberInfo : public QoreMemberInfoBase {
 public:
-    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue()) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
+    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr,
+            QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue())
+            : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
     }
 
     DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
@@ -62,10 +64,11 @@ public:
         assignModule();
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
-        loc(loc), name(n), thd(thd), orig(this),
-        typeInfo(new QoreHashDeclTypeInfo(thd, n)),
-        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, const char* p,
+            TypedHashDecl* thd) :
+            loc(loc), name(n), path(p), thd(thd), orig(this),
+            typeInfo(new QoreHashDeclTypeInfo(thd, n, p)),
+            orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n, p)) {
         assignModule();
     }
 
@@ -80,9 +83,8 @@ public:
         assert(name.empty());
         assert(!thd);
         name = n;
+        path = get_ns_path(n);
         thd = new TypedHashDecl(this);
-        typeInfo = new QoreHashDeclTypeInfo(thd, n);
-        orNothingTypeInfo = new QoreHashDeclOrNothingTypeInfo(thd, n);
         return thd;
     }
 
@@ -90,7 +92,8 @@ public:
         if (name != other.name || members.size() != other.members.size())
             return false;
 
-        for (HashDeclMemberMap::const_iterator ti = members.member_list.begin(), oi = other.members.member_list.begin(), te = members.member_list.end(); ti != te; ++ti, ++oi) {
+        for (HashDeclMemberMap::const_iterator ti = members.member_list.begin(), oi = other.members.member_list.begin(),
+            te = members.member_list.end(); ti != te; ++ti, ++oi) {
             // if the member's name is different, return false
             if (strcmp(oi->first, ti->first)) {
                return false;
@@ -148,8 +151,9 @@ public:
     }
 
     DLLLOCAL void parseInit() {
-        if (parse_init_done || sys)
+        if (parse_init_done || sys) {
             return;
+        }
         parse_init_done = true;
 
         // initialize new members
@@ -217,6 +221,10 @@ public:
         return name.c_str();
     }
 
+    DLLLOCAL const char* getPath() const {
+        return path.c_str();
+    }
+
     DLLLOCAL const std::string& getNameStr() const {
         return name;
     }
@@ -267,6 +275,7 @@ protected:
     mutable QoreReferenceCounter refs;
     const QoreProgramLocation* loc;
     std::string name;
+    std::string path;
     TypedHashDecl* thd = nullptr;
     // parent namespace
     qore_ns_private* ns = nullptr;

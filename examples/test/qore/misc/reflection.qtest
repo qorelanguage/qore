@@ -579,8 +579,8 @@ class ReflectionTest inherits QUnit::Test {
         assertEq("int", v.getReturnType().getName());
         assertEq((NOTHING, 0), v.getDefaultArgs());
         assertEq(("lock", "timeout_ms"), v.getParamNames());
-        assertEq("object<AbstractSmartLock> lock, timeout timeout_ms = 0", v.getParamString());
-        assertEq("public int Condition::wait(object<AbstractSmartLock> lock, timeout timeout_ms = 0)", v.toString());
+        assertEq("object<::Qore::Thread::AbstractSmartLock> lock, timeout timeout_ms = 0", v.getParamString());
+        assertEq("public int Condition::wait(object<::Qore::Thread::AbstractSmartLock> lock, timeout timeout_ms = 0)", v.toString());
         assertEq(0, v.getCodeFlags());
         assertEq((), v.getCodeFlagList());
 
