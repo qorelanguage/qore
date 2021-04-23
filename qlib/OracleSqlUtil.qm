@@ -256,6 +256,8 @@ hash schema = (
     @section ora_relnotes Release Notes
 
     @subsection v141 OracleSqlUtil v1.4.1
+    - fixed a bug where pseudocolumn references were used ambiguously in joins
+      (<a href="https://github.com/qorelanguage/qore/issues/4214">issue 4214</a>)
     - fixed a bug where pseudocolumn names were quoted in queries leading to errors
       (<a href="https://github.com/qorelanguage/qore/issues/4210">issue 4210</a>)
     - added an exception when \c offset or \c limit are used with \c forupdate
@@ -1543,27 +1545,27 @@ auto v = c.name;
         }
 
         #! returns driver-specific options to the base abstract class
-        private hash getCreationOptions() {
+        private hash<auto> getCreationOptions() {
             return OracleCreationOptions;
         }
 
         #! returns driver-specific options to the base abstract class
-        private hash getAlignSchemaOptions() {
+        private hash<auto> getAlignSchemaOptions() {
             return OracleAlignSchemaOptions;
         }
 
         #! returns driver-specific options to the base abstract class
-        private hash getSchemaDescriptionOptions() {
+        private hash<auto> getSchemaDescriptionOptions() {
             return OracleSchemaDescriptionOptions;
         }
 
         #! returns driver-specific options to the base abstract class
-        private hash getRebuildIndexOptions() {
+        private hash<auto> getRebuildIndexOptions() {
             return OracleRebuildIndexOptions;
         }
 
         #! returns driver-specific options to the base abstract class
-        private hash getComputeStatisticsOptions() {
+        private hash<auto> getComputeStatisticsOptions() {
             return OracleComputeStatisticsOptions;
         }
 
@@ -2284,7 +2286,7 @@ auto v = c.name;
             return m_isView;
         }
 
-        private hash setSchemaTable() {
+        private hash<auto> setSchemaTable() {
             # get the table information if possible
             *hash<auto> row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (row)
@@ -2378,7 +2380,7 @@ auto v = c.name;
             return ret;
         }
 
-        private hash setTable() {
+        private hash<auto> setTable() {
             # see if the current user has the table
             *hash<auto> row = ds.selectRow("select * from user_tables where table_name = %v", name.upr());
             if (row) {
@@ -2471,16 +2473,16 @@ auto v = c.name;
             return readonly;
         }
 
-        private hash getColumnOptions() {
+        private hash<auto> getColumnOptions() {
             return OraColumnOptions;
         }
 
-        private hash getColumnDescOptions() {
+        private hash<auto> getColumnDescOptions() {
             return OraColumnDescOptions;
         }
 
         #! override in subclasses to return driver-specific options
-        private hash getSelectOptions() {
+        private hash<auto> getSelectOptions() {
             return OracleSelectOptions;
         }
 
@@ -2888,52 +2890,52 @@ auto v = c.name;
         private *list getAlignSqlImpl(AbstractTable t, *hash opt) {
         }
 
-        private hash getQoreTypeMapImpl() {
+        private hash<auto> getQoreTypeMapImpl() {
             return QoreTypeMap;
         }
 
-        private hash getTypeMapImpl() {
+        private hash<auto> getTypeMapImpl() {
             return OraTypeMap;
         }
 
-        private hash getIndexOptions() {
+        private hash<auto> getIndexOptions() {
             return OracleIndexOptions;
         }
 
-        private hash getConstraintOptions() {
+        private hash<auto> getConstraintOptions() {
             return OracleConstraintOptions;
         }
 
-        private hash getTableCreationOptions() {
+        private hash<auto> getTableCreationOptions() {
             return OracleTableCreationOptions;
         }
 
-        private hash getAlignTableOptions() {
+        private hash<auto> getAlignTableOptions() {
             return OracleAlignTableOptions;
         }
 
         #! returns the "where" operator map for this object
-        private hash getWhereOperatorMap() {
+        private hash<auto> getWhereOperatorMap() {
             return OracleOpMap;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMapImpl() {
+        private hash<auto> getColumnOperatorMapImpl() {
             return OracleCopMap;
         }
 
         #! returns the insert operator map for this object
-        private hash getInsertOperatorMap() {
+        private hash<auto> getInsertOperatorMap() {
             return OracleIopMap;
         }
 
         #! returns the raw (default) update operator map for this object
-        private hash getRawUpdateOperatorMap() {
+        private hash<auto> getRawUpdateOperatorMap() {
             return OracleUopMap;
         }
 
         #! returns a hash of valid pseudocolumns
-        private *hash getPseudoColumnHash() {
+        private *hash<auto> getPseudoColumnHash() {
             return OraclePseudoColumnHash;
         }
 
