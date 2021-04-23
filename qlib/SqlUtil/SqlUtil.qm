@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.7";
+    version = "1.7.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,10 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_7_1 SqlUtil v1.7.1
+    - fixed a bug where pseudocolumn references were used ambiguously in joins
+      (<a href="https://github.com/qorelanguage/qore/issues/4214">issue 4214</a>)
 
     @subsection sqlutilv1_7 SqlUtil v1.7
     - added the @ref SqlUtil::SqlResultInfo "SqlResultInfo" hash and methods that return this hash instead of taking

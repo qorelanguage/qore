@@ -69,6 +69,14 @@ class OracleTestSchema inherits SqlUtilTestSchema {
             },
         );
 
+        const T_OracleTest2 = {
+            "columns": {
+                "id": c_number(14, True),
+                "string": c_varchar(20, True),
+            },
+            "primary_key": {"name": "pk_oracle_test2", "columns": "id"},
+        };
+
         # bug #1688: sqlutil: oracle: character_semantics can be
         # different for each column, not only for the whole schema
         # BYTE semantics is forced here because global character_semantics = True
@@ -81,6 +89,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
 
         const Tables = (
             "oracle_test": T_OracleTest,
+            "oracle_test2": T_OracleTest2,
             # these tables are real tables without CustomColumns, so these should not be enhanced
             #"oracle_test_semantics" : T_OracleTestSemantics,
         );
@@ -110,7 +119,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         return SchemaVersion;
     }
 
-    private *hash getTablesImpl() {
+    private *hash<auto> getTablesImpl() {
         hash<auto> tables = Tables;
 
         if (hasSdoGeometry(ds)) {
@@ -125,27 +134,27 @@ class OracleTestSchema inherits SqlUtilTestSchema {
         );
     }
 
-    private *hash getSequencesImpl() {
+    private *hash<auto> getSequencesImpl() {
         return Sequences;
     }
 
-    private *hash getIndexOptionsImpl() {
+    private *hash<auto> getIndexOptionsImpl() {
         return IndexOptions;
     }
 
-    private *hash getGenericOptionsImpl() {
+    private *hash<auto> getGenericOptionsImpl() {
         return GenericOptions;
     }
 
-    private *hash getColumnOptionsImpl() {
+    private *hash<auto> getColumnOptionsImpl() {
         return ColumnOptions;
     }
 
-    private *hash getFunctionsImpl() {
+    private *hash<auto> getFunctionsImpl() {
         return Functions;
     }
 
-    private *hash getTypesImpl() {
+    private *hash<auto> getTypesImpl() {
         return Types;
     }
 
@@ -159,7 +168,7 @@ class OracleByteSchema inherits OracleTestSchema {
     constructor(AbstractDatasource ds, *string dts, *string its) : OracleTestSchema(ds, dts, its) {
     }
 
-    private *hash getColumnOptionsImpl() {
+    private *hash<auto> getColumnOptionsImpl() {
     }
 }
 
@@ -199,6 +208,8 @@ class OracleTest inherits SqlTestBase {
             #bfile
             #long
         );
+
+        AbstractTable table2;
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {
@@ -235,7 +246,9 @@ class OracleTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
+            table2 = (new Table(schema.getDatasource(), "oracle_test2")).getTable();
 
+            addTestCase("rowid test", \rowidTest());
             addTestCase("rownum test", \rownumTest());
             addTestCase("for update and limit", \forupdateAndLimitTest());
             addTestCase("issue 2795", \issue2785());
@@ -253,6 +266,20 @@ class OracleTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    rowidTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash<auto> sh = {
+            "columns": ("rowid", "id"),
+            "where": ("t2.rowid": "xxx"),
+            "join": join_inner(table2, "t2", ("id": "id")),
+        };
+        on_error printf("SQL: %s\n", table.getSelectSql(sh));
+        list<hash<auto>> q = table.selectRows(sh);
+        assertEq(0, q.size());
     }
 
     rownumTest() {
