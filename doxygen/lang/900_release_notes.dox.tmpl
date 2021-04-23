@@ -9,10 +9,15 @@
 
     @subsection qore_0914_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module updates:
+      - fixed a bug where pseudocolumn references were used ambiguously in joins
+        (<a href="https://github.com/qorelanguage/qore/issues/4214">issue 4214</a>)
       - fixed a bug where pseudocolumn names were quoted in queries leading to errors
         (<a href="https://github.com/qorelanguage/qore/issues/4210">issue 4210</a>)
       - added an exception when \c offset or \c limit are used with \c forupdate
         (<a href="https://github.com/qorelanguage/qore/issues/4206">issue 4206</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module updates:
+      - fixed a bug where pseudocolumn references were used ambiguously in joins
+        (<a href="https://github.com/qorelanguage/qore/issues/4214">issue 4214</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module updates:
       - fixed a bug where unknown string format types were not ignored but instead caused an exception to be thrown
         (<a href="https://github.com/qorelanguage/qore/issues/4203">issue 4203</a>)

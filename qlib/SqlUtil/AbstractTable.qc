@@ -4384,8 +4384,8 @@ string sql = table.getSelectSql(sh, \args);
 
     # column & table information must be retrieved before calling this function
     string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args, *hash<auto> ch, *hash<auto> opt) {
-        # get pseudo-column hash
-        *hash<auto> psch = getPseudoColumnHash();
+        # get pseudo-column hash; += used to keep hash<auto> without stripping types
+        *hash<auto> psch += getPseudoColumnHash();
 
         if (qh.hasKey("offset")) {
             if (!qh.orderby) {
@@ -4743,8 +4743,7 @@ string sql = table.getSelectSql(sh, \args);
                 # issue #2555: allow the use of literal with other column operators
                 if (arg.cop == COP_VALUE) {
                     arg = arg.arg.toString();
-                }
-                else {
+                } else {
                     if (arg.typeCode() != NT_STRING)
                         throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead (value: %y)", getDesc(), cop, arg.type(), arg);
                     arg = getColumnNameIntern(arg, jch, join, ch, psch);
@@ -4804,10 +4803,10 @@ string sql = table.getSelectSql(sh, \args);
         } else if (psch{cv}) {
             if (psch{cv}.typeCode() == NT_STRING) {
                 # substitute aliases with their actual definition
-                return psch{cv};
-            } else {
-                return cv;
+                cv = psch{cv};
             }
+            # issue #4214: use table prefixes in a join for pseudocolumns
+            return use_prefix ? sprintf("%s.%s", getSqlName(), cv) : cv;
         } else if (ch) {
             if (!ch{cv} && !psch{cv})
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
