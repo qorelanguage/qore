@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,7 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         if (rt == NT_STRING)
             str->concat(rh->get<const QoreStringNode>(), xsink);
         else {
+            assert(rh->isScalar() || !runtime_check_parse_option(PO_STRICT_TYPES));
             QoreStringValueHelper r(*rh, str->getEncoding(), xsink);
             if (*xsink)
                 return QoreValue();
@@ -228,6 +229,19 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
         }
 
         if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING) || QoreTypeInfo::isType(rightTypeInfo, NT_STRING)) {
+            if (!QoreTypeInfo::canConvertToScalar(leftTypeInfo) || !QoreTypeInfo::canConvertToScalar(rightTypeInfo)) {
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot mix %s and %s types with " \
+                    "the + operator", QoreTypeInfo::getName(leftTypeInfo), QoreTypeInfo::getName(rightTypeInfo)));
+                // issue #2943: raise an error for mixing string and non-scalar values with %strict-types
+                if (parse_get_parse_options() & PO_STRICT_TYPES) {
+                    desc->concat("; the non-string value is ignored in this case; this is an error when " \
+                        "%strict-types is in effect");
+                    qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc.release());
+                } else {
+                    qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
+                        "INVALID-OPERATION", desc.release());
+                }
+            }
             returnTypeInfo = stringTypeInfo;
         } else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE) || QoreTypeInfo::isType(rightTypeInfo, NT_DATE)) {
             returnTypeInfo = dateTypeInfo;

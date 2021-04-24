@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -71,6 +71,18 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
             return;
         } else {
             ti = nullptr;
+        }
+    } else if (QoreTypeInfo::isType(ti, NT_STRING) && !QoreTypeInfo::canConvertToScalar(rightTypeInfo)) {
+        SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot mix string and %s types with " \
+            "the += operator", QoreTypeInfo::getName(rightTypeInfo)));
+        // issue #2943: raise an error for mixing string and non-scalar values with %strict-types
+        if (parse_get_parse_options() & PO_STRICT_TYPES) {
+            desc->concat("; the non-string value is ignored in this case; this is an error when " \
+                "%strict-types is in effect");
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc.release());
+        } else {
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
+                "INVALID-OPERATION", desc.release());
         }
     }
     typeInfo = ti;

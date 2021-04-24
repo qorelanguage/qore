@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 # tests are made where the return value is ignored
 %disable-warning return-value-ignored
@@ -15,6 +16,7 @@
 
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("non scalar test", \nonScalarTest());
         addTestCase("width test", \testWidth());
         addTestCase("Basic functions test", \testBasics());
         addTestCase("Comparison test", \testComparison());
@@ -32,6 +34,29 @@ class StringTest inherits QUnit::Test {
         addTestCase("String conversion test", \testConversions());
         addTestCase("trim", \testTrim());
         set_return_value(main());
+    }
+
+    nonScalarTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("string str = 'a'; hash<auto> v = {}; auto x = str + v; remove x;", "",
+                -1);
+            assertEq("INVALID-OPERATION", warn.err);
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("string str = 'a'; hash<auto> v = {}; auto x = str + v; "
+                "remove x;", ""));
+        };
+        {
+            Program p(PO_NEW_STYLE);
+            *hash<ExceptionInfo> warn = p.parse("string str = 'a'; str += {};", "", -1);
+            assertEq("INVALID-OPERATION", warn.err);
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_TYPES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("string str = 'a'; str += {};", ""));
+        };
     }
 
     testWidth() {

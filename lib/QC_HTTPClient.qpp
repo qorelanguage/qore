@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,23 +45,38 @@ extern QoreClass* QC_SOCKET;
 #endif
 
 //! The HTTPClient class can be used to communicate with HTTP servers with and without TLS/SSL encryption
-/** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS encrypted connection) protocol.
+/** The HTTPClient class can be used to communicate with HTTP servers using the HTTP or HTTPS (HTTP using an SSL/TLS
+    encrypted connection) protocol.
 
-    By default \c "Connection: Keep-Alive" is always sent regardless of the HTTP protocol level set for the object, however if a server response contains \c "Connection: close", the connection will be closed as soon as the full response (including any message body if present) has been read.
+    By default \c "Connection: Keep-Alive" is always sent regardless of the HTTP protocol level set for the object,
+    however if a server response contains \c "Connection: close", the connection will be closed as soon as the full
+    response (including any message body if present) has been read.
 
-    HTTP redirect responses are supported and can be limited with the \c max_redirects constructor hash key or by using the HTTPClient::setMaxRedirects() method. The default maximum number of redirects allowed is 5.
+    HTTP redirect responses are supported and can be limited with the \c max_redirects constructor hash key or by
+    using the HTTPClient::setMaxRedirects() method. The default maximum number of redirects allowed is 5.
 
-    HTTP basic authentication is supported; set the username and password in the URL (ex: \c "http://username:password@host:port/path"). To change the URL from the one set by the constructor, call HTTPClient::setURL().
+    HTTP basic authentication is supported; set the username and password in the URL (ex:
+    \c "http://username:password@host:port/path"). To change the URL from the one set by the constructor, call
+    HTTPClient::setURL().
 
-    HTTP proxies and basic proxy authentication are supported by setting the proxy constructor hash key to the proxy URL (with a proxy username and password if required) or by calling the HTTPClient::setProxyURL() method.
+    HTTP proxies and basic proxy authentication are supported by setting the proxy constructor hash key to the proxy
+    URL (with a proxy username and password if required) or by calling the HTTPClient::setProxyURL() method.
 
-    Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads. If a request is in progress and another thread attempts to make a request at the same time, the second thread will block until the first is complete. Therefore the total amount of time a thread could wait for a response in a multi-threaded context could be greater than the timeout value (which applies to the maximum time a single internal send() or recv() action can take).
+    Objects of this class are thread-safe and support serializing multiple simultaneous requests from many threads. If
+    a request is in progress and another thread attempts to make a request at the same time, the second thread will
+    block until the first is complete. Therefore the total amount of time a thread could wait for a response in a
+    multi-threaded context could be greater than the timeout value (which applies to the maximum time a single
+    internal send() or recv() action can take).
 
-    This class understands and automatically decodes \c "deflate", \c "gzip", and \c "bzip2" content encodings as well.
+    This class understands and automatically decodes \c "deflate", \c "gzip", and \c "bzip2" content encodings as
+    well.
 
-    The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could exceed the timeout value.
+    The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to
+    individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could
+    exceed the timeout value.
 
-    When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server), any message body returned will be in the \c "arg" key of the exception hash.
+    When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server),
+    any message body returned will be in the \c "arg" key of the exception hash.
 
     This class understands the protocols in the following table.\n\n
     <b>%HTTPClient Class Protocols</b>
@@ -69,11 +84,14 @@ extern QoreClass* QC_SOCKET;
     |\c http|\c 80|No|Unencrypted HTTP protocol
     |\c https|\c 443|Yes|HTTP protocol with SSL/TLS encryption
 
-    Whenever using an HTTPClient method where a hash of headers can be passed to the method, some headers are generated by default by the class and can be overridden, and some are cannot be overridden and are ignored if passed by the client. See the following tables for details.
+    Whenever using an HTTPClient method where a hash of headers can be passed to the method, some headers are
+    generated by default by the class and can be overridden, and some are cannot be overridden and are ignored if
+    passed by the client. See the following tables for details.
 
     <b>%HTTPClient Mandatory Headers</b>
     |!Header|!Description
-    |\c Content-Length|This header is only sent if a message body is sent, and, if so, the length is calculated automatically.
+    |\c Content-Length|This header is only sent if a message body is sent, and, if so, the length is calculated \
+        automatically.
 
     <b>%HTTPClient Default, but Overridable Headers</b>
     |!Header|!Default Value
@@ -83,7 +101,14 @@ extern QoreClass* QC_SOCKET;
     |\c Connection|\c "Keep-Alive"
     |\c Accept-Encoding|\c "gzip,deflate,bzip2"
 
-    This class supports posting network events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more information.
+    Note that if the \c Content-Type header is sent without a \c ";charset=xxx" or \c ";boundary=xxxx" specification,
+    and a string is used as the message body for the request and the string does not have \c ISO-8859-1 encoding, a
+    \c ";charset=xxx" string will be appended to the \c Content-Type header to ensure that the message is received and
+    processed correctly on the remote end.  In all other cases the caller is responsible for correctly setting the
+    \c Content-Type header including any necessary \c ":charset=xxx" specification.
+
+    This class supports posting network events to a @ref Qore::Thread::Queue "Queue". See @ref event_handling for more
+    information.
 
     The events raised by this object are listed in the following table:
     <b>HTTPClient Events</b>
@@ -110,19 +135,32 @@ then the message-body SHOULD be ignored when handling the request.@endverbatim
 payload body on a GET request might cause some existing implementations to
 reject the request.@endverbatim
     .
-    Therefore we can conclude that \c GET methods do not include defined semantics, and therefore message bodies included with \c GET requests \c SHOULD be ignored according to the HTTP 1.1 spec, therefore it's recommended not to send
-    a message body with a \c GET request if standards compliance and compatibility is a goal.
+    Therefore we can conclude that \c GET methods do not include defined semantics, and therefore message bodies
+    included with \c GET requests \c SHOULD be ignored according to the HTTP 1.1 spec, therefore it's recommended not
+    to send a message body with a \c GET request if standards compliance and compatibility is a goal.
 
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
-    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
-    - HTTP headers should accept data in ISO-8859-1 (LATIN-1) encoding, but in practice for maximum compatibility US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format according to <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs character encoding conversion on strings used as the message body.
-    - The default character encoding for this class is the same as the @ref default_encoding "default character encoding" for %Qore (normally \c UTF-8); this class does not include a \c ";charset=utf-8" in the \c "Content-Type" header by default; this must be set explicitly by users of this class if necessary.
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax:
+      <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a
+      path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+      \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
+      host portion of the URL and for the URL to include a URL path as well.
+    - HTTP headers should accept data in ISO-8859-1 (LATIN-1) encoding, but in practice for maximum compatibility
+      US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format according to
+      <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs character
+      encoding conversion on strings used as the message body.
+    - The default character encoding for this class is the same as the
+      @ref default_encoding "default character encoding" for %Qore (normally \c UTF-8); this class does not include a
+      \c ";charset=" specification in the \c "Content-Type" header when sending binary message boundaries
+
+    @since %Qore 1.0 added code to add a \c ";charset=xxx" to HTTP messages with a non-ISO-8859-1 string message body
  */
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
 //! Creates the HTTPClient object based on the option parameter passed
-/** To connect, call any method that requires a connection and an implicit connection is established, or call HTTPClient::connect().
+/** To connect, call any method that requires a connection and an implicit connection is established, or call
+    HTTPClient::connect().
 
     @par Example:
     @code{.py}

@@ -140,6 +140,11 @@ class EchoHandler inherits AbstractHttpRequestHandler {
 
     # return the stream request handler
     AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+        # test for #1824
+        if (body.typeCode() == NT_STRING && (body.encoding() !~ /iso-8859-1/i) &&
+                !regex(hdr._qore_orig_content_type, body.encoding(), RE_Caseless)) {
+            throw "ENCODING-ERROR", sprintf("string = %y; Content-Type = %y", body, hdr._qore_orig_content_type);
+        }
         remote_cert = s.getRemoteCertificate();
         if (hdr."x-test-disconnect") {
             return new TestDisconnectStreamRequest(listener, self, s, cx, hdr, body);
@@ -799,8 +804,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             fail();
         } catch (hash<ExceptionInfo> ex) {
             if ((ex.err == "SOCKET-CLOSED") ||
-                (ex.err == "SOCKET-SSL-ERROR" && ex.desc =~ /reset by peer/))
-            {
+                (ex.err == "SOCKET-SSL-ERROR" && ex.desc =~ /reset by peer/)) {
                 assertTrue(True);
             } else {
                 fail();
