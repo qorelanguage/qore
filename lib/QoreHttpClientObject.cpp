@@ -1143,10 +1143,10 @@ static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, cons
 }
 
 QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth,
-    const char* mpath, const QoreHashNode* headers, const QoreStringNode* msg_body, const void* data, unsigned size,
-    const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
-    const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, InputStream* is,
-    size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
+        const char* mpath, const QoreHashNode* headers, const QoreStringNode* msg_body, const void* data,
+        unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info,
+        int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os,
+        InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
     assert(!(data && send_callback));
     assert(!(data && is));
     assert(!(is && send_callback));
@@ -1178,6 +1178,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     bool transfer_encoding = false;
 
+    // issue #1824: find content-type header, if any
+    const char* ct = nullptr;
     if (headers) {
         // issue #2340 track headers in a case-insensitive way
         strcase_set_t hdrs;
@@ -1191,12 +1193,14 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             // otherwise set the value in the hash
             const QoreValue n = hi.get();
             if (!n.isNothing()) {
-                if (!strcasecmp(hi.getKey(), "transfer-encoding"))
+                if (!strcasecmp(hi.getKey(), "transfer-encoding")) {
                     transfer_encoding = true;
+                }
 
                 addAppendHeader(hdrs, **nh, hi.getKey(), n, xsink);
 
-                if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
+                if (!strcasecmp(hi.getKey(), "connection")
+                    || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
                     const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);
                     if (*xsink) {
                         disconnect_unlocked();
@@ -1204,6 +1208,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                     }
                     if (conn && !strcasecmp(conn, "close"))
                         keep_alive = false;
+                } else if (!strcasecmp(hi.getKey(), "content-type")) {
+                    const char* ct_value = get_string_header(xsink, **nh, hi.getKey(), true);
+                    if (*xsink) {
+                        disconnect_unlocked();
+                        return 0;
+                    }
+                    if (ct_value && !strstr(ct_value, "charset=") && !strstr(ct_value, "boundary=")) {
+                        ct = hi.getKey();
+                    }
                 }
             }
         }
@@ -1224,10 +1237,37 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (skip)
                 continue;
         }
+        const char* hdr_value = hdri->second.c_str();
         // if there is no message body then do not send the "content-type" header
-        if (!data && !is && !send_callback && !strcmp(hdri->first.c_str(), "Content-Type"))
-            continue;
-        nh->setKeyValue(hdri->first.c_str(), new QoreStringNode(hdri->second.c_str()), xsink);
+        if (!strcmp(hdri->first.c_str(), "Content-Type")) {
+            if (!data && !is && !send_callback) {
+                continue;
+            }
+            if (!strstr(hdr_value, "charset=") && !strstr(hdr_value, "boundary=")) {
+                ct = hdri->first.c_str();
+            }
+        }
+        nh->setKeyValue(hdri->first.c_str(), new QoreStringNode(hdr_value), xsink);
+    }
+
+    // issue #1824: add ";charset=xxx" to Content-Type header if sending non-ISO-8891-1 text
+    if (msg_body && ct) {
+        const QoreEncoding* sock_enc = enc;
+        if (!enc) {
+            enc = msock->socket->getEncoding();
+        }
+        // any string will be converted to the socket's encoding before sending, so we have to compare the socket's
+        // encoding and not the string's
+        if (enc != QCS_ISO_8859_1) {
+            QoreStringNode* v = nh->getKeyValue(ct).get<QoreStringNode>();
+            assert(v->is_unique());
+            QoreString code(msg_body->getEncoding()->getCode());
+            // apply "tolower()" to each character
+            for (char* c = const_cast<char*>(code.c_str()); *c; ++c) {
+                *c = (*c > 64 && *c < 91) ? *c + 32 : *c;
+            }
+            v->sprintf(";charset=%s", code.c_str());
+        }
     }
 
     // set Transfer-Encoding: chunked if used with a send callback
@@ -1960,4 +2000,3 @@ QoreStringNode* QoreHttpClientObject::getAssumedEncoding() const {
     AutoLocker al(priv->m);
     return new QoreStringNode(qore_socket_private::get(*priv->socket)->getAssumedEncoding());
 }
-

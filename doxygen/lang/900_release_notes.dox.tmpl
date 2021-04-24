@@ -58,6 +58,13 @@
       (<a href="https://github.com/qorelanguage/qore/issues/4159">issue 4159</a>)
     - fixed bugs handling namespaces in imported binary classes
       (<a href="https://github.com/qorelanguage/qore/issues/4142">issue 4142</a>)
+    - added a warning when strings and non scalar types are mixed with the @ref plus_operator "+" and
+      @ref plus_equals_operator "+=" operators; these operations are errors when @ref strict-types "%strict-types"
+      is in effect
+      (<a href="https://github.com/qorelanguage/qore/issues/2943">issue 2943</a>)
+    - fixed a bug where the \c ";charset=xxx" string was not added to the \c Content-Type header when sending HTTP
+      messages with strings with non-ISO-8859-1 character encodings
+      (<a href="https://github.com/qorelanguage/qore/issues/1824">issue 1824</a>)
 
     @section qore_0914 Qore 0.9.14
 

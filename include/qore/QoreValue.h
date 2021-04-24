@@ -250,6 +250,11 @@ public:
     //! return true if the value needs evaluation
     DLLEXPORT bool needsEval() const;
 
+    //! returns true if the value is a scalar (int, bool, float, number, string)
+    /** @%Qore 1.0
+    */
+    DLLEXPORT bool isScalar() const;
+
     //! returns true if the value is not NOTHING
     DLLEXPORT operator bool() const;
 

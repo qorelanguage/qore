@@ -178,6 +178,14 @@ bool QoreSimpleValue::needsEval() const {
     return type == QV_Node && v.n && v.n->needs_eval();
 }
 
+bool QoreSimpleValue::isScalar() const {
+    if (type != QV_Node) {
+        return true;
+    }
+    qore_type_t t = getType();
+    return t == NT_STRING || t == NT_NUMBER;
+}
+
 QoreSimpleValue::operator bool() const {
     return !isNothing();
 }
