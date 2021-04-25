@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Pop3Client.qm POP3 client module definition
 
-/*  Pop3Client.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
+/*  Pop3Client.qm Copyright 2013 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -304,8 +304,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
     destructor() {
         try {
             disconnect();
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             logDbg("Pop3Client disconnect: %s: %s", ex.err, ex.desc);
         }
     }
@@ -1009,8 +1008,7 @@ pop3.setEventQueue();
         if (isConnected()) {
             try {
                 disconnectIntern();
-            }
-            catch(ex) {
+            } catch() {
                 # ignore
             }
         }

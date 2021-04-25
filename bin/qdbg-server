@@ -5,10 +5,11 @@
 %new-style
 %allow-debugger
 
-%requires qore >= 0.8.13
+%requires qore >= 1.0
 %requires HttpServer
 %requires DebugProgramControl
 %requires DebugHandler
+%requires Logger
 
 %exec-class DebugWrapper
 
@@ -73,12 +74,21 @@ class DebugWrapper {
             wsHandler.logger = logger;
 
             logger.log(DUV_DEBUG, "create HttpServer");
-            mServer = new HttpServer(\httplog(), \httperr(), logger.verbose >= DUV_DEBUG);
+
+            Logger http_logger("my-logger", LoggerLevel::getLevelInfo());
+            if (logger.verbose >= DUV_DEBUG) {
+                http_logger.addAppender(new MyAppender());
+            }
+            hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
+                "logger": http_logger,
+                "debug": True,
+            };
+            mServer = new HttpServer(http_opts);
             mServer.setHandler("ws-handler", opt.path ?? "", wsHandler.getContentType(), wsHandler);
             mServer.setDefaultHandler("ws-handler", wsHandler);
             if (opt.listen) {
                 foreach string l in (opt.listen) {
-                    mServer.addListener(l);
+                    mServer.addListener(http_get_listener_options_from_bind(l));
                     logger.log(DUV_INFO, "started debug server listener: %s", l);
                 }
             } else {
@@ -128,5 +138,19 @@ class DebugWrapper {
     }
 
     public dummy() {
+    }
+}
+
+class MyAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

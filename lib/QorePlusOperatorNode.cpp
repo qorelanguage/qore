@@ -217,8 +217,9 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
             returnTypeInfo = listTypeInfo;
         }
     }
-    // otherwise only set return type if return types on both sides are known at parse time
-    else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+    // otherwise only set return type if return types on both sides are known at parse time and neither can be a list
+    else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)
+        && !QoreTypeInfo::parseReturns(leftTypeInfo, NT_LIST) && !QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
         // issue #3157: try to handle timeout + date specially
         if (QoreTypeInfo::equal(leftTypeInfo, timeoutTypeInfo)
             && QoreTypeInfo::parseReturns(rightTypeInfo, NT_DATE)) {

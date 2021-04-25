@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  FilePoller.qm Copyright (C) 2014 - 2017 Qore Technologies s.r.o.
+/*  FilePoller.qm Copyright (C) 2014 - 2021 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -423,7 +423,7 @@ public namespace FilePoller {
                     if (runOnce())
                         continue;
                     fileSleep(poll_interval);
-                } catch (ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     logInfo("cannot get file list from %y: %s: %s", path, ex.desc, ex.err);
                     runflag = False;
                     break;
