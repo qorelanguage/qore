@@ -77,21 +77,34 @@
 #define YYINITDEPTH 300
 //#define YYDEBUG 1
 
-#define YYLLOC_DEFAULT(Current, Rhs, N)                      \
-   do                                                        \
-      if (N) {                                               \
-         (Current).first_line = YYRHSLOC(Rhs, 1).first_line; \
-         (Current).first_col  = YYRHSLOC(Rhs, 1).first_col;  \
-         (Current).last_line  = YYRHSLOC(Rhs, N).last_line;  \
-         (Current).last_col   = YYRHSLOC(Rhs, N).last_col;   \
-      }                                                      \
-      else {                                                 \
-         (Current).first_line = (Current).last_line =        \
-            YYRHSLOC(Rhs, 0).last_line;                      \
-         (Current).first_col = (Current).last_col =          \
-            YYRHSLOC(Rhs, 0).last_col;                       \
-      }                                                      \
-   while (0)
+#define YYLLOC_DEFAULT(Current, Rhs, N)                         \
+    do {                                                        \
+        if (N) {                                                \
+            (Current).first_line = YYRHSLOC(Rhs, 1).first_line; \
+            (Current).first_col  = YYRHSLOC(Rhs, 1).first_col;  \
+            (Current).last_line  = YYRHSLOC(Rhs, N).last_line;  \
+            (Current).last_col   = YYRHSLOC(Rhs, N).last_col;   \
+        } else {                                                \
+            (Current).first_line = (Current).last_line =        \
+                YYRHSLOC(Rhs, 0).last_line;                     \
+            (Current).first_col = (Current).last_col =          \
+                YYRHSLOC(Rhs, 0).last_col;                      \
+        }                                                       \
+    } while (0)
+
+// to fix the start location of an expression
+static void fix_start_location(int val, QoreParserLocation& loc, QoreParserLocation& exp_loc) {
+    if (!val) {
+        loc.first_col = exp_loc.first_col;
+        loc.first_line = exp_loc.first_line;
+        loc.last_col = exp_loc.last_col;
+        loc.last_line = exp_loc.last_line;
+    }
+}
+
+static void fix_start_location(void* val, QoreParserLocation& loc, QoreParserLocation& exp_loc) {
+    fix_start_location(val ? 1 : 0, loc, exp_loc);
+}
 
 class HashElement {
 public:
@@ -1720,7 +1733,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token <string> CONTEXT_REF "context reference"
 %token <string> COMPLEX_CONTEXT_REF "named context reference"
 %token <string> QORE_CAST "cast operator"
-%token <string> QORE_OR_NOTHING_CAST "cast operator"
+%token <string> QORE_OR_NOTHING_CAST "cast (or nothing) operator"
 %token <string> CLASS_STRING "simple class declaration"
 %token <datetime> DATETIME "date/time value"
 %token <String> QUOTED_WORD "quoted string"
@@ -1964,6 +1977,7 @@ ppub:   /* empty */
 
 gvardecl:
         ppub TOK_OUR uncqtypedef SCOPED_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "global variable", $4);
@@ -1972,22 +1986,26 @@ gvardecl:
             delete $3;
         }
         | ppub TOK_OUR SCOPED_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "global variable", $3);
             $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
             $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true);
             delete $3;
         }
         | ppub TOK_OUR IDENTIFIER {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true);
         }
         | ppub TOK_OUR qtypedef SCOPED_VREF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "global variable", $4);
@@ -1996,16 +2014,19 @@ gvardecl:
             delete $3;
         }
         | ppub TOK_OUR qtypedef VAR_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
             $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false);
             delete $3;
         }
         | ppub TOK_OUR '(' list ')' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             $$ = new GVarListDecl(loc, $4, $1);
         }
         | ppub TOK_THREAD_LOCAL uncqtypedef SCOPED_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "thread_local variable", $4);
@@ -2014,22 +2035,26 @@ gvardecl:
             delete $3;
         }
         | ppub TOK_THREAD_LOCAL SCOPED_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "thread_local variable", $3);
             $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true, VT_THREAD_LOCAL);
         }
         | ppub TOK_THREAD_LOCAL uncqtypedef IDENTIFIER {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
             $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, true, VT_THREAD_LOCAL);
             delete $3;
         }
         | ppub TOK_THREAD_LOCAL IDENTIFIER {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             $$ = new GVarSingleDecl(loc, $3, 0, 0, $1, true, VT_THREAD_LOCAL);
         }
         | ppub TOK_THREAD_LOCAL qtypedef SCOPED_VREF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "thread_local variable", $4);
@@ -2038,12 +2063,14 @@ gvardecl:
             delete $3;
         }
         | ppub TOK_THREAD_LOCAL qtypedef VAR_REF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($3);
             $$ = new GVarSingleDecl(loc, $4, t, t ? 0 : ParserTypeStruct::getParseTypeInfo($3), $1, false, VT_THREAD_LOCAL);
             delete $3;
         }
         | ppub TOK_THREAD_LOCAL '(' list ')' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             $$ = new GVarListDecl(loc, $4, $1, VT_THREAD_LOCAL);
         }
@@ -2051,6 +2078,7 @@ gvardecl:
 
 top_namespace_decl:
         nsc_modifiers TOK_NAMESPACE '{' namespace_decls '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             qore_ns_private* p = new qore_ns_private(loc);
             check_nsmod(loc, $1, *p);
@@ -2059,12 +2087,14 @@ top_namespace_decl:
             $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @2.last_line);
             qore_ns_private* p = new qore_ns_private(loc);
             check_nsmod(loc, $1, *p);
             $$ = p->ns;
         }
         | nsc_modifiers TOK_NAMESPACE '{' '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             qore_ns_private* p = new qore_ns_private(loc);
             check_nsmod(loc, $1, *p);
@@ -2481,11 +2511,13 @@ myexp:  /* empty */  { $$.set(nullptr); }
 
 hashdecl_def:
         nsc_modifiers TOK_HASHDECL IDENTIFIER '{' hashdecl_attrs '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             check_hashdeclmod(loc, $1, *($5));
             $$ = new HashDeclDef(loc, $3, $5);
         }
         | nsc_modifiers TOK_HASHDECL SCOPED_REF '{' hashdecl_attrs '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             check_hashdeclmod(loc, $1, *($5));
             $$ = new HashDeclDef(loc, $3, $5);
@@ -2494,12 +2526,14 @@ hashdecl_def:
 
 class_def:
         nsc_modifiers CLASS_STRING inheritance_list '{' class_attributes '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             check_classmod(loc, $1, *($5));
             qore_class_private::parseSetBaseClassList(*($5), $3);
             $$ = new ObjClassDef(loc, $2, $5);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' class_attributes '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "class", $2->ostr);
@@ -2508,6 +2542,7 @@ class_def:
             qore_class_private::parseSetBaseClassList(*($5), $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             // class name is set automatically from name saved in scanner
             QoreClass* qc = new QoreParseClass(loc);
@@ -2516,6 +2551,7 @@ class_def:
             $$ = new ObjClassDef(loc, $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @3.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "class", $2->ostr);
@@ -2526,6 +2562,7 @@ class_def:
             qore_class_private::parseSetBaseClassList(*qc, $3);
         }
         | nsc_modifiers CLASS_STRING inheritance_list '{' '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             // class name is set automatically from name saved in scanner
             QoreClass* qc = new QoreParseClass(loc);
@@ -2534,6 +2571,7 @@ class_def:
             $$ = new ObjClassDef(loc, $2, qc);
         }
         | nsc_modifiers CLASS_SCOPED_REF inheritance_list '{' '}' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             // see if strong encapsulation is enabled
             check_strong_encapsulation(loc, "class", $2->ostr);
@@ -2820,6 +2858,7 @@ classvardecl:
 
 member2:
         qtypedef SELF_REF ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @2.last_line);
             $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
             delete $1;
@@ -2827,6 +2866,7 @@ member2:
                 parse_error(*loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SELF_REF '=' exp ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @4.last_line);
             $$ = new MemberInfo($2, new QoreMemberInfo(loc, ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1), $4));
             delete $1;
@@ -2834,6 +2874,7 @@ member2:
                 parse_error(*loc, "reference to '$.%s' with the '$.' prefix is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SELF_REF '(' myexp ')' ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @5.last_line);
             const QoreTypeInfo* t = ParserTypeStruct::getTypeInfo($1);
             AbstractQoreNode* new_call = nullptr;
@@ -2996,6 +3037,7 @@ ident_openparen:
 
 inline_methoddef:
         nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value block {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @7.last_line);
             if ($1 & OFM_ABSTRACT) {
                 if ($7)
@@ -3007,6 +3049,7 @@ inline_methoddef:
             $$ = new MethodNode($2, new_method_variant(loc, $2, $1, @3.first_line, @3.last_line, $3, $5, $6, $7), $1 & OFM_STATIC);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @7.last_line);
             if ($1 & OFM_ABSTRACT) {
                 if ($7)
@@ -3022,6 +3065,7 @@ inline_methoddef:
             $$ = new MethodNode($3, new_method_variant(loc, $3, $1, @4.first_line, @4.last_line, $4, $6, rt, $7), $1 & OFM_STATIC);
         }
         | nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             if (!($1 & OFM_ABSTRACT))
                 parse_error(*loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
@@ -3029,6 +3073,7 @@ inline_methoddef:
             $$ = new MethodNode($2, new_method_variant(loc, $2, $1, @3.first_line, @3.last_line, $3, $5, $6, 0), $1 & OFM_STATIC);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @6.last_line);
             if (!($1 & OFM_ABSTRACT))
                 parse_error(*loc, "non-abstract method declared without any body; either declare the method 'abstract' or declare an empty method body with '{}'");
@@ -3373,6 +3418,7 @@ exp_c:
             $$.set(new ScopedRefNode(loc, $1));
         }
         | qtypedef VAR_REF {
+            fix_start_location($1, @$, @2);
             if (!$1 && !strcmp($2, "argv"))
                 inc_argv_ref();
 
@@ -3387,6 +3433,7 @@ exp_c:
                 parse_error(*loc, "reference to variable '%s' with the '$' sign is not allowed when parse option 'allow-bare-refs' is set", $2);
         }
         | qtypedef SCOPED_VREF {
+            fix_start_location($1, @$, @2);
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation($1 ? @1.first_line : @2.first_line, @2.last_line);
             if ($1)
                 $$.set(new VarRefDeclNode(loc, $2, get_var_type(), ParserTypeStruct::getTypeInfo($1), ParserTypeStruct::getParseTypeInfo($1)));
@@ -3910,7 +3957,9 @@ exp:
     | exp XOR_EQUALS exp                { $$.set(new QoreXorEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp SHIFT_LEFT_EQUALS exp         { $$.set(new QoreShiftLeftEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp SHIFT_RIGHT_EQUALS exp        { $$.set(new QoreShiftRightEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
-    | exp '=' exp                       { $$.set(process_assignment(@1.first_line, @3.last_line, $1, $3)); }
+    | exp '=' exp                       {
+        $$.set(process_assignment(@1.first_line, @3.last_line, $1, $3));
+    }
     | exp WEAK_ASSIGNMENT exp           {
         const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line);
         // see if the use of the weak assignment operator is allowed
@@ -3984,14 +4033,14 @@ exp:
         $$.set(nullptr);
         // issue #2198: if we have a range between square brackets, we need to return a QoreSquareBracketsRangeOperatorNode
         if ($3.getType() == NT_OPERATOR) {
-           QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3.getInternalNode());
-           if (ron) {
-              std::unique_ptr<QoreRangeOperatorNode> holder(ron);
-              $$.set(new QoreSquareBracketsRangeOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @4.last_line), $1, ron->swapLeft(QoreValue()), ron->swapRight(QoreValue())));
-           }
+            QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3.getInternalNode());
+            if (ron) {
+                std::unique_ptr<QoreRangeOperatorNode> holder(ron);
+                $$.set(new QoreSquareBracketsRangeOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @4.last_line), $1, ron->swapLeft(QoreValue()), ron->swapRight(QoreValue())));
+            }
         }
         if (!$$) {
-           $$.set(new QoreSquareBracketsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3));
+            $$.set(new QoreSquareBracketsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3));
         }
     }
     | exp '{' exp '}'                   { $$.set(new QoreHashObjectDereferenceOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
@@ -4013,7 +4062,9 @@ exp_n:
     | exp_n XOR_EQUALS exp                { $$.set(new QoreXorEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp_n SHIFT_LEFT_EQUALS exp         { $$.set(new QoreShiftLeftEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp_n SHIFT_RIGHT_EQUALS exp        { $$.set(new QoreShiftRightEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
-    | exp_n '=' exp                       { $$.set(process_assignment(@1.first_line, @3.last_line, $1, $3)); }
+    | exp_n '=' exp                       {
+        $$.set(process_assignment(@1.first_line, @3.last_line, $1, $3));
+    }
     | exp_n WEAK_ASSIGNMENT exp           {
         const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line);
         // see if the use of the weak assignment operator is allowed
@@ -4089,14 +4140,15 @@ exp_n:
         $$.set(nullptr);
         // issue #2198: if we have a range between square brackets, we need to return a QoreSquareBracketsRangeOperatorNode
         if ($3.getType() == NT_OPERATOR) {
-           QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3.getInternalNode());
-           if (ron) {
-              std::unique_ptr<QoreRangeOperatorNode> holder(ron);
-              $$.set(new QoreSquareBracketsRangeOperatorNode(loc, $1, ron->swapLeft(QoreValue()), ron->swapRight(QoreValue())));
-           }
+            QoreRangeOperatorNode* ron = dynamic_cast<QoreRangeOperatorNode*>($3.getInternalNode());
+            if (ron) {
+                std::unique_ptr<QoreRangeOperatorNode> holder(ron);
+                $$.set(new QoreSquareBracketsRangeOperatorNode(loc, $1, ron->swapLeft(QoreValue()), ron->swapRight(QoreValue())));
+            }
         }
-        if (!$$)
-           $$.set(new QoreSquareBracketsOperatorNode(loc, $1, $3));
+        if (!$$) {
+            $$.set(new QoreSquareBracketsOperatorNode(loc, $1, $3));
+        }
     }
     | exp_n '{' exp '}'                   { $$.set(new QoreHashObjectDereferenceOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp_n RANGE exp                     { $$.set(new QoreRangeOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
