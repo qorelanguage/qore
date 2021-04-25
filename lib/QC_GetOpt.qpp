@@ -461,6 +461,13 @@ hash<auto> GetOpt::parse3(softlist<auto> pgm_args) [dom=PROCESS] {
 //! Parses the given options and returns a hash of the parsed options
 /** @par Example:
     @code{.py}
+const Opts = {
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+};
 hash<auto> o = GetOpt::parse(Opts, \ARGV);
 if (exists o."_ERRORS_") {
     foreach string err in (o."_ERRORS_")
@@ -469,6 +476,20 @@ if (exists o."_ERRORS_") {
 }
     @endcode
 
+    @param opts a hash where each key defines the key value for the return hash if any arguments are given
+    corresponding to the string value of the key; The string value of each hash key follows the following pattern:\n
+    <em>opts</em><tt>[(=|:)</tt><em>type</em><tt>[</tt><em>modifier</em><tt>]]</tt>\n
+    Where the meaning of the above placeholders in italics is:\n
+    - <em>opts</em>: At least one short option and/or a long option name; if both are present, then they must be
+      separated by a comma. The short option must be a single character.
+    - <tt>(=|:)</tt><em>type</em>: if \c "=" is used, then the option takes a mandatory argument, if \c ":" is used,
+      then the argument is optional. Types are specified as follows:
+      - <em>s</em>: string
+      - <em>i</em>: integer
+      - <em>f</em>: float
+      - <em>d</em>: date
+      - <em>b</em>: boolean
+    - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
     argument accepted by the object will be removed from the list
 
@@ -510,9 +531,30 @@ static hash<auto> GetOpt::parse(hash<auto> opts, reference<list<string>> pgm_arg
 //! Parses the given options and returns a hash of the parsed options and throws and exception if there are any errors
 /** @par Example:
     @code{.py}
+const Opts = {
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+};
 hash<auto> o = GetOpt::parseEx(Opts, \ARGV);
     @endcode
 
+    @param opts a hash where each key defines the key value for the return hash if any arguments are given
+    corresponding to the string value of the key; The string value of each hash key follows the following pattern:\n
+    <em>opts</em><tt>[(=|:)</tt><em>type</em><tt>[</tt><em>modifier</em><tt>]]</tt>\n
+    Where the meaning of the above placeholders in italics is:\n
+    - <em>opts</em>: At least one short option and/or a long option name; if both are present, then they must be
+      separated by a comma. The short option must be a single character.
+    - <tt>(=|:)</tt><em>type</em>: if \c "=" is used, then the option takes a mandatory argument, if \c ":" is used,
+      then the argument is optional. Types are specified as follows:
+      - <em>s</em>: string
+      - <em>i</em>: integer
+      - <em>f</em>: float
+      - <em>d</em>: date
+      - <em>b</em>: boolean
+    - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
     argument accepted by the object will be removed from the list
 
@@ -526,8 +568,8 @@ hash<auto> o = GetOpt::parseEx(Opts, \ARGV);
     @throw GETOPT-ERROR error parsing arguments
 
     @see
-    - Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
-    - Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parseExit() "GetOpt::parseExit(hash<auto>, reference<list<string>>)"
 */
 static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_args) {
     SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));
@@ -556,9 +598,30 @@ static hash<auto> GetOpt::parseEx(hash<auto> opts, reference<list<string>> pgm_a
 //! Parses the given options and returns a hash of the parsed options; prints out an error message and exits the program if there are any errors
 /** @par Example:
     @code{.py}
+const Opts = {
+     "url"  : "u,url=s",
+     "xml"  : "x,xml",
+     "lxml" : "X,literal-xml",
+     "verb" : "v,verbose",
+     "help" : "h,help",
+};
 hash<auto> o = GetOpt::parseExit(Opts, \ARGV);
     @endcode
 
+    @param opts a hash where each key defines the key value for the return hash if any arguments are given
+    corresponding to the string value of the key; The string value of each hash key follows the following pattern:\n
+    <em>opts</em><tt>[(=|:)</tt><em>type</em><tt>[</tt><em>modifier</em><tt>]]</tt>\n
+    Where the meaning of the above placeholders in italics is:\n
+    - <em>opts</em>: At least one short option and/or a long option name; if both are present, then they must be
+      separated by a comma. The short option must be a single character.
+    - <tt>(=|:)</tt><em>type</em>: if \c "=" is used, then the option takes a mandatory argument, if \c ":" is used,
+      then the argument is optional. Types are specified as follows:
+      - <em>s</em>: string
+      - <em>i</em>: integer
+      - <em>f</em>: float
+      - <em>d</em>: date
+      - <em>b</em>: boolean
+    - <em>modifier</em>: \c "@" specifies a list, \c "+" an additive value (sum; must be integer or float type)
     @param pgm_args The reference should point to a list of arguments to process (normally <tt>ARGV</tt>); any
     argument accepted by the object will be removed from the list
 
@@ -569,8 +632,8 @@ hash<auto> o = GetOpt::parseExit(Opts, \ARGV);
     All arguments parsed will be removed from \a pgm_args, leaving only unparsed arguments (for example, file names).
 
     @see
-    - Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
-    - Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parse() "GetOpt::parse(hash<auto>, reference<list<string>>)"
+    - @ref Qore::GetOpt::parseEx() "GetOpt::parseEx(hash<auto>, reference<list<string>>)"
 */
 static hash<auto> GetOpt::parseExit(hash<auto> opts, reference<list<string>> pgm_args) [dom=PROCESS] {
     SimpleRefHolder<GetOpt> g(GETOPT_constructor_intern(opts, xsink));

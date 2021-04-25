@@ -299,7 +299,10 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section context context Statements
 
     @par Synopsis
-    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods), the <tt><b>context</b></tt> statement can be used. Column names can be referred to directly in expressions in the scope of the context statement by preceding the name with a \c "%" character.
+    To easily iterate through multiple rows in a hash of arrays (such as a query result set returned by the
+    Qore::SQL::Datasource::select() or Qore::SQL::SQLStatement::fetchColumns() methods), the <tt><b>context</b></tt>
+    statement can be used. Column names can be referred to directly in expressions in the scope of the context
+    statement by preceding the name with a \c "%" character, while the current row can be referenced with \c %%.
 
     @par Syntax
     <tt><b>context</b></tt> <em>[name]</em> <tt>(</tt><em>@ref expressions "data_expression"</em><tt>)</tt>\n
@@ -312,19 +315,31 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     <em>@ref expressions "data_expression"</em>\n
     This must evaluate to a hash of arrays in order for the <tt><b>context</b></tt> statement to execute.\n\n
     <em>@ref expressions "where_expression"</em>\n
-    An optional <b><tt>where</tt></b> expression may be given, in which case for each row in the hash, the expression will be executed, and if the where expression evaluates to @ref True "True", the row will be iterated in the context loop. If this expression evaluates to @ref False "False", then the row will not be iterated. This option is given so the programmer can create multiple views of a single data structure (such as a query result set) in memory rather than build different data structures by hand (or retrieve the data multiple times from a database).\n\n
+    An optional <b><tt>where</tt></b> expression may be given, in which case for each row in the hash, the expression
+    will be executed, and if the where expression evaluates to @ref True "True", the row will be iterated in the
+    context loop. If this expression evaluates to @ref False "False", then the row will not be iterated. This option
+    is given so the programmer can create multiple views of a single data structure (such as a query result set) in
+    memory rather than build different data structures by hand (or retrieve the data multiple times from a
+    database).\n\n
     <em>@ref expressions "sort_expression"</em>\n
-    An optional <tt><b>sortBy</b></tt> expression may also be given. In this case, the expression will be evaluated for each row of the query given, and then the result set will be sorted in ascending order by the results of the expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer, then integer order is used, etc).\n\n
+    An optional <tt><b>sortBy</b></tt> expression may also be given. In this case, the expression will be evaluated
+    for each row of the query given, and then the result set will be sorted in ascending order by the results of the
+    expressions according to the resulting type of the evaluated expression (i.e. if the result of the evaluation of
+    the expression gives a string, then string order is used to sort, if the result of the evaluation is an integer,
+    then integer order is used, etc).\n\n
     <em>@ref expressions "sort_descending_expression"</em>\n
-    Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the results are sorted in descending order.
+    Another optional modifier to the <tt><b>context</b></tt> statement that behaves the same as above except that the
+    results are sorted in descending order.
 
     @par Example
     @code{.py}
 # note that "%service_type" and "%effective_start_date" represent values
 # in the service_history hash of arrays.
 context (service_history) where (%service_type == "voice")
-sortBy (%effective_start_date) {
-   printf("%s: start date: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
+        sortBy (%effective_start_date) {
+    # %% is a hash of the current row
+    check_row(%%);
+    printf("%s: start date: %s\n", %msisdn, format_date("YYYY-MM-DD HH:mm:SS", %effective_start_date));
 }
     @endcode
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file VscDebugAdapter Visual Studio Code debug adapter
 
-/*  VscDebugAdapter.qm Copyright 2013 - 2020 Qore Technologies, s.r.o.
+/*  VscDebugAdapter.qm Copyright 2013 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -106,7 +106,7 @@ public namespace VscDebugAdapter {
                     } else {
                         m_file.open2(m_filename, O_CREAT | O_TRUNC | O_WRONLY);
                     }
-                } catch (ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     stderr.printf("%y\n", ex);
                     m_logging = False;
                 }

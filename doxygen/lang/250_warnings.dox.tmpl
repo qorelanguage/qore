@@ -25,6 +25,7 @@
     - @ref duplicate-hash-key
     - @ref duplicate-local-vars
     - @ref excess-args
+    - @ref invalid-catch
     - @ref invalid-operation
     - @ref module-only
     - @ref non-existent-method-call
@@ -78,6 +79,11 @@
     @section excess-args excess-args
     Raised when a function or method call is made with more arguments than are used by the function or method
     @since %Qore 0.8.0
+
+    <hr>
+    @section invalid-catch invalid-catch
+    Raised when a @ref try "catch block" exception variable has no type declaration, but types are required
+    @since %Qore 1.0
 
     <hr>
     @section invalid-operation invalid-operation

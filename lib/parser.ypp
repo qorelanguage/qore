@@ -2481,7 +2481,9 @@ try_statement:
             char* param = 0;
             const QoreTypeInfo* typeInfo = nullptr;
             QoreParseTypeInfo* parseTypeInfo = nullptr;
-            const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
+            const QoreProgramLocation* loc =
+                qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
+            bool missing_type_decl = true;
             if ($5.getType() == NT_VARREF) {
                 VarRefNode* varRefNode = $5.get<VarRefNode>();
                 param = varRefNode->takeName();
@@ -2490,13 +2492,32 @@ try_statement:
                     parseTypeInfo = varRefDeclNode->takeParseTypeInfo();
                     if (!parseTypeInfo)
                         typeInfo = varRefDeclNode->getTypeInfo();
+                    missing_type_decl = false;
                 }
             } else if ($5.getType() == NT_BAREWORD) {
                 param = $5.get<BarewordNode>()->takeString();
                 if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
-                    parse_error(*loc, "local variable '%s' in catch parameter list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", param);
+                    parse_error(*loc, "local variable '%s' in catch parameter list declared without '$' prefix, but " \
+                        "parse option 'allow-bare-refs' is not set", param);
             } else if ($5) {
                 parse_error(*loc, "only one parameter accepted in catch block for exception hash");
+                missing_type_decl = false;
+            }
+            if ($5 && missing_type_decl) {
+                int64 po = parse_get_parse_options();
+                if (po & (PO_STRICT_TYPES|PO_REQUIRE_TYPES)) {
+                    SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("the catch block is missing a " \
+                        "type declaration; the exception argument should be declared as 'hash<ExceptionInfo>' or " \
+                        "with a compatible type"));
+                    // issue #2943: raise an error for mixing string and non-scalar values with %strict-types
+                    if (po & PO_STRICT_TYPES) {
+                        desc->concat("; this is an error when %strict-types is in effect");
+                        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc.release());
+                    } else {
+                        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_CATCH,
+                            "INVALID-CATCH", desc.release());
+                    }
+                }
             }
             $5.discard(nullptr);
             const QoreProgramLocation* vloc = qore_program_private::get(*getProgram())->getLocation($5 ? @5.first_line : 0, $5 ? @5.last_line : 0);

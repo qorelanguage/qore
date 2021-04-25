@@ -7,12 +7,23 @@
     @par Release Summary
     Bugfix release; see below for more information
 
+    @subsection qore_1_0_compatibility Fixes That Can Affect Backwards-Compatibility
+    - Some server-side APIs have changed due to the integration of the
+      <a href="../../modules/Logger/html/index.html">Logger</a> module in the
+      <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and the
+      <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> modules, in particular the
+      \a errorlogger listener option has been removed, and the type of the \a logger listener option has been
+      updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
+    - Implemented the @ref invalid-catch "invalid-catch" warning when types are required by parse options, byt the
+      exception variable declaration has no type, and added this to the default warning mask for modules
+
     @subsection qore_1_0_new_features New Features in Qore
     - added support for <a href="https://alpinelinux.org/">Alpine Linux</a>
     - added support for @ref thread_local_variables "thread-local global variables"; see the
       @ref thread_local "thread_local" keyword
     - new constants:
       - @ref Qore::PO_NO_INHERIT_PROGRAM_DATA "PO_NO_INHERIT_PROGRAM_DATA"
+      - @ref Qore::WARN_INVALID_CATCH "WARN_INVALID_CATCH"
     - updated methods:
       - @ref <value>::fullType()
     - type errors with function and method resolution will report the full namespace paths of class and hashdecl
@@ -34,18 +45,10 @@
           directly to @ref Logger::Logger "Logger" objects
           (<a href="https://github.com/qorelanguage/qore/issues/4164">issue 4164</a>)
 
-    @subsection qore_1_0_compatibility Fixes That Can Affect Backwards-Compatibility
-    - Some server-side APIs have changed due to the integration of the
-      <a href="../../modules/Logger/html/index.html">Logger</a> module in the
-      <a href="../../modules/HttpServer/html/index.html">HttpServer</a> and the
-      <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> modules, in particular the
-      \a errorlogger listener option has been removed, and the type of the \a logger listener option has been
-      updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
-
     @subsection qore_1_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Qdx/html/index.html">Qdx</a> module
       - fixed stripping the final \c "\" character in multi-line entries in tables
-        (<a href="https://github.com/qorelanguage/qore/issues/4195>issue 4195</a>)
+        (<a href="https://github.com/qorelanguage/qore/issues/4195">issue 4195</a>)
     - fixed a bug handling @ref softlist_complex_type "complex softlist<...>" values where illegal matches were
       allowed under some circumstances leading to runtime errors
       (<a href="https://github.com/qorelanguage/qore/issues/4184">issue 4184</a>)
