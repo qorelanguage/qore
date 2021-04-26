@@ -27,6 +27,28 @@ public class Main inherits QUnit::Test {
 
     testSerialize() {
         {
+            # issue #3275: test SMTP serialization
+            Message msg(Sender, Subject);
+            string body = "test\r\n.\r\n";
+            msg.setBody(body);
+            msg.addTO(To);
+
+            string file = "119195|281522|230667|ATEAAT1Glasfaser_SCHWECHAT|LEASEDLINE|ERROR|Lease number already "
+                "exists in EBS. The operation ABS (CREATE) is not the right one.";
+            msg.attach("file.csv", MimeTypeText, file);
+            string r = msg.serialize();
+            on_error printf("%y\n", r);
+            assertFalse(r =~ /^\.\r$/m);
+
+            msg = new Message(r);
+            assertEq((To,), msg.getTO());
+            assertEq(Sender, msg.getFrom());
+            assertEq(Subject, msg.getSubject());
+            assertEq(body, msg.getBody());
+            assertEq(file, msg.getAttachments()[0].getData());
+        }
+
+        {
             string body = "some body";
 
             Message msg(Sender, Subject);
@@ -69,6 +91,42 @@ bG9yZW0gaXBzdW0=\r
             msg.addTO(To);
 
             msg.attach("foo.txt", MimeTypeText, "lorem ipsum");
+            string r = msg.serialize();
+
+            string refstr = "From: foo@bar.cz\r
+To: target@bar.cz\r
+Subject: foo bar\r
+MIME-Version: 1.0\r
+Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+\r
+This is a MIME multipart message\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: inline\r
+Content-Transfer-Encoding: quoted-printable\r
+\r
+body\r
+--MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: text/plain;charset=UTF-8\r
+Content-Disposition: attachment; filename=\"foo.txt\"\r
+Content-Transfer-Encoding: base64\r
+\r
+bG9yZW0gaXBzdW0=\r
+--MjAxNjAxMjIxMTQ4MDg--\r
+";
+
+            # get boundary from generated message
+            string boundary = (r =~ x/boundary=(\w+)/)[0];
+            r = replace(r, boundary, "MjAxNjAxMjIxMTQ4MDg");
+            assertEq(refstr.split("\r\n"), r.split("\r\n"));
+            #assertEq(refstr, r);
+        }
+        {
+            Message msg(Sender, Subject);
+            msg.setBody("body");
+            msg.addTO(To);
+
+            msg.attach("foo.txt", MimeTypeText, "lorem ipsum", EncDefault);
             string r = msg.serialize();
 
             string refstr = "From: foo@bar.cz\r

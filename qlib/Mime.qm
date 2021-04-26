@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mime.qm Mime module definition
 
-/*  Mime.qm Copyright (C) 2012 - 2019 Qore Technologies, s.r.o.
+/*  Mime.qm Copyright (C) 2012 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.3
+%requires qore >= 1.0
 
 %requires Util
 
@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.4.2";
+    version = "1.4.3";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -89,7 +89,11 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
 
     @section mimereleasenotes Release Notes
 
-    @subsection mime_1_4.2 v1.4.2
+    @subsection mime_1_4_3 v1.4.3
+    - fixed bugs parsing binary data in multipart messages
+      (<a href="https://github.com/qorelanguage/qore/issues/4223">issue 4223</a>)
+
+    @subsection mime_1_4_2 v1.4.2
     - fixed bugs parsing binary data in multipart messages
       (<a href="https://github.com/qorelanguage/qore/issues/2936">issue 2936</a>)
 
@@ -637,7 +641,7 @@ public namespace Mime {
         @note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
      */
     public binary sub mime_decode_base64(data str) {
-        return parse_base64_string(str);
+        return parse_base64_string(str.typeCode() == NT_STRING ? str : str.toString());
     }
 
     #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
@@ -715,7 +719,9 @@ public namespace Mime {
             }
 
             case ContentTransEncQuotedPrintable: {
-                mime_data = mime_decode_quoted_printable(mime_data);
+                mime_data = mime_decode_quoted_printable(
+                    mime_data.typeCode() == NT_STRING ? mime_data : mime_data.toString()
+                );
                 break;
             }
 
@@ -1361,11 +1367,11 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        splicePart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        splicePart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            splicePartIntern(mime_data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
+            splicePartIntern(mime_data, hdr + {"Content-Type": content_type, "Content-Disposition": disp});
         }
 
         #! adds a message part to the end of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
@@ -1381,11 +1387,11 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        addPart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        addPart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            addPartIntern(mime_data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
+            addPartIntern(mime_data, hdr + {"Content-Type": content_type, "Content-Disposition": disp});
         }
 
         #! adds a message part to the start of the list; encodes the data according to the transfer encoding argument passed
@@ -1403,13 +1409,14 @@ hash: (2 members)
             - MultiPartMixedMessage::addPart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        spliceEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        spliceEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
             if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
                 content_type += sprintf(";charset=%s", get_encoding(mime_data));
-            splicePartIntern(mime_encode_transfer_data(mime_data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
+            splicePartIntern(mime_encode_transfer_data(mime_data, enc), hdr
+                + {"Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc});
         }
 
         #! adds a message part to the end of the list; encodes the data according to the transfer encoding argument passed
@@ -1427,13 +1434,14 @@ hash: (2 members)
             - MultiPartMixedMessage::splicePart()
             - MultiPartMixedMessage::spliceEncodePart()
          */
-        addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+        addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
             if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
                 content_type += sprintf(";charset=%s", get_encoding(mime_data));
-            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
+            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr
+                + {"Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc});
         }
 
         #! returns a hash of the message
