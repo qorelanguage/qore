@@ -54,6 +54,7 @@ class Test inherits QUnit::Test {
 
     timeoutTests() {
         Queue q(1);
+        assertTrue(q instanceof AbstractQueue);
         assertThrows("QUEUE-TIMEOUT", \q.get(), -1);
         assertThrows("QUEUE-TIMEOUT", \q.pop(), -1);
         assertThrows("QUEUE-TIMEOUT", \q.get(), -10000);
@@ -74,7 +75,7 @@ class Test inherits QUnit::Test {
         assertThrows("QUEUE-TIMEOUT-ERROR", \q.push(), (True, 9999999999));
     }
 
-    wait(Queue q, Counter c) {
+    wait(AbstractQueue q, Counter c) {
         on_exit c.dec();
         assertThrows("ERR", \q.get());
     }

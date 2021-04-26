@@ -1,0 +1,208 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*** @file QC_AbstractQueue.qpp AbstractQueue class definition
+
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore/Qore.h>
+
+//! %AbstractQueue objects define an interface for blocking, thread-safe message-passing objects in %Qore
+/**
+    @since %Qore 1.0
+*/
+qclass AbstractQueue [dom=THREAD_CLASS; arg=AbstractQueue *q; ns=Qore::Thread];
+
+//! Pushes a value on the end of the queue
+/** @par Example:
+    @code{.py} queue.push(value); @endcode
+
+    @param arg value to be put on the queue
+    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are
+    interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of
+    milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception
+    if the call would otherwise block.  If a positive timeout argument is passed, and the queue has already reached
+    its maximum size and does not go below the maximum size within the timeout period, a \c "QUEUE-TIMEOUT" exception
+    is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not
+    timeout until a slot becomes available on the queue.
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
+*/
+abstract nothing AbstractQueue::push(auto arg, timeout timeout_ms = 0);
+
+//! Inserts a value at the beginning of the queue
+/** @par Example:
+    @code{.py} queue.insert(value); @endcode
+
+    @param arg value to be put on the queue
+    @param timeout_ms a timeout value to wait for a free entry to become available on the queue; integers are
+    interpreted as milliseconds; relative date/time values are interpreted literally with a maximum resolution of
+    milliseconds.  A negative timeout value causes the call to time out immediately with a \c QUEUE-TIMEOUT exception
+    if the call would otherwise block.  If a positive timeout argument is passed, and the queue has already reached
+    its maximum size and does not go below the maximum size within the timeout period, a \c "QUEUE-TIMEOUT" exception
+    is thrown.  If no value or a value that converts to integer 0 is passed as the argument, then the call does not
+    timeout until a slot becomes available on the queue.
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
+*/
+abstract nothing AbstractQueue::insert(auto arg, timeout timeout_ms = 0);
+
+//! Blocks until at least one entry is available on the queue, then returns the first entry in the queue
+/** @par Example:
+    @code{.py} auto data = queue.get();@endcode
+
+    If a timeout occurs, an exception is thrown. If the timeout value equal to zero, then the call does not timeout
+    until data is available, while negative timeout values cause the call to timeout immediately if the call would
+    otherwise block.
+
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as
+    milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A
+    negative timeout value causes the call to time out immediately with a \c ABSTRACTQUEUE-TIMEOUT exception if the call would
+    otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout period, a
+    \c "ABSTRACTQUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as the
+    argument, then the call does not timeout until data is available on the queue.
+
+    @return the first entry on the queue
+
+    @note This method throws a \c "ABSTRACTQUEUE-TIMEOUT" exception on timeout, in order to enable the case where NOTHING was pushed on the queue to be differentiated from a timeout
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
+*/
+abstract auto AbstractQueue::get(timeout timeout_ms = 0);
+
+//! Blocks until at least one entry is available on the queue, then returns the last entry in the queue
+/** @par Example:
+    @code{.py} auto data = queue.pop(); @endcode
+
+    If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not
+    timeout until data is available
+
+    @param timeout_ms a timeout value to wait for data to become available on the queue; integers are interpreted as
+    milliseconds; relative date/time values are interpreted literally with a maximum resolution of milliseconds.  A
+    negative timeout value causes the call to time out immediately with a \c ABSTRACTQUEUE-TIMEOUT exception if the
+    call would otherwise block.  If a positive timeout argument is passed, and no data is available in the timeout
+    period, a \c "QUEUE-TIMEOUT" exception is thrown.  If no value or a value that converts to integer 0 is passed as
+    the argument, then the call does not timeout until data is available on the queue.
+
+    @return the last entry on the queue
+
+    @note This method throws a \c "QUEUE-TIMEOUT" exception on timeout, in order to enable the case where NOTHING was
+    pushed on the queue to be differentiated from a timeout
+
+    @throw QUEUE-TIMEOUT The timeout value was exceeded
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+    @throw QUEUE-TIMEOUT-ERROR the timeout value must be >= -2147483648 and <= 2147483647 or this exception is thrown
+*/
+abstract auto AbstractQueue::pop(timeout timeout_ms = 0);
+
+//! Clears the queue of all data
+/** @par Example:
+    @code{.py} queue.clear(); @endcode
+
+    @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the queue
+*/
+abstract nothing AbstractQueue::clear();
+
+//! Returns the number of elements in the queue
+/** @par Example:
+    @code{.py} int size = queue.size(); @endcode
+
+    @return the number of elements in the queue
+
+    @see AbstractQueue::max()
+*/
+abstract int AbstractQueue::size();
+
+//! Returns @ref True "True" if the queue is empty, @ref False "False" if not
+/** @par Example:
+    @code{.py} bool b = queue.empty(); @endcode
+
+    @return @ref True "True" if the queue is empty, @ref False "False" if not
+
+    @see AbstractQueue::size()
+*/
+abstract bool AbstractQueue::empty();
+
+//! Returns the upper limit of the number of elements in the queue
+/** @par Example:
+    @code{.py} int max = queue.max(); @endcode
+
+    @return the upper limit of the number of elements in the Queu
+
+    @see AbstractQueue::size()
+*/
+abstract int AbstractQueue::max();
+
+//! Returns the number of threads currently blocked on this queue for reading
+/** @par Example:
+    @code{.py} int waiting = queue.getReadWaiting(); @endcode
+
+    @return the number of threads currently blocked on this queue for reading
+
+    @see AbstractQueue::getWriteWaiting()
+*/
+abstract int AbstractQueue::getReadWaiting();
+
+//! Returns the number of threads currently blocked on this queue for writing
+/** @par Example:
+    @code{.py} int waiting = queue.getWriteWaiting(); @endcode
+
+    @return the number of threads currently blocked on this queue for writing
+
+    @see AbstractQueue::getReadWaiting()
+*/
+abstract int AbstractQueue::getWriteWaiting();
+
+//! sets an error status on the queue and clears the queue; while a queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
+/** @par Example:
+    @code{.py} queue.setError("INVALID-OPERATION", "the data queue has been closed");
+    @endcode
+
+    @param err the exception error code string
+    @param desc the exception description string
+
+    Any threads blocked on this queue will be woken up immediately and have the given exception thrown
+
+    @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the queue
+
+    @see clearError()
+*/
+abstract AbstractQueue::setError(string err, string desc);
+
+//! clears the error setting from the queue; if error information is set, then after this call, the queue is usable again
+/** @par Example:
+    @code{.py} queue.clearError()
+    @endcode
+
+    @see setError()
+*/
+abstract AbstractQueue::clearError();

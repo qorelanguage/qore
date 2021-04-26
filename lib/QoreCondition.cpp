@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2005 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2005 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -66,12 +66,7 @@ int QoreCondition::wait(pthread_mutex_t *m) {
 }
 
 // timeout is in milliseconds
-int QoreCondition::wait(pthread_mutex_t* m, int timeout_ms) {
-    return wait2(m, timeout_ms);
-}
-
-// timeout is in milliseconds
-int QoreCondition::wait2(pthread_mutex_t* m, int64 timeout_ms) {
+int QoreCondition::wait(pthread_mutex_t* m, int64 timeout_ms) {
     // negative timeouts will cause an error
     assert(timeout_ms >= 0);
     if (timeout_ms < 0) {

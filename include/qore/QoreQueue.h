@@ -143,9 +143,6 @@ public:
 };
 
 class Queue : public AbstractPrivateData, public QoreQueue {
-protected:
-    DLLEXPORT virtual ~Queue();
-
 public:
     DLLEXPORT Queue(int max = -1);
 
@@ -154,6 +151,9 @@ public:
     DLLEXPORT Queue* queueRefSelf() const;
 
     DLLEXPORT virtual void deref(ExceptionSink* xsink);
+
+protected:
+    DLLEXPORT virtual ~Queue();
 };
 
 #endif // _QORE_QOREQUEUE_H

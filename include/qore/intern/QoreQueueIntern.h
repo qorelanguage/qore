@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -81,38 +81,8 @@ public:
 class qore_queue_private {
     friend class qore_object_private;
 
-private:
-    enum queue_status_e { Queue_Deleted = -1 };
-
-    mutable QoreThreadLock l;
-    QoreCondition read_cond,   // read Condition variable
-                    write_cond;  // write Condition variable
-    QoreQueueNode* head,
-                    * tail;
-    std::string err;
-    QoreStringNode* desc;
-    int len,   // the number of elements currently in the queue (or -1 for deleted)
-        max;   // the maximum size of the queue (or -1 for unlimited)
-    unsigned read_waiting,   // number of threads waiting on reads
-                write_waiting;  // number of threads waiting on writes
-
-    // issue #3101: maintain a count of all scanable objects in the queue
-    int scan_count = 0;
-
-    DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms);
-    DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms);
-
-    DLLLOCAL void pushNode(QoreValue v);
-    DLLLOCAL void pushIntern(QoreValue v);
-    DLLLOCAL void insertIntern(QoreValue v);
-
-    DLLLOCAL void clearIntern(ExceptionSink* xsink);
-
-    // called in the lock; returns -1 if not possible (cannot write to the queue) or 0 of OK
-    DLLLOCAL int checkWriteIntern(ExceptionSink* xsink, bool always_error = false);
-
 public:
-    DLLLOCAL qore_queue_private(int n_max = -1) : head(0), tail(0), desc(0), len(0), max(n_max), read_waiting(0), write_waiting(0) {
+    DLLLOCAL qore_queue_private(int n_max = -1) : max(n_max) {
         assert(max);
         //printd(5, "qore_queue_private::qore_queue_private() this: %p max: %d\n", this, max);
     }
@@ -190,6 +160,36 @@ public:
     DLLLOCAL static qore_queue_private* get(QoreQueue& q) {
         return q.priv;
     }
+
+private:
+    enum queue_status_e { Queue_Deleted = -1 };
+
+    mutable QoreThreadLock l;
+    QoreCondition read_cond,  // read Condition variable
+        write_cond;           // write Condition variable
+    QoreQueueNode* head = nullptr,
+        * tail = nullptr;
+    std::string err;
+    QoreStringNode* desc = nullptr;
+    int len = 0,                // the number of elements currently in the queue (or -1 for deleted)
+        max;                    // the maximum size of the queue (or -1 for unlimited)
+    unsigned read_waiting = 0,  // number of threads waiting on reads
+        write_waiting = 0;      // number of threads waiting on writes
+
+    // issue #3101: maintain a count of all scanable objects in the queue
+    int scan_count = 0;
+
+    DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms);
+    DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms);
+
+    DLLLOCAL void pushNode(QoreValue v);
+    DLLLOCAL void pushIntern(QoreValue v);
+    DLLLOCAL void insertIntern(QoreValue v);
+
+    DLLLOCAL void clearIntern(ExceptionSink* xsink);
+
+    // called in the lock; returns -1 if not possible (cannot write to the queue) or 0 of OK
+    DLLLOCAL int checkWriteIntern(ExceptionSink* xsink, bool always_error = false);
 };
 
 #endif // _QORE_QOREQUEUEINTERN_H

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2005 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2005 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -77,23 +77,12 @@ public:
     //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
     /**
         @param m the mutext to wait on
-        @param timeout_ms the timeout value is milliseconds
-
-        @return a non-zero return value indicates a timeout occured
-
-        @deprecated use wait2(pthread_mutex_t*, int64) instead
-    */
-    DLLEXPORT int wait(pthread_mutex_t* m, int timeout_ms);
-
-    //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
-    /**
-        @param m the mutext to wait on
         @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
         abort in debug builds and for EINVAL to be set in non-debug builds
 
         @return a non-zero return value indicates a timeout occured
     */
-    DLLEXPORT int wait2(pthread_mutex_t* m, int64 timeout_ms);
+    DLLEXPORT int wait(pthread_mutex_t* m, int64 timeout_ms);
 
     //! blocks a thread on a lock until the condition is signaled
     /**
@@ -112,23 +101,9 @@ public:
         abort in debug builds and for EINVAL to be set in non-debug builds
 
         @return a non-zero return value indicates a timeout occured
-
-        @deprecated use wait2(QoreThreadLock*, int64) instead
     */
-    DLLLOCAL int wait(QoreThreadLock* l, int timeout_ms) {
+    DLLLOCAL int wait(QoreThreadLock* l, int64 timeout_ms) {
         return wait(&l->ptm_lock, timeout_ms);
-    }
-
-    //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
-    /**
-        @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
-
-        @return a non-zero return value indicates a timeout occured
-    */
-    DLLLOCAL int wait2(QoreThreadLock* l, int64 timeout_ms) {
-        return wait2(&l->ptm_lock, timeout_ms);
     }
 
     //! blocks a thread on a lock until the condition is signaled
@@ -148,23 +123,9 @@ public:
         abort in debug builds and for EINVAL to be set in non-debug builds
 
         @return a non-zero return value indicates a timeout occured
-
-        @deprecated use wait2(QoreThreadLock&, int64) instead
     */
-    DLLLOCAL int wait(QoreThreadLock& l, int timeout_ms) {
+    DLLLOCAL int wait(QoreThreadLock& l, int64 timeout_ms) {
         return wait(&l, timeout_ms);
-    }
-
-    //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
-    /**
-        @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
-
-        @return a non-zero return value indicates a timeout occured
-    */
-    DLLLOCAL int wait2(QoreThreadLock& l, int64 timeout_ms) {
-        return wait2(&l, timeout_ms);
     }
 };
 

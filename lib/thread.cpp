@@ -46,6 +46,7 @@
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_MultiQueue.h"
 #include "qore/intern/QC_Mutex.h"
 #include "qore/intern/QC_Condition.h"
 #include "qore/intern/QC_RWLock.h"
@@ -2772,42 +2773,48 @@ QoreRecursiveThreadLock::QoreRecursiveThreadLock() : QoreThreadLock(&ma_recursiv
 }
 
 QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
-   // create Qore::Thread namespace
-   QoreNamespace* Thread = new QoreNamespace("Qore::Thread");
+    // create Qore::Thread namespace
+    QoreNamespace* Thread = new QoreNamespace("Qore::Thread");
 
-   Thread->addSystemClass(initQueueClass(*Thread));
-   Thread->addSystemClass(initAbstractSmartLockClass(*Thread));
-   Thread->addSystemClass(initMutexClass(*Thread));
-   Thread->addSystemClass(initConditionClass(*Thread));
-   Thread->addSystemClass(initRWLockClass(*Thread));
-   Thread->addSystemClass(initGateClass(*Thread));
-   Thread->addSystemClass(initSequenceClass(*Thread));
-   Thread->addSystemClass(initCounterClass(*Thread));
+    preinitMultiQueueClass();
+    preinitMultiQueueInstanceClass();
 
-   Thread->addSystemClass(initAutoLockClass(*Thread));
-   Thread->addSystemClass(initAutoGateClass(*Thread));
-   Thread->addSystemClass(initAutoReadLockClass(*Thread));
-   Thread->addSystemClass(initAutoWriteLockClass(*Thread));
+    Thread->addSystemClass(initAbstractQueueClass(*Thread));
+    Thread->addSystemClass(initQueueClass(*Thread));
+    Thread->addSystemClass(initMultiQueueClass(*Thread));
+    Thread->addSystemClass(initMultiQueueInstanceClass(*Thread));
+    Thread->addSystemClass(initAbstractSmartLockClass(*Thread));
+    Thread->addSystemClass(initMutexClass(*Thread));
+    Thread->addSystemClass(initConditionClass(*Thread));
+    Thread->addSystemClass(initRWLockClass(*Thread));
+    Thread->addSystemClass(initGateClass(*Thread));
+    Thread->addSystemClass(initSequenceClass(*Thread));
+    Thread->addSystemClass(initCounterClass(*Thread));
 
-   Thread->addSystemClass(initThreadPoolClass(*Thread));
+    Thread->addSystemClass(initAutoLockClass(*Thread));
+    Thread->addSystemClass(initAutoGateClass(*Thread));
+    Thread->addSystemClass(initAutoReadLockClass(*Thread));
+    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
 
-   Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
+    Thread->addSystemClass(initThreadPoolClass(*Thread));
 
-   return Thread;
+    Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
+
+    return Thread;
 }
 
 void delete_thread_local_data() {
-   ThreadData* td = thread_data.get();
+    ThreadData* td = thread_data.get();
 
-   // clear runtime location
-   td->runtime_loc = nullptr;
+    // clear runtime location
+    td->runtime_loc = nullptr;
 
-   ExceptionSink xsink;
-   // delete any thread data
-   thread_data.get()->del(&xsink);
+    ExceptionSink xsink;
+    // delete any thread data
+    thread_data.get()->del(&xsink);
 
-   purge_thread_resources(&xsink);
-   xsink.handleExceptions();
+    purge_thread_resources(&xsink);
+    xsink.handleExceptions();
 }
 
 void delete_qore_threads() {

@@ -1,0 +1,127 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*** @file QC_MultiQueue.qpp MultiQueue class definition
+
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/QC_MultiQueue.h"
+
+void MultiQueue::destructor(ExceptionSink* xsink) {
+}
+
+MultiQueueInstance* MultiQueue::createQueue(const char* child, int max, ExceptionSink* xsink) {
+    return nullptr;
+}
+
+MultiQueueInstance* MultiQueue::getQueue(const char* child, ExceptionSink* xsink) const {
+    return nullptr;
+}
+
+QoreListNode* MultiQueue::listQueues() {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), nullptr);
+    return rv.release();
+}
+
+void MultiQueue::deref(ExceptionSink* xsink) {
+}
+
+MultiQueue::~MultiQueue() {
+}
+
+//! %MultiQueue objects provide a labeled interface to multiple queues using a single lock
+/**
+    @since %Qore 1.0
+
+    @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
+ */
+qclass MultiQueue [dom=THREAD_CLASS; arg=MultiQueue *q; ns=Qore::Thread];
+
+//! Creates the MultiQueue object
+/** @par Example:
+    @code{.py} MultiQueue queue(); @endcode
+ */
+MultiQueue::constructor() {
+    self->setPrivate(CID_MULTIQUEUE, new MultiQueue);
+}
+
+//! Destroys the MultiQueue object
+/** @note It is a programming error to delete this object while other threads are blocked on it; in this case an
+    exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted
+
+    @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
+ */
+MultiQueue::destructor() {
+    q->destructor(xsink);
+    q->deref(xsink);
+}
+
+//! Creates a child queue with the given name
+/**
+    @param child the name of the child queue
+    @param max the maximum size of the contained Queue; -1 means no limit; if 0 or a negative number other than -1 is
+    passed then a \c QUEUE-SIZE-ERROR exception will be thrown
+
+    @throw QUEUE-EXISTS the child queue already exists
+    @throw QUEUE-SIZE-ERROR the size cannot be zero or any negative number except for -1 or a number that cannot fit
+    in 32 bits (signed)
+*/
+MultiQueueInstance MultiQueue::createQueue(string child, int max = -1) {
+    TempEncodingHelper child_str(child, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return q->createQueue(child_str->c_str(), max, xsink);
+}
+
+//! Returns a list of child queue names
+/**
+*/
+list<string> MultiQueue::listQueues() [flags=CONSTANT] {
+    return q->listQueues();
+}
+
+//! Returns the given child queue or throws an exception if the queue is unknown
+/** @param child
+
+    @return the child queue, if it exists
+
+    @throw INVALID-QUEUE the child queue does not exist
+*/
+MultiQueueInstance MultiQueue::getQueue(string child) {
+    TempEncodingHelper child_str(child, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    MultiQueueInstance* cq = q->getQueue(child_str->c_str(), xsink);
+    if (!cq) {
+        return QoreValue();
+    }
+    return new QoreObject(QC_MULTIQUEUEINSTANCE, ::getProgram(), cq);
+}

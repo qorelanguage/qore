@@ -1,7 +1,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -277,6 +277,9 @@
 #include "QC_Dir.cpp"
 #include "QC_GetOpt.cpp"
 #include "QC_FtpClient.cpp"
+#include "QC_AbstractQueue.cpp"
+#include "QC_MultiQueue.cpp"
+#include "QC_MultiQueueInstance.cpp"
 #include "QC_AbstractIterator.cpp"
 #include "QC_AbstractQuantifiedIterator.cpp"
 #include "QC_AbstractBidirectionalIterator.cpp"

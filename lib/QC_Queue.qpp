@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -72,7 +72,7 @@ static int queue_check_timeout(bool to, int timeout_ms, ExceptionSink* xsink) {
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
-qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread];
+qclass Queue [dom=THREAD_CLASS; arg=Queue *q; ns=Qore::Thread; vparent=AbstractQueue];
 
 //! Creates the Queue object
 /** @par Example:
@@ -278,7 +278,7 @@ int Queue::max() [flags=CONSTANT] {
 /** This is a "synonym" for Queue::getReadWaiting()
 
     @par Example:
-    @code{.py} int waiting = queue.numWaiting(); @endcode
+    @code{.py} int waiting = queue.getWaiting(); @endcode
 
     @return the number of threads currently blocked on this queue for reading
 
@@ -292,7 +292,7 @@ int Queue::getWaiting() [flags=CONSTANT] {
 /** This is a "synonym" for Queue::getWaiting()
 
     @par Example:
-    @code{.py} int waiting = queue.numReadWaiting(); @endcode
+    @code{.py} int waiting = queue.getReadWaiting(); @endcode
 
     @return the number of threads currently blocked on this queue for reading
 

@@ -60,6 +60,9 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractLineIterator.cpp QC_FileLineIterator.cpp QC_DataLineIterator.cpp QC_InputStreamLineIterator.cpp \
 	QC_SingleValueIterator.cpp \
 	QC_RangeIterator.cpp \
+	QC_AbstractQueue.cpp \
+	QC_MultiQueue.cpp \
+	QC_MultiQueueInstance.cpp \
 	QC_ThreadPool.cpp \
 	QC_TreeMap.cpp \
 	QC_AbstractDatasource.cpp \

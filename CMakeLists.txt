@@ -147,6 +147,9 @@ set(LIBQORE_QPP_SRC
     lib/QC_DebugProgram.qpp
     lib/QC_Breakpoint.qpp
     lib/QC_Expression.qpp
+    lib/QC_AbstractQueue.qpp
+    lib/QC_MultiQueue.qpp
+    lib/QC_MultiQueueInstance.qpp
     lib/QC_Queue.qpp
     lib/QC_RWLock.qpp
     lib/QC_SQLStatement.qpp

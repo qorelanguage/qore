@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,6 @@ int QoreLogicalNotOperatorNode::getAsString(QoreString& str, int foff, Exception
 }
 
 QoreValue QoreLogicalNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    assert(exp);
     ValueEvalRefHolder v(exp, xsink);
     return !v->getAsBool();
 }
