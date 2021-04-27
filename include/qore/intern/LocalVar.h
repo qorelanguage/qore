@@ -304,13 +304,12 @@ public:
 // now shared between parent and child Program objects for top-level local variables with global scope
 class LocalVar {
 public:
-    DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti) : name(n_name), typeInfo(ti), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)) {
+    DLLLOCAL LocalVar(const char* n_name, const QoreTypeInfo* ti)
+            : name(n_name), typeInfo(ti), refTypeInfo(QoreTypeInfo::getReferenceTarget(ti)) {
     }
 
-    DLLLOCAL LocalVar(const char* n_name, QoreClass* qc) : name(n_name), qc(qc) {
-    }
-
-    DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use), parse_assigned(old.parse_assigned), typeInfo(old.typeInfo), refTypeInfo(old.refTypeInfo) {
+    DLLLOCAL LocalVar(const LocalVar& old) : name(old.name), closure_use(old.closure_use),
+            parse_assigned(old.parse_assigned), typeInfo(old.typeInfo), refTypeInfo(old.refTypeInfo) {
     }
 
     DLLLOCAL ~LocalVar() {
@@ -450,15 +449,12 @@ public:
         return !closure_use ? get_var()->val.getTypeName() : thread_find_closure_var(name.c_str())->val.getTypeName();
     }
 
-    DLLLOCAL const QoreTypeInfo* getTypeInfo();
-
 private:
     std::string name;
     bool closure_use = false,
         parse_assigned = false;
     const QoreTypeInfo* typeInfo = nullptr;
     const QoreTypeInfo* refTypeInfo = nullptr;
-    QoreClass* qc = nullptr;
 
     DLLLOCAL LocalVarValue* get_var() const {
         return thread_find_lvar(name.c_str());
