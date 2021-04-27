@@ -478,11 +478,12 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, std:
         num_static_user_methods(0),
         typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str(), path.c_str())),
         orNothingTypeInfo(nullptr),
-        selfid("self", n_cls),
+        selfid("self", typeInfo),
         spgm(getProgram()),
         deref_source_program(false) {
     assert(methodID == classID);
     assert(!name.empty());
+    assert(n_cls);
 
     if (!n_typeInfo) {
         orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
@@ -884,8 +885,9 @@ static void do_sig(QoreString& csig, ConstantList& clist) {
 
 int qore_class_private::initializeIntern() {
     //printd(5, "qore_class_private::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
-    if (initialized)
+    if (initialized) {
         return 0;
+    }
 
     initialized = true;
 
@@ -3699,7 +3701,9 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
     if (f->isAbstract()) {
         if (initialized) {
-            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(),
+                "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once " \
+                "the class has been committed", name.c_str(), mname);
             return -1;
         }
         if (n_static) {

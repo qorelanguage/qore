@@ -348,6 +348,7 @@ public:
     typedef std::set<const QoreProgramLocation*, ltpgm> loc_set_t;
     loc_set_t loc_set;
 
+    typedef std::set<std::string> strset_t;
     // features present in this Program object
     strset_t featureList;
 

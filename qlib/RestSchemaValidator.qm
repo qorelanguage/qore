@@ -556,7 +556,7 @@ public namespace RestSchemaValidator {
 
             const DataSerializationSupportList = keys DataSerializationSupport;
 
-%ifndef NoYamls
+%ifndef NoYaml
             const DeserializeYaml = (
                 "code": "yaml",
                 "in": \parse_yaml(),

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2020 Qore Technologies, s.r.o.
+/*  SmtpClient.qm Copyright 2012 - 2021 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.4
+%requires qore >= 1.0
 
 # need mime definitions
 %requires Mime >= 1.4
@@ -39,7 +39,7 @@
 %new-style
 
 module SmtpClient {
-    version = "1.9.2";
+    version = "1.9.3";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -60,34 +60,54 @@ module SmtpClient {
 
     @section smtpclientintro SmtpClient Introduction
 
-    The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for sending emails, with or without TLS/SSL encryption.
+    The %SmtpClient module provides a set of classes that can be used for easy communication with SMTP servers for
+    sending emails, with or without TLS/SSL encryption.
 
-    To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using this module
+    To use this module, use \c "%requires SmtpClient" in your code.  See examples/email.q for an example program using
+    this module
 
     All the public symbols in the module are defined in the SmtpClient namespace
 
     Classes provided:
     - @ref SmtpClient::SmtpClient "SmtpClient": manages a connection to an SMTP server
-    - @ref SmtpClient::SmtpConnection "SmtpConnection": provides a connection object to an SMTP server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref SmtpClient::SmtpConnection "SmtpConnection": provides a connection object to an SMTP server (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
 
     The following supporting classes are provided by the MailMessage module:
     - MailMessage::Message: wraps a message to be sent via an @ref SmtpClient::SmtpClient "SmtpClient" object
     - MailMessage::Attachment: used to attach files to a MailMessage::Message object
 
-    Note that the @ref SmtpClient::SmtpClient "SmtpClient" class automatically detects if the SMTP server supports ESMTP and a \c "EHLO" command is executed automatically instead of \c "HELO" if so.  Additionally, the class also automatically detects if the server supports the \c "STARTTLS" command by parsing the response to the \c "EHLO" command when talking to ESMTP servers.
+    Note that the @ref SmtpClient::SmtpClient "SmtpClient" class automatically detects if the SMTP server supports
+    ESMTP and a \c "EHLO" command is executed automatically instead of \c "HELO" if so.  Additionally, the class also
+    automatically detects if the server supports the \c "STARTTLS" command by parsing the response to the \c "EHLO"
+    command when talking to ESMTP servers.
 
-    If the \a tls flag is not set on the @ref SmtpClient::SmtpClient "SmtpClient" object and the server supports \c "STARTTLS" (and a transport layer TLS/SSL connection was not already established), then the @ref SmtpClient::SmtpClient "SmtpClient" object will automatically execute a \c "STARTTLS" command after connecting so that the rest of the SMTP session is performed securely.  This also allows transparent logins and communication with ESMTP servers that require secure connections.
+    If the \a tls flag is not set on the @ref SmtpClient::SmtpClient "SmtpClient" object and the server supports
+    \c "STARTTLS" (and a transport layer TLS/SSL connection was not already established), then the
+    @ref SmtpClient::SmtpClient "SmtpClient" object will automatically execute a \c "STARTTLS" command after
+    connecting so that the rest of the SMTP session is performed securely.  This also allows transparent logins and
+    communication with ESMTP servers that require secure connections.
 
-    For the above reasons it's normally not required to use the \c "smtptls" or \c "esmtptls" protocols in the @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)" URL argument.
+    For the above reasons it's normally not required to use the \c "smtptls" or \c "esmtptls" protocols in the
+    @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)"
+    RL argument.
 
     @anchor smtpclient_protocols
-    The @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)" takes a URL argument, the protocol (scheme) component is handled as in the following table.
+    @ref SmtpClient::SmtpClient::constructor(string, __7_ code, __7_ code) "SmtpClient::constructor(string, *code, *code)"
+    takes a URL argument, the protocol (scheme) component is handled as in the following table.
 
     <b>SmtpcClient Protocol Handling</b>
     |!Protocol|!Default Port|!Description
     |\c "smtp"|25|standard SMTP port without encryption; ESMPT and \c "STARTTLS" detection is supported automatically
-    |\c "smtps"|465|note that port 465 is currently assigned to source-specific multicast audio/video (<a href="http://www.iana.org/assignments/port-numbers">http://www.iana.org/assignments/port-numbers</a>); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated but is included in this module because many SMTP servers still operate this way
-    |\c "smtptls"|25|a \c "STARTTLS" command is executed unconditionally after the connection to ensure a secure connection, even if the server does not declare support for this command in the login response.  It's normally not necessary to use this protocol as \c "STARTTLS" is used automatically when logging in to ESMTP servers that declare support for this command in the response to the \c "EHLO" command.
+    |\c "smtps"|465|note that port 465 is currently assigned to source-specific multicast audio/video \
+        (<a href="http://www.iana.org/assignments/port-numbers">http://www.iana.org/assignments/port-numbers</a>); \
+        its use as a port for secure SMTP listeners (where security is enforced at the transport layer because the \
+        server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is \
+        deprecated but is included in this module because many SMTP servers still operate this way
+    |\c "smtptls"|25|a \c "STARTTLS" command is executed unconditionally after the connection to ensure a secure \
+        connection, even if the server does not declare support for this command in the login response.  It's \
+        normally not necessary to use this protocol as \c "STARTTLS" is used automatically when logging in to ESMTP \
+        servers that declare support for this command in the response to the \c "EHLO" command.
     |\c "esmtp"|587|like \c "smtp" just using port 587
     |\c "esmtps"|465|like \c "smtps"
     |\c "esmtptls"|587|like \c "smtptls" just using port 587
@@ -118,6 +138,10 @@ smtp.sendMessage(msg);@endcode
 
     @section smtpclient_relnotes SmtpClient Release Notes
 
+    @subsection smtpclient_v1_9_3 SmtpClient 1.9.3
+    - fixed message serialization for SMTP handling in case of single \c "." characters on a line in serialized data
+      (issue <a href="https://github.com/qorelanguage/qore/issues/3275">issue 3275</a>)
+
     @subsection smtpclient_v1_9_2 SmtpClient 1.9.2
     - implemented support for a data provider scheme cache and rich option information for connections
       (<a href="https://github.com/qorelanguage/qore/issues/4025">issue 4025</a>)
@@ -143,7 +167,8 @@ smtp.sendMessage(msg);@endcode
       (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection smtpclient_v1_6 SmtpClient 1.6
-    - added the @ref SmtpClient::SmtpConnection "SmtpConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - added the @ref SmtpClient::SmtpConnection "SmtpConnection" class to support the
+      <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
 
     @subsection smtpclient_v1_5 SmtpClient 1.5
@@ -154,18 +179,23 @@ smtp.sendMessage(msg);@endcode
 
     @subsection smtpclient_v1_3 SmtpClient 1.3
     - added socket instrumention support from Qore 0.8.9
-    - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before each email
+    - optimized connection and login code; HELO/EHLO and authorization are performed when connecting only; not before
+      each email
 
     @subsection smtpclient_v1_2 SmtpClient 1.2
-    - added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the username / password from the URL
-    - use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not ready to be sent
-    - implemented support for automatically detecting if the server accepts the STARTTLS command and, if so, automatically setting the STARTTLS flag if it's not already set
+    - added support for parsing a full URL in the SmtpClient::constructor(); added protocol support and setting the
+      username / password from the URL
+    - use Message::checkSendPossible() to throw a more descriptive exception if the message is incomplete and not
+      ready to be sent
+    - implemented support for automatically detecting if the server accepts the STARTTLS command and, if so,
+      automatically setting the STARTTLS flag if it's not already set
 
     @subsection smtpclient_v1_1 SmtpClient 1.1
     - removed the Message and Attachment classes to the MailMessage module to be reused in the Pop3Client module
 
     @subsection smtpclient_v1_10 SmtpClient 1.0
-    + updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding support + documentation
+    - updated to a user module, added initial rudimentary ESMTP handling, STARTTLS and quoted-printable encoding
+      support + documentation
 */
 
 #! the %SmtpClient namespace holds all public definitions in the %SmtpClient module
@@ -194,11 +224,15 @@ public hashdecl SmtpResponseInfo {
 
 #! for backwards-compatibility and convenience
 public class Message inherits MailMessage::Message {
-    #! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
-    /** Use the Message::addTo() method to add message recipients
+    #! creates a Message object from the arguments given
+    /** This variant of the constructor is designed to be used to create a Message object for sending with the
+        \c SmtpClient class.
+
+        Use the Message::addTo() method to add message recipients
 
         @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-        @param subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+        @param subject the subject line for the email; the subject will be encoded with
+        <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
 
         @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
     */
@@ -211,8 +245,8 @@ public class Attachment inherits MailMessage::Attachment {
 }
 
 #! the class that's used to communicate with an SMTP server and supports optional TLS/SSL encryption
-/** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and its internal configuration,
-    so it is safe to access in a multithreaded context.
+/** This class uses a Mutex lock in each SmtpClient object to ensure thread serialization to the underlying socket and
+    its internal configuration, so it is safe to access in a multithreaded context.
 */
 public class SmtpClient {
     #! @cond nodoc
@@ -266,7 +300,12 @@ public class SmtpClient {
         #! default SMTP port
         const SmtpPort = 25;
 
-        #! default SMTPS port; note that this port is currently assigned to source-specific multicast audio/video (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection before the application protocol communication starts) is deprecated
+        #! default SMTPS port
+        /** note that this port is currently assigned to source-specific multicast audio/video
+            (http://www.iana.org/assignments/port-numbers); it's use as a port for secure SMTP listeners (where
+            security is enforced at the transport layer because the server immediately negotiates a TLS/SSL connection
+            before the application protocol communication starts) is deprecated
+        */
         const SmtpsPort = 465;
 
         #! default ESMTP port

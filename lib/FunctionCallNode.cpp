@@ -620,8 +620,7 @@ void StaticMethodCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                     return;
                 }
                 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %smethod: %p\n", scope->ostr, pc->getName(), qc->getName(), method);
-            }
-            else
+            } else
                 method = qore_class_private::get(*qc)->parseFindStaticMethod(scope->getIdentifier(), class_ctx);
         }
 
@@ -664,8 +663,7 @@ void StaticMethodCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                 deref();
                 parse_init_value(val, oflag, pflag, lvids, typeInfo);
                 return;
-            }
-            else {
+            } else {
                 assert(!n);
             }
 
@@ -695,8 +693,7 @@ void StaticMethodCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
         if (!pc)
             pc = parse_get_class();
         */
-    }
-    else {
+    } else {
         assert(!scope);
         // check class capabilities against parse options
         if (qore_program_private::parseAddDomain(getProgram(), method->getClass()->getDomain())) {
