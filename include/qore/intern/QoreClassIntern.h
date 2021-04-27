@@ -243,6 +243,9 @@ public:
     DLLLOCAL void setNormalUserMethod(QoreMethod* n_qm, LocalVar* selfid) {
         setMethod(n_qm);
         getUserVariantBase()->setSelfId(selfid);
+        assert(selfid);
+        assert(selfid->getTypeInfo());
+        assert(QoreTypeInfo::getUniqueReturnClass(selfid->getTypeInfo()));
     }
 
     DLLLOCAL const QoreMethod* method() const {
