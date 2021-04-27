@@ -5,6 +5,7 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
 
 %requires ../../../../qlib/QUnit.qm
 
@@ -124,6 +125,12 @@ class StatementTest inherits QUnit::Test {
 
     testSwitch() {
         # switch tests
+        {
+            # issue #4221
+            Program p(PO_NEW_STYLE);
+            assertThrows("DIVISION-BY-ZERO", \p.parse(), ("switch (10) { case 10 / 0: break; }", ""));
+        }
+
         assertEq(switch_test(1), "case 1", "first switch");
         assertEq(switch_test(2), "default", "second switch");
         assertEq(switch_test(3), "default", "third switch");

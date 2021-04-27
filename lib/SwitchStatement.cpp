@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -164,9 +164,8 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
                 QoreValue nv = se.takeReferencedValue();
                 w->val.discard(nullptr);
                 w->val = nv;
-            }
-            else {
-                qore_program_private::addParseException(pgm, &xsink);
+            } else {
+                qore_program_private::addParseException(pgm, xsink);
             }
         }
         //printd(5, "SwitchStatement::parseInit() this=%p case exp: %p %s\n", this, w->val, get_type_name(w->val));
@@ -207,7 +206,6 @@ void SwitchStatement::parseCommit(QoreProgram* pgm) {
         w = w->next;
     }
 }
-
 
 CaseNodeWithOperator::CaseNodeWithOperator(const QoreProgramLocation* loc, QoreValue v, StatementBlock* c, op_log_func_t op) : CaseNode(loc, v, c), op_func(op) {
 }
