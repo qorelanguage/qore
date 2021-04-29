@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerRequestDataProvider module definition
 
-/** SwaggerRequestDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** SwaggerRequestDataProvider.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -312,6 +312,12 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                     "type": AbstractDataProviderType::get(AutoHashType),
                     "required": False,
                     "desc": "headers to send in the request",
+                },
+            },
+            "search_options": {
+                "limit": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(IntType),
+                    "desc": "the maximum number of records to return",
                 },
             },
         };

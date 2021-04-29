@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore CsvReadDataProvider class definition
 
-/*  CsvReadDataProvider.qc Copyright 2012 - 2020 Qore Technologies, s.r.o.
+/*  CsvReadDataProvider.qc Copyright 2012 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,12 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local var scope, do not use "$" for vars, members, and method calls
-%new-style
-%strict-args
-%require-types
-%enable-all-warnings
-
 #! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
 #! Provides a data provider for reading CSV files
@@ -39,6 +33,12 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "supports_read": True,
             "has_record": True,
             "constructor_options": ConstructorOptions,
+            "search_options": {
+                "limit": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(IntType),
+                    "desc": "the maximum number of records to return",
+                },
+            },
         };
 
         #! Constructor options
