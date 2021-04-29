@@ -276,26 +276,28 @@ void UniqueDirectoryList::addDirList(const char* str) {
 
     // duplicate string for invasive searches
     QoreString plist(str);
-    str = (char*)plist.getBuffer();
+    str = (char*)plist.c_str();
 
-    char sep_char;
+    const char* sep_chars;
 #ifdef _Q_WINDOWS
     // suport both ";" and ":" for path separators on Windows
-    sep_char = strchr(str, ';') ? ';' : ':';
+    sep_chars = ";:";
 #else
-    sep_char = ':';
+    sep_chars = ":";
 #endif
 
     // add each directory
-    while (char* p = (char*)strchr(str, ':')) {
+    while (char* p = (char*)strchrs(str, sep_chars)) {
 #ifdef _Q_WINDOWS
         // don't match ':' as the second character in a path as a path separator
-        if (sep_char == ':' && (p == str + 1)) {
-            p = (char*)strchr(p + 1, ':');
-            if (!p)
+        if (*p == ':' && isalpha(*str) && (p == (str + 1))) {
+            p = (char*)strchrs(p + 1, sep_chars);
+            if (!p) {
                 break;
+            }
         }
 #endif
+        // ignore empty entries
         if (p != str) {
             *p = '\0';
             // add string to list
@@ -305,8 +307,9 @@ void UniqueDirectoryList::addDirList(const char* str) {
     }
 
     // add last directory
-    if (*str)
+    if (*str) {
         push_back(str);
+    }
 }
 
 static QoreStringNode* loadModuleError(const char* name, ExceptionSink& xsink) {
