@@ -10,6 +10,14 @@
 
 %exec-class ClassesTest
 
+# class initialization
+class InitTest {
+    public {
+        softlist<string> l = ".";
+        softlist l0 = ".";
+    }
+}
+
 class Issue4175_BaseA {
     private:internal {
         int i;
@@ -744,6 +752,7 @@ class Issue4051_B inherits Issue4051_A;
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("init test", \initTest());
         addTestCase("issue 4175", \issue4175());
         addTestCase("issue 4051", \issue4051());
         addTestCase("issue 4045", \issue4045());
@@ -771,6 +780,12 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    initTest() {
+        InitTest t();
+        assertEq((".",), t.l);
+        assertEq((".",), t.l0);
     }
 
     issue4175() {
@@ -1028,7 +1043,7 @@ public class ClassesTest inherits QUnit::Test {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(546, ex.callstack[0].line);
+        assertEq(554, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

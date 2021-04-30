@@ -1143,7 +1143,10 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 
     // issue #2970: initializes members once and save member info in the appropriate location in the object
     for (auto& i : member_init_list) {
-        //printd(5, "qore_class_private::initMembers() this: %p %s '%s::%s' ctx %p '%s' (access '%s') has parent members: %d\n", this, name.c_str(), i.info->getClass()->name.c_str(), i.name, i.member_class_ctx, i.member_class_ctx ? i.member_class_ctx->name.c_str() : "n/a", privpub(i.info->access), i.info->numParentMembers());
+        printd(5, "qore_class_private::initMembers() this: %p %s '%s::%s' ctx %p '%s' (access '%s') has parent " \
+            "members: %d\n", this, name.c_str(), i.info->getClass()->name.c_str(), i.name, i.member_class_ctx,
+            i.member_class_ctx ? i.member_class_ctx->name.c_str() : "n/a", privpub(i.info->access),
+            i.info->numParentMembers());
 
         if (initMember(o, need_scan, i.name, *i.info, i.member_class_ctx, xsink)) {
             assert(*xsink);
@@ -1154,8 +1157,11 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
     return 0;
 }
 
-int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* member_name, const QoreMemberInfo& info, const qore_class_private* member_class_ctx, ExceptionSink* xsink) const {
-    //printd(5, "qore_class_private::initMember() this: %p '%s::%s' initializing '%s::%s' member_class_ctx: %p'\n", this, name.c_str(), member_name, member_class_ctx ? member_class_ctx->name.c_str() : "<self>", member_name, member_class_ctx);
+int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* member_name,
+        const QoreMemberInfo& info, const qore_class_private* member_class_ctx, ExceptionSink* xsink) const {
+    printd(5, "qore_class_private::initMember() this: %p '%s::%s' initializing '%s::%s' member_class_ctx: %p'\n",
+        this, name.c_str(), member_name, member_class_ctx ? member_class_ctx->name.c_str() : "<self>", member_name,
+        member_class_ctx);
     QoreValue& v = qore_object_private::get(o)->getMemberValueRefForInitialization(member_name, member_class_ctx);
     assert(v.isNothing());
     if (!info.exp.isNothing()) {
@@ -1165,6 +1171,10 @@ int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* m
         if (*xsink) {
             return -1;
         }
+        printd(5, "qore_class_private::initMember() this: %p '%s::%s' type %s val: %s filter: %d\n", this, name.c_str(),
+            member_name, QoreTypeInfo::getPath(info.getTypeInfo()),
+            val->getFullTypeName(true),
+            QoreTypeInfo::mayRequireFilter(info.getTypeInfo(), *val));
         if (QoreTypeInfo::mayRequireFilter(info.getTypeInfo(), *val)) {
             val.ensureReferencedValue();
             QoreTypeInfo::acceptInputMember(info.getTypeInfo(), member_name, *val, xsink);
