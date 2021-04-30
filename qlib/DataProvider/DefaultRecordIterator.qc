@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DefaultRecordIterator class definition
 
-/** DefaultRecordIterator.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** DefaultRecordIterator.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,24 +22,18 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Default record iterator class for data providers that do not support custom read / search APIs
+/** @note This class supports the \c limit search option
+*/
 public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     private {
         AbstractIterator i;
         *hash<auto> where_cond;
         *hash<auto> search_options;
         *hash<string, AbstractDataField> record_type;
+        int count = 0;
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -65,6 +59,10 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     bool next() {
         while (i.next()) {
             if (!where_cond || (where_cond && matchGeneric(i.getValue(), where_cond))) {
+                if (exists search_options.limit && search_options.limit >= 0 && count == search_options.limit) {
+                    return False;
+                }
+                ++count;
                 return True;
             }
         }
@@ -72,8 +70,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     }
 
     #! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
-    /** @return @ref True "True" if the iterator is currently pointing at a valid element,
-        @ref False "False" if not
+    /** @return @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
     */
     bool valid() {
         return i.valid();

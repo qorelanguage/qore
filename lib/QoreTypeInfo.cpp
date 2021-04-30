@@ -998,8 +998,13 @@ qore_type_result_e QoreTypeSpec::matchType(qore_type_t t) const {
         return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
     } else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH) {
         return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
-    } else if (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST) {
+    } else if (typespec == QTS_COMPLEXLIST) {
         return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
+    } else if (typespec == QTS_COMPLEXSOFTLIST) {
+        if (t == NT_LIST) {
+            return QTI_IDENT;
+        }
+        return QoreTypeInfo::parseAcceptsReturns(u.ti, t) ? QTI_NEAR : QTI_NOT_EQUAL;
     } else if (typespec == QTS_COMPLEXHARDREF || typespec == QTS_HARDREF) {
         return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
     } else if (typespec == QTS_COMPLEXREF) {
@@ -1011,8 +1016,9 @@ qore_type_result_e QoreTypeSpec::matchType(qore_type_t t) const {
         }
         return QTI_WILDCARD;
     }
-    if (u.t == NT_ALL || u.t == NT_REFERENCE)
+    if (u.t == NT_ALL || u.t == NT_REFERENCE) {
         return QTI_WILDCARD;
+    }
     return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
 }
 

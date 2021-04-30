@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FixedLengthReadDataProvider.qc Qore user module for working with files with fixed lines length
 
-/*  FixedLengthReadDataProvider Copyright 2015 - 2020 Qore Technologies, s.r.o.
+/*  FixedLengthReadDataProvider Copyright 2015 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,10 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%require-types
-%enable-all-warnings
-%new-style
-
 #! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
 public namespace FixedLengthUtil {
 #! Provides a data provider for reading fixed-length files
@@ -37,6 +33,12 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
             "supports_read": True,
             "has_record": True,
             "constructor_options": ConstructorOptions,
+            "search_options": {
+                "limit": <DataProviderOptionInfo>{
+                    "type": AbstractDataProviderType::get(IntType),
+                    "desc": "the maximum number of records to return",
+                },
+            },
         };
 
         #! Constructor options

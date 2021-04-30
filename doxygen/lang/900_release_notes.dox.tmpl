@@ -29,6 +29,9 @@
     - type errors with function and method resolution will report the full namespace paths of class and hashdecl
       types
     - module updates:
+      - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module:
+        - added the \c limit search option to the \c DefaultRecordIterator class
+          (<a href="https://github.com/qorelanguage/qore/issues/4225">issue 4225</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module:
         - allow dynamic handlers to be disabled before being removed
           (<a href="https://github.com/qorelanguage/qore/issues/4173">issue 4173</a>)
@@ -81,6 +84,17 @@
     - fixed a bug where the \c ";charset=xxx" string was not added to the \c Content-Type header when sending HTTP
       messages with strings with non-ISO-8859-1 character encodings
       (<a href="https://github.com/qorelanguage/qore/issues/1824">issue 1824</a>)
+
+    @section qore_0915 Qore 0.9.15
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_0915_bug_fixes Bug Fixes in Qore
+
+    @subsection qore_0915_bug_fixes Bug Fixes in Qore
+    - fixed a bug assigning a non-list value to a complex @ref softlist_complex_type
+      (<a href="https://github.com/qorelanguage/qore/issues/4227">issue 4227</a>)
 
     @section qore_0914 Qore 0.9.14
 
