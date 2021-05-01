@@ -1026,140 +1026,140 @@ std::string parse_pop_name() {
 }
 
 void set_thread_resource(AbstractThreadResource* atr) {
-   ThreadData* td = thread_data.get();
-   td->trlist->set(atr);
+    ThreadData* td = thread_data.get();
+    td->trlist->set(atr);
 }
 
 int remove_thread_resource(AbstractThreadResource* atr) {
-   ThreadData* td = thread_data.get();
-   return td->trlist->remove(atr);
+    ThreadData* td = thread_data.get();
+    return td->trlist->remove(atr);
 }
 
 bool check_thread_resource(AbstractThreadResource* atr) {
-   ThreadData* td = thread_data.get();
-   return td->trlist->check(atr);
+    ThreadData* td = thread_data.get();
+    return td->trlist->check(atr);
 }
 
 void set_thread_resource(const ResolvedCallReferenceNode* rcr, const QoreValue arg) {
-   thread_data.get()->trlist->set(rcr, arg);
+    thread_data.get()->trlist->set(rcr, arg);
 }
 
 int remove_thread_resource(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink) {
-   return thread_data.get()->trlist->remove(rcr, xsink);
+    return thread_data.get()->trlist->remove(rcr, xsink);
 }
 
 void mark_thread_resources() {
-   ThreadData* td = thread_data.get();
-   ThreadResourceList* trl = new ThreadResourceList(td->trlist);
-   td->trlist = trl;
+    ThreadData* td = thread_data.get();
+    ThreadResourceList* trl = new ThreadResourceList(td->trlist);
+    td->trlist = trl;
 }
 
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 static int purge_thread_resources_to_mark(ThreadData* td, ExceptionSink* xsink) {
-   td->trlist->purge(xsink);
+    td->trlist->purge(xsink);
 
-   if (td->trlist->prev) {
-      ThreadResourceList* tr = td->trlist;
-      td->trlist = tr->prev;
-      delete tr;
-      return -1;
-   }
-   return 0;
+    if (td->trlist->prev) {
+        ThreadResourceList* tr = td->trlist;
+        td->trlist = tr->prev;
+        delete tr;
+        return -1;
+    }
+    return 0;
 }
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 int purge_thread_resources_to_mark(ExceptionSink* xsink) {
-   ThreadData* td = thread_data.get();
-   return purge_thread_resources_to_mark(td, xsink);
+    ThreadData* td = thread_data.get();
+    return purge_thread_resources_to_mark(td, xsink);
 }
 
 void purge_thread_resources(ExceptionSink* xsink) {
-   ThreadData* td = thread_data.get();
-   while (purge_thread_resources_to_mark(td, xsink));
+    ThreadData* td = thread_data.get();
+    while (purge_thread_resources_to_mark(td, xsink));
 }
 
 void purge_pgm_thread_resources(const QoreProgram* pgm, ExceptionSink* xsink) {
-   ThreadData* td = thread_data.get();
+    ThreadData* td = thread_data.get();
 
-   ThreadResourceList* tr = td->trlist;
-   while (tr) {
-      tr->purge(pgm, xsink);
-      tr = tr->prev;
-   }
+    ThreadResourceList* tr = td->trlist;
+    while (tr) {
+        tr->purge(pgm, xsink);
+        tr = tr->prev;
+    }
 }
 
 void parse_try_module_inc() {
-   ThreadData* td = thread_data.get();
-   td->tm.inc();
+    ThreadData* td = thread_data.get();
+    td->tm.inc();
 }
 
 bool parse_try_module_dec(const QoreProgramLocation* loc) {
-   ThreadData* td = thread_data.get();
-   return td->tm.dec(loc);
+    ThreadData* td = thread_data.get();
+    return td->tm.dec(loc);
 }
 
 unsigned parse_try_module_get() {
-   return thread_data.get()->tm.count;
+    return thread_data.get()->tm.count;
 }
 
 void parse_try_module_set(unsigned c) {
-   thread_data.get()->tm.count = c;
+    thread_data.get()->tm.count = c;
 }
 
 void parse_cond_push(bool mark) {
-   ThreadData* td = thread_data.get();
-   if (!td->pcs)
-      td->pcs = new ParseConditionalStack;
-   td->pcs->push(mark);
+    ThreadData* td = thread_data.get();
+    if (!td->pcs)
+        td->pcs = new ParseConditionalStack;
+    td->pcs->push(mark);
 }
 
 bool parse_cond_else() {
-   ThreadData* td = thread_data.get();
-   return td->pcs ? td->pcs->checkElse() : false;
+    ThreadData* td = thread_data.get();
+    return td->pcs ? td->pcs->checkElse() : false;
 }
 
 bool parse_cond_pop(const QoreProgramLocation* loc) {
-   ThreadData* td = thread_data.get();
-   if (!td->pcs) {
-      parse_error(*loc, "unmatched %%endif");
-      return false;
-   }
-   return td->pcs->pop(loc);
+    ThreadData* td = thread_data.get();
+    if (!td->pcs) {
+        parse_error(*loc, "unmatched %%endif");
+        return false;
+    }
+    return td->pcs->pop(loc);
 }
 
 bool parse_cond_test(const QoreProgramLocation* loc) {
-   ThreadData* td = thread_data.get();
-   if (!td->pcs) {
-      parse_error(*loc, "%%else without %%ifdef");
-      return false;
-   }
-   return td->pcs->test(loc);
+    ThreadData* td = thread_data.get();
+    if (!td->pcs) {
+        parse_error(*loc, "%%else without %%ifdef");
+        return false;
+    }
+    return td->pcs->test(loc);
 }
 
 void push_parse_options() {
-   ThreadData* td = thread_data.get();
-   qore_program_private::get(*td->current_pgm)->pushParseOptions(td->parse_file);
+    ThreadData* td = thread_data.get();
+    qore_program_private::get(*td->current_pgm)->pushParseOptions(td->parse_file);
 }
 
 // called when a StatementBlock has "on_exit" blocks
 void pushBlock(block_list_t::iterator i) {
-   ThreadData* td = thread_data.get();
-   td->on_block_exit_list.push_back(i);
+    ThreadData* td = thread_data.get();
+    td->on_block_exit_list.push_back(i);
 }
 
 // called when a StatementBlock has "on_exit" blocks
 block_list_t::iterator popBlock() {
-   ThreadData* td = thread_data.get();
-   block_list_t::iterator i = td->on_block_exit_list.back();
-   td->on_block_exit_list.pop_back();
-   return i;
+    ThreadData* td = thread_data.get();
+    block_list_t::iterator i = td->on_block_exit_list.back();
+    td->on_block_exit_list.pop_back();
+    return i;
 }
 
 // called by each "on_exit" statement to activate its code for the block exit
 void advanceOnBlockExit() {
-   ThreadData* td = thread_data.get();
-   --td->on_block_exit_list.back();
+    ThreadData* td = thread_data.get();
+    --td->on_block_exit_list.back();
 }
 
 // new file name, current parse state
