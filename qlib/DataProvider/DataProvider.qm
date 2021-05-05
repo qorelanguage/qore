@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DataProvider.qm module for data access and introspection
 
-/*  DataProvider.qm Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/*  DataProvider.qm Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 0.9.14
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.0.4";
+    version = "1.0.6";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -127,7 +127,11 @@ module DataProvider {
     - @ref DataProvider::QoreSoftIntDataType "QoreSoftIntDataType"
     - @ref DataProvider::QoreSoftIntNoNullDataType "QoreSoftIntNoNullDataType"
     - @ref DataProvider::QoreSoftIntOrNothingDataType "QoreSoftIntOrNothingDataType"
-    - @ref DataProvider::QoreSoftNumberDataType "QoreSoftNumberDataType"
+    - @ref DataProvider::QoreSoftNumber    @subsection dataprovider_v1_0_6 DataProvider v1.0.6
+    - fixed a bug where the @ref data_type "data" type was not supported correctly as a data provider type
+      (<a href="https://github.com/qorelanguage/qore/issues/4232">issue 4232</a>)
+
+DataType "QoreSoftNumberDataType"
     - @ref DataProvider::QoreSoftNumberNoNullDataType "QoreSoftNumberNoNullDataType"
     - @ref DataProvider::QoreSoftNumberOrNothingDataType "QoreSoftNumberOrNothingDataType"
     - @ref DataProvider::QoreSoftStringDataType "QoreSoftStringDataType"
@@ -201,6 +205,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_0_6 DataProvider v1.0.6
+    - fixed a bug where the @ref data_type "data" type was not supported correctly as a data provider type
+      (<a href="https://github.com/qorelanguage/qore/issues/4232">issue 4232</a>)
 
     @subsection dataprovider_v1_0_5 DataProvider v1.0.5
     - fixed an issue where it was not possible for pipeline to flush any pending data or to perform reset or purge

@@ -107,6 +107,7 @@ public const DataTypeMap = {
     Type::Date: DateType,
     Type::NullType: Reflection::NullType,
     Type::NothingType: AbstractDataProviderType::nothingType,
+    "data": DataType,
     "all": AbstractDataProviderType::anyType,
     "*int": IntOrNothingType,
     "*integer": IntOrNothingType,
@@ -121,6 +122,7 @@ public const DataTypeMap = {
     "*hash": AutoHashOrNothingType,
     "*object": ObjectOrNothingType,
     "*date": DateOrNothingType,
+    "*data": DataOrNothingType,
 };
 
 #! describes type options
@@ -423,7 +425,7 @@ public class AbstractDataProviderType inherits Serializable {
             return new HashDeclDataType(type, options);
         } else if (type.getBaseTypeCode() == NT_HASH) {
             return new QoreHashDataType(type, options);
-        } else if (type.getBaseTypeCode() == NT_STRING) {
+        } else if (type.getBaseTypeCode() == NT_STRING && !type.isOutputCompatible(BinaryType)) {
             return new QoreStringDataTypeBase(type, options);
         }
         return new QoreDataType(type, options);
