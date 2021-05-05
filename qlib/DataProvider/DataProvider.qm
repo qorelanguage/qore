@@ -205,6 +205,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @subsection dataprovider_v1_1 DataProvider v1.1
     - the @ref DataProvider::DefaultRecordIterator class supports the \c limit search option
 
+    @subsection dataprovider_v1_0_6 DataProvider v1.0.6
+    - fixed a bug where the @ref data_type "data" type was not supported correctly as a data provider type
+      (<a href="https://github.com/qorelanguage/qore/issues/4232">issue 4232</a>)
+
     @subsection dataprovider_v1_0_5 DataProvider v1.0.5
     - fixed an issue where it was not possible for pipeline to flush any pending data or to perform reset or purge
       operations when pipeline processing is complete; for this the

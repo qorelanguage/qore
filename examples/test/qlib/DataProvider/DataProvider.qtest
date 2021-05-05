@@ -233,6 +233,7 @@ class TestIntProcessor inherits AbstractDataProcessor {
 
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("data test", \dataTest());
         addTestCase("compat test", \compatTest());
         addTestCase("pipeline test", \pipelineTest());
         addTestCase("type cache test", \typeCacheTest());
@@ -240,6 +241,14 @@ public class DataProviderTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    dataTest() {
+        AbstractDataProviderType t = AbstractDataProviderType::get(DataType);
+        binary val = get_random_bytes(20);
+        assertEq(val, t.acceptsValue(val));
+        t = AbstractDataProviderType::get(DataOrNothingType);
+        assertEq(val, t.acceptsValue(val));
     }
 
     compatTest() {
