@@ -1818,11 +1818,13 @@ BinaryNode* QoreSerializable::deserializeBinaryFromStream(StreamReader& reader, 
     }
 
     SimpleRefHolder<BinaryNode> rv(new BinaryNode);
-    rv->preallocate(size);
+    if (size) {
+        rv->preallocate(size);
 
-    if (reader.read(xsink, const_cast<void*>(rv->getPtr()), rv->size()) == -1) {
-        return nullptr;
+        if (reader.read(xsink, const_cast<void*>(rv->getPtr()), rv->size()) == -1) {
+            assert(*xsink);
+            return nullptr;
+        }
     }
-
     return rv.release();
 }

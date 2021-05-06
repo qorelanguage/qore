@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,78 +67,80 @@ public:
 
 private:
    //! Read data until a limit.
-   /** @param xsink exception sink
-       @param dest destination buffer
-       @param limit maximum amount of data to read
-       @param require_all if true then throw an exception if the required amount of data cannot be read from the stream
+    /** @param xsink exception sink
+        @param dest destination buffer
+        @param limit maximum amount of data to read
+        @param require_all if true then throw an exception if the required amount of data cannot be read from the stream
 
-       @return amount of data read, -1 in case of error
+        @return amount of data read, -1 in case of error
     */
-   DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, size_t limit, bool require_all = true) override {
-      assert(dest);
-      assert(limit);
+    DLLLOCAL virtual qore_offset_t readData(ExceptionSink* xsink, void* dest, size_t limit, bool require_all = true) override {
+        assert(dest);
+        assert(limit);
 
-      char* destPtr = static_cast<char*>(dest);
-      size_t read = 0;
+        char* destPtr = static_cast<char*>(dest);
+        size_t read = 0;
 
-      if (bufCount) {
-         read = QORE_MIN(limit, bufCount);
-         memmove(destPtr, buf, read);
-         if (limit < bufCount) {
-            shiftBuffer(limit);
-            return limit;
-         }
-         bufCount = 0;
-         if (!limit - read)
-            return read;
-      }
-
-      // read in data directly into the target buffer until the amount left to read >= 1/2 the buffer capacity
-      while (true) {
-         size_t to_read = limit - read;
-         if (to_read <= (bufCapacity / 2))
-            break;
-         int64 rc = in->read(destPtr + read, to_read, xsink);
-         if (*xsink)
-            return -1;
-         if (!rc) {
-            if (require_all) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
-               return -1;
+        if (bufCount) {
+            read = QORE_MIN(limit, bufCount);
+            memmove(destPtr, buf, read);
+            if (limit < bufCount) {
+                assert(limit == read);
+                shiftBuffer(limit);
+                return limit;
             }
-            break;
-         }
-         to_read -= rc;
-         read += rc;
-      }
+            bufCount = 0;
+            if (!(limit - read))
+                return read;
+        }
 
-      // here we try to populate the buffer first and the target second
-      while (true) {
-         size_t to_read = limit - read;
-         if (!to_read)
-            break;
-
-         assert(!bufCount);
-         int64 rc = fillBuffer(bufCapacity, xsink);
-         if (*xsink)
-            return -1;
-         if (!rc) {
-            if (require_all) {
-               xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
-               return -1;
+        // read in data directly into the target buffer until the amount left to read >= 1/2 the buffer capacity
+        while (true) {
+            size_t to_read = limit - read;
+            if (to_read <= (bufCapacity / 2))
+                break;
+            int64 rc = in->read(destPtr + read, to_read, xsink);
+            if (*xsink)
+                return -1;
+            if (!rc) {
+                if (require_all) {
+                    xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; "
+                                          QSD " bytes were requested, and " QSD " were read", limit, read);
+                    return -1;
+                }
+                break;
             }
-            break;
-         }
-         assert(rc > 0);
-         size_t len = QORE_MIN((size_t)rc, to_read);
-         memcpy(destPtr + read, buf, len);
-         shiftBuffer(len);
-         read += len;
-         assert(((limit - read) && !bufCount) || !(limit - read));
-      }
+            to_read -= rc;
+            read += rc;
+        }
 
-      return read;
-   }
+        // here we try to populate the buffer first and the target second
+        while (true) {
+            size_t to_read = limit - read;
+            if (!to_read)
+                break;
+
+            assert(!bufCount);
+            int64 rc = fillBuffer(bufCapacity, xsink);
+            if (*xsink)
+                return -1;
+            if (!rc) {
+                if (require_all) {
+                    xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; " QSD " bytes were requested, and " QSD " were read", limit, read);
+                    return -1;
+                }
+                break;
+            }
+            assert(rc > 0);
+            size_t len = QORE_MIN((size_t)rc, to_read);
+            memcpy(destPtr + read, buf, len);
+            shiftBuffer(len);
+            read += len;
+            assert(((limit - read) && !bufCount) || !(limit - read));
+        }
+
+        return read;
+    }
 
    /**
     * @brief Peeks the next byte from the input stream.
