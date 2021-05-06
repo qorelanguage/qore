@@ -404,6 +404,9 @@ scheme://user:pass@hostname:port/path
                         sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
                             name, urlh.protocol, url, i.key, i.value.type(), i.value, type);
                 }
+                if (scheme_info.options{i.key}.subst_env_vars) {
+                    options{i.key} = substitute_env_vars(i.value);
+                }
             }
         }
         # check for required options

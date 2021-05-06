@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
+/*  RestClient.qm Copyright (C) 2013 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1216,6 +1216,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "type": "string",
                     "desc": "in case a REST validator is used, the base path in the schema can be overridden "
                         "with this option (applies to any REST validator; not just Swagger validators)",
+                    "subst_env_vars": True,
                 },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",

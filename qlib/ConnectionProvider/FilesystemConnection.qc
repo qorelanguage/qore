@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FilesystemConnection class definition
 
-/*  FilesystemConnection.qc Copyright 2016 - 2020 Qore Technologies, s.r.o.
+/*  FilesystemConnection.qc Copyright 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%require-types
-%enable-all-warnings
-%new-style
-%strict-args
-
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
 #! class for filesystem connections; returns an object of type @ref Qore::Dir
@@ -35,6 +30,8 @@ public namespace ConnectionProvider {
     supports the following option:
     - \c "readonly": does not mark the connection as down if the directory is read-only; use for example if the
       connection should point to a read-only base directory; interface directories should normally be writable
+
+    @note the path will be subject to environment variable substitutions
 */
 public class FilesystemConnection inherits AbstractConnectionWithInfo {
     public {
@@ -64,13 +61,15 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : AbstractConnectionWithInfo(name, description, url, attributes, options) {
         # the URL hash is parsed with parse_url() which will put a string in the
         # "host" key if it does not look like an absolute path, in which case "host"
         # needs to be prepended back to the path
         if (urlh.host)
             urlh.path = (remove urlh.host) + urlh.path;
+
+        urlh.path = substitute_env_vars(urlh.path);
 
         if (!absolute_path(urlh.path)) {
 %ifdef Windows

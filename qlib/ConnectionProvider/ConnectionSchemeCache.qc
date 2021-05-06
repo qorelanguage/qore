@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ConnectionSchemeCache.qc module for data access and introspection
 
-/** ConnectionSchemeCache.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** ConnectionSchemeCache.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,9 @@ public hashdecl ConnectionOptionInfo {
 
     #! Any default value
     auto default_value;
+
+    #! Do environment variable substitution on the value?
+    bool subst_env_vars = False;
 }
 
 #! Connection provider information
