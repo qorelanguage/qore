@@ -92,6 +92,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                 "ssl_cert_path": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "a path to an X.509 client certificate file in PEM format",
+                    "subst_env_vars": True,
                 },
                 "ssl_key_password": <ConnectionOptionInfo>{
                     "type": "string",
@@ -101,6 +102,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                 "ssl_key_path": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "a path to a private key file in PEM format for the X.509 client certificate",
+                    "subst_env_vars": True,
                 },
                 "ssl_verify_cert": <ConnectionOptionInfo>{
                     "type": "bool",

@@ -49,6 +49,9 @@
           (<a href="https://github.com/qorelanguage/qore/issues/4164">issue 4164</a>)
 
     @subsection qore_1_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - connection path options are subjected to environment variable substitution
+        (<a href="https://github.com/qorelanguage/qore/issues/4236">issue 4236</a>)
     - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module
       - fixed message serialization for SMTP handling; default to base64 encoding for attachments and if the message
         body has a single \c "." character on a line; convert any single \c "." characters on a line to two \c ".."
