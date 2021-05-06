@@ -122,6 +122,8 @@ class T inherits Serializable, private:internal Base {
 
         Other o0();
         Other o1;
+        binary b0 = binary();
+        binary b1 = <abcd>;
     }
 
     private {
@@ -289,6 +291,8 @@ class SerializableTest inherits QUnit::Test {
             assertEq("SqlUtil", h._modules[1]);
             assertEq("hash<MessagePartInfo>", t.mpi.fullType());
             assertEq("object<MyContainer>", t.ahc.fullType());
+            assertEq(binary(), t.b0);
+            assertEq(<abcd>, t.b1);
 
             assertEq(2, t.get());
             assertEq(2, t.geti());
@@ -306,6 +310,8 @@ class SerializableTest inherits QUnit::Test {
             assertEq(3, t1.getfi());
             assertEq(-1, t1.gety());
             assertEq("hash<MessagePartInfo>", t1.mpi.fullType());
+            assertEq(binary(), t1.b0);
+            assertEq(<abcd>, t1.b1);
 
             {
                 hash<SerializationInfo> h0 = h;
