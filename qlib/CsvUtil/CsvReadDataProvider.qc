@@ -104,7 +104,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the default format for `int`, `float`, and `number` fields as a string giving the thousands "
                     "separator character followed by the decimal separator character (ex: `.,` for "
-                    "continental-European-style numbers",
+                    "continental-European-style numbers)",
             },
             "quote": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
