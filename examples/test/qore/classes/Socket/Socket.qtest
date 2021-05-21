@@ -344,6 +344,7 @@ class SocketTest inherits QUnit::Test {
                 break;
             }
         }
+        #printf("%s: %s\n", ex1.err, ex1.desc);
         assertEq("SOCKET-SSL-ERROR", ex1.err);
     }
 
