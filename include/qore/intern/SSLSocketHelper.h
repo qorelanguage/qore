@@ -4,9 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
-
-    will unlink (delete) UNIX domain socket files when closed
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -60,23 +58,6 @@ static inline const char* get_action_method(SslAction action) {
 }
 
 class SSLSocketHelper {
-private:
-    qore_socket_private& qs;
-    SSL_METHOD_CONST SSL_METHOD* meth = nullptr;
-    SSL_CTX* ctx = nullptr;
-    SSL* ssl = nullptr;
-    unsigned refs = 1;
-
-    DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
-
-    // non-blocking I/O helper
-    DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func, ExceptionSink* xsink);
-
-    DLLLOCAL ~SSLSocketHelper();
-
-    // must be called with refs > 1
-    DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
-
 public:
     DLLLOCAL SSLSocketHelper(qore_socket_private& qs) : qs(qs) {
     }
@@ -96,9 +77,11 @@ public:
     }
 
     // do blocking or non-blocking SSL I/O and handle SSL_ERROR_WANT_READ and SSL_ERROR_WANT_WRITE properly
-    DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms, SslAction action, bool do_timeout = true);
+    DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms,
+            SslAction action, bool do_timeout = true);
 
-    DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
+    DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk,
+            ExceptionSink* xsink);
     DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
     // returns 0 for success
     DLLLOCAL int connect(const char* mname, int timeout_ms, ExceptionSink* xsink);
@@ -121,6 +104,27 @@ public:
 
     DLLLOCAL bool captureRemoteCert() const;
     DLLLOCAL void clearRemoteCertContext() const;
+
+private:
+    qore_socket_private& qs;
+    SSL_METHOD_CONST SSL_METHOD* meth = nullptr;
+    SSL_CTX* ctx = nullptr;
+    SSL* ssl = nullptr;
+    unsigned refs = 1;
+
+    DLLLOCAL int setIntern(const char* meth, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
+
+    // non-blocking I/O helper
+    DLLLOCAL int doSSLUpgradeNonBlockingIO(int rc, const char* mname, int timeout_ms, const char* ssl_func,
+            ExceptionSink* xsink);
+
+    DLLLOCAL ~SSLSocketHelper();
+
+    // must be called with refs > 1
+    DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+
+    DLLLOCAL void handleErrorIntern(ExceptionSink* xsink, int e, const char* mname, const char* func,
+            bool always_error);
 };
 
 class SSLSocketReferenceHelper {
