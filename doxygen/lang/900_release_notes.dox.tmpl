@@ -97,6 +97,9 @@
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a>
       - fixed a bug where the @ref data_type "data" type was not supported correctly as a data provider type
         (<a href="https://github.com/qorelanguage/qore/issues/4232">issue 4232</a>)
+    - fixed a bug where SSL errors were not properly cleared before I/O operations in all cases, leading to incorrect
+      spurious errors being raised in rare cases
+      (<a href="https://github.com/qorelanguage/qore/issues/4242">issue 4242</a>)
     - fixed a bug where empty binary values could not be deserialized
       (<a href="https://github.com/qorelanguage/qore/issues/4238">issue 4238</a>)
     - fixed handling %Qore program destruction in a foreign thread in a binary module that could cause a crash

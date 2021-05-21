@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -367,6 +367,7 @@ int SSLSocketHelper::setClient(const char* mname, const char* sni_target_host, i
     if (!rc && sni_target_host) {
         // issue #3053 set TLS server name for servers that require SNI
         assert(ssl);
+        ERR_clear_error();
         if (!SSL_set_tlsext_host_name(ssl, sni_target_host)) {
             sslError(xsink, mname, "SSL_set_tlsext_host_name");
             assert(*xsink);
@@ -392,6 +393,7 @@ int SSLSocketHelper::connect(const char* mname, int timeout_ms, ExceptionSink* x
             return qs.close_and_exit();
 
         while (true) {
+            ERR_clear_error();
             rc = SSL_connect(ssl);
 
             if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_connect", xsink))) {
@@ -405,8 +407,10 @@ int SSLSocketHelper::connect(const char* mname, int timeout_ms, ExceptionSink* x
 
         if (qs.isOpen() && qs.set_non_blocking(false, xsink))
             return qs.close_and_exit();
-    } else
+    } else {
+        ERR_clear_error();
         rc = SSL_connect(ssl);
+    }
 
     if (rc <= 0) {
         if (!*xsink)
@@ -428,6 +432,7 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
             return qs.close_and_exit();
 
         while (true) {
+            ERR_clear_error();
             rc = SSL_accept(ssl);
 
             if (rc == -1 && !(rc = doSSLUpgradeNonBlockingIO(rc, mname, timeout_ms, "SSL_accept", xsink))) {
@@ -441,8 +446,10 @@ int SSLSocketHelper::accept(const char* mname, int timeout_ms, ExceptionSink* xs
 
         if (qs.isOpen() && qs.set_non_blocking(false, xsink))
             return qs.close_and_exit();
-    } else
+    } else {
+        ERR_clear_error();
         rc = SSL_accept(ssl);
+    }
 
     if (rc <= 0) {
         //printd(5, "SSLSocketHelper::accept() rc: %d\n", rc);
@@ -464,12 +471,13 @@ int SSLSocketHelper::shutdown() {
 
 // returns 0 for success
 int SSLSocketHelper::shutdown(ExceptionSink* xsink) {
-   if (SSL_shutdown(ssl) < 0) {
-      SSLSocketReferenceHelper ssrh(this);
-      sslError(xsink, "shutdownSSL", "SSL_shutdown");
-      return -1;
-   }
-   return 0;
+    ERR_clear_error();
+    if (SSL_shutdown(ssl) < 0) {
+        SSLSocketReferenceHelper ssrh(this);
+        sslError(xsink, "shutdownSSL", "SSL_shutdown");
+        return -1;
+    }
+    return 0;
 }
 
 // returns 0 for success
@@ -906,11 +914,13 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
 int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int size, int timeout_ms, SslAction action, bool do_timeout) {
     //printd(5, "SSLSocketHelper::doSSLRW() %s size: %d timeout_ms: %d read: %d do_timeout: %d\n", mname, size, timeout_ms, read, do_timeout);
     assert(xsink);
+    assert(size);
     SSLSocketReferenceHelper ssrh(this);
 
     if (timeout_ms < 0) {
         while (true) {
             int rc;
+            ERR_clear_error();
             switch (action) {
                 case READ:
                     rc = SSL_read(ssl, buf, size);
@@ -939,6 +949,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
 
     int rc;
     while (true) {
+        ERR_clear_error();
         switch (action) {
             case READ:
                 rc = SSL_read(ssl, buf, size);
@@ -1051,10 +1062,12 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 
     if (err == SSL_ERROR_SYSCALL) {
         if (!sslError(xsink, mname, ssl_func)) {
-            if (!rc)
-                xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an EOF condition that violates the SSL protocol while calling %s()", mname, ssl_func);
-            else if (rc == -1) {
-                xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the openssl library reported an I/O error while calling %s()", mname, ssl_func);
+            if (!rc) {
+                xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported an " \
+                    "EOF condition that violates the SSL protocol while calling %s()", mname, ssl_func);
+            } else if (rc == -1) {
+                xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
+                    "openssl library reported an I/O error while calling %s()", mname, ssl_func);
 
 #ifdef ECONNRESET
                 // close the socket if connection reset received
@@ -1062,9 +1075,10 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
                 if (qs.isOpen() && sock_get_error() == ECONNRESET)
                     qs.close();
 #endif
+            } else {
+                xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
+                    "error code %d in %s() but the error queue is empty", mname, rc, ssl_func);
             }
-            else
-            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported error code %d in %s() but the error queue is empty", mname, rc, ssl_func);
         }
 
         return !*xsink ? 0 : QSE_SSL_ERR;
@@ -1079,17 +1093,17 @@ int SSLSocketHelper::doSSLUpgradeNonBlockingIO(int rc, const char* mname, int ti
 }
 
 DLLLOCAL OptionalNonBlockingHelper::OptionalNonBlockingHelper(qore_socket_private& s, bool n_set, ExceptionSink* xs) : sock(s), xsink(xs), set(n_set) {
-if (set) {
-    //printd(5, "OptionalNonBlockingHelper::OptionalNonBlockingHelper() this: %p\n", this);
-    sock.set_non_blocking(true, xsink);
-}
+    if (set) {
+        //printd(5, "OptionalNonBlockingHelper::OptionalNonBlockingHelper() this: %p\n", this);
+        sock.set_non_blocking(true, xsink);
+    }
 }
 
 DLLLOCAL OptionalNonBlockingHelper::~OptionalNonBlockingHelper() {
-if (set) {
-    //printd(5, "OptionalNonBlockingHelper::~OptionalNonBlockingHelper() this: %p\n", this);
-    sock.set_non_blocking(false, xsink);
-}
+    if (set) {
+        //printd(5, "OptionalNonBlockingHelper::~OptionalNonBlockingHelper() this: %p\n", this);
+        sock.set_non_blocking(false, xsink);
+    }
 }
 
 int SSLSocketHelper::read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink) {
@@ -1104,36 +1118,41 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
     long e = ERR_get_error();
     do {
         //printd(5, "SSLSocketHelper::sslError() '%s' func: '%s' always_error: %d e: %ld\n", mname, func, always_error, e);
-        if (!e || e == SSL_ERROR_ZERO_RETURN) {
-            //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
-            if (always_error) {
-                qs.close();
-                xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be completed because the TLS/SSL connection was terminated", mname, func);
-            }
-        } else {
-            char buf[121];
-            ERR_error_string(e, buf);
-            SimpleRefHolder<QoreStringNode> errstr(new QoreStringNodeMaker("error in Socket::%s(): %s(): %s", mname,
-                func, buf));
-            // issue #3818: consume any ssl_err_str remaining
-            if (qs.ssl_err_str) {
-                errstr->concat(": ");
-                errstr->concat(qs.ssl_err_str);
-                qs.ssl_err_str->deref();
-                qs.ssl_err_str = nullptr;
-            }
-            xsink->raiseException("SOCKET-SSL-ERROR", errstr.release());
-#ifdef ECONNRESET
-            // close the socket if connection reset received
-            if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
-                //printd(5, "SSLSocketHelper::sslError() Socket::%s() (%s) socket closed by remote end\n", mname, func);
-                qs.close();
-            }
-#endif
-        }
+        handleErrorIntern(xsink, e ? e : SSL_ERROR_ZERO_RETURN, mname, func, always_error);
     } while ((e = ERR_get_error()));
 
     return *xsink || !qs.isOpen();
+}
+
+void SSLSocketHelper::handleErrorIntern(ExceptionSink* xsink, int e, const char* mname, const char* func,
+        bool always_error) {
+    if (e == SSL_ERROR_ZERO_RETURN) {
+        if (always_error) {
+            qs.close();
+            xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be " \
+                "completed because the TLS/SSL connection was terminated (err: %d)", mname, func, e);
+        }
+    } else {
+        char buf[121];
+        ERR_error_string(e, buf);
+        SimpleRefHolder<QoreStringNode> errstr(new QoreStringNodeMaker("error in Socket::%s(): %s(): %s", mname,
+            func, buf));
+        // issue #3818: consume any ssl_err_str remaining
+        if (qs.ssl_err_str) {
+            errstr->concat(": ");
+            errstr->concat(qs.ssl_err_str);
+            qs.ssl_err_str->deref();
+            qs.ssl_err_str = nullptr;
+        }
+        xsink->raiseException("SOCKET-SSL-ERROR", errstr.release());
+#ifdef ECONNRESET
+        // close the socket if connection reset received
+        if (e == SSL_ERROR_SYSCALL && sock_get_error() == ECONNRESET) {
+            //printd(5, "SSLSocketHelper::handleErrorIntern() Socket::%s() (%s) socket closed by remote end\n", mname, func);
+            qs.close();
+        }
+#endif
+    }
 }
 
 PrivateQoreSocketTimeoutHelper::PrivateQoreSocketTimeoutHelper(qore_socket_private* s, const char* o) : PrivateQoreSocketTimeoutBase(s->tl_warning_us ? s : 0), op(o) {
