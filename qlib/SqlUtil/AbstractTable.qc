@@ -5901,7 +5901,8 @@ list l = table.getAlignSql(table2);
 
         # check name
         if (name != t.name) {
-            l += AbstractDatabase::doCallback(opt, getRenameSql(t.name), AbstractDatabase::AC_Rename, "table", name, NOTHING, t.name);
+            l += AbstractDatabase::doCallback(opt, getRenameSql(t.name), AbstractDatabase::AC_Rename, "table", name,
+                NOTHING, t.name);
             name = t.name;
         }
 
@@ -5916,7 +5917,8 @@ list l = table.getAlignSql(table2);
             string value = i.getValue();
             #printf("%s rename %s -> %s cols: %y\n", name, key, value, columns.keys());
             AbstractColumn c = columns{key};
-            l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, value), AbstractDatabase::AC_Rename, "column", c.name, name, value);
+            l += AbstractDatabase::doCallback(opt, c.getRenameSql(self, value), AbstractDatabase::AC_Rename,
+                "column", c.name, name, value);
             columns.renameKey(key, value);
             c.name = value;
 
@@ -5964,7 +5966,8 @@ list l = table.getAlignSql(table2);
             if (indexes.hasKey(key)) {
                 AbstractIndex ix = indexes{key};
                 string value = i.getValue();
-                l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), value), AbstractDatabase::AC_Rename, "index", ix.name, name, value);
+                l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), value),
+                    AbstractDatabase::AC_Rename, "index", ix.name, name, value);
                 renameIndexUnlocked(ix, value);
             }
         }

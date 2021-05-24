@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
+/*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -152,11 +152,15 @@ $function$
 
     @section pgsql_relnotes Release Notes
 
-    @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.5
+    @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.1
+    - fixed bugs dropping foreign constraints and indices when aligning tables
+      (<a href="https://github.com/qorelanguage/qore/issues/4246">issue 4246</a>)
+
+    @subsection pgsqlsqlutilv15 PgsqlSqlUtil v1.5
     - implemented atomic merge support
       (<a href="https://github.com/qorelanguage/qore/issues/3963">issue 3963</a>)
 
-    @subsection pgsqlsqlutilv14 PgsqlSqlUtil v1.4.1
+    @subsection pgsqlsqlutilv141 PgsqlSqlUtil v1.4.1
     - fixed a bug generating literal date/time values for SQL queries
       (<a href="https://github.com/qorelanguage/qore/issues/3948">issue 3948</a>)
 
@@ -368,6 +372,11 @@ public namespace PgsqlSqlUtil {
             return sql;
         }
 
+        #! returns a string that can be used to drop the index from the database
+        string getDropSql(string table_name) {
+            return sprintf("drop index if exists %s", name);
+        }
+
         #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
         private bool equalImpl(AbstractIndex ix) {
             return True;
@@ -389,6 +398,11 @@ public namespace PgsqlSqlUtil {
         #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string table_name, *hash opt) {
             return getCreateSql(name, table_name, opt);
+        }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint if exists %s", table_name, name);
         }
 
         softlist getRenameSql(string table_name, string new_name) {
@@ -731,7 +745,7 @@ auto v = c.name;
         }
 
         #! returns a string that can be used to create the constraint
-        string getCreateSql(string table_name, *hash opts) {
+        string getCreateSql(string table_name, *hash<auto> opts) {
             string sql = sprintf("alter table %s add constraint %s primary key", table_name, name);
             getIndexSql(\sql, name, opts);
             return sql;
