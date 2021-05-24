@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore AbstractConnection class definition
 
-/*  AbstractConnection.qc Copyright 2016 - 2020 Qore Technologies, s.r.o.
+/*  AbstractConnection.qc Copyright 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -128,10 +128,10 @@ public class AbstractConnection inherits Serializable {
         Attributes are special flags for given connection - stored as public
         attributes of the object instance.
         For now there are:
-            - \c enabled (bool), default \c True
-            - \c monitor (bool), default \c True
-            - \c locked (bool), default \c False
-            - \c tags (hash), no default value
+        - \c enabled (bool), default \c True
+        - \c monitor (bool), default \c True
+        - \c locked (bool), default \c False
+        - \c tags (hash), no default value
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
@@ -179,15 +179,31 @@ public class AbstractConnection inherits Serializable {
     /** @param with_password determines if the password is returned or not
 
         @return a @ref ConnectionInfo hash of information about the connection
+
+        @deprecated use getInfo(*hash<auto> opts) instead
     */
     hash<ConnectionInfo> getInfo(bool with_password = False) {
-        hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check",
-            "updated", "status", "up", "loopback", "enabled", "locked", "debug_data", "tags") + {
+        return getInfo({
+            "with_passwords": with_password,
+        });
+    }
+
+    #! returns a @ref ConnectionInfo hash of information about the connection
+    /** @param opts connection information options; options are connection-specific; the only universal option is
+        \c with_passwords: if @ref True, then passwords are returned in the info hash
+
+        @return a @ref ConnectionInfo hash of information about the connection
+    */
+    hash<ConnectionInfo> getInfo(*hash<auto> opts) {
+        hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
+            "name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled",
+            "locked", "debug_data", "tags",
+        } + {
             "type": getType(),
             "url_hash": urlh,
             "has_provider": hasDataProvider(),
         });
-        if (!with_password) {
+        if (!opts.with_passwords) {
             h.url = safe_url;
             delete h.url_hash.password;
         }
@@ -199,7 +215,7 @@ public class AbstractConnection inherits Serializable {
     /** @returns a @ref ConfigInfo hash of static configuration information about the connection
     */
     hash<ConfigInfo> getConfigHash() {
-        return cast<hash<ConfigInfo>>(self.("name", "desc", "url", "opts"));
+        return cast<hash<ConfigInfo>>(self{"name", "desc", "url", "opts"});
     }
 
     #! Returns a default ConnectionSchemeInfo hash
