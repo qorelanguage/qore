@@ -34,7 +34,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.4.1";
+    version = "1.5";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -100,6 +100,9 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_5 ConnectionProvider 1.5
+    - updated the @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()" method
 
     @subsection connectionprovider_1_4_1 ConnectionProvider 1.4.1
     - connection path options are subjected to environment variable substitution
