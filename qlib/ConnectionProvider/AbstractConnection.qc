@@ -211,6 +211,17 @@ public class AbstractConnection inherits Serializable {
         return h;
     }
 
+    #! Returns connection info plus any extended information returned by the connection
+    /** The default implementation in the base class returns the same value as getInfo(*hash<auto>)
+
+        @since ConnectionProvider 1.5
+    */
+    hash<auto> getExtendedInfo(*hash<auto> opts) {
+        # ensure hash<auto> for the return type
+        hash<auto> h += getInfo(opts);
+        return h;
+    }
+
     #! returns a @ref ConfigInfo hash of static configuration information about the connection
     /** @returns a @ref ConfigInfo hash of static configuration information about the connection
     */

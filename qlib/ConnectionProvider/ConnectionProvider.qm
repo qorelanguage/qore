@@ -103,6 +103,7 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @subsection connectionprovider_1_5 ConnectionProvider 1.5
     - updated the @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()" method
+    - added the @ref ConnectionProvider::AbstractConnection::getExtendedInfo() "AbstractConnection::getExtendedInfo()" method
 
     @subsection connectionprovider_1_4_1 ConnectionProvider 1.4.1
     - connection path options are subjected to environment variable substitution
