@@ -51,8 +51,11 @@ else ()
     add_definitions(-DNDEBUG)
 endif ()
 
+find_package(Java)
+
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
+set(QORE_QJAR_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qjar")
 # simulate QoreConfig
 
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
@@ -221,6 +224,7 @@ set(PSEUDO_QPP_SRC
 
 set(QORE_BIN_FILES
     doxygen/qdx
+    doxygen/qjar
     bin/qdp
     bin/qget
     bin/rest
@@ -793,6 +797,15 @@ if (DOXYGEN_FOUND)
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
     )
     add_dependencies(docs docs-lang)
+
+    if (Java_FOUND)
+        add_custom_target(qore-javadoc.jar
+            DEPENDS QORE_DOX_FILES
+            COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -o qore-javadoc.jar -i ${CMAKE_BINARY_DIR}/java
+            COMMENT "Building javadoc jar for dynamically-imported Qore APIs" VERBATIM
+        )
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-javadoc.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
+    endif (Java_Development_FOUND)
 endif (DOXYGEN_FOUND)
 
 add_custom_target(install-docs

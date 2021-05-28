@@ -1,0 +1,42 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires qore >= 1.0
+
+%exec-class QJar
+
+const Opts = {
+    "help": "h,help",
+    "input": "i,input=s",
+    "output": "o,output=s",
+};
+
+class QJar {
+    constructor() {
+        hash<auto> opts = GetOpt::parseExit(Opts, \ARGV);
+        if (opts.help || !opts.input || !opts.output) {
+            usage();
+        }
+
+        if (!is_dir(opts.input) || !is_readable(opts.input)) {
+            stderr.printf("input directory %y does not exist or is not readable\n", opts.input);
+            exit(2);
+        }
+
+        system(sprintf("jar cvf %s -C %s .", opts.output, opts.input));
+    }
+
+    usage() {
+        printf("usage: %s [options] -i=<input_root_dir> -o=<output_jar>
+  -h,--help           this help text
+  -i,--input=ARG      (required) the root input directory
+  -o,--output=ARG     (required) the output jar file name
+", get_script_name());
+        exit(1);
+    }
+}

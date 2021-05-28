@@ -15,7 +15,7 @@
       \a errorlogger listener option has been removed, and the type of the \a logger listener option has been
       updated to require a \c Logger object.  Additionally, deprecated APIs have been removed from these modules.
     - Implemented the @ref invalid-catch "invalid-catch" warning when types are required by parse options, byt the
-      exception variable declaration has no type, and added this to the default warning mask for modules
+      exception variable declaration has no type; this was also added to the default warning mask for modules
 
     @subsection qore_1_0_new_features New Features in Qore
     - added support for <a href="https://alpinelinux.org/">Alpine Linux</a>
@@ -30,9 +30,8 @@
       types
     - module updates:
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module:
-        - updated the @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()" method
-      - added the
-        @ref ConnectionProvider::AbstractConnection::getExtendedInfo() "AbstractConnection::getExtendedInfo()" method
+        - updated the \c AbstractConnection::getInfo() method
+        - added the \c AbstractConnection::getExtendedInfo() method
       - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module:
         - added the \c limit search option to the \c DefaultRecordIterator class
           (<a href="https://github.com/qorelanguage/qore/issues/4225">issue 4225</a>)

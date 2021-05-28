@@ -56,6 +56,7 @@ else()
     set(QORE_QPP_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qpp${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 set(QORE_QDX_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qdx)
+set(QORE_QJAR_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qjar)
 
 
 # warning: the same prefix for current qore is used if there is no
