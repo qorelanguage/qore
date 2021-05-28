@@ -1310,7 +1310,8 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const {
+const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation* loc,
+        const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const {
     // the lowest match length with the highest score wins
     int match_len = -1;
     // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
@@ -1328,7 +1329,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     const AbstractQoreFunctionVariant* pvariant = nullptr;
     unsigned num_args = argTypeInfo.size();
 
-    printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), ilist.size(), num_args);
+    printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d ilist: %d num_args: %d\n", this, getName(),
+        vlist.size(), ilist.size(), num_args);
 
     QoreFunction* aqf = nullptr;
 
@@ -1375,7 +1377,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
             ++cnt;
 
-            printd(5, "QoreFunction::parseFindVariant() this: %p checking committed %s(%s) variant: %p sig->pt: %d sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant, sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
+            printd(5, "QoreFunction::parseFindVariant() this: %p checking committed %s(%s) variant: %p sig->pt: %d " \
+                "sig->mpt: %d match: %d, args: %d\n", this, getName(), sig->getSignatureText(), variant,
+                sig->getParamTypes(), sig->getMinParamTypes(), match, num_args);
 
             // issue 1507: ensure that calls with no arguments and no params are considered a perfect match
             if (!num_args && !sig->numParams()) {
@@ -1399,7 +1403,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         pos_has_arg = (bool)a;
                     }
 
-                    printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d num_args: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, num_args, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
+                    printd(5, "QoreFunction::parseFindVariant() %s(%s) committed pi: %d num_args: %d t: %s " \
+                        "(has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi,
+                        num_args, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a,
+                        QoreTypeInfo::parseAccepts(t, a));
 
                     int rc = QTI_UNASSIGNED;
                     if (QoreTypeInfo::hasType(t)) {
@@ -1435,7 +1442,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         ok = false;
                         // raise a detailed parse exception immediately if there is only one variant
                         if (ilist.size() == 1 && aqf->vlist.singular() && getProgram()->getParseExceptionSink())
-                            return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
+                            return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(),
+                                sig->getSignatureText(), t, a);
                         break;
                     }
                     ++variant_pmatch;
@@ -1459,8 +1467,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                     continue;
 
                 // now check if additional args are present
-                if ((sig->numParams() < num_args) && !uses_extra_args && strict_args && check_extra_args(sig, argTypeInfo))
+                if ((sig->numParams() < num_args) && !uses_extra_args && strict_args &&
+                    check_extra_args(sig, argTypeInfo)) {
                     continue;
+                }
 
                 if (!npv)
                     pvariant = variant;
@@ -1469,7 +1479,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
                 ++npv;
 
-                if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < (unsigned)match_len))))) {
+                if (count > match
+                    || (count == match && (variant_nperfect > nperfect
+                                            || (variant_nperfect == nperfect
+                                                && (match_len == -1 || sig->numParams() < (unsigned)match_len))))) {
                     // if we could possibly match less than another variant
                     // then we have to match at runtime
                     if (variant_pmatch < pmatch) {
@@ -1483,7 +1496,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         match = count;
                         nperfect = variant_nperfect;
                         match_len = sig->numParams();
-                        printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
+                        printd(5, "QoreFunction::parseFindVariant() assigning variant %p %s(%s)\n", *i, getName(),
+                            sig->getSignatureText());
                         variant = *i;
                     }
                 } else if (variant_pmatch && variant_pmatch >= pmatch) {
@@ -1565,7 +1579,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         if (flags & (QCF_NOOP | QCF_RUNTIME_NOOP)) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);
             desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_CALL_WITH_TYPE_ERRORS,
+                "CALL-WITH-TYPE-ERRORS", desc);
         }
 
         AbstractFunctionSignature* sig = variant->getSignature();
