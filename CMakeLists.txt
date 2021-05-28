@@ -805,7 +805,8 @@ if (DOXYGEN_FOUND)
             COMMENT "Building javadoc jar for dynamically-imported Qore APIs" VERBATIM
         )
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-javadoc.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
-    endif (Java_Development_FOUND)
+        add_dependencies(qore qore-javadoc.jar)
+    endif (Java_FOUND)
 endif (DOXYGEN_FOUND)
 
 add_custom_target(install-docs
