@@ -1236,11 +1236,13 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const QoreProgramLocation*
 }
 
 // returns 0 for success, non-zero for error
-QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation* loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
+QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation* loc, const char* bword,
+        const QoreTypeInfo*& typeInfo, bool& found) {
     assert(!found);
     QoreClass* pc = parse_get_class();
 
-    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
+    printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc,
+        pc ? pc->getName() : "<none>");
 
     bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
@@ -1265,7 +1267,8 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
         }
 
         // now try to find a class constant with this name
-        QoreValue rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo, found, qore_class_private::get(*pc));
+        QoreValue rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo, found,
+            qore_class_private::get(*pc));
         if (found) {
             return rv.refSelf();
         }
@@ -1296,11 +1299,13 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
     QoreValue rv;
 
     qore_ns_private* nscx = parse_get_ns();
-    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p ('%s' root: %d)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", nscx ? nscx->root : false);
+    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p ('%s' root: %d)\n", bword,
+    //  nscx, nscx ? nscx->name.c_str() : "n/a", nscx ? nscx->root : false);
     if (nscx) {
         rv = nscx->getConstantValue(bword, typeInfo, found);
         if (found) {
-            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %s\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv.getTypeName());
+            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %s\n",
+            //  bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv.getTypeName());
             return rv.refSelf();
         }
     }
@@ -2234,7 +2239,8 @@ bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
 
         Var* v = tns->var_list.parseFindVar(n.getIdentifier());
         if (v) {
-            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times",
+                tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
             if (ok) {
                 ok = false;
             }
@@ -2242,7 +2248,8 @@ bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
         }
 
         v = (*i).takeVar();
-        //printd(5, "qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() resolved '%s::%s' ('%s') %p ns\n", tns->name.c_str(), n.getIdentifier(), n.ostr, v);
+        //printd(5, "qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() resolved '%s::%s' "
+        //    "('%s') %p ns\n", tns->name.c_str(), n.getIdentifier(), n.ostr, v);
         tns->var_list.parseAdd(v);
         varmap.update(v->getName(), tns, v);
     }

@@ -127,7 +127,8 @@ static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int6
     }
 }
 
-int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, QoreFunction* func,
+        qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
     // number of local variables declared in arguments
     int lvids = 0;
 
@@ -144,18 +145,21 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
         parse_args = nullptr;
     }
 
-    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s'\n", this, args, args ? get_full_type_name(args) : "n/a");
+    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s'\n", this, args,
+    //    args ? get_full_type_name(args) : "n/a");
 
     // resolves pending signatures unconditionally
     if (func) {
         func->resolvePendingSignatures();
 
-        // initialize function or class immediately for possible error messages later (also in case of constant expressions for immediate evaluation)
+        // initialize function or class immediately for possible error messages later (also in case of constant
+        // expressions for immediate evaluation)
         const QoreClass* qc = func->getClass();
-        if (qc)
+        if (qc) {
             qore_class_private::parseInit(*const_cast<QoreClass*>(qc));
-        else
+        } else {
             func->parseInit(ns);
+        }
 
         const qore_class_private* class_ctx = qc ? parse_get_class_priv() : nullptr;
         if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
@@ -166,33 +170,45 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
 
         QoreProgram* pgm = getProgram();
 
-        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n",
+        //  this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func,
+        //  variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
 
         if (variant) {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QCF_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
+            printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) " \
+                "rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant,
+                variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QCF_RET_VALUE_ONLY,
+                QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
             if (qc) {
                 assert(dynamic_cast<const MethodVariantBase*>(variant));
                 const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
                 if (mv->isAbstract()) {
-                    //printd(5, "FunctionCallBase::parseArgsVariant() found abstract %s::%s\n", qc->getName(), func->getName());
+                    //printd(5, "FunctionCallBase::parseArgsVariant() found abstract %s::%s\n", qc->getName(),
+                    //    func->getName());
                     // issue #3387: set return type before clearing variant
                     returnTypeInfo = mv->parseGetReturnTypeInfo();
                     variant = nullptr;
                     func = nullptr;
                     return lvids;
                 } else if (mv->isPrivate() && !qore_class_private::parseCheckPrivateClassAccess(*qc))
-                    parse_error(*loc, "illegal call to private method variant %s::%s(%s)", qc->getName(), func->getName(), variant->getSignature()->getSignatureText());
+                    parse_error(*loc, "illegal call to private method variant %s::%s(%s)", qc->getName(),
+                        func->getName(), variant->getSignature()->getSignatureText());
             }
             if (variant) {
                 int64 dflags = variant->getFunctionality();
-                //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p dflags: " QLLD " fdflags: " QLLD "\n", this, func->className() ? func->className() : "", func->getName(), variant, dflags, func->parseGetUniqueFunctionality());
+                //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p dflags: " QLLD
+                //    " fdflags: " QLLD "\n", this, func->className() ? func->className() : "", func->getName(),
+                //    variant, dflags, func->parseGetUniqueFunctionality());
                 if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
                     invalid_access(loc, func);
                 int64 flags = variant->getFlags();
                 check_flags(loc, func, flags, pflag);
             }
         } else {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QCF_RET_VALUE_ONLY);
+            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n",
+            //    this, func, func->parseGetUniqueFunctionality(),
+            //    func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(),
+            //    func->parseGetUniqueFlags() & QCF_RET_VALUE_ONLY);
 
             int64 dflags = func->parseGetUniqueFunctionality();
             if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
@@ -202,7 +218,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
 
         returnTypeInfo = variant ? variant->parseGetReturnTypeInfo() : func->parseGetUniqueReturnTypeInfo();
 
-        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p pflag: %d pe: %d\n", this, func ? func->getName() : "n/a", variant, pflag, func ? func->empty() : -1);
+        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p pflag: %d pe: %d\n", this,
+        //    func ? func->getName() : "n/a", variant, pflag, func ? func->empty() : -1);
 
         // if the function call is being made as a part of a constant expression and
         // there are uncommitted user variants in the function, then raise an error
@@ -215,7 +232,9 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
             else
                 desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
 
-            desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
+            desc->concat(" in an expression initializing a constant value at parse time when the function has " \
+                "uncommitted variants and the variant cannot be matched at parse time; to fix this error, add " \
+                "enough type information to the call to allow the variant to be resolved");
 
             parseException(*loc, "ILLEGAL-CALL", desc);
         }
@@ -223,7 +242,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
         returnTypeInfo = nullptr;
     }
 
-    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p args: %p (%zd)\n", this, func ? func->getName() : "n/a", variant, args, args ? args->size() : 0);
+    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p args: %p (%zd)\n", this,
+    //    func ? func->getName() : "n/a", variant, args, args ? args->size() : 0);
 
     return lvids;
 }
@@ -232,7 +252,8 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     QoreObject* self = runtime_get_stack_object();
     assert(self);
 
-    //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s) v: %d\n", this, self, method, ns.ostr, self->isValid());
+    //printd(5, "SelfFunctionCallNode::evalImpl() this: %p self: %p method: %p (%s) v: %d\n", this, self, method,
+    //    ns.ostr, self->isValid());
     if (is_copy) {
         return self->getClass()->execCopy(self, xsink);
     }
@@ -250,15 +271,18 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         : qore_method_private::eval(*method, xsink, self, args);
 }
 
-void SelfFunctionCallNode::parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void SelfFunctionCallNode::parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+        const QoreTypeInfo*& returnTypeInfo) {
     assert(!returnTypeInfo);
     // issue #3637: qc might be non-null while method is null in case of calls to implicit copy() methods, for example
-    lvids += parseArgs(oflag, pflag, method ? qore_method_private::get(*method)->getFunction() : nullptr, nullptr, returnTypeInfo);
+    lvids += parseArgs(oflag, pflag, method ? qore_method_private::get(*method)->getFunction() : nullptr, nullptr,
+        returnTypeInfo);
     // issue #2380 make sure to set the method correctly if resolved from a hierarchy
     if (variant)
         method = static_cast<const MethodVariantBase*>(variant)->method();
     if (method) {
-        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(), method);
+        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(),
+            method);
     }
 }
 

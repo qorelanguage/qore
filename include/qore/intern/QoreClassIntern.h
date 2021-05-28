@@ -2559,22 +2559,25 @@ public:
     DLLLOCAL void recheckBuiltinMethodHierarchy();
 
     DLLLOCAL void addNewAncestors(QoreMethod* m) {
-        if (!scl)
+        if (!scl) {
             return;
+        }
 
         scl->addNewAncestors(m);
     }
 
     DLLLOCAL void addNewStaticAncestors(QoreMethod* m) {
-        if (!scl)
+        if (!scl) {
             return;
+        }
 
         scl->addNewStaticAncestors(m);
     }
 
     DLLLOCAL void addStaticAncestors(QoreMethod* m) {
-        if (!scl)
+        if (!scl) {
             return;
+        }
 
         scl->addStaticAncestors(m);
     }
@@ -2582,15 +2585,17 @@ public:
     DLLLOCAL void addAncestors(QoreMethod* m) {
         assert(strcmp(m->getName(), "constructor"));
 
-        if (!scl)
+        if (!scl) {
             return;
+        }
 
         scl->addAncestors(m);
     }
 
     DLLLOCAL void parseAddStaticAncestors(QoreMethod* m) {
-        if (!scl)
+        if (!scl) {
             return;
+        }
 
         scl->parseAddStaticAncestors(m);
     }

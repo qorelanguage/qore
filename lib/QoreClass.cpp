@@ -821,12 +821,32 @@ void qore_class_private::initialize() {
 
 // issue #2657: initialize class hierarchy first before initializing code and members
 int qore_class_private::initializeHierarchy(qcp_set_t& qcp_set) {
-    if (scl) {
-        if (scl->initializeHierarchy(cls, qcp_set)) {
-            initialized = true;
-            return -1;
+    assert(scl);
+    if (scl->initializeHierarchy(cls, qcp_set)) {
+        initialized = true;
+        return -1;
+    }
+
+    // setup inheritance list for new methods
+    for (auto& i : hm) {
+        bool is_new = i.second->priv->func->committedEmpty();
+
+        //printd(5, "class_private::initializeHierarchy() this: %p %s::%s is_new: %d cs: %d (%s)\n",
+        //    this, name.c_str(), i->first.c_str(), is_new, checkSpecial(i->second->getName()), i->second->getName());
+
+        if (is_new && !checkSpecial(i.second->getName())) {
+            parseAddAncestors(i.second);
         }
     }
+
+    // setup inheritance list for new static methods
+    for (auto& i : shm) {
+        bool is_new = i.second->priv->func->committedEmpty();
+        if (is_new) {
+            parseAddStaticAncestors(i.second);
+        }
+    }
+
     return 0;
 }
 
@@ -1717,7 +1737,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
         if (sclass->priv->final)
             parse_error(*cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
-        rc = sclass->priv->initializeHierarchy(qcp_set);
+        rc = sclass->priv->scl ? sclass->priv->initializeHierarchy(qcp_set) : 0;
     } else
         rc = -1;
     return rc;
@@ -2033,8 +2053,8 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
 }
 
 int BCList::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
-    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
-        if ((*i)->initializeHierarchy(cls, qcp_set)) {
+    for (auto& i : *this) {
+        if ((*i).initializeHierarchy(cls, qcp_set)) {
             if (valid)
                 valid = false;
         }
@@ -2046,9 +2066,9 @@ int BCList::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             bclist_t::iterator j = i;
             while (++j != e) {
                 if (!(*j)->sclass)
-                continue;
+                    continue;
                 if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
-                parse_error(*cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+                    parse_error(*cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
                 if (valid)
                     valid = false;
                 }
@@ -2232,7 +2252,8 @@ void BCList::addAncestors(QoreMethod* m) {
 
         const QoreMethod* w = qc->priv->findLocalCommittedMethod(name);
         if (w)
-            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(),
+                (*i).access);
 
         qc->priv->addAncestors(m);
     }
@@ -2246,7 +2267,8 @@ void BCList::addStaticAncestors(QoreMethod* m) {
 
         const QoreMethod* w = qc->priv->findLocalCommittedStaticMethod(name);
         if (w)
-            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(),
+                (*i).access);
         qc->priv->addStaticAncestors(m);
     }
 }
@@ -2265,8 +2287,10 @@ void BCList::parseAddAncestors(QoreMethod* m) {
         const QoreMethod* w = qc->priv->parseFindLocalMethod(name);
         //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p\n", m, name, this, qc, w);
 
-        if (w)
-            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+        if (w) {
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(),
+                (*i).access);
+        }
 
         qc->priv->parseAddAncestors(m);
     }
@@ -2282,7 +2306,8 @@ void BCList::parseAddStaticAncestors(QoreMethod* m) {
 
         const QoreMethod* w = qc->priv->parseFindLocalStaticMethod(name);
         if (w)
-            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(),
+                (*i).access);
 
         qc->priv->parseAddStaticAncestors(m);
     }
@@ -4025,29 +4050,6 @@ void qore_class_private::parseInitPartialIntern() {
                     //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
                 }
             }
-        }
-    }
-
-    if (!has_new_user_changes)
-        return;
-
-    // do processing related to parent classes
-    if (scl) {
-        // setup inheritance list for new methods
-        for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-            bool is_new = i->second->priv->func->committedEmpty();
-
-            //printd(5, "class_private::parseInitPartialIntern() this: %p %s::%s is_new: %d cs: %d (%s)\n", this, name.c_str(), i->first.c_str(), is_new, checkSpecial(i->second->getName()), i->second->getName());
-
-            if (is_new && !checkSpecial(i->second->getName()))
-                parseAddAncestors(i->second);
-        }
-
-        // setup inheritance list for new static methods
-        for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-            bool is_new = i->second->priv->func->committedEmpty();
-            if (is_new)
-                parseAddStaticAncestors(i->second);
         }
     }
 }

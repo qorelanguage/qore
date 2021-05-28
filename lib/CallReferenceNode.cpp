@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,14 +38,17 @@
 #include <cstdlib>
 #include <cstring>
 
-CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp, QoreParseListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), parse_args(n_args) {
+CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp,
+        QoreParseListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), parse_args(n_args) {
 }
 
-CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp, QoreListNode* n_args) : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), args(n_args) {
+CallReferenceCallNode::CallReferenceCallNode(const QoreProgramLocation* loc, QoreValue n_exp, QoreListNode* n_args)
+        : ParseNode(loc, NT_FUNCREFCALL), exp(n_exp), args(n_args) {
 }
 
 CallReferenceCallNode::~CallReferenceCallNode() {
-    //printd(5, "CallReferenceCallNode::~CallReferenceCallNode() this: %p exp: %p '%s' type: %d refs: %d\n", this, exp, get_type_name(exp), get_node_type(exp), exp->reference_count());
+    //printd(5, "CallReferenceCallNode::~CallReferenceCallNode() this: %p exp: %p '%s' type: %d refs: %d\n", this,
+    //  exp, get_type_name(exp), get_node_type(exp), exp->reference_count());
     exp.discard(nullptr);
     if (parse_args) {
         parse_args->deref(nullptr);
@@ -87,22 +90,25 @@ QoreValue CallReferenceCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
 
     ResolvedCallReferenceNode* r = dynamic_cast<ResolvedCallReferenceNode*>(lv->getInternalNode());
     if (!r) {
-        xsink->raiseException(*loc, "REFERENCE-CALL-ERROR", QoreValue(), "expression does not evaluate to a call reference (evaluated to type '%s')", lv->getTypeName());
+        xsink->raiseException(*loc, "REFERENCE-CALL-ERROR", QoreValue(), "expression does not evaluate to a call " \
+            "reference (evaluated to type '%s')", lv->getTypeName());
         return QoreValue();
     }
     return r->execValue(args, xsink);
 }
 
-void CallReferenceCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    // call references calls can return any value
-    typeInfo = 0;
+void CallReferenceCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+        const QoreTypeInfo*& typeInfo) {
+    // call reference calls can return any value
+    typeInfo = nullptr;
 
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
     const QoreTypeInfo* expTypeInfo = nullptr;
     parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
 
-    if (expTypeInfo && codeTypeInfo && QoreTypeInfo::hasType(expTypeInfo) && !QoreTypeInfo::parseAccepts(codeTypeInfo, expTypeInfo)) {
+    if (expTypeInfo && codeTypeInfo && QoreTypeInfo::hasType(expTypeInfo)
+        && !QoreTypeInfo::parseAccepts(codeTypeInfo, expTypeInfo)) {
         // raise parse exception
         QoreStringNode* desc = new QoreStringNode("invalid call; expression gives ");
         QoreTypeInfo::getThisType(expTypeInfo, *desc);
@@ -117,10 +123,12 @@ void CallReferenceCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int p
     }
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval) {
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval,
+        qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval) {
 }
 
-AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval, n_there_can_be_only_one) {
+AbstractCallReferenceNode::AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one,
+        qore_type_t n_type) : AbstractQoreNode(n_type, false, n_needs_eval, n_there_can_be_only_one) {
 }
 
 AbstractCallReferenceNode::~AbstractCallReferenceNode() {
@@ -176,7 +184,8 @@ bool AbstractCallReferenceNode::getAsBoolImpl() const {
     return true;
 }
 
-ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), exp(n_exp), method(n_method), qc(0), m(0) {
+ParseObjectMethodReferenceNode::ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp,
+        char* n_method) : AbstractParseObjectMethodReferenceNode(loc), exp(n_exp), method(n_method), qc(0), m(0) {
     free(n_method);
 }
 
