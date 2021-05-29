@@ -50,8 +50,10 @@
 #include <set>
 #include <string>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <utility>
 #include <vector>
+#include <unistd.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -62,19 +64,20 @@
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n"
     " -d, --dox-output=arg   doxygen output file name\n"
     " -h, --help             this help text\n"
+    " -j, --javadoc=arg      javadoc output directory name\n"
     " -o, --output=arg       cpp output file name\n"
-    " -u, --unit=arg         qtest (QUnit) output file name\n"
     " -t, --table=arg        process the given file for doxygen tables (|!...)\n"
-    " -V, --value            use the QoreValue API\n" " -v, --verbose          increases verbosity level\n";
+    " -u, --unit=arg         qtest (QUnit) output file name\n"
+    " -v, --verbose          increases verbosity level\n";
 
 static const option pgm_opts[] = {
     {"dox-output", required_argument, nullptr, 'd'},
     {"help", no_argument, nullptr, 'h'},
+    {"javadoc", required_argument, nullptr, 'j'},
     {"output", required_argument, nullptr, 'o'},
-    {"unit", required_argument, nullptr, 'u'},
     {"table", required_argument, nullptr, 't'},
+    {"unit", required_argument, nullptr, 'u'},
     {"verbose", optional_argument, nullptr, 'v'},
-    {"value", no_argument, nullptr, 'V'},
     {nullptr, 0, nullptr, 0}
 };
 
@@ -89,11 +92,12 @@ enum LogLevel {
 static struct qpp_opts {
     std::string output_fn;
     std::string dox_fn;
+    std::string javadoc_fn;
     std::string unit_test_fn;
     std::string table_fn;
     int verbose;
 
-    qpp_opts():verbose(LL_INFO) {
+    qpp_opts() : verbose(LL_INFO) {
     }
 } opts;
 
@@ -102,9 +106,6 @@ std::string pn;
 
 // extra c++ initialization string
 std::string initcode;
-
-// global "use QoreValue" flag
-bool use_value = false;
 
 // code attribute type
 typedef unsigned int attr_t;
@@ -186,6 +187,29 @@ static char* strchrs(const char* str, const char* chars) {
     return nullptr;
 }
 */
+
+static void replace(std::string& str, const char* orig, const char* newstr) {
+    size_t index = 0;
+    int len = -1;
+    int newlen = -1;
+    while (true) {
+        // Locate the substring to replace
+        index = str.find(orig, index);
+        if (index == std::string::npos) {
+            break;
+        }
+
+        // Make the replacement
+        if (len == -1) {
+            len = strlen(orig);
+            newlen = strlen(newstr);
+        }
+        str.replace(index, len, newstr);
+
+        // Advance index forward so the next iteration doesn't pick it up as well
+        index += newlen;
+    }
+}
 
 static bool idchar(const char c) {
     return isalnum(c) || c == '_';
@@ -380,6 +404,56 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
     l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
+static void get_string_list(strlist_t& l, const std::string& str, const char* separator) {
+    size_t start = 0;
+    size_t len = strlen(separator);
+    while (true) {
+        size_t sep = str.find(separator, start);
+        if (sep == std::string::npos) {
+            break;
+        }
+        std::string element(str, start, sep - start);
+        // remove leading whitespace from strings
+        strip_leading_spaces(element);
+        l.push_back(element);
+        start = sep + len;
+    }
+
+    std::string element(str, start);
+    // remove leading whitespace from strings
+    strip_leading_spaces(element);
+    l.push_back(element);
+    //for (unsigned i = 0; i < l.size(); ++i)
+    //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
+}
+
+std::string get_java_doc(const std::string& docs, int offset = 0) {
+    //printf("BEFORE: '%s'\n", docs.c_str());
+    std::string rv = docs;
+    if (rv[0] == '/' && rv[1] == '/' && rv[2] == '!') {
+        size_t t = rv.find("/**", 3);
+        if (t == std::string::npos) {
+            rv += "*/";
+        } else {
+            rv.erase(t, 3);
+            if (!offset) {
+                rv.insert(t, "   ");
+            }
+        }
+        rv[1] = '*';
+        rv[2] = '*';
+        rv.insert(3, " @brief");
+        if (offset) {
+            rv.insert(0, "    ");
+            replace(rv, "\n", "\n    ");
+        }
+    }
+    //printf("AFTER: '%s'\n", rv.c_str());
+    trim_end(rv);
+    rv += "\n";
+    return rv;
 }
 
 static void output_file(FILE* fp, const std::string& text) {
@@ -623,6 +697,24 @@ static void get_type_name(std::string& t, const std::string& type) {
         t.assign(type, cp + 2, -1);
     if (t[0] == '*' || t[0] == '!')
         t.erase(0, 1);
+}
+
+static std::string get_java_type_name(const std::string& type, const std::string& ns) {
+    std::string t = type;
+    if (t[0] == '*' || t[0] == '!') {
+        t.erase(0, 1);
+    }
+    if (t.find("::") == std::string::npos) {
+        t.insert(0, "::");
+        t.insert(0, ns);
+    }
+    replace(t, "::", ".");
+    t.insert(0, "qore.");
+    return t;
+}
+
+static std::string get_java_type_name(const std::string& type) {
+    return get_java_type_name(type, std::string("Qore"));
 }
 
 // takes into account quotes and @code @endcode
@@ -910,6 +1002,69 @@ static void add_init_code(FILE* fp) {
 
     fprintf(fp, "\n    // initialization code added by qppinit\n    %s", initcode.c_str());
     initcode.clear();
+}
+
+static int mkdir_chdir(const char* path) {
+    // check if target path exists
+    struct stat sb;
+    if (stat(path, &sb)) {
+        //printf("stat('%s'): %s\n", path, strerror(errno));
+        if (mkdir(path, 0755)) {
+            // ignore EEXIST: with a parallel build this can happen normally
+            if (errno != EEXIST) {
+                fprintf(stderr, "mkdir '%s': %s\n", path, strerror(errno));
+                return -1;
+            }
+        }
+    }
+
+    if (chdir(path)) {
+        fprintf(stderr, "chdir '%s': %s\n", path, strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+#ifndef PATH_MAX
+#define PATH_MAX 512
+#endif
+
+static FILE* get_java_file(const std::string& ns, const std::string& name, std::string& pkg) {
+    // open class file
+    strlist_t dirvec = { "qore" };
+    // convert namespace to package
+    pkg = ns;
+    if (ns.empty()) {
+        pkg = "Qore";
+        dirvec.push_back("Qore");
+    } else {
+        get_string_list(dirvec, pkg, "::");
+        replace(pkg, "::", ".");
+    }
+
+    // start in root java output dir
+    if (mkdir_chdir(opts.javadoc_fn.c_str())) {
+        exit(1);
+    }
+
+    //printf("dir: '%s' pkg: '%s'\n", opts.javadoc_fn.c_str(), pkg.c_str());
+    for (auto& i : dirvec) {
+        if (mkdir_chdir(i.c_str())) {
+            exit(1);
+        }
+    }
+
+    std::string fn = name;
+    fn += ".java";
+    FILE* fp = fopen(fn.c_str(), "w");
+    if (!fp) {
+        char buf[PATH_MAX + 1];
+        fprintf(stderr, "cannot create java output file '%s/%s': %s\n", getcwd(buf, PATH_MAX), fn.c_str(),
+            strerror(errno));
+        exit(1);
+    }
+    return fp;
 }
 
 #define T_INT        0
@@ -1634,15 +1789,13 @@ protected:
                             p.name.c_str(), p.qore.c_str(), i,
                             cid.c_str(), cname ? cname : "",
                             cname ? "::" : "", name.c_str(), p.type.c_str() + 1, rv ? " 0" : "");
-                }
-                else if (p.type[0] != '*') {
+                } else if (p.type[0] != '*') {
                     fprintf(fp,
                             "    HARD_QORE_VALUE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
                             p.name.c_str(), p.qore.c_str(), i,
                             cid.c_str(), cname ? cname : "",
                             cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
-                }
-                else {
+                } else {
                     fprintf(fp,
                             "    HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(%s, %s, args, %d, CID_%s, xsink);\n    if (*xsink)\n        return%s;\n",
                             p.name.c_str(), p.qore.c_str(), i, cid.c_str(), rv ? " 0" : "");
@@ -1853,6 +2006,10 @@ protected:
         return "QoreValue";
     }
 
+    std::string getJavaReturnType() const {
+        return getJavaType(return_type);
+    }
+
     static void serializeQoreCppType(FILE* fp, const std::string& tstr) {
         if (tstr == "...")
             return;
@@ -1947,6 +2104,54 @@ public:
 
     operator bool() const {
         return valid;
+    }
+
+    static std::string getJavaType(const std::string& qore_type, bool obj = false) {
+        if (qore_type == "nothing" || qore_type == "null") {
+            return "void";
+        }
+        if (qore_type == "int" || qore_type == "timeout") {
+            return obj ? "Long" : "long";
+        }
+        if (qore_type == "bool") {
+            return obj ? "Boolean" : "boolean";
+        }
+        if (qore_type == "float") {
+            return obj ? "Double" : "double";
+        }
+        if (qore_type == "string") {
+            return "String";
+        }
+        if (qore_type.rfind("hash", 0) == 0) {
+            return "org.qore.jni.Hash";
+        }
+        if (qore_type.rfind("list", 0) == 0) {
+            return "Object[]";
+        }
+        if (qore_type == "number") {
+            return "java.math.BigDecimal";
+        }
+        if (qore_type == "binary") {
+            return "byte[]";
+        }
+        if (qore_type == "code" || qore_type == "closure" || qore_type == "callref") {
+            return "org.qore.jni.QoreClosure";
+        }
+        if (qore_type.rfind("reference", 0) == 0) {
+            return "Object";
+        }
+        if (qore_type == "object" || qore_type == "any" || qore_type == "auto") {
+            return "Object";
+        }
+        if (qore_type.rfind("soft", 0) == 0) {
+            std::string tmp = qore_type.substr(4);
+            return getJavaType(tmp);
+        }
+        if (qore_type[0] == '*') {
+            std::string tmp = qore_type.substr(1);
+            return getJavaType(tmp, true);
+        }
+        return get_java_type_name(qore_type);
     }
 };
 
@@ -2229,12 +2434,10 @@ protected:
             if (i->first == "dom") {
                 if (dom_get(dom, i->second))
                     return -1;
-            }
-            else if (i->first == "flags") {
+            } else if (i->first == "flags") {
                 if (flags_get(cf, i->second))
                     return -1;
-            }
-            else if (i->first == "doconly")
+            } else if (i->first == "doconly")
                 doconly = true;
             else {
                 error("unknown flag '%s' = '%s' defining function %s()\n", i->first.c_str(), i->second.c_str(), fn.c_str());
@@ -2673,6 +2876,7 @@ public:
 
     virtual int serializeCpp(FILE* fp) = 0;
     virtual int serializeDox(FILE* fp) = 0;
+    virtual int serializeJavadoc() = 0;
     virtual int serializeUnitTest(FILE* fp) = 0;
     virtual strlist_t precalculateUnitTest() = 0;
 };
@@ -2896,6 +3100,10 @@ public:
         return 0;
     }
 
+    virtual int serializeJavadoc() {
+        return 0;
+    }
+
     virtual strlist_t precalculateUnitTest() {
         return strlist_t();
     }
@@ -2998,6 +3206,10 @@ protected:
 public:
     TextElement(const std::string& n_buf):buf(n_buf) {
         //log(LL_DEBUG, "TextElement::TextElement() str=%s", n_buf.c_str());
+    }
+
+    virtual int serializeJavadoc() {
+        return 0;
     }
 
     virtual int serializeCpp(FILE* fp) {
@@ -3109,6 +3321,57 @@ protected:
         return "q_method_n_t";
     }
 
+    std::string getJavaAttrs() const {
+        std::string attrs;
+        if (!(attr & (QCA_PRIVATE | QCA_PRIVATE_INTERNAL))) {
+            attrs += "public ";
+        }
+        if (attr & QCA_SYNCHRONIZED) {
+            attrs += "synchronized ";
+        }
+        if (attr & QCA_ABSTRACT) {
+            attrs += "abstract ";
+        }
+        return attrs;
+    }
+
+    std::string getJavaDoc() const {
+        return get_java_doc(docs, 4);
+    }
+
+    std::string getJavaArgs() const {
+        std::string rv;
+        size_t size = params.size();
+        if (size && params[size - 1].type == "...") {
+            --size;
+        }
+
+        if (size) {
+            for (unsigned i = 0; i < size; ++i) {
+                std::string javatype = CodeBase::getJavaType(params[i].type);
+                // FIXME: process default args and add variants
+                rv += javatype.c_str();
+                rv += " ";
+                rv += params[i].name;
+                if (i != (size - 1)) {
+                    rv += ", ";
+                }
+            }
+        }
+        return rv;
+    }
+
+    void serializeJavadocConstructor(FILE* fp, const char* cname) const {
+        serializeQoreConstructorPrototypeComment(fp, cname, 4);
+
+        std::string doc = getJavaDoc();
+        fprintf(fp, "%s", doc.c_str());
+        std::string attrs = getJavaAttrs();
+        std::string args = getJavaArgs();
+        fprintf(fp, "    %s%s(%s) throws Throwable {\n", attrs.c_str(), cname, args.c_str());
+        fputs("    }\n\n", fp);
+    }
+
 public:
     Method(const std::string& fn, const std::string& n_name, attr_t n_attr, const paramlist_t& n_params, const std::string& n_docs, const std::string& n_return_type, const strlist_t& n_flags, const strlist_t& n_dom, const std::string& n_code, unsigned n_line, bool n_doconly, const char* n_pseudo_arg) :
                CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
@@ -3130,8 +3393,7 @@ public:
                             ++i;
                             break;
                         }
-                    }
-                    else if (pseudo_arg[i] != ' ') {
+                    } else if (pseudo_arg[i] != ' ') {
                         end = i + 1;
                         found = true;
                     }
@@ -3150,7 +3412,7 @@ public:
         //log(LL_DEBUG, "Method::Method() %s:%d '%s'\n", fn.c_str(), line, name.c_str());
     }
 
-    virtual ~ Method() {
+    virtual ~Method() {
     }
 
     void serializeUnitTestMethod(FILE* fp, const char* cname) const {
@@ -3159,6 +3421,40 @@ public:
 
     void serializeUnitTestStatic(FILE* fp, const char* cname) const {
         serializeQorePrototypeComment(fp, cname, 8, "#");
+    }
+
+    void serializeNormalJavadocMethod(FILE* fp, const char* cname) const {
+        if (name == "constructor") {
+            serializeJavadocConstructor(fp, cname);
+            return;
+        }
+        // ignore destructor and copy methods in Java
+        if (name == "destructor" || name == "copy") {
+            return;
+        }
+
+        serializeQorePrototypeComment(fp, cname, 4);
+
+        std::string doc = getJavaDoc();
+        fprintf(fp, "%s", doc.c_str());
+        std::string attrs = getJavaAttrs();
+        std::string args = getJavaArgs();
+        std::string rt = getJavaReturnType();
+        fprintf(fp, "    %s%s %s(%s) throws Throwable {\n", attrs.c_str(), rt.c_str(), name.c_str(), args.c_str());
+        fputs("    }\n\n", fp);
+    }
+
+    void serializeStaticJavadocMethod(FILE* fp, const char* cname) const {
+        serializeQorePrototypeComment(fp, cname, 4);
+
+        std::string doc = getJavaDoc();
+        fprintf(fp, "%s", doc.c_str());
+        std::string attrs = getJavaAttrs();
+        std::string args = getJavaArgs();
+        std::string rt = getJavaReturnType();
+        fprintf(fp, "    static %s%s %s(%s) throws Throwable {\n", attrs.c_str(), rt.c_str(), name.c_str(),
+            args.c_str());
+        fputs("    }\n\n", fp);
     }
 
     void serializeNormalCppMethod(FILE* fp, const char* cname, const char* arg) const {
@@ -3185,7 +3481,8 @@ public:
 
         serializeQorePrototypeComment(fp, cname);
 
-        fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
+        fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, " \
+            "ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
 
         serializeArgs(fp, cname);
         if (!pseudo_arg.empty()) {
@@ -3271,7 +3568,8 @@ public:
 
         serializeQorePrototypeComment(fp, cname);
 
-        fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
+        fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) " \
+            "{\n", getReturnType(), cname, vname.c_str());
         serializeArgs(fp, cname);
         fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
         output_file(fp, code);
@@ -3610,6 +3908,49 @@ public:
 
         fprintf(fp, "        assertEq(True, False, \"assertion placeholder; the real test needs to be implemented\");\n");
         fprintf(fp, "    }\n\n");
+        return 0;
+    }
+
+    virtual int serializeJavadoc() {
+        // do not serialize pseudo classes
+        if (is_pseudo || opts.javadoc_fn.empty()) {
+            return 0;
+        }
+
+        std::string pkg;
+        FILE* fp = get_java_file(ns, name, pkg);
+
+        fprintf(fp, "// Java created from Qore class %s::%s\n", ns.empty() ? "Qore" : ns.c_str(), name.c_str());
+
+        fprintf(fp, "package qore.%s;\n\n", pkg.c_str());
+
+        // output class docs
+        std::string javadoc = get_java_doc(doc);
+        fprintf(fp, "%s", javadoc.c_str());
+
+        // get parent class, if any
+        std::string parent;
+        if (!defbase.empty()) {
+            parent = get_java_type_name(defbase, ns);
+        } else if (!vparents.empty()) {
+            parent = get_java_type_name(vparents[0], ns);
+        }
+
+        if (!parent.empty()) {
+            parent = " extends " + parent;
+        }
+
+        fprintf(fp, "public class %s%s {\n", name.c_str(), parent.c_str());
+
+        for (auto& i : normal_mmap) {
+            i.second->serializeNormalJavadocMethod(fp, name.c_str());
+        }
+
+        for (auto& i : static_mmap) {
+            i.second->serializeStaticJavadocMethod(fp, name.c_str());
+        }
+
+        fprintf(fp, "}\n");
         return 0;
     }
 
@@ -4085,7 +4426,7 @@ protected:
     }
 
 public:
-    Code(const char* fn, const std::string& ofn, const std::string& dfn, const std::string& unit_test_fn, bool cpp_append = false, bool dox_append = false) : fileName(fn),
+    Code(const char* fn, bool cpp_append = false, bool dox_append = false) : fileName(fn),
         cpp_open_flag(cpp_append ? "a" : "w"),
         dox_open_flag(dox_append ? "a" : "w"), lineNumber(0), valid(true), has_class(false) {
         std::string base;
@@ -4096,19 +4437,19 @@ public:
         bnc = fn;
         dir = dirname((char*)bnc.c_str());
 
-        if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp"))
+        if (base.size() > 4 && !strcmp(base.c_str() + base.size() - 4, ".qpp")) {
             base.erase(base.size() - 4);
-        else {
+        } else {
             warning("'%s' does not end in extension '.qpp'\n", fn);
             size_t d = base.rfind('.');
             if (d != std::string::npos)
                 base.erase(d);
         }
 
-        cppFileName = !ofn.empty()? ofn : dir + "/" + base + ".cpp";
-        doxFileName = !dfn.empty()? dfn : dir + "/" + base + ".dox.h";
-        if (!unit_test_fn.empty()) {
-            unitTestFileName = unit_test_fn;
+        cppFileName = !opts.output_fn.empty() ? opts.output_fn : dir + "/" + base + ".cpp";
+        doxFileName = !opts.dox_fn.empty() ? opts.dox_fn : dir + "/" + base + ".dox.h";
+        if (!opts.unit_test_fn.empty()) {
+            unitTestFileName = opts.unit_test_fn;
         }
 
         if (parse())
@@ -4189,6 +4530,17 @@ public:
         fclose(fp);
 
         chmod(unitTestFileName.c_str(), 0744);
+        return 0;
+    }
+
+    int serializeJavadoc() {
+        for (auto& i : source) {
+            if (i->serializeJavadoc()) {
+                valid = false;
+                return -1;
+            }
+        }
+
         return 0;
     }
 
@@ -4495,28 +4847,32 @@ void process_command_line(int& argc, char**& argv) {
     pn = basename(argv[0]);
 
     int ch;
-    while ((ch = getopt_long(argc, argv, "d:ho:u:t:v:V", pgm_opts, nullptr)) != -1) {
+    while ((ch = getopt_long(argc, argv, "d:hj:o:t:u:v:V", pgm_opts, nullptr)) != -1) {
         //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
 
         switch (ch) {
+            case 'd':
+                opts.dox_fn = optarg;
+                break;
+
             case 'h':
                 usage();
                 break;
 
-            case 'd':
-                opts.dox_fn = optarg;
+            case 'j':
+                opts.javadoc_fn = optarg;
                 break;
 
             case 'o':
                 opts.output_fn = optarg;
                 break;
 
-            case 'u':
-                opts.unit_test_fn = optarg;
-                break;
-
             case 't':
                 opts.table_fn = optarg;
+                break;
+
+            case 'u':
+                opts.unit_test_fn = optarg;
                 break;
 
             case 'v':
@@ -4524,10 +4880,6 @@ void process_command_line(int& argc, char**& argv) {
                     opts.verbose = strtoll(optarg, nullptr, 10);
                 else
                     ++opts.verbose;
-                break;
-
-            case 'V':
-                use_value = true;
                 break;
         }
     }
@@ -4544,14 +4896,8 @@ void process_command_line(int& argc, char**& argv) {
             error("output file name must be given with -t\n");
             usage();
         }
-    }
-    else if (!opts.table_fn.empty()) {
+    } else if (!opts.table_fn.empty()) {
         error("table file name must not be given along with an input file list\n");
-        usage();
-    }
-
-    if (!use_value && opts.table_fn.find("qpp") != std::string::npos) {
-        error("only supports operation with the -V option targeting the Qore 0.9+ API\n");
         usage();
     }
 }
@@ -4563,7 +4909,7 @@ int main(int argc, char* argv[]) {
     init();
 
     for (int i = 0; i < argc; ++i) {
-        Code code(argv[i], opts.output_fn, opts.dox_fn, opts.unit_test_fn, i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
+        Code code(argv[i], i && !opts.output_fn.empty(), i && !opts.dox_fn.empty());
         if (!code) {
             error("please correct the errors above and try again\n");
             exit(1);
@@ -4578,6 +4924,9 @@ int main(int argc, char* argv[]) {
 
         // create dox output file
         code.serializeDox();
+
+        // create javadoc output file
+        code.serializeJavadoc();
     }
 
     if (!opts.table_fn.empty())

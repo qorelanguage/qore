@@ -82,6 +82,8 @@ and also for user modules delivered with Qore and also example programs.
 %files doc
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc docs/lang docs/modules/* examples/
+%dir %{_datarootdir}/qore/java
+%{_datarootdir}/qore/java/*
 
 %package devel
 Summary: The header files needed to compile programs using the qore library
@@ -99,6 +101,7 @@ Qore library.
 %files devel
 %{_bindir}/qpp
 %{_bindir}/qdx
+%{_bindir}/qjar
 %{_libdir}/libqore.so
 %{_libdir}/pkgconfig/qore.pc
 %dir %{_libdir}/cmake

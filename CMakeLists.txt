@@ -51,8 +51,11 @@ else ()
     add_definitions(-DNDEBUG)
 endif ()
 
+find_package(Java)
+
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
+set(QORE_QJAR_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qjar")
 # simulate QoreConfig
 
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
@@ -221,6 +224,7 @@ set(PSEUDO_QPP_SRC
 
 set(QORE_BIN_FILES
     doxygen/qdx
+    doxygen/qjar
     bin/qdp
     bin/qget
     bin/rest
@@ -777,7 +781,8 @@ if (DOXYGEN_FOUND)
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
-        COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
+        COMMENT "Generating API documentation with Doxygen for: lib"
+        VERBATIM
     )
     add_dependencies(docs docs-lib)
 
@@ -790,7 +795,8 @@ if (DOXYGEN_FOUND)
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/*.js
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.js
         DEPENDS QORE_DOX_FILES
-        COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
+        COMMENT "Generating API documentation with Doxygen for: lang"
+        VERBATIM
     )
     add_dependencies(docs docs-lang)
 endif (DOXYGEN_FOUND)
@@ -798,7 +804,8 @@ endif (DOXYGEN_FOUND)
 add_custom_target(install-docs
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/ ${CMAKE_INSTALL_PREFIX}/share/doc/qore
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
-    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
+    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore"
+    VERBATIM
 )
 add_dependencies(install-docs docs)
 # end of documentation

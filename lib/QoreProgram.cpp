@@ -1152,7 +1152,7 @@ const QoreClass* qore_program_private::runtimeFindClass(const char* class_name, 
     if (*xsink)
         return nullptr;
 
-    // include the ns arg to ensure that namespace-jiustified classes are resolved properly
+    // include the ns arg to ensure that namespace-justified classes are resolved properly
     const qore_ns_private* ns;
     return qore_root_ns_private::runtimeFindClass(*RootNS, class_name, ns);
 }

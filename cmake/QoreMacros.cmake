@@ -5,42 +5,6 @@
 include(CMakeParseArguments)
 
 #
-# Create C++ code from the QPP files
-#
-#  _cpp_files : output list of filenames created in CMAKE_CURRENT_BINARY_DIR.
-#
-# usage:
-# set(MY_QPP foo.qpp bar.qpp)
-# qore_wrap_qpp(MY_CPP ${MY_QPP})
-#
-MACRO (QORE_WRAP_QPP _cpp_files)
-    set(options)
-    set(oneValueArgs)
-    set(multiValueArgs OPTIONS)
-
-    cmake_parse_arguments(_WRAP_QPP "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    FOREACH (it ${_WRAP_QPP_UNPARSED_ARGUMENTS})
-
-        GET_FILENAME_COMPONENT(_outfile ${it} NAME_WE)
-        GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
-        SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
-        SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
-        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
-
-        ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
-                           COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
-                           MAIN_DEPENDENCY ${_infile}
-                           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                           VERBATIM
-                        )
-        SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
-    ENDFOREACH (it)
-
-ENDMACRO (QORE_WRAP_QPP)
-
-#
 # Create C++ code using the new value API from the QPP files
 #
 #  _cpp_files : output list of filenames created in CMAKE_CURRENT_BINARY_DIR.
@@ -61,18 +25,17 @@ MACRO (QORE_WRAP_QPP_VALUE _cpp_files)
         GET_FILENAME_COMPONENT(_infile ${it} ABSOLUTE)
         SET(_cppfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.cpp)
         SET(_doxfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.dox.h)
-        SET(_unitfile ${CMAKE_CURRENT_BINARY_DIR}/${_outfile}.qtest)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${_cppfile} ${_doxfile}
                            COMMAND ${QORE_QPP_EXECUTABLE}
-                           ARGS -V --output=${_cppfile} --dox-output=${_doxfile} --unit=${_unitfile} ${_infile}
+                           ARGS --javadoc=${CMAKE_CURRENT_BINARY_DIR}/java --output=${_cppfile} --dox-output=${_doxfile} ${_infile}
                            MAIN_DEPENDENCY ${_infile}
                            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                            VERBATIM
                         )
         SET(${_cpp_files} ${${_cpp_files}} ${_cppfile})
         IF(_WRAP_QPP_DOXLIST)
-           SET(${_WRAP_QPP_DOXLIST} ${${_WRAP_QPP_DOXLIST}} ${_doxfile})
+           SET(${_WRAP_QPP_DOXLIST} ${${_WRAP_QPP_DOXLIST}} ${_doxfile} ${_javadocfile})
         ENDIF(_WRAP_QPP_DOXLIST)
         #MESSAGE(STATUS "DEBUG D: " _WRAP_QPP_DOXLIST " ${D}:" ${_WRAP_QPP_DOXLIST} " ${${D}}:" ${${_WRAP_QPP_DOXLIST}})
     ENDFOREACH (it)
@@ -267,8 +230,11 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${_dox_output}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${_working_dir}/Doxyfile
                 COMMAND ${QORE_QDX_EXECUTABLE} --post ${_dox_output}/html ${_dox_output}/html/search
+                COMMAND QORE_MODULE_DIR=${_working_dir} ${QORE_QJAR_EXECUTABLE} -i ${CMAKE_BINARY_DIR}/java -m ${_module_name}
+                BYPRODUCTS ${CMAKE_BINARY_DIR}/java
                 WORKING_DIRECTORY ${_working_dir}
-                COMMENT "Generating API documentation with Doxygen" VERBATIM
+                COMMENT "Generating API documentation with Doxygen"
+                VERBATIM
             )
             add_dependencies(${_docs_targ} ${_module_name})
 
@@ -287,7 +253,6 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         else()
             message(WARNING "User module doxygen template file does not exist: ${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
         endif()
-
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
@@ -345,7 +310,10 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
-                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -i ${CMAKE_BINARY_DIR}/java -m ${f}
+                BYPRODUCTS ${CMAKE_BINARY_DIR}/java
+                COMMENT "Generating API documentation with Doxygen for module: ${f}"
+                VERBATIM
             )
             add_custom_target(docs-fast-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
@@ -355,7 +323,10 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
-                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -i ${CMAKE_BINARY_DIR}/java -m ${f}
+                BYPRODUCTS ${CMAKE_BINARY_DIR}/java
+                COMMENT "Generating API documentation with Doxygen for module: ${f}"
+                VERBATIM
             )
         else (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
@@ -365,7 +336,10 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
-                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -i ${CMAKE_BINARY_DIR}/java -m ${f}
+                BYPRODUCTS ${CMAKE_BINARY_DIR}/java
+                COMMENT "Generating API documentation with Doxygen for module: ${f}"
+                VERBATIM
             )
             add_custom_target(docs-fast-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
@@ -374,7 +348,10 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/search/*.html
-                COMMENT "Generating API documentation with Doxygen for module: ${f}" VERBATIM
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -i ${CMAKE_BINARY_DIR}/java -m ${f}
+                BYPRODUCTS ${CMAKE_BINARY_DIR}/java
+                COMMENT "Generating API documentation with Doxygen for module: ${f}"
+                VERBATIM
             )
         endif (WIN32 AND (NOT MINGW) AND (NOT MSYS))
 
