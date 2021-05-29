@@ -48,7 +48,9 @@ class QJar {
 %ifndef NO_JNI
         if (opts."module") {
             processModule();
-        } else {
+        }
+
+        if (opts.classes) {
             getClasses(opts.input + DirSep + "qore", "::");
         }
 %else
@@ -151,6 +153,7 @@ class QJar {
 
     usage() {
         printf("usage: %s [options] [-i=<input_root_dir> | -m=<module>] -o=<output_jar>
+  -c,--classes        scan input for Java classes to retrieve byte code for
   -h,--help           this help text
   -i,--input=ARG      (required) the root input directory
   -m,--module=ARG     the Qore module to generate class files for
