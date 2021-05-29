@@ -1,12 +1,22 @@
 #!/usr/bin/env qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+/** generates jar files from dynamic sources
+*/
+
 %new-style
 %enable-all-warnings
 %require-types
 %strict-args
+%no-child-restrictions
+
+%try-module jni
+%define NO_JNI
+%endtry
 
 %requires qore >= 1.0
+
+%requires reflection
 
 %exec-class QJar
 
@@ -14,28 +24,138 @@ const Opts = {
     "help": "h,help",
     "input": "i,input=s",
     "output": "o,output=s",
+    "module": "m,module=s",
+    "verbose": "v,verbose:i",
 };
 
 class QJar {
+    public {}
+
+    private {
+        hash<auto> opts;
+    }
+
     constructor() {
-        hash<auto> opts = GetOpt::parseExit(Opts, \ARGV);
-        if (opts.help || !opts.input || !opts.output) {
+        opts = GetOpt::parseExit(Opts, \ARGV);
+        if (opts.help || !opts.input) {
             usage();
         }
 
-        if (!is_dir(opts.input) || !is_readable(opts.input)) {
-            stderr.printf("input directory %y does not exist or is not readable\n", opts.input);
-            exit(2);
+        if (!is_dir(opts.input)) {
+            mkdir_ex(opts.input, 0755, True);
         }
 
-        system(sprintf("jar cvf %s -C %s .", opts.output, opts.input));
+%ifndef NO_JNI
+        if (opts."module") {
+            processModule();
+        } else {
+            getClasses(opts.input + DirSep + "qore", "::");
+        }
+%else
+        print("WARNING: no jni module available; cannot generate Java class files\n");
+%endif
+
+        if (opts.output) {
+            string args = opts.verbose ? "cvf" : "cf";
+            system(sprintf("jar %s %s -C %s .", args, opts.output, opts.input));
+        }
     }
 
+%ifndef NO_JNI
+    private processModule() {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        p.loadModule(opts."module");
+        p.loadModule("jni");
+        p.loadModule("reflection");
+        p.parse("binary sub byte_code(Class cls) { return get_byte_code('::' + cls.getPathName()); }", "api");
+
+        # scan for classes from the module
+        getClasses(p, Namespace::forName(p, "::"));
+    }
+
+    private getClasses(Program p, Namespace ns) {
+        bool dir;
+
+        foreach Class cls in (ns.getClasses()) {
+            *string mod = cls.getModuleName();
+            if ((opts."module" != "qore" && mod != opts."module")
+                || (opts."module" == "qore" && mod)) {
+                continue;
+            }
+
+            # do not try to generate bytecode for Java classes
+            if (cls.getPathName() =~ /^Jni::/) {
+                continue;
+            }
+
+            # generate byte code
+            binary b = p.callFunction("byte_code", cls);
+            # get output class file name
+            string ofn = opts.input + DirSep + "qore";
+            string path = cls.getPathName();
+            path =~ s/::/\//g;
+            path += ".class";
+            ofn += DirSep + path;
+
+            # make directory if needed
+            if (!dir) {
+                string dn = dirname(ofn);
+                if (!is_dir(dn)) {
+                    mkdir_ex(dn, 0755, True);
+                }
+                dir = True;
+            }
+
+            File f();
+            f.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
+            f.write(b);
+
+            if (opts.verbose) {
+                printf("::%s => %s (%d bytes)\n", cls.getPathName(), ofn, b.size());
+            }
+        }
+
+        map getClasses(p, $1), ns.getNamespaces();
+    }
+
+    private getClasses(string path, string ns) {
+        Dir d();
+        d.chdir(path);
+
+        # get class files for all java files
+        foreach string fn in (d.listFiles("\\.java$")) {
+            string cls = basename(fn);
+            cls =~ s/\.java$//;
+            cls = ns + cls;
+            fn = path + DirSep + fn;
+            #printf("%s => %s\n", fn, cls);
+            binary b = get_byte_code(cls);
+
+            string ofn = fn;
+            ofn =~ s/\.java$/.class/;
+
+            File f();
+            f.open2(ofn, O_CREAT | O_WRONLY | O_TRUNC);
+            f.write(b);
+
+            if (opts.verbose) {
+                printf("%s => %s (%d bytes)\n", cls, ofn, b.size());
+            }
+        }
+
+        foreach string dir in (d.listDirs()) {
+            getClasses(path + DirSep + dir, ns + dir + "::");
+        }
+    }
+%endif
+
     usage() {
-        printf("usage: %s [options] -i=<input_root_dir> -o=<output_jar>
+        printf("usage: %s [options] [-i=<input_root_dir> | -m=<module>] -o=<output_jar>
   -h,--help           this help text
   -i,--input=ARG      (required) the root input directory
-  -o,--output=ARG     (required) the output jar file name
+  -m,--module=ARG     the Qore module to generate class files for
+  -o,--output=ARG     create an output jar file from the input directory
+  -v,--verbose[=ARG]  show more output
 ", get_script_name());
         exit(1);
     }

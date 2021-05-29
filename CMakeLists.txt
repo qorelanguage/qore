@@ -781,7 +781,8 @@ if (DOXYGEN_FOUND)
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
-        COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
+        COMMENT "Generating API documentation with Doxygen for: lib"
+        VERBATIM
     )
     add_dependencies(docs docs-lib)
 
@@ -794,25 +795,17 @@ if (DOXYGEN_FOUND)
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/*.js
         COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.js
         DEPENDS QORE_DOX_FILES
-        COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
+        COMMENT "Generating API documentation with Doxygen for: lang"
+        VERBATIM
     )
     add_dependencies(docs docs-lang)
-
-    if (Java_FOUND)
-        add_custom_target(qore-javadoc.jar
-            DEPENDS QORE_DOX_FILES
-            COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QJAR_EXECUTABLE} -o qore-javadoc.jar -i ${CMAKE_BINARY_DIR}/java
-            COMMENT "Building javadoc jar for dynamically-imported Qore APIs" VERBATIM
-        )
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qore-javadoc.jar DESTINATION ${CMAKE_INSTALL_PREFIX}/share/qore/java)
-        add_dependencies(qore qore-javadoc.jar)
-    endif (Java_FOUND)
 endif (DOXYGEN_FOUND)
 
 add_custom_target(install-docs
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/ ${CMAKE_INSTALL_PREFIX}/share/doc/qore
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
-    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
+    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore"
+    VERBATIM
 )
 add_dependencies(install-docs docs)
 # end of documentation

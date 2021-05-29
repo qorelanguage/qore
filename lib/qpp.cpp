@@ -699,6 +699,24 @@ static void get_type_name(std::string& t, const std::string& type) {
         t.erase(0, 1);
 }
 
+static std::string get_java_type_name(const std::string& type, const std::string& ns) {
+    std::string t = type;
+    if (t[0] == '*' || t[0] == '!') {
+        t.erase(0, 1);
+    }
+    if (t.find("::") == std::string::npos) {
+        t.insert(0, "::");
+        t.insert(0, ns);
+    }
+    replace(t, "::", ".");
+    t.insert(0, "qore.");
+    return t;
+}
+
+static std::string get_java_type_name(const std::string& type) {
+    return get_java_type_name(type, std::string("Qore"));
+}
+
 // takes into account quotes and @code @endcode
 static void get_string_list2(strlist_t& l, const std::string& str, char separator = ',') {
     size_t start = 0, p = 0;
@@ -1988,7 +2006,7 @@ protected:
         return "QoreValue";
     }
 
-    const char* getJavaReturnType() const {
+    std::string getJavaReturnType() const {
         return getJavaType(return_type);
     }
 
@@ -2088,15 +2106,18 @@ public:
         return valid;
     }
 
-    static const char* getJavaType(std::string qore_type) {
-        if (qore_type == "nothing") {
+    static std::string getJavaType(const std::string& qore_type, bool obj = false) {
+        if (qore_type == "nothing" || qore_type == "null") {
             return "void";
         }
-        if (qore_type == "int") {
-            return "long";
+        if (qore_type == "int" || qore_type == "timeout") {
+            return obj ? "Long" : "long";
         }
         if (qore_type == "bool") {
-            return "boolean";
+            return obj ? "Boolean" : "boolean";
+        }
+        if (qore_type == "float") {
+            return obj ? "Double" : "double";
         }
         if (qore_type == "string") {
             return "String";
@@ -2110,16 +2131,27 @@ public:
         if (qore_type == "number") {
             return "java.math.BigDecimal";
         }
-        if (qore_type == "float") {
-            return "double";
-        }
         if (qore_type == "binary") {
             return "byte[]";
         }
-        if (qore_type == "code" || qore_type == "closure") {
+        if (qore_type == "code" || qore_type == "closure" || qore_type == "callref") {
             return "org.qore.jni.QoreClosure";
         }
-        return "Object";
+        if (qore_type.rfind("reference", 0) == 0) {
+            return "Object";
+        }
+        if (qore_type == "object" || qore_type == "any" || qore_type == "auto") {
+            return "Object";
+        }
+        if (qore_type.rfind("soft", 0) == 0) {
+            std::string tmp = qore_type.substr(4);
+            return getJavaType(tmp);
+        }
+        if (qore_type[0] == '*') {
+            std::string tmp = qore_type.substr(1);
+            return getJavaType(tmp, true);
+        }
+        return get_java_type_name(qore_type);
     }
 };
 
@@ -3407,8 +3439,8 @@ public:
         fprintf(fp, "%s", doc.c_str());
         std::string attrs = getJavaAttrs();
         std::string args = getJavaArgs();
-        fprintf(fp, "    %s%s %s(%s) throws Throwable {\n", attrs.c_str(), getJavaReturnType(), name.c_str(),
-            args.c_str());
+        std::string rt = getJavaReturnType();
+        fprintf(fp, "    %s%s %s(%s) throws Throwable {\n", attrs.c_str(), rt.c_str(), name.c_str(), args.c_str());
         fputs("    }\n\n", fp);
     }
 
@@ -3419,7 +3451,8 @@ public:
         fprintf(fp, "%s", doc.c_str());
         std::string attrs = getJavaAttrs();
         std::string args = getJavaArgs();
-        fprintf(fp, "    static %s%s %s(%s) throws Throwable {\n", attrs.c_str(), getJavaReturnType(), name.c_str(),
+        std::string rt = getJavaReturnType();
+        fprintf(fp, "    static %s%s %s(%s) throws Throwable {\n", attrs.c_str(), rt.c_str(), name.c_str(),
             args.c_str());
         fputs("    }\n\n", fp);
     }
@@ -3898,9 +3931,9 @@ public:
         // get parent class, if any
         std::string parent;
         if (!defbase.empty()) {
-            parent = defbase;
+            parent = get_java_type_name(defbase, ns);
         } else if (!vparents.empty()) {
-            get_type_name(parent, vparents[0]);
+            parent = get_java_type_name(vparents[0], ns);
         }
 
         if (!parent.empty()) {
