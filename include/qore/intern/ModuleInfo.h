@@ -415,93 +415,13 @@ struct DLHelper {
 
 class QoreModuleManager {
     friend class QoreAbstractModule;
-
-private:
-    // not implemented
-    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
-    // not implemented
-    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
-    //! loads separated module. see #2966
-    DLLLOCAL QoreAbstractModule* loadSeparatedModule(
-        ExceptionSink& xsink,
-        ExceptionSink& wsink,
-        const QoreString& path,
-        const char* feature,
-        QoreProgram* tpgm,
-        bool reexport = false,
-        QoreProgram* pgm = nullptr,
-        QoreProgram* path_pgm = nullptr,
-        unsigned load_opt = QMLO_NONE,
-        int warning_mask = QP_WARN_MODULES);
-
-protected:
-    // recursive mutex; initialized in init()
-    QoreThreadLock* mutex;
-
-    // user module dependency map: module -> dependents
-    ModMap md_map;
-    // user module dependent map: dependent -> module
-    ModMap rmd_map;
-
-    // module blacklist
-    typedef std::map<const char*, const char*, ltstr> bl_map_t;
-    bl_map_t mod_blacklist;
-
-    // module hash
-    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
-    module_map_t map;
-
-    // set of user modules with no dependencies
-    strset_t umset;
-
-    // list of module directories
-    UniqueDirectoryList moduleDirList;
-
-    DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
-        module_map_t::iterator i = map.find(name);
-        return i == map.end() ? 0 : i->second;
-    }
-
-    DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
-        AutoLocker sl(mutex); // make sure checking and loading are atomic
-
-        loadModuleIntern(xsink, xsink, name, pgm);
-    }
-
-    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
-        bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr,
-        const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
-        int warning_mask = QP_WARN_MODULES, qore_binary_module_desc_t mod_desc_func = nullptr);
-
-    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
-        const char* feature = nullptr, QoreProgram* pgm = nullptr, bool reexport = false,
-        qore_binary_module_desc_t mod_desc = nullptr);
-
-    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
-        QoreModuleInfo& mod_info, const char* path, const char* feature = nullptr, QoreProgram* pgm = nullptr,
-        bool reexport = false);
-
-    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
-        const char* feature = nullptr, QoreProgram* tpgm = nullptr, bool reexport = false, QoreProgram* pgm = nullptr,
-        QoreProgram* path_pgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
-
-    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
-        const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = nullptr,
-        int warning_mask = QP_WARN_MODULES);
-
-    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi,
-        QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
-
-    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
-    DLLLOCAL void delOrig(QoreAbstractModule* mi);
-    DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* prefix);
+    friend class ModuleLoadMapHelper;
 
 public:
-    DLLLOCAL QoreModuleManager() : mutex(0) {
+    DLLLOCAL QoreModuleManager() {
     }
 
     DLLLOCAL ~QoreModuleManager() {
-        delete mutex;
     }
 
     DLLLOCAL void init(bool se);
@@ -532,12 +452,12 @@ public:
     DLLLOCAL QoreListNode* getModuleList();
 
     DLLLOCAL void addModuleDir(const char* dir) {
-        OptLocker al(mutex);
+        AutoLocker al(mutex);
         moduleDirList.push_back(dir);
     }
 
     DLLLOCAL void addModuleDirList(const char* strlist) {
-        OptLocker al(mutex);
+        AutoLocker al(mutex);
         moduleDirList.addDirList(strlist);
     }
 
@@ -621,6 +541,93 @@ public:
                 md_map.erase(i);
         }
     }
+
+private:
+    // not implemented
+    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
+    // not implemented
+    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
+    //! loads separated module. see #2966
+    DLLLOCAL QoreAbstractModule* loadSeparatedModule(
+        ExceptionSink& xsink,
+        ExceptionSink& wsink,
+        const char* path,
+        const char* feature,
+        QoreProgram* tpgm,
+        bool reexport = false,
+        QoreProgram* pgm = nullptr,
+        QoreProgram* path_pgm = nullptr,
+        unsigned load_opt = QMLO_NONE,
+        int warning_mask = QP_WARN_MODULES);
+
+    typedef std::map<std::string, int> module_load_map_t;
+    QoreCondition module_load_cond;
+    // map feature names to TIDs when module initialization is in progress
+    module_load_map_t module_load_map;
+    // number of threads waiting on module_load_set
+    int module_load_waiting = 0;
+
+protected:
+    // mutex for atomicity
+    QoreThreadLock mutex;
+
+    // user module dependency map: module -> dependents
+    ModMap md_map;
+    // user module dependent map: dependent -> module
+    ModMap rmd_map;
+
+    // module blacklist
+    typedef std::map<const char*, const char*, ltstr> bl_map_t;
+    bl_map_t mod_blacklist;
+
+    // module hash
+    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
+    module_map_t map;
+
+    // set of user modules with no dependencies
+    strset_t umset;
+
+    // list of module directories
+    UniqueDirectoryList moduleDirList;
+
+    DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
+        module_map_t::iterator i = map.find(name);
+        return i == map.end() ? 0 : i->second;
+    }
+
+    DLLLOCAL int loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
+        AutoLocker sl(mutex); // make sure checking and loading are atomic
+
+        return loadModuleIntern(xsink, xsink, name, pgm);
+    }
+
+    DLLLOCAL int loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
+        bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr,
+        const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
+        int warning_mask = QP_WARN_MODULES, qore_binary_module_desc_t mod_desc_func = nullptr);
+
+    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path,
+        const char* feature = nullptr, QoreProgram* pgm = nullptr, bool reexport = false,
+        qore_binary_module_desc_t mod_desc = nullptr);
+
+    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromDesc(ExceptionSink& xsink, DLHelper* dlh,
+        QoreModuleInfo& mod_info, const char* path, const char* feature = nullptr, QoreProgram* pgm = nullptr,
+        bool reexport = false);
+
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
+        const char* feature = nullptr, QoreProgram* tpgm = nullptr, bool reexport = false, QoreProgram* pgm = nullptr,
+        QoreProgram* path_pgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
+
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
+        const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = nullptr,
+        int warning_mask = QP_WARN_MODULES);
+
+    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi,
+        QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
+
+    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
+    DLLLOCAL void delOrig(QoreAbstractModule* mi);
+    DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* prefix);
 };
 
 DLLLOCAL extern QoreModuleManager QMM;
@@ -749,6 +756,15 @@ protected:
 
     ExceptionSink& xsink;
     bool dup;
+};
+
+class ModuleLoadMapHelper {
+public:
+    DLLLOCAL ModuleLoadMapHelper(const char* feature);
+    DLLLOCAL ~ModuleLoadMapHelper();
+
+private:
+    QoreModuleManager::module_load_map_t::iterator i;
 };
 
 #endif
