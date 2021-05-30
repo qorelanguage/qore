@@ -471,8 +471,6 @@ void QoreModuleManager::init(bool se) {
     QoreModuleDefContext::vset.insert("url");
     QoreModuleDefContext::vset.insert("license");
 
-    mutex = new QoreThreadLock(&ma_recursive);
-
     // initialize blacklist
     // add old QT modules to blacklist
     mod_blacklist.insert(std::make_pair((const char*)"qt-core", qt_blacklist_string));
@@ -729,6 +727,23 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
         return;
     }
 
+    // check for recursive loads
+    while (true) {
+        module_load_map_t::iterator i = module_load_map.find(name);
+        if (i == module_load_map.end()) {
+            break;
+        }
+        if (i->second == gettid()) {
+            xsink.raiseException("LOAD-MODULE-ERROR", "module '%s' has a circular dependency back to itself",
+                name);
+            return;
+        }
+        // otherwise wait for the load to complete in the other thread
+        ++module_load_waiting;
+        module_load_cond.wait(mutex);
+        --module_load_waiting;
+    }
+
     module_map_t::iterator mmi = map.find(name);
     assert(mmi == map.end() || !strcmp(mmi->second->getName(), name));
 
@@ -855,6 +870,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
         } else if (QoreDir::folder_exists(modulePath, xsink)) {
             qore_offset_t i = modulePath.rfind(QORE_DIR_SEP);
             // "feature" means pure module name (e.g. "Mime", "CsvUtil" etc.)
+
             std::unique_ptr<QoreString> feature(QoreString(modulePath).extract(++i, &xsink));
             mi = loadSeparatedModule(xsink, wsink, modulePath, feature->c_str(), pgm, reexport, pholder.release(),
                 load_opt & QMLO_REINJECT ? mpgm : nullptr, load_opt, warning_mask);
@@ -999,30 +1015,38 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
 
     std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
 
-    // issue #3212: warning sink
-    userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, warning_mask);
-    if (xsink) {
-        return nullptr;
-    }
+    {
+        ModuleLoadMapHelper mlmh(feature);
 
-    QoreString regexClassesFunc(".+\\.(qc|ql)$");
-    QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
-    ReferenceHolder<QoreListNode> fileList(moduleDir.list(&xsink, S_IFREG, &regexClassesFunc), &xsink);
-    if (xsink) {
-        return nullptr;
-    }
-    for (size_t i = 0; i < fileList->size(); ++i) {
-        QoreString filePath(path);
-        filePath += QORE_DIR_SEP_STR;
-        filePath += fileList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
+        // issue #3212: warning sink
+        userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, warning_mask);
+        if (xsink) {
+            xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature,
+                path.c_str());
+            return nullptr;
+        }
 
-        std::string fileCode = QoreDir::get_file_content(filePath);
-        userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink, warning_mask);
+        QoreString regexClassesFunc(".+\\.(qc|ql)$");
+        QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
+        ReferenceHolder<QoreListNode> fileList(moduleDir.list(&xsink, S_IFREG, &regexClassesFunc), &xsink);
         if (xsink) {
             return nullptr;
         }
+        for (size_t i = 0; i < fileList->size(); ++i) {
+            QoreString filePath(path);
+            filePath += QORE_DIR_SEP_STR;
+            filePath += fileList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
+
+            std::string fileCode = QoreDir::get_file_content(filePath);
+            userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink, warning_mask);
+            if (xsink) {
+                xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature,
+                    path.c_str());
+                return nullptr;
+            }
+        }
+        userModule->getProgram()->parseCommit(&xsink);
     }
-    userModule->getProgram()->parseCommit(&xsink);
     if (xsink) {
         return nullptr;
     }
@@ -1175,9 +1199,15 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
     const char* license = qmd.get("license");
     QoreString license_str(license ? license : "unknown");
 
-    // init & run module initialization code if any
-    if (qmd.init(*mi->getProgram(), xsink))
-        return nullptr;
+    // issue #4254 do not run any initialization code while holding the global module lock
+    if (qmd.hasInit()) {
+        ModuleLoadMapHelper mlmh(name);
+
+        // init & run module initialization code if any
+        if (qmd.init(*mi->getProgram(), xsink)) {
+            return nullptr;
+        }
+    }
 
     mi->set(desc, version, author, url, license_str, qmd.takeDel());
 
@@ -1259,8 +1289,13 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
 
     ModuleReExportHelper mrh(mi.get(), reexport);
     QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
-    // issue #3212: warning mask
-    mi->getProgram()->parseFile(td, &xsink, &wsink, warning_mask);
+
+    {
+        ModuleLoadMapHelper mlmh(feature);
+
+        // issue #3212: warning mask
+        mi->getProgram()->parseFile(td, &xsink, &wsink, warning_mask);
+    }
 
     return setupUserModule(xsink, mi, qmd, load_opt, warning_mask);
 }
@@ -1294,7 +1329,12 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
 
     QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
 
-    mi->getProgram()->parse(src, path, &xsink, &wsink, warning_mask);
+    {
+        // run initialization unlocked
+        ModuleLoadMapHelper mlmh(feature);
+
+        mi->getProgram()->parse(src, path, &xsink, &wsink, warning_mask);
+    }
 
     return setupUserModule(xsink, mi, qmd);
 }
@@ -1505,11 +1545,16 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromDesc(ExceptionSink& x
     }
 
     // load dependencies
-    for (std::string& dep : mod_info.dependencies) {
-        //printd(5, "loading module dependency=%s\n", dep);
-        loadModuleIntern(xsink, xsink, dep.c_str(), pgm);
-        if (xsink) {
-            return nullptr;
+    if (!mod_info.dependencies.empty()) {
+        // run initialization unlocked
+        ModuleLoadMapHelper mlmh(name);
+
+        for (std::string& dep : mod_info.dependencies) {
+            //printd(5, "loading module dependency=%s\n", dep);
+            loadModuleIntern(xsink, xsink, dep.c_str(), pgm);
+            if (xsink) {
+                return nullptr;
+            }
         }
     }
 
@@ -1713,34 +1758,44 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
 
     QoreProgram* pgm = getProgram();
 
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(xsink, xsink, mname, pgm);
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(xsink, xsink, mname, pgm);
 
-    if (xsink) {
-        parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
-        return;
+        if (xsink) {
+            parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
     }
-
-    QoreAbstractModule* mi = findModule(mname);
-    assert(mi);
 
     mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
 }
 
-void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(*xsink, *xsink, mname, pgm);
-    if (*xsink) {
-        return;
-    }
-
-    QoreAbstractModule* mi = findModule(mname);
-    assert(mi);
-
+#define QORE_MAX_MODULE_ERROR_DESC 200
+void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
+        ExceptionSink* xsink) {
     // ensure the program is in context
     QoreProgramContextHelper pch(pgm);
-    mi->issueModuleCmd(&loc_builtin, cmd, xsink);
 
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(*xsink, *xsink, mname, pgm);
+        if (*xsink) {
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
+    }
+
+    mi->issueModuleCmd(&loc_builtin, cmd, xsink);
     // enrich exception description if present
     if (*xsink) {
         // truncate command at first eol
@@ -1812,4 +1867,24 @@ char version_list_t::set(const char* v) {
     //printd(5, "this=%p a=%s FINAL\n", this, a);
     push_back(atoi(a));
     return '\0';
+}
+
+ModuleLoadMapHelper::ModuleLoadMapHelper(const char* feature) {
+    assert(QMM.module_load_map.find(feature) == QMM.module_load_map.end());
+    i = QMM.module_load_map.insert(QoreModuleManager::module_load_map_t::value_type(feature, gettid())).first;
+
+    // run initialization unlocked
+    QMM.mutex.unlock();
+}
+
+ModuleLoadMapHelper::~ModuleLoadMapHelper() {
+    QMM.mutex.lock();
+
+    // remove module feature from map
+    QMM.module_load_map.erase(i);
+
+    // make sure and broadcast on the condition var inside the lock
+    if (QMM.module_load_waiting) {
+        QMM.module_load_cond.broadcast();
+    }
 }
