@@ -1876,7 +1876,7 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
         return;
     }
 
-    QoreAbstractModule* mi = findModule(mname);
+    QoreAbstractModule* mi = findModuleUnlocked(mname);
     assert(mi);
 
     mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
@@ -1893,7 +1893,7 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
         return;
     }
 
-    QoreAbstractModule* mi = findModule(mname);
+    QoreAbstractModule* mi = findModuleUnlocked(mname);
     assert(mi);
 
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
