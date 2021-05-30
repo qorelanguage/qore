@@ -222,6 +222,10 @@ public:
 
     DLLLOCAL void parseInit();
 
+    DLLLOCAL bool hasInit() const {
+        return init_c ? true : false;
+    }
+
     DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
 
     DLLLOCAL AbstractQoreNode* takeDel();

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -134,20 +134,6 @@ public:
     @see OptLocker
 */
 class AutoLocker {
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL AutoLocker(const AutoLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL AutoLocker& operator=(const AutoLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL void *operator new(size_t);
-
-protected:
-    //! the pointer to the lock that will be managed
-    QoreThreadLock* lck;
-
 public:
     //! creates the object and grabs the lock
     DLLLOCAL AutoLocker(QoreThreadLock* l) : lck(l) {
@@ -181,6 +167,15 @@ public:
     DLLLOCAL ~AutoLocker() {
         lck->unlock();
     }
+
+private:
+    DLLLOCAL AutoLocker(const AutoLocker&) = delete;
+    DLLLOCAL AutoLocker& operator=(const AutoLocker&) = delete;
+    DLLLOCAL void *operator new(size_t) = delete;
+
+protected:
+    //! the pointer to the lock that will be managed
+    QoreThreadLock* lck;
 };
 
 //! provides a safe and exception-safe way to release and re-acquire locks in Qore, only to be used on the stack, cannot be dynamically allocated
@@ -193,20 +188,6 @@ public:
     @since Qore 0.8.10
 */
 class AutoUnlocker {
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL AutoUnlocker(const AutoUnlocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL AutoUnlocker& operator=(const AutoUnlocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL void *operator new(size_t);
-
-protected:
-    //! the pointer to the lock that will be managed
-    QoreThreadLock* lck;
-
 public:
     //! creates the object and releases the lock
     DLLLOCAL AutoUnlocker(QoreThreadLock* l) : lck(l) {
@@ -224,6 +205,15 @@ public:
         if (lck)
             lck->lock();
     }
+
+private:
+    DLLLOCAL AutoUnlocker(const AutoUnlocker&) = delete;
+    DLLLOCAL AutoUnlocker& operator=(const AutoUnlocker&) = delete;
+    DLLLOCAL void *operator new(size_t) = delete;
+
+protected:
+    //! the pointer to the lock that will be managed
+    QoreThreadLock* lck;
 };
 
 //! provides an exception-safe way to manage locks in Qore, only to be used on the stack, cannot be dynamically allocated
@@ -236,23 +226,6 @@ public:
     @see OptLocker
 */
 class SafeLocker {
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL SafeLocker(const SafeLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL SafeLocker& operator=(const SafeLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL void *operator new(size_t);
-
-protected:
-    //! the pointer to the lock that will be managed
-    QoreThreadLock* lck;
-
-    //! flag indicating if the lock is held or not
-    bool locked;
-
 public:
     //! creates the object and grabs the lock
     DLLLOCAL SafeLocker(QoreThreadLock* l) : lck(l) {
@@ -298,6 +271,18 @@ public:
         lck->lock();
         locked = true;
     }
+
+private:
+    DLLLOCAL SafeLocker(const SafeLocker&) = delete;
+    DLLLOCAL SafeLocker& operator=(const SafeLocker&) = delete;
+    DLLLOCAL void *operator new(size_t) = delete;
+
+protected:
+    //! the pointer to the lock that will be managed
+    QoreThreadLock* lck;
+
+    //! flag indicating if the lock is held or not
+    bool locked;
 };
 
 //! provides a safe and exception-safe way to hold optional locks in Qore, only to be used on the stack, cannot be dynamically allocated
@@ -306,20 +291,6 @@ public:
     @see AutoLocker
 */
 class OptLocker {
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL OptLocker(const OptLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL OptLocker& operator=(const OptLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL void *operator new(size_t);
-
-protected:
-    //! the pointer to the lock that will be managed
-    QoreThreadLock* lck;
-
 public:
     //! creates the object and grabs the lock if the argument is not NULL
     DLLLOCAL OptLocker(QoreThreadLock* l) : lck(l) {
@@ -332,6 +303,15 @@ public:
         if (lck)
             lck->unlock();
     }
+
+private:
+    DLLLOCAL OptLocker(const OptLocker&) = delete;
+    DLLLOCAL OptLocker& operator=(const OptLocker&) = delete;
+    DLLLOCAL void *operator new(size_t) = delete;
+
+protected:
+    //! the pointer to the lock that will be managed
+    QoreThreadLock* lck;
 };
 
 #endif // _QORE_QORETHREADLOCK_H
