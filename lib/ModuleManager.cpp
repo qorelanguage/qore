@@ -736,7 +736,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
         if (i->second == gettid()) {
             xsink.raiseException("LOAD-MODULE-ERROR", "module '%s' has a circular dependency back to itself",
                 name);
-            return -1;
+            return;
         }
         // otherwise wait for the load to complete in the other thread
         ++module_load_waiting;
@@ -870,6 +870,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& ws
         } else if (QoreDir::folder_exists(modulePath, xsink)) {
             qore_offset_t i = modulePath.rfind(QORE_DIR_SEP);
             // "feature" means pure module name (e.g. "Mime", "CsvUtil" etc.)
+
             std::unique_ptr<QoreString> feature(QoreString(modulePath).extract(++i, &xsink));
             mi = loadSeparatedModule(xsink, wsink, modulePath, feature->c_str(), pgm, reexport, pholder.release(),
                 load_opt & QMLO_REINJECT ? mpgm : nullptr, load_opt, warning_mask);
@@ -1792,8 +1793,6 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
         assert(mi);
     }
 
-    // ensure the program is in context
-    QoreProgramContextHelper pch(pgm);
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
     // enrich exception description if present
     if (*xsink) {

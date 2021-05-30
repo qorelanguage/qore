@@ -551,7 +551,7 @@ private:
     DLLLOCAL QoreAbstractModule* loadSeparatedModule(
         ExceptionSink& xsink,
         ExceptionSink& wsink,
-        const char* path,
+        QoreString& path,
         const char* feature,
         QoreProgram* tpgm,
         bool reexport = false,
