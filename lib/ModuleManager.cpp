@@ -713,7 +713,7 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
 
 void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
     QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
-    unsigned load_opt, int warning_mask) {
+    unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
     assert(!version || (version && op != MOD_OP_NONE));
 
     //printd(5, "QoreModuleManager::loadModuleIntern() '%s' reexport: %d pgm: %p\n", name, reexport, pgm);
@@ -1755,34 +1755,46 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
 
     QoreProgram* pgm = getProgram();
 
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(xsink, xsink, mname, pgm);
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(xsink, xsink, mname, pgm);
 
-    if (xsink) {
-        parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
-        return;
+        if (xsink) {
+            parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
     }
-
-    QoreAbstractModule* mi = findModuleUnlocked(mname);
-    assert(mi);
 
     mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
 }
 
-void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(*xsink, *xsink, mname, pgm);
-    if (*xsink) {
-        return;
-    }
+#define QORE_MAX_MODULE_ERROR_DESC 200
+void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
+        ExceptionSink* xsink) {
+    // ensure the program is in context
+    QoreProgramContextHelper pch(pgm);
 
-    QoreAbstractModule* mi = findModuleUnlocked(mname);
-    assert(mi);
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(*xsink, *xsink, mname, pgm);
+        if (*xsink) {
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
+    }
 
     // ensure the program is in context
     QoreProgramContextHelper pch(pgm);
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
-
     // enrich exception description if present
     if (*xsink) {
         // truncate command at first eol
