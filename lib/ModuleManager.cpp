@@ -1019,14 +1019,15 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         ModuleLoadMapHelper mlmh(feature);
 
         // issue #3212: warning sink
-        userModule->getProgram()->parsePending(moduleCode.c_str(), path, &xsink, &xsink, warning_mask);
+        userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, warning_mask);
         if (xsink) {
-            xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature, path);
+            xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature,
+                path.c_str());
             return nullptr;
         }
 
         QoreString regexClassesFunc(".+\\.(qc|ql)$");
-        QoreDir moduleDir(&xsink, QCS_DEFAULT, path);
+        QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
         ReferenceHolder<QoreListNode> fileList(moduleDir.list(&xsink, S_IFREG, &regexClassesFunc), &xsink);
         if (xsink) {
             return nullptr;
@@ -1039,7 +1040,8 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
             std::string fileCode = QoreDir::get_file_content(filePath);
             userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink, warning_mask);
             if (xsink) {
-                xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature, path);
+                xsink.appendLastDescription(" (while loading user module \"%s\" from path \"%s\")", feature,
+                    path.c_str());
                 return nullptr;
             }
         }
