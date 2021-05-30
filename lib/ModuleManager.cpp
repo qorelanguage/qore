@@ -1868,36 +1868,44 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
 
     QoreProgram* pgm = getProgram();
 
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(xsink, xsink, mname, pgm);
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(xsink, xsink, mname, pgm);
 
-    if (xsink) {
-        parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
-        return;
+        if (xsink) {
+            parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
     }
-
-    QoreAbstractModule* mi = findModuleUnlocked(mname);
-    assert(mi);
 
     mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
 }
 
 #define QORE_MAX_MODULE_ERROR_DESC 200
-void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
+void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
+        ExceptionSink* xsink) {
     // ensure the program is in context
     QoreProgramContextHelper pch(pgm);
 
-    AutoLocker al(mutex); // make sure checking and loading are atomic
-    loadModuleIntern(*xsink, *xsink, mname, pgm);
-    if (*xsink) {
-        return;
+    // issue #4254: must run module commands unlocked
+    QoreAbstractModule* mi;;
+    {
+        AutoLocker al(mutex); // make sure checking and loading are atomic
+        loadModuleIntern(*xsink, *xsink, mname, pgm);
+        if (*xsink) {
+            return;
+        }
+
+        mi = findModuleUnlocked(mname);
+        assert(mi);
     }
 
-    QoreAbstractModule* mi = findModuleUnlocked(mname);
-    assert(mi);
-
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
-
     // enrich exception description if present
     if (*xsink) {
         // truncate command at first eol or at max 200 chars
