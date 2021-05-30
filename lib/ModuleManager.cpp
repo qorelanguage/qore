@@ -713,7 +713,7 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
 
 void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name,
     QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm,
-    unsigned load_opt, int warning_mask, qore_binary_module_desc_t mod_desc_func) {
+    unsigned load_opt, int warning_mask) {
     assert(!version || (version && op != MOD_OP_NONE));
 
     //printd(5, "QoreModuleManager::loadModuleIntern() '%s' reexport: %d pgm: %p\n", name, reexport, pgm);
