@@ -56,8 +56,12 @@ else()
     set(QORE_QPP_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qpp${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 set(QORE_QDX_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qdx)
-set(QORE_QJAR_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qjar)
-
+# allow the qjar executable to be overridden
+if(DEFINED QJAR_EXECUTABLE)
+    set(QORE_QJAR_EXECUTABLE ${QJAR_EXECUTABLE})
+else()
+    set(QORE_QJAR_EXECUTABLE @CMAKE_INSTALL_FULL_BINDIR@/qjar)
+endif()
 
 # warning: the same prefix for current qore is used if there is no
 # CMAKE_INSTALL_PREFIX given
