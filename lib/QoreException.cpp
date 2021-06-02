@@ -148,7 +148,7 @@ QoreHashNode* QoreException::makeExceptionObject(int level) const {
 
     // add chained exceptions with this "chain reaction" call
     if (next) {
-         if (++level < QORE_MAX_EXCEPTIONS) {
+         if (level < QORE_MAX_EXCEPTIONS) {
              ph->setKeyValueIntern("next", next->makeExceptionObject(level + 1));
          }
     }
