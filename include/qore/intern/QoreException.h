@@ -4,7 +4,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,7 @@ public:
 
     // called for generic exceptions
     DLLLOCAL QoreHashNode* makeExceptionObjectAndDelete(ExceptionSink *xsink);
-    DLLLOCAL QoreHashNode* makeExceptionObject() const;
+    DLLLOCAL QoreHashNode* makeExceptionObject(int level = 0) const;
 
     // called for runtime exceptions
     DLLLOCAL QoreException(const char *n_err, QoreValue n_desc, QoreValue n_arg = QoreValue())
