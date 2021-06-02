@@ -117,7 +117,8 @@ class T {
             background extract str, 0; #13", "bg");
         };
 
-        *hash ex = testAssertion("background negative test", c, NOTHING, new TestResultExceptionType("PARSE-EXCEPTION"));
+        *hash<auto> ex = testAssertion("background negative test", c, NOTHING, new TestResultExceptionType("PARSE-EXCEPTION"));
+        printf("%N\n", ex);
 
         # count exceptions
         while (ex) {
