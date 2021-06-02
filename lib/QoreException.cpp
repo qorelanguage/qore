@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -117,7 +117,9 @@ QoreException* QoreException::rethrow() {
     return e.release();
 }
 
-QoreHashNode* QoreException::makeExceptionObject() const {
+int QORE_MAX_EXCEPTIONS = 20;
+
+QoreHashNode* QoreException::makeExceptionObject(int level) const {
     QORE_TRACE("makeExceptionObject()");
 
     QoreHashNode* h = new QoreHashNode(hashdeclExceptionInfo, nullptr);
@@ -145,18 +147,21 @@ QoreHashNode* QoreException::makeExceptionObject() const {
     }
 
     // add chained exceptions with this "chain reaction" call
-    if (next)
-        ph->setKeyValueIntern("next", next->makeExceptionObject());
+    if (next) {
+         if (++level < QORE_MAX_EXCEPTIONS) {
+             ph->setKeyValueIntern("next", next->makeExceptionObject(level + 1));
+         }
+    }
 
     return h;
 }
 
 QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) {
-   QORE_TRACE("makeExceptionObjectAndDelete()");
-   QoreHashNode* rv = makeExceptionObject();
-   del(xsink);
+    QORE_TRACE("makeExceptionObjectAndDelete()");
+    QoreHashNode* rv = makeExceptionObject();
+    del(xsink);
 
-   return rv;
+    return rv;
 }
 
 void QoreException::addStackInfo(QoreHashNode* n) {
