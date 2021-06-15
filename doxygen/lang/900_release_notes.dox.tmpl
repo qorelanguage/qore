@@ -2,6 +2,16 @@
 
     @tableofcontents
 
+    @section qore_0916 Qore 0.9.16
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_0916_bug_fixes Bug Fixes in Qore
+    - fixed a bug where negative timeouts with lock methods and internal condition variable wait calls would return
+      immediately instead of waiting indefinitely with some objects
+      (<a href="https://github.com/qorelanguage/qore/issues/4263">issue 4263</a>)
+
     @section qore_0915 Qore 0.9.15
 
     @par Release Summary

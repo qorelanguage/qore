@@ -88,8 +88,7 @@ public:
     //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
     /**
         @param m the mutext to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; must be >= 0; negative values mean wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */
@@ -108,8 +107,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; must be >= 0; negative values mean wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
 
@@ -122,8 +120,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; must be >= 0; negative values mean wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */
@@ -144,8 +141,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; must be >= 0; negative values mean wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
 
@@ -158,8 +154,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; must be >= 0; negative values mean wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */

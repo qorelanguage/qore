@@ -73,9 +73,8 @@ int QoreCondition::wait(pthread_mutex_t* m, int timeout_ms) {
 // timeout is in milliseconds
 int QoreCondition::wait2(pthread_mutex_t* m, int64 timeout_ms) {
     // negative timeouts will cause an error
-    assert(timeout_ms >= 0);
     if (timeout_ms < 0) {
-        return EINVAL;
+        return wait(m);
     }
 #ifdef DARWIN
     // use more efficient pthread_cond_timedwait_relative_np() on Darwin

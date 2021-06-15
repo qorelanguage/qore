@@ -68,7 +68,7 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
         release_intern();
 
         // wait for condition
-        int rc = timeout_ms ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+        int rc = timeout_ms > 0 ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
         // decrement cond count and delete from map if 0
         if (!--(i->second))
