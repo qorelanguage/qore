@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_AbstractSmartLock.qpp
- 
-  Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    QC_AbstractSmartLock.qpp
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Qore Programming Language
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -45,7 +45,8 @@ qclass AbstractSmartLock [dom=THREAD_CLASS; arg=AbstractSmartLock* asl; ns=Qore:
 /** @throw ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 AbstractSmartLock::constructor() {
-   xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("ABSTRACTSMARTLOCK-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be " \
+        "constructed directly or inherited directly by a user-defined class");
 }
 
 //! Returns the name of the threading class directly inheriting this class
@@ -57,7 +58,7 @@ string name = lock.getName();
     @return the name of the threading class directly inheriting this class
  */
 string AbstractSmartLock::getName() [flags=CONSTANT] {
-   return new QoreStringNode(asl->getName());
+    return new QoreStringNode(asl->getName());
 }
 
 //! Returns @ref True if the calling thread owns the lock, @ref False if not
@@ -75,7 +76,7 @@ on_exit
     @return @ref True if the calling thread owns the lock, @ref False if not
  */
 bool AbstractSmartLock::lockOwner() [flags=CONSTANT] {
-   return asl->get_tid() == q_gettid();
+    return asl->get_tid() == q_gettid();
 }
 
 //! Returns the TID of the thread owning the lock or -1 if the lock is currently not acquired
@@ -89,6 +90,6 @@ int tid = lock.lockTID();
     @return the TID of the thread owning the lock or -1 if the lock is currently not acquired
  */
 int AbstractSmartLock::lockTID() [flags=CONSTANT] {
-   int tid = asl->get_tid();
-   return !tid ? -1 : tid;
+    int tid = asl->get_tid();
+    return !tid ? -1 : tid;
 }

@@ -1,4 +1,4 @@
-/* 
+/*
   SmartMutex.cpp
 
   Qore Programming Language
@@ -88,36 +88,37 @@ int SmartMutex::tryGrabImpl(int mtid, VLock *nvl) {
 }
 
 int SmartMutex::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, int64 timeout_ms) {
-   // make sure this TID owns the lock
-   if (verify_wait_unlocked(mtid, xsink))
-      return -1;
+    // make sure this TID owns the lock
+    if (verify_wait_unlocked(mtid, xsink)) {
+        return -1;
+    }
 
-   // insert into cond map
-   cond_map_t::iterator i = cmap.find(cond);
-   if (i == cmap.end())
-      i = cmap.insert(std::make_pair(cond, 1)).first;
-   else
-      ++(i->second);
+    // insert into cond map
+    cond_map_t::iterator i = cmap.find(cond);
+    if (i == cmap.end())
+        i = cmap.insert(std::make_pair(cond, 1)).first;
+    else
+        ++(i->second);
 
-   // save vlock
-   VLock *nvl = vl;
+    // save vlock
+    VLock *nvl = vl;
 
-   // release lock
-   release_intern();
+    // release lock
+    release_intern();
 
-   // wait for condition
-   int rc = timeout_ms ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+    // wait for condition
+    int rc = timeout_ms > 0 ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
-   // decrement cond count and delete from map if 0
-   if (!--(i->second))
-      cmap.erase(i);
+    // decrement cond count and delete from map if 0
+    if (!--(i->second))
+        cmap.erase(i);
 
-   // reacquire the lock
-   if (grabImpl(mtid, nvl, xsink))
-      return -1;
+    // reacquire the lock
+    if (grabImpl(mtid, nvl, xsink))
+        return -1;
 
-   grab_intern(mtid, nvl);
-   return rc;
+    grab_intern(mtid, nvl);
+    return rc;
 }
 
 void SmartMutex::destructorImpl(ExceptionSink *xsink) {

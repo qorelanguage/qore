@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2005 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2005 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,19 +35,19 @@
 #include <cstring>
 
 QoreCondition::QoreCondition() {
-   pthread_cond_init(&c, 0);
+    pthread_cond_init(&c, 0);
 }
 
 QoreCondition::~QoreCondition() {
-   pthread_cond_destroy(&c);
+    pthread_cond_destroy(&c);
 }
 
 int QoreCondition::signal() {
-   return pthread_cond_signal(&c);
+    return pthread_cond_signal(&c);
 }
 
 int QoreCondition::broadcast() {
-   return pthread_cond_broadcast(&c);
+    return pthread_cond_broadcast(&c);
 }
 
 int QoreCondition::wait(pthread_mutex_t *m) {
@@ -72,10 +72,9 @@ int QoreCondition::wait(pthread_mutex_t* m, int timeout_ms) {
 
 // timeout is in milliseconds
 int QoreCondition::wait2(pthread_mutex_t* m, int64 timeout_ms) {
-    // negative timeouts will cause an error
-    assert(timeout_ms >= 0);
+    // negative timeouts mean wait indefinitely
     if (timeout_ms < 0) {
-        return EINVAL;
+        return wait(m);
     }
 #ifdef DARWIN
     // use more efficient pthread_cond_timedwait_relative_np() on Darwin

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2005 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2005 - 2021Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,16 +43,6 @@
     @see QoreThreadLock
  */
 class QoreCondition {
-private:
-    //! the condition thread primitive
-    pthread_cond_t c;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreCondition(const QoreCondition&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreCondition& operator=(const QoreCondition&);
-
 public:
     //! creates the condition object
     DLLEXPORT QoreCondition();
@@ -77,7 +67,7 @@ public:
     //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
     /**
         @param m the mutext to wait on
-        @param timeout_ms the timeout value is milliseconds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
 
@@ -88,8 +78,7 @@ public:
     //! blocks a thread on a mutex for a certain number of milliseconds until the condition is signaled
     /**
         @param m the mutext to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */
@@ -108,8 +97,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
 
@@ -122,8 +110,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */
@@ -144,8 +131,7 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
 
@@ -158,14 +144,23 @@ public:
     //! blocks a thread on a lock for a certain number of milliseconds until the condition is signaled
     /**
         @param l the QoreThreadLock to wait on
-        @param timeout_ms the timeout value is milliseconds; must be >= 0; calling with a negative value will cause an
-        abort in debug builds and for EINVAL to be set in non-debug builds
+        @param timeout_ms the timeout value is milliseconds; if <= 0 will wait indefinitely
 
         @return a non-zero return value indicates a timeout occured
     */
     DLLLOCAL int wait2(QoreThreadLock& l, int64 timeout_ms) {
         return wait2(&l, timeout_ms);
     }
+
+private:
+    //! the condition thread primitive
+    pthread_cond_t c;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreCondition(const QoreCondition&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreCondition& operator=(const QoreCondition&);
 };
 
 #endif // QORE_CONDITION
