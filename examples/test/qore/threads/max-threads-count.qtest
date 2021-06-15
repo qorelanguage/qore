@@ -38,8 +38,7 @@ public class MaxThreadCountTest inherits QUnit::Test {
             while (True) {
                 background t();
             }
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("THREAD-CREATION-FAILURE", ex.err, "found threads count limit");
             q.push(1);
         }

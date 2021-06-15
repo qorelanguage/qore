@@ -56,10 +56,11 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
     if (mtid == tid) { // in write lock
         // insert into cond map
         cond_map_t::iterator i = cmap.find(cond);
-        if (i == cmap.end())
+        if (i == cmap.end()) {
             i = cmap.insert(std::make_pair(cond, 1)).first;
-        else
+        } else {
             ++(i->second);
+        }
 
         // save vlock
         VLock *nvl = vl;
@@ -68,15 +69,17 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
         release_intern();
 
         // wait for condition
-        int rc = timeout_ms >= 0 ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
+        int rc = timeout_ms > 0 ? cond->wait2(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
         // decrement cond count and delete from map if 0
-        if (!--(i->second))
+        if (!--(i->second)) {
             cmap.erase(i);
+        }
 
         // reacquire the lock
-        if (grabImpl(mtid, nvl, xsink))
+        if (grabImpl(mtid, nvl, xsink)) {
             return -1;
+        }
 
         grab_intern(mtid, nvl);
         return rc;
@@ -100,10 +103,11 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
     // in read lock
     // insert into cond map
     cond_map_t::iterator ci = cmap.find(cond);
-    if (ci == cmap.end())
+    if (ci == cmap.end()) {
         ci = cmap.insert(std::make_pair(cond, 1)).first;
-    else
+    } else {
         ++(ci->second);
+    }
 
     // save vlock
     VLock *nvl = vmap[mtid];
@@ -118,8 +122,9 @@ int RWLock::externWaitImpl(int mtid, QoreCondition *cond, ExceptionSink *xsink, 
     int rc = timeout_ms ? cond->wait(&asl_lock, timeout_ms) : cond->wait(&asl_lock);
 
     // decrement cond count and delete from map if 0
-    if (!--(ci->second))
+    if (!--(ci->second)) {
         cmap.erase(ci);
+    }
 
     // reacquire the lock
     // issue #2817: handle the case when the read lock is held recursively
@@ -238,7 +243,8 @@ int RWLock::releaseImpl() {
 }
 
 // thread exited holding the lock: remove whatever lock was locked
-void RWLock::cleanupImpl() {
+int RWLock::cleanupImpl() {
+    int rc = 0;
     // if it was a read lock
     if (num_readers) {
         int mtid = q_gettid();
@@ -266,6 +272,7 @@ void RWLock::cleanupImpl() {
         // erase thread map entry
         tmap.erase(ti);
         assert((!tmap.empty() && num_readers) || (tmap.empty() && !num_readers));
+        rc = -1;
     } else if (tid >= 0) { // if it was the write lock
         // this thread must own the lock
         assert(tid == q_gettid());
@@ -278,7 +285,11 @@ void RWLock::cleanupImpl() {
         vl = 0;
         // wake up sleeping thread(s)
         signalImpl();
+
+        rc = -1;
     }
+
+    return rc;
 }
 
 int RWLock::releaseImpl(ExceptionSink *xsink) {
@@ -288,12 +299,14 @@ int RWLock::releaseImpl(ExceptionSink *xsink) {
         return -1;
     }
     if (tid == Lock_Unlocked) {
-        xsink->raiseException("LOCK-ERROR", "TID %d called %s::writeUnlock() while not holding the write lock", mtid, getName());
+        xsink->raiseException("LOCK-ERROR", "TID %d called %s::writeUnlock() while not holding the write lock", mtid,
+            getName());
         return -1;
     }
     if (tid != mtid) {
         // use getName() here so it can be safely inherited
-        xsink->raiseException("LOCK-ERROR", "%s::writeUnlock() called by TID %d while the write lock is held by TID %d", getName(), mtid, tid);
+        xsink->raiseException("LOCK-ERROR", "%s::writeUnlock() called by TID %d while the write lock is held by " \
+            "TID %d", getName(), mtid, tid);
         return -1;
     }
     return 0;
@@ -334,7 +347,8 @@ int RWLock::readLock(ExceptionSink *xsink, int64 timeout_ms) {
     SafeLocker sl(&asl_lock);
 
     if (tid == mtid) {
-        xsink->raiseException("LOCK-ERROR", "TID %d called %s::readLock() while holding the write lock", mtid, getName());
+        xsink->raiseException("LOCK-ERROR", "TID %d called %s::readLock() while holding the write lock", mtid,
+            getName());
         return -1;
     }
 

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,28 +44,28 @@ DLLLOCAL extern QoreClass* QC_CONDITION;
 DLLLOCAL QoreClass* initConditionClass(QoreNamespace& ns);
 
 class Condition : public AbstractPrivateData {
-private:
-   QoreCondition cond;
+public:
+    DLLLOCAL int wait(AbstractSmartLock *m, int64 timeout, ExceptionSink *xsink) {
+        return m->extern_wait(&cond, xsink, timeout);
+    }
+    DLLLOCAL int wait(AbstractSmartLock *m, ExceptionSink *xsink) {
+        return m->extern_wait(&cond, xsink);
+    }
+    DLLLOCAL int signal() {
+        return cond.signal();
+    }
+    DLLLOCAL int broadcast() {
+        return cond.broadcast();
+    }
+    DLLLOCAL int wait_count(AbstractSmartLock *m) {
+        return m->cond_count(&cond);
+    }
 
 protected:
-   DLLLOCAL virtual ~Condition() {}
+    DLLLOCAL virtual ~Condition() {}
 
-public:
-   DLLLOCAL int wait(AbstractSmartLock *m, int64 timeout, ExceptionSink *xsink) {
-      return m->extern_wait(&cond, xsink, timeout);
-   }
-   DLLLOCAL int wait(AbstractSmartLock *m, ExceptionSink *xsink) {
-      return m->extern_wait(&cond, xsink);
-   }
-   DLLLOCAL int signal() {
-      return cond.signal();
-   }
-   DLLLOCAL int broadcast() {
-      return cond.broadcast();
-   }
-   DLLLOCAL int wait_count(AbstractSmartLock *m) {
-      return m->cond_count(&cond);
-   }
+private:
+    QoreCondition cond;
 };
 
 #endif // _QORE_CLASS_CONDITION_H

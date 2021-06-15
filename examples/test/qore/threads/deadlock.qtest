@@ -28,8 +28,7 @@ class D1 inherits Base {
             return;
         try {
             return d.m(t, self);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
             dl = True;
         }
@@ -44,8 +43,7 @@ class D1 inherits Base {
             return;
         try {
             return D2::sm(t);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
             sdl = True;
         }
@@ -62,8 +60,7 @@ class D2 inherits Base {
             return;
         try {
             return d.m(t, self);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
             dl = True;
         }
@@ -78,8 +75,7 @@ class D2 inherits Base {
             return;
         try {
             return D1::sm(t);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
             sdl = True;
         }
@@ -97,8 +93,7 @@ synchronized sub internal_deadlock_a(Test t, *Counter c) {
         return;
     try {
         return internal_deadlock_b(t);
-    }
-    catch (hash ex) {
+    } catch (hash<ExceptionInfo> ex) {
         t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
         dl = True;
     }
@@ -113,8 +108,7 @@ synchronized sub internal_deadlock_b(Test t, *Counter c) {
         return;
     try {
         return internal_deadlock_a(t);
-    }
-    catch (hash ex) {
+    } catch (hash<ExceptionInfo> ex) {
         t.assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
         dl = True;
     }
@@ -157,8 +151,7 @@ class DeadlockTest inherits QUnit::Test {
         try {
             g.enter();
             g.exit();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("THREAD-DEADLOCK", ex.err, "gate-deadlock");
         }
     }
@@ -170,8 +163,7 @@ class DeadlockTest inherits QUnit::Test {
         try {
             m.lock();
             m.unlock();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("THREAD-DEADLOCK", ex.err, "gate-deadlock");
         }
     }
@@ -183,8 +175,7 @@ class DeadlockTest inherits QUnit::Test {
         try {
             rw2.writeLock();
             rw2.writeUnlock();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("THREAD-DEADLOCK", ex.err, "rwl-deadlock-c");
         }
     }
@@ -196,8 +187,7 @@ class DeadlockTest inherits QUnit::Test {
         try {
             rw1.readLock();
             rw1.readUnlock();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("THREAD-DEADLOCK", ex.err, "rwl-deadlock-d");
         }
     }
@@ -234,8 +224,7 @@ class DeadlockTest inherits QUnit::Test {
         c.dec();
         try {
             cond.wait(m);
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("LOCK-ERROR", ex.err, "cond-error-" + n);
         }
     }
@@ -245,8 +234,7 @@ class DeadlockTest inherits QUnit::Test {
         c.dec();
         try {
             cond.wait(rwl);
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("LOCK-ERROR", ex.err, "rwl-cond-error-" + n);
         }
     }
@@ -254,8 +242,7 @@ class DeadlockTest inherits QUnit::Test {
     counter_test(Counter c, int n) {
         try {
             c.waitForZero();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("COUNTER-ERROR", ex.err, "counter-error-" + n);
         }
     }
@@ -263,8 +250,7 @@ class DeadlockTest inherits QUnit::Test {
     queue_test(Queue q, int n) {
         try {
             q.get();
-        }
-        catch (ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("QUEUE-ERROR", ex.err, "queue-error-" + n);
         }
     }
@@ -343,9 +329,10 @@ class DeadlockTest inherits QUnit::Test {
         background cond_test(c, cond, m, 1);
         background cond_test(c, cond, m, 2);
         c.waitForZero();
-        # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
+        # lock and unlock to ensure there are 2 condition variables waiting on this Mutex
         m.lock();
         m.unlock();
+        assertEq(2, cond.wait_count(m));
         assertThrows('LOCK-ERROR', "Mutex object deleted", sub () {delete m;});
 
         # try it with a RWLock object
