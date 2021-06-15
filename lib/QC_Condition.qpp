@@ -3,9 +3,9 @@
   QC_Condition.qpp
 
   Qore Programming Language
-  
+
   Copyright (C) 2003 - 2015 David Nichols
-  
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,7 +44,7 @@
 qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
 
 //! Creates the Condition object
-/** 
+/**
     @par Example:
     @code{.py}
 Condition cond();
@@ -55,7 +55,7 @@ Condition::constructor() {
 }
 
 //! Creates a new Condition object, not based on the original
-/** 
+/**
     @par Example:
     @code{.py}
 Condition new_cond = cond.copy();
@@ -79,7 +79,7 @@ m.unlock();
  */
 nothing Condition::signal() {
    if (c->signal())
-      xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno)); 
+      xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno));
 }
 
 //! Signals all threads blocked on this Condition object to wake up
@@ -112,7 +112,7 @@ nothing Condition::broadcast() {
 m.lock();
 on_exit m.unlock();
 while (some_value > 0) {
-    cond.wait(m);    
+    cond.wait(m);
 }
 printf("finally some_value is 0\n");
     @endcode
@@ -121,18 +121,18 @@ printf("finally some_value is 0\n");
  */
 int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_ms = 0) {
    ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
-   
-   int rc = timeout_ms >= 0 ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
+
+   int rc = timeout_ms > 0 ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
 
    //printd(5, "Condition::wait() m=%s (%p) timeout=%d rc=%d\n", lock->getName(), lock, timeout, rc);
-      
+
    if (rc && rc != ETIMEDOUT && !*xsink)
       xsink->raiseErrnoException("CONDITION-WAIT-ERROR", rc, "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d", lock->getName(), timeout_ms, rc);
    return rc;
 }
 
 //! Returns the number of threads currently blocked on this object using the AbstractSmartLock passed
-/** 
+/**
     @param lock the AbstractSmartLock object to check for blocked threads on this Condition object; the AbstractSmartLock can be in any state (locked or unlocked) for this call (does not necessarily have to be locked).
 
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
