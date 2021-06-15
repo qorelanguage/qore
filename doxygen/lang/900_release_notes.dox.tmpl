@@ -74,6 +74,9 @@
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module
       - fixed message serialization for SMTP handling in case of single \c "." characters on a line in serialized data
         (issue <a href="https://github.com/qorelanguage/qore/issues/3275">issue 3275</a>)
+    - fixed a bug where negative timeouts with lock methods and internal condition variable wait calls would return
+      immediately instead of waiting indefinitely with some objects
+      (<a href="https://github.com/qorelanguage/qore/issues/4263">issue 4263</a>)
     - fixed a bug in method resolution in class hierarchies that could lead to spurious parse errors
       (<a href="https://github.com/qorelanguage/qore/issues/4250">issue 4250</a>)
     - fixed a bug handling @ref softlist_complex_type "complex softlist<...>" values where illegal matches were
@@ -97,6 +100,8 @@
     - fixed a bug where the \c ";charset=xxx" string was not added to the \c Content-Type header when sending HTTP
       messages with strings with non-ISO-8859-1 character encodings
       (<a href="https://github.com/qorelanguage/qore/issues/1824">issue 1824</a>)
+
+    @subsection qore_0915_bug_fixes Bug Fixes in Qore
 
     @section qore_0915 Qore 0.9.15
 

@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_Condition.qpp
+    QC_Condition.qpp
 
-  Qore Programming Language
-  
-  Copyright (C) 2003 - 2015 David Nichols
-  
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Qore Programming Language
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Copyright (C) 2005 - 2021 Qore Technologies, s.r.o.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -44,25 +44,25 @@
 qclass Condition [dom=THREAD_CLASS; arg=Condition* c; ns=Qore::Thread];
 
 //! Creates the Condition object
-/** 
+/**
     @par Example:
     @code{.py}
 Condition cond();
     @endcode
  */
 Condition::constructor() {
-   self->setPrivate(CID_CONDITION, new Condition);
+    self->setPrivate(CID_CONDITION, new Condition);
 }
 
 //! Creates a new Condition object, not based on the original
-/** 
+/**
     @par Example:
     @code{.py}
 Condition new_cond = cond.copy();
     @endcode
  */
 Condition::copy() {
-   self->setPrivate(CID_CONDITION, new Condition);
+    self->setPrivate(CID_CONDITION, new Condition);
 }
 
 //! Signals a single blocked thread to wake up
@@ -78,8 +78,8 @@ m.unlock();
     @throw CONDITION-SIGNAL-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
  */
 nothing Condition::signal() {
-   if (c->signal())
-      xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno)); 
+    if (c->signal())
+        xsink->raiseException("CONDITION-SIGNAL-ERROR", q_strerror(errno));
 }
 
 //! Signals all threads blocked on this Condition object to wake up
@@ -95,8 +95,8 @@ m.unlock();
     @throw CONDITION-BROADCAST-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
  */
 nothing Condition::broadcast() {
-   if (c->broadcast())
-      xsink->raiseException("CONDITION-BROADCAST-ERROR", q_strerror(errno));
+    if (c->broadcast())
+        xsink->raiseException("CONDITION-BROADCAST-ERROR", q_strerror(errno));
 }
 
 //! Blocks a thread until signaled; accepts an optional timeout value
@@ -112,7 +112,7 @@ nothing Condition::broadcast() {
 m.lock();
 on_exit m.unlock();
 while (some_value > 0) {
-    cond.wait(m);    
+    cond.wait(m);
 }
 printf("finally some_value is 0\n");
     @endcode
@@ -120,19 +120,20 @@ printf("finally some_value is 0\n");
     @throw CONDITION-WAIT-ERROR This exception should never be thrown - it indicates a low-level error in executing the method
  */
 int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_ms = 0) {
-   ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
-   
-   int rc = timeout_ms >= 0 ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
+    ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
 
-   //printd(5, "Condition::wait() m=%s (%p) timeout=%d rc=%d\n", lock->getName(), lock, timeout, rc);
-      
-   if (rc && rc != ETIMEDOUT && !*xsink)
-      xsink->raiseErrnoException("CONDITION-WAIT-ERROR", rc, "unknown system error code returned from Condition::wait(lock=%s, timeout=%d): rc=%d", lock->getName(), timeout_ms, rc);
-   return rc;
+    int rc = timeout_ms >= 0 ? c->wait(lock, timeout_ms, xsink) : c->wait(lock, xsink);
+
+    //printd(5, "Condition::wait() m=%s (%p) timeout=%d rc=%d\n", lock->getName(), lock, timeout, rc);
+
+    if (rc && rc != ETIMEDOUT && !*xsink)
+        xsink->raiseErrnoException("CONDITION-WAIT-ERROR", rc, "unknown system error code returned from " \
+            "Condition::wait(lock=%s, timeout=%d): rc=%d", lock->getName(), timeout_ms, rc);
+    return rc;
 }
 
 //! Returns the number of threads currently blocked on this object using the AbstractSmartLock passed
-/** 
+/**
     @param lock the AbstractSmartLock object to check for blocked threads on this Condition object; the AbstractSmartLock can be in any state (locked or unlocked) for this call (does not necessarily have to be locked).
 
     @return The number of threads currently blocked on this object using the AbstractSmartLock object passed
@@ -143,8 +144,8 @@ printf("%d thread(s) waiting on the Condition\n", cond.wait_count(m));
     @endcode
  */
 int Condition::wait_count(AbstractSmartLock[AbstractSmartLock] lock) {
-   ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
+    ReferenceHolder<AbstractSmartLock> holder(lock, xsink);
 
-   return c->wait_count(lock);
+    return c->wait_count(lock);
 }
 
