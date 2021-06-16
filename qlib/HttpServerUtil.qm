@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.10.0
+%requires qore >= 1.0
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
 %requires Logger
@@ -33,7 +33,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "0.10.0";
+    version = "1.0";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -93,7 +93,10 @@ module HttpServerUtil {
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
 
-    @subsection httputil0_10_0 HttpServerUtil 0.10.0
+    @subsection httputil1_0 HttpServerUtil 1.0
+    - fixed a bug handling wildcard address binds in
+      @ref HttpServer::http_get_url_from_bind() "http_get_url_from_bind()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4266">issue 4266</a>)
     - added a definition for the <tt>308 Permanent Redirect</tt> response
       (<a href="https://github.com/qorelanguage/qore/issues/4169">issue 4169</a>)
     - added support for the Logger module for logging
@@ -440,7 +443,7 @@ public hashdecl HttpHandlerConfigInfo {
     passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
 */
 public string sub http_get_url_from_bind(softstring bind, *string host) {
-    hash h = parse_url(bind);
+    hash<UrlInfo> h = parse_url(bind);
     # if there is only a port number, it will appear in the "host" key
     if (h.size() == 1 && h.host && int(h.host) == h.host) {
         h.port = int(h.host);
@@ -452,22 +455,34 @@ public string sub http_get_url_from_bind(softstring bind, *string host) {
             h.host = "socket=" + remove h.path;
             h.host =~ s/ /%20/g;
             h.host =~ s/\//%2f/g;
-        } else
+        } else {
             h.host = (!host || host == gethostname()) ? "localhost" : host;
+        }
+    }
+
+    # issue #4266: return a usable address when an explicit wildcard address is used
+    if (h.host == "0.0.0.0") {
+        # try to get the first non-loopback IPv4 address
+        h.host = host ?? (map $1.address, get_netif_list(), $1.family == AF_INET && $1.address != "127.0.0.1")[0]
+            ?? "127.0.0.1";
+    } else if (h.host == "::") {
+        # try to get the first non-loopback IPv6 address
+        h.host = host ?? (map $1.address, get_netif_list(), $1.family == AF_INET6 && $1.address != "::")[0]
+            ?? "::";
     }
 
     # encose IPv6 addresses in "[]"
-    if (h.host =~ /^[[:xdigit:]:]+$/)
+    if (h.host =~ /^[[:xdigit:]:]+$/) {
         h.host = "[" + h.host + "]";
+    }
 
     string login = h.password ? (h.password + ":") : "";
-    if (h.username)
+    if (h.username) {
         login += sprintf("%s@", h.password);
+    }
 
-    return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http",
-                    login,
-                    h.host,
-                    h.port ? sprintf(":%d", h.port) : "");
+    return sprintf("%s://%s%s%s", h.protocol ? h.protocol : "http", login, h.host,
+        h.port ? sprintf(":%d", h.port) : "");
 }
 
 #! parses a URI path for a arguments and a method

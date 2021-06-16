@@ -22,8 +22,14 @@ public class HttpServerUtilTest inherits QUnit::Test {
     }
 
     funcTests() {
-        assertEq("https://[fe80::468a:5bff:fe86:43ee]:8011", http_get_url_from_bind("https://fe80::468a:5bff:fe86:43ee:8011"));
-        assertEq("http://[::]", http_get_url_from_bind("::"));
+        assertEq("https://[fe80::468a:5bff:fe86:43ee]:8011",
+            http_get_url_from_bind("https://fe80::468a:5bff:fe86:43ee:8011"));
+        assertEq("http://[::1]", http_get_url_from_bind("::"));
+        assertEq("https://192.168.55.1:8011",
+            http_get_url_from_bind("https://0.0.0.0:8011", "192.168.55.1"));
+        assertEq("https://my-host:8011",
+            http_get_url_from_bind("https://[::]:8011", "my-host"));
+
         assertEq("passenger", http_mask_data("passenger"));
         assertEq("pass: <masked>...", http_mask_data("pass: 1"));
         assertEq("\"pass\": <masked>...", http_mask_data("\"pass\": 1"));

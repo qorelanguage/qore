@@ -57,6 +57,9 @@
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - connection path options are subjected to environment variable substitution
         (<a href="https://github.com/qorelanguage/qore/issues/4236">issue 4236</a>)
+    - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a> module
+      - fixed a bug handling wildcard address binds in \c http_get_url_from_bind()
+        (<a href="https://github.com/qorelanguage/qore/issues/4266">issue 4266</a>)
     - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module
       - fixed message serialization for SMTP handling; default to base64 encoding for attachments and if the message
         body has a single \c "." character on a line; convert any single \c "." characters on a line to two \c ".."
