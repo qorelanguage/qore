@@ -467,8 +467,8 @@ public string sub http_get_url_from_bind(softstring bind, *string host) {
             ?? "127.0.0.1";
     } else if (h.host == "::") {
         # try to get the first non-loopback IPv6 address
-        h.host = host ?? (map $1.address, get_netif_list(), $1.family == AF_INET6 && $1.address != "::")[0]
-            ?? "::";
+        h.host = host ?? (map $1.address, get_netif_list(), $1.family == AF_INET6 && $1.address != "::1")[0]
+            ?? "::1";
     }
 
     # encose IPv6 addresses in "[]"
