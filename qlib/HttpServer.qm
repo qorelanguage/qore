@@ -26,7 +26,7 @@
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.10.0
+%requires(reexport) HttpServerUtil >= 1.0
 %requires Logger
 
 %new-style

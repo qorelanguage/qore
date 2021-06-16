@@ -155,7 +155,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
 #! version of the HttpServer's implementation
-public const HttpServerVersion = "0.9.11";
+public const HttpServerVersion = "1.0";
 
 #! default HTTP server string
 public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
