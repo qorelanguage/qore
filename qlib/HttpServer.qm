@@ -22,17 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires qore >= 0.10.0
+%requires qore >= 1.0
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.10.0
+%requires(reexport) HttpServerUtil >= 1.0
 %requires Logger
 
 %new-style
 
 module HttpServer {
-    version = "0.10.0";
+    version = "1.0";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -116,7 +116,7 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
-    @subsection http0_10_0 HttpServer 0.10.0
+    @subsection http1_0 HttpServer 1.0
     - allow dynamic handlers to be disabled before being removed
       (<a href="https://github.com/qorelanguage/qore/issues/4173">issue 4173</a>)
     - added support for the Logger module for logging
