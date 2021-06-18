@@ -1792,6 +1792,9 @@ int BCNode::initializeMembers(QoreClass* cls) {
 }
 
 int BCNode::initialize(QoreClass* cls) {
+    if (!sclass) {
+        return 0;
+    }
     assert(sclass);
     int rc = 0;
 
@@ -2097,8 +2100,6 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
 }
 
 int BCList::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
-    assert(valid);
-
     for (auto& i : *this) {
         if ((*i).initializeHierarchy(cls, qcp_set)) {
             if (valid) {
