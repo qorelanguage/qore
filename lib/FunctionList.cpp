@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,8 @@ ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLoc
    return new LocalFunctionCallReferenceNode(loc, func);
 }
 
-ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS), ns) {
+ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns)
+        : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS), ns) {
 }
 
 FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
@@ -67,8 +68,6 @@ FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 p
             fe = new FunctionEntry(i->first, new QoreFunction(*f, po), ns);
         }
         insert(std::make_pair(fe->getName(), fe));
-        //if (!strcmp(i->first, "make_select_list2"))
-        //if (f->hasUser())  printd(0, "FunctionList::FunctionList() this: %p copying fe: %p %s user: %d builtin: %d public: %d\n", this, i->second, i->first, f->hasUser(), f->hasBuiltin(), f->hasUserPublic());
     }
 }
 
@@ -147,9 +146,14 @@ QoreListNode* FunctionList::getList() {
     return l;
 }
 
-void FunctionList::parseInit() {
-    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-        i->second->parseInit();
+int FunctionList::parseInit() {
+    int err = 0;
+    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i) {
+        if (i->second->parseInit() && !err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
 void FunctionList::parseCommit() {
@@ -176,8 +180,7 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
         if (li == end()) {
             insert(fl_map_t::value_type(i->first, i->second));
             i->second->updateNs(ns);
-        }
-        else {
+        } else {
             li->second->getFunction()->parseAssimilate(*(i->second->getFunction()));
             i->second->deref();
         }
@@ -192,7 +195,8 @@ int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private
         if (i->second->hasBuiltin()) {
             fl_map_t::const_iterator ci = fl_map_t::find(i->second->getName());
             if (ci != fl_map_t::end() && !ci->second->getFunction()->injected()) {
-                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
+                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an " \
+                    "existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
                 break;
             }
 

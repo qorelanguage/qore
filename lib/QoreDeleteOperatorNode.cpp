@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 QoreString QoreDeleteOperatorNode::delete_str("delete operator expression");
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *QoreDeleteOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreDeleteOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
     del = false;
     return &delete_str;
 }
@@ -50,10 +50,12 @@ QoreValue QoreDeleteOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
     return QoreValue();
 }
 
-void QoreDeleteOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    assert(!typeInfo);
-    parse_init_value(exp, oflag, pflag, lvids, typeInfo);
-    if (exp)
-        checkLValue(exp, pflag);
-    typeInfo = nothingTypeInfo;
+int QoreDeleteOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
+    if (exp && checkLValue(exp, parse_context.pflag) && !err) {
+        err = -1;
+    }
+    parse_context.typeInfo = nothingTypeInfo;
+    return err;
 }

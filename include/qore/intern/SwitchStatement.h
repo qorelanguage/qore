@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,8 @@ public:
     CaseNode* next = nullptr;
     bool def;
 
-    DLLLOCAL CaseNode(const QoreProgramLocation* loc, QoreValue v, StatementBlock* c, bool def = false) : loc(loc), val(v), code(c), def(def) {
+    DLLLOCAL CaseNode(const QoreProgramLocation* loc, QoreValue v, StatementBlock* c, bool def = false)
+            : loc(loc), val(v), code(c), def(def) {
     }
 
     DLLLOCAL virtual ~CaseNode();
@@ -62,16 +63,8 @@ public:
 };
 
 class SwitchStatement : public AbstractStatement {
-private:
-    CaseNode* head, *tail;
-    QoreValue sexp;
-    CaseNode* deflt;
-
-    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-
 public:
-    LVList *lvars = nullptr;
+    LVList* lvars = nullptr;
 
     // start and end line are set later
     DLLLOCAL SwitchStatement(CaseNode* f);
@@ -84,6 +77,14 @@ public:
         return true;
     }
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+
+private:
+    CaseNode* head = nullptr, *tail = nullptr;
+    QoreValue sexp;
+    CaseNode* deflt = nullptr;
+
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context0);
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
 };
 
 #endif

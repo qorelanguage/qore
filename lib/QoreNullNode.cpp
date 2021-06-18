@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -75,8 +75,9 @@ const char *QoreNullNode::getTypeName() const {
 }
 
 //! returns the type information
-void QoreNullNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = nullTypeInfo;
+int QoreNullNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = nullTypeInfo;
+    return 0;
 }
 
 bool QoreNullNode::getAsBoolImpl() const {
@@ -94,4 +95,3 @@ int64 QoreNullNode::getAsBigIntImpl() const {
 double QoreNullNode::getAsFloatImpl() const {
     return 0.0;
 }
-

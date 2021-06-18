@@ -76,19 +76,19 @@ public:
     DLLLOCAL virtual ~BuiltinSignature() {
     }
 
-    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const {
         return returnTypeInfo;
     }
 
     DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
-        return 0;
+        return nullptr;
     }
 };
 
 // the following defines the virtual functions that are common to all builtin variants
 #define COMMON_BUILTIN_VARIANT_FUNCTIONS DLLLOCAL virtual int64 getFunctionality() const { return functionality; } \
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<BuiltinSignature*>(&signature); } \
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.getReturnTypeInfo(); }
+   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const { return signature.getReturnTypeInfo(); }
 
 class BuiltinFunctionVariantBase {
 public:
@@ -96,9 +96,12 @@ public:
     // functionality bitmap for parse restrictions
     int64 functionality;
 
-    DLLLOCAL BuiltinFunctionVariantBase(int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
-        signature(n_functionality & QCF_USES_EXTRA_ARGS, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), functionality(n_functionality) {
-        //printd(0, "BuiltinFunctionVariantBase::BuiltinFunctionVariantBase() this=%p flags=%lld (%lld) functionality=%lld\n", this, flags, n_flags, functionality);
+    DLLLOCAL BuiltinFunctionVariantBase(int64 n_functionality = QDOM_DEFAULT,
+            const QoreTypeInfo* n_returnTypeInfo = nullptr, const type_vec_t& n_typeList = type_vec_t(),
+            const arg_vec_t& n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
+            signature(n_functionality & QCF_USES_EXTRA_ARGS, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names),
+            functionality(n_functionality) {
+        //printd(5, "BuiltinFunctionVariantBase::BuiltinFunctionVariantBase() this=%p flags=%lld (%lld) functionality=%lld\n", this, flags, n_flags, functionality);
     }
 };
 
@@ -107,8 +110,11 @@ protected:
     q_func_n_t func;
 
 public:
-    DLLLOCAL BuiltinFunctionValueVariant(q_func_n_t m, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
-        AbstractQoreFunctionVariant(n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), func(m) {
+    DLLLOCAL BuiltinFunctionValueVariant(q_func_n_t m, int64 n_flags, int64 n_functionality,
+            const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(),
+            const arg_vec_t& n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) :
+            AbstractQoreFunctionVariant(n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo,
+                n_typeList, n_defaultArgList, n_names), func(m) {
     }
 
     // the following defines the pure virtual functions that are common to all builtin variants

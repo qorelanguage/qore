@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -104,25 +104,30 @@ QoreValue QoreMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     return QoreValue();
 }
 
-void QoreMinusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QoreMinusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    assert(!parseTypeInfo);
+    assert(!parse_context.typeInfo);
 
-    const QoreTypeInfo* leftTypeInfo = 0, *rightTypeInfo = 0;
-
-    parse_init_value(left, oflag, pflag, lvids, leftTypeInfo);
-    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* leftTypeInfo = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (right.isValue() && left.isValue()) {
+    if (!err && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreMinusOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
-        parseTypeInfo = val.getTypeInfo();
-        return;
+        parse_context.typeInfo = val.getFullTypeInfo();
+        return **xsink ? -1 : 0;
     }
 
     // issue #3157: try to handle timeout + date specially
@@ -159,7 +164,6 @@ void QoreMinusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int p
             returnTypeInfo = nothingTypeInfo;
     }
 
-    if (returnTypeInfo) {
-        parseTypeInfo = returnTypeInfo;
-    }
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,8 @@ public:
     DLLLOCAL QoreParseListNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_PARSE_LIST, true) {
     }
 
-    DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old), vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
+    DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old),
+            vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
         values.reserve(old.values.size());
         lvec.reserve(old.lvec.size());
 
@@ -156,7 +157,7 @@ public:
         return const_cast<QoreParseListNode*>(this);
     }
 
-    DLLLOCAL int initArgs(LocalVar* oflag, int pflag, type_vec_t& arg_types, QoreListNode*& args);
+    DLLLOCAL int initArgs(QoreParseContext& parse_context, type_vec_t& arg_types, QoreListNode*& args);
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
@@ -175,7 +176,7 @@ public:
         return n;
     }
 
-    DLLLOCAL bool parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL int parseInitIntern(bool& needs_eval, QoreParseContext& parse_context);
 
 protected:
     typedef std::vector<const QoreProgramLocation*> lvec_t;
@@ -195,7 +196,7 @@ protected:
         return typeInfo;
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };

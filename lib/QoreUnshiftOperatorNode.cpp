@@ -33,17 +33,29 @@
 
 QoreString QoreUnshiftOperatorNode::unshift_str("unshift operator expression");
 
-void QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
+int QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    const QoreTypeInfo* leftTypeInfo = 0;
-    parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
+    assert(!parse_context.typeInfo);
+    int err;
+    {
+        QoreParseContextFlagHelper fh(parse_context);
+        fh.setFlags(PF_FOR_ASSIGNMENT);
+        err = parse_init_value(left, parse_context);
+    }
+    const QoreTypeInfo* leftTypeInfo = parse_context.typeInfo;
 
-    const QoreTypeInfo* rightTypeInfo = 0;
-    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
 
     if (left) {
-        checkLValue(left, pflag);
+        if (checkLValue(left, parse_context.pflag) && !err) {
+            err = -1;
+        }
 
         if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_LIST)) {
             // only raise a parse exception if parse exceptions are enabled
@@ -51,13 +63,19 @@ void QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
                 QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
                 edesc->sprintf("'%s' operator is ", getTypeName());
                 QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
-                edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the '%s' operator can only operate on lists", getTypeName());
+                edesc->sprintf(" therefore this operation is invalid and would throw an exception at run-time; the " \
+                    "'%s' operator can only operate on lists", getTypeName());
                 qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
             }
-        }
-        else
+            if (!err) {
+                err = -1;
+            }
+        } else {
             returnTypeInfo = listTypeInfo;
+        }
     }
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }
 
 QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -74,8 +92,11 @@ QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     if (val.getType() == NT_NOTHING) {
         const QoreTypeInfo* vti = val.getTypeInfo();
         if (QoreTypeInfo::parseAcceptsReturns(vti, NT_LIST)) {
-            // issue #3317: if the lvar can be a list, assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* lti = vti == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(vti);
+            // issue #3317: if the lvar can be a list, assign the current runtime type based on the declared complex
+            // list type
+            const QoreTypeInfo* lti = vti == autoTypeInfo
+                ? autoTypeInfo
+                : QoreTypeInfo::getReturnComplexListOrNothing(vti);
             if (val.assign(new QoreListNode(lti))) {
                 assert(*xsink);
                 return QoreValue();
@@ -86,7 +107,8 @@ QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     // value is not a list, so throw exception
     if (val.getType() != NT_LIST) {
         // no need to check for PO_STRICT_ARGS; this exception was always thrown
-        xsink->raiseException(*loc, "UNSHIFT-ERROR", QoreValue(), "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
+        xsink->raiseException(*loc, "UNSHIFT-ERROR", QoreValue(), "the lvalue argument to unshift is type \"%s\"; " \
+            "expecting \"list\"", val.getTypeName());
         return QoreValue();
     }
 

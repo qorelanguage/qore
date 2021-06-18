@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,29 +36,32 @@
 #include "qore/intern/AbstractStatement.h"
 
 class ContinueStatement : public AbstractStatement {
-private:
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
-      return RC_CONTINUE;
-   }
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
-      if (!(pflag & PF_CONTINUE_OK)) {
-         if (!(getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT)) {
-            parseException(*loc, "CONTINUE-NOT-ALLOWED", "continue statements are only allowed in loop statements");
-         }
-      }
-      return 0;
-   }
-
 public:
-   DLLLOCAL ContinueStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
-   }
+    DLLLOCAL ContinueStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
+    }
 
-   DLLLOCAL virtual ~ContinueStatement() {
-   }
+    DLLLOCAL virtual ~ContinueStatement() {
+    }
 
-   DLLLOCAL virtual bool endsBlock() const {
-      return true;
-   }
+    DLLLOCAL virtual bool endsBlock() const {
+        return true;
+    }
+
+private:
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
+        return RC_CONTINUE;
+    }
+
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context) {
+        if (!(parse_context.pflag & PF_CONTINUE_OK)) {
+            if (!(parse_context.pgm->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT)) {
+                parseException(*loc, "CONTINUE-NOT-ALLOWED", "continue statements are only allowed in loop " \
+                    "statements");
+                return -1;
+            }
+        }
+        return 0;
+    }
 };
 
 #endif

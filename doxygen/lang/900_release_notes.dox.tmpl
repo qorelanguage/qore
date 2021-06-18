@@ -30,6 +30,7 @@
       types
     - %Qore builds now support outputting javadoc for %Qore sources to support code completion in Java IDEs for
       dynamic imports of %Qore APIs
+    - fixed bugs reporting parse errors where a single error could cause many more unrelated errors to be output
     - module updates:
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module:
         - updated the \c AbstractConnection::getInfo() method
@@ -80,6 +81,8 @@
     - fixed a bug where negative timeouts with lock methods and internal condition variable wait calls would return
       immediately instead of waiting indefinitely with some objects
       (<a href="https://github.com/qorelanguage/qore/issues/4263">issue 4263</a>)
+    - fixed bugs reporting parse errors where a single error could cause many more unrelated errors to be output
+      (<a href="https://github.com/qorelanguage/qore/issues/4260">issue 4260</a>)
     - fixed a bug in method resolution in class hierarchies that could lead to spurious parse errors
       (<a href="https://github.com/qorelanguage/qore/issues/4250">issue 4250</a>)
     - fixed a bug handling @ref softlist_complex_type "complex softlist<...>" values where illegal matches were

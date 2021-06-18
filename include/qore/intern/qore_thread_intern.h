@@ -196,8 +196,8 @@ public:
     QoreValue init_c, // the initialization closure
         del_c;         // the destructor closure
 
-    const QoreProgramLocation* init_loc,
-        * del_loc;
+    const QoreProgramLocation* init_loc = nullptr,
+        * del_loc = nullptr;
 
     DLLLOCAL QoreModuleDefContext() {
     }
@@ -213,14 +213,14 @@ public:
     // set of tag definitions
     strmap_t vmap;
 
-    DLLLOCAL void set(const QoreProgramLocation* loc, const char* key, QoreValue val);
+    DLLLOCAL int set(const QoreProgramLocation* loc, const char* key, QoreValue val);
 
     DLLLOCAL const char* get(const char* str) const {
         strmap_t::const_iterator i = vmap.find(str);
         return i == vmap.end() || i->second.empty() ? nullptr : i->second.c_str();
     }
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
 
     DLLLOCAL bool hasInit() const {
         return init_c ? true : false;
@@ -231,7 +231,7 @@ public:
     DLLLOCAL AbstractQoreNode* takeDel();
 
 protected:
-    DLLLOCAL void initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n);
+    DLLLOCAL int initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n);
 };
 
 DLLLOCAL QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink);

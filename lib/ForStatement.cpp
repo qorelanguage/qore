@@ -32,7 +32,8 @@
 #include "qore/intern/ForStatement.h"
 #include "qore/intern/StatementBlock.h"
 
-ForStatement::ForStatement(int start_line, int end_line, QoreValue a, QoreValue c, QoreValue i, StatementBlock* cd) : AbstractStatement(start_line, end_line), assignment(a), cond(c), iterator(i), code(cd) {
+ForStatement::ForStatement(int start_line, int end_line, QoreValue a, QoreValue c, QoreValue i, StatementBlock* cd)
+        : AbstractStatement(start_line, end_line), assignment(a), cond(c), iterator(i), code(cd) {
 }
 
 ForStatement::~ForStatement() {
@@ -96,39 +97,50 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     return rc;
 }
 
-int ForStatement::parseInitImpl(LocalVar *oflag, int pflag) {
-    int lvids = 0;
-
+int ForStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
+
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
+
+    int err = 0;
 
     const QoreTypeInfo* argTypeInfo = nullptr;
     if (assignment) {
-        parse_init_value(assignment, oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_RETURN_VALUE_IGNORED);
+        err = parse_init_value(assignment, parse_context);
         // enable optimizations when return value is ignored for operator expressions
         ignore_return_value(assignment);
     }
     if (cond) {
-        argTypeInfo = nullptr;
-        parse_init_value(cond, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(cond, parse_context) && !err) {
+            err = -1;
+        }
         // FIXME: raise a parse warning if cond cannot be converted to a bool (i.e. always false)
     }
     if (iterator) {
-        argTypeInfo = nullptr;
-        parse_init_value(iterator, oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_RETURN_VALUE_IGNORED);
+        err = parse_init_value(iterator, parse_context);
         // enable optimizations when return value is ignored for operator expressions
         ignore_return_value(iterator);
     }
     if (code) {
-        code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_BREAK_OK | PF_CONTINUE_OK);
+
+        if (code->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
     }
 
-    // save local variables
-    if (lvids) {
-        lvars = new LVList(lvids);
-    }
-
-    return 0;
+    return err;
 }
 
 void ForStatement::parseCommit(QoreProgram* pgm) {
@@ -137,4 +149,3 @@ void ForStatement::parseCommit(QoreProgram* pgm) {
         code->parseCommit(pgm);
     }
 }
-

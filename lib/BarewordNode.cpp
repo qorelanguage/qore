@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,8 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of str
-BarewordNode::BarewordNode(const QoreProgramLocation* loc, char *c_str) : ParseNoEvalNode(loc, NT_BAREWORD), str(c_str), finalized(false) {
+BarewordNode::BarewordNode(const QoreProgramLocation* loc, char *c_str)
+        : ParseNoEvalNode(loc, NT_BAREWORD), str(c_str), finalized(false) {
 }
 
 BarewordNode::~BarewordNode() {
@@ -82,14 +83,17 @@ char *BarewordNode::takeString() {
     return p;
 }
 
-void BarewordNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int BarewordNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     //printd(5, "BarewordNode::parseInitImpl() this: %p str: %s\n", this, str);
     bool found;
-    QoreValue n = qore_root_ns_private::parseResolveBareword(loc, str, typeInfo, found);
+    QoreValue n = qore_root_ns_private::parseResolveBareword(loc, str, parse_context.typeInfo, found);
     if (!found) {
-        return;
+        // parse exception already raised
+        return -1;
     }
-    parse_init_value(n, oflag, pflag, lvids, typeInfo);
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(n, parse_context);
     val = n;
     deref(nullptr);
+    return err;
 }

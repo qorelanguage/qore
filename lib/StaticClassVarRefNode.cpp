@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -65,10 +65,11 @@ QoreValue StaticClassVarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     return val->needsEval() ? val->eval(xsink) : val.release();
 }
 
-void StaticClassVarRefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int StaticClassVarRefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     printd(5, "StaticClassVarRefNode::parseInit() '%s::%s'\n", qc.getName(), str.c_str());
     vi.parseInit(str.c_str());
-    typeInfo = vi.getTypeInfo();
+    parse_context.typeInfo = vi.getTypeInfo();
+    return 0;
 }
 
 void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {

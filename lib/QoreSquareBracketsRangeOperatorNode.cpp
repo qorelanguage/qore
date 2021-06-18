@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,44 +43,77 @@ int QoreSquareBracketsRangeOperatorNode::getAsString(QoreString &str, int foff, 
     return 0;
 }
 
-void QoreSquareBracketsRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
+int QoreSquareBracketsRangeOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
+
     assert(!typeInfo);
-    assert(!returnTypeInfo);
 
-    const QoreTypeInfo* typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
-    parse_init_value(e[0], oflag, pflag, lvids, typeInfo0);
-    parse_init_value(e[1], oflag, pflag, lvids, typeInfo1);
-    parse_init_value(e[2], oflag, pflag, lvids, typeInfo2);
+    int err = parse_init_value(e[0], parse_context);
+    const QoreTypeInfo* typeInfo0 = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(e[1], parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* typeInfo1 = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(e[2], parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* typeInfo2 = parse_context.typeInfo;
 
-    if (pflag & PF_FOR_ASSIGNMENT)
+    if (parse_context.pflag & PF_FOR_ASSIGNMENT) {
         parse_error(*loc, "the range operator cannot be used in the left-hand side of an assignment expression");
+        if (!err) {
+            err = -1;
+        }
+    }
 
     if (QoreTypeInfo::hasType(typeInfo0)) {
         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
-            returnTypeInfo = typeInfo0;
+            typeInfo = typeInfo0;
         else if (QoreTypeInfo::isType(typeInfo0, NT_STRING))
-            returnTypeInfo = stringTypeInfo;
+            typeInfo = stringTypeInfo;
         else if (QoreTypeInfo::isType(typeInfo0, NT_BINARY))
-            returnTypeInfo = binaryTypeInfo;
+            typeInfo = binaryTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_LIST))
-            returnTypeInfo = get_or_nothing_type_check(typeInfo0);
+            typeInfo = get_or_nothing_type_check(typeInfo0);
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_STRING))
-            returnTypeInfo = stringOrNothingTypeInfo;
+            typeInfo = stringOrNothingTypeInfo;
         else if (QoreTypeInfo::parseReturns(typeInfo0, NT_BINARY))
-            returnTypeInfo = binaryOrNothingTypeInfo;
+            typeInfo = binaryOrNothingTypeInfo;
         else {
             // raise an exception due to the invalid operand type
-            parseException(*loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
+            parseException(*loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is " \
+                "type '%s'; this operator only works with 'list', 'string', and 'binary'",
+                QoreTypeInfo::getName(typeInfo0));
+            if (!err) {
+                err = -1;
+            }
         }
     }
     // ensure that the range operands can be converted to an integer
-    if (!QoreTypeInfo::isType(typeInfo1, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo1))
-        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo1));
-    if (!QoreTypeInfo::isType(typeInfo2, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo2))
-        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo2));
+    if (!QoreTypeInfo::isType(typeInfo1, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo1)) {
+        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is " \
+            "type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime",
+            QoreTypeInfo::getName(typeInfo1));
+        if (!err) {
+            err = -1;
+        }
+    }
+    if (!QoreTypeInfo::isType(typeInfo2, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo2)) {
+        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is " \
+            "type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime",
+            QoreTypeInfo::getName(typeInfo2));
+        if (!err) {
+            err = -1;
+        }
+    }
 
-    typeInfo = returnTypeInfo;
+    parse_context.typeInfo = typeInfo;
+    return err;
 }
 
 QoreValue QoreSquareBracketsRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

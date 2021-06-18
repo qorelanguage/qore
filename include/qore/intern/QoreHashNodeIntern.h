@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -577,17 +577,24 @@ public:
     }
 
     // returns -1 if no checks are needed or if an error is raised, 0 if OK to check
-    DLLLOCAL static int parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, QoreValue& arg);
+    DLLLOCAL static int parseInitHashInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+            QoreParseListNode* args, QoreValue& arg, int& err);
 
-    DLLLOCAL static int parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti);
+    DLLLOCAL static int parseInitComplexHashInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+            QoreParseListNode* args);
 
-    DLLLOCAL static void parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, QoreValue exp, const char* context_action, bool strict_check = true);
+    DLLLOCAL static int parseCheckComplexHashInitialization(const QoreProgramLocation* loc,
+            const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, QoreValue exp,
+            const char* context_action, bool strict_check = true);
 
-    DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
+    DLLLOCAL static int parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg,
+            const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
 
-    DLLLOCAL static QoreHashNode* newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args,
+            ExceptionSink* xsink);
 
-    DLLLOCAL static QoreHashNode* newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init,
+            ExceptionSink* xsink);
 
     DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
         assert(!h.priv->is_obj);

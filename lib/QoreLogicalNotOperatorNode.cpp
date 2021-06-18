@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,14 +49,16 @@ QoreValue QoreLogicalNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     return !v->getAsBool();
 }
 
-void QoreLogicalNotOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    parse_init_value(exp, oflag, pflag, lvids, typeInfo);
+int QoreLogicalNotOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    int err = parse_init_value(exp, parse_context);
 
-    typeInfo = boolTypeInfo;
+    parse_context.typeInfo = boolTypeInfo;
 
     // evaluate immediately if possible
-    if (exp.isValue()) {
+    if (!err && exp.isValue()) {
         SimpleRefHolder<QoreLogicalNotOperatorNode> th(this);
         val = !exp.getAsBool();
     }
+
+    return err;
 }

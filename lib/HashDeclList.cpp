@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -92,8 +92,7 @@ HashDeclList::HashDeclList(const HashDeclList& old, int64 po, qore_ns_private* n
         if (!i.second->isSystem()) {
             if (po & PO_NO_INHERIT_USER_HASHDECLS || !typed_hash_decl_private::get(*i.second)->isPublic())
                 continue;
-        }
-        else
+        } else
             if (po & PO_NO_INHERIT_SYSTEM_HASHDECLS)
                 continue;
 
@@ -123,10 +122,13 @@ int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_priv
         if (i.second->isSystem()) {
             hm_qth_t::const_iterator ci = hm.find(i.second->getName());
             if (ci != hm.end()) {
-                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system hashdecl %s::%s due to the presence of an existing hashdecl with the same name in the target namespace", ns->name.c_str(), ci->second->getName());
+                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system hashdecl %s::%s due to the " \
+                    "presence of an existing hashdecl with the same name in the target namespace", ns->name.c_str(),
+                    ci->second->getName());
                 break;
             }
-            //printd(5, "HashDeclList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
+            //printd(5, "HashDeclList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second,
+            //  ns->name.c_str(), i->second->getName());
             TypedHashDecl* hd = new TypedHashDecl(*i.second);
             typed_hash_decl_private::get(*hd)->setNamespace(ns);
             addInternal(hd);
@@ -136,11 +138,15 @@ int HashDeclList::importSystemHashDecls(const HashDeclList& source, qore_ns_priv
     return cnt;
 }
 
-void HashDeclList::parseInit() {
-     for (auto& i : hm) {
-          //printd(5, "HashDeclList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
-          typed_hash_decl_private::get(*(i.second))->parseInit();
-     }
+int HashDeclList::parseInit() {
+    int err = 0;
+    for (auto& i : hm) {
+        //printd(5, "HashDeclList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
+        if (typed_hash_decl_private::get(*(i.second))->parseInit() && !err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
 void HashDeclList::reset() {
@@ -151,19 +157,20 @@ void HashDeclList::assimilate(HashDeclList& n, qore_ns_private& ns) {
     hm_qth_t::iterator i = n.hm.begin();
     while (i != n.hm.end()) {
         if (ns.classList.find(i->first)) {
-           parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
-           n.remove(i);
-        }
-        else if (ns.hashDeclList.find(i->first)) {
-           parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
-           n.remove(i);
-        }
-        else if (find(i->first)) {
-            parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+            parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' has already " \
+                "been defined in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
-        }
-        else {
-            //printd(5, "HashDeclList::assimilate() this: %p adding: %p '%s::%s'\n", this, i->second, ns.name.c_str(), i->second->getName());
+        } else if (ns.hashDeclList.find(i->first)) {
+            parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' has already " \
+                "been defined in namespace '%s'", i->first, ns.name.c_str());
+            n.remove(i);
+        } else if (find(i->first)) {
+            parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' is already " \
+                "pending in namespace '%s'", i->first, ns.name.c_str());
+            n.remove(i);
+        } else {
+            //printd(5, "HashDeclList::assimilate() this: %p adding: %p '%s::%s'\n", this, i->second, ns.name.c_str(),
+            //  i->second->getName());
 
             // "move" data to new list
             hm[i->first] = i->second;

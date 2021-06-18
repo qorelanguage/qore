@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,52 +46,53 @@ QoreValue QoreDivisionOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* x
    return doDivision(*lh, *rh, xsink);
 }
 
-void QoreDivisionOperatorNode::parseInitIntern(const char* name, QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
+int QoreDivisionOperatorNode::parseInitIntern(const char* name, QoreValue& val, QoreParseContext& parse_context) {
     // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    assert(!parseTypeInfo);
+    assert(!parse_context.typeInfo);
 
-    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
-
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (right.isValue()) {
+    if (!err && right.isValue()) {
         if (left.isValue()) {
             SimpleRefHolder<QoreDivisionOperatorNode> del(this);
             ParseExceptionSink xsink;
             val = doDivision(left, right, *xsink);
-            return;
+            return **xsink ? -1 : 0;
         }
         // check for division by zero here
         if (!right.getAsFloat()) {
             parse_error(*loc, "division by zero found in parse expression");
-            return;
+            return -1;
         }
     }
 
-    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (number) can be assigned if either side is known to have it
-    // can be assigned if either side is a float
+    // check for optimizations based on type; but only if types are known on both sides, although the highest
+    // priority (number) can be assigned if either side is known to have it can be assigned if either side is a float
     if (QoreTypeInfo::isType(lti, NT_NUMBER) || QoreTypeInfo::isType(rti, NT_NUMBER)) {
-        typeInfo = numberTypeInfo;
-    }
-    else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
+        parse_context.typeInfo = numberTypeInfo;
+    } else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
         if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT)) {
             pfunc = &QoreDivisionOperatorNode::floatDivision;
-            typeInfo = floatTypeInfo;
-        }
-        else if (QoreTypeInfo::isType(lti, NT_INT) && QoreTypeInfo::isType(rti, NT_INT)) {
+            parse_context.typeInfo = floatTypeInfo;
+        } else if (QoreTypeInfo::isType(lti, NT_INT) && QoreTypeInfo::isType(rti, NT_INT)) {
             pfunc = &QoreDivisionOperatorNode::bigIntDivision;
-            typeInfo = bigIntTypeInfo;
+            parse_context.typeInfo = bigIntTypeInfo;
+        } else {
+            parse_context.typeInfo = floatTypeInfo;
         }
-        else
-            typeInfo = floatTypeInfo;
     }
 
-    if (typeInfo)
-        parseTypeInfo = typeInfo;
+    return err;
 }
 
 QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,8 @@
 
 #include <qore/Qore.h>
 
-ContextrefNode::ContextrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_CONTEXTREF), str(c_str) {
+ContextrefNode::ContextrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_CONTEXTREF),
+        str(c_str) {
 }
 
 ContextrefNode::~ContextrefNode() {
@@ -64,9 +65,12 @@ QoreValue ContextrefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) cons
     return eval_context_ref(str, xsink);
 }
 
-void ContextrefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = nullptr;
+int ContextrefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = nullptr;
 
-    if (!getCVarStack())
+    if (!getCVarStack()) {
         parse_error(*loc, "context reference \"%s\" out of context", str);
+        return -1;
+    }
+    return 0;
 }

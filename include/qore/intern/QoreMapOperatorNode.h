@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,8 @@ class QoreMapOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOp
     friend class QoreFunctionalMapOperator;
 
 public:
-    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
+    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r)
+            : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -61,7 +62,8 @@ public:
         return rv;
     }
 
-    DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo);
+    DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo,
+            const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo);
 
     DLLLOCAL virtual bool hasEffectAsRoot() const {
         return true;
@@ -81,7 +83,7 @@ protected:
     DLLLOCAL virtual ~QoreMapOperatorNode() {
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return returnTypeInfo;
@@ -89,12 +91,14 @@ protected:
 
     DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type,
+            ExceptionSink* xsink) const;
 };
 
 class QoreFunctionalMapListOperator : public FunctionalOperatorInterface, public ConstListIterator {
 public:
-    DLLLOCAL QoreFunctionalMapListOperator(const QoreMapOperatorNode* m, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), map(m), xsink(xs) {
+    DLLLOCAL QoreFunctionalMapListOperator(const QoreMapOperatorNode* m, QoreListNode* l, ExceptionSink* xs)
+            : ConstListIterator(l), map(m), xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalMapListOperator() {
@@ -115,7 +119,8 @@ protected:
 
 class QoreFunctionalMapSingleValueOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalMapSingleValueOperator(const QoreMapOperatorNode* m, QoreValue n, ExceptionSink* xs) : map(m), v(n), xsink(xs) {
+    DLLLOCAL QoreFunctionalMapSingleValueOperator(const QoreMapOperatorNode* m, QoreValue n, ExceptionSink* xs)
+            : map(m), v(n), xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalMapSingleValueOperator() {

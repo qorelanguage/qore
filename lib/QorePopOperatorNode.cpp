@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,8 @@ QoreValue QorePopOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink)
     if (val.getType() != NT_LIST) {
         // only throw a runtime exception if %strict-args is in effect
         if (runtime_check_parse_option(PO_STRICT_ARGS))
-            xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
+            xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"",
+                val.getTypeName());
         return QoreValue();
     }
 
@@ -58,7 +59,8 @@ QoreValue QorePopOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink)
 
     QoreListNode* l = val.getValue().get<QoreListNode>();
 
-    printd(5, "QorePopOperatorNode::evalImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
+    printd(5, "QorePopOperatorNode::evalImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l,
+        l->size());
     // the list reference will now be the reference for the return value
     // therefore no need to reference again
     return l->pop();

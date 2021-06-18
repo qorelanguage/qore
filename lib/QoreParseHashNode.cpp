@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,12 +43,15 @@ void QoreParseHashNode::finalizeBlock(int sline, int eline) {
     }
 }
 
-void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreParseHashNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     assert(keys.size() == values.size());
     bool needs_eval = false;
 
-    // turn off "return value ignored" flag before performing parse init
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
+
+    assert(!parse_context.typeInfo);
 
     // initialize value type vector
     vtypes.resize(keys.size());
@@ -56,16 +59,22 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     // try to find a common value type, if any
     bool vcommon = false;
 
+    int err = 0;
+
     for (size_t i = 0; i < keys.size(); ++i) {
-        const QoreTypeInfo* argTypeInfo = nullptr;
         QoreValue p = keys[i];
-        parse_init_value(keys[i], oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(keys[i], parse_context) && !err) {
+            err = -1;
+        }
+        const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
 
         if (!p.isEqualValue(keys[i]) && (!keys[i] || keys[i].isValue())) {
             QoreStringValueHelper key(keys[i]);
             checkDup(lvec[i], key->c_str());
-        } else if (!needs_eval && keys[i] && keys[i].needsEval())
+        } else if (!needs_eval && keys[i] && keys[i].needsEval()) {
             needs_eval = true;
+        }
 
         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
@@ -77,39 +86,55 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
             }
         }
 
-        argTypeInfo = nullptr;
-        parse_init_value(values[i], oflag, pflag, lvids, vtypes[i]);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(values[i], parse_context) && !err) {
+            err = -1;
+        }
+        vtypes[i] = parse_context.typeInfo;
 
-        //printd(5, "QoreParseHashNode::parseInitImpl() this: %p i: %d '%s': '%s'\n", this, i, keys[i].getType() == NT_STRING ? keys[i].get<const QoreStringNode>()->c_str() : keys[i].getFullTypeName(), values[i].getFullTypeName());
+        //printd(5, "QoreParseHashNode::parseInitImpl() this: %p i: %d '%s': '%s'\n", this, i,
+        //    keys[i].getType() == NT_STRING ? keys[i].get<const QoreStringNode>()->c_str() : keys[i].getFullTypeName(),
+        //    values[i].getFullTypeName());
 
         if (!i) {
             if (vtypes[0] && vtypes[0] != anyTypeInfo) {
                 vtype = vtypes[0];
                 vcommon = true;
             }
-        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
+        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i])) {
             vcommon = false;
+        }
 
-        if (!needs_eval && values[i].needsEval())
+        if (!needs_eval && values[i].needsEval()) {
             needs_eval = true;
+        }
     }
 
     kmap.clear();
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
-        this->typeInfo = typeInfo = qore_get_complex_hash_type(vtype);
+        typeInfo = parse_context.typeInfo = qore_get_complex_hash_type(vtype);
     } else {
-        this->typeInfo = autoHashTypeInfo;
+        typeInfo = autoHashTypeInfo;
         // issue #3740: must set to auto type info to avoid type stripping
         vtype = autoTypeInfo;
         // issue #2647: allow an empty hash to be assigned to any complex hash (but not hashdecls)
         // it will get folded at runtime into the desired type in any case
-        typeInfo = vtypes.empty() ? emptyHashTypeInfo : autoHashTypeInfo;
+        parse_context.typeInfo = vtypes.empty() ? emptyHashTypeInfo : autoHashTypeInfo;
     }
 
-    if (needs_eval)
-        return;
+    printd(5, "QoreParseHashNode::parseInitImpl() this: %p type: %s (%s)\n", this,
+        QoreTypeInfo::getName(parse_context.typeInfo), QoreTypeInfo::getName(typeInfo));
+
+    if (err) {
+        parse_error = true;
+        return err;
+    }
+
+    if (needs_eval) {
+        return 0;
+    }
 
     // evaluate immediately
     SimpleRefHolder<QoreParseHashNode> holder(this);
@@ -117,6 +142,8 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     ValueEvalRefHolder rv(this, &xsink);
     assert(!xsink);
     val = rv.takeReferencedValue();
+    parse_context.typeInfo = val.getFullTypeInfo();
+    return 0;
 }
 
 QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -124,7 +151,8 @@ QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
     // complex type will be added before returning if applicable
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
 
-    // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
+    // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared
+    // type
     const QoreTypeInfo* vtype = nullptr;
     // try to find a common value type, if any
     bool vcommon = false;
@@ -151,7 +179,9 @@ QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
 
         // issue #2791: ensure that type folding is performed at the source if necessary
         QoreValue val = v.takeReferencedValue();
-        //printd(5, "QoreParseHashNode::evalImpl() '%s' this->vtype: '%s' (c: %d) vt: '%s' (c: %d)\n", key->c_str(), QoreTypeInfo::getName(this->vtype), QoreTypeInfo::hasComplexType(this->vtype), QoreTypeInfo::getName(vt), QoreTypeInfo::hasComplexType(vt));
+        //printd(5, "QoreParseHashNode::evalImpl() '%s' this->vtype: '%s' (c: %d) vt: '%s' (c: %d)\n",
+        //  key->c_str(), QoreTypeInfo::getName(this->vtype), QoreTypeInfo::hasComplexType(this->vtype),
+        //  QoreTypeInfo::getName(vt), QoreTypeInfo::hasComplexType(vt));
         if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
             // this can never throw an exception; it's only used for type folding/stripping
             QoreTypeInfo::acceptInputKey(this->vtype, key->c_str(), val, xsink);

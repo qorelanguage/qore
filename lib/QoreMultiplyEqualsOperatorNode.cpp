@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Techologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Techologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 
 QoreString QoreMultiplyEqualsOperatorNode::op_str("*= operator expression");
 
-void QoreMultiplyEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+int QoreMultiplyEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+   return parseInitIntern(op_str.c_str(), parse_context);
 }
 
 QoreValue QoreMultiplyEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {

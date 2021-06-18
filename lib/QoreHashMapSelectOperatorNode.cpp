@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,32 +46,44 @@ int QoreHashMapSelectOperatorNode::getAsString(QoreString& str, int foff, Except
     return 0;
 }
 
-void QoreHashMapSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    assert(!typeInfo);
+int QoreHashMapSelectOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
-
+    assert(!parse_context.typeInfo);
     // check iterator expression
-    const QoreTypeInfo* iteratorTypeInfo = nullptr;
-    parse_init_value(e[2], oflag, pflag, lvids, iteratorTypeInfo);
+    int err = parse_init_value(e[2], parse_context);
+    const QoreTypeInfo* iteratorTypeInfo = parse_context.typeInfo;
 
-    const QoreTypeInfo* expTypeInfo = nullptr;
-    const QoreTypeInfo* expTypeInfo2 = nullptr;
-    const QoreTypeInfo* selectTypeInfo = nullptr;
-
+    const QoreTypeInfo* expTypeInfo;
+    const QoreTypeInfo* expTypeInfo2;
     {
         // set implicit argv arg type
         ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
 
         // check key expression
-        parse_init_value(e[0], oflag, pflag, lvids, expTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(e[0], parse_context) && !err) {
+            err = -1;
+        }
+        expTypeInfo = parse_context.typeInfo;
         // check value expression2
-        parse_init_value(e[1], oflag, pflag, lvids, expTypeInfo2);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(e[1], parse_context) && !err) {
+            err = -1;
+        }
+        expTypeInfo2 = parse_context.typeInfo;
         // check select expression
-        parse_init_value(e[3], oflag, pflag, lvids, selectTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(e[3], parse_context) && !err) {
+            err = -1;
+        }
     }
 
-    typeInfo = QoreHashMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
+    parse_context.typeInfo = QoreHashMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo2,
+        iteratorTypeInfo);
+    return err;
 }
 
 QoreHashNode* QoreHashMapSelectOperatorNode::getNewHash() const {
@@ -125,7 +137,9 @@ QoreValue QoreHashMapSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSi
 
         if (ref_rv) {
             const QoreTypeInfo* vtype = arg_val->getTypeInfo();
-            //printd(5, "QoreHashMapSelectOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+            printd(5, "QoreHashMapSelectOperatorNode::evalImpl() (v) vcommon: %d vtype: %p '%s' valueType: %p '%s'\n",
+                vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+
             if (vtype && vtype != anyTypeInfo) {
                 valueType = vtype;
                 vcommon = true;
@@ -164,7 +178,9 @@ QoreValue QoreHashMapSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSi
 
                 if (ref_rv) {
                     const QoreTypeInfo* vtype = val->getTypeInfo();
-                    //printd(5, "QoreHashMapSelectOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                    printd(5, "QoreHashMapSelectOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' " \
+                        "valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType,
+                        QoreTypeInfo::getName(valueType));
                     if (!li.index()) {
                         if (vtype && vtype != anyTypeInfo) {
                             valueType = vtype;
@@ -185,7 +201,8 @@ QoreValue QoreHashMapSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSi
     if (*xsink || !ref_rv)
         return QoreValue();
 
-    //printd(5, "QoreHashMapSelectOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    //printd(5, "QoreHashMapSelectOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType,
+    //  QoreTypeInfo::getName(valueType));
     if (ref_rv && vcommon) {
         qore_hash_private::get(**ret_val)->complexTypeInfo = qore_get_complex_hash_type(valueType);
     }
@@ -241,7 +258,9 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
 
             if (ref_rv) {
                 const QoreTypeInfo* vtype = val->getTypeInfo();
-                //printd(5, "QoreHashMapSelectOperatorNode::mapIterator() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", i, vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                printd(5, "QoreHashMapSelectOperatorNode::mapIterator() i: %d vcommon: %d vtype: %p '%s' " \
+                    "valueType: %p '%s'\n", i, vcommon, vtype, QoreTypeInfo::getName(vtype), valueType,
+                    QoreTypeInfo::getName(valueType));
                 if (i == 1) {
                     if (vtype && vtype != anyTypeInfo) {
                         valueType = vtype;
@@ -259,7 +278,8 @@ QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, 
             return QoreValue();
     }
 
-    //printd(5, "QoreHashMapSelectOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    //printd(5, "QoreHashMapSelectOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType,
+    //  QoreTypeInfo::getName(valueType));
     if (ref_rv && vcommon) {
         qore_hash_private::get(**rv)->complexTypeInfo = qore_get_complex_hash_type(valueType);
     }

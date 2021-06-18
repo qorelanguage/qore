@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,8 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   DLLLOCAL QoreOperatorNode(const QoreProgramLocation* loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation* loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR),
+        in_parentheses(false), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -93,9 +94,10 @@ public:
             if (check_lvalue(exp, assignment)) {
                 parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp.getTypeName());
                 return -1;
-            }
-            else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
-                parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            } else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF
+                && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
+                parse_error(*loc, "illegal local variable modification with the background operator in %s",
+                    getTypeName());
                 return -1;
             }
         }

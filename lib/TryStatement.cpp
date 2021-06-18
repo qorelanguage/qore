@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,10 @@ public:
     }
 };
 
-TryStatement::TryStatement(const QoreProgramLocation* loc, StatementBlock* t, StatementBlock* c, char* p, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation* vloc) : AbstractStatement(loc), try_block(t), catch_block(c), param(p), typeInfo(typeInfo), parseTypeInfo(parseTypeInfo), loc(vloc) {
+TryStatement::TryStatement(const QoreProgramLocation* loc, StatementBlock* t, StatementBlock* c, char* p,
+        const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation* vloc)
+        : AbstractStatement(loc), try_block(t), catch_block(c), param(p), typeInfo(typeInfo),
+        parseTypeInfo(parseTypeInfo), loc(vloc) {
 }
 
 TryStatement::~TryStatement() {
@@ -80,8 +83,7 @@ int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
             // uninstantiate extra args
             if (param)
                 id->uninstantiate(xsink);
-        }
-        else
+        } else
             rc = 0;
 
         // delete exception chain
@@ -96,45 +98,60 @@ int TryStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     return rc;
 }
 
-int TryStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+int TryStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
 
-    if (try_block)
-        try_block->parseInitImpl(oflag, pflag);
+    int err = 0;
+
+    if (try_block) {
+        err = try_block->parseInitImpl(parse_context);
+    }
 
     // prepare catch block and params
     if (param) {
         // initialize/check catch exception variable type (if any)
         if (parseTypeInfo) {
-            typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+            typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc, err);
             parseTypeInfo = nullptr;
         }
 
         if (!QoreTypeInfo::parseAccepts(typeInfo, hashdeclExceptionInfo->getTypeInfo())) {
-            parse_error(*loc, "catch block exception variable is not compatible with exception hashdecl type '%s'", QoreTypeInfo::getName(typeInfo));
+            parse_error(*loc, "catch block exception variable is not compatible with exception hashdecl type '%s'",
+                QoreTypeInfo::getName(typeInfo));
+            if (!err) {
+                err = -1;
+            }
         }
 
         // push as if the variable is already referenced so no warning will be emitted
         // in case the variable is not actually referenced in the catch block
-        id = push_local_var(param, loc, typeInfo, true, 1);
+        id = push_local_var(param, loc, typeInfo, err, true, 1);
         printd(3, "TryStatement::parseInitImpl() reg. local var %s (id=%p)\n", param, id);
-    }
-    else {
+    } else {
         id = nullptr;
         assert(!parseTypeInfo);
         assert(!typeInfo);
     }
 
     // initialize code block
-    if (catch_block)
-        catch_block->parseInitImpl(oflag, pflag | PF_RETHROW_OK);
+    if (catch_block) {
+        // turn off top-level flag for statement vars
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_RETHROW_OK);
+
+        if (catch_block->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
+    }
 
     // pop local param from stack
-    if (param)
+    if (param) {
         pop_local_var();
+    }
 
-    return 0;
+    return err;
 }
 
 bool TryStatement::hasFinalReturn() const {
@@ -152,4 +169,3 @@ void TryStatement::parseCommit(QoreProgram* pgm) {
         catch_block->parseCommit(pgm);
     }
 }
-

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,33 +42,43 @@ QoreValue QoreShiftRightOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     return lh->getAsBigInt() >> rh->getAsBigInt();
 }
 
-void QoreShiftRightOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreShiftRightOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = bigIntTypeInfo;
-
-    const QoreTypeInfo *lti = 0, *rti = 0;
-
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
     // see if any of the arguments cannot be converted to an integer, if so generate a warning
-    if (!QoreTypeInfo::canConvertToScalar(lti))
+    // FIXME: raise exceptions with %strict-types
+    if (!QoreTypeInfo::canConvertToScalar(lti)) {
         lti->doNonNumericWarning(loc, "the left hand expression of the 'shift right' operator (>>) expression is ");
+    }
     if (!QoreTypeInfo::canConvertToScalar(rti)) {
         QoreStringNode* desc = new QoreStringNode("the right hand side of the 'shift right' (>>) expression is ");
         QoreTypeInfo::getThisType(rti, *desc);
-        desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+        desc->concat(", which cannot be converted to an integer, therefore the entire expression will always " \
+            "return the integer value of the left hand side");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            desc);
     }
 
     // see if both arguments are constant values, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreShiftRightOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

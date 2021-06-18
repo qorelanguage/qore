@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,16 +35,9 @@
 
 class QoreTransliterationOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
 OP_COMMON
-protected:
-    const QoreTypeInfo* typeInfo;
-    SimpleRefHolder<QoreTransliteration> regex;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
 public:
-    DLLLOCAL QoreTransliterationOperatorNode(const QoreProgramLocation* loc, QoreValue exp, QoreTransliteration* r) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), typeInfo(0), regex(r) {
+    DLLLOCAL QoreTransliterationOperatorNode(const QoreProgramLocation* loc, QoreValue exp, QoreTransliteration* r)
+            : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), regex(r) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -61,6 +54,14 @@ public:
             return nullptr;
         return new QoreTransliterationOperatorNode(loc, n_exp.release(), regex->refSelf());
     }
+
+protected:
+    const QoreTypeInfo* typeInfo = nullptr;
+    SimpleRefHolder<QoreTransliteration> regex;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 };
 
 #endif

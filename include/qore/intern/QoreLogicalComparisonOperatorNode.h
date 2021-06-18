@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,14 +39,15 @@ protected:
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return bigIntTypeInfo;
     }
 
 public:
-    DLLLOCAL QoreLogicalComparisonOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<>(loc, left, right) {
+    DLLLOCAL QoreLogicalComparisonOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryOperatorNode<>(loc, left, right) {
     }
 
     // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

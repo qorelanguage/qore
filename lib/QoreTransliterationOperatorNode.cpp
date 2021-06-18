@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -63,26 +63,34 @@ QoreValue QoreTransliterationOperatorNode::evalImpl(bool& needs_deref, Exception
     return ref_rv ? nv->refSelf() : QoreValue();
 }
 
-void QoreTransliterationOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QoreTransliterationOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
+    fh.setFlags(PF_FOR_ASSIGNMENT);
 
-    const QoreTypeInfo *leftTypeInfo = 0;
-    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
+    int err = parse_init_value(exp, parse_context);
+    const QoreTypeInfo* leftTypeInfo = parse_context.typeInfo;
 
     if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_STRING)) {
+        // FIXME: raise exceptions with %strict-types
         QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
         desc->sprintf("%s operator is ", op_str.c_str());
         QoreTypeInfo::getThisType(leftTypeInfo, *desc);
-        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-        returnTypeInfo = nothingTypeInfo;
+        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return " \
+            "NOTHING; this operator only works on strings");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            desc);
+        typeInfo = nothingTypeInfo;
+    } else {
+        typeInfo = stringTypeInfo;
     }
-    else
-        returnTypeInfo = stringTypeInfo;
 
-    if (exp)
-        checkLValue(exp, pflag);
+    if (exp && !err) {
+        err = checkLValue(exp, parse_context.pflag);
+    }
 
-    typeInfo = returnTypeInfo;
+    parse_context.typeInfo = typeInfo;
+    return err;
 }

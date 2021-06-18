@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -50,11 +50,9 @@ int SummarizeStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) 
             if (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent()) {
                 rc = 0;
                 break;
-            }
-            else if (rc == RC_RETURN) {
+            } else if (rc == RC_RETURN) {
                 break;
-            }
-            else if (rc == RC_CONTINUE) {
+            } else if (rc == RC_CONTINUE) {
                 rc = 0;
             }
         } while (!xsink->isEvent() && context->next_summary());
@@ -63,50 +61,58 @@ int SummarizeStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) 
     return rc;
 }
 
-int SummarizeStatement::parseInitImpl(LocalVar* oflag, int pflag) {
+int SummarizeStatement::parseInitImpl(QoreParseContext& parse_context) {
     QORE_TRACE("SummarizeStatement::parseInit()");
 
-    int lvids = 0;
-
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
 
-    const QoreTypeInfo* argTypeInfo = nullptr;
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
 
-    // initialize context expression
-    parse_init_value(exp, oflag, pflag, lvids, argTypeInfo);
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(exp, parse_context);
 
     // need to push something on the stack even if the context is not named
     push_cvar(name);
 
     if (where_exp) {
-        argTypeInfo = nullptr;
-        parse_init_value(where_exp, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(where_exp, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (sort_ascending) {
-        argTypeInfo = nullptr;
-        parse_init_value(sort_ascending, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(sort_ascending, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (sort_descending) {
-        argTypeInfo = nullptr;
-        parse_init_value(sort_descending, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(sort_descending, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (summarize) {
-        argTypeInfo = nullptr;
-        parse_init_value(summarize, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(summarize, parse_context) && !err) {
+            err = -1;
+        }
     }
 
     // initialize statement block
     if (code) {
-        code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
-    }
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_BREAK_OK | PF_CONTINUE_OK);
 
-    // save local variables
-    if (lvars) {
-        lvars = new LVList(lvids);
+        if (code->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
     }
 
     pop_cvar();
 
-    return 0;
+    return err;
 }

@@ -1,31 +1,31 @@
 /*
-  AbstractStatement.cpp
+    AbstractStatement.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -44,33 +44,34 @@ QoreBreakpointList_t::~QoreBreakpointList_t() {
     clear();
 }
 
-AbstractStatement::AbstractStatement(qore_program_private_base* p) : breakpointFlag(false), breakpoints(0), loc(p->getLocation(-1, -1)) {
+AbstractStatement::AbstractStatement(qore_program_private_base* p) : loc(p->getLocation(-1, -1)) {
     pwo = p->pwo;
 }
 
-AbstractStatement::AbstractStatement(int sline, int eline) : breakpointFlag(false), breakpoints(0), loc(qore_program_private::get(*getProgram())->getLocation(sline, eline)) {
+AbstractStatement::AbstractStatement(int sline, int eline)
+        : loc(qore_program_private::get(*getProgram())->getLocation(sline, eline)) {
     QoreProgram* pgm = getProgram();
     assert(pgm);
     pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
-AbstractStatement::AbstractStatement(const QoreProgramLocation* loc) : breakpointFlag(false), breakpoints(0), loc(loc) {
+AbstractStatement::AbstractStatement(const QoreProgramLocation* loc) : loc(loc) {
     QoreProgram* pgm = getProgram();
     assert(pgm);
     pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
 AbstractStatement::~AbstractStatement() {
-   if (breakpoints) {
-      // unassign all breakpoint, it is probably not needed because statement are deleted with program
-      std::list<QoreBreakpoint*>::iterator it = breakpoints->begin();
-      while (it != breakpoints->end()) {
-         QoreBreakpoint* bkpt = *it;
-         it++;  // will be removed by unassignBreakpoint()
-         bkpt->statementList.remove(this);
-      }
-      delete breakpoints;
-   }
+    if (breakpoints) {
+        // unassign all breakpoint, it is probably not needed because statement are deleted with program
+        std::list<QoreBreakpoint*>::iterator it = breakpoints->begin();
+        while (it != breakpoints->end()) {
+            QoreBreakpoint* bkpt = *it;
+            it++;  // will be removed by unassignBreakpoint()
+            bkpt->statementList.remove(this);
+        }
+        delete breakpoints;
+    }
 }
 
 void AbstractStatement::finalizeBlock(int sline, int eline) {
@@ -97,13 +98,13 @@ int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     return execImpl(return_value, xsink);
 }
 
-int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
+int AbstractStatement::parseInit(QoreParseContext& parse_context) {
     printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(),
         loc->getFile(), loc->start_line);
     // set parse options and warning mask for this statement
     ParseWarnHelper pwh(pwo);
 
-    return parseInitImpl(oflag, pflag);
+    return parseInitImpl(parse_context);
 }
 
 QoreBreakpoint* AbstractStatement::getBreakpoint() const {

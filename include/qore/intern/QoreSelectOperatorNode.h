@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,29 +43,9 @@ class QoreSelectOperatorNode : public QoreBinaryOperatorNode<>, public Functiona
     friend class QoreFunctionalSelectIteratorOperator;
     friend class QoreFunctionalSelectOperator;
 
-protected:
-    const QoreTypeInfo* returnTypeInfo;
-    FunctionalOperator* iterator_func;
-
-    DLLLOCAL static QoreString select_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL QoreValue evalFunc(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual ~QoreSelectOperatorNode() {
-    }
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return returnTypeInfo;
-    }
-
-    DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
-
 public:
-    DLLLOCAL QoreSelectOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
+    DLLLOCAL QoreSelectOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r)
+            : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -82,16 +62,35 @@ public:
         return rv;
     }
 
-    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type,
+            ExceptionSink* xsink) const;
+
+protected:
+    const QoreTypeInfo* returnTypeInfo;
+    FunctionalOperator* iterator_func;
+
+    DLLLOCAL static QoreString select_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreValue evalFunc(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual ~QoreSelectOperatorNode() {
+    }
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return returnTypeInfo;
+    }
+
+    DLLLOCAL QoreValue selectIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 };
 
 class QoreFunctionalSelectListOperator : public FunctionalOperatorInterface, public ConstListIterator {
-protected:
-    const QoreSelectOperatorNode* select;
-    ExceptionSink* xsink;
-
 public:
-    DLLLOCAL QoreFunctionalSelectListOperator(const QoreSelectOperatorNode* s, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), select(s), xsink(xs) {
+    DLLLOCAL QoreFunctionalSelectListOperator(const QoreSelectOperatorNode* s, QoreListNode* l, ExceptionSink* xs)
+            : ConstListIterator(l), select(s), xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalSelectListOperator() {
@@ -103,17 +102,16 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
         return l->getValueTypeInfo();
     }
+
+protected:
+    const QoreSelectOperatorNode* select;
+    ExceptionSink* xsink;
 };
 
 class QoreFunctionalSelectSingleValueOperator : public FunctionalOperatorInterface {
-protected:
-    const QoreSelectOperatorNode* select;
-    QoreValue v;
-    bool done;
-    ExceptionSink* xsink;
-
 public:
-    DLLLOCAL QoreFunctionalSelectSingleValueOperator(const QoreSelectOperatorNode* s, QoreValue n, ExceptionSink* xs) : select(s), v(n), done(false), xsink(xs) {
+    DLLLOCAL QoreFunctionalSelectSingleValueOperator(const QoreSelectOperatorNode* s, QoreValue n, ExceptionSink* xs)
+            : select(s), v(n), xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalSelectSingleValueOperator() {
@@ -125,18 +123,18 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
         return v.getTypeInfo();
     }
+
+protected:
+    const QoreSelectOperatorNode* select;
+    QoreValue v;
+    bool done = false;
+    ExceptionSink* xsink;
 };
 
 class QoreFunctionalSelectIteratorOperator : public FunctionalOperatorInterface {
-protected:
-    const QoreSelectOperatorNode* select;
-    bool temp;
-    AbstractIteratorHelper h;
-    size_t index;
-    ExceptionSink* xsink;
-
 public:
-    DLLLOCAL QoreFunctionalSelectIteratorOperator(const QoreSelectOperatorNode* s, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : select(s), temp(t), h(n_h), index(0), xsink(xs) {
+    DLLLOCAL QoreFunctionalSelectIteratorOperator(const QoreSelectOperatorNode* s, bool t, AbstractIteratorHelper n_h,
+            ExceptionSink* xs) : select(s), temp(t), h(n_h), xsink(xs) {
     }
 
     DLLLOCAL ~QoreFunctionalSelectIteratorOperator() {
@@ -149,16 +147,19 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
         return autoTypeInfo;
     }
+
+protected:
+    const QoreSelectOperatorNode* select;
+    bool temp;
+    AbstractIteratorHelper h;
+    size_t index = 0;
+    ExceptionSink* xsink;
 };
 
 class QoreFunctionalSelectOperator : public FunctionalOperatorInterface {
-protected:
-    const QoreSelectOperatorNode* select;
-    FunctionalOperatorInterface* f;
-    size_t index;
-
 public:
-    DLLLOCAL QoreFunctionalSelectOperator(const QoreSelectOperatorNode* s, FunctionalOperatorInterface* n_f) : select(s), f(n_f), index(0) {
+    DLLLOCAL QoreFunctionalSelectOperator(const QoreSelectOperatorNode* s, FunctionalOperatorInterface* n_f)
+            : select(s), f(n_f) {
     }
 
     DLLLOCAL ~QoreFunctionalSelectOperator() {
@@ -170,6 +171,11 @@ public:
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
         return f->getValueType();
     }
+
+protected:
+    const QoreSelectOperatorNode* select;
+    FunctionalOperatorInterface* f;
+    size_t index = 0;
 };
 
 #endif

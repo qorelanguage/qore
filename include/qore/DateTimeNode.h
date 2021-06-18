@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -261,7 +261,7 @@ public:
     DLLEXPORT DateTimeNode* refSelf() const;
 
     //! returns the type information
-    DLLEXPORT virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLEXPORT virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     //! returns the type name (useful in templates)
     DLLLOCAL static const char* getStaticTypeName() {

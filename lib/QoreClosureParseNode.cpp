@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
 
-QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda)
+        : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
     set_effect_as_root(false);
 }
 
@@ -62,14 +63,15 @@ QoreString* QoreClosureParseNode::getAsString(bool& del, int foff, ExceptionSink
     return rv;
 }
 
-void QoreClosureParseNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    if (oflag) {
+int QoreClosureParseNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    if (parse_context.oflag) {
         in_method = true;
-        uf->setClassType(oflag->getTypeInfo());
+        uf->setClassType(parse_context.oflag->getTypeInfo());
     }
-    uf->parseInit(nullptr);
+    int err = uf->parseInit(nullptr);
     uf->parseCommit();
-    typeInfo = runTimeClosureTypeInfo;
+    parse_context.typeInfo = runTimeClosureTypeInfo;
+    return err;
 }
 
 const char* QoreClosureParseNode::getTypeName() const {

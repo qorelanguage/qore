@@ -157,11 +157,15 @@ void QoreClassList::resolveCopy() {
     }
 }
 
-void QoreClassList::parseInit() {
+int QoreClassList::parseInit() {
+    int err = 0;
     for (auto& i : hm) {
         //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i.second, i.first);
-        qore_class_private::parseInit(*(i.second.cls));
+        if (qore_class_private::parseInit(*(i.second.cls)) && !err) {
+            err = -1;
+        }
     }
+    return err;
 }
 
 void QoreClassList::parseResolveHierarchy() {

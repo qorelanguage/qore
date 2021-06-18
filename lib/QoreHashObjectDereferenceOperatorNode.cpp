@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,24 +35,37 @@
 
 QoreString QoreHashObjectDereferenceOperatorNode::op_str(". or {} operator expression");
 
-void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+int QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    assert(!typeInfo);
-    assert(!returnTypeInfo);
+    assert(!parse_context.typeInfo);
+    // check iterator expression
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
 
-    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
-
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
-
-    bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
-
-    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s r: %p %s\n", lti, QoreTypeInfo::getName(lti), rti, QoreTypeInfo::getName(rti));
-
-    if (for_assignment && check_lvalue(left))
+    bool for_assignment = parse_context.pflag & PF_FOR_ASSIGNMENT;
+    if (!err && for_assignment && check_lvalue(left)) {
         parse_error(*loc, "expression used for assignment requires an lvalue, got '%s' instead", left.getTypeName());
+        if (!err) {
+            err = -1;
+        }
+    }
+
+    parse_context.typeInfo = nullptr;
+    {
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.unsetFlags(PF_FOR_ASSIGNMENT);
+        if (parse_init_value(right, parse_context) && !err) {
+            err = -1;
+        }
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+
+    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s r: %p %s\n", lti,
+        QoreTypeInfo::getName(lti), rti, QoreTypeInfo::getName(rti));
 
     const QoreTypeInfo* complexKeyTypeInfo = nullptr;
 
@@ -70,9 +83,12 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
             qore_type_t rt = right.getType();
             if (rt == NT_STRING) {
                 const char* member = right.get<const QoreStringNode>()->c_str();
-                qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
-                if (!only_class && QoreTypeInfo::hasType(returnTypeInfo)) {
-                    returnTypeInfo = get_or_nothing_type_check(returnTypeInfo);
+                if (qore_class_private::parseCheckMemberAccess(*qc, loc, member, parse_context.typeInfo,
+                    parse_context.pflag) && !err) {
+                    err = -1;
+                }
+                if (!only_class && QoreTypeInfo::hasType(parse_context.typeInfo)) {
+                    parse_context.typeInfo = get_or_nothing_type_check(parse_context.typeInfo);
                 }
             } else if (rt == NT_LIST) { // check object slices as well if strings are available
                 ConstListIterator li(right.get<const QoreListNode>());
@@ -80,10 +96,13 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                     if (li.getValue().getType() == NT_STRING) {
                         const char* member = li.getValue().get<const QoreStringNode>()->c_str();
                         const QoreTypeInfo* mti = nullptr;
-                        qore_class_private::parseCheckMemberAccess(*qc, loc, member, mti, pflag);
+                        if (qore_class_private::parseCheckMemberAccess(*qc, loc, member, mti, parse_context.pflag)
+                            && !err) {
+                            err = -1;
+                        }
                     }
                 }
-                returnTypeInfo = only_class ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
+                parse_context.typeInfo = only_class ? autoHashTypeInfo : autoHashOrNothingTypeInfo;
             }
         } else {
             const TypedHashDecl* hd = QoreTypeInfo::getTypedHash(lti);
@@ -93,9 +112,12 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                     qore_type_t rt = right.getType();
                     if (rt == NT_STRING) {
                         const char* member = right.get<const QoreStringNode>()->c_str();
-                        typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
-                        if (!only_hashdecl && QoreTypeInfo::hasType(returnTypeInfo)) {
-                            returnTypeInfo = get_or_nothing_type_check(returnTypeInfo);
+                        if (typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member,
+                            parse_context.typeInfo, parse_context.pflag) && !err) {
+                            err = -1;
+                        }
+                        if (!only_hashdecl && QoreTypeInfo::hasType(parse_context.typeInfo)) {
+                            parse_context.typeInfo = get_or_nothing_type_check(parse_context.typeInfo);
                         }
                     } else if (rt == NT_LIST) { // check object slices as well if strings are available
                         ConstListIterator li(right.get<const QoreListNode>());
@@ -103,58 +125,77 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
                             if (li.getValue().getType() == NT_STRING) {
                                 const char* member = li.getValue().get<const QoreStringNode>()->c_str();
                                 const QoreTypeInfo* mti = nullptr;
-                                typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti, pflag);
+                                if (typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, mti,
+                                    parse_context.pflag)
+                                    && !err) {
+                                    err = -1;
+                                }
                             }
                         }
                         // issue #3882: taking a slice of a hashdecl returns a hashdecl
-                        returnTypeInfo = hd->getTypeInfo(!only_hashdecl);
+                        parse_context.typeInfo = hd->getTypeInfo(!only_hashdecl);
                     }
                 }
             } else {
-                // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is not present
+                // issue #2115 when dereferencing a hash, we could get also NOTHING when the requested key value is
+                // not present
                 complexKeyTypeInfo = get_or_nothing_type_check(QoreTypeInfo::getUniqueReturnComplexHash(lti));
             }
         }
 
         // if we are taking a slice of an object or a hash, then the return type is a hash
-        if (!returnTypeInfo && QoreTypeInfo::hasType(rti)) {
+        if (!parse_context.typeInfo && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(rti, NT_LIST) && (is_obj || is_hash))
-                returnTypeInfo = complexKeyTypeInfo ? lti : autoHashTypeInfo;
+                parse_context.typeInfo = complexKeyTypeInfo ? lti : autoHashTypeInfo;
             else if (complexKeyTypeInfo && !QoreTypeInfo::parseReturns(rti, NT_LIST))
-                returnTypeInfo = complexKeyTypeInfo;
+                parse_context.typeInfo = complexKeyTypeInfo;
         }
 
         // if we are trying to convert to a hash
         if (for_assignment) {
             // only throw a parse exception if parse exceptions are enabled
-            if (!can_be_hash
-                && !can_be_obj
-                && getProgram()->getParseExceptionSink()) {
-                QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-                QoreTypeInfo::getThisType(lti, *edesc);
-                edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-                qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
+            if (!can_be_hash && !can_be_obj) {
+                if (getProgram()->getParseExceptionSink()) {
+                    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
+                    QoreTypeInfo::getThisType(lti, *edesc);
+                    edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
+                    qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
+                }
+                if (!err) {
+                    err = -1;
+                }
             }
         } else if (!can_be_hash && !can_be_obj) {
-            QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
+            // FIXME: raise an exception with %strict-types
+            QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' " \
+                "operator is ");
             QoreTypeInfo::getThisType(lti, *edesc);
-            edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-            returnTypeInfo = nothingTypeInfo;
+            edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only " \
+                "returns a value with hashes and objects");
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
+            parse_context.typeInfo = nothingTypeInfo;
         }
     }
 
-    //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() rightTypeInfo: %s !rightTypeInfo->canConvertToScalar(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n", QoreTypeInfo::getName(rti), !QoreTypeInfo::canConvertToScalar(rti), !QoreTypeInfo::parseAccepts(listTypeInfo, rti));
+    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() rightTypeInfo: %s " \
+        "!rightTypeInfo->canConvertToScalar(): %d !listTypeInfo->parseAccepts(rightTypeInfo): %d\n",
+        QoreTypeInfo::getName(rti), !QoreTypeInfo::canConvertToScalar(rti),
+        !QoreTypeInfo::parseAccepts(listTypeInfo, rti));
 
-    //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: '%s' r: '%s' -> '%s'\n", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(rti), QoreTypeInfo::getName(returnTypeInfo));
+    //printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: '%s' r: '%s' -> '%s'\n",
+    //  QoreTypeInfo::getName(lti), QoreTypeInfo::getName(rti), QoreTypeInfo::getName(parse_context.typeInfo));
 
     // issue a warning if the right side of the expression cannot be converted to a string
     // and can not be a list (for a slice)
-    if (!QoreTypeInfo::canConvertToScalar(rti) && !QoreTypeInfo::parseAccepts(listTypeInfo, rti))
+    if (!QoreTypeInfo::canConvertToScalar(rti) && !QoreTypeInfo::parseAccepts(listTypeInfo, rti)) {
         // FIXME: should be "non-string-or-list warning"
+        // FIXME: raise an exception with %strict-types
         rti->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
+    }
 
-    typeInfo = returnTypeInfo;
+    typeInfo = parse_context.typeInfo;
+    return err;
 }
 
 QoreValue QoreHashObjectDereferenceOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

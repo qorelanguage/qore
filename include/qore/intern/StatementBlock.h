@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  StatementBlock.h
+    StatementBlock.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_STATEMENT_BLOCK_H
@@ -90,7 +90,8 @@ public:
         if (!l) return;
         xsink = xs;
         for (unsigned i = 0; i < l->size(); ++i) {
-            //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
+            //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i],
+            //  l->lv[i]->getName());
             l->lv[i]->instantiate();
         }
     }
@@ -98,7 +99,8 @@ public:
     DLLLOCAL ~LVListInstantiator() {
         if (!l) return;
         for (int i = (int)l->size() - 1; i >= 0; --i) {
-            //printd(5, "LVListInstantiator::~LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i], l->lv[i]->getName());
+            //printd(5, "LVListInstantiator::~LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i],
+            //  l->lv[i]->getName());
             l->lv[i]->uninstantiate(xsink);
         }
     }
@@ -108,22 +110,6 @@ public:
 class qore_program_private_base;
 
 class StatementBlock : public AbstractStatement {
-protected:
-    typedef safe_dslist<AbstractStatement*> statement_list_t;
-    statement_list_t statement_list;
-    block_list_t on_block_exit_list;
-    LVList* lvars = nullptr;
-
-    // start must be the element before the start position
-    DLLLOCAL int parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start);
-    DLLLOCAL void parseCommitIntern(statement_list_t::iterator start);
-    DLLLOCAL bool hasLastReturn(AbstractStatement* as);
-    DLLLOCAL void parseCheckReturn();
-
-    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
-
-    DLLLOCAL StatementBlock(qore_program_private_base* p);
-
 public:
     DLLLOCAL StatementBlock(int sline, int eline);
 
@@ -135,7 +121,7 @@ public:
     }
 
     DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 
     DLLLOCAL void del();
 
@@ -145,14 +131,15 @@ public:
     DLLLOCAL QoreValue exec(ExceptionSink* xsink);
 
     using AbstractStatement::parseInit;
-    DLLLOCAL void parseInit(UserVariantBase* uvb);
+    DLLLOCAL int parseInit(UserVariantBase* uvb);
 
     // initialize methods
-    DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
-    DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls);
+    DLLLOCAL int parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
+    DLLLOCAL int parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal,
+            const QoreClass& cls);
 
     // initialize closure blocks
-    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
+    DLLLOCAL int parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
 
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
@@ -169,31 +156,44 @@ public:
         return (*statement_list.last())->hasFinalReturn();
     }
 
-    DLLLOCAL void setupLVList(int lvids) {
+    DLLLOCAL void setupLVList(QoreParseContext& parse_context) {
         assert(!lvars);
-        if (!lvids)
+        if (!parse_context.lvids) {
             return;
+        }
 
-        lvars = new LVList(lvids);
+        lvars = new LVList(parse_context.lvids);
+        parse_context.lvids = 0;
     }
+
+protected:
+    typedef safe_dslist<AbstractStatement*> statement_list_t;
+    statement_list_t statement_list;
+    block_list_t on_block_exit_list;
+    LVList* lvars = nullptr;
+
+    // start must be the element before the start position
+    DLLLOCAL int parseInitIntern(QoreParseContext& parse_context, statement_list_t::iterator start);
+    DLLLOCAL void parseCommitIntern(statement_list_t::iterator start);
+    DLLLOCAL bool hasLastReturn(AbstractStatement* as);
+    DLLLOCAL int parseCheckReturn();
+
+    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
+
+    DLLLOCAL StatementBlock(qore_program_private_base* p);
 };
 
 class TopLevelStatementBlock : public StatementBlock {
-protected:
-    // iterator to last commit element in statement list
-    statement_list_t::iterator hwm;
-    // true only the first time parseInit() is called
-    bool first;
-
 public:
-    DLLLOCAL TopLevelStatementBlock(qore_program_private_base* p) : StatementBlock(p), hwm(statement_list.end()), first(true) {
+    DLLLOCAL TopLevelStatementBlock(qore_program_private_base* p) : StatementBlock(p), hwm(statement_list.end()),
+            first(true) {
     }
 
     DLLLOCAL virtual ~TopLevelStatementBlock() {
     }
 
     using StatementBlock::parseInit;
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
 
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
@@ -220,15 +220,24 @@ public:
         lvars = new LVList(*lvl);
     }
 
-    DLLLOCAL void setupLVList(int lvids) {
-        if (!lvids)
+    DLLLOCAL void setupLVList(QoreParseContext& parse_context) {
+        if (!parse_context.lvids) {
             return;
+        }
 
-        if (lvars)
-            lvars->add(lvids);
-        else
-            lvars = new LVList(lvids);
+        if (lvars) {
+            lvars->add(parse_context.lvids);
+        } else {
+            lvars = new LVList(parse_context.lvids);
+        }
+        parse_context.lvids = 0;
     }
+
+protected:
+    // iterator to last commit element in statement list
+    statement_list_t::iterator hwm;
+    // true only the first time parseInit() is called
+    bool first;
 };
 
 // parse variable stack
@@ -238,7 +247,7 @@ public:
     VNode* next;
 
     DLLLOCAL VNode(LocalVar* lv, const QoreProgramLocation* n_loc = nullptr, int n_refs = 0,
-        bool n_top_level = false);
+            bool n_top_level = false);
 
     DLLLOCAL ~VNode();
 

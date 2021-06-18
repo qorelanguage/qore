@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/FindNode.h"
 
-FindNode::FindNode(const QoreProgramLocation* loc, QoreValue expr, QoreValue find_expr, QoreValue w) : ParseNode(loc, NT_FIND) {
+FindNode::FindNode(const QoreProgramLocation* loc, QoreValue expr, QoreValue find_expr, QoreValue w)
+        : ParseNode(loc, NT_FIND) {
     exp = expr;
     find_exp = find_expr;
     where = w;
@@ -55,7 +56,7 @@ int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) cons
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString* FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
     del = true;
-    QoreString *rv = new QoreString();
+    QoreString *rv = new QoreString;
     getAsString(*rv, foff, xsink);
     return rv;
 }
@@ -92,32 +93,37 @@ QoreValue FindNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
                 lrv->push(rv.release(), xsink);
                 lrv->push(result.takeReferencedValue(), xsink);
                 rv = lrv;
-            }
-            else {
+            } else {
                 lrv->push(result.takeReferencedValue(), xsink);
                 assert(!*xsink);
             }
-        }
-        else
+        } else {
             rv = result.takeReferencedValue();
+        }
     }
 
     return rv.release();
 }
 
-void FindNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = nullptr;
-
+int FindNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     push_cvar(nullptr);
-    const QoreTypeInfo* argTypeInfo = nullptr;
-    parse_init_value(find_exp, oflag, pflag, lvids, argTypeInfo);
+
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(find_exp, parse_context);
     if (where) {
-        argTypeInfo = nullptr;
-        parse_init_value(where, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(where, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (exp) {
-        argTypeInfo = nullptr;
-        parse_init_value(exp, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(exp, parse_context) && !err) {
+            err = -1;
+        }
     }
     pop_cvar();
+
+    parse_context.typeInfo = nullptr;
+    return err;
 }

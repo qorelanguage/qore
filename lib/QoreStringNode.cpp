@@ -37,109 +37,114 @@
 #include <cstdarg>
 
 QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
-   va_list args;
+    va_list args;
 
-   while (true) {
-      va_start(args, fmt);
-      int rc = vsprintf(fmt, args);
-      va_end(args);
-      if (!rc)
-         break;
-   }
+    while (true) {
+        va_start(args, fmt);
+        int rc = vsprintf(fmt, args);
+        va_end(args);
+        if (!rc)
+            break;
+    }
 }
 
 QoreStringNode::QoreStringNode() : SimpleValueQoreNode(NT_STRING) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
 QoreStringNode::~QoreStringNode() {
-   //sset.del(this);
+    //sset.del(this);
 }
 
-QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
-   //sset.add(this);
+QoreStringNode::QoreStringNode(const char *str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING),
+        QoreString(str, enc) {
+    //sset.add(this);
 }
 
 // copies str
 QoreStringNode::QoreStringNode(const QoreString &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
 // copies str
 QoreStringNode::QoreStringNode(const QoreStringNode &str) : SimpleValueQoreNode(NT_STRING), QoreString(str) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
 // copies str
-QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(str, enc) {
-   //sset.add(this);
+QoreStringNode::QoreStringNode(const std::string &str, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING),
+        QoreString(str, enc) {
+    //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(char c) : SimpleValueQoreNode(NT_STRING), QoreString(c) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(const BinaryNode *b) : SimpleValueQoreNode(NT_STRING), QoreString(b) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
-QoreStringNode::QoreStringNode(const BinaryNode* b, size_t maxlinelen) : SimpleValueQoreNode(NT_STRING), QoreString(b, maxlinelen) {
-   //sset.add(this);
+QoreStringNode::QoreStringNode(const BinaryNode* b, size_t maxlinelen) : SimpleValueQoreNode(NT_STRING),
+        QoreString(b, maxlinelen) {
+    //sset.add(this);
 }
 
 QoreStringNode::QoreStringNode(struct qore_string_private *p) : SimpleValueQoreNode(NT_STRING), QoreString(p) {
-   //sset.add(this);
+    //sset.add(this);
 }
 
-QoreStringNode::QoreStringNode(char *nbuf, size_t nlen, size_t nallocated, const QoreEncoding *enc) : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc) {
-   //sset.add(this);
+QoreStringNode::QoreStringNode(char *nbuf, size_t nlen, size_t nallocated, const QoreEncoding *enc)
+        : SimpleValueQoreNode(NT_STRING), QoreString(nbuf, nlen, nallocated, enc) {
+    //sset.add(this);
 }
 
-QoreStringNode::QoreStringNode(const char *str, size_t len, const QoreEncoding *new_qore_encoding) : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qore_encoding) {
-   //sset.add(this);
+QoreStringNode::QoreStringNode(const char *str, size_t len, const QoreEncoding *new_qore_encoding)
+        : SimpleValueQoreNode(NT_STRING), QoreString(str, len, new_qore_encoding) {
+    //sset.add(this);
 }
 
 // virtual function
 int QoreStringNode::getAsIntImpl() const {
-   return (int)strtoll(c_str(), 0, 10);
+    return (int)strtoll(c_str(), 0, 10);
 }
 
 int64 QoreStringNode::getAsBigIntImpl() const {
-   return strtoll(c_str(), 0, 10);
+    return strtoll(c_str(), 0, 10);
 }
 
 double QoreStringNode::getAsFloatImpl() const {
-   return q_strtod(c_str());
+    return q_strtod(c_str());
 }
 
 QoreString *QoreStringNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   TempString str;
-   str->concat('"');
-   str->concatEscape(this, '\"', '\\', xsink);
-   if (xsink && *xsink)
-      return 0;
-   str->concat('"');
-   return str.release();
+    del = true;
+    TempString str;
+    str->concat('"');
+    str->concatEscape(this, '\"', '\\', xsink);
+    if (xsink && *xsink)
+        return 0;
+    str->concat('"');
+    return str.release();
 }
 
 int QoreStringNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   assert(str.getEncoding()->isAsciiCompat());
-   str.concat('"');
-   str.concatEscape(this, '\"', '\\', xsink);
-   if (xsink && *xsink)
-      return -1;
-   str.concat('"');
-   return 0;
+    assert(str.getEncoding()->isAsciiCompat());
+    str.concat('"');
+    str.concatEscape(this, '\"', '\\', xsink);
+    if (xsink && *xsink)
+        return -1;
+    str.concat('"');
+    return 0;
 }
 
 bool QoreStringNode::getAsBoolImpl() const {
-   // check if we should do perl-style boolean evaluation
-   if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      return q_strtod(c_str());
-   if (priv->len == 1 && priv->buf[0] == '0')
-      return false;
-   return !empty();
+    // check if we should do perl-style boolean evaluation
+    if (runtime_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
+        return q_strtod(c_str());
+    if (priv->len == 1 && priv->buf[0] == '0')
+        return false;
+    return !empty();
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
@@ -288,8 +293,9 @@ const char *QoreStringNode::getTypeName() const {
     return getStaticTypeName();
 }
 
-void QoreStringNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = stringTypeInfo;
+int QoreStringNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = stringTypeInfo;
+    return 0;
 }
 
 QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsink) {
@@ -298,8 +304,9 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsi
         size_t n_offset = priv->check_offset(offset);
         if (n_offset != priv->len)
             priv->splice_simple(n_offset, priv->len - n_offset, str);
-    } else
+    } else {
         priv->splice_complex(offset, xsink, str);
+    }
     return str;
 }
 
@@ -310,8 +317,9 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num,
         priv->check_offset(offset, num, n_offset, n_num);
         if (n_offset != priv->len && n_num)
             priv->splice_simple(n_offset, n_num, str);
-    } else
+    } else {
         priv->splice_complex(offset, num, xsink, str);
+    }
     return str;
 }
 

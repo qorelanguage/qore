@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,13 +32,15 @@
 
 QoreString QorePostDecrementOperatorNode::op_str("-- (post-decrement) operator expression");
 
-void QorePostDecrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+int QorePostDecrementOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    int err = parseInitIntern(op_str.c_str(), parse_context);
 
     // version for local var
-    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+    if ((parse_context.typeInfo == bigIntTypeInfo || parse_context.typeInfo == softBigIntTypeInfo)) {
         val = makeSpecialization<QoreIntPostDecrementOperatorNode>();
     }
+
+    return err;
 }
 
 QoreValue QorePostDecrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

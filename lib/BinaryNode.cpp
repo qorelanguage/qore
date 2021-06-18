@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -194,8 +194,9 @@ int BinaryNode::setSize(size_t size) {
     return 0;
 }
 
-void BinaryNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = binaryTypeInfo;
+int BinaryNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = binaryTypeInfo;
+    return 0;
 }
 
 bool BinaryNode::getAsBoolImpl() const {

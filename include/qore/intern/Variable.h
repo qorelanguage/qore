@@ -241,14 +241,16 @@ public:
 
     DLLLOCAL void checkAssignType(const QoreProgramLocation* loc, const QoreTypeInfo *n_typeInfo);
 
-    DLLLOCAL void parseInit() {
+    DLLLOCAL int parseInit() {
         QoreLValue<qore_gvar_ref_u>& val = getVal();
 
         if (val.type == QV_Ref)
-            return;
+            return 0;
+
+        int err = 0;
 
         if (parseTypeInfo) {
-            typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+            typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc, err);
             refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
             parseTypeInfo = nullptr;
 
@@ -258,6 +260,8 @@ public:
         if ((getProgram()->getParseOptions64() & PO_STRICT_TYPES) && !val.hasValue()) {
             discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), nullptr);
         }
+
+        return err;
     }
 
     DLLLOCAL QoreParseTypeInfo* copyParseTypeInfo() const {

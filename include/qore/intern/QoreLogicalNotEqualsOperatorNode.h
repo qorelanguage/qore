@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,16 +44,18 @@ protected:
         return !rv.v.b;
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        QoreLogicalEqualsOperatorNode::parseInitImpl(val, oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        int err = QoreLogicalEqualsOperatorNode::parseInitImpl(val, parse_context);
         // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
         if (val.type == QV_Bool) {
             val.v.b = !val.v.b;
         }
+        return err;
     }
 
 public:
-    DLLLOCAL QoreLogicalNotEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreLogicalEqualsOperatorNode(loc, left, right) {
+    DLLLOCAL QoreLogicalNotEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreLogicalEqualsOperatorNode(loc, left, right) {
     }
 
     // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

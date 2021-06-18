@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -395,7 +395,7 @@ public:
     static const qore_type_t TYPE = NT_HASH;
 
     //! initializes during parsing
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL QoreHashNode(bool ne);
     DLLLOCAL void clear(ExceptionSink* xsink, bool reverse = false);

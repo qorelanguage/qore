@@ -89,7 +89,13 @@ public:
     }
 
     // called at parse time to include optional type resolution
-    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
+    DLLLOCAL const QoreTypeInfo* parseGetReturnTypeInfo() const {
+        int err = 0;
+        return parseGetReturnTypeInfo(err);
+    }
+
+    // called at parse time to include optional type resolution
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const = 0;
 
     DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const = 0;
 
@@ -194,9 +200,9 @@ protected:
 
     const QoreProgramLocation* loc;
 
-    DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
-    DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
-    DLLLOCAL void pushParam(VarRefNode* v, QoreValue defArg, bool needs_types);
+    DLLLOCAL int pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
+    DLLLOCAL int pushParam(QoreOperatorNode* t, bool needs_types);
+    DLLLOCAL int pushParam(VarRefNode* v, QoreValue defArg, bool needs_types);
 
     DLLLOCAL void param_error() {
         parse_error(*loc, "parameter list contains non-variable reference expressions");
@@ -207,6 +213,7 @@ public:
     LocalVar* argvid;
     LocalVar* selfid;
     bool resolved;
+    int err = 0;
 
     DLLLOCAL UserSignature(int n_first_line, int n_last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po);
 
@@ -235,7 +242,7 @@ public:
     }
 
     // resolves all parse types to the final types
-    DLLLOCAL virtual void resolve();
+    DLLLOCAL virtual int resolve();
 
     DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
         if (resolved) {
@@ -254,8 +261,10 @@ public:
     }
 
     // called at parse time to ensure types are resolved
-    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
-        const_cast<UserSignature*>(this)->resolve();
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const {
+        if (const_cast<UserSignature*>(this)->resolve() && !err) {
+            err = -1;
+        }
         return returnTypeInfo;
     }
 
@@ -433,8 +442,13 @@ public:
     DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {
     }
 
+    DLLLOCAL const QoreTypeInfo* parseGetReturnTypeInfo() const {
+        int err = 0;
+        return parseGetReturnTypeInfo(err);
+    }
+
     DLLLOCAL virtual AbstractFunctionSignature* getSignature() const = 0;
-    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const = 0;
 
     DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
         return getSignature()->getReturnTypeInfo();
@@ -457,7 +471,8 @@ public:
 
     DLLLOCAL virtual int64 getFunctionality() const = 0;
 
-    // set flag to recheck params against committed variants in stage 2 parsing after type resolution (only for user variants); should never be called with builtin variants
+    // set flag to recheck params against committed variants in stage 2 parsing after type resolution (only for user
+    // variants); should never be called with builtin variants
     DLLLOCAL virtual void setRecheck() {
         assert(false);
     }
@@ -496,7 +511,8 @@ public:
     }
 
     DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
-        //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this, getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
+        //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this,
+        //  getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
         return *(getSignature()) == sig;
     }
 
@@ -525,7 +541,8 @@ public:
     }
 
     // the default implementation of this function does nothing
-    DLLLOCAL virtual void parseInit(QoreFunction* f) {
+    DLLLOCAL virtual int parseInit(QoreFunction* f) {
+        return 0;
     }
 
     // the default implementation of this function does nothing
@@ -556,11 +573,13 @@ protected:
     bool init;
 
     DLLLOCAL QoreValue evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
-    DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = nullptr) const;
+    DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink,
+            const qore_class_private* qc = nullptr) const;
     DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced);
+    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params,
+            RetTypeInfo* rv, bool synced);
     DLLLOCAL virtual ~UserVariantBase();
     DLLLOCAL UserSignature* getUserSignature() const {
         return const_cast<UserSignature*>(&signature);
@@ -603,7 +622,7 @@ public:
    using AbstractQoreFunctionVariant::getUserVariantBase; \
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() { return static_cast<UserVariantBase*>(this); } \
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature*>(&signature); } \
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const { return signature.parseGetReturnTypeInfo(); } \
+   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const { return signature.parseGetReturnTypeInfo(err); } \
    DLLLOCAL virtual void setRecheck() { recheck = true; } \
    DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); }
 
@@ -654,7 +673,7 @@ public:
         return eval(name, &ceh, 0, xsink);
     }
 
-    DLLLOCAL virtual void parseInit(QoreFunction* f);
+    DLLLOCAL virtual int parseInit(QoreFunction* f);
 
     DLLLOCAL virtual bool isModulePublic() const {
         return mod_pub;
@@ -914,7 +933,7 @@ public:
 
     DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
 
-    DLLLOCAL void parseInit(qore_ns_private* ns);
+    DLLLOCAL int parseInit(qore_ns_private* ns);
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseRollback();
 
@@ -957,8 +976,10 @@ public:
     DLLLOCAL QoreValue evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const;
 
     // find variant at parse time, throw parse exception if no variant can be matched
-    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
-    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const;
+    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's
+    // reachable
+    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation* loc,
+            const type_vec_t& argTypeInfo, const qore_class_private* class_ctx, int& err) const;
 
     // returns true if there are no uncommitted parse variants in the function
     DLLLOCAL bool pendingEmpty() const {
@@ -1068,17 +1089,21 @@ protected:
         //printd(5, "qore_ns_private::setModuleName() this: %p mod: %s\n", this, mod_name ? mod_name : "n/a");
     }
 
-    DLLLOCAL void parseCheckReturnType() {
+    DLLLOCAL int parseCheckReturnType() {
         if (parse_rt_done)
-            return;
+            return 0;
 
         parse_rt_done = true;
 
         if (!same_return_type)
-            return;
+            return 0;
 
+
+        int err = 0;
         for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-            reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve();
+            if (reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve() && !err) {
+                err = -1;
+            }
             const QoreTypeInfo* rti = (*i)->getReturnTypeInfo();
 
             if (i == vlist.begin()) {
@@ -1090,11 +1115,13 @@ protected:
                 break;
             }
         }
-       //printd(5, "QoreFunction::parseCheckReturnType() '%s' srt: %d\n", name.c_str(), same_return_type);
+        //printd(5, "QoreFunction::parseCheckReturnType() '%s' srt: %d\n", name.c_str(), same_return_type);
+        return err;
     }
 
     // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
-    DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
+    DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig,
+            const AbstractFunctionSignature*& vs);
 
     // returns 0 for OK (not a duplicate), -1 for error (duplicate) - parse exceptions are raised if a duplicate is found
     DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
@@ -1241,7 +1268,7 @@ public:
         }
     }
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseRollback();
 
@@ -1300,7 +1327,7 @@ public:
         return has_private_internal_variants;
     }
 
-    DLLLOCAL void checkFinal() const;
+    DLLLOCAL int checkFinal() const;
 
     // virtual copy constructor
     DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const = 0;
@@ -1326,7 +1353,7 @@ public:
     DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QCF_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
     }
 
-    DLLLOCAL virtual void parseInit(QoreFunction* f);
+    DLLLOCAL virtual int parseInit(QoreFunction* f);
 
     DLLLOCAL QoreValue evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
         return eval("<anonymous closure>", &ceh, self, xsink);

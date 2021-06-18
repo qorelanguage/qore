@@ -325,11 +325,11 @@ public:
     DLLLOCAL void addCommitNamespaceIntern(qore_ns_private* nns);
     DLLLOCAL void addNamespace(qore_ns_private* nns);
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL void parseResolveHierarchy();
     DLLLOCAL void parseResolveClassMembers();
     DLLLOCAL void parseResolveAbstract();
-    DLLLOCAL void parseInitConstants();
+    DLLLOCAL int parseInitConstants();
     DLLLOCAL void parseRollback(ExceptionSink* xsink);
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
@@ -402,9 +402,9 @@ public:
     DLLLOCAL void scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const;
     DLLLOCAL void copyMergeCommittedNamespace(const qore_ns_private& mns);
 
-    DLLLOCAL void parseInitGlobalVars();
+    DLLLOCAL int parseInitGlobalVars();
 
-    DLLLOCAL void checkGlobalVarDecl(Var* v, const NamedScope& vname);
+    DLLLOCAL int checkGlobalVarDecl(Var* v, const NamedScope& vname);
     DLLLOCAL void parseAddGlobalVarDecl(const QoreProgramLocation* loc, char* name, const QoreTypeInfo* typeInfo,
         QoreParseTypeInfo* parseTypeInfo, bool pub, qore_var_t type);
 
@@ -1735,7 +1735,7 @@ public:
 
     DLLLOCAL QoreListNode* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
 
     DLLLOCAL class_vec_t runtimeFindAllClassesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
 

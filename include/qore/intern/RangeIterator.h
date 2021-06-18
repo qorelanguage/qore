@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies s r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies s r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -101,7 +101,8 @@ public:
 
     DLLLOCAL QoreValue getValue(ExceptionSink *xsink) {
         if (!m_valid) {
-            xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+            xsink->raiseException("INVALID-ITERATOR", "the %s is not pointing at a valid element; make sure " \
+                "%s::next() returns True before calling this method", getName(), getName());
             return QoreValue();
         }
 

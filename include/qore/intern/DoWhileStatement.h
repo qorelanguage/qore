@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,14 +39,16 @@
 
 class DoWhileStatement : public WhileStatement {
 public:
-    DLLLOCAL DoWhileStatement(int start_line, int end_line, QoreValue c, StatementBlock* cd) : WhileStatement(start_line, end_line, c, cd) {
+    DLLLOCAL DoWhileStatement(int start_line, int end_line, QoreValue c, StatementBlock* cd)
+            : WhileStatement(start_line, end_line, c, cd) {
     }
+
     DLLLOCAL virtual ~DoWhileStatement() {
     }
 
 private:
     DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 };
 
 #endif

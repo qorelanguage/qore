@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,29 +41,37 @@ QoreValue QoreModuloOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
     int64 r = rh->getAsBigInt();
 
     if (!r) {
-        xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l, r);
+        xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l,
+            r);
         return QoreValue();
     }
     return l % r;
 }
 
-void QoreModuloOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+int QoreModuloOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = bigIntTypeInfo;
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(left, parse_context);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
+    // FIXME: check types and issue a warning / error if appropriate
 
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
-
-    // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue() && right.getAsBigInt()) {
+    // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this
+    // node with the result
+    if (!err && left.isValue() && right.isValue() && right.getAsBigInt()) {
         SimpleRefHolder<QoreModuloOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

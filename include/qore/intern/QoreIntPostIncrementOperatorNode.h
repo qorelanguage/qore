@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,13 +41,15 @@ protected:
         return bigIntTypeInfo;
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
         // should never be called
         assert(false);
+        return 0;
     }
 
 public:
-    DLLLOCAL QoreIntPostIncrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp) {
+    DLLLOCAL QoreIntPostIncrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
+            : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp) {
     }
 
     DLLLOCAL virtual bool hasEffect() const {

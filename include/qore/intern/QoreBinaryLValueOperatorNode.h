@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,8 @@ protected:
 public:
     const QoreTypeInfo *ti; // typeinfo of lhs
 
-    DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, left, right), ti(0) {
+    DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryOperatorNode<LValueOperatorNode>(loc, left, right), ti(0) {
     }
 
     DLLLOCAL virtual bool hasEffect() const {
@@ -58,25 +59,39 @@ protected:
     }
 
 public:
-    DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, left, right) {
+    DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryOperatorNode<LValueOperatorNode>(loc, left, right) {
     }
 
-    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    DLLLOCAL int parseInitIntLValue(const char* name, QoreParseContext& parse_context) {
         // turn off "reference ok" and "return value ignored" flags
-        pflag &= ~(PF_RETURN_VALUE_IGNORED);
+        QoreParseContextFlagHelper fh(parse_context);
+        parse_context.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-        typeInfo = bigIntTypeInfo;
-
-        const QoreTypeInfo* mti = nullptr;
-        parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, mti);
-        checkLValue(left, pflag);
+        parse_context.typeInfo = nullptr;
+        int err;
+        {
+            QoreParseContextFlagHelper fh0(parse_context);
+            fh0.setFlags(PF_FOR_ASSIGNMENT);
+            err = parse_init_value(left, parse_context);
+        }
+        if (checkLValue(left, parse_context.pflag) && !err) {
+            err = -1;
+        }
 
         // make sure left side can take an integer value
-        check_lvalue_int(loc, mti, name);
+        if (check_lvalue_int(loc, parse_context.typeInfo, name) && !err) {
+            err = -1;
+        }
 
-        mti = nullptr;
+        parse_context.typeInfo = nullptr;
         // FIXME: check for invalid operation - type cannot be converted to integer
-        parse_init_value(right, oflag, pflag, lvids, mti);
+        if (parse_init_value(right, parse_context) && !err) {
+            err = -1;
+        }
+
+        parse_context.typeInfo = bigIntTypeInfo;
+        return err;
     }
 
     DLLLOCAL virtual bool hasEffect() const {

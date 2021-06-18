@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,25 +46,37 @@ QoreValue QoreLogicalComparisonOperatorNode::evalImpl(bool& needs_deref, Excepti
     return doComparison(*l, *r, xsink);
 }
 
-void QoreLogicalComparisonOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
-    typeInfo = bigIntTypeInfo;
+int QoreLogicalComparisonOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(left, parse_context);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
 
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    // FIXME: check args to see if comparisons are possible and issue warnings / errors as appropriate
 
     // see if both arguments are constant values, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalComparisonOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         val = v.takeReferencedValue();
+        if (**xsink) {
+            err = -1;
+        }
     }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }
 
-int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue left, const QoreValue right, ExceptionSink* xsink) {
+int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue left, const QoreValue right,
+        ExceptionSink* xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();
 

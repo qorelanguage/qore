@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,13 +32,14 @@
 
 QoreString QorePreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
-void QorePreDecrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
+int QorePreDecrementOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    int err = parseInitIntern(op_str.c_str(), parse_context);
 
     // version for local var
-    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+    if ((parse_context.typeInfo == bigIntTypeInfo || parse_context.typeInfo == softBigIntTypeInfo)) {
         val = makeSpecialization<QoreIntPreDecrementOperatorNode>();
     }
+    return err;
 }
 
 QoreValue QorePreDecrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

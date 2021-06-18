@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,9 @@ class QoreMapSelectOperatorNode : public QoreNOperatorNodeBase<3>, public Functi
     friend class QoreFunctionalMapSelectOperator;
 
 public:
-    DLLLOCAL QoreMapSelectOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1, QoreValue e2) : QoreNOperatorNodeBase<3>(loc, e0, QoreSimpleValue().assign(e1), QoreSimpleValue().assign(e2)), returnTypeInfo(nullptr), iterator_func(nullptr) {
+    DLLLOCAL QoreMapSelectOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1, QoreValue e2)
+            : QoreNOperatorNodeBase<3>(loc, e0, QoreSimpleValue().assign(e1), QoreSimpleValue().assign(e2)),
+            returnTypeInfo(nullptr), iterator_func(nullptr) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -65,7 +67,8 @@ public:
         ValueHolder n_e2(copy_value_and_resolve_lvar_refs(e[2], xsink), xsink);
         if (*xsink)
             return nullptr;
-        QoreMapSelectOperatorNode* rv = new QoreMapSelectOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release());
+        QoreMapSelectOperatorNode* rv = new QoreMapSelectOperatorNode(loc, n_e0.release(), n_e1.release(),
+            n_e2.release());
         rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->e[1].getInternalNode());
         return rv;
     }
@@ -74,7 +77,8 @@ public:
         return true;
     }
 
-    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type,
+            ExceptionSink* xsink) const;
 
 protected:
     const QoreTypeInfo* returnTypeInfo;
@@ -88,7 +92,7 @@ protected:
     DLLLOCAL virtual ~QoreMapSelectOperatorNode() {
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return returnTypeInfo;

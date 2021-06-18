@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,27 +46,32 @@ QoreValue QoreLogicalLessThanOperatorNode::evalImpl(bool& needs_deref, Exception
    return doLessThan(*lh, *rh, xsink);
 }
 
-void QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QoreLogicalLessThanOperatorNode::parseInitIntern(const char* name, QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = boolTypeInfo;
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
-
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    parse_context.typeInfo = boolTypeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalLessThanOperatorNode> del(this);
         ParseExceptionSink xsink;
         val = doLessThan(left, right, *xsink);
-        return;
+        return **xsink ? -1 : 0;
     }
 
-    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
-    // can be assigned if either side is a float
+    // check for optimizations based on type; but only if types are known on both sides, although the highest priority
+    // (float) can be assigned if either side is a float
     if (!QoreTypeInfo::isType(lti, NT_NUMBER) && !QoreTypeInfo::isType(rti, NT_NUMBER)) {
         if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT))
             pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
@@ -78,6 +83,8 @@ void QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, QoreValu
             // FIXME: check for invalid operation here
         }
     }
+
+    return err;
 }
 
 bool QoreLogicalLessThanOperatorNode::floatLessThan(ExceptionSink *xsink) const {

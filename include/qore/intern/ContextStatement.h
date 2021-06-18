@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -65,25 +65,27 @@ public:
     DLLLOCAL void addContextMod(ContextMod *cm);
 };
 
-class ContextStatement :public AbstractStatement {
-protected:
-    DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
-    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
-
+class ContextStatement : public AbstractStatement {
 public:
     char *name;
     QoreValue exp, where_exp, sort_ascending, sort_descending;
     StatementBlock* code;
     LVList* lvars = nullptr;
 
-    DLLLOCAL ContextStatement(int start_line, int end_line, char* n, QoreValue expr, ContextModList* cm, StatementBlock* cd);
+    DLLLOCAL ContextStatement(int start_line, int end_line, char* n, QoreValue expr, ContextModList* cm,
+            StatementBlock* cd);
     DLLLOCAL virtual ~ContextStatement();
 
     // faked here; checked at runtime
     DLLLOCAL virtual bool hasFinalReturn() const {
         return false;
     }
+
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+
+protected:
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 };
 
 #endif

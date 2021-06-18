@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -78,7 +78,7 @@ public:
         NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
         @see QoreNodeAsStringHelper
     */
-    DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
+    DLLEXPORT virtual QoreString* getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
     //! tests for equality with possible type conversion (soft compare)
     /** since no type can be implicitly converted to NOTHING, this comparison is the same as is_equal_hard() for QoreNothingNode
@@ -98,10 +98,10 @@ public:
     DLLEXPORT virtual const char *getTypeName() const;
 
     //! returns the type information
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     //! returns the type name (useful in templates)
-    DLLLOCAL static const char *getStaticTypeName() {
+    DLLLOCAL static const char* getStaticTypeName() {
         return "nothing";
     }
 

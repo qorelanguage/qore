@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,8 +62,11 @@ QoreValue ContextRowNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) cons
     return eval_context_row(xsink);
 }
 
-void ContextRowNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = hashTypeInfo;
-    if (!getCVarStack())
+int ContextRowNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = hashTypeInfo;
+    if (!getCVarStack()) {
         parse_error(*loc, "context row reference \"%%%%\" encountered out of context");
+        return -1;
+    }
+    return 0;
 }

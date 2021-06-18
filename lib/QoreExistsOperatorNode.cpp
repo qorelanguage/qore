@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,38 +35,40 @@ QoreString QoreExistsOperatorNode::Exists_str("exists operator expression");
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreExistsOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &Exists_str;
+    del = false;
+    return &Exists_str;
 }
 
 int QoreExistsOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&Exists_str);
-   return 0;
+    str.concat(&Exists_str);
+    return 0;
 }
 
 QoreValue QoreExistsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder v(exp, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder v(exp, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return v->isNothing() ? false : true;
+    return v->isNothing() ? false : true;
 }
 
-void QoreExistsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreExistsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = boolTypeInfo;
-
-    const QoreTypeInfo* lti = nullptr;
-    parse_init_value(exp, oflag, pflag, lvids, lti);
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
 
     // see the argument is a constant value, then eval immediately and substitute this node with the result
-    if (!exp.hasNode() || exp.getInternalNode()->is_value()) {
+    if (!err && (!exp.hasNode() || exp.getInternalNode()->is_value())) {
         SimpleRefHolder<QoreExistsOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }
+
+    parse_context.typeInfo = boolTypeInfo;
+    return err;
 }

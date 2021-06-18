@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,16 +35,17 @@
 
 class QoreImplicitElementNode : public ParseNode {
 private:
-    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual ~QoreImplicitElementNode() {
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        typeInfo = bigIntTypeInfo;
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        parse_context.typeInfo = bigIntTypeInfo;
+        return 0;
     }
 
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return bigIntTypeInfo;
     }
 
@@ -52,11 +53,11 @@ public:
     DLLLOCAL QoreImplicitElementNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_IMPLICIT_ELEMENT) {
     }
 
-    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-    DLLLOCAL virtual const char *getTypeName() const;
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+    DLLLOCAL virtual const char* getTypeName() const;
 
-    DLLLOCAL static const char *getStaticTypeName() {
+    DLLLOCAL static const char* getStaticTypeName() {
         return "implicit element reference";
     }
 };

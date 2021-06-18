@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,8 +46,11 @@ QoreValue QorePushOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     if (val.getType() == NT_NOTHING) {
         const QoreTypeInfo* vti = val.getTypeInfo();
         if (QoreTypeInfo::parseAcceptsReturns(vti, NT_LIST)) {
-            // issue #3317: if the lvar can be a list, assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* lti = vti == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(vti);
+            // issue #3317: if the lvar can be a list, assign the current runtime type based on the declared complex
+            // list type
+            const QoreTypeInfo* lti = vti == autoTypeInfo
+                ? autoTypeInfo
+                : QoreTypeInfo::getReturnComplexListOrNothing(vti);
             if (val.assign(new QoreListNode(lti))) {
                 assert(*xsink);
                 return QoreValue();
@@ -58,7 +61,8 @@ QoreValue QorePushOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     // value is not a list, so throw exception
     if (val.getType() != NT_LIST) {
         if (runtime_check_parse_option(PO_STRICT_ARGS))
-            xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
+            xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"",
+                val.getTypeName());
         return QoreValue();
     }
 

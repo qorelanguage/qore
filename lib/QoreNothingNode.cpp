@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,7 @@ const char *QoreNothingNode::getTypeName() const {
 }
 
 //! returns the type information
-void QoreNothingNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = nothingTypeInfo;
+int QoreNothingNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = nothingTypeInfo;
+    return 0;
 }

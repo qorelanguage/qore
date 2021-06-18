@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,14 +46,17 @@ int QoreNullCoalescingOperatorNode::getAsString(QoreString &str, int foff, Excep
     return 0;
 }
 
-void QoreNullCoalescingOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    assert(!typeInfo);
+int QoreNullCoalescingOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(left, parse_context);
 
-    const QoreTypeInfo* lti = nullptr;
-    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
 
-    lti = nullptr;
-    parse_init_value(right, oflag, pflag, lvids, lti);
+    parse_context.typeInfo = nullptr;
+    return err;
 }
 
 QoreValue QoreNullCoalescingOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

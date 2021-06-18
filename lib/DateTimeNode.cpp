@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2012 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -244,9 +244,9 @@ DateTimeNode* DateTimeNode::makeRelativeFromSeconds(int64 s, int u) {
     return new DateTimeNode(new qore_date_private(0, 0, 0, h, m, s, u, true));
 }
 
-
-void DateTimeNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = dateTypeInfo;
+int DateTimeNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = dateTypeInfo;
+    return 0;
 }
 
 DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
@@ -255,11 +255,9 @@ DateTimeValueHelper::DateTimeValueHelper(const AbstractQoreNode* n) {
         if (n->getType() == NT_DATE) {
             dt = reinterpret_cast<const DateTimeNode*>(n);
             del = false;
-        }
-        else
+        } else
             dt = n->getDateTimeRepresentation(del);
-    }
-    else {
+    } else {
         dt = ZeroDate;
         del = false;
     }

@@ -99,18 +99,23 @@ int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove,
     return 0;
 }
 
-int qore_list_private::parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, QoreValue& new_args, const QoreTypeInfo* vti) {
-    int lvids = 0;
-    const QoreTypeInfo* argTypeInfo = nullptr;
-    if (!parseInitListInitialization(loc, oflag, pflag, lvids, args, new_args, argTypeInfo)) {
-       parseCheckComplexListInitialization(loc, vti, argTypeInfo, new_args, "initialize", true);
+int qore_list_private::parseInitComplexListInitialization(const QoreProgramLocation* loc,
+        QoreParseContext& parse_context, QoreParseListNode* args, QoreValue& new_args) {
+    const QoreTypeInfo* vti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    int err = 0;
+    if (!parseInitListInitialization(loc, parse_context, args, new_args, err)) {
+        if (parseCheckComplexListInitialization(loc, vti, parse_context.typeInfo, new_args, "initialize", true)
+            && !err) {
+            err = -1;
+        }
     }
-    return lvids;
+    return err;
 }
 
-int qore_list_private::parseInitListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, QoreValue& new_args, const QoreTypeInfo*& argTypeInfo) {
-    assert(!lvids);
-    assert(!argTypeInfo);
+int qore_list_private::parseInitListInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+        QoreParseListNode* args, QoreValue& new_args, int& err) {
+    assert(!parse_context.typeInfo);
     assert(new_args.isNothing());
 
     if (!args) {
@@ -119,22 +124,33 @@ int qore_list_private::parseInitListInitialization(const QoreProgramLocation* lo
 
     // initialize argument(s)
     new_args = args;
-    parse_init_value(new_args, oflag, pflag, lvids, argTypeInfo);
-
+    if (parse_init_value(new_args, parse_context) && !err) {
+        err = -1;
+        return -1;
+    }
     return 0;
 }
 
-void qore_list_private::parseCheckComplexListInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const QoreValue exp, const char* context_action, bool strict_check) {
+int qore_list_private::parseCheckComplexListInitialization(const QoreProgramLocation* loc,
+        const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const QoreValue exp,
+        const char* context_action, bool strict_check) {
     const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexList(expTypeInfo);
     if (vti2) {
-        if (!QoreTypeInfo::parseAccepts(typeInfo, vti2))
-            parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'", context_action, QoreTypeInfo::getName(typeInfo),
+        if (!QoreTypeInfo::parseAccepts(typeInfo, vti2)) {
+            parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'",
+                context_action, QoreTypeInfo::getName(typeInfo),
             QoreTypeInfo::getName(vti2));
-    } else
-        parseCheckTypedAssignment(loc, exp, typeInfo, context_action, strict_check);
+            return -1;
+        }
+    } else {
+        return parseCheckTypedAssignment(loc, exp, typeInfo, context_action, strict_check);
+    }
+    return 0;
 }
 
-void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, const QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+int qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, const QoreValue arg,
+        const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+    int err = 0;
     switch (arg.getType()) {
         case NT_LIST: {
             ConstListIterator i(arg.get<const QoreListNode>());
@@ -144,7 +160,12 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)i.index() + 1, (int)i.max(), QoreTypeInfo::getName(vti2));
+                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type " \
+                    "'%s'", context_action, QoreTypeInfo::getName(vti), (int)i.index() + 1, (int)i.max(),
+                    QoreTypeInfo::getName(vti2));
+                if (!err) {
+                    err = -1;
+                }
             }
             break;
         }
@@ -157,7 +178,12 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(), QoreTypeInfo::getName(vti2));
+                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type " \
+                    "'%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(),
+                    QoreTypeInfo::getName(vti2));
+                if (!err) {
+                    err = -1;
+                }
             }
             break;
         }
@@ -168,10 +194,15 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
             if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                 break;
 
-            parse_error(*loc, "cannot %s 'list<%s>' from a value with incompatible type '%s'", context_action, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(vti2));
+            parse_error(*loc, "cannot %s 'list<%s>' from a value with incompatible type '%s'", context_action,
+                QoreTypeInfo::getName(vti), QoreTypeInfo::getName(vti2));
+            if (!err) {
+                err = -1;
+            }
         }
         break;
     }
+    return err;
 }
 
 QoreListNode* qore_list_private::newComplexList(const QoreTypeInfo* typeInfo, const QoreValue args, ExceptionSink* xsink) {
@@ -1088,8 +1119,10 @@ QoreListNode* QoreListNode::listRefSelf() const {
     return const_cast<QoreListNode*>(this);
 }
 
-void QoreListNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreListNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
     assert(value);
+    parse_context.typeInfo = priv->getTypeInfo();
+    return 0;
 }
 
 const QoreTypeInfo* QoreListNode::getValueTypeInfo() const {

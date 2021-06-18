@@ -153,16 +153,16 @@ public:
     DLLLOCAL qore_ns_private* runtimeAdd(QoreNamespace* ot, qore_ns_private* parent);
 
     DLLLOCAL void resolveCopy();
-    DLLLOCAL void parseInitConstants();
+    DLLLOCAL int parseInitConstants();
 
-    DLLLOCAL void parseInitGlobalVars();
+    DLLLOCAL int parseInitGlobalVars();
     DLLLOCAL void clearConstants(QoreListNode& l);
     DLLLOCAL void clearData(ExceptionSink* sink);
     DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
 
     DLLLOCAL void parseResolveHierarchy();
     DLLLOCAL void parseResolveClassMembers();
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* sink);

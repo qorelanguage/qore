@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,21 +34,9 @@
 #define _QORE_QORETRIMOPERATORNODE_H
 
 class QoreTrimOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
-protected:
-    const QoreTypeInfo *returnTypeInfo;
-
-    DLLLOCAL static QoreString trim_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-        return returnTypeInfo;
-    }
-
 public:
-    DLLLOCAL QoreTrimOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), returnTypeInfo(0) {
+    DLLLOCAL QoreTrimOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
+            : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp) {
     }
 
     DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -66,6 +54,19 @@ public:
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreTrimOperatorNode>(xsink);
+    }
+
+protected:
+    const QoreTypeInfo* returnTypeInfo = nullptr;
+
+    DLLLOCAL static QoreString trim_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+        return returnTypeInfo;
     }
 };
 

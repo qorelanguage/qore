@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,17 +33,9 @@
 #define _QORE_QOREVALUECOALESCINGOPERATORNODE_H
 
 class QoreValueCoalescingOperatorNode : public QoreBinaryOperatorNode<QoreOperatorNode> {
-protected:
-    static QoreString value_coalescing_str;
-
-    const QoreTypeInfo* typeInfo;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
 public:
-    DLLLOCAL QoreValueCoalescingOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1) : QoreBinaryOperatorNode<QoreOperatorNode>(loc, e0, e1), typeInfo(0) {
+    DLLLOCAL QoreValueCoalescingOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1)
+            : QoreBinaryOperatorNode<QoreOperatorNode>(loc, e0, e1) {
     }
 
     DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
@@ -62,6 +54,15 @@ public:
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreValueCoalescingOperatorNode>(xsink);
     }
+
+protected:
+    static QoreString value_coalescing_str;
+
+    const QoreTypeInfo* typeInfo = nullptr;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

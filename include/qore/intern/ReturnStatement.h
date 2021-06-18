@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,8 @@
 
 class ReturnStatement : public AbstractStatement {
 public:
-    DLLLOCAL ReturnStatement(int start_line, int end_line, QoreValue v = QoreValue()) : AbstractStatement(start_line, end_line), exp(v) {
+    DLLLOCAL ReturnStatement(int start_line, int end_line, QoreValue v = QoreValue())
+            : AbstractStatement(start_line, end_line), exp(v) {
     }
 
     DLLLOCAL ~ReturnStatement() {
@@ -56,7 +57,7 @@ private:
     QoreValue exp;
 
     DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink);
-    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 };
 
 #endif
