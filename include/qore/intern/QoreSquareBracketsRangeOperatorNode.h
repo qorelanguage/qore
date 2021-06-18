@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,24 +37,10 @@
 #include "qore/intern/FunctionalOperatorInterface.h"
 
 class QoreSquareBracketsRangeOperatorNode : public QoreNOperatorNodeBase<3>, public FunctionalOperator {
-protected:
-    const QoreTypeInfo* typeInfo = nullptr;
-
-    DLLLOCAL static QoreString op_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual void  parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL static QoreValue doSquareBrackets(QoreValue v0, QoreValue v1, QoreValue v2, ExceptionSink* xsink);
-
-    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
-
-    DLLLOCAL bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
-
 public:
-    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation* loc, QoreValue p0, QoreValue p1, QoreValue p2)
-        : QoreNOperatorNodeBase<3>(loc, p0, QoreSimpleValue().assign(p1), QoreSimpleValue().assign(p2)) {
+    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation* loc, QoreValue p0, QoreValue p1,
+            QoreValue p2)
+            : QoreNOperatorNodeBase<3>(loc, p0, QoreSimpleValue().assign(p1), QoreSimpleValue().assign(p2)) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -81,7 +67,25 @@ public:
         return new QoreSquareBracketsRangeOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release());
     }
 
-    DLLLOCAL static bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, const QoreValue& start_index, const QoreValue& stop_index, ExceptionSink* xsink);
+    DLLLOCAL static bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size,
+            const QoreValue& start_index, const QoreValue& stop_index, ExceptionSink* xsink);
+
+protected:
+    const QoreTypeInfo* typeInfo = nullptr;
+
+    DLLLOCAL static QoreString op_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL static QoreValue doSquareBrackets(QoreValue v0, QoreValue v1, QoreValue v2, ExceptionSink* xsink);
+
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type,
+            ExceptionSink* xsink) const;
+
+    DLLLOCAL bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size,
+            ExceptionSink* xsink) const;
 };
 
 class QoreFunctionalSquareBracketsRangeOperator : public FunctionalOperatorInterface, public RangeIterator {
@@ -91,10 +95,12 @@ protected:
     int64 stop;
 
 public:
-    DLLLOCAL QoreFunctionalSquareBracketsRangeOperator(ValueEvalRefHolder& old_seq, int64 begin, int64 end, ExceptionSink* xsink)
-        : RangeIterator(begin, end, 1, &Nothing, xsink), seq(*old_seq, old_seq.isTemp(), xsink), start(begin), stop(end) {
-            old_seq.clearTemp();
-        }
+    DLLLOCAL QoreFunctionalSquareBracketsRangeOperator(ValueEvalRefHolder& old_seq, int64 begin, int64 end,
+            ExceptionSink* xsink)
+            : RangeIterator(begin, end, 1, &Nothing, xsink), seq(*old_seq, old_seq.isTemp(), xsink), start(begin),
+            stop(end) {
+        old_seq.clearTemp();
+    }
 
     DLLLOCAL virtual ~QoreFunctionalSquareBracketsRangeOperator() {}
 

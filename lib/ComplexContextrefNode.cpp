@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,26 +45,27 @@ public:
 };
 
 void push_cvar(const char *name) {
-   new CVNode(name);
+    new CVNode(name);
 }
 
 void pop_cvar() {
-   delete getCVarStack();
+    delete getCVarStack();
 }
 
-ComplexContextrefNode::ComplexContextrefNode(const QoreProgramLocation* loc, char *str) : ParseNode(loc, NT_COMPLEXCONTEXTREF) {
-   char *c = strchr(str, ':');
-   *c = '\0';
-   name = strdup(str);
-   member = strdup(c + 1);
-   free(str);
+ComplexContextrefNode::ComplexContextrefNode(const QoreProgramLocation* loc, char *str)
+        : ParseNode(loc, NT_COMPLEXCONTEXTREF) {
+    char *c = strchr(str, ':');
+    *c = '\0';
+    name = strdup(str);
+    member = strdup(c + 1);
+    free(str);
 }
 
 ComplexContextrefNode::~ComplexContextrefNode() {
-   if (name)
-      free(name);
-   if (member)
-      free(member);
+    if (name)
+        free(name);
+    if (member)
+        free(member);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -72,21 +73,21 @@ ComplexContextrefNode::~ComplexContextrefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ComplexContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("complex context reference '%s:%s' (%p)", name ? name : "<null>", member ? member : "<null>", this);
-   return 0;
+    qstr.sprintf("complex context reference '%s:%s' (%p)", name ? name : "<null>", member ? member : "<null>", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *ComplexContextrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString *rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // returns the type name as a c string
 const char *ComplexContextrefNode::getTypeName() const {
-   return "complex context reference";
+    return "complex context reference";
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
@@ -101,11 +102,13 @@ QoreValue ComplexContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsin
     return cs->eval(member, xsink);
 }
 
-void ComplexContextrefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = 0;
+int ComplexContextrefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = nullptr;
 
+    int err = 0;
     if (!getCVarStack()) {
         parse_error(*loc, "complex context reference \"%s:%s\" encountered out of context", name, member);
+        err = -1;
     }
 
     int cur_stack_offset = 0;
@@ -119,8 +122,13 @@ void ComplexContextrefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int p
         cvn = cvn->next;
         cur_stack_offset++;
     }
-    if (!found)
+    if (!found) {
         parse_error(*loc, "\"%s\" does not match any current context", name);
-    else
+        if (!err) {
+            err = -1;
+        }
+    } else {
         stack_offset = cur_stack_offset;
+    }
+    return err;
 }

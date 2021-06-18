@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,17 +34,19 @@
 
 class QoreShiftRightEqualsOperatorNode : public QoreBinaryIntLValueOperatorNode {
 OP_COMMON
-protected:
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
 public:
-    DLLLOCAL QoreShiftRightEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryIntLValueOperatorNode(loc, left, right) {
+    DLLLOCAL QoreShiftRightEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryIntLValueOperatorNode(loc, left, right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
         return copyBackgroundExplicit<QoreShiftRightEqualsOperatorNode>(xsink);
     }
+
+protected:
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

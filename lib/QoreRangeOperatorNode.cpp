@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,26 +33,43 @@
 
 QoreString QoreRangeOperatorNode::op_str(".. (range) operator expression");
 
-void QoreRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+int QoreRangeOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    returnTypeInfo = qore_get_complex_list_type(bigIntTypeInfo);
-    typeInfo = returnTypeInfo;
-
-    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
-
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
     // see if any of the arguments cannot be converted to an integer, if so raise a parse exception
-    if (!QoreTypeInfo::canConvertToScalar(lti))
-        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(lti));
-    if (!QoreTypeInfo::canConvertToScalar(rti))
-        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(rti));
+    if (!QoreTypeInfo::canConvertToScalar(lti)) {
+        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is " \
+            "type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime",
+            QoreTypeInfo::getName(lti));
+        if (!err) {
+            err = -1;
+        }
+    }
+    if (!QoreTypeInfo::canConvertToScalar(rti)) {
+        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is " \
+            "type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime",
+            QoreTypeInfo::getName(rti));
+        if (!err) {
+            err = -1;
+        }
+    }
 
-    // do not evaluate at parse time, even if the arguments are both constant values, so we can support lazy evaluation
-    // with functional operators
+    // do not evaluate at parse time, even if the arguments are both constant values, so we can support lazy
+    // evaluation with functional operators
+
+    parse_context.typeInfo = qore_get_complex_list_type(bigIntTypeInfo);
+    return err;
 }
 
 QoreValue QoreRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -77,7 +94,8 @@ QoreValue QoreRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     return rv.release();
 }
 
-FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type,
+        ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return nullptr;

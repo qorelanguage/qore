@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -102,7 +102,7 @@ public:
 
     DLLLOCAL void getGlobalVars(const std::string& path, QoreHashNode& h) const;
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL void reset();
 };
 

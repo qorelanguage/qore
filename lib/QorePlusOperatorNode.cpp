@@ -184,25 +184,28 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     return QoreValue();
 }
 
-void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QorePlusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    assert(!parseTypeInfo);
-
-    const QoreTypeInfo* leftTypeInfo = nullptr, *rightTypeInfo = nullptr;
-
-    parse_init_value(left, oflag, pflag, lvids, leftTypeInfo);
-    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* leftTypeInfo = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QorePlusOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
-        parseTypeInfo = val.getTypeInfo();
-        return;
+        parse_context.typeInfo = val.getFullTypeInfo();
+        return **xsink ? -1 : 0;
     }
 
     // if either side is a list, then the return type is list (highest priority)
@@ -210,7 +213,7 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
     bool is_list_right = QoreTypeInfo::isType(rightTypeInfo, NT_LIST);
     if (is_list_left || is_list_right) {
         if (is_list_left && is_list_right) {
-            returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo)
+            parse_context.typeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo)
                 ? leftTypeInfo
                 : listTypeInfo;
         } else {
@@ -219,7 +222,8 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
     }
     // otherwise only set return type if return types on both sides are known at parse time and neither can be a list
     else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)
-        && !QoreTypeInfo::parseReturns(leftTypeInfo, NT_LIST) && !QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
+        && !QoreTypeInfo::parseReturns(leftTypeInfo, NT_LIST)
+        && !QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
         // issue #3157: try to handle timeout + date specially
         if (QoreTypeInfo::equal(leftTypeInfo, timeoutTypeInfo)
             && QoreTypeInfo::parseReturns(rightTypeInfo, NT_DATE)) {
@@ -238,6 +242,9 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
                     desc->concat("; the non-string value is ignored in this case; this is an error when " \
                         "%strict-types is in effect");
                     qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc.release());
+                    if (!err) {
+                        err = -1;
+                    }
                 } else {
                     qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
                         "INVALID-OPERATION", desc.release());
@@ -271,7 +278,6 @@ void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
         }
     }
 
-    if (returnTypeInfo) {
-        parseTypeInfo = returnTypeInfo;
-    }
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,51 +44,80 @@ int QoreExtractOperatorNode::getAsString(QoreString &str, int foff, ExceptionSin
     return 0;
 }
 
-void QoreExtractOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    const QoreTypeInfo *expTypeInfo = nullptr;
-
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
+int QoreExtractOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
     // check lvalue expression
-    parse_init_value(lvalue_exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
-    checkLValue(lvalue_exp, pflag);
+    assert(!parse_context.typeInfo);
+    int err;
+    {
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_FOR_ASSIGNMENT);
+        err = parse_init_value(lvalue_exp, parse_context);
+    }
+    const QoreTypeInfo* expTypeInfo = parse_context.typeInfo;
+    if (!err && checkLValue(lvalue_exp, parse_context.pflag)) {
+        err = -1;
+    }
 
     if (QoreTypeInfo::hasType(expTypeInfo)) {
         if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)
                 && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_BINARY)
                 && !QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_STRING)) {
-            QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
+            QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' " \
+                "operator is ");
             QoreTypeInfo::getThisType(expTypeInfo, *desc);
-            desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
-            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+            desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the " \
+                "'extract' operator only operates on lists, strings, and binary objects");
+            qore_program_private::makeParseException(parse_context.pgm, *loc, "PARSE-TYPE-ERROR", desc);
+            if (!err) {
+                err = -1;
+            }
         }
-        else
-            returnTypeInfo = typeInfo = expTypeInfo;
     }
 
     // check offset expression
-    expTypeInfo = nullptr;
-    parse_init_value(offset_exp, oflag, pflag, lvids, expTypeInfo);
-    if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
-        expTypeInfo->doNonNumericWarning(loc, "the offset expression (2nd position) with the 'extract' operator is ");
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(offset_exp, parse_context) && !err) {
+        err = -1;
+    }
+    if (!QoreTypeInfo::canConvertToScalar(parse_context.typeInfo)) {
+        // FIXME: raise an exception wth %strict-types
+        parse_context.typeInfo->doNonNumericWarning(loc, "the offset expression (2nd position) with the 'extract' " \
+            "operator is ");
+    }
 
     // check length expression, if any
     if (length_exp) {
-        expTypeInfo = nullptr;
-        parse_init_value(length_exp, oflag, pflag, lvids, expTypeInfo);
-        if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
-            expTypeInfo->doNonNumericWarning(loc, "the length expression (3nd position) with the 'extract' operator is ");
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(length_exp, parse_context) && !err) {
+            err = -1;
+        }
+        if (!QoreTypeInfo::canConvertToScalar(parse_context.typeInfo)) {
+            // FIXME: raise an exception wth %strict-types
+            parse_context.typeInfo->doNonNumericWarning(loc, "the length expression (3nd position) with the " \
+                "'extract' operator is ");
+        }
     }
 
     // check new value expression, if any
     if (new_exp) {
-        expTypeInfo = nullptr;
-        parse_init_value(new_exp, oflag, pflag, lvids, expTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(new_exp, parse_context) && !err) {
+            err = -1;
+        }
     }
+
+    parse_context.typeInfo = returnTypeInfo = expTypeInfo;
+    return err;
 }
 
 QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    printd(5, "QoreExtractOperatorNode::splice() lvalue_exp: %s, offset_exp: %s, length_exp: %s, new_exp: %s, isEvent: %d\n", lvalue_exp.getTypeName(), offset_exp.getTypeName(), length_exp.getTypeName(), new_exp.getTypeName(), xsink->isEvent());
+    printd(5, "QoreExtractOperatorNode::splice() lvalue_exp: %s, offset_exp: %s, length_exp: %s, new_exp: %s, " \
+        "isEvent: %d\n", lvalue_exp.getTypeName(), offset_exp.getTypeName(), length_exp.getTypeName(),
+        new_exp.getTypeName(), xsink->isEvent());
 
     // evaluate arguments
     ValueEvalRefHolder eoffset(offset_exp, xsink);
@@ -114,7 +143,8 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     if (vt == NT_NOTHING) {
         // see if the lvalue has a default type
         const QoreTypeInfo *typeInfo = val.getTypeInfo();
-        if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo || typeInfo == softStringTypeInfo) {
+        if (typeInfo == softListTypeInfo || typeInfo == listTypeInfo || typeInfo == stringTypeInfo
+            || typeInfo == softStringTypeInfo) {
             if (val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
                 return QoreValue();
             vt = val.getType();
@@ -122,7 +152,8 @@ QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
     }
 
     if (vt != NT_LIST && vt != NT_STRING && vt != NT_BINARY) {
-        xsink->raiseException(*loc, "EXTRACT-ERROR", QoreValue(), "first (lvalue) argument to the extract operator is not a list, string, or binary object");
+        xsink->raiseException(*loc, "EXTRACT-ERROR", QoreValue(), "first (lvalue) argument to the extract operator " \
+            "is not a list, string, or binary object");
         return QoreValue();
     }
 

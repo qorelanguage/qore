@@ -267,7 +267,7 @@ public:
     static const qore_type_t TYPE = NT_STRING;
 
     //! returns the type information
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     //! constructor supporting createAndConvertEncoding(), not exported in the library
     DLLLOCAL QoreStringNode(const char* str, const QoreEncoding* from, const QoreEncoding* to, ExceptionSink* xsink);

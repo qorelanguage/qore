@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,12 +38,13 @@ protected:
 
     const QoreTypeInfo* typeInfo = nullptr;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreQuestionMarkOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1, QoreValue e2) : QoreNOperatorNodeBase<3>(loc, e0, QoreSimpleValue().assign(e1), QoreSimpleValue().assign(e2)) {
+    DLLLOCAL QoreQuestionMarkOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1, QoreValue e2)
+            : QoreNOperatorNodeBase<3>(loc, e0, QoreSimpleValue().assign(e1), QoreSimpleValue().assign(e2)) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
@@ -75,7 +76,8 @@ public:
         ValueHolder n_e2(copy_value_and_resolve_lvar_refs(e[2], xsink), xsink);
         if (*xsink)
             return nullptr;
-        return new QoreQuestionMarkOperatorNode(get_runtime_location(), n_e0.release(), n_e1.release(), n_e2.release());
+        return new QoreQuestionMarkOperatorNode(get_runtime_location(), n_e0.release(), n_e1.release(),
+            n_e2.release());
     }
 
     DLLLOCAL virtual bool hasEffectAsRoot() const {

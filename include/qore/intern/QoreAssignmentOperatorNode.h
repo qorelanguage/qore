@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -48,12 +48,12 @@ protected:
     // flag for identical match with assignment types (lvalue & rvalue)
     bool ident = false;
 
-    DLLLOCAL void parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo, bool weak_assignment);
+    DLLLOCAL int parseInitIntern(QoreParseContext& parse_context, bool weak_assignment);
 
     DLLLOCAL QoreValue evalIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        parseInitIntern(oflag, pflag, lvids, typeInfo, false);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return parseInitIntern(parse_context, false);
     }
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -64,7 +64,8 @@ protected:
 class QoreWeakAssignmentOperatorNode : public QoreAssignmentOperatorNode {
 OP_COMMON
 public:
-    DLLLOCAL QoreWeakAssignmentOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreAssignmentOperatorNode(loc, left, right) {
+    DLLLOCAL QoreWeakAssignmentOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreAssignmentOperatorNode(loc, left, right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
@@ -72,8 +73,8 @@ public:
     }
 
 protected:
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        parseInitIntern(oflag, pflag, lvids, typeInfo, true);
+    DLLLOCAL int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return parseInitIntern(parse_context, true);
     }
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

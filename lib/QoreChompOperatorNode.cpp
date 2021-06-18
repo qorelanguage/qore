@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,13 +37,13 @@ QoreString QoreChompOperatorNode::chomp_str("chomp operator expression");
 
 // if del is true, then the returned QoreString*  should be chompd, if false, then it must not be
 QoreString* QoreChompOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &chomp_str;
+    del = false;
+    return &chomp_str;
 }
 
 int QoreChompOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&chomp_str);
-   return 0;
+    str.concat(&chomp_str);
+    return 0;
 }
 
 QoreValue QoreChompOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -100,21 +100,28 @@ QoreValue QoreChompOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     return count;
 }
 
-void QoreChompOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    assert(!typeInfo);
-    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
-    if (exp)
-        checkLValue(exp, pflag);
-
-    if (QoreTypeInfo::hasType(typeInfo)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
-        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
-        QoreTypeInfo::getThisType(typeInfo, *desc);
-        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+int QoreChompOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.setFlags(PF_FOR_ASSIGNMENT);
+    int err = parse_init_value(exp, parse_context);
+    if (exp && checkLValue(exp, parse_context.pflag) && !err) {
+        err = -1;
     }
 
-    returnTypeInfo = bigIntTypeInfo;
+    if (QoreTypeInfo::hasType(parse_context.typeInfo)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_STRING)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_LIST)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_HASH)) {
+        // FIXME: raise an error with %strict-types
+        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
+        QoreTypeInfo::getThisType(parse_context.typeInfo, *desc);
+        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return " \
+            "NOTHING; this operator only works on strings, lists, and hashes");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            desc);
+    }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

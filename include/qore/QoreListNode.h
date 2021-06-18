@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -430,7 +430,7 @@ public:
     DLLLOCAL void setVariableList();
 
     //! for initialization of lists in the parse tree at parse time (always returns "this")
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 };
 
 #include <qore/ReferenceHolder.h>

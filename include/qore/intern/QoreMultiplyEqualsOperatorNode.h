@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,45 +35,63 @@
 class QoreMultiplyEqualsOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
 protected:
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreMultiplyEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryLValueOperatorNode(loc, left, right) {
+    DLLLOCAL QoreMultiplyEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryLValueOperatorNode(loc, left, right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
         return copyBackgroundExplicit<QoreMultiplyEqualsOperatorNode>(xsink);
     }
 
-    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-        parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-        checkLValue(left, pflag);
+    DLLLOCAL int parseInitIntern(const char* name, QoreParseContext& parse_context) {
+        assert(!parse_context.typeInfo);
+        int err;
+        {
+            QoreParseContextFlagHelper fh(parse_context);
+            fh.setFlags(PF_FOR_ASSIGNMENT);
+            err = parse_init_value(left, parse_context);
+            ti = parse_context.typeInfo;
+        }
+        if (!err) {
+            err = checkLValue(left, parse_context.pflag);
+        }
 
-        const QoreTypeInfo *rightTypeInfo = 0;
-        parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(right, parse_context) && !err) {
+            err = -1;
+        }
+        const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
         if (!QoreTypeInfo::isType(ti, NT_NUMBER)) {
             if (QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
-                check_lvalue_number(loc, ti, name);
+                if (check_lvalue_number(loc, ti, name) && !err) {
+                    err = -1;
+                }
                 ti = numberTypeInfo;
-            }
-            else if (!QoreTypeInfo::isType(ti, NT_FLOAT)) {
+            } else if (!QoreTypeInfo::isType(ti, NT_FLOAT)) {
                 if (QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
-                    check_lvalue_float(loc, ti, name);
+                    if (check_lvalue_float(loc, ti, name) && !err) {
+                        err = -1;
+                    }
                     ti = floatTypeInfo;
-                }
-                else if (QoreTypeInfo::returnsSingle(ti)) {
-                    check_lvalue_int(loc, ti, name);
+                } else if (QoreTypeInfo::returnsSingle(ti)) {
+                    if (check_lvalue_int(loc, ti, name) && !err) {
+                        err = -1;
+                    }
                     ti = bigIntTypeInfo;
+                } else {
+                    ti = nullptr;
                 }
-                else
-                ti = 0;
             }
         }
 
-        typeInfo = ti;
+        parse_context.typeInfo = ti;
+        return err;
     }
 };
 

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -266,8 +266,7 @@ struct qore_list_private {
         if (offset < 0) {
             offset = length + offset;
             return offset < 0 ? 0 : offset;
-        }
-        else if ((size_t)offset > length)
+        } else if ((size_t)offset > length)
             return length;
 
         return offset;
@@ -297,8 +296,7 @@ struct qore_list_private {
             memmove(entry + offset, entry + end, sizeof(QoreValue) * (length - end));
             // zero out trailing entries
             zeroEntries(length - 1, length);
-        }
-        else // set last entry to 0
+        } else // set last entry to 0
             entry[end - 1] = QoreValue();
 
         if (length > 0) {
@@ -318,8 +316,7 @@ struct qore_list_private {
         if (len > (length - offset)) {
             end = length;
             len = length - offset;
-        }
-        else
+        } else
             end = offset + len;
 
         QoreListNode* rv = extract ? getCopy() : nullptr;
@@ -334,8 +331,7 @@ struct qore_list_private {
             memmove(entry + offset, entry + end, sizeof(QoreValue) * (length - end));
             // zero out trailing entries
             zeroEntries(length - len, length);
-        }
-        else // set last entry to 0
+        } else // set last entry to 0
             entry[end - 1] = QoreValue();
 
         resize(length - len);
@@ -360,8 +356,7 @@ struct qore_list_private {
                 tmp->priv->entry[i] = eh.release();
                 ++tmp->priv->length;
             }
-        }
-        else {
+        } else {
             holder = l.refSelf();
             if (checkVal(holder, xsink)) {
                 return nullptr;
@@ -373,8 +368,7 @@ struct qore_list_private {
         if (len > (length - offset)) {
             end = length;
             len = length - offset;
-        }
-        else
+        } else
             end = offset + len;
 
         QoreListNode* rv = extract ? getCopy() : nullptr;
@@ -546,7 +540,8 @@ struct qore_list_private {
     DLLLOCAL int mergesort(const ResolvedCallReferenceNode* fr, bool ascending, ExceptionSink* xsink);
 
     // quicksort for controlled and interruptible sorts (unstable)
-    DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink);
+    DLLLOCAL int qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending,
+            ExceptionSink* xsink);
 
     DLLLOCAL void incScanCount(int dt) {
         assert(dt);
@@ -562,18 +557,25 @@ struct qore_list_private {
         l.value = false;
     }
 
-    DLLLOCAL static int parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, QoreValue& new_args, const QoreTypeInfo* vti);
+    DLLLOCAL static int parseInitComplexListInitialization(const QoreProgramLocation* loc,
+            QoreParseContext& parse_context, QoreParseListNode* args, QoreValue& new_args);
 
-    DLLLOCAL static int parseInitListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, QoreValue& new_args, const QoreTypeInfo*& argTypeInfo);
+    DLLLOCAL static int parseInitListInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+            QoreParseListNode* args, QoreValue& new_args, int& err);
 
-    DLLLOCAL static void parseCheckComplexListInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const QoreValue exp, const char* context_action, bool strict_check = true);
+    DLLLOCAL static int parseCheckComplexListInitialization(const QoreProgramLocation* loc,
+            const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const QoreValue exp,
+            const char* context_action, bool strict_check = true);
 
-    DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation* loc, const QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
+    DLLLOCAL static int parseCheckTypedAssignment(const QoreProgramLocation* loc, const QoreValue arg,
+            const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
 
-    DLLLOCAL static QoreListNode* newComplexList(const QoreTypeInfo* typeInfo, const QoreValue args, ExceptionSink* xsink);
+    DLLLOCAL static QoreListNode* newComplexList(const QoreTypeInfo* typeInfo, const QoreValue args,
+            ExceptionSink* xsink);
 
     // caller owns any reference in "init"
-    DLLLOCAL static QoreListNode* newComplexListFromValue(const QoreTypeInfo* typeInfo, QoreValue init, ExceptionSink* xsink);
+    DLLLOCAL static QoreListNode* newComplexListFromValue(const QoreTypeInfo* typeInfo, QoreValue init,
+            ExceptionSink* xsink);
 
     DLLLOCAL static const qore_list_private* get(const QoreListNode& l) {
         return l.priv;

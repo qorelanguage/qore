@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -60,7 +60,8 @@ protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     //! protected constructor for subclasses that are not reference-counted
-    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one, qore_type_t n_type = NT_FUNCREF);
+    DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval, bool n_there_can_be_only_one,
+            qore_type_t n_type = NT_FUNCREF);
 
 public:
     DLLLOCAL AbstractCallReferenceNode(bool n_needs_eval = false, qore_type_t n_type = NT_FUNCREF);
@@ -83,10 +84,13 @@ public:
 
     //! returns a QoreString giving the verbose string representation of the value
     /** used for %n and %N printf formatting
-        @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+        @param del if this is true when the function returns, then the returned QoreString pointer should be deleted,
+        if false, then it must not be
         @param foff for multi-line formatting offset, -1 = no line breaks
         @param xsink not used by this implementation of the function
-        NOTE: Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+
+        @note Use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
+
         @see QoreNodeAsStringHelper
     */
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -146,8 +150,7 @@ public:
     DLLEXPORT virtual AbstractQoreNode* realCopy() const;
 
     // must be defined but performs no action
-    DLLEXPORT virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids,
-        const QoreTypeInfo *&returnTypeInfo);
+    DLLEXPORT virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     // the following function must be defined, but is never called
     DLLEXPORT virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;

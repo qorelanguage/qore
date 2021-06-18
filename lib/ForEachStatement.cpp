@@ -193,40 +193,44 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
     return rc;
 }
 
-int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
-    int lvids = 0;
-
+int ForEachStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
 
-    const QoreTypeInfo* argTypeInfo = nullptr;
-    parse_init_value(var, oflag, pflag, lvids, argTypeInfo);
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
+
+    int err = 0;
+
+    parse_context.typeInfo = nullptr;
+    err = parse_init_value(var, parse_context);
 
     qore_type_t t = var.getType();
-    if (t != NT_VARREF && t != NT_SELF_VARREF) {
-        parse_error(*loc, "foreach variable expression is not a variable reference (got type '%s' instead)", var.getTypeName());
+    if (!err && t != NT_VARREF && t != NT_SELF_VARREF) {
+        parse_error(*loc, "foreach variable expression is not a variable reference (got type '%s' instead)",
+            var.getTypeName());
+        err = -1;
     }
 
-    argTypeInfo = nullptr;
-    parse_init_value(list, oflag, pflag, lvids, argTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(list, parse_context) && !err) {
+        err = -1;
+    }
 
     if (code) {
-        code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
-    }
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_BREAK_OK | PF_CONTINUE_OK);
 
-    // save local variables
-    if (lvids) {
-        lvars = new LVList(lvids);
+        err = code->parseInitImpl(parse_context);
     }
 
     qore_type_t typ = list.getType();
-
     is_ref = (typ == NT_PARSEREFERENCE);
-
     // use lazy evaluation if the iterator expression supports it
     iterator_func = dynamic_cast<FunctionalOperator*>(list.getInternalNode());
 
-    return 0;
+    return err;
 }
 
 void ForEachStatement::parseCommit(QoreProgram* pgm) {
@@ -235,4 +239,3 @@ void ForEachStatement::parseCommit(QoreProgram* pgm) {
         code->parseCommit(pgm);
     }
 }
-

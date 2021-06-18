@@ -392,10 +392,10 @@ void AbstractFunctionSignature::addDefaultArgument(std::string& str, QoreValue a
 }
 
 UserSignature::UserSignature(int first_line, int last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po) :
-    AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
-    parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
-    loc(qore_program_private::get(*getProgram())->getLocation(first_line, last_line)),
-    lv(0), argvid(0), selfid(0), resolved(false) {
+        AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
+        parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
+        loc(qore_program_private::get(*getProgram())->getLocation(first_line, last_line)),
+        lv(0), argvid(0), selfid(0), resolved(false) {
 
     bool needs_types = (bool)(po & (PO_REQUIRE_TYPES | PO_REQUIRE_PROTOTYPES));
     bool bare_refs = (bool)(po & PO_ALLOW_BARE_REFS);
@@ -412,22 +412,23 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
     ValueHolder param_holder(params, nullptr);
 
     if (params.getType() == NT_VARREF) {
-        pushParam(params.get<VarRefNode>(), QoreValue(), needs_types);
+        err = pushParam(params.get<VarRefNode>(), QoreValue(), needs_types);
         return;
     }
 
     if (params.getType() == NT_BAREWORD) {
-        pushParam(params.get<BarewordNode>(), needs_types, bare_refs);
+        err = pushParam(params.get<BarewordNode>(), needs_types, bare_refs);
         return;
     }
 
     if (params.getType() == NT_OPERATOR) {
-        pushParam(params.get<QoreOperatorNode>(), needs_types);
+        err = pushParam(params.get<QoreOperatorNode>(), needs_types);
         return;
     }
 
     if (params.getType() != NT_PARSE_LIST) {
         param_error();
+        err = -1;
         return;
     }
 
@@ -440,63 +441,93 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
     for (unsigned i = 0; i < l->size(); ++i) {
         QoreValue n = l->get(i);
         qore_type_t t = n.getType();
-        if (t == NT_OPERATOR)
-            pushParam(n.get<QoreOperatorNode>(), needs_types);
-        else if (t == NT_BAREWORD)
-            pushParam(n.get<BarewordNode>(), needs_types, bare_refs);
-        else if (t == NT_VARREF)
-            pushParam(n.get<VarRefNode>(), QoreValue(), needs_types);
-        else {
-            if (!n.isNothing())
+        if (t == NT_OPERATOR) {
+            if (pushParam(n.get<QoreOperatorNode>(), needs_types) && !err) {
+                err = -1;
+            }
+        } else if (t == NT_BAREWORD) {
+            if (pushParam(n.get<BarewordNode>(), needs_types, bare_refs) && !err) {
+                err = -1;
+            }
+        } else if (t == NT_VARREF) {
+            if (pushParam(n.get<VarRefNode>(), QoreValue(), needs_types) && !err) {
+                err = -1;
+            }
+        } else {
+            if (!n.isNothing()) {
                 param_error();
+                if (!err) {
+                    err = -1;
+                }
+            }
             break;
         }
 
         // add a comma to the signature string if it's not the last parameter
-        if (i != (l->size() - 1))
+        if (i != (l->size() - 1)) {
             str.append(", ");
+        }
     }
 }
 
-void UserSignature::pushParam(QoreOperatorNode* t, bool needs_types) {
+int UserSignature::pushParam(QoreOperatorNode* t, bool needs_types) {
     QoreAssignmentOperatorNode* op = dynamic_cast<QoreAssignmentOperatorNode*>(t);
     if (!op) {
-        parse_error(*loc, "invalid expression with the '%s' operator in parameter list; only simple assignments to default values are allowed", t->getTypeName());
-        return;
+        parse_error(*loc, "invalid expression with the '%s' operator in parameter list; only simple assignments to " \
+            "default values are allowed", t->getTypeName());
+        return -1;
     }
 
     QoreValue l = op->getLeft();
     if (l.getType() != NT_VARREF) {
         param_error();
-        return;
+        return -1;
     }
     VarRefNode* v = l.get<VarRefNode>();
     QoreValue defArg = op->swapRight(0);
     pushParam(v, defArg, needs_types);
+    return 0;
 }
 
-void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs) {
-   names.push_back(b->str);
-   parseTypeList.push_back(0);
-   typeList.push_back(0);
-   str.append(NO_TYPE_INFO);
-   str.append(" ");
-   str.append(b->str);
-   defaultArgList.push_back(QoreValue());
+int UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs) {
+    names.push_back(b->str);
+    parseTypeList.push_back(0);
+    typeList.push_back(0);
+    str.append(NO_TYPE_INFO);
+    str.append(" ");
+    str.append(b->str);
+    defaultArgList.push_back(QoreValue());
 
-   if (needs_types)
-      parse_error(*loc, "parameter '%s' declared without type information, but parse options require all declarations to have type information", b->str);
+    int err = 0;
+    if (needs_types) {
+        parse_error(*loc, "parameter '%s' declared without type information, but parse options require all " \
+            "declarations to have type information", b->str);
+        if (!err) {
+            err = -1;
+        }
+    }
 
-   if (!bare_refs)
-      parse_error(*loc, "parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not set", b->str);
-   return;
+    if (!bare_refs) {
+        parse_error(*loc, "parameter '%s' declared without '$' prefix, but parse option 'allow-bare-defs' is not " \
+            "set", b->str);
+        if (!err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
-void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types) {
+int UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types) {
+    int err = 0;
     // check for duplicate name
-    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
-        if (*i == v->getName())
+    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i) {
+        if (*i == v->getName()) {
             parse_error(*loc, "duplicate variable '%s' declared in parameter list", (*i).c_str());
+            if (!err) {
+                err = -1;
+            }
+        }
+    }
 
     names.push_back(v->getName());
 
@@ -504,6 +535,9 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
     if (needs_types && !is_decl) {
         parse_error(*loc, "parameter '%s' declared without type information, but parse options require all " \
             "declarations to have type information", v->getName());
+        if (!err) {
+            err = -1;
+        }
     }
 
     // see if this is a new object call
@@ -511,6 +545,9 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
         // here we make 4 virtual function calls when 2 would be enough, but no need to optimize for speed for an exception
         parse_error(*loc, "parameter '%s' may not be declared with implicit constructor syntax; instead use: " \
             "'%s %s = new %s()'", v->getName(), v->parseGetTypeName(), v->getName(), v->parseGetTypeName());
+        if (!err) {
+            err = -1;
+        }
     }
 
     if (is_decl) {
@@ -550,27 +587,39 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
     }
 
     if (v->explicitScope()) {
-        if (v->getType() == VT_LOCAL)
-            parse_error(*loc, "invalid local variable declaration in argument list; by default all variables declared in argument lists are local");
-        else if (v->getType() == VT_GLOBAL)
-            parse_error(*loc, "invalid global variable declaration in argument list; by default all variables declared in argument lists are local");
+        if (v->getType() == VT_LOCAL) {
+            parse_error(*loc, "invalid local variable declaration in argument list; by default all variables " \
+                "declared in argument lists are local");
+            if (!err) {
+                err = -1;
+            }
+        } else if (v->getType() == VT_GLOBAL) {
+            parse_error(*loc, "invalid global variable declaration in argument list; by default all variables " \
+                "declared in argument lists are local");
+            if (!err) {
+                err = -1;
+            }
+        }
     }
 
     //printd(5, "UserSignature::UserSignature() %p '%s'\n", this, str.c_str());
+    return err;
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
     lv.reserve(parseTypeList.size());
 
+    int err = 0;
     if (selfid) {
         push_local_var(selfid, loc);
     } else if (classTypeInfo) {
-        selfid = push_local_var("self", loc, classTypeInfo, true, 1);
+        selfid = push_local_var("self", loc, classTypeInfo, err, true, 1);
     }
 
     // push argv var on stack and save id
-    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, true, 1);
-    printd(5, "UserSignature::parseInitPushLocalVars() this: %p (%s) argvid: %p selfid: %p\n", this, getSignatureText(), argvid, selfid);
+    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, err, true, 1);
+    printd(5, "UserSignature::parseInitPushLocalVars() this: %p (%s) argvid: %p selfid: %p\n", this,
+        getSignatureText(), argvid, selfid);
 
     resolve();
 
@@ -580,9 +629,12 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
         // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
         // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
         lv.push_back(push_local_var(names[i].c_str(), loc,
-            typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
-        printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
+            typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], err, true, 1));
+        printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(),
+            lv[i]);
     }
+
+    assert(!err);
 }
 
 void UserSignature::parseInitPopLocalVars() {
@@ -600,14 +652,17 @@ void UserSignature::parseInitPopLocalVars() {
     }
 }
 
-void UserSignature::resolve() {
-    if (resolved)
-        return;
+int UserSignature::resolve() {
+    if (resolved) {
+        return 0;
+    }
 
     resolved = true;
 
+    int err = 0;
+
     if (!returnTypeInfo) {
-        returnTypeInfo = QoreParseTypeInfo::resolveAndDelete(parseReturnTypeInfo, loc);
+        returnTypeInfo = QoreParseTypeInfo::resolveAndDelete(parseReturnTypeInfo, loc, err);
         parseReturnTypeInfo = nullptr;
     }
 #ifdef DEBUG
@@ -619,7 +674,7 @@ void UserSignature::resolve() {
     for (unsigned i = 0; i < parseTypeList.size(); ++i) {
         if (parseTypeList[i]) {
             assert(!typeList[i]);
-            typeList[i] = QoreParseTypeInfo::resolveAndDelete(parseTypeList[i], loc);
+            typeList[i] = QoreParseTypeInfo::resolveAndDelete(parseTypeList[i], loc, err);
         }
         if (!has_def_args && defaultArgList[i]) {
             has_def_args = true;
@@ -631,13 +686,17 @@ void UserSignature::resolve() {
         for (unsigned i = 0; i < parseTypeList.size(); ++i) {
             // initialize default arguments
             if (defaultArgList[i]) {
-                int lvids = 0;
-                const QoreTypeInfo* argTypeInfo = nullptr;
-                parse_init_value(defaultArgList[i], selfid, 0, lvids, argTypeInfo);
-                if (lvids) {
-                    parse_error(*loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());
-                    while (lvids--)
+                QoreParseContext parse_context(selfid);
+                if (parse_init_value(defaultArgList[i], parse_context) && !err) {
+                    err = -1;
+                }
+                const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
+                if (parse_context.lvids) {
+                    parse_error(*loc, "illegal local variable declaration in default value expression in parameter " \
+                        "'%s'", names[i].c_str());
+                    while (parse_context.lvids--) {
                         pop_local_var();
+                    }
                 }
                 // check type compatibility
                 if (!QoreTypeInfo::parseAccepts(typeList[i], argTypeInfo)) {
@@ -648,6 +707,9 @@ void UserSignature::resolve() {
                     QoreTypeInfo::getThisType(argTypeInfo, *desc);
                     desc->concat(" instead");
                     qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+                    if (!err) {
+                        err = -1;
+                    }
                 }
             }
         }
@@ -657,6 +719,7 @@ void UserSignature::resolve() {
     // redo signature
     str.clear();
     AbstractFunctionSignature::addAbstractParameterSignature(str);
+    return err;
 }
 
 bool QoreFunction::existsVariant(const type_vec_t& paramTypeInfo) const {
@@ -711,7 +774,8 @@ static QoreStringNode* getNoopError(const QoreFunction* func, const QoreFunction
     return desc;
 }
 
-static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore_class_private* class_ctx, bool internal_access) {
+static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore_class_private* class_ctx,
+        bool internal_access) {
     assert(dynamic_cast<const MethodVariantBase*>(v));
     const MethodVariantBase* mvb = reinterpret_cast<const MethodVariantBase*>(v);
     ClassAccess va = mvb->getAccess();
@@ -726,7 +790,8 @@ static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgr
     desc->sprintf("%d to '", pi);
     if (class_name)
         desc->sprintf("%s::", class_name);
-    desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getPath(proto), QoreTypeInfo::getPath(arg));
+    desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getPath(proto),
+        QoreTypeInfo::getPath(arg));
     qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
     return nullptr;
 }
@@ -744,7 +809,8 @@ static void do_call_str(QoreString &desc, const QoreFunction* func, const type_v
     desc.concat(')');
 }
 
-static void warn_excess_args(const QoreProgramLocation* loc, const QoreFunction* func, const type_vec_t& argTypeInfo, AbstractFunctionSignature* sig) {
+static int warn_excess_args(const QoreProgramLocation* loc, const QoreFunction* func, const type_vec_t& argTypeInfo,
+        AbstractFunctionSignature* sig) {
     unsigned nargs = argTypeInfo.size();
     unsigned nparams = sig->numParams();
 
@@ -762,11 +828,14 @@ static void warn_excess_args(const QoreProgramLocation* loc, const QoreFunction*
     if (parse_get_parse_options() & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
         desc->concat("; this is an error when PO_REQUIRE_TYPES or PO_STRICT_ARGS is set");
         qore_program_private::makeParseException(getProgram(), *loc, "CALL-WITH-TYPE-ERRORS", desc);
-    } else {
-        // raise warning
-        desc->concat("; excess arguments will be ignored; to disable this warning, use '%%disable-warning excess-args' in your code");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
+        return -1;
     }
+
+    // raise warning
+    desc->concat("; excess arguments will be ignored; to disable this warning, use " \
+        "'%%disable-warning excess-args' in your code");
+    qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_EXCESS_ARGS, "EXCESS-ARGS", desc);
+    return 0;
 }
 
 static int check_extra_args(AbstractFunctionSignature* sig, const type_vec_t& argTypeInfo) {
@@ -841,14 +910,17 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
 }
 
 // finds a variant at runtime
-const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args, bool only_user, const qore_class_private* class_ctx) const {
+const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args,
+        bool only_user, const qore_class_private* class_ctx) const {
     // the lowest match length with the highest score wins
     int match_len = -1;
     int match = -1;
     const AbstractQoreFunctionVariant* variant = nullptr;
     //const AbstractQoreFunctionVariant* saved_variant = nullptr;
 
-    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) cctx: %p '%s'\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), ilist.size(), args, args ? args->size() : 0, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) " \
+    //  cctx: %p '%s'\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(),
+    //  ilist.size(), args, args ? args->size() : 0, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
     unsigned nargs = args ? args->size() : 0;
 
@@ -876,7 +948,9 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             continue;
         }
 
-        //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n", this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(), last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+        //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s(...) size: %d last_class: %p ctx: %p: %s\n",
+        //  this, aqf->className() ? aqf->className() : "", className() ? "::" : "", getName(), ilist.size(),
+        //  last_class, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
         for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
             // skip checking variant if we are only looking for user variants and this variant is builtin
@@ -1311,7 +1385,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
 
 // finds a variant at parse time
 const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation* loc,
-        const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const {
+        const type_vec_t& argTypeInfo, const qore_class_private* class_ctx, int& err) const {
     // the lowest match length with the highest score wins
     int match_len = -1;
     // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
@@ -1529,9 +1603,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     assert(!(runtime_match && variant));
 
     // if we only have one possible variant, then assign it, even it it's not a guaranteed match
-    if (!variant && pvariant)
+    if (!variant && pvariant) {
         variant = pvariant;
-    else if (!variant && !runtime_match && pmatch == -1 && getProgram()->getParseExceptionSink()) {
+    } else if (!variant && !runtime_match && pmatch == -1 && getProgram()->getParseExceptionSink()) {
         QoreStringNode* desc = new QoreStringNode("no variant matching '");
         do_call_str(*desc, this, argTypeInfo);
         desc->concat("' can be found; ");
@@ -1574,6 +1648,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             }
         }
         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+        if (!err) {
+            err = -1;
+        }
     } else if (variant) {
         int64 flags = variant->getFlags();
         if (flags & (QCF_NOOP | QCF_RUNTIME_NOOP)) {
@@ -1584,8 +1661,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         }
 
         AbstractFunctionSignature* sig = variant->getSignature();
-        if (!(flags & QCF_USES_EXTRA_ARGS) && num_args > sig->numParams())
-            warn_excess_args(loc, this, argTypeInfo, sig);
+        if (!(flags & QCF_USES_EXTRA_ARGS) && num_args > sig->numParams()) {
+            if (warn_excess_args(loc, this, argTypeInfo, sig) && !err) {
+                err = -1;
+            }
+        }
     }
 
     /*
@@ -2141,20 +2221,24 @@ void QoreFunction::parseRollback() {
     // noop: object will be destroyed
 }
 
-void QoreFunction::parseInit(qore_ns_private* ns) {
+int QoreFunction::parseInit(qore_ns_private* ns) {
     if (parse_init_done || parse_init_in_progress) {
-        return;
+        return 0;
     }
     parse_init_in_progress = true;
 
+    int err = 0;
     if (check_parse) {
         OptionalNamespaceParseContextHelper pch(ns);
 
         for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-            (*i)->parseInit(this);
+            if ((*i)->parseInit(this) && !err) {
+                err = -1;
+            }
         }
     }
     parse_init_done = true;
+    return err;
 }
 
 QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
@@ -2176,7 +2260,7 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
     return UCLOV_const(variant)->evalClosure(ceh, self, xsink);
 }
 
-void UserFunctionVariant::parseInit(QoreFunction* f) {
+int UserFunctionVariant::parseInit(QoreFunction* f) {
     signature.resolve();
 
     // resolve and push current return type on stack
@@ -2186,22 +2270,27 @@ void UserFunctionVariant::parseInit(QoreFunction* f) {
     ParseImplicitArgTypeHelper pia(nullptr);
 
     // can (and must) be called even if statements is NULL
-    statements->parseInit(this);
+    int err = statements->parseInit(this);
 
     // recheck types against committed types if necessary
-    if (recheck)
-        f->parseCheckDuplicateSignatureCommitted(&signature);
+    if (recheck && f->parseCheckDuplicateSignatureCommitted(&signature) && !err) {
+        err = -1;
+    }
+    return err;
 }
 
-void UserClosureVariant::parseInit(QoreFunction* f) {
+int UserClosureVariant::parseInit(QoreFunction* f) {
     UserClosureFunction* cf = static_cast<UserClosureFunction*>(f);
 
-    signature.resolve();
+    int err = signature.resolve();
 
     // resolve and push current return type on stack
     ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());
 
-    statements->parseInitClosure(this, cf);
+    if (statements->parseInitClosure(this, cf) && !err) {
+        err = -1;
+    }
 
     // only one variant is possible, no need to recheck types
+    return err;
 }

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,18 +30,22 @@
 
 #include <qore/Qore.h>
 
-QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation* loc, int n_offset) : ParseNode(loc, NT_IMPLICIT_ARG), offset(n_offset) {
-   if (!offset)
-      parse_error(*loc, "implicit argument offsets must be greater than 0 (first implicit argument is $1)");
-   else if (offset > 0)
-      --offset;
+QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation* loc, int n_offset)
+        : ParseNode(loc, NT_IMPLICIT_ARG), offset(n_offset) {
+    if (!offset) {
+        parse_error(*loc, "implicit argument offsets must be greater than 0 (first implicit argument is $1)");
+        err = -1;
+    } else if (offset > 0) {
+        --offset;
+    }
 }
 
 QoreImplicitArgumentNode::~QoreImplicitArgumentNode() {
 }
 
-void QoreImplicitArgumentNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = parse_get_implicit_arg_type_info();
+int QoreImplicitArgumentNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = parse_get_implicit_arg_type_info();
+    return 0;
 }
 
 const QoreTypeInfo* QoreImplicitArgumentNode::getTypeInfo() const {
@@ -53,7 +57,8 @@ const QoreValue QoreImplicitArgumentNode::get() const {
     if (!argv) {
         return QoreValue();
     }
-    //printd(5, "QoreImplicitArgumentNode::get() offset: %d v: %s\n", offset, argv->retrieveEntry(offset).getTypeName());
+    //printd(5, "QoreImplicitArgumentNode::get() offset: %d v: %s\n", offset,
+    //  argv->retrieveEntry(offset).getTypeName());
     return argv->retrieveEntry(offset);
 }
 

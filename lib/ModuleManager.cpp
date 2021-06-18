@@ -170,59 +170,82 @@ void QoreModuleContext::commit() {
     mcnl.mcnl_t::clear();
 }
 
-void QoreModuleDefContext::set(const QoreProgramLocation* loc, const char* key, QoreValue val) {
+int QoreModuleDefContext::set(const QoreProgramLocation* loc, const char* key, QoreValue val) {
+    int err = 0;
     // special handling for "init" and "del"
     if (!strcmp(key, "init")) {
-        if (init_c)
+        if (init_c) {
             parse_error(*loc, "module key 'init' was given multiple times");
-        else {
+            err = -1;
+        } else {
             // check type when code is committed
             init_c = val.refSelf();
             init_loc = loc;
         }
     } else if (!strcmp(key, "del")) {
-        if (del_c)
+        if (del_c) {
             parse_error(*loc, "module key 'del' was given multiple times");
-        else {
+            err = -1;
+        } else {
             // check type when code is committed
             del_c = val.refSelf();
             del_loc = loc;
         }
-    } else if (vset.find(key) == vset.end())
+    } else if (vset.find(key) == vset.end()) {
         parse_error(*loc, "module key '%s' is invalid", key);
-    else if (vmap.find(key) != vmap.end())
+        err = -1;
+    } else if (vmap.find(key) != vmap.end()) {
         parse_error(*loc, "module key '%s' was given multiple times", key);
-    else if (val.getType() != NT_STRING)
+        err = -1;
+    } else if (val.getType() != NT_STRING) {
         parse_error(*loc, "module key '%s' assigned type '%s' (expecting 'string')", key, val.getTypeName());
-    else
+        err = -1;
+    } else {
         vmap[key] = val.get<const QoreStringNode>()->c_str();
+    }
+
+    return err;
 }
 
 // called only during parsing
-void QoreModuleDefContext::parseInit() {
-    if (init_c)
-        initClosure(init_loc, init_c, "init");
-    if (del_c)
-        initClosure(del_loc, del_c, "del");
+int QoreModuleDefContext::parseInit() {
+    int err = 0;
+    if (init_c) {
+        err = initClosure(init_loc, init_c, "init");
+    }
+    if (del_c) {
+        if (initClosure(del_loc, del_c, "del") && !err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
-void QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n) {
+int QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n) {
     // initialize closure
-    int lvids = 0;
-    const QoreTypeInfo* typeInfo = nullptr;
+    QoreParseContext parse_context;
     // check for local variables at the top level - this can only happen if the expresion is not a closure
-    parse_init_value(c, nullptr, 0, lvids, typeInfo);
-    if (lvids) {
+    int err = parse_init_value(c, parse_context);
+    if (parse_context.lvids) {
         parseException(*loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
         // discard variables immediately
-        for (int i = 0; i < lvids; ++i) {
+        for (int i = 0; i < parse_context.lvids; ++i) {
             pop_local_var();
+        }
+        if (!err) {
+            err = -1;
         }
     }
 
     qore_type_t t = c.getType();
-    if (t != NT_CLOSURE && t != NT_FUNCREF)
-        parse_error(*loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, c.getTypeName());
+    if (t != NT_CLOSURE && t != NT_FUNCREF) {
+        parse_error(*loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n,
+            c.getTypeName());
+        if (!err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,8 +64,7 @@ QoreValue QoreTrimOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         QoreStringNode* vs = val.getValue().get<QoreStringNode>();
         if (vs->trim(xsink))
             return QoreValue();
-    }
-    else if (vtype == NT_LIST) {
+    } else if (vtype == NT_LIST) {
         QoreListNode* l = val.getValue().get<QoreListNode>();
         qore_list_private* ll = qore_list_private::get(*l);
         ListIterator li(l);
@@ -80,8 +79,7 @@ QoreValue QoreTrimOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
                 }
             }
         }
-    }
-    else { // is a hash
+    } else { // is a hash
         QoreHashNode* vh = val.getValue().get<QoreHashNode>();
         HashIterator hi(vh);
         while (hi.next()) {
@@ -103,20 +101,25 @@ QoreValue QoreTrimOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     return val.getReferencedValue();
 }
 
-void QoreTrimOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    assert(!typeInfo);
-    parse_init_value(exp, oflag, pflag, lvids, typeInfo);
-    if (exp)
-        checkLValue(exp, pflag);
-
-    if (QoreTypeInfo::hasType(typeInfo)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
-        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
-        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the trim operator is ");
-        QoreTypeInfo::getThisType(typeInfo, *desc);
-        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+int QoreTrimOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
+    if (exp && !err) {
+        err = checkLValue(exp, parse_context.pflag);
     }
-    returnTypeInfo = typeInfo;
+
+    if (QoreTypeInfo::hasType(parse_context.typeInfo)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_STRING)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_LIST)
+        && !QoreTypeInfo::parseAcceptsReturns(parse_context.typeInfo, NT_HASH)) {
+        // FIXME: raise exceptions with %strict-types
+        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the trim operator is ");
+        QoreTypeInfo::getThisType(parse_context.typeInfo, *desc);
+        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return " \
+            "NOTHING; this operator only works on strings, lists, and hashes");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            desc);
+    }
+    returnTypeInfo = parse_context.typeInfo;
+    return err;
 }

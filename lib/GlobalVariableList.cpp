@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -125,10 +125,14 @@ const Var* GlobalVariableList::parseFindVar(const char* name) const {
     return nullptr;
 }
 
-void GlobalVariableList::parseInit() {
+int GlobalVariableList::parseInit() {
+    int err = 0;
     for (auto& i : vmap) {
-        i.second->parseInit();
+        if (i.second->parseInit() && !err) {
+            err = -1;
+        }
     }
+    return err;
 }
 
 void GlobalVariableList::reset() {

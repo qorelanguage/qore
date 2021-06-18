@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -36,14 +36,6 @@
 #include "qore/intern/AbstractStatement.h"
 
 class ExpressionStatement : public AbstractStatement {
-private:
-    QoreValue exp;
-    bool is_declaration;
-    bool is_parse_declaration;
-
-    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-
 public:
     DLLLOCAL ExpressionStatement(const QoreProgramLocation* loc, QoreValue v);
 
@@ -56,6 +48,15 @@ public:
     DLLLOCAL virtual bool isDeclaration() const {
         return is_declaration;
     }
+
+private:
+    QoreValue exp;
+    bool is_declaration;
+    bool is_parse_declaration;
+
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 };
 
 #endif

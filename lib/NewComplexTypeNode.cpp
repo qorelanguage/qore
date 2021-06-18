@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,50 +35,74 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_list_private.h"
 
-void ParseNewComplexTypeNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);
+int ParseNewComplexTypeNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    int err = 0;
+    parse_context.typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc, err);
     pti = nullptr;
 
     {
-        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
+        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(parse_context.typeInfo);
         if (qc) {
             ReferenceHolder<> holder(this, nullptr);
             val = new ScopedObjectCallNode(loc, qc, takeArgs());
-            parse_init_value(val, oflag, pflag, lvids, typeInfo);
-            return;
+            //return parse_init_value(val, parse_context) || err ? -1 : 0;
+            if (parse_init_value(val, parse_context) && !err) {
+                err = -1;
+            }
+            return err;
         }
     }
     {
-        const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+        const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(parse_context.typeInfo);
         if (hd) {
             ReferenceHolder<> holder(this, nullptr);
             bool runtime_check;
-            lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, args, runtime_check);
+            const QoreTypeInfo* returnTypeInfo = parse_context.typeInfo;
+            if (typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, parse_context, args,
+                runtime_check) && !err) {
+                err = -1;
+            }
+            parse_context.typeInfo = returnTypeInfo;
             val = new NewHashDeclNode(loc, hd, takeArgs(), runtime_check);
-            return;
+            return err;
         }
     }
     {
-        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(parse_context.typeInfo);
         if (ti) {
             ReferenceHolder<> holder(this, nullptr);
-            lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, args, ti);
-            val = new NewComplexHashNode(loc, typeInfo, takeArgs());
-            return;
+            const QoreTypeInfo* returnTypeInfo = parse_context.typeInfo;
+            parse_context.typeInfo = ti;
+            if (qore_hash_private::parseInitComplexHashInitialization(loc, parse_context, args) && !err) {
+                err = -1;
+            }
+            parse_context.typeInfo = returnTypeInfo;
+            val = new NewComplexHashNode(loc, parse_context.typeInfo, takeArgs());
+            return err;
         }
     }
     {
-        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(parse_context.typeInfo);
         if (ti) {
             ReferenceHolder<> holder(this, nullptr);
             QoreValue new_args;
-            lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeArgs(), new_args, ti);
-            val = new NewComplexListNode(loc, typeInfo, new_args);
-            return;
+            const QoreTypeInfo* returnTypeInfo = parse_context.typeInfo;
+            parse_context.typeInfo = ti;
+            if (qore_list_private::parseInitComplexListInitialization(loc, parse_context, takeArgs(), new_args)
+                && !err) {
+                err = -1;
+            }
+            parse_context.typeInfo = returnTypeInfo;
+            val = new NewComplexListNode(loc, parse_context.typeInfo, new_args);
+            return err;
         }
     }
 
-    parse_error(*loc, "type '%s' does not support instantiation with the new operator", QoreTypeInfo::getName(typeInfo));
+    if (!err) {
+        parse_error(*loc, "type '%s' does not support instantiation with the new operator",
+            QoreTypeInfo::getName(parse_context.typeInfo));
+    }
+    return -1;
 }
 
 QoreValue NewHashDeclNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

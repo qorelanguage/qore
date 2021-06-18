@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -97,8 +97,8 @@ public:
         return name.empty() ? func->getName() : name.c_str();
     }
 
-    DLLLOCAL void parseInit() {
-        func->parseInit(ns);
+    DLLLOCAL int parseInit() {
+        return func->parseInit(ns);
     }
 
     DLLLOCAL void parseCommit() {
@@ -186,7 +186,7 @@ public:
     DLLLOCAL int importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink);
 
     DLLLOCAL void del();
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL void parseRollback();
     DLLLOCAL void parseCommit();
     DLLLOCAL QoreListNode* getList();

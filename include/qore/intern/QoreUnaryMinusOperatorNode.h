@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,34 +34,35 @@
 #define _QORE_QOREUNARYMINUSOPERATORNODE_H
 
 class QoreUnaryMinusOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
+public:
+    DLLLOCAL QoreUnaryMinusOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
+            : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp) {
+    }
+
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+
+    // returns the type name as a c string
+    DLLLOCAL virtual const char* getTypeName() const {
+        return unaryminus_str.c_str();
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+        return copyBackgroundExplicit<QoreUnaryMinusOperatorNode>(xsink);
+    }
+
 protected:
-    const QoreTypeInfo *returnTypeInfo;
+    const QoreTypeInfo* returnTypeInfo = nullptr;
 
     DLLLOCAL static QoreString unaryminus_str;
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return returnTypeInfo;
-    }
-
-public:
-    DLLLOCAL QoreUnaryMinusOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp), returnTypeInfo(0) {
-    }
-
-    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
-
-    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-
-    // returns the type name as a c string
-    DLLLOCAL virtual const char *getTypeName() const {
-        return unaryminus_str.getBuffer();
-    }
-
-    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
-        return copyBackgroundExplicit<QoreUnaryMinusOperatorNode>(xsink);
     }
 };
 

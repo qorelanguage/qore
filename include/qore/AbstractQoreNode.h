@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,9 @@
 #define FMT_NORMAL      0
 
 class LocalVar;
+
+// forward declaration
+struct QoreParseContext;
 
 //! The base class for all value and parse types in Qore expression trees
 /**
@@ -240,15 +243,18 @@ public:
     //! returns true if the object is reference-counted
     DLLLOCAL bool isReferenceCounted() const { return !there_can_be_only_one; }
 
-    //! for use by parse types to initialize them for execution during stage 1 parsing; not exported in the library; this method's API/ABI subject to change at any time
-    /** This function should only be overridden by types that can appear in the parse tree (i.e. are recognized by the parser)
+    //! for use by parse types to initialize them for execution during stage 1 parsing
+    /** Not exported in the library; this method's API/ABI subject to change at any time.
+
+        This function should only be overridden by types that can appear in the parse tree (i.e. are recognized by
+        the parser)
+
         @param val the containing QoreValue
-        @param oflag non-zero if initialized within class code
-        @param pflag bitfield parse flag
-        @param lvids the number of new local variables declared in this node
-        @param typeInfo any available type constraints on the initialized value or expression
+        @param parse_context the parse context
+
+        @return -1 if an error occured, 0 if OK
     */
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
     DLLLOCAL AbstractQoreNode& operator=(const AbstractQoreNode&);

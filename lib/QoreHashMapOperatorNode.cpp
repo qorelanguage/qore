@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,8 @@ int QoreHashMapOperatorNode::getAsString(QoreString& str, int foff, ExceptionSin
     return 0;
 }
 
-const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo) {
+const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo,
+        const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo) {
     const QoreTypeInfo* typeInfo;
 
     // this operator returns no value if the iterator expression has no value
@@ -56,43 +57,52 @@ const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInf
 
         if (or_nothing) {
             typeInfo = qore_get_complex_hash_or_nothing_type(expTypeInfo2);
-        }
-        else
+        } else
             typeInfo = returnTypeInfo;
-    }
-    else {
+    } else {
         returnTypeInfo = hashTypeInfo;
         // this operator returns no value if the iterator expression has no value
         typeInfo = or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
     }
 
-    //printd(5, "QoreHashMapOperatorNode::setReturnTypeInfoe: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+    //printd(5, "QoreHashMapOperatorNode::setReturnTypeInfoe: '%s' t: '%s' r: '%s'\n",
+    //  QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
 
     return typeInfo;
 }
 
-void QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    assert(!typeInfo);
+int QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
-
+    assert(!parse_context.typeInfo);
     // check iterator expression
-    const QoreTypeInfo* iteratorTypeInfo = nullptr;
-    parse_init_value(e[2], oflag, pflag, lvids, iteratorTypeInfo);
+    int err = parse_init_value(e[2], parse_context);
+    const QoreTypeInfo* iteratorTypeInfo = parse_context.typeInfo;
 
-    const QoreTypeInfo* expTypeInfo = nullptr;
-    const QoreTypeInfo* expTypeInfo2 = nullptr;
+    const QoreTypeInfo* expTypeInfo;
+    const QoreTypeInfo* expTypeInfo2;
     {
         // set implicit argv arg type
         ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
 
         // check key expression
-        parse_init_value(e[0], oflag, pflag, lvids, expTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(e[0], parse_context) && !err) {
+            err = -1;
+        }
+        expTypeInfo = parse_context.typeInfo;
         // check value expression2
-        parse_init_value(e[1], oflag, pflag, lvids, expTypeInfo2);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(e[1], parse_context) && !err) {
+            err = -1;
+        }
+        expTypeInfo2 = parse_context.typeInfo;
     }
 
-    typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
+    parse_context.typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
+    return err;
 }
 
 QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {
@@ -141,7 +151,9 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 
         if (ref_rv) {
             const QoreTypeInfo* vtype = arg_val->getTypeInfo();
-            //printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+            //printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n",
+            //  li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType,
+            //  QoreTypeInfo::getName(valueType));
             if (vtype && vtype != anyTypeInfo) {
                 valueType = vtype;
                 vcommon = true;
@@ -173,7 +185,9 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 
                 if (ref_rv) {
                     const QoreTypeInfo* vtype = val->getTypeInfo();
-                    //printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                    printd(5, "QoreHashMapOperatorNode::evalImpl() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n",
+                        li.index(), vcommon, vtype, QoreTypeInfo::getName(vtype), valueType,
+                        QoreTypeInfo::getName(valueType));
                     if (!li.index()) {
                         if (vtype && vtype != anyTypeInfo) {
                             valueType = vtype;
@@ -195,7 +209,8 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
         return QoreValue();
 
 
-    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType,
+    //  QoreTypeInfo::getName(valueType));
     if (ref_rv && vcommon) {
         qore_hash_private::get(**ret_val)->complexTypeInfo = qore_get_complex_hash_type(valueType);
     }
@@ -244,7 +259,9 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
 
             if (ref_rv) {
                 const QoreTypeInfo* vtype = val->getTypeInfo();
-                //printd(5, "QoreHashMapOperatorNode::mapIterator() i: %d vcommon: %d vtype: %p '%s' valueType: %p '%s'\n", i, vcommon, vtype, QoreTypeInfo::getName(vtype), valueType, QoreTypeInfo::getName(valueType));
+                printd(5, "QoreHashMapOperatorNode::mapIterator() i: %d vcommon: %d vtype: %p '%s' valueType: %p " \
+                    "'%s'\n", i, vcommon, vtype, QoreTypeInfo::getName(vtype), valueType,
+                    QoreTypeInfo::getName(valueType));
                 if (i == 1) {
                     if (vtype && vtype != anyTypeInfo) {
                         valueType = vtype;
@@ -262,7 +279,8 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
             return QoreValue();
     }
 
-    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType, QoreTypeInfo::getName(valueType));
+    //printd(5, "QoreHashMapOperatorNode::mapIterator() vcommon: %d valueType: %p '%s'\n", vcommon, valueType,
+    //  QoreTypeInfo::getName(valueType));
     if (ref_rv && vcommon) {
         qore_hash_private::get(**rv)->complexTypeInfo = qore_get_complex_hash_type(valueType);
     }

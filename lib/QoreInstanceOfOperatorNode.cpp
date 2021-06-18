@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -61,17 +61,18 @@ QoreValue QoreInstanceOfOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
 }
 
-void QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = boolTypeInfo;
-
-    const QoreTypeInfo* lti = nullptr;
-    parse_init_value(exp, oflag, pflag, lvids, lti);
+    assert(!parse_context.typeInfo);
+    // check iterator expression
+    int err = parse_init_value(exp, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
 
     if (r) {
-        ti = QoreParseTypeInfo::resolveAny(r, loc);
+        ti = QoreParseTypeInfo::resolveAny(r, loc, err);
         delete r;
         r = nullptr;
     }
@@ -80,12 +81,16 @@ void QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
         assert(ti);
 #endif
 
-    //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp, QoreTypeInfo::getName(lti));;
+    //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp,
+    //  QoreTypeInfo::getName(lti));
     // issue #4112: ensure that objects will be subject to runtime checks
     if (!QoreTypeInfo::parseAccepts(ti, lti)
         && (!QoreTypeInfo::parseAccepts(ti, objectTypeInfo) || !QoreTypeInfo::parseAccepts(lti, objectTypeInfo))) {
-        QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+        // FIXME this must be an error with %strict-types
+        QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False",
+            QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            edesc);
     }
 
     // see the argument is a constant value, then eval immediately and substitute this node with the result
@@ -96,4 +101,7 @@ void QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
         assert(!**xsink);
         val = v.takeReferencedValue();
     }
+
+    parse_context.typeInfo = boolTypeInfo;
+    return err;
 }

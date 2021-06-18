@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -92,7 +92,7 @@ protected:
 
 public:
     DLLLOCAL ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp, char* n_method);
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 };
 
 class ParseSelfMethodReferenceNode : public AbstractParseObjectMethodReferenceNode {
@@ -103,7 +103,7 @@ private:
     DLLLOCAL ~ParseSelfMethodReferenceNode() {
     }
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return callReferenceTypeInfo;
@@ -114,11 +114,13 @@ protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
+    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, char* n_method)
+            : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
         free(n_method);
     }
 
-    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, const QoreMethod* m) : AbstractParseObjectMethodReferenceNode(loc), meth(m) {
+    DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, const QoreMethod* m)
+            : AbstractParseObjectMethodReferenceNode(loc), meth(m) {
     }
 };
 
@@ -133,7 +135,7 @@ protected:
     // returns a RunTimeObjectMethodReference or NULL if there's an exception
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return callReferenceTypeInfo;
     }

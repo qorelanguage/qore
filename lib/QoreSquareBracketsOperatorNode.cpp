@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,94 +34,126 @@
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
-void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+int QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
     assert(!typeInfo);
-    assert(!returnTypeInfo);
 
-    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    {
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.unsetFlags(PF_FOR_ASSIGNMENT);
 
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(right, parse_context) && !err) {
+            err = -1;
+        }
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
     bool rti_is_list = QoreTypeInfo::isType(rti, NT_LIST);
     bool rti_can_be_list = rti_is_list ? true : QoreTypeInfo::parseReturns(rti, NT_LIST);
 
     if (QoreTypeInfo::hasType(lti)) {
         // if we are trying to convert to a list
-        if (pflag & PF_FOR_ASSIGNMENT) {
+        if (parse_context.pflag & PF_FOR_ASSIGNMENT) {
             // only throw a parse exception if parse exceptions are enabled
-            if (!QoreTypeInfo::parseAcceptsReturns(lti, NT_LIST) && getProgram()->getParseExceptionSink()) {
-                QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
-                QoreTypeInfo::getThisType(lti, *edesc);
-                edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-                qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
+            if (!QoreTypeInfo::parseAcceptsReturns(lti, NT_LIST)) {
+                if (getProgram()->getParseExceptionSink()) {
+                    QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
+                    QoreTypeInfo::getThisType(lti, *edesc);
+                    edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
+                    qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
+                }
+                if (!err) {
+                    err = -1;
+                }
             }
         } else {
             if (QoreTypeInfo::isType(lti, NT_STRING)) {
-                returnTypeInfo = rti_is_list ? stringTypeInfo : stringOrNothingTypeInfo;
+                typeInfo = rti_is_list ? stringTypeInfo : stringOrNothingTypeInfo;
             } else if (QoreTypeInfo::isType(lti, NT_BINARY)) {
-                if (rti_is_list)
-                   returnTypeInfo = binaryTypeInfo;
-                else if (!rti_can_be_list)
-                    returnTypeInfo = bigIntOrNothingTypeInfo;
+                if (rti_is_list) {
+                    typeInfo = binaryTypeInfo;
+                } else if (!rti_can_be_list) {
+                    typeInfo = bigIntOrNothingTypeInfo;
+                }
                 // if the rhs may or may not be a list, then we can't determine the return type;
                 // it could be int, binary, or NOTHING
             } else if (!QoreTypeInfo::parseAccepts(listTypeInfo, lti)
                      && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
                      && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)) {
-                QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
+                // FIXME: raise exceptions with %strict-types
+                QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' " \
+                    "operator is ");
                 QoreTypeInfo::getThisType(lti, *edesc);
-                edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-                returnTypeInfo = nothingTypeInfo;
+                edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns " \
+                    "a value within the legal bounds of lists, strings, and binary objects");
+                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
+                    "INVALID-OPERATION", edesc);
+                typeInfo = nothingTypeInfo;
             }
         }
-        if (!returnTypeInfo && QoreTypeInfo::parseAccepts(listTypeInfo, lti)) {
+        if (!typeInfo && QoreTypeInfo::parseAccepts(listTypeInfo, lti)) {
             const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(lti);
             if (rti_can_be_list) {
                 if (rti_is_list) {
                     if (ti) {
                         // with a slice, the return type is list<*type>
-                        returnTypeInfo = qore_get_complex_list_type(get_or_nothing_type_check(ti));
+                        typeInfo = qore_get_complex_list_type(get_or_nothing_type_check(ti));
                     } else {
-                        // otherwise we always get a list when making a slice of a list, but the element type is unknown
+                        // otherwise we always get a list when making a slice of a list, but the element type is
+                        // unknown
                         // if the lhs is not a list, then we get NOTHING
-                        returnTypeInfo = QoreTypeInfo::isType(lti, NT_LIST) ? listTypeInfo : listOrNothingTypeInfo;
+                        typeInfo = QoreTypeInfo::isType(lti, NT_LIST) ? listTypeInfo : listOrNothingTypeInfo;
                     }
                 }
                 // if we can be a list but also can be something else (ex NOTHING),
                 // then we cannot predict the return type at parse time
             } else {
                 if (ti) {
-                    // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is not present
-                    returnTypeInfo = get_or_nothing_type_check(ti);
+                    // issue #2115 when dereferencing a list, we could get also NOTHING when the requested element is
+                    // not present
+                    typeInfo = get_or_nothing_type_check(ti);
                 }
             }
         }
     }
 
-    // if the rhs cannot be a list, see if the rhs is a type that can be converted to an integer, if not raise an invalid operation warning
+    // if the rhs cannot be a list, see if the rhs is a type that can be converted to an integer, if not raise an
+    // invalid operation warning
     if (!rti_can_be_list && !QoreTypeInfo::canConvertToScalar(rti)) {
+        // FIXME: raise exceptions with %strict-types
         QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
         QoreTypeInfo::getThisType(rti, *edesc);
         edesc->concat(" and so will always evaluate to zero");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            edesc);
     }
 
     if (rti_is_list) {
-        if (pflag & PF_FOR_ASSIGNMENT)
+        if (parse_context.pflag & PF_FOR_ASSIGNMENT) {
             parse_error(*loc, "a slice cannot be used on the left-hand side of an assignment expression");
+            if (!err) {
+                err = -1;
+            }
+        }
 
         // check element types in list
         switch (right.getType()) {
             case NT_PARSE_LIST:
-                parseCheckValueTypes(right.get<const QoreParseListNode>());
+                if (parseCheckValueTypes(right.get<const QoreParseListNode>()) && !err) {
+                    err = -1;
+                }
                 break;
             case NT_LIST:
-                parseCheckValueTypes(right.get<const QoreListNode>());
+                if (parseCheckValueTypes(right.get<const QoreListNode>()) && !err) {
+                    err = -1;
+                }
                 break;
             default:
                 break;
@@ -129,45 +161,62 @@ void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* ofl
         }
     }
 
-    // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute this node with the result
-    // if the right side can be a list then we need to leave it unevaluated so we can support lazy evaluation with functional operators
+    // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute
+    // this node with the result
+    // if the right side can be a list then we need to leave it unevaluated so we can support lazy evaluation with
+    // functional operators
     if (!rti_can_be_list && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
-        typeInfo = val.getTypeInfo();
-        return;
+        parse_context.typeInfo = typeInfo = val.getFullTypeInfo();
+        return **xsink ? -1 : 0;
     }
 
-    typeInfo = returnTypeInfo;
+    parse_context.typeInfo = typeInfo;
+    return err;
 }
 
-void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreParseListNode* pln) {
+int QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreParseListNode* pln) {
     const type_vec_t& vtypes = pln->getValueTypes();
     const QoreParseListNode::nvec_t& vl = pln->getValues();
+    int err = 0;
     for (unsigned i = 0; i < vtypes.size(); ++i) {
-        if (QoreTypeInfo::canConvertToScalar(vtypes[i]))
-            continue;
-        // see if the value is a range
-        if (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode())) {
-            if (!rhs_list_range)
-                rhs_list_range = true;
+        if (QoreTypeInfo::canConvertToScalar(vtypes[i])) {
             continue;
         }
-        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i, (int)vtypes.size(), QoreTypeInfo::getName(vtypes[i]));
+        // see if the value is a range
+        if (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode())) {
+            if (!rhs_list_range) {
+                rhs_list_range = true;
+            }
+            continue;
+        }
+        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type " \
+            "convertible to an integer or a range", i, (int)vtypes.size(), QoreTypeInfo::getName(vtypes[i]));
+        if (!err) {
+            err = -1;
+        }
     }
+    return err;
 }
 
-void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln) {
+int QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln) {
     ConstListIterator i(ln);
+    int err = 0;
     while (i.next()) {
         const QoreTypeInfo* vti = i.getValue().getTypeInfo();
-        if (QoreTypeInfo::canConvertToScalar(vti))
+        if (QoreTypeInfo::canConvertToScalar(vti)) {
             continue;
+        }
         parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %lu/%lu of type '%s'; need a " \
             "type convertible to an integer or a range", i.index(), i.max(), QoreTypeInfo::getName(vti));
+        if (!err) {
+            err = -1;
+        }
     }
+    return err;
 }
 
 QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -186,7 +235,8 @@ QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionS
     return doSquareBrackets(*lh, *rh, true, xsink);
 }
 
-QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreValue l, const QoreParseListNode* pln, ExceptionSink* xsink) {
+QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreValue l, const QoreParseListNode* pln,
+        ExceptionSink* xsink) {
     switch (l.getType()) {
         case NT_LIST: {
             // calculate the runtime element type if possible
@@ -199,7 +249,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
                 ValueEvalRefHolder rh(vl[i], xsink);
                 if (*xsink)
                     return QoreValue();
-                bool is_range = (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode()));
+                bool is_range = (vl[i].getType() == NT_OPERATOR
+                    && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode()));
                 ValueHolder entry(doSquareBrackets(l, *rh, is_range, xsink), xsink);
                 if (*xsink)
                     return QoreValue();
@@ -212,8 +263,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
                         if (!i) {
                             vtype = n.getTypeInfo();
                             vcommon = true;
-                        }
-                        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, n.getTypeInfo()))
+                        } else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, n.getTypeInfo()))
                             vcommon = false;
 
                         ret->push(n.refSelf(), xsink);
@@ -241,7 +291,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
                 ValueEvalRefHolder rh(i, xsink);
                 if (*xsink)
                     return QoreValue();
-                bool is_range = (i.getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(i.getInternalNode()));
+                bool is_range = (i.getType() == NT_OPERATOR
+                    && dynamic_cast<const QoreRangeOperatorNode*>(i.getInternalNode()));
                 if (doString(ret, l, *rh, is_range, xsink))
                     return QoreValue();
             }
@@ -253,7 +304,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
                 ValueEvalRefHolder rh(i, xsink);
                 if (*xsink)
                     return QoreValue();
-                bool is_range = (i.getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(i.getInternalNode()));
+                bool is_range = (i.getType() == NT_OPERATOR
+                    && dynamic_cast<const QoreRangeOperatorNode*>(i.getInternalNode()));
                 if (doBinary(bin, l, *rh, is_range, xsink))
                     return QoreValue();
             }
@@ -265,7 +317,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
     return QoreValue();
 }
 
-int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& ret, const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
+int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& ret, const QoreValue l,
+        const QoreValue r, bool list_ok, ExceptionSink* xsink) {
     ValueHolder entry(doSquareBrackets(l, r, list_ok, xsink), xsink);
     if (*xsink)
         return -1;
@@ -274,7 +327,8 @@ int QoreSquareBracketsOperatorNode::doString(SimpleRefHolder<QoreStringNode>& re
     return 0;
 }
 
-int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
+int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, const QoreValue l, const QoreValue r,
+        bool list_ok, ExceptionSink* xsink) {
     ValueHolder entry(doSquareBrackets(l, r, list_ok, xsink), xsink);
     if (*xsink)
         return -1;
@@ -295,7 +349,8 @@ int QoreSquareBracketsOperatorNode::doBinary(SimpleRefHolder<BinaryNode>& bin, c
     return 0;
 }
 
-QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, const QoreValue r, bool list_ok, ExceptionSink* xsink) {
+QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, const QoreValue r, bool list_ok,
+        ExceptionSink* xsink) {
     qore_type_t left_type = l.getType();
     qore_type_t right_type = r.getType();
 
@@ -323,7 +378,9 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
 
                     ret->push(entry.release(), xsink);
 
-                    //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() i: %d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
+                    printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() i: %d: vc: %d vtype: '%s' " \
+                        "et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype),
+                        QoreTypeInfo::getName(entry->getTypeInfo()));
                 }
 
                 ValueHolder rv(ret.release(), xsink);
@@ -339,7 +396,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
                 }
 
-                //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() vc: %d vtype: '%s' ti: '%s'\n", (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(ti));
+                //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() vc: %d vtype: '%s' ti: '%s'\n",
+                //  (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(ti));
 
                 return rv.release();
             }
@@ -385,7 +443,8 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
     return QoreValue();
 }
 
-FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIteratorImpl(
+        FunctionalValueType& value_type, ExceptionSink* xsink) const {
     ValueEvalRefHolder lhs(left, xsink);
     if (*xsink)
         return nullptr;
@@ -437,7 +496,8 @@ bool QoreFunctionalSquareBracketsOperator::getNextImpl(ValueOptionalRefHolder& v
     if ((size_t)++offset == rightList->size())  // do a step in the top-level list
         return true;
 
-    val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieveEntry(offset), false, xsink), true);
+    val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, rightList->retrieveEntry(offset), false,
+        xsink), true);
 
     return false;
 }
@@ -461,7 +521,9 @@ bool QoreFunctionalSquareBracketsComplexOperator::getNextImpl(ValueOptionalRefHo
         QoreValue n = rightParseList->get(offset);
         if (n.getType() == NT_OPERATOR && (range = dynamic_cast<const QoreRangeOperatorNode*>(n.getInternalNode()))) {
             FunctionalOperator::FunctionalValueType value_type;
-            rangeIter = std::unique_ptr<QoreFunctionalRangeOperator>((QoreFunctionalRangeOperator*)(range->getFunctionalIterator(value_type, xsink)));
+            rangeIter = std::unique_ptr<QoreFunctionalRangeOperator>((QoreFunctionalRangeOperator*)(
+                range->getFunctionalIterator(value_type, xsink)
+            ));
         }
 
         if (*xsink)
@@ -470,11 +532,11 @@ bool QoreFunctionalSquareBracketsComplexOperator::getNextImpl(ValueOptionalRefHo
 
     if (rangeIter) {                                // the current position is inside a subrange
         ValueOptionalRefHolder rangeVal(xsink);
-        if (rangeIter->getNext(rangeVal, xsink)) {   // use the inner range iterator to get next ...
-            rangeIter.reset();                      // ... if there's no next inner range element then reset the inner iterator ...
+        if (rangeIter->getNext(rangeVal, xsink)) {  // use the inner range iterator to get next ...
+            rangeIter.reset();                      // ... if there's no next inner range element then reset the inner
+                                                    // iterator ...
             return getNextImpl(val, xsink);         // ... and get the next top-level element
-        }
-        else  // set the value using the index from the inner subrange
+        } else  // set the value using the index from the inner subrange
             val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rangeVal, false, xsink), true);
     } else {
         ValueEvalRefHolder rh(rightParseList->get(offset), xsink);

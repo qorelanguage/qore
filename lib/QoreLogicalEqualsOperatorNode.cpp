@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -48,24 +48,35 @@ QoreValue QoreLogicalEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSi
     return softEqual(*l, *r, xsink);
 }
 
-void QoreLogicalEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = boolTypeInfo;
+int QoreLogicalEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(left, parse_context);
+    const QoreTypeInfo* lti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rti = parse_context.typeInfo;
 
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    // FIXME issue warnings or errors at parse time based on operand types
+
+    parse_context.typeInfo = boolTypeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
         val = softEqual(left, right, *xsink);
-        return;
+        return **xsink ? -1 : 0;
     }
 
     // check for optimizations based on type, but only assign if neither side is a string or number (highest priority)
-    // and types are known for both operands (if not, QoreTypeInfo::parseReturns(type, NT_STRING) will return a non-zero value
+    // and types are known for both operands (if not, QoreTypeInfo::parseReturns(type, NT_STRING) will return a
+    // non-zero value
     if (!QoreTypeInfo::parseReturns(lti, NT_STRING) && !QoreTypeInfo::parseReturns(rti, NT_STRING)
         && !QoreTypeInfo::parseReturns(lti, NT_NUMBER) && !QoreTypeInfo::parseReturns(rti, NT_NUMBER)) {
         if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT))
@@ -75,13 +86,16 @@ void QoreLogicalEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *ofla
         else if (QoreTypeInfo::isType(lti, NT_BOOLEAN) || QoreTypeInfo::isType(rti, NT_BOOLEAN))
             pfunc = &QoreLogicalEqualsOperatorNode::boolSoftEqual;
     }
+
+    return err;
 }
 
 bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();
 
-    //printf("QoreLogicalEqualsOperatorNode::softEqual() lt: %d rt: %d (%d %s)\n", lt, rt, right.type, right.getTypeName());
+    //printf("QoreLogicalEqualsOperatorNode::softEqual() lt: %d rt: %d (%d %s)\n", lt, rt, right.type,
+    //  right.getTypeName());
 
     if (lt == NT_STRING) {
         const QoreStringNode* l = left.get<const QoreStringNode>();
@@ -90,7 +104,7 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
         QoreStringValueHelper r(right, l->getEncoding(), xsink);
         if (*xsink)
             return false;
-        //printf("QoreLogicalEqualsOperatorNode::softEqual() l: '%s' converted r: '%s'\n", l->getBuffer(), r->getBuffer());
+        //printf("QoreLogicalEqualsOperatorNode::softEqual() l: '%s' converted r: '%s'\n", l->c_str(), r->c_str());
         return l->equal(*r);
     }
 

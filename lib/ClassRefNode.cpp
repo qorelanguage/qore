@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -50,12 +50,18 @@ QoreString* ClassRefNode::getAsString(bool& del, int foff, ExceptionSink* xsink)
     return rv;
 }
 
-void ClassRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+int ClassRefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // FIXME: implement a type for this
-    typeInfo = nullptr;
+    parse_context.typeInfo = nullptr;
+    int err = 0;
     if (cscope) {
         qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
         delete cscope;
         cscope = nullptr;
+        if (!qc) {
+            // parse error already raised
+            err = -1;
+        }
     }
+    return err;
 }

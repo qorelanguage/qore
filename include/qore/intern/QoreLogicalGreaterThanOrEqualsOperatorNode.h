@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,17 +44,18 @@ protected:
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        parseInitIntern(op_str.getBuffer(), val, oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return parseInitIntern(op_str.c_str(), val, parse_context);
     }
 
-    DLLLOCAL void parseInitIntern(const char* name, QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL int parseInitIntern(const char* name, QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL bool floatGreaterThanOrEquals(ExceptionSink *xsink) const;
     DLLLOCAL bool bigIntGreaterThanOrEquals(ExceptionSink *xsink) const;
 
 public:
-    DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBoolBinaryOperatorNode(loc, left, right), pfunc(0) {
+    DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left,
+            QoreValue right) : QoreBoolBinaryOperatorNode(loc, left, right), pfunc(0) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {

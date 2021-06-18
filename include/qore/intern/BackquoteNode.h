@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,7 @@ public:
     // returns -1 for exception raised, 0 = OK
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
     // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-    DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
     // returns the type name as a c string
     DLLLOCAL virtual const char* getTypeName() const;
@@ -59,8 +59,9 @@ protected:
     */
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        typeInfo = stringTypeInfo;
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        parse_context.typeInfo = stringTypeInfo;
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

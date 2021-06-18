@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,8 @@
 #include "qore/intern/IfStatement.h"
 #include "qore/intern/StatementBlock.h"
 
-IfStatement::IfStatement(int start_line, int end_line, QoreValue c, StatementBlock* i, StatementBlock* e) : AbstractStatement(start_line, end_line), cond(c), if_code(i), else_code(e) {
+IfStatement::IfStatement(int start_line, int end_line, QoreValue c, StatementBlock* i, StatementBlock* e)
+        : AbstractStatement(start_line, end_line), cond(c), if_code(i), else_code(e) {
 }
 
 IfStatement::~IfStatement() {
@@ -57,8 +58,7 @@ int IfStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
         if (if_code) {
             rc = if_code->execImpl(return_value, xsink);
         }
-    }
-    else {
+    } else {
         if (else_code) {
             rc = else_code->execImpl(return_value, xsink);
         }
@@ -67,30 +67,33 @@ int IfStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     return rc;
 }
 
-int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
-    int lvids = 0;
-
+int IfStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
+
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
+
+    int err = 0;
 
     if (cond) {
-        const QoreTypeInfo* argTypeInfo = nullptr;
-        parse_init_value(cond, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        err = parse_init_value(cond, parse_context);
         // FIXME: generate a warning here if the type cannot be converted to a bool (i.e. always false)
     }
     if (if_code) {
-        if_code->parseInitImpl(oflag, pflag);
+        if (if_code->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
     }
     if (else_code) {
-        else_code->parseInitImpl(oflag, pflag);
+        if (else_code->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
     }
 
-    // save local variables
-    if (lvids) {
-        lvars = new LVList(lvids);
-    }
-
-    return 0;
+    return err;
 }
 
 void IfStatement::parseCommit(QoreProgram* pgm) {

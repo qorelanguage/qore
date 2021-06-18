@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,8 @@ public:
     typedef std::vector<QoreValue> nvec_t;
     typedef std::vector<const QoreTypeInfo*> tvec_t;
 
-    DLLLOCAL QoreParseHashNode(const QoreProgramLocation* loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
+    DLLLOCAL QoreParseHashNode(const QoreProgramLocation* loc, bool curly = false)
+            : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
     }
 
     // to resolve local vars in a background expression before evaluation
@@ -141,7 +142,11 @@ public:
 
     DLLLOCAL virtual const char* getTypeName() const;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL bool hasParseError() const {
+        return parse_error;
+    }
 
 protected:
     typedef std::map<std::string, bool> kmap_t;
@@ -157,6 +162,8 @@ protected:
     const QoreTypeInfo* typeInfo = nullptr;
     // flag for a hash expression in curly brackets for the hash version of the map operator
     bool curly;
+    // error happened in parsing
+    bool parse_error = false;
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return typeInfo;

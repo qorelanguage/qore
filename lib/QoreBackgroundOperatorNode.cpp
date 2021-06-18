@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,13 +37,22 @@ QoreValue QoreBackgroundOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
     return do_op_background(exp, xsink);
 }
 
-void QoreBackgroundOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    typeInfo = bigIntTypeInfo;
+int QoreBackgroundOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    int err = 0;
+    if (parse_context.pflag & PF_CONST_EXPRESSION) {
+        parseException(*loc, "ILLEGAL-OPERATION", "the background operator may not be used in an expression " \
+            "initializing a constant value executed at parse time");
+        err = -1;
+    }
 
-    if (pflag & PF_CONST_EXPRESSION)
-        parseException(*loc, "ILLEGAL-OPERATION", "the background operator may not be used in an expression initializing a constant value executed at parse time");
+    // issue #2993: turn on "return value ignored" flag when parsing background expressions
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.setFlags(PF_BACKGROUND | PF_RETURN_VALUE_IGNORED);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(exp, parse_context) && !err) {
+        err = -1;
+    }
 
-    const QoreTypeInfo* expTypeInfo = nullptr;
-    // issue #2993 turn on "return value ignored" flag when parsing background expressions
-    parse_init_value(exp, oflag, pflag | PF_BACKGROUND | PF_RETURN_VALUE_IGNORED, lvids, expTypeInfo);
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

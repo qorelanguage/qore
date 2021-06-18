@@ -308,7 +308,7 @@ public:
     DLLLOCAL void parseAdd(const QoreProgramLocation* loc, const std::string& name, QoreValue val, ClassAccess access,
             const char* cname);
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL int parseInit();
     DLLLOCAL QoreHashNode* getInfo();
     DLLLOCAL void parseDeleteAll();
     DLLLOCAL void clear(QoreListNode& l);
@@ -417,8 +417,8 @@ class RuntimeConstantRefNode : public ParseNode {
 protected:
     ConstantEntry* ce;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
-            const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

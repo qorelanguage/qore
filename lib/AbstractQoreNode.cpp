@@ -220,8 +220,9 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime& dt) const {
    dt.setDate(0LL);
 }
 
-void AbstractQoreNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int AbstractQoreNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
     // no action taken by default
+    return 0;
 }
 
 // for getting relative time values or integer values

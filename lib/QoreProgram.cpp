@@ -770,7 +770,8 @@ void qore_program_private::addStatement(AbstractStatement* s) {
         block->addStatement(exp);
 
         // initialize expression
-        block->parseInit(nullptr, 0);
+        QoreParseContext parse_context;
+        block->parseInit(parse_context);
 
         assert(exp_set.find(block.get()) == exp_set.end());
         new_expression = block.get();

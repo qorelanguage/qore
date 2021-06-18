@@ -1354,18 +1354,21 @@ public:
     parse_type_vec_t subtypes;
     bool or_nothing;
 
-    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : cscope(new NamedScope(n_cscope)), or_nothing(n_or_nothing) {
+    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing = false) : cscope(new NamedScope(n_cscope)),
+            or_nothing(n_or_nothing) {
         setName();
         //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
     }
 
-    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing, parse_type_vec_t&& subtypes) : cscope(new NamedScope(n_cscope)), subtypes(subtypes), or_nothing(n_or_nothing) {
+    DLLLOCAL QoreParseTypeInfo(char* n_cscope, bool n_or_nothing, parse_type_vec_t&& subtypes)
+            : cscope(new NamedScope(n_cscope)), subtypes(subtypes), or_nothing(n_or_nothing) {
         setName();
 
         //printd(5, "QoreParseTypeInfo::QoreParseTypeInfo() %s\n", tname.c_str());
     }
 
-    DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : tname(old.tname), cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr), or_nothing(old.or_nothing) {
+    DLLLOCAL QoreParseTypeInfo(const QoreParseTypeInfo& old) : tname(old.tname),
+            cscope(old.cscope ? new NamedScope(*old.cscope) : nullptr), or_nothing(old.or_nothing) {
         // copy subtypes
         for (const auto& i : old.subtypes)
             subtypes.push_back(new QoreParseTypeInfo(*i));
@@ -1378,7 +1381,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static bool parseStageOneIdenticalWithParsed(const QoreParseTypeInfo* pti, const QoreTypeInfo* typeInfo, bool& recheck) {
+    DLLLOCAL static bool parseStageOneIdenticalWithParsed(const QoreParseTypeInfo* pti, const QoreTypeInfo* typeInfo,
+            bool& recheck) {
         if (pti && typeInfo)
             return pti->parseStageOneIdenticalWithParsed(typeInfo, recheck);
         else if (pti)
@@ -1390,7 +1394,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo, bool& recheck) {
+    DLLLOCAL static bool parseStageOneIdentical(const QoreParseTypeInfo* pti, const QoreParseTypeInfo* typeInfo,
+            bool& recheck) {
         if (pti && typeInfo)
             return pti->parseStageOneIdentical(typeInfo, recheck);
         else
@@ -1398,18 +1403,19 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-        return pti ? pti->resolveAndDelete(loc) : nullptr;
+    DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc,
+            int& err) {
+        return pti ? pti->resolveAndDelete(loc, err) : nullptr;
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-        return pti ? pti->resolve(loc) : nullptr;
+    DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc, int& err) {
+        return pti ? pti->resolve(loc, err) : nullptr;
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
-        return pti ? pti->resolveAny(loc) : nullptr;
+    DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc, int& err) {
+        return pti ? pti->resolveAny(loc, err) : nullptr;
     }
 
     DLLLOCAL static const QoreTypeInfo* resolveRuntime(QoreParseTypeInfo* pti) {
@@ -1497,12 +1503,12 @@ private:
     }
 
     // resolves complex types (classes, hashdecls, etc)
-    DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc) const;
+    DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc, int& err) const;
     // also resolves base types
-    DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc) const;
+    DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc, int& err) const;
     // resolves the current type to an QoreTypeInfo pointer and deletes itself
-    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc);
-    DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc) const;
+    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc, int& err);
+    DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc, int& err) const;
 
     DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
     DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
@@ -1517,7 +1523,8 @@ private:
         str.append(tname);
     }
 
-    DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing);
+    DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope,
+            bool or_nothing, int& err);
 };
 
 class QoreAnyTypeInfo : public QoreTypeInfo {

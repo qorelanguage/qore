@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,8 @@
 
 class ParseNewComplexTypeNode : public ParseNoEvalNode {
 public:
-    DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, QoreParseListNode* a) : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
+    DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, QoreParseListNode* a)
+            : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
     }
 
     DLLLOCAL ~ParseNewComplexTypeNode() {
@@ -72,7 +73,7 @@ protected:
     QoreParseTypeInfo* pti;
     QoreParseListNode* args;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
         assert(false);
@@ -90,7 +91,8 @@ class NewHashDeclNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -102,7 +104,8 @@ public:
     QoreParseListNode* args;
     bool runtime_check;
 
-    DLLLOCAL NewHashDeclNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, QoreParseListNode* a, bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
+    DLLLOCAL NewHashDeclNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, QoreParseListNode* a,
+            bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
     }
 
     DLLLOCAL virtual ~NewHashDeclNode() {
@@ -132,7 +135,8 @@ class NewComplexHashNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -143,7 +147,8 @@ public:
     const QoreTypeInfo* typeInfo;
     QoreParseListNode* args;
 
-    DLLLOCAL NewComplexHashNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, QoreParseListNode* a) : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
+    DLLLOCAL NewComplexHashNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, QoreParseListNode* a)
+            : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
         assert(QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
     }
 
@@ -174,7 +179,8 @@ class NewComplexListNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -185,7 +191,8 @@ public:
     const QoreTypeInfo* typeInfo;
     QoreValue args;
 
-    DLLLOCAL NewComplexListNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, QoreValue a) : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
+    DLLLOCAL NewComplexListNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, QoreValue a)
+            : ParseNode(loc, NT_SCOPE_REF), typeInfo(typeInfo), args(a) {
         assert(QoreTypeInfo::getUniqueReturnComplexList(typeInfo));
     }
 

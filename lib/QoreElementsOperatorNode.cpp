@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -62,33 +62,38 @@ QoreValue QoreElementsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* x
     return 0;
 }
 
-void QoreElementsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreElementsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = bigIntTypeInfo;
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
 
-    const QoreTypeInfo* lti = nullptr;
-    parse_init_value(exp, oflag, pflag, lvids, lti);
-
-    if (QoreTypeInfo::hasType(lti)
-        && !QoreTypeInfo::parseAccepts(listTypeInfo, lti)
-        && !QoreTypeInfo::parseAccepts(hashTypeInfo, lti)
-        && !QoreTypeInfo::parseAccepts(stringTypeInfo, lti)
-        && !QoreTypeInfo::parseAccepts(binaryTypeInfo, lti)
-        && !QoreTypeInfo::parseAccepts(objectTypeInfo, lti)) {
+    if (QoreTypeInfo::hasType(parse_context.typeInfo)
+        && !QoreTypeInfo::parseAccepts(listTypeInfo, parse_context.typeInfo)
+        && !QoreTypeInfo::parseAccepts(hashTypeInfo, parse_context.typeInfo)
+        && !QoreTypeInfo::parseAccepts(stringTypeInfo, parse_context.typeInfo)
+        && !QoreTypeInfo::parseAccepts(binaryTypeInfo, parse_context.typeInfo)
+        && !QoreTypeInfo::parseAccepts(objectTypeInfo, parse_context.typeInfo)) {
+        // FIXME: this should be an error with %strict-types
         QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
-        QoreTypeInfo::getThisType(lti, *edesc);
-        edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+        QoreTypeInfo::getThisType(parse_context.typeInfo, *edesc);
+        edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value " \
+            "with lists, hashes, strings, binary objects, and objects");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            edesc);
     }
 
     // see the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp.isValue()) {
+    if (!err && exp.isValue()) {
         SimpleRefHolder<QoreElementsOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

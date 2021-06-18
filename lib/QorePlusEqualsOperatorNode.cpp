@@ -33,22 +33,39 @@
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
-void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-    checkLValue(left, pflag);
+    int err = 0;
+    {
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_FOR_ASSIGNMENT);
+        parse_context.typeInfo = nullptr;
+        err = parse_init_value(left, parse_context);
+        ti = parse_context.typeInfo;
+    }
+    if (!err) {
+        err = checkLValue(left, parse_context.pflag);
+    }
 
-    const QoreTypeInfo* rightTypeInfo = nullptr;
-    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
     if (QoreTypeInfo::isType(ti, NT_LIST)) {
         if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
             const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
             if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
-                parseException(*loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
-                QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+                parseException(*loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with " \
+                    "element type '%s'",
+                    QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+                if (!err) {
+                    err = -1;
+                }
             }
         }
     } else if (!QoreTypeInfo::isType(ti, NT_LIST)
@@ -65,10 +82,11 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
         // converted to an integer, so we just check if it can be assigned an
         // integer value below, this is enough
         if (QoreTypeInfo::returnsSingle(ti) && !QoreTypeInfo::equal(ti, timeoutTypeInfo)) {
-            check_lvalue_int(loc, ti, "+=");
+            if (check_lvalue_int(loc, ti, "+=") && !err) {
+                err = -1;
+            }
             ti = bigIntTypeInfo;
             val = makeSpecialization<QoreIntPlusEqualsOperatorNode>();
-            return;
         } else {
             ti = nullptr;
         }
@@ -80,12 +98,16 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
             desc->concat("; the non-string value is ignored in this case; this is an error when " \
                 "%strict-types is in effect");
             qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc.release());
+            if (!err) {
+                err = -1;
+            }
         } else {
             qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
                 "INVALID-OPERATION", desc.release());
         }
     }
-    typeInfo = ti;
+    parse_context.typeInfo = ti;
+    return err;
 }
 
 QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -120,7 +142,8 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             vtype = v.getType();
         } else if (QoreTypeInfo::isListType(typeInfo)) {
             // issue #3586: automatically promote lvalue to correctly-typed empty list for "*list..." types
-            if (v.assign(new QoreListNode(QoreTypeInfo::getReturnComplexListOrNothing(typeInfo)), "<lvalue for += operator>")) {
+            if (v.assign(new QoreListNode(QoreTypeInfo::getReturnComplexListOrNothing(typeInfo)),
+                "<lvalue for += operator>")) {
                 return QoreValue();
             }
             vtype = v.getType();
@@ -128,7 +151,8 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             return QoreValue();
         } else if (QoreTypeInfo::isHashType(typeInfo)) {
             // issue #4133: automatically promote lvalue to correctly-typed empty hash for "*hash..." types
-            if (v.assign(new QoreHashNode(QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo)), "<lvalue for += operator>")) {
+            if (v.assign(new QoreHashNode(QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo)),
+                "<lvalue for += operator>")) {
                 return QoreValue();
             }
             vtype = v.getType();
@@ -154,10 +178,12 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
         // do hash plus-equals if left side is a hash
         if (new_right->getType() == NT_HASH) {
             v.ensureUnique();
-            qore_hash_private::get(*v.getValue().get<QoreHashNode>())->merge(*qore_hash_private::get(*new_right->get<const QoreHashNode>()), sdh, xsink);
+            qore_hash_private::get(*v.getValue().get<QoreHashNode>())
+                ->merge(*qore_hash_private::get(*new_right->get<const QoreHashNode>()), sdh, xsink);
         } else if (new_right->getType() == NT_OBJECT) {
             v.ensureUnique();
-            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), sdh, xsink);
+            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(),
+                sdh, xsink);
         }
     } else if (vtype == NT_OBJECT) {
         // do hash/object plus-equals if left side is an object

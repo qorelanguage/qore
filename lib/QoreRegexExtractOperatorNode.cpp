@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,18 +41,18 @@ QoreValue QoreRegexExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSin
     return regex->extractSubstrings(*str, xsink);
 }
 
-void QoreRegexExtractOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    // turn off "reference ok" and "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
+int QoreRegexExtractOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    typeInfo = qore_get_complex_list_or_nothing_type(stringOrNothingTypeInfo);
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
 
-    const QoreTypeInfo *lti = 0;
-    parse_init_value(exp, oflag, pflag, lvids, lti);
-
-    if (!QoreTypeInfo::canConvertToScalar(lti)) {
+    if (!QoreTypeInfo::canConvertToScalar(parse_context.typeInfo)) {
+        // FIXME: raise an exception with %strict-types
         QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
-        lti->doNonStringWarning(loc, desc.c_str());
+        parse_context.typeInfo->doNonStringWarning(loc, desc.c_str());
     }
 
     // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result
@@ -61,7 +61,11 @@ void QoreRegexExtractOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        typeInfo = v->getTypeInfo();
+        parse_context.typeInfo = v->getTypeInfo();
         val = v.takeReferencedValue();
+        return 0;
     }
+
+    parse_context.typeInfo = qore_get_complex_list_or_nothing_type(stringOrNothingTypeInfo);
+    return err;
 }

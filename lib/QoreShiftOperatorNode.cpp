@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,22 +44,42 @@ int QoreShiftOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
     return 0;
 }
 
-void QoreShiftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    const QoreTypeInfo* expTypeInfo = 0;
-    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
+int QoreShiftOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
+    fh.setFlags(PF_FOR_ASSIGNMENT);
+
+    int err = parse_init_value(exp, parse_context);
 
     if (exp) {
-        checkLValue(exp, pflag);
+        const QoreTypeInfo* expTypeInfo = parse_context.typeInfo;
+        if (checkLValue(exp, parse_context.pflag) && !err) {
+            err = -1;
+        }
 
         if (!QoreTypeInfo::parseAcceptsReturns(expTypeInfo, NT_LIST)) {
+            // FIXME: raise an exception with %strict-types
             QoreStringNode* edesc = new QoreStringNode("the lvalue expression with the ");
             edesc->sprintf("'%s' operator is ", getTypeName());
             QoreTypeInfo::getThisType(expTypeInfo, *edesc);
-            edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return NOTHING; the '%s' operator can only operate on lists", getTypeName());
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+            edesc->sprintf(" therefore this operation will have no effect on the lvalue and will always return " \
+                "NOTHING; the '%s' operator can only operate on lists", getTypeName());
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
             returnTypeInfo = nothingTypeInfo;
+        } else {
+            returnTypeInfo = QoreTypeInfo::getUniqueReturnComplexList(expTypeInfo);
+            if (returnTypeInfo) {
+                returnTypeInfo = get_or_nothing_type_check(returnTypeInfo);
+            }
         }
     }
+
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }
 
 QoreValue QoreShiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

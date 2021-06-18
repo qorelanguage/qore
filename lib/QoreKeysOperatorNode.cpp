@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,23 +45,28 @@ int QoreKeysOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *
     return 0;
 }
 
-void QoreKeysOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    assert(!typeInfo);
+int QoreKeysOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    // turn off "return value ignored" flags
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-    pflag &= ~PF_RETURN_VALUE_IGNORED;
-
-    const QoreTypeInfo *expTypeInfo = 0;
-    parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
+    assert(!parse_context.typeInfo);
+    // check iterator expression
+    int err = parse_init_value(exp, parse_context);
+    const QoreTypeInfo* expTypeInfo = parse_context.typeInfo;
 
     if (QoreTypeInfo::hasType(expTypeInfo)) {
         if (QoreTypeInfo::isType(expTypeInfo, NT_HASH) || QoreTypeInfo::isType(expTypeInfo, NT_OBJECT)) {
             returnTypeInfo = qore_get_complex_list_type(stringTypeInfo);
         } else if (!QoreTypeInfo::parseAccepts(hashTypeInfo, expTypeInfo)
             && !QoreTypeInfo::parseAccepts(objectTypeInfo, expTypeInfo)) {
+            // FIXME raise an error with %strict-types
             QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
             QoreTypeInfo::getThisType(expTypeInfo, *edesc);
-            edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+            edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return " \
+                "a value with hashes and objects");
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
             returnTypeInfo = nothingTypeInfo;
         } else {
             returnTypeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
@@ -70,22 +75,22 @@ void QoreKeysOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
         returnTypeInfo = qore_get_complex_list_or_nothing_type(stringTypeInfo);
     }
 
-    if (exp.isValue()) {
+    if (!err && exp.isValue()) {
         ReferenceHolder<> holder(this, 0);
         qore_type_t t = exp.getType();
         if (t == NT_HASH || t == NT_OBJECT) {
             ValueEvalRefHolder rv(this, 0);
-            typeInfo = rv->getTypeInfo();
+            parse_context.typeInfo = rv->getTypeInfo();
             val = rv.takeReferencedValue();
-        }
-        else {
-            typeInfo = nothingTypeInfo;
+        } else {
+            parse_context.typeInfo = nothingTypeInfo;
             val.clear();
         }
-        return;
+        return 0;
     }
 
-    typeInfo = returnTypeInfo;
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }
 
 QoreValue QoreKeysOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -110,7 +115,8 @@ QoreValue QoreKeysOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     return rv.release();
 }
 
-FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
+FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type,
+        ExceptionSink* xsink) const {
     ValueEvalRefHolder marg(exp, xsink);
     if (xsink && *xsink)
         return nullptr;
@@ -122,7 +128,9 @@ FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(Fun
     }
     if (t == NT_OBJECT) {
         value_type = list;
-        return new QoreFunctionalKeysOperator(qore_object_private::get(*marg->get<QoreObject>())->getRuntimeMemberHash(xsink), xsink);
+        return new QoreFunctionalKeysOperator(
+            qore_object_private::get(*marg->get<QoreObject>())->getRuntimeMemberHash(xsink), xsink
+        );
     }
     value_type = nothing;
     return nullptr;

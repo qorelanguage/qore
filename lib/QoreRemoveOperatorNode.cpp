@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Techologies s.r.o.
+    Copyright (C) 2003 - 2021 Qore Techologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -56,10 +56,12 @@ QoreValue QoreRemoveOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsi
     return rv;
 }
 
-void QoreRemoveOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    assert(!typeInfo);
-    parse_init_value(exp, oflag, pflag, lvids, typeInfo);
-    if (exp)
-        checkLValue(exp, pflag);
-    returnTypeInfo = typeInfo;
+int QoreRemoveOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
+    if (exp && !err) {
+        err = checkLValue(exp, parse_context.pflag);
+    }
+    returnTypeInfo = parse_context.typeInfo;
+    return err;
 }

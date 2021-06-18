@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,15 +68,26 @@ char* SelfVarrefNode::takeString() {
     return p;
 }
 
-void SelfVarrefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
-    if (pflag & PF_CONST_EXPRESSION)
-        parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
-
-    if (!oflag) {
-        parse_error(*loc, "cannot reference member \"%s\" when not in an object context", str);
-    } else {
-        qore_class_private::parseCheckInternalMemberAccess(parse_get_class(), str, typeInfo, loc);
-        returnTypeInfo = typeInfo;
+int SelfVarrefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, parse_context.oflag);
+    int err = 0;
+    if (parse_context.pflag & PF_CONST_EXPRESSION) {
+        parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression " \
+            "executed at parse time to initialize a constant value", str);
+        err = -1;
     }
+
+    if (!parse_context.oflag) {
+        parse_error(*loc, "cannot reference member \"%s\" when not in an object context", str);
+        if (!err) {
+            err = -1;
+        }
+    } else {
+        if (qore_class_private::parseCheckInternalMemberAccess(parse_get_class(), str, parse_context.typeInfo, loc)
+            && !err) {
+            err = -1;
+        }
+        returnTypeInfo = parse_context.typeInfo;
+    }
+    return err;
 }

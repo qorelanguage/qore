@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,31 +32,42 @@
 
 QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark (?:) operator expression");
 
-void QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-    const QoreTypeInfo* leftTypeInfo = 0;
-    parse_init_value(e[0], oflag, pflag, lvids, leftTypeInfo);
+int QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(e[0], parse_context);
 
-    if (!QoreTypeInfo::canConvertToScalar(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-        leftTypeInfo->doNonBooleanWarning(loc, "the initial expression with the '?:' operator is ");
+    if (!QoreTypeInfo::canConvertToScalar(parse_context.typeInfo)
+        && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL)) {
+        // FIXME: raise an error here with strict-types
+        parse_context.typeInfo->doNonBooleanWarning(loc, "the initial expression with the '?:' operator is ");
+    }
 
-    leftTypeInfo = 0;
-    parse_init_value(e[1], oflag, pflag, lvids, leftTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(e[1], parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* leftTypeInfo = parse_context.typeInfo;
 
-    const QoreTypeInfo* rightTypeInfo = 0;
-    parse_init_value(e[2], oflag, pflag, lvids, rightTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(e[2], parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
     // see if all arguments are constant values, then eval immediately and substitute this node with the result
-    if (e[0].isValue() && e[1].isValue() && e[2].isValue()) {
+    if (!err && e[0].isValue() && e[1].isValue() && e[2].isValue()) {
         SimpleRefHolder<QoreQuestionMarkOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
         typeInfo = val.getTypeInfo();
-        return;
+        return 0;
     }
 
-    typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : nullptr;
+    // FIXME: find common type if l != r type
+    parse_context.typeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : nullptr;
+    return err;
 }
 
 QoreValue QoreQuestionMarkOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

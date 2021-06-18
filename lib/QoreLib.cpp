@@ -517,15 +517,15 @@ bool qore_has_debug() {
 #endif
 }
 
-void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int parse_init_value(QoreValue& val, QoreParseContext& parse_context) {
     if (val.hasNode()) {
         AbstractQoreNode* n = val.getInternalNode();
         //printd(5, "parse_init_value() n: %p '%s'\n", n, get_type_name(n));
-        n->parseInit(val, oflag, pflag, lvids, typeInfo);
-        return;
+        return n->parseInit(val, parse_context);
     }
 
-    typeInfo = val.getTypeInfo();
+    parse_context.typeInfo = val.getFullTypeInfo();
+    return 0;
 }
 
 QoreAbstractIteratorBase::QoreAbstractIteratorBase() : tid(q_gettid()) {
@@ -2411,16 +2411,18 @@ void ensure_unique(QoreValue& v, ExceptionSink* xsink) {
 }
 
 // checks for illegal "self" assignments in an object context
-void check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid) {
+int check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid) {
     qore_type_t ntype = n.getType();
 
     // if it's a variable reference
     if (ntype == NT_VARREF) {
         VarRefNode* v = n.get<VarRefNode>();
-        if (v->getType() == VT_LOCAL && v->ref.id == selfid)
+        if (v->getType() == VT_LOCAL && v->ref.id == selfid) {
             parse_error(*loc, "illegal assignment to 'self' in an object context");
-        return;
+            return -1;
+        }
     }
+    return 0;
 }
 
 int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
@@ -2441,11 +2443,13 @@ int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeIn
 int check_lvalue_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
     // make sure the lvalue can be assigned a floating-point value
     // raise a parse exception only if parse exceptions are not suppressed
-    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
-        QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-        QoreTypeInfo::getThisType(typeInfo, *desc);
-        desc->sprintf(", but the %s will assign it a number value", name);
-        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER)) {
+        if (getProgram()->getParseExceptionSink()) {
+            QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+            QoreTypeInfo::getThisType(typeInfo, *desc);
+            desc->sprintf(", but the %s will assign it a number value", name);
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+        }
         return -1;
     }
     return 0;
@@ -2454,11 +2458,13 @@ int check_lvalue_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typ
 int check_lvalue_float(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
     // make sure the lvalue can be assigned a floating-point value
     // raise a parse exception only if parse exceptions are not suppressed
-    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
-        QoreStringNode* desc = new QoreStringNode("lvalue has type ");
-        QoreTypeInfo::getThisType(typeInfo, *desc);
-        desc->sprintf(", but the %s will assign it a float value", name);
-        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT)) {
+        if (getProgram()->getParseExceptionSink()) {
+            QoreStringNode* desc = new QoreStringNode("lvalue has type ");
+            QoreTypeInfo::getThisType(typeInfo, *desc);
+            desc->sprintf(", but the %s will assign it a float value", name);
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+        }
         return -1;
     }
     return 0;
@@ -2484,8 +2490,7 @@ int check_lvalue_int_float_number(const QoreProgramLocation* loc, const QoreType
                 typeInfo = bigIntFloatOrNumberTypeInfo;
             else
                 typeInfo = bigIntOrFloatTypeInfo;
-        }
-        else
+        } else
             typeInfo = bigIntTypeInfo;
     } else {
         if (QoreTypeInfo::parseReturns(typeInfo, NT_FLOAT))
@@ -2805,33 +2810,36 @@ const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) 
     return get_type_name(n);
 }
 
-void QorePossibleListNodeParseInitHelper::parseInit(const QoreTypeInfo*& typeInfo) {
+void QorePossibleListNodeParseInitHelper::parseInit() {
     //printd(5, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
 
-    typeInfo = nullptr;
+    parse_context.typeInfo = nullptr;
     if (!l) {
         // FIXME: return list type info when list elements can be typed
         if (!pos) {
-            if (singleTypeInfo)
-            typeInfo = singleTypeInfo;
-        }
-        else {
+            if (singleTypeInfo) {
+                parse_context.typeInfo = singleTypeInfo;
+            }
+        } else {
             // no argument available
-            if (singleTypeInfo)
-            typeInfo = nothingTypeInfo;
+            if (singleTypeInfo) {
+                parse_context.typeInfo = nothingTypeInfo;
+            }
         }
         return;
     }
 
     if (finished) {
         // no argument available
-        typeInfo = nothingTypeInfo;
-    }
-    else {
+        parse_context.typeInfo = nothingTypeInfo;
+    } else {
         QoreValue& v = qore_list_private::get(*l)->getEntryReference(pos);
-        parse_init_value(v, oflag, pflag, lvids, typeInfo);
+        assert(!error);
+        error = parse_init_value(v, parse_context);
 
-        //printd(5, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
+        //printd(5, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n",
+        //  this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a",
+        //  typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
         if (l && !l->needs_eval() && v.hasNode() && v.getInternalNode()->needs_eval()) {
             qore_list_private::setNeedsEval(*l);
         }

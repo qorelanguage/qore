@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 
 QoreString QoreDivideEqualsOperatorNode::op_str("/= operator expression");
 
-void QoreDivideEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+int QoreDivideEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    return parseInitIntern(op_str.c_str(), parse_context);
 }
 
 QoreValue QoreDivideEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -63,8 +63,7 @@ QoreValue QoreDivideEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSin
             return QoreValue();
         }
         return v.divideEqualsFloat(val, "</= operator>");
-    }
-    else { // do integer divide equals
+    } else { // do integer divide equals
         int64 val = res->getAsBigInt();
         if (!val) {
             xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");

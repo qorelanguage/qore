@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,56 +64,58 @@ QoreValue QoreUnaryPlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *
     return QoreValue(0ll);
 }
 
-void QoreUnaryPlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    assert(!typeInfo);
-
-    const QoreTypeInfo* eti = 0;
-    parse_init_value(exp, oflag, pflag, lvids, eti);
+int QoreUnaryPlusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    assert(!parse_context.typeInfo);
+    int err = parse_init_value(exp, parse_context);
 
     // see if the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp.isValue()) {
+    if (!err && exp.isValue()) {
         SimpleRefHolder<QoreUnaryPlusOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
-        typeInfo = val.getTypeInfo();
-        return;
+        parse_context.typeInfo = val.getFullTypeInfo();
+        return 0;
     }
 
-    if (QoreTypeInfo::hasType(eti)) {
+    if (QoreTypeInfo::hasType(parse_context.typeInfo)) {
         int tcnt = 0;
-        if (QoreTypeInfo::parseAccepts(bigIntTypeInfo, eti)) {
-            typeInfo = bigIntTypeInfo;
+        if (QoreTypeInfo::parseAccepts(bigIntTypeInfo, parse_context.typeInfo)) {
+            returnTypeInfo = bigIntTypeInfo;
             ++tcnt;
         }
 
-        if (QoreTypeInfo::parseAccepts(floatTypeInfo, eti)) {
-            typeInfo = floatTypeInfo;
+        if (QoreTypeInfo::parseAccepts(floatTypeInfo, parse_context.typeInfo)) {
+            returnTypeInfo = floatTypeInfo;
             ++tcnt;
         }
 
-        if (QoreTypeInfo::parseAccepts(numberTypeInfo, eti)) {
-            typeInfo = numberTypeInfo;
+        if (QoreTypeInfo::parseAccepts(numberTypeInfo, parse_context.typeInfo)) {
+            returnTypeInfo = numberTypeInfo;
             ++tcnt;
         }
 
-        if (QoreTypeInfo::parseAccepts(dateTypeInfo, eti)) {
-            typeInfo = dateTypeInfo;
+        if (QoreTypeInfo::parseAccepts(dateTypeInfo, parse_context.typeInfo)) {
+            returnTypeInfo = dateTypeInfo;
             ++tcnt;
         }
 
         // if multiple types match, then set to no type (FIXME: can't currently handle multiple possible types)
-        if (tcnt > 0)
-            typeInfo = 0;
-        else if (!tcnt) {
-            typeInfo = bigIntTypeInfo;
+        if (tcnt > 0) {
+            returnTypeInfo = nullptr;
+        } else if (!tcnt) {
+            // FIXME: raise exceptions with %strict-types
             QoreStringNode* edesc = new QoreStringNode("the expression with the unary plus '+' operator is ");
-            QoreTypeInfo::getThisType(eti, *edesc);
-            edesc->concat(" and so this expression will always return 0; the unary plus '+' operator only returns a value with integers, floats, numbers, and relative date/time values");
-            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+            QoreTypeInfo::getThisType(parse_context.typeInfo, *edesc);
+            edesc->concat(" and so this expression will always return 0; the unary plus '+' operator only returns " \
+                "a value with integers, floats, numbers, and relative date/time values");
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
+            returnTypeInfo = bigIntTypeInfo;
         }
     }
 
-    returnTypeInfo = typeInfo;
+    parse_context.typeInfo = returnTypeInfo;
+    return err;
 }

@@ -146,10 +146,78 @@ enum q_setpub_t : unsigned char {
     CSP_SETPUB = 2,
 };
 
-DLLLOCAL void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+struct QoreParseContext {
+    QoreProgram* pgm;
+    LocalVar* oflag = nullptr;
+    int pflag = 0;
+    int lvids = 0;
+    const QoreTypeInfo* typeInfo = nullptr;
+
+    DLLLOCAL QoreParseContext(QoreProgram* pgm = getProgram()) : pgm(pgm) {
+    }
+
+    DLLLOCAL QoreParseContext(LocalVar* oflag, QoreProgram* pgm = getProgram()) : pgm(pgm), oflag(oflag) {
+    }
+
+    DLLLOCAL int unsetFlags(int flags) {
+        int rv = pflag;
+        pflag &= ~flags;
+        return rv;
+    }
+
+    DLLLOCAL int setFlags(int flags) {
+        int rv = pflag;
+        pflag |= flags;
+        return rv;
+    }
+};
+
+class QoreParseContextFlagHelper {
+public:
+    DLLLOCAL QoreParseContextFlagHelper(QoreParseContext& parse_context) : parse_context(parse_context),
+            pflag(parse_context.pflag) {
+    }
+
+    DLLLOCAL ~QoreParseContextFlagHelper() {
+        if (parse_context.pflag != pflag) {
+            parse_context.pflag = pflag;
+        }
+    }
+
+    DLLLOCAL void unsetFlags(int flags) {
+        parse_context.pflag &= ~flags;
+    }
+
+    DLLLOCAL void setFlags(int flags) {
+        parse_context.pflag |= flags;
+    }
+
+private:
+    QoreParseContext& parse_context;
+    int pflag;
+};
+
+class QoreParseContextLvarHelper {
+public:
+    DLLLOCAL QoreParseContextLvarHelper(QoreParseContext& parse_context, LVList*& lvars)
+            : parse_context(parse_context), lvars(lvars), lvids(parse_context.lvids) {
+        parse_context.lvids = 0;
+    }
+
+    DLLLOCAL ~QoreParseContextLvarHelper();
+
+private:
+    QoreParseContext& parse_context;
+    LVList*& lvars;
+    int lvids;
+};
+
+//! returns -1 = error, 0 = OK
+DLLLOCAL int parse_init_value(QoreValue& val, QoreParseContext& parse_context);
 
 // since Qore 0.9.5
-DLLLOCAL QoreValue q_call_static_method_args(QoreProgram* pgm, const QoreStringNode* class_name, const QoreStringNode* method, const QoreListNode* args, ExceptionSink* xsink);
+DLLLOCAL QoreValue q_call_static_method_args(QoreProgram* pgm, const QoreStringNode* class_name,
+        const QoreStringNode* method, const QoreListNode* args, ExceptionSink* xsink);
 
 // returns true if the node needs to be scanned for recursive references or not
 DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
@@ -160,13 +228,14 @@ DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 DLLLOCAL AbstractQoreNode* missing_openssl_feature(const char* f, ExceptionSink* xsink);
 
 struct ParseWarnOptions {
-    int64 parse_options;
-    int warn_mask;
+    int64 parse_options = 0;
+    int warn_mask = 0;
 
-    DLLLOCAL ParseWarnOptions() : parse_options(0), warn_mask(0) {
+    DLLLOCAL ParseWarnOptions() {
     }
 
-    DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0) : parse_options(n_parse_options), warn_mask(n_warn_mask) {
+    DLLLOCAL ParseWarnOptions(int64 n_parse_options, int n_warn_mask = 0)
+            : parse_options(n_parse_options), warn_mask(n_warn_mask) {
     }
 
     DLLLOCAL void operator=(const ParseWarnOptions& pwo) {
@@ -608,24 +677,21 @@ public:
 DLLLOCAL extern StaticSystemNamespace* staticSystemNamespace;
 
 class QoreParseListNodeParseInitHelper {
-private:
-    QoreParseListNode* l;
-    int pos = -1;
-    LocalVar* oflag;
-    int pflag;
-    int& lvids;
-
 public:
-    DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
-        l(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
+    DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* l, QoreParseContext& parse_context) :
+        l(l), parse_context(parse_context) {
     }
 
-    DLLLOCAL QoreValue parseInit(const QoreTypeInfo*& typeInfo) {
-        //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
+    DLLLOCAL QoreValue parseInit() {
+        //printd(5, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(),
+        //  getList()->size(), getList());
 
-        typeInfo = nullptr;
+        parse_context.typeInfo = nullptr;
         QoreValue& n = l->getReference(pos);
-        parse_init_value(n, oflag, pflag, lvids, typeInfo);
+        bool err = (bool)parse_init_value(n, parse_context);
+        if (err && !error) {
+            error = true;
+        }
         return n;
     }
 
@@ -641,34 +707,35 @@ public:
     DLLLOCAL int index() {
         return pos;
     }
+
+    DLLLOCAL bool hasError() const {
+        return error;
+    }
+
+private:
+    QoreParseListNode* l;
+    int pos = -1;
+    QoreParseContext& parse_context;
+    bool error = false;
 };
 
 class QorePossibleListNodeParseInitHelper {
-private:
-    LocalVar* oflag;
-    int pflag;
-    int& lvids;
-    QoreListNode* l;
-    bool finished;
-    size_t pos = -1;
-    const QoreTypeInfo* singleTypeInfo = nullptr;
-
 public:
-    DLLLOCAL QorePossibleListNodeParseInitHelper(QoreValue& n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
-        oflag(n_oflag),
-        pflag(n_pflag),
-        lvids(n_lvids),
-        l(n.getType() == NT_LIST ? n.get<QoreListNode>() : nullptr),
-        finished(!l) {
+    DLLLOCAL QorePossibleListNodeParseInitHelper(QoreValue& n, QoreParseContext& parse_context) :
+            parse_context(parse_context),
+            l(n.getType() == NT_LIST ? n.get<QoreListNode>() : nullptr),
+            finished(!l) {
         // if the expression is not a list, then initialize it now
         // and save the return type
         if (!l) {
-            parse_init_value(n, oflag, pflag, lvids, singleTypeInfo);
+            parse_context.typeInfo = nullptr;
+            error = parse_init_value(n, parse_context);
             // set type info to 0 if the expression can return a list
             // FIXME: set list element type here when list elements can have types
             //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
-            if (QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo))
-                singleTypeInfo = 0;
+            if (!QoreTypeInfo::parseAccepts(listTypeInfo, parse_context.typeInfo)) {
+                singleTypeInfo = parse_context.typeInfo;
+            }
         }
     }
 
@@ -689,10 +756,23 @@ public:
         return true;
     }
 
-    DLLLOCAL void parseInit(const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInit();
+
+    DLLLOCAL bool hasError() const {
+        return error;
+    }
+
+private:
+    QoreParseContext& parse_context;
+    QoreListNode* l;
+    bool finished;
+    size_t pos = -1;
+    const QoreTypeInfo* singleTypeInfo = nullptr;
+    bool error = false;
 };
 
-DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation* loc, const QoreClass* qc, const char* method);
+DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation* loc, const QoreClass* qc,
+        const char* method);
 
 /*
 class abstract_assignment_helper {
@@ -953,8 +1033,8 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, ExceptionSin
 DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* opt, ExceptionSink* xsink);
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
-// checks for illegal $self assignments in an object context
-DLLLOCAL void check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid);
+// checks for illegal "self" assignments in an object context
+DLLLOCAL int check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid);
 
 DLLLOCAL void ignore_return_value(QoreSimpleValue& n);
 

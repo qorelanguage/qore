@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/ExpressionStatement.h"
 
-ExpressionStatement::ExpressionStatement(const QoreProgramLocation* loc, QoreValue v) : AbstractStatement(loc), exp(v) {
+ExpressionStatement::ExpressionStatement(const QoreProgramLocation* loc, QoreValue v)
+        : AbstractStatement(loc), exp(v) {
     // if it is a global variable declaration, then do not register
     if (exp.getType() == NT_VARREF) {
         VarRefNode* vr = exp.get<VarRefNode>();
@@ -54,7 +55,8 @@ ExpressionStatement::ExpressionStatement(const QoreProgramLocation* loc, QoreVal
 }
 
 ExpressionStatement::~ExpressionStatement() {
-    //printd(5, "ExpressionStatement::~ExpressionStatement() this=%p exp=%p (%s)\n", this, exp, exp ? exp->getTypeName() : "n/a");
+    //printd(5, "ExpressionStatement::~ExpressionStatement() this=%p exp=%p (%s)\n", this, exp,
+    //  exp ? exp->getTypeName() : "n/a");
     // this should never be 0, but in case the implementation changes...
     exp.discard(nullptr);
 }
@@ -64,13 +66,17 @@ int ExpressionStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink)
     return 0;
 }
 
-int ExpressionStatement::parseInitImpl(LocalVar* oflag, int pflag) {
+int ExpressionStatement::parseInitImpl(QoreParseContext& parse_context) {
     //printd(5, "ExpressionStatement::parseInitImpl() exp=%p (%s)\n", exp, exp->getTypeName());
-    int lvids = 0;
+    int err = 0;
     if (exp) {
-        const QoreTypeInfo *argTypeInfo = 0;
-        parse_init_value(exp, oflag, pflag | PF_RETURN_VALUE_IGNORED, lvids, argTypeInfo);
+        QoreParseContextFlagHelper fh(parse_context);
+        fh.setFlags(PF_RETURN_VALUE_IGNORED);
+
+        parse_context.typeInfo = nullptr;
+        err = parse_init_value(exp, parse_context);
     }
-    //printd(5, "ExpressionStatement::parseInitImpl() this=%p exp=%p (%s) lvids=%d\n", this, exp, exp->getTypeName(), lvids);
-    return lvids;
+    //printd(5, "ExpressionStatement::parseInitImpl() this=%p exp=%p (%s) lvids=%d\n", this, exp, exp->getTypeName(),
+    //  parse_context.lvids);
+    return err;
 }

@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,25 +68,29 @@ int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 
 /* do ... while statements can have variables local to the statement
  * however, it doesn't do much good :-) */
-int DoWhileStatement::parseInitImpl(LocalVar* oflag, int pflag) {
-    int lvids = 0;
-
+int DoWhileStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
+
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
+
+    int err = 0;
 
     if (code) {
-        code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_BREAK_OK | PF_CONTINUE_OK);
+
+        err = code->parseInitImpl(parse_context);
     }
     if (cond) {
-        const QoreTypeInfo* argTypeInfo = nullptr;
-        parse_init_value(cond, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(cond, parse_context) && !err) {
+            err = -1;
+        }
         // FIXME: raise a parse warning if cond cannot be converted to a bool (i.e. always false)
     }
 
-    // save local variables
-    if (lvids) {
-        lvars = new LVList(lvids);
-    }
-
-    return 0;
+    return err;
 }

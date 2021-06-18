@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,20 +34,9 @@
 #define _QORE_IMPLICIT_ARGUMENT_NODE_H
 
 class QoreImplicitArgumentNode : public ParseNode {
-private:
-    int offset;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-    DLLLOCAL const QoreValue get() const;
-
-    DLLLOCAL ~QoreImplicitArgumentNode();
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const;
-
 public:
+    int err = 0;
+
     // offset = -1 means return the entire "$argv" list
     DLLLOCAL QoreImplicitArgumentNode(const QoreProgramLocation* loc, int n_offset = -1);
 
@@ -58,6 +47,19 @@ public:
     DLLLOCAL static const char* getStaticTypeName() {
         return "implicit argument reference";
     }
+
+private:
+    int offset;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+    DLLLOCAL const QoreValue get() const;
+
+    DLLLOCAL ~QoreImplicitArgumentNode();
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const;
 };
 
 #endif

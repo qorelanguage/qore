@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,14 +37,6 @@
 #include "qore/intern/QoreParseListNode.h"
 
 class ScopedObjectCallNode : public AbstractFunctionCallNode {
-protected:
-    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return oc ? oc->getTypeInfo() : objectTypeInfo;
-    }
-
 public:
     NamedScope* name;
     const QoreClass* oc;
@@ -60,7 +52,7 @@ public:
         delete name;
     }
 
-    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
         the ExceptionSink is only needed for QoreObject where a method may be executed
@@ -93,6 +85,14 @@ public:
     // returns the description
     DLLLOCAL virtual const char* getName() const {
         return desc.getBuffer();
+    }
+
+protected:
+    // WARNING: pay attention when subclassing; this method must also be implemented in the subclass
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return oc ? oc->getTypeInfo() : objectTypeInfo;
     }
 };
 

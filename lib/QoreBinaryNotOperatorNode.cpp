@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -52,26 +52,33 @@ QoreValue QoreBinaryNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* 
     return ~v->getAsBigInt();
 }
 
-void QoreBinaryNotOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+int QoreBinaryNotOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
-    pflag &= ~(PF_RETURN_VALUE_IGNORED);
-
-    typeInfo = bigIntTypeInfo;
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
     assert(exp);
 
-    const QoreTypeInfo* lti = nullptr;
-    parse_init_value(exp, oflag, pflag, lvids, lti);
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(exp, parse_context);
 
-    if (!QoreTypeInfo::canConvertToScalar(lti))
-        lti->doNonNumericWarning(loc, "the operand of the 'binary not' operator (^) expression is ");
+    if (!QoreTypeInfo::canConvertToScalar(parse_context.typeInfo)) {
+        parse_context.typeInfo->doNonNumericWarning(loc, "the operand of the 'binary not' operator (^) expression " \
+            "is ");
+    }
 
     // see if the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp.isValue()) {
+    if (!err && exp.isValue()) {
         SimpleRefHolder<QoreBinaryNotOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
+        if (**xsink) {
+            err = -1;
+        }
     }
+
+    parse_context.typeInfo = bigIntTypeInfo;
+    return err;
 }

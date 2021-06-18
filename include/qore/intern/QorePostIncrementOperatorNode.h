@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,23 +35,33 @@
 class QorePostIncrementOperatorNode : public QoreSingleExpressionOperatorNode<LValueOperatorNode> {
 OP_COMMON
 protected:
-    const QoreTypeInfo *ti;
+    const QoreTypeInfo* ti = nullptr;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    DLLLOCAL int parseInitIntern(const char* name, QoreParseContext& parse_context) {
         // turn off "reference ok" and "return value ignored" flags
-        pflag &= ~(PF_RETURN_VALUE_IGNORED);
+        QoreParseContextFlagHelper fh(parse_context);
+        fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
-        parse_init_value(exp, oflag, pflag, lvids, ti);
-        checkLValue(exp, pflag);
-        // returns the left side
-        typeInfo = ti;
+        assert(!parse_context.typeInfo);
+        int err = parse_init_value(exp, parse_context);
+        ti = parse_context.typeInfo;
+
+        if (!err && checkLValue(exp, parse_context.pflag)) {
+            err = -1;
+        }
 
         // make sure left side can take an integer or floating-point value
-        check_lvalue_int_float_number(loc, ti, name);
+        if (check_lvalue_int_float_number(loc, ti, name) && !err) {
+            err = -1;
+        }
+
+        // returns the left side
+        parse_context.typeInfo = ti;
+        return err;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -59,7 +69,8 @@ protected:
     }
 
 public:
-    DLLLOCAL QorePostIncrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), ti(0) {
+    DLLLOCAL QorePostIncrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
+            : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), ti(0) {
     }
 
     DLLLOCAL virtual bool hasEffect() const {

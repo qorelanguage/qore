@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,10 @@
 
 #include <qore/Qore.h>
 
-QoreString QoreLogicalAbsoluteEqualsOperatorNode::logical_absolute_equals_str("logical absolute equals (===) operator expression");
-QoreString QoreLogicalAbsoluteNotEqualsOperatorNode::logical_absolute_not_equals_str("logical absolute not equals (!==) operator expression");
+QoreString QoreLogicalAbsoluteEqualsOperatorNode::logical_absolute_equals_str("logical absolute equals (===) " \
+    "operator expression");
+QoreString QoreLogicalAbsoluteNotEqualsOperatorNode::logical_absolute_not_equals_str("logical absolute not equals " \
+    "(!==) operator expression");
 
 QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder l(left, xsink);
@@ -45,28 +47,36 @@ QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalImpl(bool& needs_deref, Exc
     return hardEqual(*l, *r, xsink);
 }
 
-void QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = boolTypeInfo;
+int QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = nullptr;
+    int err = parse_init_value(left, parse_context);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(right, parse_context) && !err) {
+        err = -1;
+    }
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
+    // FIXME: check type compatibility and issue a warning if the types can never be or are always equal
 
-    parse_init_value(left, oflag, pflag, lvids, lti);
-    parse_init_value(right, oflag, pflag, lvids, rti);
+    parse_context.typeInfo = boolTypeInfo;
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left.isValue() && right.isValue()) {
+    if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalAbsoluteEqualsOperatorNode> del(this);
         val = hardEqual(left, right, nullptr);
-        return;
+        return 0;
     }
+
+    return err;
 }
 
-bool QoreLogicalAbsoluteEqualsOperatorNode::hardEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {
+bool QoreLogicalAbsoluteEqualsOperatorNode::hardEqual(const QoreValue left, const QoreValue right,
+        ExceptionSink *xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();
 
-    if (lt != rt)
+    if (lt != rt) {
         return false;
+    }
 
     return left.isEqualHard(right);
 }

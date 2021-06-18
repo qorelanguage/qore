@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,21 +34,11 @@
 #define _QORE_SELFVARREFNODE_H
 
 class SelfVarrefNode : public ParseNode  {
-protected:
-    const QoreTypeInfo *returnTypeInfo;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return returnTypeInfo;
-    }
-
 public:
     char* str;
 
-    DLLLOCAL SelfVarrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_SELF_VARREF), returnTypeInfo(nullptr), str(c_str) {
+    DLLLOCAL SelfVarrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_SELF_VARREF),
+            returnTypeInfo(nullptr), str(c_str) {
     }
 
     DLLLOCAL virtual ~SelfVarrefNode() {
@@ -70,6 +60,17 @@ public:
 
     // returns the string, caller owns the memory
     DLLLOCAL char* takeString();
+
+protected:
+    const QoreTypeInfo* returnTypeInfo;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return returnTypeInfo;
+    }
 };
 
 #endif

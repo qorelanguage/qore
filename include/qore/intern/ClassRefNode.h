@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,8 @@
 
 class ClassRefNode : public ParseNoEvalNode {
 public:
-    DLLLOCAL ClassRefNode(const QoreProgramLocation* loc, char* str) : ParseNoEvalNode(loc, NT_CLASSREF), cscope(new NamedScope(str)), qc(nullptr) {
+    DLLLOCAL ClassRefNode(const QoreProgramLocation* loc, char* str)
+            : ParseNoEvalNode(loc, NT_CLASSREF), cscope(new NamedScope(str)) {
     }
 
     DLLLOCAL ~ClassRefNode() {
@@ -68,9 +69,9 @@ public:
 protected:
     // populated on creation
     NamedScope* cscope;
-    const QoreClass* qc;
+    const QoreClass* qc = nullptr;
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         // FIXME: implement a type for this

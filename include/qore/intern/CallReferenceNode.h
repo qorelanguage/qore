@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ public:
 
     DLLLOCAL virtual ~UnresolvedProgramCallReferenceNode();
 
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 };
 
 class UnresolvedCallReferenceNode : public UnresolvedProgramCallReferenceNode {
@@ -81,7 +81,7 @@ public:
     DLLLOCAL UnresolvedCallReferenceNode(const QoreProgramLocation* loc, char* n_str) : UnresolvedProgramCallReferenceNode(loc, n_str) {
     }
 
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 };
 
 //! a call reference to a static user method
@@ -190,7 +190,8 @@ protected:
     const QoreFunction* uf;
 
     // constructor for subclasses
-    DLLLOCAL LocalFunctionCallReferenceNode(const QoreProgramLocation* loc, const QoreFunction* n_uf, bool n_needs_eval);
+    DLLLOCAL LocalFunctionCallReferenceNode(const QoreProgramLocation* loc, const QoreFunction* n_uf,
+            bool n_needs_eval);
 
     DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
 };
@@ -203,9 +204,11 @@ protected:
     DLLLOCAL virtual bool derefImpl(ExceptionSink* xsink);
 
 public:
-    DLLLOCAL FunctionCallReferenceNode(const QoreProgramLocation* loc, const QoreFunction* n_uf, QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(loc, n_uf, false), pgm(n_pgm) {
+    DLLLOCAL FunctionCallReferenceNode(const QoreProgramLocation* loc, const QoreFunction* n_uf,
+            QoreProgram* n_pgm) : LocalFunctionCallReferenceNode(loc, n_uf, false), pgm(n_pgm) {
         assert(pgm);
-        // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive reference
+        // make a weak reference to the Program - a strong reference (QoreProgram::ref()) could cause a recursive
+        // reference
         pgm->depRef();
     }
 
@@ -228,7 +231,7 @@ public:
             delete this;
     }
 
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 };
 
 class ImportedFunctionEntry;
@@ -243,7 +246,8 @@ private:
     DLLLOCAL virtual ~RunTimeObjectMethodReferenceNode();
 
 public:
-    DLLLOCAL RunTimeObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj, const char* n_method);
+    DLLLOCAL RunTimeObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj,
+            const char* n_method);
 
     DLLLOCAL virtual QoreValue execValue(const QoreListNode* args, ExceptionSink* xsink) const;
 

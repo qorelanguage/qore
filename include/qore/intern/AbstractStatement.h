@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -59,21 +59,6 @@ class QoreBreakpoint;
 class qore_program_private_base;
 
 class AbstractStatement {
-private:
-    volatile bool breakpointFlag;  // fast access to check if breakpoints are non-empty
-    QoreBreakpointList_t *breakpoints;
-
-    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
-    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
-
-    friend class qore_program_private;
-    // executed when qore_program_private::lck_breakpoint lock is acquired
-    DLLLOCAL QoreBreakpoint* getBreakpoint() const;
-
-    friend class QoreBreakpoint;
-    DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
-    DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
-
 public:
     const QoreProgramLocation* loc;
     struct ParseWarnOptions pwo;
@@ -85,7 +70,7 @@ public:
     DLLLOCAL virtual ~AbstractStatement();
 
     DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
-    DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL int parseInit(QoreParseContext& parse_context);
 
     DLLLOCAL void finalizeBlock(int sline, int eline);
 
@@ -99,7 +84,8 @@ public:
         return false;
     }
 
-    // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
+    // should return true if the statement is a declaration processed at parse time and should not go into the parse
+    // tree
     DLLLOCAL virtual bool isParseDeclaration() const {
         return false;
     }
@@ -114,6 +100,23 @@ public:
     }
 
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+
+private:
+    QoreBreakpointList_t* breakpoints = nullptr;
+    volatile bool breakpointFlag = false;  // fast access to check if breakpoints are non-empty
+
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
+
+    //! Returns -1 = parse error raised, 0 = OK
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context) = 0;
+
+    friend class qore_program_private;
+    // executed when qore_program_private::lck_breakpoint lock is acquired
+    DLLLOCAL QoreBreakpoint* getBreakpoint() const;
+
+    friend class QoreBreakpoint;
+    DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
+    DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
 };
 
 DLLLOCAL void push_cvar(const char* name);
@@ -133,7 +136,8 @@ DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation* loc);
 
     @return the LocalVar ptr (caller owns the pointer returned)
 */
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo,
+        int& err, bool is_auto = true, int n_refs = 0, int pflag = 0);
 
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 

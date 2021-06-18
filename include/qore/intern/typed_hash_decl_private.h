@@ -51,7 +51,7 @@ public:
 
     DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
 
-    DLLLOCAL void parseInit(const char* name, bool priv);
+    DLLLOCAL int parseInit(const char* name, bool priv);
 };
 
 typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
@@ -150,31 +150,40 @@ public:
         return false;
     }
 
-    DLLLOCAL void parseInit() {
+    DLLLOCAL int parseInit() {
         if (parse_init_done || sys) {
-            return;
+            return 0;
         }
         parse_init_done = true;
+
+        int err = 0;
 
         // initialize new members
         for (auto& i : members.member_list) {
             if (i.second) {
-                i.second->parseInit(i.first, true);
+                if (i.second->parseInit(i.first, true) && !err) {
+                    err = -1;
+                }
             }
             // check new members for conflicts in base hashdecls
             //parseCheckMemberInBaseHashDecl(i.first, i.second);
         }
+        return err;
     }
 
-    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
+    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+            QoreParseListNode* args, bool& runtime_check) const;
 
-    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo, QoreValue exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
+    DLLLOCAL int parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo,
+            QoreValue exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL int parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const typed_hash_decl_private& hd,
+            const char* context, bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL int parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n, const char* context,
+            bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation* loc, const QoreTypeInfo* vti) const;
+    DLLLOCAL int parseCheckComplexHashAssignment(const QoreProgramLocation* loc, const QoreTypeInfo* vti) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
@@ -196,7 +205,8 @@ public:
         return 0;
     }
 
-    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
+    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem,
+            const QoreTypeInfo*& memberTypeInfo, int pflag) const;
 
     DLLLOCAL const HashDeclMemberInfo* findMember(const char* m) const {
         return members.find(m);

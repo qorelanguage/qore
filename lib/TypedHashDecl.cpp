@@ -40,26 +40,38 @@ bool HashDeclMemberInfo::equal(const HashDeclMemberInfo& other) const {
     return QoreTypeInfo::equal(typeInfo, other.typeInfo);
 }
 
-void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
+int HashDeclMemberInfo::parseInit(const char* name, bool priv) {
+    int err = 0;
     if (!typeInfo) {
-        typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+        typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc, err);
         parseTypeInfo = nullptr;
     }
 #ifdef DEBUG
     else assert(!parseTypeInfo);
 #endif
 
-    if (exp) {
-        const QoreTypeInfo* argTypeInfo = nullptr;
-        int lvids = 0;
-        parse_init_value(exp, nullptr, 0, lvids, argTypeInfo);
-        if (lvids) {
-            parse_error(*loc, "illegal local variable declaration in initialization expression for hashdecl member '%s'", name);
-            while (lvids--)
-                pop_local_var();
+    if (!exp) {
+        return err;
+    }
+
+    QoreParseContext parse_context;
+    if (parse_init_value(exp, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
+    if (parse_context.lvids) {
+        parse_error(*loc, "illegal local variable declaration in initialization expression for hashdecl member '%s'",
+            name);
+        while (parse_context.lvids--) {
+            pop_local_var();
         }
-        // throw a type exception only if parse exceptions are enabled
-        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+        if (!err) {
+            err = -1;
+        }
+    }
+    // throw a type exception only if parse exceptions are enabled
+    if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo)) {
+        if (getProgram()->getParseExceptionSink()) {
             QoreStringNode* desc = new QoreStringNode("initialization expression for ");
             desc->sprintf("hashdecl member '%s' returns ", name);
             QoreTypeInfo::getThisType(argTypeInfo, *desc);
@@ -67,54 +79,63 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
             QoreTypeInfo::getThisType(typeInfo, *desc);
             qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
         }
+        if (!err) {
+            err = -1;
+        }
     }
+    return err;
 }
 
 // NOTE: the new namespace will be set manually after this call
 typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) :
-    loc(old.loc),
-    name(old.name),
-    path(old.path),
-    thd(thd),
-    from_module(old.from_module),
-    orig(old.orig),
-    typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str(), old.path.c_str())),
-    orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str(), old.path.c_str())),
-    pub(false),
-    sys(old.sys),
-    parse_init_done(old.parse_init_done) {
+        loc(old.loc),
+        name(old.name),
+        path(old.path),
+        thd(thd),
+        from_module(old.from_module),
+        orig(old.orig),
+        typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str(), old.path.c_str())),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str(), old.path.c_str())),
+        pub(false),
+        sys(old.sys),
+        parse_init_done(old.parse_init_done) {
     // copy member list
     for (auto& i : old.members.member_list) {
         members.addNoCheck(strdup(i.first), i.second ? new HashDeclMemberInfo(*i.second) : nullptr);
     }
 }
 
-int typed_hash_decl_private::parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag,
-        int pflag, QoreParseListNode* args, bool& runtime_check) const {
+int typed_hash_decl_private::parseInitHashDeclInitialization(const QoreProgramLocation* loc,
+        QoreParseContext& parse_context, QoreParseListNode* args, bool& runtime_check) const {
     runtime_check = false;
 
-    int lvids = 0;
-    const QoreTypeInfo* argTypeInfo = nullptr;
+    parse_context.typeInfo = nullptr;
     QoreValue arg;
-    if (!qore_hash_private::parseInitHashInitialization(loc, oflag, pflag, lvids, args, argTypeInfo, arg))
-        parseCheckHashDeclInitialization(loc, argTypeInfo, arg, "initializer value", runtime_check, true);
-
-    return lvids;
+    int err = 0;
+    if (!qore_hash_private::parseInitHashInitialization(loc, parse_context, args, arg, err)) {
+        if (parseCheckHashDeclInitialization(loc, parse_context.typeInfo, arg, "initializer value", runtime_check,
+            true) && !err) {
+            err = -1;
+        }
+    }
+    return err;
 }
 
-void typed_hash_decl_private::parseCheckHashDeclInitialization(const QoreProgramLocation* loc,
+int typed_hash_decl_private::parseCheckHashDeclInitialization(const QoreProgramLocation* loc,
         const QoreTypeInfo* expTypeInfo, QoreValue exp, const char* context_action, bool& runtime_check,
         bool strict_check) const {
     const TypedHashDecl* hd2 = QoreTypeInfo::getUniqueReturnHashDecl(expTypeInfo);
-    if (hd2)
-        parseCheckHashDeclAssignment(loc, *hd2->priv, context_action, runtime_check, strict_check);
-    else
-        parseCheckHashDeclAssignment(loc, exp, context_action, runtime_check, strict_check);
+    if (hd2) {
+        return parseCheckHashDeclAssignment(loc, *hd2->priv, context_action, runtime_check, strict_check);
+    }
+
+    return parseCheckHashDeclAssignment(loc, exp, context_action, runtime_check, strict_check);
 }
 
 // see if the assignment is valid
-void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc,
+int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc,
         const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check) const {
+    int err = 0;
     for (auto& i : hd.members.member_list) {
         HashDeclMemberInfo* m = members.find(i.first);
         if (!m) {
@@ -123,6 +144,9 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
             parse_error(*loc, "hashdecl '%s' cannot be initialized from %s with hashdecl '%s' due to key '%s' " \
                 "present in hashdecl '%s' but not in the target hashdecl '%s'", name.c_str(), context,
                 hd.name.c_str(), i.first, hd.name.c_str(), name.c_str());
+            if (!err) {
+                err = -1;
+            }
         } else {
             bool may_not_match = false;
             qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), i.second->getTypeInfo(),
@@ -137,27 +161,39 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                     "cast<hash<%s>>() to force a runtime check", name.c_str(), i.first, hd.name.c_str(), context,
                     QoreTypeInfo::getName(i.second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()),
                     name.c_str());
+                if (!err) {
+                    err = -1;
+                }
             } else {
                 parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has " \
                     "incompatible type '%s'; expecting '%s'", name.c_str(), i.first, hd.name.c_str(), context,
                     QoreTypeInfo::getName(i.second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()));
+                if (!err) {
+                    err = -1;
+                }
             }
         }
     }
+    return err;
 }
 
 // see if the assignment is valid
-void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n, const char* context, bool& runtime_check, bool strict_check) const {
+int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n,
+        const char* context, bool& runtime_check, bool strict_check) const {
     assert(!runtime_check);
+
+    int err = 0;
 
     switch (n.getType()) {
         case NT_HASH: {
             ConstHashIterator i(n.get<const QoreHashNode>());
             while (i.next()) {
                 HashDeclMemberInfo* m = members.find(i.getKey());
-                if (!m)
-                    parse_error(*loc, "hashdecl '%s' initializer value from %s contains unknown key '%s'", name.c_str(), context, i.getKey());
-                else {
+                if (!m) {
+                    parse_error(*loc, "hashdecl '%s' initializer value from %s contains unknown key '%s'",
+                        name.c_str(), context, i.getKey());
+                    err = -1;
+                } else {
                     const QoreTypeInfo* kti = i.getTypeInfo();
                     bool may_not_match = false;
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), kti, may_not_match);
@@ -165,43 +201,65 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                         runtime_check = true;
                     if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                         continue;
-                    parse_error(*loc, "hashdecl '%s' initializer value from %s cannot be assigned from key '%s' with incompatible value type '%s'; expecting '%s'", name.c_str(), context, i.getKey(), QoreTypeInfo::getName(kti), QoreTypeInfo::getName(m->getTypeInfo()));
+                    parse_error(*loc, "hashdecl '%s' initializer value from %s cannot be assigned from key '%s' " \
+                        "with incompatible value type '%s'; expecting '%s'", name.c_str(), context, i.getKey(),
+                        QoreTypeInfo::getName(kti), QoreTypeInfo::getName(m->getTypeInfo()));
+                    if (!err) {
+                        err = -1;
+                    }
                 }
             }
             break;
         }
         case NT_PARSE_HASH: {
             const QoreParseHashNode* phn = n.get<const QoreParseHashNode>();
-            const QoreParseHashNode::nvec_t& keys = phn->getKeys();
-            const QoreParseHashNode::tvec_t& vtypes = phn->getValueTypes();
-            assert(keys.size() == vtypes.size());
+            // do not check or raise errors if the parse hash node failed in parsing already
+            if (!phn->hasParseError()) {
+                const QoreParseHashNode::nvec_t& keys = phn->getKeys();
+                const QoreParseHashNode::tvec_t& vtypes = phn->getValueTypes();
+                assert(keys.size() == vtypes.size());
 
-            for (unsigned i = 0; i < keys.size(); ++i) {
-                // check key
-                QoreValue kn = keys[i];
-                const QoreStringNode* key = kn.getType() == NT_STRING ? kn.get<const QoreStringNode>() : nullptr;
-                if (key) {
-                    const HashDeclMemberInfo* m = members.find(key->c_str());
-                    if (!m) {
-                        parse_error(*loc, "hashdecl '%s' hash initializer value from %s contains unknown key '%s'", name.c_str(), context, key->c_str());
-                        continue;
-                    }
-                    // check value type
-                    const QoreTypeInfo* vti = vtypes[i];
-                    bool may_not_match = false;
-                    qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), vti, may_not_match);
-                    if (may_not_match && !runtime_check)
+                for (unsigned i = 0; i < keys.size(); ++i) {
+                    // check key
+                    QoreValue kn = keys[i];
+                    const QoreStringNode* key = kn.getType() == NT_STRING ? kn.get<const QoreStringNode>() : nullptr;
+                    if (key) {
+                        const HashDeclMemberInfo* m = members.find(key->c_str());
+                        if (!m) {
+                            parse_error(*loc, "hashdecl '%s' hash initializer value from %s contains unknown key '%s'",
+                                name.c_str(), context, key->c_str());
+                            if (!err) {
+                                err = -1;
+                            }
+                            continue;
+                        }
+                        // check value type
+                        const QoreTypeInfo* vti = vtypes[i];
+                        bool may_not_match = false;
+                        qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), vti, may_not_match);
+                        if (may_not_match && !runtime_check)
+                            runtime_check = true;
+                        if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
+                            continue;
+
+                        if ((res == QTI_WILDCARD || res == QTI_AMBIGUOUS || res == QTI_NEAR) && may_not_match) {
+                            parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible " \
+                                "type '%s'; expecting '%s'; types may not be compatible at runtime; use " \
+                                "cast<hash<%s>>() to force a runtime check", name.c_str(), key->c_str(), context,
+                                QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                        } else {
+                            parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible " \
+                                "type '%s'; expecting '%s'; types may not be compatible at runtime", name.c_str(),
+                                key->c_str(), context, QoreTypeInfo::getName(vti),
+                                QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                        }
+                        if (!err) {
+                            err = -1;
+                        }
+                    } else if (!runtime_check) {
                         runtime_check = true;
-                    if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
-                        continue;
-
-                    if ((res == QTI_WILDCARD || res == QTI_AMBIGUOUS || res == QTI_NEAR) && may_not_match)
-                        parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime; use cast<hash<%s>>() to force a runtime check", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
-                    else
-                        parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from %s has incompatible type '%s'; expecting '%s'; types may not be compatible at runtime", name.c_str(), key->c_str(), context, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(m->getTypeInfo()), name.c_str());
+                    }
                 }
-                else if (!runtime_check)
-                    runtime_check = true;
             }
             break;
         }
@@ -209,18 +267,28 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
             runtime_check = true;
             break;
     }
+    return err;
 }
 
-void typed_hash_decl_private::parseCheckComplexHashAssignment(const QoreProgramLocation* loc, const QoreTypeInfo* vti) const {
+int typed_hash_decl_private::parseCheckComplexHashAssignment(const QoreProgramLocation* loc,
+        const QoreTypeInfo* vti) const {
     assert(QoreTypeInfo::hasType(vti));
+    int err = 0;
     for (auto& i : members.member_list) {
         if (!QoreTypeInfo::parseAccepts(vti, i.second->getTypeInfo())) {
-            parse_error(*loc, "cannot initialize a hash<string, %s> value from hashdecl '%s' due to member '%s' with incompatible type '%s'", QoreTypeInfo::getName(vti), name.c_str(), i.first, QoreTypeInfo::getName(i.second->getTypeInfo()));
+            parse_error(*loc, "cannot initialize a hash<string, %s> value from hashdecl '%s' due to member '%s' " \
+                "with incompatible type '%s'", QoreTypeInfo::getName(vti), name.c_str(), i.first,
+                QoreTypeInfo::getName(i.second->getTypeInfo()));
+            if (!err) {
+                err = -1;
+            }
         }
     }
+    return err;
 }
 
-int typed_hash_decl_private::parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
+int typed_hash_decl_private::parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem,
+        const QoreTypeInfo*& memberTypeInfo, int pflag) const {
     const_cast<typed_hash_decl_private*>(this)->parseInit();
     const HashDeclMemberInfo* m = members.find(mem);
 

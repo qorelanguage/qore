@@ -117,56 +117,84 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
     return 0;
 }
 
-int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, QoreValue& arg) {
-    assert(!lvids);
-    assert(!argTypeInfo);
+int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, QoreParseContext& parse_context,
+        QoreParseListNode* args, QoreValue& arg, int& err) {
+    assert(!parse_context.typeInfo);
 
-    if (!args || args->empty())
+    if (!args || args->empty()) {
         return -1;
+    }
 
     if (args->size() > 1) {
-        parse_error(*loc, "illegal arguments to typed hash initialization; a single hash argument is expected; %d arguments supplied instead", (int)args->size());
+        parse_error(*loc, "illegal arguments to typed hash initialization; a single hash argument is expected; %d " \
+            "arguments supplied instead", (int)args->size());
+        err = -1;
         return -1;
     }
 
     // initialize argument
-    parse_init_value(args->getReference(0), oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
+    if (parse_init_value(args->getReference(0), parse_context) && !err) {
+        err = -1;
+        return -1;
+    }
     arg = args->get(0);
 
-    if (!QoreTypeInfo::parseReturns(argTypeInfo, NT_HASH)) {
-        parse_error(*loc, "illegal argument to typed hash initialization; a single hash argument is expected; got type '%s' instead", QoreTypeInfo::getName(argTypeInfo));
+    if (!err && !QoreTypeInfo::parseReturns(parse_context.typeInfo, NT_HASH)) {
+        parse_error(*loc, "illegal argument to typed hash initialization; a single hash argument is expected; got " \
+            "type '%s' instead", QoreTypeInfo::getName(parse_context.typeInfo));
+        if (!err) {
+            err = -1;
+        }
         return -1;
     }
 
     return 0;
 }
 
-int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti) {
-    int lvids = 0;
-    const QoreTypeInfo* argTypeInfo = nullptr;
+int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation* loc,
+        QoreParseContext& parse_context, QoreParseListNode* args) {
+    //int lvids = 0;
+    //const QoreTypeInfo* argTypeInfo = nullptr;
     QoreValue arg;
-    if (!parseInitHashInitialization(loc, oflag, pflag, lvids, args, argTypeInfo, arg))
-        parseCheckComplexHashInitialization(loc, vti, argTypeInfo, arg, "initialize", true);
-    return lvids;
-}
-
-void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, QoreValue exp, const char* context_action, bool strict_check) {
-    const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(argTypeInfo);
-    if (hd)
-        typed_hash_decl_private::get(*hd)->parseCheckComplexHashAssignment(loc, valueTypeInfo);
-    else {
-        const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexHash(argTypeInfo);
-        if (vti2) {
-            if (!QoreTypeInfo::parseAccepts(valueTypeInfo, vti2))
-                parse_error(*loc, "cannot %s 'hash<string, %s>' from a hash typed with incompatible value type '%s'", context_action, QoreTypeInfo::getName(valueTypeInfo),
-                QoreTypeInfo::getName(vti2));
+    const QoreTypeInfo* ti = parse_context.typeInfo;
+    parse_context.typeInfo = nullptr;
+    int err = 0;
+    if (!parseInitHashInitialization(loc, parse_context, args, arg, err)) {
+        if (parseCheckComplexHashInitialization(loc, ti, parse_context.typeInfo, arg, "initialize", true) && !err) {
+            err = -1;
         }
-        else
-            parseCheckTypedAssignment(loc, exp, valueTypeInfo, context_action, strict_check);
     }
+    return err;
 }
 
-void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+int qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc,
+        const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, QoreValue exp, const char* context_action,
+        bool strict_check) {
+    const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(argTypeInfo);
+    if (hd) {
+        return typed_hash_decl_private::get(*hd)->parseCheckComplexHashAssignment(loc, valueTypeInfo);
+    }
+
+    const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexHash(argTypeInfo);
+    if (vti2) {
+        if (!QoreTypeInfo::parseAccepts(valueTypeInfo, vti2)) {
+            parse_error(*loc, "cannot %s 'hash<string, %s>' from a hash typed with incompatible value type '%s'",
+                context_action, QoreTypeInfo::getName(valueTypeInfo),
+            QoreTypeInfo::getName(vti2));
+            return -1;
+        }
+    } else {
+        return parseCheckTypedAssignment(loc, exp, valueTypeInfo, context_action, strict_check);
+    }
+
+    return 0;
+}
+
+int qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg,
+        const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+    int err = 0;
     switch (arg.getType()) {
         case NT_HASH: {
             ConstHashIterator i(arg.get<const QoreHashNode>());
@@ -176,7 +204,11 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, kti, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                parse_error(*loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), i.getKey(), QoreTypeInfo::getName(kti));
+                parse_error(*loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible value " \
+                    "type '%s'", context_action, QoreTypeInfo::getName(vti), i.getKey(), QoreTypeInfo::getName(kti));
+                if (!err) {
+                    err = -1;
+                }
             }
             break;
         }
@@ -194,19 +226,29 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
                     continue;
                 QoreValue kn = keys[i];
                 const QoreStringNode* key = kn.getType() == NT_STRING ? kn.get<const QoreStringNode>() : nullptr;
-                if (key)
-                    parse_error(*loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), key->c_str(), QoreTypeInfo::getName(vti2));
-                else
-                    parse_error(*loc, "cannot %s 'hash<string, %s>' from element value %d/%d of a hash with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(), QoreTypeInfo::getName(vti2));
+                if (key) {
+                    parse_error(*loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible " \
+                        "value type '%s'", context_action, QoreTypeInfo::getName(vti), key->c_str(),
+                        QoreTypeInfo::getName(vti2));
+                } else {
+                    parse_error(*loc, "cannot %s 'hash<string, %s>' from element value %d/%d of a hash with " \
+                        "incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1),
+                        (int)vtypes.size(), QoreTypeInfo::getName(vti2));
+                }
+                if (!err) {
+                    err = -1;
+                }
             }
             break;
         }
         default:
             break;
     }
+    return err;
 }
 
-QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args, ExceptionSink* xsink) {
+QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args,
+        ExceptionSink* xsink) {
     assert(!args || args->empty() || args->size() == 1);
 
     QoreHashNode* init = nullptr;
@@ -643,8 +685,9 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
     return rv.release();
 }
 
-void QoreHashNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-    typeInfo = priv->getTypeInfo();
+int QoreHashNode::parseInit(QoreValue& val, QoreParseContext& parse_context) {
+    parse_context.typeInfo = priv->getTypeInfo();
+    return 0;
 }
 
 bool QoreHashNode::getAsBoolImpl() const {
@@ -1024,19 +1067,19 @@ HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const std::string& k
 }
 
 HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString& key, bool must_already_exist) : priv(0) {
-   TempEncodingHelper k(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
+    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return;
 
-   priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
+    priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
 }
 
 HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString* key, bool must_already_exist) : priv(0) {
-   TempEncodingHelper k(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
+    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return;
 
-   priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
+    priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
 }
 
 HashAssignmentHelper::HashAssignmentHelper(HashIterator &hi) : priv(new hash_assignment_priv(*hi.h->priv, *(hi.priv->i))) {
@@ -1079,7 +1122,10 @@ QoreValue HashAssignmentHelper::operator*() const {
 }
 
 void QoreParseHashNode::doDuplicateWarning(const QoreProgramLocation* newloc, const char* key) {
-   qore_program_private::makeParseWarning(getProgram(), *newloc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY", "hash key '%s' has already been given in this hash; the value given in the last occurrence will be assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the warning by using '%%disable-warning duplicate-hash-key' in your code", key);
+   qore_program_private::makeParseWarning(getProgram(), *newloc, QP_WARN_DUPLICATE_HASH_KEY, "DUPLICATE-HASH-KEY",
+        "hash key '%s' has already been given in this hash; the value given in the last occurrence will be " \
+        "assigned to the hash; to avoid seeing this warning, remove the extraneous key definitions or turn off the " \
+        "warning by using '%%disable-warning duplicate-hash-key' in your code", key);
 }
 
 int QoreParseHashNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {

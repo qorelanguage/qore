@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,35 +39,17 @@ class ParseNode : public SimpleQoreNode {
 public:
     const QoreProgramLocation* loc;
 
-private:
-    // not implemented
-    ParseNode& operator=(const ParseNode&) = delete;
-
-protected:
-    //! if the node has an effect when evaluated (changes something)
-    bool effect : 1;
-
-    //! if the node has meaning as a top-level node
-    bool effect_as_root : 1;
-
-    //! if the return value is ignored
-    bool ref_rv : 1;
-
-    //! if the node has undergone "parse initialization"
-    bool parse_init : 1;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
-
-public:
-    DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_needs_eval), ref_rv(true), parse_init(false) {
+    DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval = true)
+            : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_needs_eval), ref_rv(true),
+            parse_init(false) {
         effect_as_root = effect;
     }
-    DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_effect), ref_rv(true), parse_init(false) {
+    DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval, bool n_effect)
+            : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_effect), ref_rv(true), parse_init(false) {
         effect_as_root = effect;
     }
-    DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
+    DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc),
+            effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
         effect_as_root = effect;
     }
     // parse types should never be copied
@@ -102,14 +84,35 @@ public:
         return ref_rv;
     }
 
-    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context) {
         if (parse_init) {
-            typeInfo = getTypeInfo();
-            return;
+            parse_context.typeInfo = getTypeInfo();
+            return 0;
         }
         parse_init = true;
-        parseInitImpl(val, oflag, pflag, lvids, typeInfo);
+        return parseInitImpl(val, parse_context);
     }
+
+private:
+    // not implemented
+    ParseNode& operator=(const ParseNode&) = delete;
+
+protected:
+    //! if the node has an effect when evaluated (changes something)
+    bool effect : 1;
+
+    //! if the node has meaning as a top-level node
+    bool effect_as_root : 1;
+
+    //! if the return value is ignored
+    bool ref_rv : 1;
+
+    //! if the node has undergone "parse initialization"
+    bool parse_init : 1;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) = 0;
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 };
 
 // these objects will never be copied or referenced therefore they can have
@@ -119,7 +122,7 @@ private:
     // not implemented
     DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
 
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) = 0;
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
 protected:

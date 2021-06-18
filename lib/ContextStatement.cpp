@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -52,9 +52,10 @@ void ContextModList::addContextMod(ContextMod *cm) {
     //printd(5, "CML::CML() %d (%p)\n", cm->getType(), cm->exp);
 }
 
-ContextStatement::ContextStatement(int start_line, int end_line, char* n, QoreValue expr, ContextModList* mods, StatementBlock* cd)
-    : AbstractStatement(start_line, end_line),
-        name(n), exp(expr), code(cd) {
+ContextStatement::ContextStatement(int start_line, int end_line, char* n, QoreValue expr, ContextModList* mods,
+        StatementBlock* cd)
+        : AbstractStatement(start_line, end_line),
+            name(n), exp(expr), code(cd) {
     if (mods) {
         for (cxtmod_list_t::iterator i = mods->begin(); i != mods->end(); i++) {
             switch ((*i)->type) {
@@ -64,7 +65,8 @@ ContextStatement::ContextStatement(int start_line, int end_line, char* n, QoreVa
                         (*i)->exp.clear();
                     }
                     else {
-                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
+                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple where conditions found for context " \
+                            "statement");
                     }
                     break;
                 case CM_SORT_ASCENDING:
@@ -73,7 +75,8 @@ ContextStatement::ContextStatement(int start_line, int end_line, char* n, QoreVa
                         (*i)->exp.clear();
                     }
                     else {
-                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context " \
+                            "statement");
                     }
                     break;
                 case CM_SORT_DESCENDING:
@@ -82,7 +85,8 @@ ContextStatement::ContextStatement(int start_line, int end_line, char* n, QoreVa
                         (*i)->exp.clear();
                     }
                     else {
-                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+                        parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context " \
+                            "statement");
                     }
                     break;
             }
@@ -135,51 +139,64 @@ int ContextStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     return rc;
 }
 
-int ContextStatement::parseInitImpl(LocalVar* oflag, int pflag) {
+int ContextStatement::parseInitImpl(QoreParseContext& parse_context) {
     QORE_TRACE("ContextStatement::parseInitImpl()");
 
-    int lvids = 0;
-
     // turn off top-level flag for statement vars
-    pflag &= (~PF_TOP_LEVEL);
+    QoreParseContextFlagHelper fh(parse_context);
+    fh.unsetFlags(PF_TOP_LEVEL);
 
-    if (!exp && !getCVarStack())
+    int err = 0;
+
+    if (!exp && !getCVarStack()) {
         parse_error(*loc, "subcontext statement out of context");
+        err = -1;
+    }
 
-    const QoreTypeInfo* argTypeInfo = nullptr;
+    // saves local variables after parsing
+    QoreParseContextLvarHelper lh(parse_context, lvars);
 
     // initialize context expression
-    parse_init_value(exp, oflag, pflag, lvids, argTypeInfo);
+    parse_context.typeInfo = nullptr;
+    if (parse_init_value(exp, parse_context) && !err) {
+        err = -1;
+    }
+    const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
 
     // need to push something on the stack even if the context is not named
     push_cvar(name);
 
     if (where_exp) {
-        argTypeInfo = nullptr;
-        parse_init_value(where_exp, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(where_exp, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (sort_ascending) {
-        argTypeInfo = nullptr;
-        parse_init_value(sort_ascending, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(sort_ascending, parse_context) && !err) {
+            err = -1;
+        }
     }
     if (sort_descending) {
-        argTypeInfo = nullptr;
-        parse_init_value(sort_descending, oflag, pflag, lvids, argTypeInfo);
+        parse_context.typeInfo = nullptr;
+        if (parse_init_value(sort_descending, parse_context) && !err) {
+            err = -1;
+        }
     }
 
     // initialize statement block
     if (code) {
-        code->parseInitImpl(oflag, pflag | PF_BREAK_OK | PF_CONTINUE_OK);
-    }
-
-    // save local variables
-    if (lvids) {
-        lvars = new LVList(lvids);
+        QoreParseContextFlagHelper fh0(parse_context);
+        fh0.setFlags(PF_BREAK_OK | PF_CONTINUE_OK);
+        if (code->parseInitImpl(parse_context) && !err) {
+            err = -1;
+        }
     }
 
     pop_cvar();
 
-    return 0;
+    return err;
 }
 
 void ContextStatement::parseCommit(QoreProgram* pgm) {
@@ -188,4 +205,3 @@ void ContextStatement::parseCommit(QoreProgram* pgm) {
         code->parseCommit(pgm);
     }
 }
-
