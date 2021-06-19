@@ -105,7 +105,7 @@ int QoreChompOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
     QoreParseContextFlagHelper fh(parse_context);
     fh.setFlags(PF_FOR_ASSIGNMENT);
     int err = parse_init_value(exp, parse_context);
-    if (exp && checkLValue(exp, parse_context.pflag) && !err) {
+    if (!err && exp && checkLValue(exp, parse_context.pflag)) {
         err = -1;
     }
 

@@ -53,7 +53,7 @@ QoreValue QoreDeleteOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
 int QoreDeleteOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
     assert(!parse_context.typeInfo);
     int err = parse_init_value(exp, parse_context);
-    if (exp && checkLValue(exp, parse_context.pflag) && !err) {
+    if (!err && exp && checkLValue(exp, parse_context.pflag)) {
         err = -1;
     }
     parse_context.typeInfo = nothingTypeInfo;

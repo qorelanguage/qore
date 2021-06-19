@@ -51,7 +51,7 @@ int QoreAssignmentOperatorNode::parseInitIntern(QoreParseContext& parse_context,
 
     //printd(0, "QoreAssignmentOperatorNode::parseInitImpl() this: %p left: '%s' nt: %d ti: %p '%s'\n", this,
     //    left.getFullTypeName(), left.getType(), ti, QoreTypeInfo::getName(ti));
-    if (checkLValue(left, parse_context.pflag) && !err) {
+    if (!err && checkLValue(left, parse_context.pflag)) {
         err = -1;
     }
 

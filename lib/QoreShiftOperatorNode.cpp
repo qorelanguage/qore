@@ -56,7 +56,7 @@ int QoreShiftOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
 
     if (exp) {
         const QoreTypeInfo* expTypeInfo = parse_context.typeInfo;
-        if (checkLValue(exp, parse_context.pflag) && !err) {
+        if (!err && checkLValue(exp, parse_context.pflag)) {
             err = -1;
         }
 

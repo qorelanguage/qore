@@ -53,7 +53,7 @@ int QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
     }
 
     if (left) {
-        if (checkLValue(left, parse_context.pflag) && !err) {
+        if (!err && checkLValue(left, parse_context.pflag)) {
             err = -1;
         }
 
