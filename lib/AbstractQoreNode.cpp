@@ -465,8 +465,6 @@ QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xs
 
         case NT_VARREF: {
             const VarRefNode* var_ref = n.get<const VarRefNode>();
-            printd(5, "copy_value_and_resolve_lvar_refs() '%s' (%s): %d (tl: %d)\n", var_ref->getName(),
-                var_ref->getTypeName(), var_ref->getType(), var_ref->ref.var->isThreadLocal());
             if (var_ref->getType() != VT_GLOBAL) {
                 return n.eval(xsink);
             }
