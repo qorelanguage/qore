@@ -85,8 +85,9 @@ int QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& 
             if (check_lvalue_int(loc, ti, "+=") && !err) {
                 err = -1;
             }
-            ti = bigIntTypeInfo;
+            parse_context.typeInfo = ti = bigIntTypeInfo;
             val = makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+            return err;
         } else {
             ti = nullptr;
         }
