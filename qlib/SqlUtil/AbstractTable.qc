@@ -5995,16 +5995,37 @@ list l = table.getAlignSql(table2);
                             ix.setSupportingConstraint(primaryKey);
                             continue;
                         }
-                    }
-                    else {
+                    } else {
                         # see if a unique or fk constraint with the same name and columns exists
+                        foreach AbstractColumnConstraint csc in (getAllSupportingConstraints(ix.name)) {
+                            if (csc.matchKeys(ix.columns) && csc.setIndexBase(ix.name)) {
+                                ix.setSupportingConstraint(csc);
+                                continue;
+                            }
+                        }
+                        /*
                         *AbstractColumnSupportingConstraint csc = getSupportingConstraint(ix.name);
                         if (csc && csc.matchKeys(ix.columns) && csc.setIndexBase(ix.name)) {
                             ix.setSupportingConstraint(csc);
                             continue;
                         }
+                        */
                     }
                     # see if the index is supporting a constraint that has to be dropped first
+                    foreach AbstractColumnConstraint csc in (ix.getAllSupportingConstraints()) {
+                        if (constraintsLinkedToIndexesImpl()) {
+                            code rmv;
+                            AbstractConstraint c = findDropConstraintUnlocked(csc.getName(), \rmv);
+
+                            l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()),
+                                AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                            rmv();
+                        } else {
+                            l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()),
+                                AbstractDatabase::AC_Drop, "index", ix.name, name);
+                        }
+                    }
+                    /*
                     *AbstractColumnSupportingConstraint csc = ix.getSupportingConstraint();
                     if (csc && constraintsLinkedToIndexesImpl()) {
                         code rmv;
@@ -6012,9 +6033,9 @@ list l = table.getAlignSql(table2);
 
                         l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
                         rmv();
-                    }
-                    else
+                    } else
                         l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
+                    */
                     if (uixc) {
                         *AbstractUniqueConstraint c = ix.getSupportingConstraint();
                         if (c && constraints.hasKey(c.getName()))
@@ -6253,8 +6274,17 @@ list l = table.getAlignSql(table2);
     private *AbstractColumnSupportingConstraint getSupportingConstraint(string ixname) {
         if (constraints.hasKey(ixname) && constraints{ixname} instanceof AbstractColumnSupportingConstraint)
             return constraints{ixname};
-        if (foreignConstraints.hasKey(ixname))
-            return foreignConstraints{ixname};
+    }
+
+    private *list<AbstractColumnConstraint> getAllSupportingConstraints(string ixname) {
+        list<AbstractColumnConstraint> rv;
+        if (constraints.hasKey(ixname) && constraints{ixname} instanceof AbstractColumnSupportingConstraint) {
+            rv += constraints{ixname};
+        }
+        if (foreignConstraints.hasKey(ixname)) {
+            rv += foreignConstraints{ixname};
+        }
+        return rv;
     }
 
     private renameIndexUnlocked(AbstractIndex ix, string new_name) {
