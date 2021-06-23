@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9
+%requires qore >= 1.0
 
 # requires the Util module
 %requires Util >= 1.0
@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.7.1";
+    version = "1.7.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_7_2 SqlUtil v1.7.2
+    - fixed a bug handling foreign constraints backed by indices on DBs that link indices and constraints
+      automatically
+      (<a href="https://github.com/qorelanguage/qore/issues/4269">issue 4269</a>)
 
     @subsection sqlutilv1_7_1 SqlUtil v1.7.1
     - fixed a bug where pseudocolumn references were used ambiguously in joins
@@ -6106,6 +6111,9 @@ AbstractIndex ix = indexes.pk_jobs;
         private {
             #! the AbstractColumnSupportingConstraint that this index supports, if any
             *AbstractColumnSupportingConstraint constraint;
+
+            #! Any foreign constraint that this index supports
+            *AbstractForeignConstraint foreign_constraint;
         }
 
         #! creates the object from the name, a unique flag, and a hash of column information
@@ -6174,6 +6182,33 @@ AbstractIndex ix = indexes.pk_jobs;
         #! returns the supporting constraint, if any
         *AbstractColumnSupportingConstraint getSupportingConstraint() {
             return constraint;
+        }
+
+        #! tags the index with a column supporting constraint (unique or fk constraint, etc) that the index supports
+        setSupportingConstraint(AbstractForeignConstraint c) {
+            foreign_constraint = c;
+        }
+
+        #! clears the supporting constraint
+        setForeignConstraint() {
+            remove foreign_constraint;
+        }
+
+        #! returns the supporting constraint, if any
+        *AbstractForeignConstraint getForeignConstraint() {
+            return foreign_constraint;
+        }
+
+        #! returns all supporting constraints, if any
+        *list<AbstractColumnConstraint> getAllSupportingConstraints() {
+            list<AbstractColumnConstraint> rv;
+            if (constraint) {
+                rv += constraint;
+            }
+            if (foreign_constraint) {
+                rv += foreign_constraint;
+            }
+            return rv;
         }
 
         #! returns a list of strings to drop and recreate the current index; if there are dependent constraints, the list contains commands to disable the constraints before dropping the index and also contains commands to re-enable the contraints after re-creating the index

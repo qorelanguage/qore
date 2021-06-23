@@ -75,6 +75,10 @@
     - <a href="../../modules/Qdx/html/index.html">Qdx</a> module
       - fixed stripping the final \c "\" character in multi-line entries in tables
         (<a href="https://github.com/qorelanguage/qore/issues/4195">issue 4195</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - fixed a bug handling foreign constraints backed by indices on DBs that link indices and constraints
+        automatically
+        (<a href="https://github.com/qorelanguage/qore/issues/4269">issue 4269</a>)
     - <a href="../../modules/SmtpClient/html/index.html">SmtpClient</a> module
       - fixed message serialization for SMTP handling in case of single \c "." characters on a line in serialized data
         (issue <a href="https://github.com/qorelanguage/qore/issues/3275">issue 3275</a>)
