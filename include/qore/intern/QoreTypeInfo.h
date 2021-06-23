@@ -2006,12 +2006,28 @@ public:
         pname = QoreStringMaker("reference<%s>", QoreTypeInfo::getPath(vti));
     }
 
+    DLLLOCAL ~QoreComplexReferenceTypeInfo() {
+        delete ref_type;
+    }
+
     DLLLOCAL const QoreTypeInfo* getHardReference() const {
-        return new QoreComplexHardReferenceTypeInfo(accept_vec[0].spec.getComplexReference());
+        if (ref_type) {
+            return ref_type;
+        }
+
+        AutoLocker al(ref_lock);
+        // check again in the lock
+        if (ref_type) {
+            return ref_type;
+        }
+
+        return ref_type = getHardReferenceImpl();
     }
 
 protected:
     QoreString pname;
+    mutable QoreThreadLock ref_lock;
+    mutable const QoreTypeInfo* ref_type = nullptr;
 
     DLLLOCAL QoreComplexReferenceTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec,
         const QoreString& tname) : QoreTypeInfo(std::move(a_vec), std::move(r_vec), tname) {
@@ -2030,6 +2046,10 @@ protected:
         assert(!pname.empty());
         return pname.c_str();
     }
+
+    DLLLOCAL virtual const QoreTypeInfo* getHardReferenceImpl() const {
+        return new QoreComplexHardReferenceTypeInfo(accept_vec[0].spec.getComplexReference());
+    }
 };
 
 class QoreComplexReferenceOrNothingTypeInfo : public QoreComplexReferenceTypeInfo {
@@ -2046,10 +2066,6 @@ public:
         pname = QoreStringMaker("*reference<%s>", QoreTypeInfo::getPath(vti));
     }
 
-    DLLLOCAL const QoreTypeInfo* getHardReference() const {
-        return new QoreComplexHardReferenceOrNothingTypeInfo(accept_vec[0].spec.getComplexReference());
-    }
-
 protected:
     DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
         str.sprintf("reference<%s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexReference()));
@@ -2058,6 +2074,10 @@ protected:
     // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const {
         return false;
+    }
+
+    DLLLOCAL virtual const QoreTypeInfo* getHardReferenceImpl() const {
+        return new QoreComplexHardReferenceOrNothingTypeInfo(accept_vec[0].spec.getComplexReference());
     }
 };
 
