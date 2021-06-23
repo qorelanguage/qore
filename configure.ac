@@ -1891,8 +1891,8 @@ if test ! -f qore.spec; then
 fi
 
 # get module API version to set pkglibdir
-MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
-MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ |head -1`
+MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ |head -1`
 MODULE_API=$MODULE_API_MAJOR.$MODULE_API_MINOR
 
 mypkglibdir=qore-modules
