@@ -1009,7 +1009,11 @@ static int mkdir_chdir(const char* path) {
     struct stat sb;
     if (stat(path, &sb)) {
         //printf("stat('%s'): %s\n", path, strerror(errno));
+#if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+        if (mkdir(path)) {
+#else
         if (mkdir(path, 0755)) {
+#endif
             // ignore EEXIST: with a parallel build this can happen normally
             if (errno != EEXIST) {
                 fprintf(stderr, "mkdir '%s': %s\n", path, strerror(errno));
