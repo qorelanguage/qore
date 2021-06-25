@@ -2110,7 +2110,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         }
 
         if (log_recv_body) {
-            if (hdr."content-type" == MimeTypeOctetStream || hdr."content-encoding") {
+            if (body && (hdr."content-type" == MimeTypeOctetStream || hdr."content-encoding")) {
                 log("cid %d: RECV BODY: <%s>", cx.id, body.toHex());
             } else {
                 log("cid %d: RECV BODY: %y", cx.id, body);

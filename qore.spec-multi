@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 1.0
+Version: 1.0.0
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -158,8 +158,6 @@ and also for user modules delivered with Qore and also example programs.
 %files doc
 %defattr(-,root,root,-)
 %doc docs/lang docs/modules/* examples/ COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
-%dir %{_datarootdir}/qore/java
-%{_datarootdir}/qore/java/*
 
 %package devel
 Summary: The header files needed to compile programs using the qore library

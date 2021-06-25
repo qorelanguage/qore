@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 1.0
+Version: 1.0.0
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -82,8 +82,6 @@ and also for user modules delivered with Qore and also example programs.
 %files doc
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc docs/lang docs/modules/* examples/
-%dir %{_datarootdir}/qore/java
-%{_datarootdir}/qore/java/*
 
 %package devel
 Summary: The header files needed to compile programs using the qore library

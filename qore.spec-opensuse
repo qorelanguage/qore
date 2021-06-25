@@ -19,7 +19,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        1.0
+Version:        1.0.0
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -91,8 +91,6 @@ and also for user modules delivered with Qore and also example programs.
 %files doc
 %defattr(-,root,root,-)
 %doc docs/lang docs/modules/* examples/ README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
-%dir %{_datarootdir}/qore/java
-%{_datarootdir}/qore/java/*
 
 %package devel
 Summary:        The header files needed to compile programs using the qore library
