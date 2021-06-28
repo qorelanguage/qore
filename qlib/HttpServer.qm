@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.0";
+    version = "1.0.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_0_1 HttpServer 1.0.1
+    - allow for full logging of authentication errors if HTTP server debugging is enabled
+      (<a href="https://github.com/qorelanguage/qore/issues/4217">issue 4217</a>)
 
     @subsection http1_0 HttpServer 1.0
     - allow dynamic handlers to be disabled before being removed
@@ -1581,10 +1585,14 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                         }
                     } catch (hash<ExceptionInfo> ex) {
                         # log the error
-                        string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
-                        listener.logError(str);
+                        string desc = !debug
+                            ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                            : get_exception_string(ex);
+                        desc += sprintf(": received from %s", cx."peer-info".address_desc);
+                        listener.logError("%s", desc);
                         cx.close = True;
-                        sendHttpError(listener, cx, s, 501, "Server Authentication Error", NOTHING, NOTHING, NOTHING, head);
+                        sendHttpError(listener, cx, s, 501, "Server Authentication Error", NOTHING, NOTHING, NOTHING,
+                            head);
                         return;
                     }
                     #listener.log("authenticated with user %y", cx.user);
@@ -1595,7 +1603,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
                 # decode body if applicable
                 if (body && hdr."content-encoding" && handler.decompress)
-                    body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body, handler.decompress_to_string ? s.getEncoding() : NOTHING);
+                    body = AbstractHttpRequestHandler::decodeBody(hdr."content-encoding", body,
+                        handler.decompress_to_string ? s.getEncoding() : NOTHING);
 
                 rv = cast<hash<HttpResponseInfo>>(handler.handleRequest(listener, s, cx, hdr, body));
 
@@ -2093,7 +2102,6 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 } catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "INVALID-ENCODING") {
                         lstr += sprintf("error logging msg body: %s: %s", ex.err, ex.desc);
-
                         string etxt = serv.getDebug()
                             ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                             : get_exception_string(ex);
