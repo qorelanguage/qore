@@ -117,6 +117,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http1_0_1 HttpServer 1.0.1
+    - allow dynamic handlers to be removed without waiting for all connections to terminate
+      (<a href="https://github.com/qorelanguage/qore/issues/4273">issue 4273</a>)
     - allow for full logging of authentication errors if HTTP server debugging is enabled
       (<a href="https://github.com/qorelanguage/qore/issues/4217">issue 4217</a>)
 
@@ -1128,8 +1130,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     #! remove dynamic handler
     /** @throw REMOVEHANDLER-ERROR if the given dynamic handler does not exist
     */
-    removeDynamicHandler(string name) {
-        dhandlers.removeHandler(name);
+    removeDynamicHandler(string name, *bool force_immediate) {
+        dhandlers.removeHandler(name, force_immediate);
     }
 
     #! called to log information to the registered log code
@@ -2815,7 +2817,7 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
     #! remove dynamic handler
     /** @throw REMOVEHANDLER-ERROR if the given dynamic handler does not exist
     */
-    removeHandler(string name) {
+    removeHandler(string name, *bool force_immediate) {
         Counter c;
         {
             # grab exclusive lock
@@ -2823,8 +2825,9 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
             on_exit dhl.writeUnlock();
 
             # if no such handler exists, throw an exception
-            if (!handlers{name})
+            if (!handlers{name}) {
                 throw "REMOVEHANDLER-ERROR", sprintf("dynamic request handler %y does not exist", name);
+            }
 
             # remove the handler from the list
             DynamicHandlerInfo dhi = remove handlers{name};
@@ -2844,7 +2847,9 @@ class DynamicHttpHandlerList inherits HttpHandlerList {
         }
 
         # wait for the call counter to reach zero
-        c.waitForZero();
+        if (!force_immediate) {
+            c.waitForZero();
+        }
     }
 
     #! Disable dynamic handler
