@@ -8,6 +8,9 @@
     Bugfix release; see below for more information
 
     @subsection qore_0916_bug_fixes Bug Fixes in Qore
+    - fixed a bug in @ref Qore::sleep() and @ref Qore::usleep() where calls could return early on platforms with \
+      \c nanosleep() if a signal arrived when sleeping
+      (<a href="https://github.com/qorelanguage/qore/issues/4275">issue 4275</a>)
     - fixed a bug where negative timeouts with lock methods and internal condition variable wait calls would return
       immediately instead of waiting indefinitely with some objects
       (<a href="https://github.com/qorelanguage/qore/issues/4263">issue 4263</a>)
