@@ -13,6 +13,9 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4273">issue 4273</a>)
       - allow for full logging of authentication errors if HTTP server debugging is enabled
         (<a href="https://github.com/qorelanguage/qore/issues/4217">issue 4217</a>)
+    - fixed a bug in @ref Qore::sleep() and @ref Qore::usleep() where calls could return early on platforms with \
+      \c nanosleep() if a signal arrived when sleeping
+      (<a href="https://github.com/qorelanguage/qore/issues/4275">issue 4275</a>)
 
     @section qore_1_0 Qore 1.0
 
