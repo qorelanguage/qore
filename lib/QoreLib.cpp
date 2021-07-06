@@ -1819,7 +1819,15 @@ static int qore_nanosleep(int64 ns) {
     struct timespec ts;
     ts.tv_sec = ns / 1000000000ll;
     ts.tv_nsec = (ns - ts.tv_sec * 1000000000);
-    return nanosleep(&ts, 0);
+    int rc;
+    while (true) {
+        rc = nanosleep(&ts, 0);
+        if (rc && errno == EINTR) {
+            continue;
+        }
+        break;
+    }
+    return rc;
 }
 #endif
 
