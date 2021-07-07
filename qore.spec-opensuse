@@ -68,7 +68,7 @@ functionality.
 
 %files -n libqore7
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.7.0.0
+%{_libdir}/libqore.so.7.0.1
 %{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 

@@ -312,7 +312,11 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             # build function source: keep template start on same source line for better error reporting
             string tpl = StaticTextTemplateBase::getCode(bare_refs, "string sub %s(*hash<auto> $ctx){", fn);
             tpl += StaticTextTemplateBase::getCode(bare_refs, "my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", src);
-            p.parse(tpl, name);
+            try {
+                p.parse(tpl, name);
+            } catch (hash<ExceptionInfo> ex) {
+                throw "TEMPLATE-ERROR", sprintf("%s: %s: template source: %y", ex.err, ex.desc, tpl);
+            }
 
             # return the final source string produced
             return src;
