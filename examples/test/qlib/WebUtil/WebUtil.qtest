@@ -54,8 +54,8 @@ public class WebUtilTest inherits QUnit::Test {
             stm.add("t1", "{% string s = 'foo bar'; %} {{ s }}");
             fail("test cannot go here");
         } catch (hash<ExceptionInfo> ex) {
-            assertEq("PARSE-EXCEPTION", ex.err, "oldstyle PO with newstyle template");
-            assertEq("local variable 's' declared without '$' prefix, but parse option 'allow-bare-refs' is not set",
+            assertEq("TEMPLATE-ERROR", ex.err, "oldstyle PO with newstyle template");
+            assertRegex("local variable 's' declared without '\\$' prefix, but parse option 'allow-bare-refs' is not set",
                      ex.desc, "oldstyle PO with newstyle template");
         }
         # positive test
