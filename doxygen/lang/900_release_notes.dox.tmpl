@@ -13,7 +13,10 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4273">issue 4273</a>)
       - allow for full logging of authentication errors if HTTP server debugging is enabled
         (<a href="https://github.com/qorelanguage/qore/issues/4217">issue 4217</a>)
-    - fixed a bug in @ref Qore::sleep() and @ref Qore::usleep() where calls could return early on platforms with \
+    - fixed a bug where trying to export or import code in other languages in a @ref Qore::Program "Program"
+      object with pending parse structures could cause a crash
+      (<a href="https://github.com/qorelanguage/qore/issues/4279">issue 4279</a>)
+    - fixed a bug in @ref Qore::sleep() and @ref Qore::usleep() where calls could return early on platforms with
       \c nanosleep() if a signal arrived when sleeping
       (<a href="https://github.com/qorelanguage/qore/issues/4275">issue 4275</a>)
 

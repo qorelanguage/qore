@@ -3439,6 +3439,9 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
 }
 
 bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
+    if (!initialized) {
+        return false;
+    }
     const qore_class_private* class_ctx = runtime_get_class();
     if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx)) {
         class_ctx = nullptr;
@@ -3460,8 +3463,11 @@ bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const
 }
 
 const QoreMethod* qore_class_private::runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access,
-    const qore_class_private* class_ctx) const {
+        const qore_class_private* class_ctx) const {
     access = Public;
+    if (!initialized) {
+        return nullptr;
+    }
     if (class_ctx && class_ctx != this) {
         const QoreMethod* m = class_ctx->findLocalCommittedStaticMethod(nme);
         if (m && qore_method_private::get(*m)->getFunction()->hasPrivateInternalVariants()) {
@@ -3472,8 +3478,11 @@ const QoreMethod* qore_class_private::runtimeFindCommittedStaticMethod(const cha
 }
 
 const QoreMethod* qore_class_private::runtimeFindCommittedMethod(const char* nme, ClassAccess& access,
-    const qore_class_private* class_ctx) const {
+        const qore_class_private* class_ctx) const {
     access = Public;
+    if (!initialized) {
+        return nullptr;
+    }
     if (class_ctx && class_ctx != this) {
         const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
         if (m && qore_method_private::get(*m)->getFunction()->hasPrivateInternalVariants()) {
@@ -3483,8 +3492,12 @@ const QoreMethod* qore_class_private::runtimeFindCommittedMethod(const char* nme
     return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
 }
 
-const QoreMethod* qore_class_private::runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
+const QoreMethod* qore_class_private::runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const {
     access = Public;
+    if (!initialized) {
+        return nullptr;
+    }
     if (class_ctx && class_ctx != this) {
         const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
         if (m) {
@@ -3499,7 +3512,11 @@ const QoreMethod* qore_class_private::runtimeFindCommittedMethodForEval(const ch
 }
 
 const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProgram* pgm,
-    const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+        const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+    if (!initialized) {
+        return nullptr;
+    }
+
     //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
     const QoreMethod* w;
@@ -3539,6 +3556,10 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
 }
 
 bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool toplevel) const {
+    if (!initialized) {
+        return false;
+    }
+
     QoreMemberInfo* info = members.find(str);
     if (info && (toplevel || !info->isLocalInternal())) {
         ClassAccess ma = info->getAccess();
@@ -3588,7 +3609,7 @@ QoreValue qore_class_private::evalMethodGate(QoreObject* self, const char* nme, 
 }
 
 bool QoreClass::isPrivateMember(const char* str) const {
-return priv->runtimeIsPrivateMemberIntern(str, true);
+    return priv->runtimeIsPrivateMemberIntern(str, true);
 }
 
 void QoreClass::execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const {
