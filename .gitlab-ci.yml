@@ -51,7 +51,7 @@ test-ubuntu-amd64:
 
 test-ubuntu-arm64:
   stage: test
-  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-arm64
   tags:
     - arm64
   script:
@@ -89,7 +89,7 @@ test-alpine-amd64:
 
 test-alpine-arm64:
   stage: test
-  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-alpine
+  image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-alpine-arm64
   tags:
     - arm64
   script:

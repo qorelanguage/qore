@@ -513,6 +513,11 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, std:
         from_module = mod_name;
     }
 
+    // special handling for pseudo-classes
+    if (name[0] == '<') {
+        initialized = true;
+    }
+
     //printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
@@ -3324,12 +3329,14 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     priv->qcset.insert(this);
 }
 
-QoreClass::QoreClass(std::string&& nme, std::string&& ns_path, int64 dom) : priv(new qore_class_private(this, std::move(nme), std::move(ns_path), dom)) {
+QoreClass::QoreClass(std::string&& nme, std::string&& ns_path, int64 dom)
+        : priv(new qore_class_private(this, std::move(nme), std::move(ns_path), dom)) {
     assert(priv->typeInfo);
     assert(priv->orNothingTypeInfo);
 }
 
-QoreClass::QoreClass(const char* nme, const char* ns_path, int64 dom) : priv(new qore_class_private(this, std::string(nme), std::string(ns_path), dom)) {
+QoreClass::QoreClass(const char* nme, const char* ns_path, int64 dom)
+        : priv(new qore_class_private(this, std::string(nme), std::string(ns_path), dom)) {
     assert(priv->typeInfo);
     assert(priv->orNothingTypeInfo);
 }
