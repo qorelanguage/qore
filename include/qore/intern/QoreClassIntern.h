@@ -79,8 +79,10 @@ struct AbstractMethod {
     vmap_t pending_save;
     // flag if there are new entries in vlist to check
     bool check_parse = false;
+    // use relaxed method signature matching
+    bool relaxed_match;
 
-    DLLLOCAL AbstractMethod() {
+    DLLLOCAL AbstractMethod(bool relaxed_match) : relaxed_match(relaxed_match) {
     }
 
     DLLLOCAL AbstractMethod(const AbstractMethod& old);
@@ -123,7 +125,7 @@ typedef std::map<std::string, AbstractMethod*> amap_t;
 #endif
 
 struct AbstractMethodMap : amap_t {
-    DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
+    DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) : relaxed_match(old.relaxed_match) {
         for (auto& i : old) {
             assert(!i.second->vlist.empty());
             insert(amap_t::value_type(i.first, new AbstractMethod(*(i.second))));
@@ -181,6 +183,9 @@ struct AbstractMethodMap : amap_t {
 
     // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
     DLLLOCAL int runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const;
+
+    // use relaxed matching
+    bool relaxed_match = false;
 };
 
 class SignatureHash;
@@ -1865,6 +1870,9 @@ public:
 
     // the module that defined this class, if any
     std::string from_module;
+
+    // class language
+    std::string lang = "Qore";
 
     // class key-value store
     typedef std::map<std::string, QoreValue> kvmap_t;

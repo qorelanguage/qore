@@ -136,7 +136,7 @@ void SignatureHash::update(const QoreString& str) {
 #endif
 }
 
-AbstractMethod::AbstractMethod(const AbstractMethod& old) {
+AbstractMethod::AbstractMethod(const AbstractMethod& old) : relaxed_match(old.relaxed_match) {
     assert(!old.vlist.empty());
     for (auto& i : old.vlist) {
         assert(vlist.find(i.first) == vlist.end());
@@ -218,7 +218,7 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
         const char* sig = i.second->getAbstractSignature();
         //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p checking parent: '%s' (f: %p: %d) '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig, f, f && f->parseHasVariantWithSignature(i.second), sig);
 
-        if (f && f->parseHasVariantWithSignature(i.second)) {
+        if (f && f->parseHasVariantWithSignature(i.second, relaxed_match)) {
             // add to our pending_save
             i.second->ref();
             pending_save.insert(vmap_t::value_type(sig, i.second));
@@ -350,7 +350,7 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
 void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantBase* f) {
     amap_t::iterator i = amap_t::find(name);
     if (i == end()) {
-        AbstractMethod* m = new AbstractMethod;
+        AbstractMethod* m = new AbstractMethod(relaxed_match);
         // already referenced for "normal" insertion, ref again for abstract method insertion
         f->ref();
         const char* sig = f->getAbstractSignature();
@@ -373,7 +373,7 @@ void AbstractMethodMap::parseOverrideAbstractVariant(const char* name, MethodVar
 void AbstractMethodMap::addAbstractVariant(const char* name, MethodVariantBase* f) {
     amap_t::iterator i = amap_t::find(name);
     if (i == end()) {
-        AbstractMethod* m = new AbstractMethod;
+        AbstractMethod* m = new AbstractMethod(relaxed_match);
         // already referenced for "normal" insertion, ref again for abstract method insertion
         f->ref();
         m->vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
@@ -569,7 +569,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         mud(old.mud ? old.mud->copy() : nullptr),
         spgm(old.spgm && old.deref_source_program ? old.spgm->programRefSelf() : old.spgm),
         deref_source_program(old.deref_source_program),
-        from_module(old.from_module) {
+        from_module(old.from_module),
+        lang(old.lang) {
     system_constructor = old.system_constructor ? old.system_constructor->copy(cls) : nullptr;
 
     // set pointer to new copy
@@ -674,7 +675,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
         mud(old.mud ? old.mud->copy() : nullptr),
         spgm(old.spgm && old.deref_source_program ? old.spgm->programRefSelf() : old.spgm),
         deref_source_program(old.deref_source_program),
-        from_module(old.from_module) {
+        from_module(old.from_module),
+        lang(old.lang) {
     QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
     if (!old.initialized)
         const_cast<qore_class_private&>(old).initialize();
@@ -1086,7 +1088,7 @@ void qore_class_private::mergeAbstract() {
                     continue;
                 }
                 // now we import the abstract method to our class
-                std::unique_ptr<AbstractMethod> m(new AbstractMethod);
+                std::unique_ptr<AbstractMethod> m(new AbstractMethod(ahm.relaxed_match));
                 // see if there are pending normal variants...
                 hm_method_t::iterator mi = hm.find(j.first);
                 // merge committed parent abstract variants with any pending local variants
@@ -2472,7 +2474,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
         QoreMethod* m = nqc->priv->parseFindLocalMethod(name);
         if (m) {
             MethodFunctionBase* f = qore_method_private::get(*m)->getFunction();
-            MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
+            MethodVariantBase* ov = f->parseHasVariantWithSignature(v, nqc->priv->ahm.relaxed_match);
             if (ov && !ov->isAbstract())
                 return ov;
         }
@@ -3846,7 +3848,9 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
             return -1;
         }
         if (n_static) {
-            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(),
+                "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(),
+                mname);
             return -1;
         }
     }
@@ -3857,7 +3861,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
     // check for illegal static method
     if (n_static) {
         if ((con || dst || checkSpecialStaticIntern(mname))) {
-            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(),
+                "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
             return -1;
         }
     }
@@ -3865,7 +3870,9 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
     bool cpy = dst || con ? false : !strcmp(mname, "copy");
     // check for illegal method overloads
     if (sys && (con || cpy)) {
-        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
+        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD",
+            "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead",
+            name.c_str(), mname);
         return -1;
     }
 
@@ -3875,7 +3882,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
         methGate = memGate = hasMemberNotification = false;
         // issue #3126: cannot add abstract variants of special methods
         if (f->isAbstract() && (con || dst || cpy)) {
-            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "in class %s: %s() methods cannot be abstract", tname, mname);
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(),
+                "ILLEGAL-ABSTRACT-METHOD", "in class %s: %s() methods cannot be abstract", tname, mname);
             return -1;
         }
     } else {
@@ -3887,7 +3895,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
     // we cannot initialize the class here
     QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
     if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
-        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
+        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD",
+            "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
         return -1;
     }
 
@@ -3968,7 +3977,8 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
     return 0;
 }
 
-void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, int64 flags, int64 domain,
+        const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
     type_vec_t typeList;
     arg_vec_t defaultArgList;
     name_vec_t nameList;
@@ -3979,14 +3989,19 @@ void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, i
         va_end(args);
     }
 
-    priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+    priv->addBuiltinMethod(nme, new BuiltinNormalMethodValueVariant(m, access, false, flags, domain, returnTypeInfo,
+        typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addMethod(const void* ptr, const char* nme, q_external_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
-    priv->addBuiltinMethod(nme, new BuiltinExternalNormalMethodValueVariant(ptr, m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+void QoreClass::addMethod(const void* ptr, const char* nme, q_external_method_t m, ClassAccess access, int64 flags,
+        int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList,
+        const name_vec_t& nameList) {
+    priv->addBuiltinMethod(nme, new BuiltinExternalNormalMethodValueVariant(ptr, m, access, false, flags, domain,
+        returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, ClassAccess access, int64 flags, int64 domain,
+        const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
     type_vec_t typeList;
     arg_vec_t defaultArgList;
     name_vec_t nameList;
@@ -3997,14 +4012,19 @@ void QoreClass::addStaticMethod(const char* nme, q_func_n_t m, ClassAccess acces
         va_end(args);
     }
 
-    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+    priv->addBuiltinStaticMethod(nme, new BuiltinStaticMethodValueVariant(m, access, false, flags, domain,
+        returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addStaticMethod(const void* ptr, const char* nme, q_external_static_method_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
-    priv->addBuiltinStaticMethod(nme, new BuiltinExternalStaticMethodValueVariant(ptr, m, access, false, flags, domain, returnTypeInfo, typeList, defaultArgList, nameList));
+void QoreClass::addStaticMethod(const void* ptr, const char* nme, q_external_static_method_t m, ClassAccess access,
+        int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList,
+        const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+    priv->addBuiltinStaticMethod(nme, new BuiltinExternalStaticMethodValueVariant(ptr, m, access, false, flags,
+        domain, returnTypeInfo, typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addConstructor(q_constructor_n_t m, ClassAccess access, int64 n_flags, int64 n_domain, unsigned num_params, ...) {
+void QoreClass::addConstructor(q_constructor_n_t m, ClassAccess access, int64 n_flags, int64 n_domain,
+        unsigned num_params, ...) {
     type_vec_t typeList;
     arg_vec_t defaultArgList;
     name_vec_t nameList;
@@ -4014,14 +4034,18 @@ void QoreClass::addConstructor(q_constructor_n_t m, ClassAccess access, int64 n_
         qore_process_params(num_params, typeList, defaultArgList, nameList, args);
         va_end(args);
     }
-    priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, access, n_flags, n_domain, typeList, defaultArgList, nameList));
+    priv->addBuiltinConstructor(new BuiltinConstructorValueVariant(m, access, n_flags, n_domain, typeList,
+        defaultArgList, nameList));
 }
 
-void QoreClass::addConstructor(const void* ptr, q_external_constructor_t m, ClassAccess access, int64 n_flags, int64 n_domain, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
-    priv->addBuiltinConstructor(new BuiltinExternalConstructorValueVariant(ptr, m, access, n_flags, n_domain, typeList, defaultArgList, nameList));
+void QoreClass::addConstructor(const void* ptr, q_external_constructor_t m, ClassAccess access, int64 n_flags,
+        int64 n_domain, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
+    priv->addBuiltinConstructor(new BuiltinExternalConstructorValueVariant(ptr, m, access, n_flags, n_domain,
+        typeList, defaultArgList, nameList));
 }
 
-void QoreClass::addAbstractMethod(const char *n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
+void QoreClass::addAbstractMethod(const char *n_name, ClassAccess access, int64 n_flags,
+        const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
     type_vec_t typeList;
     arg_vec_t defaultArgList;
     name_vec_t nameList;
@@ -4031,13 +4055,18 @@ void QoreClass::addAbstractMethod(const char *n_name, ClassAccess access, int64 
         qore_process_params(num_params, typeList, defaultArgList, nameList, args);
         va_end(args);
     }
-    //printd(5, "QoreClass::addAbstractMethodVariantExtended3() %s::%s() num_params: %d\n", getName(), n_name, num_params);
+    //printd(5, "QoreClass::addAbstractMethodVariantExtended3() %s::%s() num_params: %d\n", getName(), n_name,
+    //  num_params);
 
-    priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
+    priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList,
+        defaultArgList, nameList));
 }
 
-void QoreClass::addAbstractMethod(const char* n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList, const name_vec_t& nameList) {
-    priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList, defaultArgList, nameList));
+void QoreClass::addAbstractMethod(const char* n_name, ClassAccess access, int64 n_flags,
+        const QoreTypeInfo* returnTypeInfo, const type_vec_t& typeList, const arg_vec_t& defaultArgList,
+        const name_vec_t& nameList) {
+    priv->addBuiltinMethod(n_name, new BuiltinAbstractMethodVariant(access, n_flags, returnTypeInfo, typeList,
+        defaultArgList, nameList));
 }
 
 // sets a builtin function as class destructor - no duplicate checking is made
@@ -4164,7 +4193,7 @@ int qore_class_private::parseInitPartialIntern() {
                         vi->second->parseMergeBase(*(ai->second));
                         continue;
                     }
-                    std::unique_ptr<AbstractMethod> m(new AbstractMethod);
+                    std::unique_ptr<AbstractMethod> m(new AbstractMethod(ahm.relaxed_match));
                     // see if there are pending normal variants...
                     hm_method_t::iterator mi = hm.find(ai->first);
                     //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local " \
@@ -4291,7 +4320,8 @@ void qore_class_private::resolveCopy() {
         scl->resolveCopy();
 }
 
-int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
+int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi,
+        const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
     //printd(5, "qore_class_private::checkExistingVarMember() name: %s priv: %d is_priv: %d sclass: %s\n", name.c_str(), priv, is_priv, sclass->getName());
 
     // here we know that the member or var already exists, so either it will be a
@@ -4338,26 +4368,30 @@ int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemb
     return 0;
 }
 
-QoreValue qore_class_private::evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue qore_class_private::evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args,
+        ExceptionSink* xsink) const {
    QORE_TRACE("qore_class_private::evalPseudoMethod()");
 
    const QoreMethod* m = runtimeFindPseudoMethod(n, nme, xsink);
    if (!m)
       return QoreValue();
 
-   //printd(5, "qore_class_private::evalPseudoMethod() %s::%s() found method %p class %s\n", priv->name, nme, w, w->getClassName());
+   //printd(5, "qore_class_private::evalPseudoMethod() %s::%s() found method %p class %s\n", priv->name, nme, w,
+   //   w->getClassName());
 
    return qore_method_private::evalPseudoMethod(*m, xsink, 0, n, args);
 }
 
-QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
+QoreValue qore_class_private::evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant,
+        const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
     return qore_method_private::evalPseudoMethod(*m, xsink, variant, n, args);
 }
 
 bool qore_class_private::parseCheckPrivateClassAccess(const qore_class_private* opc) const {
     // see if shouldBeClass is a parent class of the class currently being parsed
     //ClassAccess access1 = Public;
-    //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this, name.c_str(), opc, opc ? opc->name.c_str() : "n/a", opc ? opc->getClass(*this, access1) : nullptr);
+    //printd(5, "qore_class_private::parseCheckPrivateClassAccess(%p '%s') pc: %p '%s' found: %p\n", this,
+    //  name.c_str(), opc, opc ? opc->name.c_str() : "n/a", opc ? opc->getClass(*this, access1) : nullptr);
 
     if (!opc)
         return false;
@@ -4622,6 +4656,22 @@ void QoreClass::setGateAccessFlag() {
     priv->gate_access = true;
 }
 
+void QoreClass::setLanguage(const char* lang) {
+    priv->lang = lang;
+}
+
+const char* QoreClass::getLanguage() const {
+    return priv->lang.c_str();
+}
+
+void QoreClass::setRelaxedAbstractMatch() {
+    priv->ahm.relaxed_match = true;
+}
+
+bool QoreClass::getRelaxedAbstractMatch() const {
+    return priv->ahm.relaxed_match;
+}
+
 const QoreExternalNormalMember* QoreClass::findLocalMember(const char* name) const {
     return reinterpret_cast<const QoreExternalNormalMember*>(priv->members.find(name));
 }
@@ -4823,9 +4873,10 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
     assert(!variant->isAbstract());
     variant->ref();
     AbstractFunctionSignature& sig = *(variant->getSignature());
+    bool relaxed_match = qore_class_private::get(*getClass())->ahm.relaxed_match;
     for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
         (*i)->parseResolveUserSignature();
-        if ((*i)->isSignatureIdentical(sig)) {
+        if ((*i)->isSignatureIdentical(sig, relaxed_match)) {
             pending_save.push_back(*i);
             vlist.erase(i);
             vlist.push_back(variant);
@@ -4857,12 +4908,12 @@ void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
 }
 
 // if an identical signature is found to the passed variant, then it is removed from the abstract list
-MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVariantBase* v) const {
+MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVariantBase* v, bool relaxed_match) const {
     v->parseResolveUserSignature();
     AbstractFunctionSignature& sig = *(v->getSignature());
     for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
         (*i)->parseResolveUserSignature();
-        if ((*i)->isSignatureIdentical(sig))
+        if ((*i)->isSignatureIdentical(sig, relaxed_match))
             return reinterpret_cast<MethodVariantBase*>(*i);
     }
     return nullptr;

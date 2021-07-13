@@ -76,17 +76,21 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
     return rv;
 }
 
-bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig) const {
+bool AbstractFunctionSignature::compare(const AbstractFunctionSignature& sig, bool relaxed_match) const {
     if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
-        //printd(5, "AbstractFunctionSignature::operator==() pt: %d != %d || mpt %d != %d\n", num_param_types, sig.num_param_types, min_param_types, sig.min_param_types);
+        //printd(5, "AbstractFunctionSignature::compare() pt: %d != %d || mpt %d != %d\n", num_param_types,
+        //    sig.num_param_types, min_param_types, sig.min_param_types);
         return false;
     }
 
     // return types for abstract methods must be compatible if present
     if (sig.returnTypeInfo != nothingTypeInfo) {
         bool may_not_match = false;
-        if (!QoreTypeInfo::parseAccepts(sig.returnTypeInfo, returnTypeInfo, may_not_match) || may_not_match) {
-            //printd(5, "AbstractFunctionSignature::operator==() rt: %s is not compatible with %s (%p %p)\n", QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo, sig.returnTypeInfo);
+        if (!QoreTypeInfo::parseAccepts(sig.returnTypeInfo, returnTypeInfo, may_not_match)
+            || (may_not_match && !relaxed_match)) {
+            //printd(5, "AbstractFunctionSignature::compare() rt: %s is not compatible with %s (%p %p)\n",
+            //    QoreTypeInfo::getName(returnTypeInfo), QoreTypeInfo::getName(sig.returnTypeInfo), returnTypeInfo,
+            //    sig.returnTypeInfo);
             return false;
         }
     }
@@ -96,17 +100,26 @@ bool AbstractFunctionSignature::operator==(const AbstractFunctionSignature& sig)
             ? nullptr
             : sig.typeList[i];
         bool match;
-        match = (QoreTypeInfo::runtimeTypeMatch(typeList[i], ti) >= QTI_NEAR);
+        if (relaxed_match) {
+            match = QoreTypeInfo::parseAccepts(typeList[i], ti) >= QTI_AMBIGUOUS;
+        } else {
+            match = QoreTypeInfo::runtimeTypeMatch(typeList[i], ti) >= QTI_NEAR;
+        }
 
-        //printd(5, "AbstractFunctionSignature::operator==() param %d (%s =~ %s) %d\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(ti), QoreTypeInfo::runtimeTypeMatch(typeList[i], ti));
+        //printd(5, "AbstractFunctionSignature::compare() param %d (%s =~ %s) %d\n", i,
+        //  QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(ti),
+        //  QoreTypeInfo::runtimeTypeMatch(typeList[i], ti));
 
         if (!match) {
-            //printd(5, "AbstractFunctionSignature::operator==() param %d %s != %s\n", i, QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
+            //printd(5, "AbstractFunctionSignature::compare() param %d %s != %s\n", i,
+            //    QoreTypeInfo::getName(typeList[i]), QoreTypeInfo::getName(sig.typeList[i]));
             return false;
         }
     }
 
-    //printd(5, "AbstractFunctionSignature::operator==() '%s' == '%s' TRUE\n", str.c_str(), sig.str.c_str());
+    //printd(5, "AbstractFunctionSignature::compare() rv: '%s' '%s' == rv: '%s' '%s' TRUE\n",
+    //    QoreTypeInfo::getName(returnTypeInfo), str.c_str(), QoreTypeInfo::getName(sig.returnTypeInfo),
+    //    sig.str.c_str());
     return true;
 }
 

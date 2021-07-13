@@ -904,6 +904,34 @@ public:
     */
     DLLEXPORT void setGateAccessFlag();
 
+    //! Sets the language for classes imported from another programming language
+    /** @since %Qore 1.0.1
+     */
+    DLLEXPORT void setLanguage(const char* lang);
+
+    //! Returns the language this class is written in
+    /** @return \c Qore for Qore classe, \c Java for Java classes, and \c Python for Python classes
+
+        @since %Qore 1.0.1
+     */
+    DLLEXPORT const char* getLanguage() const;
+
+    //! Sets relaxed abstract matching
+    /** For use with languages that do not support exact type mappings from Qore
+
+        @since %Qore 1.0.1
+     */
+    DLLEXPORT void setRelaxedAbstractMatch();
+
+    //! Returns the relaxed abstract matching flag
+    /** For use with languages that do not support exact type mappings from Qore
+
+        @return the relaxed abstract matching flag
+
+        @since %Qore 1.0.1
+     */
+    DLLEXPORT bool getRelaxedAbstractMatch() const;
+
     //! Finds the given local member or returns nullptr
     /** @since %Qore 0.9
     */

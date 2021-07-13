@@ -155,8 +155,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
         if (which == FV_DESTRUCTOR || which == FV_COPY) {
             xsink->raiseException("METHOD-ERROR", "cannot resolve %s method in class '%s'", ms,
                 c->cls->getName());
-        }
-        else {
+        } else {
             xsink->raiseException("METHOD-ERROR", "cannot resolve %s method '%s' in class '%s'", ms, name,
                 c->cls->getName());
         }
@@ -325,6 +324,28 @@ string AbstractClass::getName() [flags=RET_VALUE_ONLY] {
     }
     // the class ptr must be valid
     return new QoreStringNode(c->cls->getName());
+}
+
+//! returns the class's programming language
+/** @par Example:
+    @code{.py}
+string lang = cls.getLanguage();
+    @endcode
+
+    @return the class's programming language
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @since %Qore 1.0.1
+ */
+string AbstractClass::getLanguage() [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+    // the class ptr must be valid
+    return new QoreStringNode(c->cls->getLanguage());
 }
 
 //! Returns @ref True if the Class object passed as an argument is equal to the current object; @ref False if not
