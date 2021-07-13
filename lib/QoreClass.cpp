@@ -1091,6 +1091,7 @@ void qore_class_private::mergeAbstract() {
                 std::unique_ptr<AbstractMethod> m(new AbstractMethod(ahm.relaxed_match));
                 // see if there are pending normal variants...
                 hm_method_t::iterator mi = hm.find(j.first);
+
                 // merge committed parent abstract variants with any pending local variants
                 m->parseMergeBase((*j.second), mi == hm.end() ? 0 : qore_method_private::get(*mi->second)->getFunction(), true);
                 if (!m->empty()) {
