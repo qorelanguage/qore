@@ -169,7 +169,7 @@ public:
         return i < names.size() ? names[i].c_str() : 0;
     }
 
-    DLLLOCAL bool operator==(const AbstractFunctionSignature& sig) const;
+    DLLLOCAL bool compare(const AbstractFunctionSignature& sig, bool relaxed_match = false) const;
 };
 
 // used to store return type info during parsing for user code
@@ -510,10 +510,10 @@ public:
         return qc->getNamespacePath(true);
     }
 
-    DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
+    DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig, bool relaxed_match = false) const {
         //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this,
         //  getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
-        return *(getSignature()) == sig;
+        return getSignature()->compare(sig, relaxed_match);
     }
 
     // only returns a non-nullptr value for normal user method variants
@@ -1286,7 +1286,7 @@ public:
     DLLLOCAL void parseSignatures(QoreString& csig, const char* mod) const;
 
     // if an identical signature is found to the passed variant, then it is removed from the abstract list
-    DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v) const;
+    DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v, bool relaxed_match = false) const;
 
     DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
 
