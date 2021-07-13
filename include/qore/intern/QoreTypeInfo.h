@@ -467,6 +467,9 @@ public:
 
     // static version of method, checking for null pointer
     DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
+        if (first == second) {
+            return QTI_IDENT;
+        }
         if (first == autoTypeInfo) {
             return QTI_WILDCARD;
         }
@@ -492,8 +495,6 @@ public:
             may_not_match = true;
             return QTI_AMBIGUOUS;
         }
-        if (first == second)
-            return QTI_IDENT;
         return first->parseAccepts(second, may_not_match, may_need_filter);
     }
 
