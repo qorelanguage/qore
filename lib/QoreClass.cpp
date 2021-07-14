@@ -3690,7 +3690,9 @@ QoreValue qore_class_private::evalMethod(QoreObject* self, const char* nme, cons
         return evalMethodGate(self, nme, args, xsink);
     }
 
-    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
+    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method " \
+        "<object>::%s() is available (class lang: %s)", self->getClassName(), nme, nme,
+        self->getClass()->getLanguage());
     return QoreValue();
 }
 

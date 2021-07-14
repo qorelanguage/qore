@@ -26,7 +26,7 @@
 %requires qore >= 0.9.13
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.6
+%requires(reexport) SqlUtil >= 1.6
 
 # requires the Util module
 %requires Util >= 1.0
