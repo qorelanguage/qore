@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestHandler.qm Qore handler definition for the HttpServer module for exporting REST services
 
-/* RestHandler.qm Copyright (C) 2013 - 2020 Qore Technologies, s.r.o.
+/* RestHandler.qm Copyright (C) 2013 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9
+%requires qore >= 1.0
 
 # use new-style
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 %requires Util
-%requires HttpServerUtil >= 0.3.11
+%requires HttpServerUtil >= 1.0
 %requires Mime >= 1.3
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires reflection
@@ -53,7 +53,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.3.1";
+    version = "1.3.2";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -73,31 +73,49 @@ module RestHandler {
     All the public symbols in the module are defined in the RestHandler namespace.
 
     The main classes are:
-    - @ref RestHandler::AbstractRestClass "AbstractRestClass": this class provides the functionality of the REST object currently being accessed (and access to subobjects or subclasses)
-    - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the %Qore <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
+    - @ref RestHandler::AbstractRestClass "AbstractRestClass": this class provides the functionality of the REST
+      object currently being accessed (and access to subobjects or subclasses)
+    - @ref RestHandler::RestHandler "RestHandler": this class can be used to plug in to the %Qore
+      <a href="../../HttpServer/html/index.html">HttpServer</a> to expose REST services
 
-    see example file \c "restserver.q" in the examples directory for an example of using this module to implement REST services.
+    see example file \c "restserver.q" in the examples directory for an example of using this module to implement REST
+    services.
 
     @section restserialization Data Serialization Support
 
-    The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if the modules are available when the RestHandler module is initialized:
-    - <a href="https://github.com/qorelanguage/module-json">json</a>: provides automatic support for JSON payload de/serialization
-    - <a href="https://github.com/qorelanguage/module-xml">xml</a>: provides automatic support for XML-RPC payload de/serialization
-    - <a href="https://github.com/qorelanguage/module-yaml">yaml</a>: provides automatic support for YAML payload de/serialization
+    The @ref RestHandler::RestHandler "RestHandler" class uses any of the following modules if the modules are
+    available when the RestHandler module is initialized:
+    - <a href="https://github.com/qorelanguage/module-json">json</a>: provides automatic support for JSON payload
+      de/serialization
+    - <a href="https://github.com/qorelanguage/module-xml">xml</a>: provides automatic support for XML-RPC payload
+      de/serialization
+    - <a href="https://github.com/qorelanguage/module-yaml">yaml</a>: provides automatic support for YAML payload
+      de/serialization
 
-    URL form encoding is supported as well for message bodies according to <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a> with \c "Content-Type: application/x-www-form-urlencoded".
+    URL form encoding is supported as well for message bodies according to
+    <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a> with
+    \c "Content-Type: application/x-www-form-urlencoded".
 
-    For standard REST web service development, the <a href="https://github.com/qorelanguage/module-json">json</a> module will be required to support JSON serialization.
+    For standard REST web service development, the <a href="https://github.com/qorelanguage/module-json">json</a>
+    module will be required to support JSON serialization.
 
-    The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the incoming MIME type is supported and additionally will serialize outgoing messages automatically based on the client's declared capabilities (normally responses are serialized with the same serialization as the incoming message).
+    The @ref RestHandler::RestHandler "RestHandler" class will automatically deserialize request bodies if the
+    incoming MIME type is supported and additionally will serialize outgoing messages automatically based on the
+    client's declared capabilities (normally responses are serialized with the same serialization as the incoming
+    message).
 
     @section restimplementation Implementing REST Services
 
-    The class that models a REST entity or object in this module is @ref RestHandler::AbstractRestClass "AbstractRestClass".
+    The class that models a REST entity or object in this module is
+    @ref RestHandler::AbstractRestClass "AbstractRestClass".
 
-    This class should be subclassed for each object type, and methods implemented for each REST method that the object will support.
+    This class should be subclassed for each object type, and methods implemented for each REST method that the object
+    will support.
 
-    Incoming requests matched by your @ref RestHandler::RestHandler "RestHandler" subclass (when called by the @ref HttpServer::HttpServer "HttpServer" when requests are appropriately matched) will be dispatched to methods in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization (ie your user-defined subclass of this class) first according to the following naming convention:
+    Incoming requests matched by your @ref RestHandler::RestHandler "RestHandler" subclass (when called by the
+    @ref HttpServer::HttpServer "HttpServer" when requests are appropriately matched) will be dispatched to methods in
+    your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization (ie your user-defined subclass of this
+    class) first according to the following naming convention:
     - <tt>httpmethod</tt>[<i>RequestRestAction</i>]
 
     For example:
@@ -108,9 +126,17 @@ module RestHandler {
     - \c "PUT /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::putStatus()
     - \c "PATCH /obj?action=status HTTP/1.1": matches method \c AbstractRestClass::patchStatus()
 
-    In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the first letter of the action name is capitalized and appended to a lower case version of the HTTP method name (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword); if such a method exists in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData", and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed" response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented" response is returned.
+    In other words, if a REST action is given in the request (either as a URI parameter or in the message body), the
+    first letter of the action name is capitalized and appended to a lower case version of the HTTP method name
+    (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword); if such a method exists in your
+    @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization, then it is called.  If not, then, if the
+    REST action exists under a different HTTP method (ie a request comes with \c "HTTP GET /something?action=setData",
+    and  \c "putSetData" exists, but \c "getSetData" was used for the search), then a 405 \c "Method Not Allowed"
+    response is returned.  If no variation of the requested REST method exists, then a 501 \c "Not Implemented"
+    response is returned.
 
-    If a REST request is made with no action name, then a method in your class is attempted to be called with just the HTTP method name in lower case (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword).
+    If a REST request is made with no action name, then a method in your class is attempted to be called with just the
+    HTTP method name in lower case (except \c "DELETE" is mapped to \c "del" because \c "delete" is a keyword).
 
     <b>HTTP Method Name to %Qore Method Name</b>
     |!HTTP Method|!%Qore Method
@@ -138,15 +164,22 @@ module RestHandler {
     @endcode
 
     The arguments passed to the REST action methods are as follows:
-    - \a cx: a call context hash; the same value as documented in the \a cx parameter of @ref HttpServer::AbstractHttpRequestHandler::handleRequest(); with the following additions:
-      - \a body: the deserialized message body (if any); if no body was sent, then any parsed URI arguments are copied here
-      - \a hdr: a copy of the header hash as returned by @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()" as received by the @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
+    - \a cx: a call context hash; the same value as documented in the \a cx parameter of
+      @ref HttpServer::AbstractHttpRequestHandler::handleRequest(); with the following additions:
+      - \a body: the deserialized message body (if any); if no body was sent, then any parsed URI arguments are copied
+        here
+      - \a hdr: a copy of the header hash as returned by
+        @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()" as received by the
+        @ref HttpServer::HttpServer "HttpServer" (for example cx.hdr.path gives the original URI request path)
       - \a orig_method: the string if any \c "action" argumnt was sent either in the message body or as a URI argument
-      - \a rest_method: same as \a orig_method, only with the first letter capitalized (only present if an \c "action" argument was sent)
-      - \a rest_action_method: the method name that will be called on the actual %Qore REST class (a subclass of @ref RestHandler::AbstractRestClass "AbstractRestClass")
+      - \a rest_method: same as \a orig_method, only with the first letter capitalized (only present if an \c "action"
+        argument was sent)
+      - \a rest_action_method: the method name that will be called on the actual %Qore REST class (a subclass of
+        @ref RestHandler::AbstractRestClass "AbstractRestClass")
     - \c ah: these are the parsed URI query arguments to the REST call; see @ref restargs for more information
 
-    The return value for these methods is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
+    The return value for these methods is the same as the return value for
+    @ref HttpServer::AbstractHttpRequestHandler::handleRequest().
 
     consider the following example class:
     @code{.py}
@@ -325,25 +358,36 @@ Content-Length: 16
     @endverbatim
 
     @par REST URI Arguments
-    REST URI arguments are available in the \a "ah" argument to the method.  REST URI arguments are provided internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
-    If no URI query argument were provided in the request, then the \a "ah" parameter is populated by the deserialized message body, if it is deserialized to a hash.
+    REST URI arguments are available in the \a "ah" argument to the method.  REST URI arguments are provided
+    internally with the @ref HttpServer::parse_uri_query() "parse_uri_query" function.\n\n
+    If no URI query argument were provided in the request, then the \a "ah" parameter is populated by the deserialized
+    message body, if it is deserialized to a hash.
 
     @par REST Message Body
-    The REST request message body is automatically deserialized and made available as \a "cx.body" in REST action methods.\n\n
-    If no message body was included in the client request, then any parsed URI parameters are copied to \a "cx.body".\n\n
-    For requests with long or complex arguments should send arguments as message bodies and not as serialized URI query arguments.
+    The REST request message body is automatically deserialized and made available as \a "cx.body" in REST action
+    methods.\n\n
+    If no message body was included in the client request, then any parsed URI parameters are copied to
+    \a "cx.body".\n\n
+    For requests with long or complex arguments should send arguments as message bodies and not as serialized URI
+    query arguments.
 
     @note The @ref RestHandler::RestHandler "RestHandler" class allows for HTTP \c GET requests to be served
     with a message body, but this is not compliant with HTTP 1.1 RFCs and therefore could lead to compatibility
-    problems should this technique be used with other servers; see @ref httpclient_get_with_body for more information
+    problems should this technique be used with other servers; see @ref httpclient_get_with_body for more information.
 
     @section restexceptions Exception Handling in REST Calls
 
-    %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so that they can be recognized and handled appropriately by clients.
+    %Qore exceptions are serialized in a consistent way by the @ref RestHandler::RestHandler "RestHandler" class so
+    that they can be recognized and handled appropriately by clients.
 
-    %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an @ref Qore::ExceptionInfo "ExceptionInfo" hash.
+    %Qore exceptions are returned with a 409 \c "Conflict" HTTP return code with the message body as an
+    @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_3_2 RestHandler v1.3.2
+    - fixed a bug handling errors registering stream errors with a stream handler
+      (<a href="https://github.com/qorelanguage/qore/issues/4291">issue 4291</a>)
 
     @subsection rh_1_3_1 RestHandler v1.3.1
     - fixed a bug handling exceptions in REST methods with unserializable exception data
@@ -780,8 +824,15 @@ public namespace RestHandler {
                 return req.handleRequest();
             } catch (hash<ExceptionInfo> ex) {
                 # make sure the error is registered with the stream handler
-                if (rsh)
-                    rsh.streamError(ex);
+                if (rsh) {
+                    # issue #4291: handle errors here correctly
+                    try {
+                        rsh.streamError(ex);
+                    } catch (hash<ExceptionInfo> ex1) {
+                        rh.logError("cannot register error %s: %s with stream handler: %s: %s", ex.err, ex.desc,
+                            ex1.err, ex1.desc);
+                    }
+                }
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
@@ -798,24 +849,30 @@ public namespace RestHandler {
             and deserialized message body arguments with URI query arguments taking precedence over the message body
             arguments
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
+              information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
             - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
 
-            @return the return value is the same as the return value for @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
+            @return the return value is the same as the return value for
+            @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
          */
-        private hash<HttpServer::HttpHandlerResponseInfo> dispatch(RestHandler rh, string mn, *hash<auto> ah, hash<auto> cx) {
+        private hash<HttpServer::HttpHandlerResponseInfo> dispatch(RestHandler rh, string mn, *hash<auto> ah,
+                hash<auto> cx) {
             try {
                 return cast<hash<HttpHandlerResponseInfo>>(call_object_method_args(self, mn, (cx, ah)));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     # try to mask passwords in args
                     string astr = rh.maskData(sprintf("%y", ah));
-                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn, name(), astr);
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn,
+                        name(), astr);
                     # see if alternate methods would work
                     list hl = ();
                     # break flag
@@ -832,14 +889,19 @@ public namespace RestHandler {
                     }
                     if (!brk) {
                         if (!hl)
-                            return cast<hash<HttpHandlerResponseInfo>>(RestHandler::make501("REST class %y (%s) does not implement method %y", name(), self.className(), cx.orig_method ? cx.orig_method : mn));
+                            return cast<hash<HttpHandlerResponseInfo>>(RestHandler::make501("REST class %y (%s) does "
+                                "not implement method %y", name(), self.className(),
+                                cx.orig_method ? cx.orig_method : mn));
 
                         string ml = foldl $1 + "," + $2, hl;
-                        string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", cx.hdr.method, name(), self.className());
+                        string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", cx.hdr.method,
+                            name(), self.className());
                         if (cx.orig_method)
                             desc += sprintf(" REST method %y", cx.orig_method);
                         desc += sprintf(", available methods: %s", ml);
-                        return cast<hash<HttpHandlerResponseInfo>>(HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": ml), 405, desc));
+                        return cast<hash<HttpHandlerResponseInfo>>(
+                            HttpServer::AbstractHttpRequestHandler::makeResponse(("Allow": ml), 405, desc)
+                        );
                     }
                 }
                 string desc = !cx.debug
