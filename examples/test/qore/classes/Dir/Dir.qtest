@@ -63,7 +63,7 @@ class DirTest inherits QUnit::Test {
         bool b = d.chdir(tmpdirPath);
         assertEq(False, b);
         int rc = d.create();
-        on_exit system("rm -rf --preserve-root " + tmpdirPath);
+        on_exit system("rm -rf " + tmpdirPath + "/*");
 
         # create random file
         string fileA = get_random_string() + "A";
