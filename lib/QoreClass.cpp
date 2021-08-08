@@ -5463,7 +5463,7 @@ int QoreMemberInfo::parseInit(const char* name, LocalVar& selfid) {
 #endif
 
     if (exp) {
-        printd(5, "QoreMemberInfo::parseInit() this: %p '%s' %p '%s' %d\n", this, name, exp, exp.getFullTypeName(),
+        printd(5, "QoreMemberInfo::parseInit() this: %p '%s' s'%s' %d\n", this, name, exp.getFullTypeName(),
             exp.getType());
         QoreParseContext parse_context(&selfid);
         if (parse_init_value(exp, parse_context) && !err) {
