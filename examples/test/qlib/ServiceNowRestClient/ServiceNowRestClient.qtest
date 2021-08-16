@@ -80,20 +80,22 @@ class ServiceNowTest inherits QUnit::Test {
         snopts.url = m_options.url ?? ENV.SERVICENOW_URL;
         if (!snopts.url)
             error("missing --url option or SERVICENOW_URL environment variable");
-        snopts.client_id = m_options.client_id ?? ENV.SERVICENOW_CLIENT_ID;
-        if (!snopts.client_id)
-            error("missing --client_id option or SERVICENOW_CLIENT_ID environment variable");
-        snopts.client_secret = m_options.client_secret ?? ENV.SERVICENOW_CLIENT_SECRET;
-        if (!snopts.client_secret)
-            error("missing --client_secret option or SERVICENOW_CLIENT_SECRET environment variable");
+        if (m_options.client_id || ENV.SERVICENOW_CLIENT_ID
+            && (m_options.client_secret || ENV.SERVICENOW_CLIENT_SECRET)) {
+            snopts.client_id = m_options.client_id ?? ENV.SERVICENOW_CLIENT_ID;
+            snopts.client_secret = m_options.client_secret ?? ENV.SERVICENOW_CLIENT_SECRET;
+        }
         snopts.username = m_options.username ?? ENV.SERVICENOW_USERNAME;
-        if (!snopts.username)
+        if (!snopts.username) {
             error("missing --username option or SERVICENOW_USERNAME environment variable");
+        }
         snopts.password = m_options.password ?? ENV.SERVICENOW_PASSWORD;
-        if (!snopts.password)
+        if (!snopts.password) {
             error("missing --password option or SERVICENOW_PASSWORD environment variable");
-        if (snopts."timeout")
+        }
+        if (snopts."timeout") {
             snopts.connect_timeout = snopts."timeout";
+        }
 
         rc = new ServiceNowRestClient(snopts);
     }
@@ -149,7 +151,9 @@ class ServiceNowTest inherits QUnit::Test {
 
         assertEq(Type::NothingType, rc.getApi().type());
 
-        assertEq(Type::String, rc.getToken().type());
+        if (rc.usingOAuth2()) {
+            assertEq(Type::String, rc.getToken().type());
+        }
 
         hash<auto> info;
         hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
