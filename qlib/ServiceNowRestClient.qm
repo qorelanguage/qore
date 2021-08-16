@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ServiceNowRestClient.qm Qore user module for calling ServiceNow REST services
 
-/*  ServiceNowRestClient.qm Copyright (C) 2020 Qore Technologies, s.r.o.
+/*  ServiceNowRestClient.qm Copyright (C) 2020 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.10
+%requires qore >= 1.0
 
 # require type definitions everywhere
 %require-types
@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module ServiceNowRestClient {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for calling ServiceNow REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
@@ -98,6 +98,10 @@ printf("%N\n", ans.body);
 
     @section ServiceNowrestclientrelnotes Release Notes
 
+    @subsection ServiceNowrestclientv1_1 ServiceNowRestClient v1.1
+    - updated to no longer require OAuth2 login params
+      (<a href="https://github.com/qorelanguage/qore/issues/4295">issue 4295</a>)
+
     @subsection ServiceNowrestclientv1_0 ServiceNowRestClient v1.0
     - the initial version of the %ServiceNowRestClient module
 */
@@ -107,10 +111,12 @@ public namespace ServiceNowRestClient {
 #! this class provides the REST client API for communication with ServiceNow servers
 /** This class requires the following options for ServiceNow authentication and
     authorization to the target server:
-    - \c client_id: the OAuth2 client ID
-    - \c client_secret: the OAuth2 client secret
     - \c username: the ServiceNow username
     - \c password: the ServiceNow password
+
+    To use OAuth2 loging, include the following options:
+   - \c client_id: the OAuth2 client ID
+   - \c client_secret: the OAuth2 client secret
 */
 public class ServiceNowRestClient inherits RestClient::RestClient {
     public {
@@ -195,8 +201,10 @@ ServiceNowRestClient rest({
     */
     constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(ServiceNowRestClient::getOptions(opts), do_not_connect) {
         # check for either the apikey or client id/secret options
-        client_id = getString(opts, "client_id");
-        client_secret = getString(opts, "client_secret");
+        if (opts.client_id && opts.client_secret) {
+            client_id = getString(opts, "client_id");
+            client_secret = getString(opts, "client_secret");
+        }
 
         if (!opts.username || !opts.password) {
             hash<UrlInfo> url_info = parse_url(opts.url);
@@ -209,6 +217,10 @@ ServiceNowRestClient rest({
         }
         username = getString(opts, "username");
         password = getString(opts, "password");
+        # issue #4295: set the HTTP username and password for HTTP basic auth if no OAuth2 params are used
+        if (!client_id) {
+            setUserPassword(username, password);
+        }
 
         if (opts.api.val()) {
             api = getString(opts, "api");
@@ -232,12 +244,20 @@ ServiceNowRestClient rest({
         return api;
     }
 
-    #! returns the access token
+    #! returns the access token, if any
     *string getToken() {
         return token;
     }
 
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
+    #! Returns True if the client is using OAuth2 authentication
+    /** @since %ServiceNowRestClient 1.1
+    */
+    bool usingOAuth2() {
+        return exists client_id;
+    }
+
+    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
+            *hash<auto> hdr) {
         if (client_id && !token) {
             loginIntern(\info);
         }
@@ -322,8 +342,8 @@ ServiceNowRestClient rest({
 #! class for ServiceNow REST connections; returns @ref ServiceNowRestClient objects
 /** supports the following options:
     - \c "api": the API version for ServiceNow
-    - \c "client_id": (required) the ServiceNow OAuth2 client ID
-    - \c "client_secret": (required) the ServiceNow OAuth2 client secret
+    - \c "client_id": (optional) the ServiceNow OAuth2 client ID
+    - \c "client_secret": (optional) the ServiceNow OAuth2 client secret
     - \c "connect_timeout": connection timeout to use in milliseconds
     - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
       requested response encoding; for possible values, see
@@ -376,7 +396,7 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                     "sensitive": False,
                 },
             },
-            "required_options": "username,password,client_id,client_secret",
+            "required_options": "username,password",
         };
     }
 
