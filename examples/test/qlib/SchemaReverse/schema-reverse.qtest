@@ -15,20 +15,19 @@
 %exec-class Main
 
 #
-# NOTE: the SchemaReverse is automatic hash/string creator. So the reference
+# NOTE: SchemaReverse automatically creates hashes and strings. So the reference
 #       (REF_...) constants must be more strict than in user code.
-#       Example: if there is something like string or list, list should be used:
+#       Ex: if there is something like string or list, list should be used:
 #       ("columns" : ("id",), "unique" : True))...
 #
 our hash REF_TABLE;
 our hash REF_SCHEMA;
 
 class Main inherits QUnit::Test {
-
     private {
         const LOCAL_OPTS = Opts + (
             "connstr": "c,conn=s",
-            );
+        );
 
         Datasource m_ds;
         Database m_db;
@@ -47,7 +46,7 @@ class Main inherits QUnit::Test {
         if (!m_ds)
             return;
         on_exit m_ds.commit();
-        list sql = call_object_method(m_db, method, REF_SCHEMA);
+        list<auto> sql = call_object_method(m_db, method, REF_SCHEMA);
         ListIterator it(sql);
         while (it.next()) {
             m_ds.exec(it.getValue());
@@ -56,15 +55,21 @@ class Main inherits QUnit::Test {
 
     globalSetUp() {
         try {
-            if (!m_options.connstr)
-                m_options.connstr = ENV.QORE_DB_CONNSTR ? ENV.QORE_DB_CONNSTR : (ENV.QORE_DB_CONNSTR_ORACLE ? ENV.QORE_DB_CONNSTR_ORACLE : ENV.QORE_DB_CONNSTR_PGSQL);
+            if (!m_options.connstr) {
+                m_options.connstr = ENV.QORE_DB_CONNSTR
+                    ? ENV.QORE_DB_CONNSTR
+                    : (ENV.QORE_DB_CONNSTR_ORACLE
+                        ? ENV.QORE_DB_CONNSTR_ORACLE
+                        : ENV.QORE_DB_CONNSTR_PGSQL);
+            }
 
             m_ds = new Datasource(m_options.connstr);
+            m_ds.open();
             m_db = new Database(m_ds);
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
+            delete m_ds;
             return;
         }
 
