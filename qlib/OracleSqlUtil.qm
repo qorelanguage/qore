@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -254,6 +254,10 @@ hash schema = (
     @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection v142 OracleSqlUtil v1.4.2
+    - fixed a bug where keywords were not properly quoted in merge / upsert statements
+      (<a href="https://github.com/qorelanguage/qore/issues/4297">issue 4297</a>)
 
     @subsection v141 OracleSqlUtil v1.4.1
     - fixed a bug where pseudocolumn references were used ambiguously in joins
@@ -3027,28 +3031,28 @@ auto v = c.name;
             }
 
             # get update columns
-            list updc = ();
+            list<string> updc = ();
             # hash of columns to skip on update if applicable
-            *hash suh = map {$1: True}, opt.omit_update;
-            map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
+            *hash<string, bool> suh = map {$1: True}, opt.omit_update;
+            map updc += $1, keys row, !cols.hasKey($1) && !suh.$1;
             # cannot use merge where only the join columns are present
             if (!updc)
                 return getUpsertInsertOnly(cols, row, opt);
 
             string sql = sprintf("merge into %s t using (select ", getSqlName());
-            sql += foldl $1 + "," + $2, (map sprintf("%v as %s", $1), row.keys());
+            sql += foldl $1 + "," + $2, (map sprintf("%v as %s", getColumnSqlName($1)), keys row);
             sql += " from dual) source on (";
             sql += foldl $1 + " and " + $2, (map sprintf("t.%s = source.%s", $1, $1), getColumnSqlNames(cols.keys()));
             sql += sprintf(") when not matched then insert (");
-            sql += foldl $1 + "," + $2, getColumnSqlNames(row.keys());
+            sql += foldl $1 + "," + $2, getColumnSqlNames(keys row);
             sql += ") values (";
-            sql += foldl $1 + "," + $2, (map sprintf("source.%s", $1), getColumnSqlNames(row.keys()));
+            sql += foldl $1 + "," + $2, (map sprintf("source.%s", $1), getColumnSqlNames(keys row));
             sql += sprintf(") when matched then update set ");
             sql += (foldl $1 + "," + $2, (map sprintf("%s = source.%s", $1, $1), getColumnSqlNames(updc)));
 
-            #printf("sql: %s\n", sql);
+            printf("sql: %s\n", sql);
 
-            return int sub (hash crow) {
+            return int sub (hash<auto> crow) {
                 list<auto> args = crow.values();
                 #on_error printf("SQL: %s args: %y\n", sql, args);
                 ds.vexec(sql, args);
