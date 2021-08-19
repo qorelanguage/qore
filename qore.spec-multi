@@ -112,7 +112,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.7.0.1
+%{_libdir}/libqore.so.7.1.0
 %{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -278,6 +278,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3
 - updated version to 1.0.3
+- updated libqore version to 7.1.0
 
 * Sat Jul 17 2021 David Nichols <david@qore.org> 1.0.2
 - updated version to 1.0.2

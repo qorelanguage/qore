@@ -1463,6 +1463,7 @@ public:
     DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
     DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
     DLLLOCAL bool inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const;
+    DLLLOCAL bool inHierarchyStrict(const qore_class_private& qc, ClassAccess& n_access) const;
 
     // inaccessible methods are ignored
     DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx,
@@ -1561,6 +1562,7 @@ public:
 
     DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
     DLLLOCAL bool inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const;
+    DLLLOCAL bool inHierarchyStrict(const qore_class_private& qc, ClassAccess& n_access) const;
 
     DLLLOCAL void addNewAncestors(QoreMethod* m);
     DLLLOCAL void addAncestors(QoreMethod* m);
@@ -3041,6 +3043,14 @@ public:
         return scl ? scl->inHierarchy(qc, n_access) : false;
     }
 
+    DLLLOCAL bool inHierarchyStrict(const qore_class_private& qc, ClassAccess& n_access) const {
+        if (strictEqual(qc)) {
+            return cls;
+        }
+
+        return scl ? scl->inHierarchyStrict(qc, n_access) : false;
+    }
+
 #ifdef DEBUG_SKIP
     DLLLOCAL void parseShowHash() const {
         QoreString ch, ph;
@@ -3056,6 +3066,18 @@ public:
         qc.parseShowHash();
 #endif
         return hash == qc.hash;
+    }
+
+    DLLLOCAL bool strictEqual(const qore_class_private& qc) const {
+        if (&qc == this) {
+            return true;
+        }
+
+        if (qc.classID == classID || (qc.name == name && qc.hash == hash)) {
+            return true;
+        }
+
+        return false;
     }
 
     DLLLOCAL bool equal(const qore_class_private& qc) const {

@@ -43,7 +43,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.7.0.1
+%{_libdir}/libqore.so.7.1.0
 %{_libdir}/libqore.so.7
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
@@ -175,6 +175,7 @@ make check
 %changelog
 * Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3-1
 - updated version to 1.0.3-1
+- updated libqore version to 7.1.0
 
 * Sat Jul 17 2021 David Nichols <david@qore.org> 1.0.2-1
 - updated version to 1.0.2-1

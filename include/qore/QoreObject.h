@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -179,6 +179,13 @@ protected:
     /** @param qc the class to check
     */
     DLLEXPORT bool validInstanceOf(const QoreClass& qc) const;
+
+    //! returns true if this object is a valid instance of the classid passed; does not check for injected compatibility
+    /** @param qc the class to check
+
+        @since %Qore 1.0.3
+    */
+    DLLEXPORT bool validInstanceOfStrict(const QoreClass& qc) const;
 
     //! sets the value of the given member to the given value
     /** the value must be already referenced for the assignment to the object
@@ -384,6 +391,26 @@ protected:
         @return the name of the class
     */
     DLLEXPORT const char* getClassName() const;
+
+    //! returns a pointer to the QoreClass of this object or to the injection target class in case the class was injected
+    /**
+        @return a pointer to the QoreClass of this object or to the injection target class in case the class was injected
+
+        If the class was not injected, this this method returns the same value as getClass()
+
+        @since %Qore 1.0.3
+    */
+    DLLEXPORT const QoreClass* getSurfaceClass() const;
+
+    //! returns the name of the class or to the name of the injection target class in case the class was injected
+    /**
+        @return the name of the class or to the name of the injection target class in case the class was injected
+
+        If the class was not injected, this this method returns the same value as getClassName()
+
+        @since %Qore 1.0.3
+    */
+    DLLEXPORT const char* getSurfaceClassName() const;
 
     //! returns true if the object is valid
     /**

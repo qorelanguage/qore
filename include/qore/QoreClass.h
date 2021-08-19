@@ -596,14 +596,14 @@ public:
     DLLEXPORT const QoreClass* getClass(qore_classid_t cid, bool& priv) const;
 
     //! returns a pointer to the QoreClass object representing the class ID passed if it exists in the class hierarchy and sets a flag indicating if it's privately inherited or not
-    /** if the class ID is equal to the current class or is a base class
+    /** if the class is equal to the current class or is a base class
         of the current class, the appropriate QoreClass pointer will be
         returned.
 
         @param qc the class to check the hierarchy for
         @param priv a flag indicating if the class is privately inherited or not
 
-        @return a pointer to the QoreClass object corresponding to the class passed if it exists in the class hierarchy; in the case that the passed class if from a different QoreProgram object, the value returned could be a different pointer to the qc parameter passed
+        @return a pointer to the QoreClass object corresponding to the class passed if it exists in the class hierarchy; in the case that the passed class is from a different QoreProgram object, the value returned could be a different pointer to the qc parameter passed
     */
     DLLEXPORT const QoreClass* getClass(const QoreClass& qc, bool& priv) const;
 
@@ -652,6 +652,20 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT bool isPseudoClass() const;
+
+    //! returns the class pointer for any injection target class if this class was injected, otherwise nullptr
+    /** @return the class pointer for any injection target class if this class was injected, otherwise nullptr
+
+        @since %Qore 1.0.3
+    */
+    DLLEXPORT QoreClass* getInjectedAsClass();
+
+    //! returns the class pointer for any injection target class if this class was injected, otherwise nullptr
+    /** @return the class pointer for any injection target class if this class was injected, otherwise nullptr
+
+        @since %Qore 1.0.3
+    */
+    DLLEXPORT const QoreClass* getInjectedAsClass() const;
 
     //! returns a pseudo-classes base type
     /** if the class is not a pseudo-class, or is the default pseudo-class taking any value, then -1 is returned
@@ -985,6 +999,11 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
+
+    //! Returns true if the class passed as an argument is present in the current class's hierachy, even if not accessible from the class due to private:internal inheritance; does not check injected compatibility
+    /** @since %Qore 1.0.3
+    */
+    DLLEXPORT bool inHierarchyStrict(const QoreClass& cls, ClassAccess& n_access) const;
 
     //! Returns true if the class has at least one locally-declared transient member
     /** @since %Qore 0.9

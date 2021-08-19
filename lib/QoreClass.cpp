@@ -1993,6 +1993,21 @@ bool BCNode::inHierarchy(const qore_class_private& qc, ClassAccess& n_access) co
     return rv;
 }
 
+bool BCNode::inHierarchyStrict(const qore_class_private& qc, ClassAccess& n_access) const {
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass) {
+        return false;
+    }
+
+    bool rv = sclass->priv->inHierarchyStrict(qc, n_access);
+
+    if (rv && n_access < access) {
+        n_access = access;
+    }
+
+    return rv;
+}
+
 bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    assert(sclass);
 
@@ -2462,6 +2477,17 @@ bool BCList::inHierarchy(const qore_class_private& qc, ClassAccess& n_access) co
     return false;
 }
 
+bool BCList::inHierarchyStrict(const qore_class_private& qc, ClassAccess& n_access) const {
+    for (auto& i : *this) {
+        bool b = (*i).inHierarchyStrict(qc, n_access);
+        if (b) {
+            return b;
+        }
+    }
+
+    return false;
+}
+
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
     for (auto& i : *this) {
         const QoreClass* nqc = (*i).sclass;
@@ -2590,6 +2616,20 @@ bool QoreClass::isInjected() const {
 
 bool QoreClass::isPseudoClass() const {
     return priv->name[0] == '<';
+}
+
+const QoreClass* QoreClass::getInjectedAsClass() const {
+    if (priv->injectedClass) {
+        return priv->injectedClass->cls;
+    }
+    return nullptr;
+}
+
+QoreClass* QoreClass::getInjectedAsClass() {
+    if (priv->injectedClass) {
+        return priv->injectedClass->cls;
+    }
+    return nullptr;
 }
 
 qore_type_t QoreClass::getPseudoClassType() const {
@@ -3414,6 +3454,11 @@ const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
 bool QoreClass::inHierarchy(const QoreClass& cls, ClassAccess& n_access) const {
     n_access = Public;
     return priv->inHierarchy(*cls.priv, n_access);
+}
+
+bool QoreClass::inHierarchyStrict(const QoreClass& cls, ClassAccess& n_access) const {
+    n_access = Public;
+    return priv->inHierarchyStrict(*cls.priv, n_access);
 }
 
 bool QoreClass::hasTransientMember() const {

@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -978,8 +978,17 @@ const QoreClass* QoreObject::getClass() const {
     return priv->theclass;
 }
 
-const char*QoreObject::getClassName() const {
+const char *QoreObject::getClassName() const {
     return priv->theclass->getName();
+}
+
+const QoreClass* QoreObject::getSurfaceClass() const {
+    const qore_class_private* cls = qore_class_private::get(*priv->theclass);
+    return cls->injectedClass ? cls->injectedClass->cls : cls->cls;
+}
+
+const char *QoreObject::getSurfaceClassName() const {
+    return getSurfaceClass()->getName();
 }
 
 int QoreObject::getStatus() const {
@@ -1006,7 +1015,8 @@ void QoreObject::tDeref() {
     priv->tDeref();
 }
 
-void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth, QoreObject* self, ExceptionSink* xsink) {
+void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth,
+        QoreObject* self, ExceptionSink* xsink) {
     // get referenced object
     AbstractPrivateData* pd = getReferencedPrivateData(thisclass.getID(), xsink);
 
@@ -1034,6 +1044,15 @@ bool QoreObject::validInstanceOf(const QoreClass& qc) const {
 
     bool p = false;
     return priv->theclass->getClass(qc, p);
+}
+
+bool QoreObject::validInstanceOfStrict(const QoreClass& qc) const {
+    if (priv->status == OS_DELETED) {
+        return false;
+    }
+
+    ClassAccess access;
+    return priv->theclass->inHierarchyStrict(qc, access);
 }
 
 QoreValue QoreObject::evalMethod(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink) {
