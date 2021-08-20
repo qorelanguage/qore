@@ -3050,7 +3050,7 @@ auto v = c.name;
             sql += sprintf(") when matched then update set ");
             sql += (foldl $1 + "," + $2, (map sprintf("%s = source.%s", $1, $1), getColumnSqlNames(updc)));
 
-            printf("sql: %s\n", sql);
+            #printf("sql: %s\n", sql);
 
             return int sub (hash<auto> crow) {
                 list<auto> args = crow.values();
