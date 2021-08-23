@@ -94,6 +94,7 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 1.0
+Provides: qore-module(abi)%{?_isa} = 1.1
 %if "%{libname}" == "libqore"
 Provides: libqore7 = %{version}
 Obsoletes: libqore7 < %{version}
@@ -279,6 +280,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3
 - updated version to 1.0.3
 - updated libqore version to 7.1.0
+- added module api 1.1
 
 * Sat Jul 17 2021 David Nichols <david@qore.org> 1.0.2
 - updated version to 1.0.2

@@ -33,6 +33,7 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Provides: qore-module(abi)%{?_isa} = 1.0
+Provides: qore-module(abi)%{?_isa} = 1.1
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -176,6 +177,7 @@ make check
 * Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3-1
 - updated version to 1.0.3-1
 - updated libqore version to 7.1.0
+- added module api 1.1
 
 * Sat Jul 17 2021 David Nichols <david@qore.org> 1.0.2-1
 - updated version to 1.0.2-1

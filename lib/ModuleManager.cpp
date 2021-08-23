@@ -61,6 +61,7 @@
 #include <vector>
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = {
+    {1, 1},
     {1, 0},
 };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
