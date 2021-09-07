@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.10
+%requires qore >= 1.0
 
 %require-types
 %enable-all-warnings
@@ -798,9 +798,9 @@ public namespace Logger {
             #! max.number of worker threads
             int maxThreads;
             #! events removed from queue but not passed to worker thread
-            hash pendingEvents;
+            hash<auto> pendingEvents;
             #! events paseed to worker thread
-            hash processingEvents;
+            hash<auto> processingEvents;
             #! queue of processed events in worker threads
             Queue finishedEvents();
             #! internal unique counter
@@ -815,7 +815,7 @@ public namespace Logger {
             @param appender @ref LoggerAppender instance
             @param events list of events
         */
-        private:internal worker(string id, LoggerAppender appender, list events) {
+        private:internal worker(string id, LoggerAppender appender, list<auto> events) {
             #printf("start worker(), id: %y, tid: %d\n", id, gettid());
             #printf("<S:%y, tid: %d> ", id, gettid());
             runningCounter.inc();
@@ -823,6 +823,7 @@ public namespace Logger {
             try {
                 map appender.processEventImpl($1.type, $1.params), events;
             } catch (hash<ExceptionInfo> ex) {
+                # ignore exceptions
             }
             finishedEvents.push(id);
             #printf("end worker(), id: %y, tid: %d\n", id, gettid());
@@ -866,9 +867,9 @@ public namespace Logger {
             # normally function is called from one thread and it is not time critical
             AutoLock al(lock);
             # get new events and match with pending
-            hash last_match;
+            hash<string, auto> last_match;
             while (True) {
-                *hash e = getEvent(ms);
+                *hash<auto> e = getEvent(ms);
                 if (!e) {
                     break;
                 }
@@ -911,6 +912,7 @@ public namespace Logger {
                 string id = finishedEvents.get(-1);
                 remove processingEvents{id};
             }
+
             # now try push pending
             foreach string id in (keys pendingEvents) {
                 # remove meanwhile finished if any
@@ -925,12 +927,12 @@ public namespace Logger {
                     # we cannot trigger new thread if is being processed
                     continue;
                 }
-                hash e = remove pendingEvents{id};
+                hash<auto> e = remove pendingEvents{id};
                 processingEvents{id} = e;
-                # When passing "id" then no copy is passed to submit pool queue and worker may get wrong value
+                # When passing "id" then no copy is passed to submit pool queue and worker may get the wrong value
                 # so we must pass value in new variable which won't change meanwhile when the value is to be used.
-                # It is feature of submit implementation related to parameter passing.
-                threadPool.submit(sub() {call_function(\worker(), e.id, e.appender, e.events); } );
+                # It is a feature of the "submit" implementation related to parameter passing
+                threadPool.submit(sub() { worker(e.id, e.appender, e.events); });
             }
         }
 
@@ -1230,8 +1232,8 @@ public namespace Logger {
         }
 
         private {
-            #! parsed pattern
-            list parsedPattern;  # subclass may provide value e.g. for unit tests
+            #! parsed pattern; list elements may be strings or hashes
+            list<auto> parsedPattern;  # subclass may provide value e.g. for unit tests
         }
 
         #! Creates the object
@@ -1251,7 +1253,8 @@ public namespace Logger {
         */
         public setPattern(string value) {
             string patt = value;
-            list pp = ();
+            # list elements may be strings or hashes
+            list<auto> pp = ();
             while (patt != "") {
                 int pos = 0;
                 do {
@@ -1276,12 +1279,12 @@ public namespace Logger {
                     }
                     splice patt, 0, pos+1;
                     # now the string is token
-                    *list l = regex_extract(patt, "^([0-9.-]*)([a-zA-Z]+)({[^}]*})?");
+                    *list<*string> l = regex_extract(patt, "^([0-9.-]*)([a-zA-Z]+)({[^}]*})?");
                     if (l.size() < 2) {
                         throw "LOGGER-ERROR", sprintf("Wrong pattern starting %%%s", patt);
                     }
-                    *list opt;
-                    hash f;
+                    *list<*string> opt;
+                    hash<auto> f;
                     if (l[0] != "") {
                         # opt = l[0] =~ x/^([-]?)([^.0-9]*)([.]?)([0-9]+)$/;   does not work in all cases
                         if (opt = (l[0] =~ x/^([-]?)([0-9]+)\.([0-9]+)$/) ) {
@@ -1910,7 +1913,7 @@ public namespace Logger {
             switch (type) {
                 case EVENT_ROTATE:
                     if (count > 0 && is_file(fileName)) {
-                        list fn = ();
+                        list<string> fn = ();
                         int i = 0;
                         while (True) {
                             push fn, getArchiveFileName(i+1);
@@ -1943,12 +1946,11 @@ public namespace Logger {
             @param idx the index of file (1..count)
         */
         public string getArchiveFileName(int idx) {
-            hash h;
-            h.filename = fileName;
-            h.count = count;
-            h.index = idx;
-            string res = format(h);
-            return res;
+            return format({
+                "filename": fileName,
+                "count": count,
+                "index": idx,
+            });
         }
 
         #! Returns max.number of files in chain
@@ -1956,7 +1958,6 @@ public namespace Logger {
             return count;
         }
     }
-
 
     #! Implemants appender writing to a file with file circular rotation support
     /**
@@ -1971,7 +1972,7 @@ public namespace Logger {
         }
 
         private:internal {
-            hash patternData;
+            hash<auto> patternData;
         }
 
         #! Creates the object
@@ -2055,7 +2056,7 @@ public namespace Logger {
                     int last_idx = 0;
                     if (patternData.count > 0) {
                         date last_stamp;
-                        hash pd = patternData;
+                        hash<auto> pd = patternData;
                         for (int i=0; i < patternData.count; i++) {
                             pd.index = i;
                             string fn = format(pd);
@@ -2252,11 +2253,10 @@ public namespace Logger {
             executed multiple times
         */
         public string getArchiveFileName() {
-            hash h;
-            h.timestamp = now_us();
-            h.filename = fileName;
-            string res = format(h);
-            return res;
+            return format({
+                "timestamp": now_us(),
+                "filename": fileName,
+            });
         }
     }
 

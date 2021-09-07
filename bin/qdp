@@ -3,7 +3,7 @@
 
 # @file qdp example program for the DataProvider module
 
-/*  Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/*  Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,8 @@
 %enable-all-warnings
 %require-types
 %strict-args
+
+%requires qore >= 1.0
 
 %requires ConnectionProvider
 %requires DatasourceProvider
@@ -329,40 +331,31 @@ class QdpCmd {
     }
 
     private AbstractDataProvider getDataProvider(string name) {
-        # load providers from environment
-        DataProvider::loadProvidersFromEnvironment();
-
-        # see if there are options in the name
-        {
-            if (name =~ /{([^}]*)}/) {
-                return DataProvider::getFactoryObjectFromString(name);
-            }
-        }
-
-        # try to get a provider from a connection
-        AbstractConnection conn;
-        try {
-            conn = get_connection(name);
-            return conn.getDataProvider();
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err != "CONNECTION-ERROR" && ex.err != "DATA-PROVIDER-ERROR") {
+        if (name =~ /{([^}]*)}/) {
+            try {
+                return DataProvider::getFactoryObjectFromStringUseEnv(name);
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err == "FACTORY-ERROR") {
+                    error("%s", ex.desc);
+                }
                 rethrow;
             }
         }
 
-        # try to get a provider from a DB connection
+        # load providers from environment and try to load a connection
         try {
-            return new DbDataProvider(new Datasource(get_ds_string(name)));
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err != "DATASOURCE-ERROR") {
-                rethrow;
+            *AbstractDataProvider dp = DataProvider::tryLoadProviderForConnectionFromEnv(name);
+            if (dp) {
+                return dp;
             }
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "DATA-PROVIDER-ERROR") {
+                error("connection %y exists but does not support the data provider API", name);
+            }
+            rethrow;
         }
 
-        if (conn) {
-            error("connection %y (%s) exists but does not support the data provider API", name, conn.getInfo().url);
-        }
-        error("no connection or datasource connection %y exists", name);
+        error("no connection or datasource connection %y exists in any known data provider", name);
     }
 
     static listConnections() {
