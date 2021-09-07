@@ -41,6 +41,7 @@
 #include "qore/intern/QoreTypeInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include <string>
 #include <set>
@@ -1872,7 +1873,7 @@ void QoreProgram::parseAndRun(const char* str, const char* name) {
 }
 
 bool QoreProgram::checkFeature(const char* f) const {
-    strset_t::const_iterator i = priv->featureList.find(f);
+    qore_program_private::strset_t::const_iterator i = priv->featureList.find(f);
     return (i != priv->featureList.end());
 }
 

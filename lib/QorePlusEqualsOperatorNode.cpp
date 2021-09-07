@@ -30,6 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
