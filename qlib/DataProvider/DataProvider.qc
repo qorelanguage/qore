@@ -169,7 +169,9 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     */
     static AbstractDataProvider getFactoryObjectFromString(string name) {
         hash<FactoryInfo> info = DataProvider::getFactoryInfoFromString(name);
-        return DataProvider::getFactoryObject(info.name, info.options);
+        AbstractDataProvider provider = DataProvider::getFactoryEx(info.name).create(info.options);
+        map provider = provider.getChildProvider($1), info.path_list;
+        return provider;
     }
 
     #! Returns a data provider object from the given factory string using environment variables to find the factory
