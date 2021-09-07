@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DataProvider.qc module for data access and introspection
 
-/** DataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** DataProvider.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,9 @@ public class DataProvider {
 
         #! flag that locks the \a allow_env_config var
         static bool env_config_locked = False;
+
+        #! set of module already loaded
+        static hash<string, bool> mod_map;
     }
 
     #! Register a new data provider factory
@@ -154,8 +157,10 @@ public class DataProvider {
         return provider;
     }
 
-    #! Returns a data provider object from the given factory with options given as string-formatted hash in curly brackets and child data providers separated by forward slashes
-    /** @par Example:
+    #! Returns a data provider object from the given factory string
+    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by forward slashes
+
+        @par Example:
         @code{.py}
 DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/password@db}/my_table");
         @endcode
@@ -163,6 +168,45 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
     */
     static AbstractDataProvider getFactoryObjectFromString(string name) {
+        hash<FactoryInfo> info = DataProvider::getFactoryInfoFromString(name);
+        return DataProvider::getFactoryObject(info.name, info.options);
+    }
+
+    #! Returns a data provider object from the given factory string using environment variables to find the factory
+    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by forward slashes
+
+        @par Example:
+        @code{.py}
+DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:user/password@db}/my_table");
+        @endcode
+
+        @throw PROVIDER-ERROR the given provider factory or child provider is unknown
+    */
+    static AbstractDataProvider getFactoryObjectFromStringUseEnv(string name) {
+        hash<FactoryInfo> info = DataProvider::getFactoryInfoFromString(name);
+        AbstractDataProviderFactory factory;
+        if ((*string factory_name = FactoryMap{info.name}) && DataProvider::tryLoad(factory_name)) {
+            factory = DataProvider::getFactoryEx(info.name);
+        } else {
+            *object v = DataProvider::loadFromEnvironment("get_data_provider_map", "data provider", <SymbolInfo>{
+                "type": "factory",
+                "name": info.name,
+            });
+            if (v) {
+                factory = cast<AbstractDataProviderFactory>(v);
+            }
+        }
+        if (factory) {
+            AbstractDataProvider provider = factory.create(info.options);
+            map provider = provider.getChildProvider($1), info.path_list;
+            return provider;
+        }
+
+        throw "FACTORY-ERROR", sprintf("data provider factory %y in %y is unknown", info.name, name);
+    }
+
+    #! Returns a hash of factory information from a string
+    private static hash<FactoryInfo> getFactoryInfoFromString(string name) {
         # get options, respecting balanced curly brackets
         *string opts = (name =~ x/{((?:(?>[^{}]*)|(?0))*)}/)[0];
         # remove empty options; the above regex does not catch them :(
@@ -178,8 +222,12 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
                     "type %y instead", name, options.type());
             }
         }
-
-        return DataProvider::getFactoryObject(name, options);
+        list<string> path_list = name.split("/");
+        return <FactoryInfo>{
+            "name": shift path_list,
+            "path_list": path_list,
+            "options": options,
+        };
     }
 
     #! Returns a list of registered data provider factories
@@ -279,6 +327,19 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     #! Loads data providers from the environment
     static loadProvidersFromEnvironment() {
         DataProvider::loadFromEnvironment("get_data_provider_map", "data provider");
+    }
+
+    #! Tries to load a data provider from the environment from the connection name
+    static *AbstractDataProvider tryLoadProviderForConnectionFromEnv(string name) {
+        load_module("ConnectionProvider");
+        load_module("DatasourceProvider");
+        *object v = DataProvider::loadFromEnvironment("get_data_provider_map", "data provider", <SymbolInfo>{
+            "type": "connection",
+            "name": name,
+        });
+        if (v) {
+            return cast<AbstractDataProvider>(v);
+        }
     }
 
     #! Registers all known data provider types
@@ -419,15 +480,22 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     }
 
     #! Loads modules from the QORE_DATA_PROVIDERS environment variable
-    private static loadFromEnvironment(string func, string type) {
+    private static *object loadFromEnvironment(string func, string type, *hash<SymbolInfo> info) {
         # load modules from the QORE_DATA_PROVIDERS environment variable
         *string prov = ENV.QORE_DATA_PROVIDERS;
         if (prov) {
             list<string> pl = ENV.QORE_DATA_PROVIDERS.split(PathSep);
             foreach string mod in (pl) {
+                if (mod_map{mod}) {
+                    continue;
+                }
+                mod_map{mod} = True;
                 Program p(PO_NO_USER_API);
                 try {
                     p.loadModule(mod);
+                    if (info && (*object rv = DataProvider::checkSymbol(info))) {
+                        return rv;
+                    }
                 } catch (hash<ExceptionInfo> ex) {
                     stderr.printf("ERROR: invalid QORE_DATA_PROVIDERS module %y %s: %s\n", mod, ex.err, ex.desc);
                 }
@@ -441,8 +509,53 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
                             "%s\n", mod, type, ex.err, ex.desc);
                     }
                 }
-                map DataProvider::tryLoad($1), dmap.iterator();
+                foreach string mod_str in (dmap.iterator()) {
+                    if (mod_map{mod_str}) {
+                        continue;
+                    }
+                    mod_map{mod_str} = True;
+                    if (DataProvider::tryLoad(mod_str)) {
+                        if (info && (*object rv = DataProvider::checkSymbol(info))) {
+                            return rv;
+                        }
+                    }
+                }
             }
+        }
+    }
+
+    #! Returns True if an object of the given type has been loaded
+    private static *object checkSymbol(hash<SymbolInfo> info) {
+        switch (info.type) {
+            case "connection": {
+                try {
+                    object conn = call_function("get_connection", info.name);
+                    return conn.getDataProvider();
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err != "CONNECTION-ERROR") {
+                        rethrow;
+                    }
+                }
+
+                # try to get a provider from a DB connection
+                try {
+                    Datasource ds(call_function("get_ds_string", info.name));
+                    load_module("DbDataProvider");
+                    return create_object("DbDataProvider", ds);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err != "NO-FUNCTION" && ex.err != "DATASOURCE-ERROR") {
+                        rethrow;
+                    }
+                }
+                break;
+            }
+
+            case "factory": {
+                return DataProvider::getFactory(info.name);
+            }
+
+            default:
+                throw "INVALID-SYMBOL-TYPE", sprintf("symbol type %y is unknown", info.type);
         }
     }
 
@@ -451,5 +564,21 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
         *string module_name = Class::getClass(obj).getModuleName();
         return module_name && module_map{obj.className()} == module_name;
     }
+}
+
+# private hashdecls
+hashdecl SymbolInfo {
+    # symbol type
+    string type;
+    # symbol name
+    string name;
+}
+hashdecl FactoryInfo {
+    # factory name
+    string name;
+    # path to final data provider in factory
+    list<string> path_list;
+    # factory options
+    auto options;
 }
 }

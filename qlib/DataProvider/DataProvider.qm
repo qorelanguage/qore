@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_2 DataProvider v1.2
+    - greatly improved dataprovider and type acquisition speed from clients requiring initialization from the environment
+      (<a href="https://github.com/qorelanguage/qore/issues/4305">issue 4305</a>)
 
     @subsection dataprovider_v1_1 DataProvider v1.1
     - the @ref DataProvider::DefaultRecordIterator class supports the \c limit search option
