@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 1.0
 
 # require type definitions everywhere
 %require-types
@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.4";
+    version = "1.5.5";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -302,6 +302,11 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
     @section mapperrelnotes Release Notes
 
+    @subsection mapperv1_5_5 Mapper v1.5.5
+    - fixed handling automatically-acquired input and output data structions with dots in field names; un-deprecated
+      the \c allow_dot and \c allow_output_dot options
+      (<a href="https://github.com/qorelanguage/qore/issues/4309">issue 4309</a>)
+
     @subsection mapperv1_5_4 Mapper v1.5.4
     - fixed a bug handling the \c struct key in mappers
       (<a href="https://github.com/qorelanguage/qore/issues/4189">issue 4189</a>)
@@ -400,10 +405,6 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! constructor option keys (can be extended by subclassing and reimplementing optionKeys())
         const OptionKeys = (map {$1.key: $1.value.desc}, UserOptions.pairIterator()) + {
-            "allow_dot": "DEPRECATED: allows input fields to have a dot in their name without implying a "
-                "structured format",
-            "allow_output_dot": "DEPRECATED: allows output fields to have a dot in their name without implying a "
-                "structured format",
             "date_format": "DEPRECATED: gives the default format for parsing dates from strings; ex: "
                 "\"MM/DD/YYYY HH:mm:SS\"",
             "empty_strings_to_nothing": "DEPRECATED: converts output record's empty strings to NOTHING",
@@ -431,6 +432,18 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! User options
         const UserOptions = {
+            "allow_dot": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to allow dots in input field names instead of interpreting them as field structure "
+                    "separators",
+            },
+
+            "allow_output_dot": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to allow dots in input field names instead of interpreting them as field structure "
+                    "separators",
+            },
+
             "disable_bulk": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to disable bulk operations when there is a hash of lists as input when calling "
@@ -588,17 +601,17 @@ public class Mapper inherits AbstractDataProcessor {
         #! truncate all strings quietly / automatically to their maximum length
         bool trunc_all = False;
 
-        #! DEPRECATED: do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
+        #! do not assume \a struct when field names have a \c "." in them; instead allow input field names to have a \c "." in them
         /** only used when a plain hash is provided for input
 
-            @deprecated use a field description for input instead
+            @note it's recommended to use a field description for input instead
         */
         bool allow_dot = False;
 
-        #! DEPRECATED: do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
+        #! do not assume structured/hash output when output field names have a \c "." in them; instead allow output field names to have a \c "." in them
         /** only used when a plain hash is provided for output
 
-            @deprecated use a field description for output instead
+            @note it's recommended to use a field description for output instead
         */
         bool allow_output_dot = False;
 
@@ -654,13 +667,9 @@ public class Mapper inherits AbstractDataProcessor {
         bool output_nullable = False;
 
         #! flag if the field descriptions were provided to the constructor
-        /** if so then allow_dot cannot be set
-        */
         bool structured_input;
 
         #! flag if the field descriptions were provided to the constructor
-        /** if so then allow_output_dot cannot be set
-        */
         bool structured_output;
 
         #! flag indicating that duplicate records should be ignored when creating records with an output mapper
@@ -880,7 +889,8 @@ Mapper mapv(DataMap);
         return AbstractDataProviderType::get(type, field_options);
     }
 
-    private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input, *reference<bool> structured_input) {
+    private static hash<string, AbstractDataField> getInputFromHashIntern(hash<auto> input,
+            *reference<bool> structured_input) {
         HashDataType input_data();
         foreach hash<auto> h in (input.pairIterator()) {
             switch (h.value.typeCode()) {
@@ -906,7 +916,8 @@ Mapper mapv(DataMap);
         return input_data.getFields();
     }
 
-    private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv, *hash<auto> global_options, *reference<bool> structured_output) {
+    private static hash<string, AbstractDataField> getOutputFromHashIntern(hash<auto> output, *hash<auto> mapv,
+            *hash<auto> global_options, *reference<bool> structured_output) {
         HashDataType output_data();
         foreach hash<auto> h in (output.pairIterator()) {
             if (h.value === True || !exists h.value) {
@@ -989,6 +1000,7 @@ Mapper mapv(DataMap);
                 input_request = opts.input_request;
                 input_request_options = opts.input_request_options;
             }
+            structured_input = True;
         } else if (opts.input_provider.supportsRequest()) {
             input_provider = opts.input_provider;
             if (opts.input_response_error) {
@@ -996,6 +1008,7 @@ Mapper mapv(DataMap);
             } else {
                 input = getFields("input", input_provider.getResponseType());
             }
+            structured_input = True;
             input_do_request = True;
             input_request = opts.input_request;
             input_request_options = opts.input_request_options;
@@ -1048,6 +1061,7 @@ Mapper mapv(DataMap);
                 error("\"output_provider\" %y passed to %s::constructor() has an empty record type",
                     output_provider.getName(), self.className());
             }
+            structured_output = True;
             if (opts.output_provider_upsert) {
                 if (!opts.output_provider.supportsUpsert()) {
                     error("\"output_provider\" %y passed to %s::constructor() does not support upserting",
@@ -1070,6 +1084,7 @@ Mapper mapv(DataMap);
             if (type) {
                 type = type.getSoftType();
                 output = type.getFields();
+                structured_output = True;
             }
         } else {
             error("\"output_provider\" %y passed to %s::constructor() does not support writing or the "
@@ -1166,16 +1181,10 @@ Mapper mapv(DataMap);
 
         if (opts.allow_dot) {
             allow_dot = parse_boolean(opts.allow_dot);
-            if (allow_dot && structured_input) {
-                error("the deprecated 'allow_dot' option cannot be used with an input field description");
-            }
         }
 
         if (opts.allow_output_dot) {
             allow_output_dot = parse_boolean(opts.allow_output_dot);
-            if (allow_output_dot && structured_output) {
-                error("the deprecated 'allow_output_dot' option cannot be used with an output field description");
-            }
         }
 
         # runtime options
@@ -1260,7 +1269,7 @@ Mapper mapv(DataMap);
             # convert to a hash if the value of the column is a string (giving the source key name)
             case NT_STRING: fh.name = fh; break;
             case NT_CALLREF:
-            case NT_CLOSURE: fh.code = fh; break;
+            case NT_CLOSURE: fh."code" = fh; break;
             case NT_BOOLEAN: if (fh) {
                 fh = {};
                 break;
@@ -1270,6 +1279,44 @@ Mapper mapv(DataMap);
                 break;
             }
             default: error("unsupported type %y assigned to output field %y", fh.type(), getFieldName(k));
+        }
+    }
+
+    #! raises an error if an invalid fields in structured input data are declared; sets "struct"
+    private processStructuredInputField(string k, string name, reference<list<string>> struct) {
+        struct = ();
+        *hash<string, AbstractDataField> current_fields = input;
+        string current_name = name;
+        while (current_fields) {
+            bool found;
+            foreach hash<auto> i in (current_fields.pairIterator()) {
+                if (current_name.equalPartial(i.key)) {
+                    if (current_name.size() == i.key.size()) {
+                        # don't add if it's the only element
+                        if (struct) {
+                            struct += current_name;
+                        } else {
+                            remove struct;
+                        }
+                        return;
+                    }
+                    if (name[i.key.length()] == ".") {
+                        found = True;
+                        splice current_name, 0, i.key.length() + 1;
+                        current_fields = i.value.getType().getFields();
+                        struct += i.key;
+                        if (!current_fields) {
+                            found = False;
+                        }
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                # resolve the rest of the fields directly
+                struct += allow_dot ? current_name : current_name.split(".");
+                break;
+            }
         }
     }
 
@@ -1331,11 +1378,14 @@ Mapper mapv(DataMap);
         if (fh.name) {
             if (fh.struct)
                 error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-            if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index && !exists fh.input_record)
+            if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index && !exists fh.input_record
+                && !structured_input)
                 checkInputField(k, fh.name);
-            if (!allow_dot && fh.name =~ /\./)
+            if (!allow_dot && !structured_input && fh.name =~ /\./)
                 fh.struct = (remove fh.name).split(".");
-            else {
+            else if (structured_input) {
+                processStructuredInputField(k, fh.name, \fh.struct);
+            } else {
                 # add to ident list if the input and output fields are identical
                 if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
                     identh{k} = True;
@@ -1344,26 +1394,33 @@ Mapper mapv(DataMap);
             if (!m_runtime.hasKey(fh.runtime))
                 error("output field %y requires unregistered runtime key %y", getFieldName(k), fh.runtime);
         } else if (!fh."code" && !have_output_value && input && !fh.output_key_path && !fh.struct) {
-            checkInputField(k, k);
+            if (structured_input) {
+                processStructuredInputField(k, k, \fh.struct);
+            } else {
+                checkInputField(k, k);
+            }
         }
 
         switch (fh.struct.typeCode()) {
-            case NT_NOTHING: break;
-            case NT_STRING: fh.struct = fh.struct.split("."); # then fall down to next case
+            case NT_NOTHING:
+                break;
+            case NT_STRING:
+                fh.struct = fh.struct.split("."); # then fall down to next case
             case NT_LIST: {
                 if (!fh.struct)
                     error("output field %y has an empty 'struct' key", getFieldName(k));
                 if (fh.struct.size() == 1) {
                     fh.name = (remove fh.struct)[0];
-                    if (input) {
+                    if (input && !structured_input) {
                         checkInputField(k, fh.name);
                     }
-                } else if (input && !exists fh.constant && !fh.code && !exists fh.index) {
+                } else if (input && !exists fh.constant && !fh."code" && !exists fh.index && !structured_input) {
                     checkInputField(k, (foldl $1 + "." + $2, fh.struct));
                 }
                 break;
             }
-            default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k), fh.struct.type(), fh);
+            default: error("output field %y has an invalid struct key assigned to type %y (%y)", getFieldName(k),
+                fh.struct.type(), fh);
         }
 
         bool explicit_type = exists fh.type;

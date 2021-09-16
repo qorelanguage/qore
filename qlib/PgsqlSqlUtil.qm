@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.5";
+    version = "1.5.2";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.2
+    - added APIs to enable duplicate record creation errors to be detected
+      (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
 
     @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.1
     - fixed bugs dropping foreign constraints and indices when aligning tables
@@ -2290,13 +2294,20 @@ auto v = c.name;
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
             } catch (hash<ExceptionInfo> ex) {
-                if (ex.desc =~ /duplicate key value/) {
+                if (isDuplicateRowError(ex)) {
                     ds.exec("rollback to savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
                     return False;
                 }
                 rethrow;
             }
             return True;
+        }
+
+        #! Returns True if the exception was raised because of a duplicate row / key error
+        /** @since PgsqlSqlUtil 1.5.2
+        */
+        private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
+            return (ex.desc =~ /duplicate key value/);
         }
 
         private hash getQoreTypeMapImpl() {

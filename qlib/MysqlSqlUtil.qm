@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.5
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,10 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv141 MysqlSqlUtil v1.4.2
+    - added APIs to enable duplicate record creation errors to be detected
+      (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
 
     @subsection mysqlsqlutilv141 MysqlSqlUtil v1.4.1
     - fixed a bug generating literal date/time values for SQL queries
@@ -1850,11 +1854,19 @@ end";
             try {
                 ds.vexec(sql, row.values());
             } catch (hash<ExceptionInfo> ex) {
-                if (ex.desc =~ /^Duplicate entry /)
+                if (isDuplicateRowError(ex)) {
                     return False;
+                }
                 rethrow;
             }
             return True;
+        }
+
+        #! Returns True if the exception was raised because of a duplicate row / key error
+        /** @since MysqlSqlUtil 1.4.2
+        */
+        private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
+            return (ex.desc =~ /^Duplicate entry /);
         }
 
         private hash getQoreTypeMapImpl() {

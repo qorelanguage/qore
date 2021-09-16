@@ -3126,18 +3126,21 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
 
         @since SqlUtil 1.7
     */
-    hash<SqlResultInfo> insertFromSelectWithInfo(list<auto> cols, AbstractTable source, hash<auto> select_hash, *hash<auto> opt) {
+    hash<SqlResultInfo> insertFromSelectWithInfo(list<auto> cols, AbstractTable source, hash<auto> select_hash,
+            *hash<auto> opt) {
         hash<SqlResultInfo> rv();
         rv.result = insertFromSelectIntern(cols, source, select_hash, \rv.sql, opt, \rv.args);
         return rv;
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::insertFromSelect() wrapper
-    deprecated int insertFromSelectNoCommit(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql, *hash<auto> opt) {
+    deprecated int insertFromSelectNoCommit(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql,
+            *hash<auto> opt) {
         return insertFromSelectIntern(cols, source, sh, \sql, opt);
     }
 
-    private int insertFromSelectIntern(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private int insertFromSelectIntern(list cols, AbstractTable source, *hash<auto> sh, *reference<string> sql,
+            *hash<auto> opt, *reference<softlist<auto>> args) {
         string ssql = source.getSelectSql(sh, \args);
 
         # issue #3352: do not execute runtime DML while holding the lock
@@ -3974,8 +3977,7 @@ AbstractSQLStatement i = table.getStatement();
             if (args) {
                 stmt.bindArgs(args);
             }
-        }
-        else {
+        } else {
             execData(stmt, opt, args);
         }
 
@@ -5244,7 +5246,8 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         return updateIntern(set, cond, NOTHING, opt);
     }
 
-    private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private int updateIntern(hash<auto> set, *hash<auto> cond, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         hash<SqlCommandInfo> update_hash = getUpdateSql(set, cond);
         sql = update_hash.sql;
         args = update_hash.args;
@@ -6943,6 +6946,13 @@ any res = t.selectRows(sh, \sql);
         m_customCopMap{name} = operator;
     }
 
+    #! Returns True if the exception was raised because of a duplicate row / key error
+    /** @since SqlUtil 1.7.3
+    */
+    bool isDuplicateRowError(hash<ExceptionInfo> ex) {
+        return isDuplicateRowErrorImpl(ex);
+    }
+
     #! returns the insert operator map for this object
     /** override in subclasses to return driver-specific options
     */
@@ -7087,16 +7097,14 @@ any res = t.selectRows(sh, \sql);
         # try to load module
         try {
             load_module(mn);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
 
         # try to get AbstractTable object
         try {
             return call_function(mn + "::" + "get_table", nds, nname, opts);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             throw "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
     }
@@ -7345,5 +7353,10 @@ any res = t.selectRows(sh, \sql);
         @since SqlUtil 1.6
     */
     private abstract AbstractSavepointHelper getSavepointHelperImpl(*string savepoint);
+
+    #! Returns True if the exception was raised because of a duplicate row / key error
+    /** @since SqlUtil 1.7.3
+    */
+    private abstract bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex);
 }
 }

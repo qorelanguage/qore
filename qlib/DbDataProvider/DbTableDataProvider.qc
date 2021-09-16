@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbTableDataProvider class definition
 
-/** DbTableDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** DbTableDataProvider.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
 
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
@@ -282,8 +271,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         DbTableTransactionHelper db(table);
-        *hash<auto> returning = db.insert(rec, create_options);
-        return rec + returning;
+        try {
+            *hash<auto> returning = db.insert(rec, create_options);
+            return rec + returning;
+        } catch (hash<ExceptionInfo> ex) {
+            if (db.isDuplicateRowError(ex)) {
+                throw "DUPLICATE-RECORD", sprintf("%s: %s", ex.err, ex.desc), ex.arg;
+            }
+            rethrow;
+        }
     }
 
     #! Upserts the given record to the data provider
