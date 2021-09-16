@@ -158,6 +158,7 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
     AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options) {}
     AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {}
+    bool isDuplicateRowErrorImpl(hash<::Qore::ExceptionInfo> ex) { return False; }
 }
 
 class Main inherits QUnit::Test {
