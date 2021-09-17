@@ -510,7 +510,7 @@ MACRO (QORE_DIST _version)
     SET(CPACK_PACKAGE_VERSION "${_version}")
     SET(CPACK_SOURCE_GENERATOR "TBZ2")
     SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
-    SET(CPACK_IGNORE_FILES "/CVS/;/#;~$;__pycache__;core\\\\.;qorusproject\\\\.json;\\\\.tar.gz$;/CMakeFiles/;CMakeCache.txt;refresh-copyright-and-license.pl;/\\\\..*;/build.*/")
+    SET(CPACK_IGNORE_FILES "/CVS/;/#;~$;__pycache__;[^_a-zA-Z]core\\\\.;qorusproject\\\\.json;\\\\.tar.gz$;/CMakeFiles/;CMakeCache.txt;refresh-copyright-and-license.pl;/\\\\..*;/build.*/")
     SET(CPACK_SOURCE_IGNORE_FILES ${CPACK_IGNORE_FILES})
     INCLUDE(CPack)
     # simulate autotools' "make dist"
