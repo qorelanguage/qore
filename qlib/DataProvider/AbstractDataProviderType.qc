@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDataProviderType class definition
 
-/** AbstractDataProviderType.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** AbstractDataProviderType.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,15 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
 
 %requires reflection
 
@@ -200,12 +191,15 @@ public class AbstractDataProviderType inherits Serializable {
     /** @return a description of the type as an input type; only the following keys are returned
         - \c name
         - \c types_returned
+        - \c fields
+        - \c base_type
     */
     hash<DataTypeInfo> getInputInfo() {
         return <DataTypeInfo>{
             "name": getName(),
             "types_returned": keys getReturnTypeHash(),
             "fields": getFieldInfo(),
+            "base_type": getBaseTypeName(),
         };
     }
 

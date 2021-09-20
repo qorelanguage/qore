@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,11 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_2_1 DataProvider v1.2.1
+    - return the \c base_type key in input type info in
+      @ref DataProvider::AbstractDataProviderType::getInputInfo() "getInputInfo"
+      (<a href="https://github.com/qorelanguage/qore/issues/4311">issue 4311</a>)
 
     @subsection dataprovider_v1_2 DataProvider v1.2
     - greatly improved dataprovider and type acquisition speed from clients requiring initialization from the environment
