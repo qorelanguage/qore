@@ -19,7 +19,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        1.0.6
+Version:        1.0.7
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT

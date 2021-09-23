@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.0.1";
+    version = "1.0.2";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,11 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_0_2 HttpServer 1.0.2
+    - @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners()" has no mechanism for returning errors
+      to the caller
+      (<a href="https://github.com/qorelanguage/qore/issues/4312">issue 4312</a>)
 
     @subsection http1_0_1 HttpServer 1.0.1
     - allow dynamic handlers to be removed without waiting for all connections to terminate
@@ -578,6 +583,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         any \a node and \a service addresses in the \a info hash; all possible addresses will be bound to new
         listeners
         @param info a listener information hash
+        @param errmap an optional reference to a hash of error information keyed by bind address
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the
         description of each hash element in the list returned by this method
@@ -589,7 +595,8 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         @since HttpServer 0.3.13.1
     */
-    final list<hash<auto>> addListeners(string bind, hash<HttpListenerOptionInfo> info) {
+    final list<hash<auto>> addListeners(string bind, hash<HttpListenerOptionInfo> info,
+            *reference<hash<string, string>> errmap) {
         if (bind !~ /:\w+/) {
             if (bind =~ /^\//) {
                 info.node = bind;
@@ -600,16 +607,17 @@ public class HttpServer inherits HttpServer::AbstractLogger {
             # assume service only
             remove info.node;
             info.service = bind;
-            return addINETListenersIntern(info);
+            return addINETListenersIntern(info, \errmap);
         }
 
         # add node and service
         (info.node, info.service) = (bind =~ x/(.+):(\w+)/);
-        return addINETListenersIntern(info);
+        return addINETListenersIntern(info, \errmap);
     }
 
     #! adds one or more dedicated listeners to the server with the given bind address
     /** @param info a listener information hash
+        @param errmap an optional reference to a hash of error information keyed by bind address
 
         @return a list of listener info hashes; see the return value of HttpServer::getListenerInfo() for the
         description of each hash element in the list returned by this method
@@ -621,12 +629,12 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         @since HttpServer 0.3.13.1
     */
-    final list<hash<auto>> addListeners(hash<HttpListenerOptionInfo> info) {
+    final list<hash<auto>> addListeners(hash<HttpListenerOptionInfo> info, *reference<hash<string, string>> errmap) {
         if (exists info.node && !exists info.service) {
             # try to bind without a service, can be a UNIX domain socket
             return list(addListenerIntern(info).getInfo());
         }
-        return addINETListenersIntern(info);
+        return addINETListenersIntern(info, \errmap);
     }
 
     #! adds a single global listener to the server
@@ -1366,7 +1374,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private list<hash<auto>> addINETListenersIntern(hash<HttpListenerOptionInfo> info) {
+    final private list<hash<auto>> addINETListenersIntern(hash<HttpListenerOptionInfo> info,
+            *reference<hash<string, string>> errmap) {
         list<auto> al = getaddrinfo(info.node, info.service, info.family, AIFlags);
 
         # sort ipv6 addresses first in list
@@ -1394,12 +1403,24 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
 %endif
             } catch (hash<ExceptionInfo> ex) {
+                string errstr = sprintf("%s:%s: %s: %s: %s", h.address_desc, h.port, get_ex_pos(ex), ex.err, ex.desc);
+                string bind;
+                if (exists info.node) {
+                    if (exists info.service) {
+                        bind = sprintf("%s:%s", info.node, info.service);
+                    } else {
+                        bind = info.node;
+                    }
+                } else {
+                    bind = info.service;
+                }
+                errmap{bind ?* "unknown"} = errstr;
                 if (ex.err != "HTTPLISTENER-BIND-ERROR" && ex.err != "SOCKET-BIND-ERROR") {
-                    logError("add listener %s:%s: %s: %s: %s", h.address_desc, h.port, get_ex_pos(ex), ex.err, ex.desc);
+                    logError("add listener %s", errstr);
                     rethrow;
                 }
 
-                log("cannot add listener on %s:%d: %s: %s: %s", h.address_desc, h.port, get_ex_pos(ex), ex.err, ex.desc);
+                log("cannot add listener on %s", errstr);
             }
         }
 
