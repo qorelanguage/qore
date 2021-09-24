@@ -788,11 +788,39 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.submit({"a": 1});
             assertEq(PS_RUNNING, pipe.getInfo().status);
 
+            # wait for record count = 1
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size == 1) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             Counter thread_cnt(1);
-            code submit = sub () { try { thread_cnt.dec(); pipe.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            Queue abort_queue();
+            code submit = sub () {
+                try {
+                    thread_cnt.dec();
+                    pipe.submit(record_provider);
+                    abort_queue.push();
+                } catch (hash<ExceptionInfo> ex) {
+                    abort_queue.push(ex);
+                }
+            };
             background submit();
             thread_cnt.waitForZero();
-            sleep(500ms);
+
+            # issue #4317: do not abort before we know the infinite record provider is in progress
+            # wait for record count >= 2
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size >= 2) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             pipe.abort();
             assertEq(PS_ABORTED, pipe.getInfo().status);
             #printf("%N\n", pipe.getInfo());

@@ -76,11 +76,11 @@ class StringTest inherits QUnit::Test {
         assertEq("list<string>", a.fullType());
         assertEq(("field", "1.field", "2\\.with\\.dots.field", "3"), a);
 
-        str.upr();
-        a = str.splitRegex("FIELD", RE_Caseless, True);
+        str = str.upr();
+        a = str.splitRegex("field", RE_Caseless, True);
         assertEq(True, a.complexType());
         assertEq("list<string>", a.fullType());
-        assertEq(("FIELD", "1.FIELD", "2\\.with\\.dots.FIELD", "3"), a);
+        assertEq(("FIELD", "1.FIELD", "2\\.WITH\\.DOTS.FIELD", "3"), a);
     }
 
     nonScalarTest() {
