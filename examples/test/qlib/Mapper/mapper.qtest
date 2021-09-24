@@ -247,6 +247,12 @@ public class MapperTest inherits QUnit::Test {
             ("output.1": 456, "output.2": "xyz", "output.3": 2),
         );
 
+        const DotMap2 = {
+            "output\\.1": "input\\.2",
+            "output\\.2": "input\\.1",
+            "output\\.3": {"struct": ("a", "b")},
+        };
+
         const OStructMap = (
             "a.id": "input.2",
             "a.other": "input.1",
@@ -1106,6 +1112,19 @@ public class MapperTest inherits QUnit::Test {
 
             # test for hash of lists format
             hash h = map {$1: ()}, DotInput[0].keyIterator();
+            map (map h{$1.key} += $1.value, $1.pairIterator()), DotInput;
+            assertEq(DotOutput, m.mapAll(h));
+            assertEq(4, m.getCount());
+        }
+
+        {
+            Mapper m(DotMap2);
+            list<auto> l = m.mapAll(DotInput);
+            assertEq(DotOutput, l);
+            assertEq(2, m.getCount());
+
+            # test for hash of lists format
+            hash<string, list<auto>> h = map {$1: ()}, keys DotInput[0];
             map (map h{$1.key} += $1.value, $1.pairIterator()), DotInput;
             assertEq(DotOutput, m.mapAll(h));
             assertEq(4, m.getCount());

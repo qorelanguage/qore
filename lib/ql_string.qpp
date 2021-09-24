@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_string.qpp
+    ql_string.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -90,7 +90,8 @@ static const char* memstr(const char* str, const char* pattern, size_t pl, size_
         if (!p)
             return nullptr;
 
-        //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p, len, pl, len-(p-str), p[1], p[2], p[3]);
+        //printd(5, "memstr() pattern: %s str: %p p: %p len: %d pl: %d remaining: %d (%c %c %c)\n", pattern, str, p,
+        //  len, pl, len-(p-str), p[1], p[2], p[3]);
 
         // if there is not enough string left for the pattern, then return
         if ((len - (p - str)) < pl)
@@ -115,17 +116,18 @@ static const char* memstr(const char* str, const char* pattern, size_t pl, size_
     return nullptr;
 }
 
-static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
-    if (enc)
+static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding* enc) {
+    if (enc) {
         l->push(new QoreStringNode(str, len, enc), nullptr);
-    else {
+    } else {
         BinaryNode* b = new BinaryNode;
         b->append(str, len);
         l->push(b, nullptr);
     }
 }
 
-QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl, const QoreEncoding *enc, bool with_separator) {
+QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl, const QoreEncoding* enc,
+        bool with_separator) {
     QoreListNode* l = new QoreListNode(enc ? stringTypeInfo : binaryTypeInfo);
     const char* ostr = str;
     while (const char* p = memstr(str, pattern, pl, sl - (str - ostr))) {
@@ -1737,7 +1739,7 @@ string column = trunc_str(str, 80, dsp.getOSEncoding());
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if an explicit @ref character_encoding "character encoding" was given and an error occurs during encoding conversion
  */
 string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE_ONLY] {
-   const QoreEncoding *enc = encoding ? QEM.findCreate(encoding) : str->getEncoding();
+   const QoreEncoding* enc = encoding ? QEM.findCreate(encoding) : str->getEncoding();
    if (len <= 0)
       return new QoreStringNode(enc);
 

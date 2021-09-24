@@ -2,7 +2,7 @@
 /*
     QoreRegex.cpp
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -69,11 +69,11 @@ void QoreRegex::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
     if (*xsink)
         return;
 
-    //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->getBuffer(), this);
+    //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->c_str(), this);
 
-    p = pcre_compile(t->getBuffer(), options, &err, &eo, 0);
+    p = pcre_compile(t->c_str(), options, &err, &eo, 0);
     if (err) {
-        //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->getBuffer(), (char* )err);
+        //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->c_str(), (char* )err);
         xsink->raiseException("REGEX-COMPILATION-ERROR", (char* )err);
     }
 }
@@ -91,55 +91,57 @@ void QoreRegex::parse(q_get_loc_t get_loc) {
 }
 
 bool QoreRegex::exec(const QoreString* target, ExceptionSink* xsink) const {
-   TempEncodingHelper t(target, QCS_UTF8, xsink);
-   if (!t)
-      return false;
+    TempEncodingHelper t(target, QCS_UTF8, xsink);
+    if (!t)
+        return false;
 
-   return exec(t->getBuffer(), t->strlen());
+    return exec(t->c_str(), t->strlen());
 }
 
 // default subpattern buffer size; see pcre_exec() / pcreapi for more info
 #define OVECCOUNT 30
-// maximum subpattern buffer size; we must limit this to control the amount of stack space used; must be OVECCOUNT * a power of 2
+// maximum subpattern buffer size; we must limit this to control the amount of stack space used; must be OVECCOUNT * a
+// power of 2
 #define OVECMAX 480
 bool QoreRegex::exec(const char* str, size_t len) const {
-   // the PCRE docs say that if we don't send an ovector here the library may have to malloc
-   // memory, so, even though we don't need the results, we include the vector to avoid
-   // extraneous malloc()s
+    // the PCRE docs say that if we don't send an ovector here the library may have to malloc
+    // memory, so, even though we don't need the results, we include the vector to avoid
+    // extraneous malloc()s
 
-   int rc;
+    int rc;
 
-   int vsize = OVECCOUNT;
-   while (true) {
+    int vsize = OVECCOUNT;
+    while (true) {
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS
-      int ovector[vsize];
+        int ovector[vsize];
 #else
-      std::vector<int> ovc(vsize, 0);
-      int* ovector = &ovc[0];
+        std::vector<int> ovc(vsize, 0);
+        int* ovector = &ovc[0];
 #endif
-      rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
-      if (!rc) {
-         // rc == 0 means not enough space was available in ovector
-         printd(5, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
-         vsize <<= 1;
-         if (vsize >= OVECMAX) {
-            rc = -1;
-            break;
-         }
-         continue;
-      }
-      break;
-   }
+        rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
+        if (!rc) {
+            // rc == 0 means not enough space was available in ovector
+            printd(5, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+            vsize <<= 1;
+            if (vsize >= OVECMAX) {
+                rc = -1;
+                break;
+            }
+            continue;
+        }
+        break;
+    }
 
-   //printd(5, "QoreRegex::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);
-   return rc >= 0;
+    //printd(5, "QoreRegex::exec(%s) this=%p pre_exec() rc=%d\n", str, this, rc);
+    return rc >= 0;
 }
 
 // return type: *list<*string>
 QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSink* xsink) const {
     TempEncodingHelper t(target, QCS_UTF8, xsink);
-    if (!t)
-        return 0;
+    if (!t) {
+        return nullptr;
+    }
 
     ReferenceHolder<QoreListNode> l(xsink);
 
@@ -157,14 +159,16 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
         int* ovector = &ovc[0];
 #endif
         int rc = pcre_exec(p, 0, t->c_str(), t->size(), offset, 0, ovector, vsize);
-        //printd(5, "QoreRegex::exec(%s) =~ /xxx/ = %d (global: %d)\n", t->c_str() + offset, rc, global);
+        //printd(5, "QoreRegex::extractSubstrings(%s) =~ /xxx/ = %d (global: %d)\n", t->c_str() + offset, rc, global);
 
         if (!rc) {
             // rc == 0 means not enough space was available in ovector
-            //printd(5, "QoreRegex::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+            //printd(5, "QoreRegex::extractSubstrings() ovector too small: vsize: %d -> %d (max: %d)\n", vsize,
+            //    vsize << 1, OVECMAX);
             vsize <<= 1;
             if (vsize >= OVECMAX) {
-                xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d limit: %d)", vsize, OVECMAX);
+                xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d " \
+                    "limit: %d)", vsize, OVECMAX);
                 return 0;
             }
             continue;
@@ -186,21 +190,83 @@ QoreListNode* QoreRegex::extractSubstrings(const QoreString* target, ExceptionSi
                     continue;
                 }
                 QoreStringNode* tstr = new QoreStringNode;
-                tstr->concat(t->getBuffer() + ovector[pos], ovector[pos + 1] - ovector[pos]);
+                tstr->concat(t->c_str() + ovector[pos], ovector[pos + 1] - ovector[pos]);
                 if (!l)
                     l = new QoreListNode(stringOrNothingTypeInfo);
-                //printd(5, "substring %d: %d - %d (len %d) tstr: '%s' (%d)\n", x, ovector[pos], ovector[pos + 1], ovector[pos + 1] - ovector[pos], tstr->c_str(), (int)tstr->size());
+                //printd(5, "substring %d: %d - %d (len %d) tstr: '%s' (%d)\n", x, ovector[pos], ovector[pos + 1],
+                //  ovector[pos + 1] - ovector[pos], tstr->c_str(), (int)tstr->size());
                 l->push(tstr, xsink);
             }
 
             offset = ovector[(x - 1) * 2 + 1];
-            //printd(5, "QoreRegex::exec() offset: %d size: %d ovector[%d]: %d\n", offset, t->strlen(), (x - 1) * 2 + 1, ovector[(x - 1) * 2 + 1]);
+            //printd(5, "QoreRegex::extractSubstrings() offset: %d size: %d ovector[%d]: %d\n", offset, t->strlen(),
+            //  (x - 1) * 2 + 1, ovector[(x - 1) * 2 + 1]);
+        } else {
+            break;
         }
-        else
-            break;
 
-        if (!global)
+        if (!global) {
             break;
+        }
+    }
+
+    return l.release();
+}
+
+// return type: list<string>
+QoreListNode* QoreRegex::extractWithPattern(const QoreString& target, bool include_pattern,
+        ExceptionSink* xsink) const {
+    TempEncodingHelper t(target, QCS_UTF8, xsink);
+    if (!t) {
+        assert(*xsink);
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(stringTypeInfo), xsink);
+    int offset = 0;
+    int vsize = OVECCOUNT;
+    while (true) {
+        if (offset >= (int)t->strlen())
+            break;
+#ifdef HAVE_LOCAL_VARIADIC_ARRAYS
+        int ovector[vsize];
+#else
+        std::vector<int> ovc(vsize, 0);
+        int* ovector = &ovc[0];
+#endif
+        int rc = pcre_exec(p, 0, t->c_str(), t->size(), offset, 0, ovector, vsize);
+        printd(5, "QoreRegex::extractWithPattern('%s') = %d\n", t->c_str() + offset, rc);
+
+        if (!rc) {
+            // rc == 0 means not enough space was available in ovector
+            //printd(5, "QoreRegex::extractWithPattern() ovector too small: vsize: %d -> %d (max: %d)\n", vsize,
+            //    vsize << 1, OVECMAX);
+            vsize <<= 1;
+            if (vsize >= OVECMAX) {
+                xsink->raiseException("REGEX-ERROR", "too many results required in regular expression (vsize: %d " \
+                    "limit: %d)", vsize, OVECMAX);
+                return nullptr;
+            }
+            continue;
+        }
+
+        if (rc < 1) {
+            // add rest of string to list
+            QoreStringNode* tstr = new QoreStringNode(t->c_str() + offset, t->getEncoding());
+            l->push(tstr, xsink);
+            break;
+        }
+
+        assert(rc == 1);
+        int pos = (rc - 1) * 2;
+        int new_offset = ovector[pos + (include_pattern ? 1 : 0)];
+        printd(5, "QoreRegex::extractWithPattern() offset: %d new_offset: %d size: %d ovector[%d..]: %d %d\n", offset,
+            new_offset, t->strlen(), pos, ovector[pos], ovector[pos + 1]);
+        SimpleRefHolder<QoreStringNode> tstr(new QoreStringNode(t->c_str() + offset, new_offset - offset, t->getEncoding()));
+        printd(5, "substring %d: %d - %d (len %d) tstr: '%s' (%d)\n", rc, ovector[pos], ovector[pos + 1],
+            ovector[pos + 1] - ovector[pos], tstr->c_str(), (int)tstr->size());
+        l->push(tstr.release(), xsink);
+        offset = ovector[pos + 1];
     }
 
     return l.release();
