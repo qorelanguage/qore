@@ -170,7 +170,7 @@ for test in $TESTS; do
         eval $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
     else
         if [ "${HOSTTYPE}" = "aarch64" -a -n "`echo $test|grep DataProvider`" ]; then
-            $QORE $test $TEST_OUTPUT_FORMAT
+            $QORE $test -vvv $TEST_OUTPUT_FORMAT
         else
             $QORE $test $TEST_OUTPUT_FORMAT
         fi

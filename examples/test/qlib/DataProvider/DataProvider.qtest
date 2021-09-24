@@ -805,6 +805,12 @@ public class DataProviderTest inherits QUnit::Test {
             Counter thread_cnt(1);
             Queue abort_queue();
             code submit = sub () {
+                if (m_options.verbose > 2) {
+                    printf("TID %d: infinite submission thread started\n", gettid());
+                }
+                on_exit if (m_options.verbose > 2) {
+                    printf("TID %d: infinite submission thread exiting\n", gettid());
+                }
                 try {
                     thread_cnt.dec();
                     pipe.submit(record_provider);
@@ -826,13 +832,32 @@ public class DataProviderTest inherits QUnit::Test {
                 sleep(50ms);
             }
 
+            if (m_options.verbose > 2) {
+                printf("TID %d: record processor0 size: %d; about to abort\n", gettid(), record_processor0.recs.size());
+                hash<auto> stacks = get_all_thread_call_stacks();
+                hash<auto> tmap;
+                foreach hash<auto> i in (stacks.pairIterator()) {
+                    splice i.value, 0, 2;
+                    tmap{i.key} = map $1.type != "new-thread" ? sprintf("%s %s()", get_ex_pos($1), $1.function) : "new-thread", i.value;
+                }
+                printf("all threads: %N\n", tmap);
+            }
+
             pipe.abort();
             assertEq(PS_ABORTED, pipe.getInfo().status);
-            #printf("%N\n", pipe.getInfo());
             assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
+
+            if (m_options.verbose > 2) {
+                printf("TID %d: pipeline info: %N\n", gettid(), pipe.getInfo());
+            }
 
             *hash<ExceptionInfo> ex_info = abort_queue.get();
             assertEq("PIPELINE-SUBMISSION-ABORTED", ex_info.err);
+
+            if (m_options.verbose > 2) {
+                printf("TID %d: infinite submission exception: %s: %s\n", gettid(), ex_info.err, ex_info.desc);
+
+            }
 
             pipe.reset();
             pipe.submit({"a": 1});
