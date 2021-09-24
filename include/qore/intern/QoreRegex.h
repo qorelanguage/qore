@@ -2,7 +2,7 @@
 /*
     QoreRegex.h
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,6 +64,8 @@ public:
     DLLLOCAL bool exec(const QoreString* target, ExceptionSink* xsink) const;
     DLLLOCAL bool exec(const char* str, size_t len) const;
     DLLLOCAL QoreListNode* extractSubstrings(const QoreString* target, ExceptionSink* xsink) const;
+    DLLLOCAL QoreListNode* extractWithPattern(const QoreString& target, bool include_pattern,
+            ExceptionSink* xsink) const;
     // caller owns QoreString returned
     DLLLOCAL QoreString* getString();
 

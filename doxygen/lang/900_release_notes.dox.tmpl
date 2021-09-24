@@ -7,10 +7,17 @@
     @par Release Summary
     Bugfix release; see below for more information
 
+    @subsection qore_1_0_7_new_feature New Features
+    - new pseudo-methods:
+      - <string>::splitRegex()
+
     @subsection qore_1_0_7_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - \c HttpServer::addListeners() has no mechanism for returning errors to the caller
         (<a href="https://github.com/qorelanguage/qore/issues/4312">issue 4312</a>)
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module
+      - fixed bugs handling escaped \c "." characters in field names
+        (<a href="https://github.com/qorelanguage/qore/issues/4315">issue 4315</a>)
 
     @section qore_1_0_6 Qore 1.0.6
 

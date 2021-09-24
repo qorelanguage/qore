@@ -1020,7 +1020,8 @@ DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL extern bool q_disable_gc;
 
-DLLLOCAL QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char* str, QoreString& arg, bool& ok);
+DLLLOCAL QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char* str, QoreString& arg,
+    bool& ok);
 
 #ifndef HAVE_INET_NTOP
 DLLLOCAL const char* inet_ntop(int af, const void* src, char* dst, size_t size);
@@ -1040,15 +1041,21 @@ DLLLOCAL void ignore_return_value(QoreSimpleValue& n);
 
 DLLLOCAL void qore_string_init();
 
-DLLLOCAL QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl, const QoreEncoding* enc, bool with_separator = false);
-DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink);
+DLLLOCAL QoreListNode* split_regex_intern(QoreRegex& regex, const char* str, size_t sl, const QoreEncoding* enc,
+    bool with_separator = false);
+DLLLOCAL QoreListNode* split_intern(const char* pattern, size_t pl, const char* str, size_t sl,
+    const QoreEncoding* enc, bool with_separator = false);
+DLLLOCAL QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset,
+    ExceptionSink* xsink);
 DLLLOCAL QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, const QoreString* str,
     const QoreString* quote, bool trim_unquoted, AbstractIteratorHelper* h = nullptr,
     const QoreString* eol = nullptr);
 DLLLOCAL bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink);
 DLLLOCAL QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink);
-DLLLOCAL QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num, ExceptionSink* xsink);
-DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink);
+DLLLOCAL QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const QoreString& tsep, double num,
+    ExceptionSink* xsink);
+DLLLOCAL DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr,
+    const QoreString& mask, ExceptionSink* xsink);
 DLLLOCAL QoreHashNode* date_info(const DateTime& d);
 DLLLOCAL void init_charmaps();
 DLLLOCAL int do_unaccent(QoreString& str, const QoreString& src, ExceptionSink* xsink);

@@ -767,9 +767,9 @@ public class DataProviderTest inherits QUnit::Test {
             InfiniteRecordProvider record_provider();
             hash<PipelineOptionInfo> opts({
                 "name": "test-pipeline-3",
-                #"info_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
-                #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
-                #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
+                #"info_log": sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); },
+                #"debug_log": sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); },
+                #"error_log": sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); },
             });
             DataProviderPipeline pipe(opts);
 
@@ -788,15 +788,72 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.submit({"a": 1});
             assertEq(PS_RUNNING, pipe.getInfo().status);
 
+            # wait for record count = 1
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size == 1) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             Counter thread_cnt(1);
-            code submit = sub () { try { thread_cnt.dec(); pipe.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            Queue abort_queue();
+            code submit = sub () {
+                if (m_options.verbose > 2) {
+                    printf("TID %d: infinite submission thread started\n", gettid());
+                }
+                on_exit if (m_options.verbose > 2) {
+                    printf("TID %d: infinite submission thread exiting\n", gettid());
+                }
+                try {
+                    thread_cnt.dec();
+                    pipe.submit(record_provider);
+                    abort_queue.push();
+                } catch (hash<ExceptionInfo> ex) {
+                    abort_queue.push(ex);
+                }
+            };
             background submit();
             thread_cnt.waitForZero();
-            sleep(500ms);
+
+            # issue #4317: do not abort before we know the infinite record provider is in progress
+            # wait for record count >= 2
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size >= 2) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
+            if (m_options.verbose > 2) {
+                printf("TID %d: record processor0 size: %d; about to abort\n", gettid(), record_processor0.recs.size());
+                hash<auto> stacks = get_all_thread_call_stacks();
+                hash<auto> tmap;
+                foreach hash<auto> i in (stacks.pairIterator()) {
+                    splice i.value, 0, 2;
+                    tmap{i.key} = map $1.type != "new-thread" ? sprintf("%s %s()", get_ex_pos($1), $1.function) : "new-thread", i.value;
+                }
+                printf("all threads: %N\n", tmap);
+            }
+
             pipe.abort();
             assertEq(PS_ABORTED, pipe.getInfo().status);
-            #printf("%N\n", pipe.getInfo());
             assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
+
+            if (m_options.verbose > 2) {
+                printf("TID %d: pipeline info: %N\n", gettid(), pipe.getInfo());
+            }
+
+            *hash<ExceptionInfo> ex_info = abort_queue.get();
+            assertEq("PIPELINE-SUBMISSION-ABORTED", ex_info.err);
+
+            if (m_options.verbose > 2) {
+                printf("TID %d: infinite submission exception: %s: %s\n", gettid(), ex_info.err, ex_info.desc);
+
+            }
+
             pipe.reset();
             pipe.submit({"a": 1});
             pipe.waitDone();
@@ -814,19 +871,55 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(0s, info2.duration);
             assertEq(0.0, info2.duration_secs);
             assertEq(0.0, info2.recs_per_sec);
+
+            # clear record processor cache
+            record_processor0.clear();
+
             pipe1.submit({"a": 1});
             assertEq(PS_RUNNING, pipe1.getInfo().status);
 
+            # wait for record count = 1
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size == 1) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             assertEq(0, thread_cnt.getCount());
+            assertEq(0, abort_queue.size());
             thread_cnt.inc();
-            submit = sub () { try { thread_cnt.dec(); pipe1.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            submit = sub () {
+                try {
+                    thread_cnt.dec();
+                    pipe1.submit(record_provider);
+                    abort_queue.push();
+                } catch (hash<ExceptionInfo> ex) {
+                    abort_queue.push(ex);
+                }
+            };
             background submit();
             thread_cnt.waitForZero();
-            sleep(500ms);
+
+            # issue #4317: do not abort before we know the infinite record provider is in progress
+            # wait for record count >= 2
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size >= 2) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             pipe1.abort();
             assertEq(PS_ABORTED, pipe1.getInfo().status);
             #printf("%N\n", pipe.getInfo());
             assertThrows("PIPELINE-ERROR", \pipe1.submit(), {});
+
+            ex_info = abort_queue.get();
+            assertEq("PIPELINE-SUBMISSION-ABORTED", ex_info.err);
+
             pipe1.reset();
             pipe1.submit({"a": 1});
             pipe1.waitDone();
@@ -852,19 +945,55 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(0s, info2.duration);
             assertEq(0.0, info2.duration_secs);
             assertEq(0.0, info2.recs_per_sec);
+
+            # clear record processor cache
+            record_processor0.clear();
+
             pipe2.submit({"a": 1});
             assertEq(PS_RUNNING, pipe2.getInfo().status);
 
+            # wait for record count = 1
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size == 1) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             assertEq(0, thread_cnt.getCount());
+            assertEq(0, abort_queue.size());
             thread_cnt.inc();
-            submit = sub () { try { thread_cnt.dec(); pipe2.submit(record_provider); } catch (hash<ExceptionInfo> ex) {}};
+            submit = sub () {
+                try {
+                    thread_cnt.dec();
+                    pipe2.submit(record_provider);
+                    abort_queue.push();
+                } catch (hash<ExceptionInfo> ex) {
+                    abort_queue.push(ex);
+                }
+            };
             background submit();
             thread_cnt.waitForZero();
-            sleep(500ms);
+
+            # issue #4317: do not abort before we know the infinite record provider is in progress
+            # wait for record count >= 2
+            while (True) {
+                int size = record_processor0.recs.size();
+                if (size >= 2) {
+                    break;
+                }
+                sleep(50ms);
+            }
+
             pipe2.abort();
             assertEq(PS_ABORTED, pipe2.getInfo().status);
             #printf("%N\n", pipe.getInfo());
             assertThrows("PIPELINE-ERROR", \pipe2.submit(), {});
+
+            ex_info = abort_queue.get();
+            assertEq("PIPELINE-SUBMISSION-ABORTED", ex_info.err);
+
             pipe2.reset();
             pipe2.submit({"a": 1});
             pipe2.waitDone();

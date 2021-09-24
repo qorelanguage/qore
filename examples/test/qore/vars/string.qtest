@@ -16,6 +16,7 @@
 
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("split regex", \splitRegexTest());
         addTestCase("non scalar test", \nonScalarTest());
         addTestCase("width test", \testWidth());
         addTestCase("Basic functions test", \testBasics());
@@ -34,6 +35,52 @@ class StringTest inherits QUnit::Test {
         addTestCase("String conversion test", \testConversions());
         addTestCase("trim", \testTrim());
         set_return_value(main());
+    }
+
+    splitRegexTest() {
+        string str = "gee this is a long string";
+        list<string> a = str.splitRegex(" ");
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq("is", a[2]);
+        assertEq("string", a[5]);
+
+        a = str.splitRegex(" ", True);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq("is ", a[2]);
+        assertEq("string", a[5]);
+
+        str = "field1.field2\\.with\\.dots.field3";
+        a = str.splitRegex("(?<!\\\\)\\.");
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq(("field1", "field2\\.with\\.dots", "field3"), a);
+
+        a = str.splitRegex("(?<!\\\\)\\.", True);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq(("field1.", "field2\\.with\\.dots.", "field3"), a);
+
+        a = str.splitRegex("xxx");
+        assertTrue(a.size() == 1);
+        assertTrue(a[0] == str);
+
+        a = str.splitRegex("FIELD", RE_Caseless);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq(("", "1.", "2\\.with\\.dots.", "3"), a);
+
+        a = str.splitRegex("FIELD", RE_Caseless, True);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq(("field", "1.field", "2\\.with\\.dots.field", "3"), a);
+
+        str = str.upr();
+        a = str.splitRegex("field", RE_Caseless, True);
+        assertEq(True, a.complexType());
+        assertEq("list<string>", a.fullType());
+        assertEq(("FIELD", "1.FIELD", "2\\.WITH\\.DOTS.FIELD", "3"), a);
     }
 
     nonScalarTest() {

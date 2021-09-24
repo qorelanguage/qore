@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.5";
+    version = "1.5.6";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -301,6 +301,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_6 Mapper v1.5.6
+    - respect escaped dots in field names (\.) when separating field names
+      (<a href="https://github.com/qorelanguage/qore/issues/4315">issue 4315</a>)
 
     @subsection mapperv1_5_5 Mapper v1.5.5
     - fixed handling automatically-acquired input and output data structions with dots in field names; un-deprecated
@@ -1284,6 +1288,8 @@ Mapper mapv(DataMap);
 
     #! raises an error if an invalid fields in structured input data are declared; sets "struct"
     private processStructuredInputField(string k, string name, reference<list<string>> struct) {
+        # convert any escaped dots in "name" to a dot
+        name =~ s/\\\././g;
         struct = ();
         *hash<string, AbstractDataField> current_fields = input;
         string current_name = name;
@@ -1314,7 +1320,7 @@ Mapper mapv(DataMap);
             }
             if (!found) {
                 # resolve the rest of the fields directly
-                struct += allow_dot ? current_name : current_name.split(".");
+                struct += allow_dot ? current_name : splitDottedFields(current_name);
                 break;
             }
         }
@@ -1326,6 +1332,11 @@ Mapper mapv(DataMap);
         if (!input{n})
             error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k),
                 name, keys input);
+    }
+
+    #! Splits a dotted field and replaces escaped (\.) dots with plain dots (.)
+    static list<string> splitDottedFields(string k) {
+        return map regex_subst($1, "\\\\.", ".", RE_Global), k.splitRegex("(?<!\\\\)\\.");
     }
 
     #! perform per-field pre-processing on the passed map in the constructor
@@ -1352,10 +1363,11 @@ Mapper mapv(DataMap);
                 *string basename = (k =~ x/([^\.]+)/)[0];
                 if (exists basename && (field = output{basename}) && field.isAssignableFrom(HashType)) {
                     # set key path for hash output fields
-                    fh.output_key_path = k.split(".");
+                    fh.output_key_path = splitDottedFields(k);
                     k = basename;
                 } else {
-                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k), keys output);
+                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k),
+                        keys output);
                 }
             }
             if (!field) {
@@ -1377,17 +1389,19 @@ Mapper mapv(DataMap);
         # process "name" key
         if (fh.name) {
             if (fh.struct)
-                error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to identify the input field", getFieldName(k), fh.name, fh.struct);
-            if (input && !fh.hasKey("constant") && !fh.code && !exists fh.index && !exists fh.input_record
+                error("output field %y has both 'name' (%y) and 'struct' (%y) values; only one can be given to "
+                    "identify the input field", getFieldName(k), fh.name, fh.struct);
+            if (input && !fh.hasKey("constant") && !fh."code" && !exists fh.index && !exists fh.input_record
                 && !structured_input)
                 checkInputField(k, fh.name);
-            if (!allow_dot && !structured_input && fh.name =~ /\./)
-                fh.struct = (remove fh.name).split(".");
+            if (!allow_dot && (!structured_input || fh.name =~ /\\\./) && fh.name =~ /\./)
+                fh.struct = splitDottedFields(remove fh.name);
             else if (structured_input) {
                 processStructuredInputField(k, fh.name, \fh.struct);
             } else {
                 # add to ident list if the input and output fields are identical
-                if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass && !fh.code)
+                if (fh.name == k && !fh.date_format && !fh.number_format && !fh.trunc && !trunc_all && !fh.subclass
+                    && !fh.code)
                     identh{k} = True;
             }
         } else if (fh.runtime) {
@@ -1405,7 +1419,7 @@ Mapper mapv(DataMap);
             case NT_NOTHING:
                 break;
             case NT_STRING:
-                fh.struct = fh.struct.split("."); # then fall down to next case
+                fh.struct = splitDottedFields(fh.struct); # then fall down to next case
             case NT_LIST: {
                 if (!fh.struct)
                     error("output field %y has an empty 'struct' key", getFieldName(k));
@@ -1627,7 +1641,7 @@ Mapper mapv(DataMap);
 
         # check if the output field should be a hash
         if (!allow_output_dot && k =~ /\./) {
-            fh.ostruct = k.split(".");
+            fh.ostruct = splitDottedFields(k);
             mapo{fh.ostruct[0]} = NOTHING;
         } else {
             # add to consth if a constant value is included
