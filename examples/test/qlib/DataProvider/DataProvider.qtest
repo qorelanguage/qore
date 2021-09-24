@@ -771,11 +771,6 @@ public class DataProviderTest inherits QUnit::Test {
                 #"debug_log": sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); },
                 #"error_log": sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); },
             });
-            if (Platform.CPU == "aarch64") {
-                opts.info_log = sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); };
-                opts.debug_log = sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); };
-                opts.error_log = sub (string fmt) { vprintf("TID " + gettid() + " " + fmt + "\n", argv); };
-            }
             DataProviderPipeline pipe(opts);
 
             TestRecordProcessor record_processor0("A");

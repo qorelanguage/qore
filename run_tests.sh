@@ -169,11 +169,7 @@ for test in $TESTS; do
     if [ $MEASURE_TIME -eq 1 ]; then
         eval $TIME_CMD $QORE $test $TEST_OUTPUT_FORMAT
     else
-        if [ "`uname -m`" = "aarch64" -a -n "`echo $test|grep DataProvider`" ]; then
-            $QORE $test -vvv $TEST_OUTPUT_FORMAT
-        else
-            $QORE $test $TEST_OUTPUT_FORMAT
-        fi
+        $QORE $test $TEST_OUTPUT_FORMAT
     fi
 
     if [ $? -eq 0 ]; then
