@@ -771,6 +771,11 @@ public class DataProviderTest inherits QUnit::Test {
                 #"debug_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
                 #"error_log": sub (string fmt) { vprintf(fmt + "\n", argv); },
             });
+            if (Platform.CPU == "aarch64") {
+                opts.info_log = sub (string fmt) { vprintf(fmt + "\n", argv); };
+                opts.debug_log = sub (string fmt) { vprintf(fmt + "\n", argv); };
+                opts.error_log = sub (string fmt) { vprintf(fmt + "\n", argv); };
+            }
             DataProviderPipeline pipe(opts);
 
             TestRecordProcessor record_processor0("A");
@@ -825,6 +830,10 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(PS_ABORTED, pipe.getInfo().status);
             #printf("%N\n", pipe.getInfo());
             assertThrows("PIPELINE-ERROR", \pipe.submit(), {});
+
+            *hash<ExceptionInfo> ex_info = abort_queue.get();
+            assertEq("PIPELINE-SUBMISSION-ABORTED", ex_info.err);
+
             pipe.reset();
             pipe.submit({"a": 1});
             pipe.waitDone();
