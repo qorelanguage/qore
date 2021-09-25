@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,9 @@ public:
 
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const = 0;
 
-    DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who, ExceptionSink* xsink);
+    DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(
+            FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who,
+            ExceptionSink* xsink);
 };
 
 class QoreFunctionalListOperator : public FunctionalOperatorInterface, public ConstListIterator {
@@ -63,7 +65,8 @@ protected:
     ExceptionSink* xsink;
 
 public:
-    DLLLOCAL QoreFunctionalListOperator(bool f, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), fwd(f), xsink(xs) {
+    DLLLOCAL QoreFunctionalListOperator(bool f, QoreListNode* l, ExceptionSink* xs) : ConstListIterator(l), fwd(f),
+            xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalListOperator() {
@@ -106,7 +109,8 @@ protected:
     ExceptionSink* xsink;
 
 public:
-    DLLLOCAL QoreFunctionalIteratorOperator(bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : temp(t), h(n_h), xsink(xs) {
+    DLLLOCAL QoreFunctionalIteratorOperator(bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : temp(t), h(n_h),
+            xsink(xs) {
     }
 
     DLLLOCAL ~QoreFunctionalIteratorOperator() {

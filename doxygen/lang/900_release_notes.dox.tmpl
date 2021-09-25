@@ -18,6 +18,12 @@
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module
       - fixed bugs handling escaped \c "." characters in field names
         (<a href="https://github.com/qorelanguage/qore/issues/4315">issue 4315</a>)
+    - fixed a bug where the return type of @ref map "map" expressions would be reported incorrectly at parse time
+      when the iterator expression was a constant value
+      (<a href="https://github.com/qorelanguage/qore/issues/4319">issue 4319</a>)
+    - fixed a bug where the return type of @ref map "map" expressions would be stripped of complex type information at
+      runtime when the iterator experssion was an @ref Qore::AbstractIterator "AbstractIterator" object
+      (<a href="https://github.com/qorelanguage/qore/issues/4318">issue 4318</a>)
 
     @section qore_1_0_6 Qore 1.0.6
 

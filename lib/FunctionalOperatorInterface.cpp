@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,9 @@ bool FunctionalOperatorInterface::getNext(ValueOptionalRefHolder& val, Exception
     return getNextImpl(val, xsink);
 }
 
-FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who, ExceptionSink* xsink) {
+FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(
+            FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who,
+            ExceptionSink* xsink) {
     ValueEvalRefHolder marg(exp, xsink);
     if (*xsink)
         return nullptr;

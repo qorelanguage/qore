@@ -654,6 +654,20 @@ class Test inherits QUnit::Test {
 
     mapTest() {
         {
+            list<hash<StatInfo>> l = map (auto sub () { return <StatInfo>{"size": 1};})(), new SingleValueIterator(1);
+            assertEq("hash<StatInfo>", l[0].fullType());
+
+            l = map (auto sub () { return <StatInfo>{"size": 1};})(), new SingleValueIterator(1), True;
+            assertEq("hash<StatInfo>", l[0].fullType());
+
+            hash<auto> h = map (auto sub () { return <StatInfo>{"size": 1};})(), 1;
+            assertEq("hash<StatInfo>", h.fullType());
+
+            h = map (auto sub () { return <StatInfo>{"size": 1};})(), 1, True;
+            assertEq("hash<StatInfo>", h.fullType());
+        }
+
+        {
             code f = *hash<auto> sub (string a) {
                 return {a: True};
             };
