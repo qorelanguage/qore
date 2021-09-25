@@ -98,6 +98,11 @@ int QoreMapOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_c
         expTypeInfo = parse_context.typeInfo;
     }
 
+    // issue #4318: make sure complex types are not stripped from the iterand
+    if (!QoreTypeInfo::hasType(expTypeInfo)) {
+        expTypeInfo = autoTypeInfo;
+    }
+
     // use lazy evaluation if the iterator expression supports it
     iterator_func = dynamic_cast<FunctionalOperator*>(right.getInternalNode());
 
@@ -111,18 +116,16 @@ int QoreMapOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_c
                 "use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
             parse_context.typeInfo = nothingTypeInfo;
         } else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
-            if (!QoreTypeInfo::hasType(expTypeInfo)) {
-                expTypeInfo = autoTypeInfo;
-            }
             parse_context.typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo,
                 iteratorTypeInfo);
         } else {
             const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
             if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR)) {
-                parse_context.typeInfo = autoListTypeInfo;
+                parse_context.typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo,
+                    iteratorTypeInfo);
             } else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
                 && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL)) {
-                parse_context.typeInfo = iteratorTypeInfo;
+                parse_context.typeInfo = expTypeInfo;
             } else {
                 parse_context.typeInfo = nullptr;
             }

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,11 @@ public:
     const QoreExternalMethodVariant* getValueVariant = nullptr;
     bool valid = false;
 
-    DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) {
+    DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true,
+            bool get_value = true) {
         bool priv;
-        const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
+        const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR,
+            priv);
         if (!qc)
             return;
 
@@ -56,14 +58,16 @@ public:
         ClassAccess access;
         obj = o;
         // get "next" method if accessible
-        nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access, class_ctx);
+        nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev",
+            access, class_ctx);
         // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
         assert(nextMethod);
         nextVariant = getCheckVariant(xsink, op, nextMethod);
         if (!nextVariant)
             return;
         if (get_value) {
-            getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access, class_ctx);
+            getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access,
+                class_ctx);
             // method must be found because we have an instance of AbstractIterator
             assert(getValueMethod);
             getValueVariant = getCheckVariant(xsink, op, getValueMethod);
@@ -91,12 +95,15 @@ public:
     }
 
     // finds a method with no arguments
-    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(ExceptionSink* xsink, const char* op, const QoreMethod* m) {
+    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(ExceptionSink* xsink, const char* op,
+            const QoreMethod* m) {
         const qore_class_private* class_ctx = runtime_get_class();
         const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(
-            qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, (QoreListNode*)nullptr, false, class_ctx)
+            qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, (QoreListNode*)nullptr, false,
+                class_ctx)
         );
-        // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+        // this could throw an exception if the variant is builtin and has functional flags not allowed in the current
+        // pgm, for example
         assert(xsink);
         if (*xsink)
             return nullptr;
