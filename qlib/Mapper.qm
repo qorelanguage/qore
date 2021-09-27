@@ -1254,6 +1254,7 @@ Mapper mapv(DataMap);
         if (output_nullable) {
             setNullableOutput();
         }
+
         mapd = mapc;
         if (identh) {
             identl = keys identh;
@@ -1286,7 +1287,7 @@ Mapper mapv(DataMap);
         }
     }
 
-    #! raises an error if an invalid fields in structured input data are declared; sets "struct"
+    #! raises an error if invalid fields in structured input data are declared; sets "struct"
     private processStructuredInputField(string k, string name, reference<list<string>> struct) {
         # convert any escaped dots in "name" to a dot
         name =~ s/\\\././g;
@@ -1326,12 +1327,44 @@ Mapper mapv(DataMap);
         }
     }
 
+    #! Raises an error if invalid fields in structured output data are declared; sets "fh"
+    private *AbstractDataField processStructuredOutputField(string k, reference<hash<auto>> fh) {
+        list<string> field_list = splitDottedFields(k);
+        *hash<string, AbstractDataField> fields = output;
+        AbstractDataField rv;
+        foreach string field_name in (field_list) {
+            *AbstractDataField field = fields{field_name};
+            if (!field) {
+                error("output field %y in %y is not a defined output field; known output fields at this "
+                    "level: %y", field_name, getFieldName(k), keys fields);
+            }
+            if (!rv) {
+                rv = field;
+            }
+            fields = field.getType().getFields();
+            if (!fields) {
+                AbstractDataProviderType field_type = field.getType();
+                if (field_type == AbstractDataProviderType::anyType || field_type.isAssignableFrom(HashType)) {
+                    remove field;
+                    break;
+                }
+            }
+        }
+
+        if (field_list.size() > 1) {
+            fh.output_key_path = field_list;
+        }
+
+        return rv;
+    }
+
     #! raises an error if an invalid input field name is declared; only call this if "input" is defined
     private checkInputField(string k, string name) {
-        string n = allow_dot ? name : name.split('.')[0];
-        if (!input{n})
+        string n = allow_dot ? name : splitDottedFields(name)[0];
+        if (!input{n}) {
             error("output field %y requires unknown input field %y; valid input fields are: %y", getFieldName(k),
                 name, keys input);
+        }
     }
 
     #! Splits a dotted field and replaces escaped (\.) dots with plain dots (.)
@@ -1358,21 +1391,34 @@ Mapper mapv(DataMap);
 
         # check output name
         if (output) {
-            if (!output.hasKey(k)) {
-                # see if field has a "." in it
-                *string basename = (k =~ x/([^\.]+)/)[0];
-                if (exists basename && (field = output{basename}) && field.isAssignableFrom(HashType)) {
-                    # set key path for hash output fields
-                    fh.output_key_path = splitDottedFields(k);
-                    k = basename;
-                } else {
-                    error("output field %y is not a defined output field; known output fields: %y", getFieldName(k),
-                        keys output);
+            if (structured_output) {
+                field = processStructuredOutputField(k, \fh);
+            } else {
+                if (!output.hasKey(k)) {
+                    list<string> field_list = splitDottedFields(k);
+                    if (field = output{field_list[0]}) {
+                        if (field_list.size() > 1) {
+                            if (field.isAssignableFrom(HashType)) {
+                                # set key path for hash output fields
+                                fh.output_key_path = field_list;
+                                k = field_list[0];
+                            } else {
+                                error("output field %y is cannot be assigned to a hash; type is: %y",
+                                    getFieldName(field_list[0]), field.getTypeName());
+                            }
+                        } else if (field_list[0] != k) {
+                            fh.name = field_list[0];
+                            k = field_list[0];
+                        }
+                    } else {
+                        error("output field %y is not a defined output field; known output fields: %y", getFieldName(k),
+                            keys output);
+                    }
                 }
-            }
-            if (!field) {
-                # get output definition, if any
-                field = output{k};
+                if (!field) {
+                    # get output definition, if any
+                    field = output{k};
+                }
             }
         }
 
@@ -1394,9 +1440,9 @@ Mapper mapv(DataMap);
             if (input && !fh.hasKey("constant") && !fh."code" && !exists fh.index && !exists fh.input_record
                 && !structured_input)
                 checkInputField(k, fh.name);
-            if (!allow_dot && (!structured_input || fh.name =~ /\\\./) && fh.name =~ /\./)
+            if (!allow_dot && (!structured_input || fh.name =~ /\\\./) && fh.name =~ /\./) {
                 fh.struct = splitDottedFields(remove fh.name);
-            else if (structured_input) {
+            } else if (structured_input) {
                 processStructuredInputField(k, fh.name, \fh.struct);
             } else {
                 # add to ident list if the input and output fields are identical
@@ -1615,7 +1661,8 @@ Mapper mapv(DataMap);
 
             # check required roles
             foreach hash<auto> i in (key_config{keys orig_fh}.pairIterator()) {
-                map error("output field %y key %y requires missing role/key %y", getFieldName(k), i.key, $1), i.value.requires_roles, !exists conflicts{$1};
+                map error("output field %y key %y requires missing role/key %y", getFieldName(k), i.key, $1),
+                    i.value.requires_roles, !exists conflicts{$1};
             }
         }
 
@@ -1983,7 +2030,8 @@ Mapper mapv(DataMap);
         # first process autonomous mappings using the request/response API
         if (input_do_request) {
             if (info_log) {
-                info_log("autonomous input mapping %y request -> %y", input_provider.getName(), output_provider ? output_provider.getName() : "<no output provider>");
+                info_log("autonomous input mapping %y request -> %y", input_provider.getName(),
+                    output_provider ? output_provider.getName() : "<no output provider>");
             }
 
             auto response = input_provider.doRequest(input_request, input_request_options);
@@ -2758,8 +2806,29 @@ Mapper mapv(DataMap);
         try {
             return type.acceptsValue(value);
         } catch (hash<ExceptionInfo> ex) {
-            throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y", get_ex_pos(ex), key, value, ex.desc, rec), ex.arg;
+            throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y; output value derived from %s", get_ex_pos(ex),
+                key, value, ex.desc, rec, getMappingDescription(key, mapping)), ex.arg;
         }
+    }
+
+    #! returns a test description for the input mapping
+    private string getMappingDescription(string key, hash<auto> mapping) {
+        if (exists mapping.ccnstant) {
+            return sprintf("constant value: %y", mapping.constant);
+        }
+        if (exists mapping.index) {
+            return sprintf("index value: %y", mapping.index);
+        }
+        if (exists mapping.runtime) {
+            return sprintf("runtime value: %y", mapping.runtime);
+        }
+        if (exists mapping.struct) {
+            return sprintf("input structure path (\"struct\") value: %s", (foldl $1 + " -> " + $2, mapping.struct));
+        }
+        if (mapping.use_input_record) {
+            return "the entire input record (\"use_input_record\": True)";
+        }
+        return sprintf("input record key %y", mapping.name ?? key);
     }
 
     #! raises an error if no input provider is present

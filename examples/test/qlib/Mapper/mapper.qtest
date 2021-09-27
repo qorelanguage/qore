@@ -1105,7 +1105,7 @@ public class MapperTest inherits QUnit::Test {
 
     dotTest() {
         {
-            Mapper m(DotMap, ("allow_dot": True, "allow_output_dot": True));
+            Mapper m(DotMap, {"allow_dot": True, "allow_output_dot": True});
             list l = m.mapAll(DotInput);
             assertEq(DotOutput, l);
             assertEq(2, m.getCount());
@@ -1127,6 +1127,56 @@ public class MapperTest inherits QUnit::Test {
             hash<string, list<auto>> h = map {$1: ()}, keys DotInput[0];
             map (map h{$1.key} += $1.value, $1.pairIterator()), DotInput;
             assertEq(DotOutput, m.mapAll(h));
+            assertEq(4, m.getCount());
+        }
+
+        {
+            HashDataType input1();
+            input1.addField(new QoreDataField("input1-1", "", IntType));
+
+            hash<string, AbstractDataField> input = {
+                "input1": new QoreDataField("input1", "", input1),
+                "input1.input1-1": new QoreDataField("input1.input1-1", "", IntType),
+                "input1.input1-2": new QoreDataField("input1.input1-2", "", IntType),
+                "a": new QoreDataField("a", "", HashType),
+            };
+
+            HashDataType output1();
+            output1.addField(new QoreDataField("output1-1", "", SoftStringType));
+
+            hash<string, AbstractDataField> output = {
+                "output1": new QoreDataField("output1", "", output1),
+                "output1.output1-1": new QoreDataField("output1.output1-1", "", SoftStringType),
+                "output.2": new QoreDataField("output.2", "", SoftIntType),
+                "output.3": new QoreDataField("output.3", "", IntType),
+            };
+
+            hash<auto> map_config = {
+                "output1.output1-1": "input1\\.input1-2",
+                "output1\\.output1-1": "input1\\.input1-1",
+                "output\\.2": "input1.input1-1",
+                "output\\.3": "a.b",
+            };
+
+            list<hash<auto>> input_data = (
+                {"input1": {"input1-1": 1}, "input1.input1-1": 2, "input1.input1-2": 3, "a": {"b": 4}},
+                {"input1": {"input1-1": 5}, "input1.input1-1": 6, "input1.input1-2": 7, "a": {"b": 8}},
+            );
+
+            list<hash<auto>> output_data = (
+                {"output1": {"output1-1": "3"}, "output1.output1-1": "2", "output.2": 1, "output.3": 4},
+                {"output1": {"output1-1": "7"}, "output1.output1-1": "6", "output.2": 5, "output.3": 8},
+            );
+
+            Mapper m(map_config, {"input": input, "output": output});
+            list<auto> l = m.mapAll(input_data);
+            assertEq(output_data, l);
+            assertEq(2, m.getCount());
+
+            # test for hash of lists format
+            hash<string, list<auto>> h = map {$1: ()}, keys input_data[0];
+            map (map h{$1.key} += $1.value, $1.pairIterator()), input_data;
+            assertEq(output_data, m.mapAll(h));
             assertEq(4, m.getCount());
         }
 
