@@ -49,7 +49,12 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "mapper_keys": MapperKeyInfo,
         };
 
-        #! Mapper runtime key info
+        #! Mapper runtime key info; see details below
+        /** The DbTableDataProvider class supports the following create option:
+            - \c sequence: names the DB sequence that will be used to populate the field
+            - \c sequence_currval: names the DB sequence that will be used to populate the field; the current value of
+              the sequence is used; will not increment the sequence
+        */
         const MapperKeyInfo = Mapper::MapperKeyInfo + {
             "sequence": <MapperRuntimeKeyInfo>{
                 "desc": "names the DB sequence that will be used to populate the field",
@@ -87,7 +92,16 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             },
         };
 
-        #! Create options
+        #! Create options; see details below
+        /** The DbTableDataProvider class supports the following create option:
+            - \c returning: a list having elements of one of the two following types:
+              - @ref string_type "string": column names to return the value inserted
+              - @ref hash_type "hash": a hash having the following keys:
+                - \c "key": (required) the column name to return
+                - \c "type": (optional) the data type for the output placeholder buffer (ex:
+                  @ref Qore::Type::Number "Type::Number")
+
+        */
         const CreateOptions = {
             "returning": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
@@ -97,7 +111,14 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             },
         };
 
-        #! Upsert options
+        #! Upsert options; see details below
+        /** The DbTableDataProvider class supports the following upsert options:
+            - \c upsert_strategy: an upsert strategu code; see:
+              <a href="../../SqlUtil/html/group__upsert__options.html">SqlUtil upsert strategy codes</a> for more info
+            - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a
+              smaller set is updated in case the unique key values are present in the target table; the value of this
+              option should be set to the columns to omit in the update clause
+        */
         const UpsertOptions = {
             "upsert_strategy": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
@@ -115,7 +136,30 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             },
         };
 
-        #! Search options
+        #! Search options; see details below
+        /** The DbTableDataProvider class supports the following search options:
+            - \c columns: column argument for the select expression; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_columns">SqlUtil select option columns</a>
+              for more information on this argument
+            - \c limit: the maximum number of records to return; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_limit">SqlUtil select option limit</a>
+              for more information on this argument
+            - \c offset: the offset number in records to return; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_offset">SqlUtil select option offset</a>
+              for more information on this argument
+            - \c groupby: group by argument for the select expression; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_groupby">SqlUtil select option groupby</a>
+              for more information on this argument
+            - \c having: having argument for the select expression; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_having">SqlUtil select option having</a>
+              for more information on this argument
+            - \c orderby: order by argument for the select expression; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_ordeby">SqlUtil select option orderby</a>
+              for more information on this argument
+            - \c forupdate: uses FOR UPDATE with the query to lock records selected; see
+              <a href="../../SqlUtil/html/sql_operations.html#select_option_forupdate">SqlUtil select option forupdate</a>
+              for more information on this argument
+        */
         const SearchOptions = {
             "columns": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
@@ -262,7 +306,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Writes the given record to the data provider
     /** @param rec a hash representing a single input record
-        @param create_options the create options after processing by validateCreateOptions()
+        @param create_options the create options (see @ref CreateOptions) after processing by validateCreateOptions()
 
         @return the data written to the data provider plus any output (returning) variables
 
@@ -284,7 +328,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Upserts the given record to the data provider
     /** @param rec a hash representing a single input record
-        @param upsert_options the create options after processing by validateUpsertOptions()
+        @param upsert_options the upsert options (see @ref UpsertOptions) after processing by validateUpsertOptions()
 
         @return see @ref db_provider_upsert_results for possible values
 
@@ -299,7 +343,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns a single record matching the search options
-    /** @param search_options the search options after processing by validateSearchOptions()
+    /** @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @throw MULTIPLE-RECORDS-ERROR multiple records found
     */
@@ -317,7 +361,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Returns an iterator for zero or more records matching the search options
     /** @param block_size the number of records in a read block; must be a positive number
         @param where_cond the search criteria; will be processed by processFieldValues()
-        @param search_options the search options; will be processed by validateSearchOptions()
+        @param search_options the search options (see @ref SearchOptions); will be processed by validateSearchOptions()
 
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
@@ -327,7 +371,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param search_options the search options after processing by validateSearchOptions()
+    /** @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @note this method acquires a transaction lock if one is not already acquired; the iterator returned performs a
         rollback in the destructor if a new transaction lock was acquired by this call and
@@ -341,7 +385,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Updates a single record matching the search options
     /** @param set the hash of field data to set
         @param where_cond a hash for identifying the record to be update
-        @param search_options the update options after processing by validateSearchOptions()
+        @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @throw UPDATE-SINGLE-RECORD-ERROR if the update would update more than one record
 
@@ -361,7 +405,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Updates zero or more records matching the search options
     /** @param set the hash of field data to set
         @param where_cond a hash for identifying the record(s) to be updated
-        @param search_options the update options after processing by validateSearchOptions()
+        @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @return the number of records updated
 
@@ -376,7 +420,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     #! Deletes zero or more records
     /**
         @param where_cond a hash for identifying the record(s) to be deleted
-        @param search_options the delete options after processing by validateSearchOptions()
+        @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @return the number of records deleted
 
