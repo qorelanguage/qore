@@ -2,6 +2,18 @@
 
     @tableofcontents
 
+    @section qore_1_0_8 Qore 1.0.8
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_0_8_bug_fixes Bug Fixes in Qore
+    - fixed stack size reporting for the initial thread to reflect the actual stack size used instead of the default
+      stack size for new threads; this allows the python module to correctly calculate the recusion depth for Python
+      modules, allowing more Python modules to be loaded without changing the default stack size in single-threaded
+      programs
+      (<a href="https://github.com/qorelanguage/qore/issues/4323">issue 4323</a>)
+
     @section qore_1_0_7 Qore 1.0.7
 
     @par Release Summary

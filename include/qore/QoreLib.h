@@ -739,6 +739,11 @@ DLLEXPORT void qore_apply_rounding_heuristic(QoreString& str, int round_threshol
 */
 DLLEXPORT size_t q_thread_get_stack_size();
 
+//! returns the thread stack size for the current thread
+/** @since %Qore 1.0.8
+*/
+DLLEXPORT size_t q_thread_get_this_stack_size();
+
 //! sets the default thread stack size or throws an exception on error
 /** @since %Qore 0.9.5 a public API
 */
