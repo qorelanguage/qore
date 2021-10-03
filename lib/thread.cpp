@@ -398,17 +398,27 @@ public:
 
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
-        stack_size = qore_thread_stack_size;
-        stack_start = get_stack_pos();
-#ifdef STACK_DIRECTION_DOWN
-        stack_limit = stack_start - qore_thread_stack_limit;
+#ifdef QORE_HAVE_GET_STACK_SIZE
+        stack_size = QorePThreadAttr::getCurrentThreadStackSize();
+        if (!stack_size) {
+            stack_size = qore_thread_stack_size;
+        }
 #else
-        stack_limit = stack_start + qore_thread_stack_limit;
+        stack_size = qore_thread_stack_size;
+#endif
+        stack_start = get_stack_pos();
+        size_t stack_adjusted_size = stack_size - QORE_STACK_GUARD;
+        printd(5, "ThreadData::ThreadData() stack_adjusted_size: %lld qore_thread_stack_limit: %lld\n",
+            stack_adjusted_size, qore_thread_stack_limit);
+#ifdef STACK_DIRECTION_DOWN
+        stack_limit = stack_start - stack_adjusted_size;
+#else
+        stack_limit = stack_start + stack_adjusted_size;
 #endif // #ifdef STACK_DIRECTION_DOWN
 
 #ifdef IA64_64
         // RSE stack grows up
-        rse_limit = get_rse_bsp() + qore_thread_stack_limit;
+        rse_limit = get_rse_bsp() + stack_adjusted_size;
 #endif // #ifdef IA64_64
 
 #endif // #ifdef QORE_MANAGE_STACK
@@ -2658,6 +2668,12 @@ size_t q_thread_get_stack_size() {
     return qore_thread_stack_size;
 }
 
+// returns the stack size for the current thread
+size_t q_thread_get_this_stack_size() {
+    ThreadData* td = thread_data.get();
+    return td->stack_size;
+}
+
 // returns the default thread stack size set for new threads
 size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
     // make sure accesses to stack info are made locked
@@ -2679,8 +2695,10 @@ size_t q_thread_stack_remaining() {
 #ifdef QORE_MANAGE_STACK
     ThreadData* td = thread_data.get();
 #ifdef STACK_DIRECTION_DOWN
+    //printd(5, "q_thread_stack_remaining() %lld\n", get_stack_pos() - td->stack_limit);
     return get_stack_pos() - td->stack_limit;
 #else
+    //printd(5, "q_thread_stack_remaining() %lld\n", td->stack_limit - get_stack_pos());
     return td->stack_limit - get_stack_pos();
 #endif // #ifdef STACK_DIRECTION_DOWN
 #else

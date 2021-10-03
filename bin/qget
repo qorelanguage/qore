@@ -189,8 +189,8 @@ class QueueCallBack {
                         ignore = e.id;
                     if ((e.code / 100) == 1) {
                         #printf("%s\n", e.message);
-                        list l = (e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);
-                        body_len = l[0];
+                        list<string> l = (e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);
+                        body_len = l[0].toInt();
                         in_body = True;
                     }
                 }
