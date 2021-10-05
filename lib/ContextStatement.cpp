@@ -161,7 +161,7 @@ int ContextStatement::parseInitImpl(QoreParseContext& parse_context) {
     if (parse_init_value(exp, parse_context) && !err) {
         err = -1;
     }
-    const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
+    //const QoreTypeInfo* argTypeInfo = parse_context.typeInfo;
 
     // need to push something on the stack even if the context is not named
     push_cvar(name);

@@ -485,8 +485,7 @@ protected:
     std::string from_module;
 
     // called from the root namespace constructor only
-    DLLLOCAL qore_ns_private(QoreNamespace* n_ns) : constant(this), root(true), pub(true), builtin(true),
-        ns(n_ns) {
+    DLLLOCAL qore_ns_private(QoreNamespace* n_ns) : ns(n_ns), constant(this), root(true), pub(true), builtin(true) {
     }
 
     DLLLOCAL void setModuleName() {

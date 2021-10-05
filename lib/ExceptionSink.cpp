@@ -35,12 +35,6 @@
 
 #define Q_MAX_EXCEPTIONS 10
 
-// check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
-static bool qore_check_this(const void* p) {
-    assert(p);
-    return p;
-}
-
 void qore_es_private::assimilate(qore_es_private& xs) {
     if (xs.thread_exit) {
         thread_exit = xs.thread_exit;

@@ -53,7 +53,7 @@ int QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext&
     if (parse_init_value(right, parse_context) && !err) {
         err = -1;
     }
-    const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
+    //const QoreTypeInfo* rightTypeInfo = parse_context.typeInfo;
 
     if (!QoreTypeInfo::isType(ti, NT_HASH)
         && !QoreTypeInfo::isType(ti, NT_OBJECT)

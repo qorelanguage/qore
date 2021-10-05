@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,7 @@ int ForStatement::parseInitImpl(QoreParseContext& parse_context) {
 
     int err = 0;
 
-    const QoreTypeInfo* argTypeInfo = nullptr;
+    //const QoreTypeInfo* argTypeInfo = nullptr;
     if (assignment) {
         parse_context.typeInfo = nullptr;
         QoreParseContextFlagHelper fh0(parse_context);

@@ -1337,7 +1337,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
         name = mi->getName();
     }
 
-    //printd(5, "QoreModuleManager::setupUserModule() path: %s name: %s feature: %s injected: %d reinjected: %d " \
+    //printd(5, "QoreModuleManager::setupUserModule() path: %s name: %s feature: %s injected: %d reinjected: %d "
     //  "orig: %s\n", mi->getFileName(), name, mi->getName(), mi->isInjected(), mi->isReInjected(),
     //  mi->getOrigName() ? mi->getOrigName() : "n/a");
 

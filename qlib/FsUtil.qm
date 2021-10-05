@@ -821,7 +821,6 @@ public namespace FsUtil {
         @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
                                 on the first error instead of accumulating all exceptions (True by default)
-        @param depth determines how many levels of subdirectories and files should be copied
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
         @throws DIR-STAT-ERROR If stat call for the source path fails.

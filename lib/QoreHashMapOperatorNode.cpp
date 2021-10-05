@@ -81,7 +81,6 @@ int QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
     int err = parse_init_value(e[2], parse_context);
     const QoreTypeInfo* iteratorTypeInfo = parse_context.typeInfo;
 
-    const QoreTypeInfo* expTypeInfo;
     const QoreTypeInfo* expTypeInfo2;
     {
         // set implicit argv arg type
@@ -92,7 +91,6 @@ int QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
         if (parse_init_value(e[0], parse_context) && !err) {
             err = -1;
         }
-        expTypeInfo = parse_context.typeInfo;
         // check value expression2
         parse_context.typeInfo = nullptr;
         if (parse_init_value(e[1], parse_context) && !err) {

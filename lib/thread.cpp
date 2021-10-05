@@ -820,70 +820,70 @@ public:
 };
 
 ThreadCleanupList::ThreadCleanupList() {
-   //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
-   head = 0;
+    //printf("ThreadCleanupList::ThreadCleanupList() head=NULL\n");
+    head = nullptr;
 }
 
 ThreadCleanupList::~ThreadCleanupList() {
-   //printf("ThreadCleanupList::~ThreadCleanupList() head: %p\n", head);
+    //printf("ThreadCleanupList::~ThreadCleanupList() head: %p\n", head);
 
-   while (head) {
-      ThreadCleanupNode* w = head->next;
-      delete head;
-      head = w;
-   }
+    while (head) {
+        ThreadCleanupNode* w = head->next;
+        delete head;
+        head = w;
+    }
 }
 
 void ThreadCleanupList::exec() {
-   class ThreadCleanupNode* w = head;
-   while (w) {
-      w->func(w->arg);
-      w = w->next;
-   }
+    class ThreadCleanupNode* w = head;
+    while (w) {
+        w->func(w->arg);
+        w = w->next;
+    }
 }
 
 void ThreadCleanupList::push(qtdest_t func, void* arg) {
-   ThreadCleanupNode* w = new ThreadCleanupNode;
-   w->next = head;
-   w->func = func;
-   w->arg = arg;
-   head = w;
-   //printf("TCL::push() this: %p, &head: %p, head: %p, head->next: %p\n", this, &head, head, head->next);
+    ThreadCleanupNode* w = new ThreadCleanupNode;
+    w->next = head;
+    w->func = func;
+    w->arg = arg;
+    head = w;
+    //printf("TCL::push() this: %p, &head: %p, head: %p, head->next: %p\n", this, &head, head, head->next);
 }
 
 void ThreadCleanupList::pop(bool exec) {
-   if (exec)
-      head->func(head->arg);
-   ThreadCleanupNode* w = head->next;
-   delete head;
-   head = w;
+    if (exec)
+        head->func(head->arg);
+    ThreadCleanupNode* w = head->next;
+    delete head;
+    head = w;
 }
 
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink* xsink) {
-   ThreadData* td = thread_data.get();
-   //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
+    ThreadData* td = thread_data.get();
+    //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
-   //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
-   if (td->rse_limit < get_rse_bsp()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
-      return -1;
-   }
+    //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
+    if (td->rse_limit < get_rse_bsp()) {
+        xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register " \
+            "Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
+        return -1;
+    }
 
 #endif
 
-   if (td->stack_limit
 #ifdef STACK_DIRECTION_DOWN
-   >
+    if (td->stack_limit > get_stack_pos()) {
 #else
-   <
+    if (td->stack_limit < get_stack_pos()) {
 #endif
-   get_stack_pos()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
-      return -1;
-   }
+        xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit " \
+            "'(%ld bytes)", td->stack_size - QORE_STACK_GUARD);
+        return -1;
+    }
 
-   return 0;
+    return 0;
 }
 #endif
 
@@ -948,41 +948,41 @@ void set_reexport(QoreAbstractModule* m, bool reexport) {
 
 // returns 1 if data structure is already on stack, 0 if not (=OK)
 int thread_push_container(const AbstractQoreNode* n) {
-   std::pair<const_node_set_t::iterator, bool> rv = thread_data.get()->node_set.insert(n);
-   return !rv.second;
+    std::pair<const_node_set_t::iterator, bool> rv = thread_data.get()->node_set.insert(n);
+    return !rv.second;
 }
 
 void thread_pop_container(const AbstractQoreNode* n) {
-   ThreadData* td = thread_data.get();
+    ThreadData* td = thread_data.get();
 
-   const_node_set_t::iterator i = td->node_set.find(n);
-   assert(i != td->node_set.end());
-   td->node_set.erase(i);
+    const_node_set_t::iterator i = td->node_set.find(n);
+    assert(i != td->node_set.end());
+    td->node_set.erase(i);
 }
 
 int thread_ref_set(const lvalue_ref* r) {
-   ThreadData* td = thread_data.get();
-   return !td->ref_set.insert(r).second ? -1 : 0;
+    ThreadData* td = thread_data.get();
+    return !td->ref_set.insert(r).second ? -1 : 0;
 }
 
 void thread_ref_remove(const lvalue_ref* r) {
-   ThreadData* td = thread_data.get();
-   assert(td->ref_set.find(r) != td->ref_set.end());
-   td->ref_set.erase(r);
+    ThreadData* td = thread_data.get();
+    assert(td->ref_set.find(r) != td->ref_set.end());
+    td->ref_set.erase(r);
 }
 
 LocalVarValue* thread_instantiate_lvar() {
-   return thread_data.get()->tlpd->lvstack.instantiate();
+    return thread_data.get()->tlpd->lvstack.instantiate();
 }
 
 void thread_uninstantiate_lvar(ExceptionSink* xsink) {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.uninstantiate(xsink);
+    ThreadData* td = thread_data.get();
+    td->tlpd->lvstack.uninstantiate(xsink);
 }
 
 void thread_uninstantiate_self() {
-   ThreadData* td = thread_data.get();
-   td->tlpd->lvstack.uninstantiateSelf();
+    ThreadData* td = thread_data.get();
+    td->tlpd->lvstack.uninstantiateSelf();
 }
 
 LocalVarValue* thread_find_lvar(const char* id) {
@@ -992,45 +992,45 @@ LocalVarValue* thread_find_lvar(const char* id) {
 }
 
 ClosureVarValue* thread_instantiate_closure_var(const char* n_id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign) {
-   return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval, assign);
+    return thread_data.get()->tlpd->cvstack.instantiate(n_id, typeInfo, nval, assign);
 }
 
 void thread_instantiate_closure_var(ClosureVarValue* cvar) {
-   return thread_data.get()->tlpd->cvstack.instantiate(cvar);
+    return thread_data.get()->tlpd->cvstack.instantiate(cvar);
 }
 
 void thread_uninstantiate_closure_var(ExceptionSink* xsink) {
-   thread_data.get()->tlpd->cvstack.uninstantiate(xsink);
+    thread_data.get()->tlpd->cvstack.uninstantiate(xsink);
 }
 
 ClosureVarValue* thread_find_closure_var(const char* id) {
-   return thread_data.get()->tlpd->cvstack.find(id);
+    return thread_data.get()->tlpd->cvstack.find(id);
 }
 
 const QoreClosureBase* thread_set_runtime_closure_env(const QoreClosureBase* current) {
-   ThreadData* td = thread_data.get();
-   const QoreClosureBase* rv = td->closure_rt_env;
-   td->closure_rt_env = current;
-   return rv;
+    ThreadData* td = thread_data.get();
+    const QoreClosureBase* rv = td->closure_rt_env;
+    td->closure_rt_env = current;
+    return rv;
 }
 
 cvv_vec_t* thread_get_all_closure_vars() {
-   return thread_data.get()->tlpd->cvstack.getAll();
+    return thread_data.get()->tlpd->cvstack.getAll();
 }
 
 const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti) {
-   ThreadData* td = thread_data.get();
-   const QoreTypeInfo* rv = td->implicit_arg_type_info;
-   td->implicit_arg_type_info = ti;
-   return rv;
+    ThreadData* td = thread_data.get();
+    const QoreTypeInfo* rv = td->implicit_arg_type_info;
+    td->implicit_arg_type_info = ti;
+    return rv;
 }
 
 const QoreTypeInfo* parse_get_implicit_arg_type_info() {
-   return thread_data.get()->implicit_arg_type_info;
+    return thread_data.get()->implicit_arg_type_info;
 }
 
 void parse_set_try_reexport(bool tr) {
-   thread_data.get()->try_reexport = tr;
+    thread_data.get()->try_reexport = tr;
 }
 
 bool parse_get_try_reexport() {
@@ -2670,8 +2670,12 @@ size_t q_thread_get_stack_size() {
 
 // returns the stack size for the current thread
 size_t q_thread_get_this_stack_size() {
+#ifdef QORE_MANAGE_STACK
     ThreadData* td = thread_data.get();
     return td->stack_size;
+#else
+    return 0;
+#endif
 }
 
 // returns the default thread stack size set for new threads

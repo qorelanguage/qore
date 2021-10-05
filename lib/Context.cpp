@@ -3,7 +3,7 @@
 
     Qore programming language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,10 +43,10 @@ public:
 };
 
 struct node_row_list_s {
-   QoreValue val;
-   int *row_list;
-   int num_rows;
-   int allocated;
+    QoreValue val;
+    int *row_list;
+    int num_rows;
+    int allocated;
 };
 
 #define ROW_BLOCK 40
@@ -87,6 +87,7 @@ static int in_list(QoreValue val, node_row_list_s* nlist, int max, int row, Exce
  * (for now)
  */
 
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 Context::Context(char* nme, ExceptionSink* xsink, QoreValue exp, QoreValue cond,
                  int sort_type, QoreValue sort, QoreValue summary,
                  int ignore_key) {
@@ -116,8 +117,7 @@ Context::Context(char* nme, ExceptionSink* xsink, QoreValue exp, QoreValue cond,
             memcpy(row_list, next->row_list, sizeof(int) * max_pos);
             printd(5, "Context::Context() subcontext: max_pos: %d row_list: %p\n", max_pos, row_list);
         }
-    }
-    else { // copy object (query) list
+    } else { // copy object (query) list
         name = nme ? strdup(nme) : nullptr;
         ValueEvalRefHolder rv(exp, xsink);
 
@@ -272,6 +272,7 @@ Context::Context(char* nme, ExceptionSink* xsink, QoreValue exp, QoreValue cond,
     pos = 0;
     printd(5, "Context::Context() max_pos = %d\n", max_pos);
 }
+#pragma GCC diagnostic pop
 
 Context::~Context() {
     QORE_TRACE("Context::~Context()");

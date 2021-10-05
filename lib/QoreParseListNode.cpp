@@ -176,7 +176,6 @@ QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
 
 int QoreParseListNode::initArgs(QoreParseContext& parse_context, type_vec_t& arg_types, QoreListNode*& args) {
     ReferenceHolder<> holder(this, nullptr);
-    const QoreTypeInfo* ti = nullptr;
     bool v_needs_eval = false;
     int err = parseInitIntern(v_needs_eval, parse_context);
     arg_types = std::move(vtypes);

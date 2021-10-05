@@ -931,7 +931,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
     const AbstractQoreFunctionVariant* variant = nullptr;
     //const AbstractQoreFunctionVariant* saved_variant = nullptr;
 
-    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) " \
+    //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d) "
     //  cctx: %p '%s'\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(),
     //  ilist.size(), args, args ? args->size() : 0, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
@@ -1689,7 +1689,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         if (desc.size() > 1)
             desc.terminate(desc.size() - 2);
         desc.concat(")");
-        printd(0, "QoreFunction::parseFindVariant() this: %p %s%s%s() pmatch: %d call args: '%s' returning %p " \
+        printd(0, "QoreFunction::parseFindVariant() this: %p %s%s%s() pmatch: %d call args: '%s' returning %p "
             "(class %s) %s(%s) flags: %lld runtime_match: %d\n", this, className() ? className() : "",
             className() ? "::" : "", getName(), pmatch, desc.c_str(), variant,
             variant && className() ? reinterpret_cast<const MethodVariant*>(variant)->getClass()->getName() : "n/a",

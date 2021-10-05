@@ -3268,7 +3268,7 @@ QoreValue qore_ns_private::parseCheckScopedReference(const QoreProgramLocation* 
             if (i == (last - 1)) {
                 const char* cname = nsc.get(last - 1);
                 QoreClass* qc = pns->priv->parseFindLocalClass(cname);
-                //printd(5, "qore_ns_private::parseCheckScopedReference() this: %p '%s' nsc: %s checking for class " \
+                //printd(5, "qore_ns_private::parseCheckScopedReference() this: %p '%s' nsc: %s checking for class "
                 //    "'%s' qc: %p\n", this, name.c_str(), nsc.ostr, cname, qc);
                 if (qc) {
                     return parseResolveReferencedClassConstant(loc, qc, nsc.getIdentifier(), typeInfo, found);

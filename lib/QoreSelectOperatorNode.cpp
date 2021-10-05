@@ -72,8 +72,6 @@ int QoreSelectOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& pars
             err = -1;
         }
     }
-    // check filter expression
-    const QoreTypeInfo* expTypeInfo = parse_context.typeInfo;
 
     // use lazy evaluation if the iterator expression supports it
     iterator_func = dynamic_cast<FunctionalOperator*>(left.getInternalNode());

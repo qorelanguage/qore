@@ -381,6 +381,7 @@ int QoreListNode::push(QoreValue val, ExceptionSink* xsink) {
     return priv->push(val, xsink);
 }
 
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 int QoreListNode::insert(QoreValue val, ExceptionSink* xsink) {
     assert(reference_count() == 1);
     ValueHolder holder(val, xsink);
@@ -398,7 +399,9 @@ int QoreListNode::insert(QoreValue val, ExceptionSink* xsink) {
     }
     return 0;
 }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
 QoreValue QoreListNode::shift() {
     assert(reference_count() == 1);
     if (!priv->length) {
@@ -416,6 +419,7 @@ QoreValue QoreListNode::shift() {
 
     return rv;
 }
+#pragma GCC diagnostic pop
 
 QoreValue QoreListNode::pop() {
     assert(reference_count() == 1);

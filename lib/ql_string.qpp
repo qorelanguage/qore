@@ -289,7 +289,7 @@ QoreListNode* split_with_quote(ExceptionSink* xsink, const QoreString* sep, cons
                         ostr = buf->c_str();
                         ststr = ostr + offset;
                         //printd(5, "split_with_quote() got new line %p (" QLLD "): '%s' eol: '%s' (%d) ststr: '%s'\n", new_line, new_line->size(), new_line->c_str(), teol ? teol->c_str() : "<nl>", (int)eol_len, ststr);
-                        assert((ststr - ostr) == offset);
+                        assert((size_t)(ststr - ostr) == offset);
                         // make sure len is always calculated correctly
                         assert(len == (str->size() - (ststr - ostr)));
                         continue;

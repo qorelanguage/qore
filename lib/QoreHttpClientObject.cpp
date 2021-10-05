@@ -1252,7 +1252,6 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
     // issue #1824: add ";charset=xxx" to Content-Type header if sending non-ISO-8891-1 text
     if (msg_body && ct) {
-        const QoreEncoding* sock_enc = enc;
         if (!enc) {
             enc = msock->socket->getEncoding();
         }

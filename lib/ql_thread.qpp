@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -789,7 +789,8 @@ int get_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_HAVE_GET_STACK_SIZE
     return QorePThreadAttr::getCurrentThreadStackSize();
 #else
-    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
+    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
+        "support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
 #endif
 }
 
@@ -810,7 +811,8 @@ nothing set_thread_name(string name) [dom=THREAD_CONTROL] {
 #ifdef QORE_HAVE_THREAD_NAME
     q_set_thread_name(name->c_str());
 #else
-    xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
+    xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for "
+        "thread names; check Qore::Option::HAVE_THREAD_NAME before calling");
 #endif
 }
 

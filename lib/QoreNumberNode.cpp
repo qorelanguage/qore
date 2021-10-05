@@ -93,7 +93,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
 }
 
 void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, size_t last,
-    int round_threshold_1, int round_threshold_2) {
+        int round_threshold_1, int round_threshold_2) {
     // the position of the last significant digit
     qore_offset_t pos = (qore_offset_t)dp;
     size_t i = dp;
@@ -115,7 +115,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
             }
 
             // check for 2nd threshold
-            if (cnt > round_threshold_2) {
+            if (cnt > (unsigned)round_threshold_2) {
                 break;
             }
 
@@ -123,7 +123,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
             lc = c;
         } else {
             // check for 2nd threshold
-            if (cnt > round_threshold_2) {
+            if (cnt > (unsigned)round_threshold_2) {
                 break;
             }
             // no 0 or 9 digit found
@@ -139,7 +139,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
     }
 
     // round the number for display
-    if (cnt > round_threshold_1) {
+    if (cnt > (unsigned)round_threshold_1) {
         //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
         // if rounding right after the decimal point, then remove the decimal point
         if (pos == (qore_offset_t)dp)

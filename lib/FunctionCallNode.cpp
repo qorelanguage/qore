@@ -654,7 +654,7 @@ int ScopedObjectCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
         }
     }
 
-    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p " \
+    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p "
     //    "variant: %p\n", this, oc->getName(), oc, constructor,
     //    constructor ? qore_method_private::get(*constructor)->getFunction() : 0, variant);
     return err;

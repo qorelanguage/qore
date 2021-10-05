@@ -4235,7 +4235,7 @@ int qore_class_private::parseInitPartialIntern() {
                 // iterate parent's method map and merge parent changes to our method map
                 for (amap_t::iterator ai = mm.begin(), ae = mm.end(); ai != ae; ++ai) {
                     amap_t::iterator vi = ahm.find(ai->first);
-                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' checking '%s::%s()' " \
+                    printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' checking '%s::%s()' "
                         "found: %d\n", this, name.c_str(), (*i)->sclass->getName(), ai->first.c_str(), vi != ahm.end());
                     if (vi != ahm.end()) {
                         vi->second->parseMergeBase(*(ai->second));
@@ -4244,7 +4244,7 @@ int qore_class_private::parseInitPartialIntern() {
                     std::unique_ptr<AbstractMethod> m(new AbstractMethod(ahm.relaxed_match));
                     // see if there are pending normal variants...
                     hm_method_t::iterator mi = hm.find(ai->first);
-                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local " \
+                    printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local "
                         "'%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
                     m->parseMergeBase(*(ai->second), mi == hm.end()
                         ? nullptr
@@ -4252,7 +4252,7 @@ int qore_class_private::parseInitPartialIntern() {
                     if (!m->empty()) {
                         ahm.insert(amap_t::value_type(ai->first, m.release()));
                     }
-                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method " \
+                    printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method "
                         "variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
                 }
             }
@@ -5248,7 +5248,7 @@ QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQ
             mname, mv->getSignature()->getSignatureText());
         return QoreValue();
     }
-    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s, v: %s) variant: %p, mv: %p priv: %d " \
+    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s, v: %s) variant: %p, mv: %p priv: %d "
     //  "access: %d (%p %s)\n", getClassName(), mname, mv->getSignature()->getSignatureText(),
     //  self->getClass()->getName(), variant->getClass()->getName(), variant, mv, mv->isPrivate(),
     //  qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(),
@@ -5398,7 +5398,7 @@ QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_priva
     cls_vec(old.cls_vec),
     cls_context_map(old.cls_context_map ? new cls_context_map_t(*old.cls_context_map) : nullptr),
     member_info_list(old.member_info_list ? new member_info_list_t(*old.member_info_list) : nullptr), is_local(false) {
-    //printd(5, "QoreMemberInfo::QoreMemberInfo() copy cls: %p '%s' member_info_list: %p old.access: '%s' "\
+    //printd(5, "QoreMemberInfo::QoreMemberInfo() copy cls: %p '%s' member_info_list: %p old.access: '%s' "
     //    "new.access: '%s' context_map: %p (%d) member_info_list: %p (%d)\n", cls, cls->name.c_str(),
     //    member_info_list, privpub(old.access), privpub(access), cls_context_map,
     //    cls_context_map ? cls_context_map->size() : nullptr, member_info_list,
@@ -5423,7 +5423,7 @@ QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_priva
 }
 
 void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi) {
-    //printd(5, "QoreMemberInfo::addContextAccess() this: %p cls_context_map: %p (%d) mi.cls_context_map: %p (%d) " \
+    //printd(5, "QoreMemberInfo::addContextAccess() this: %p cls_context_map: %p (%d) mi.cls_context_map: %p (%d) "
     //    local: %d mi.local: %d\n", this, cls_context_map, cls_context_map ? cls_context_map->size() : nullptr,
     //    mi.cls_context_map, mi.cls_context_map ? mi.cls_context_map->size() : nullptr, local(), mi.local());
     if (!cls_context_map) {

@@ -257,17 +257,17 @@ public:
     // finds the last occurrence of needle in haystack at or before position pos
     // pos must be a non-negative valid byte offset in haystack
     DLLLOCAL static qore_offset_t rindex_simple(const char* haystack, size_t hlen, const char* needle,
-        size_t nlen, qore_offset_t pos = -1) {
+            size_t nlen, qore_offset_t pos = -1) {
         if (pos < 0) {
             pos = hlen + pos;
             if (pos < 0) {
                 return -1;
             }
-        } else if (pos >= hlen) {
+        } else if (pos >= (qore_offset_t)hlen) {
             pos = hlen - 1;
         }
 
-        assert(pos < hlen);
+        assert(pos < (qore_offset_t)hlen);
         void* ptr = q_memrmem(haystack, pos + 1, needle, nlen);
         if (!ptr) {
             return -1;
@@ -341,7 +341,7 @@ public:
         if (pos < 0)
             pos = len + pos;
 
-        if (pos >= len) {
+        if (pos >= (qore_offset_t)len) {
             pos = len - 1;
         }
 
