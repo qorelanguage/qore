@@ -206,14 +206,4 @@ if [ $PRINT_TEXT -eq 1 ]; then
     echo "*************************************"
 fi
 
-# wait until the file /tmp/exit exists
-while true; do
-    if [ -f /tmp/exit ]; then
-        echo exiting...
-        break;
-    fi
-    echo "waiting for /tmp/exit..."
-    sleep 1
-done
-
 exit $FAILED_TEST_COUNT
