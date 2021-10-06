@@ -1,7 +1,6 @@
 #!/bin/sh
 
-print_usage ()
-{
+print_usage () {
   echo "Usage: run_tests.sh [OPTIONS]"
   echo "Run qore tests."
   echo
@@ -11,8 +10,7 @@ print_usage ()
   echo "  -v         Use --format=plain option for the tests, making them print one statement per each test case."
 }
 
-err_multiple_format_opts()
-{
+err_multiple_format_opts() {
   echo "Multiple formatting options can't be used at the same time." >&2
   print_usage
   exit 1
@@ -207,5 +205,15 @@ if [ $PRINT_TEXT -eq 1 ]; then
 
     echo "*************************************"
 fi
+
+# wait until the file /tmp/exit exists
+while true; do
+    if [ -f /tmp/exit ]; then
+        echo exiting...
+        break;
+    fi
+    echo "waiting for /tmp/exit..."
+    sleep 1
+done
 
 exit $FAILED_TEST_COUNT
