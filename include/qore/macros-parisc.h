@@ -3,6 +3,9 @@
 
 #define _QORE_MACHINE_MACROS_H
 
+// need 10KB on HPUX on PA-RISC
+#define QORE_STACK_GUARD (1024 * 10)
+
 // we don't have code for 64-bit pa-risc yet
 #if !defined(__LP64__)
 

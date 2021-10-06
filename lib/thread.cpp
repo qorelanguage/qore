@@ -254,6 +254,20 @@ static Sequence u_tld_seq;
 // for thread-local vars
 typedef std::map<void*, QoreLValue<qore_gvar_ref_u>> tlvmap_t;
 
+static size_t get_stack_size() {
+#ifdef QORE_HAVE_GET_STACK_SIZE
+    size_t stack_size = QorePThreadAttr::getCurrentThreadStackSize();
+    if (!stack_size) {
+        stack_size = qore_thread_stack_size;
+    }
+    return stack_size;
+#else
+    return qore_thread_stack_size;
+#endif
+}
+
+static int initial_thread = -1;
+
 // this structure holds all thread-specific data
 class ThreadData {
 public:
@@ -388,23 +402,24 @@ public:
         finalizing : 1;
 
     DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
-        tid(ptid),
-        vlock(ptid),
-        current_pgm(p),
-        tpd(new ThreadProgramData(this)),
-        foreign(n_foreign),
-        try_reexport(false),
-        finalizing(false) {
-
+            tid(ptid),
+            vlock(ptid),
+            current_pgm(p),
+            tpd(new ThreadProgramData(this)),
+            foreign(n_foreign),
+            try_reexport(false),
+            finalizing(false) {
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
-#ifdef QORE_HAVE_GET_STACK_SIZE
-        stack_size = QorePThreadAttr::getCurrentThreadStackSize();
-        if (!stack_size) {
-            stack_size = qore_thread_stack_size;
+#ifdef __linux__
+        // on Linux the initial thread's stack is extended automatically, so we put a large number here
+        if (ptid == initial_thread) {
+            stack_size = 8 * 1024 * 1024;
+        } else {
+            stack_size = get_stack_size();
         }
 #else
-        stack_size = qore_thread_stack_size;
+        stack_size = get_stack_size();
 #endif
         stack_start = get_stack_pos();
         size_t stack_adjusted_size = stack_size - QORE_STACK_GUARD;
@@ -2763,8 +2778,6 @@ void q_get_thread_name(QoreString& str) {
 }
 #endif
 #endif
-
-static int initial_thread;
 
 void init_qore_threads() {
     QORE_TRACE("qore_init_threads()");

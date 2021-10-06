@@ -5,7 +5,9 @@
 
 #define STACK_DIRECTION_DOWN 1
 
-#define QORE_STACK_GUARD (16 * 1024)
+// tests fail with a stack guard smaller than 34K in Docker instances on ARM Graviton machines
+// (CI cloud test environment) - tests pass on the same HW not in Docker with a much smaller value
+#define QORE_STACK_GUARD (34 * 1024)
 
 #ifdef __GNUC__
 

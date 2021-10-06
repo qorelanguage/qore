@@ -187,7 +187,9 @@ list<int> thread_list() [flags=RET_VALUE_ONLY;dom=THREAD_INFO] {
 save_thread_data(h);
     @endcode
 
-    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
+    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash
+    by being overwritten with a new value, and the value is an object that goes out of scope, then such an object
+    could throw an exception in its destructor
 */
 nothing save_thread_data(hash<auto> h) [dom=THREAD_CONTROL] {
     QoreHashNode* data = getProgram()->getThreadData();
@@ -203,7 +205,9 @@ nothing save_thread_data(hash<auto> h) [dom=THREAD_CONTROL] {
 save_thread_data("key1", value);
     @endcode
 
-    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash by being overwritten with a new value, and the value is an object that goes out of scope, then such an object could throw an exception in its destructor
+    @note This function does not throw any exceptions, however if a value is removed from the thread-local data hash
+    by being overwritten with a new value, and the value is an object that goes out of scope, then such an object
+    could throw an exception in its destructor
 */
 nothing save_thread_data(string key, auto value) [dom=THREAD_CONTROL] {
     QoreHashNode* data = getProgram()->getThreadData();
@@ -218,16 +222,19 @@ nothing save_thread_data() [dom=THREAD_CONTROL;flags=RUNTIME_NOOP] {
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
 /**
-    @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each string argument in the top-level argument list; arguments are converted to strings if necessary
+    @param ... Deletes the data associated to one or more keys in the thread-local data hash corresponding to each
+    string argument in the top-level argument list; arguments are converted to strings if necessary
 
     @par Example:
     @code{.py}
 delete_thread_data("key1", "key2");
     @endcode
 
-    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
+    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data
+    hash, then it could throw an exception in its destructor
 
-    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
+    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data
+    hash
 */
 nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
     if (num_args(args))
@@ -236,16 +243,19 @@ nothing delete_thread_data(...) [dom=THREAD_CONTROL] {
 
 //! Deletes the data associated to one or more keys in the thread-local data hash; if the data is an object, then it is destroyed
 /**
-    @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if necessary
+    @param l a list of key names for deleting keys in the thread-local data hash; values are converted to strings if
+    necessary
 
     @par Example:
     @code{.py}
 delete_thread_data(list_of_keys);
     @endcode
 
-    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data hash, then it could throw an exception in its destructor
+    @note This function does not throw any exceptions, however if an object is deleted from the thread-local data
+    hash, then it could throw an exception in its destructor
 
-    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data hash
+    @see remove_thread_data() for a similar function that does not explicitly destroy objects in the thread-local data
+    hash
 */
 nothing delete_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
     delete_thread_data_intern(l, xsink);
@@ -253,7 +263,8 @@ nothing delete_thread_data(list<softstring> l) [dom=THREAD_CONTROL] {
 
 //! Removes the data associated to one or more keys in the thread-local data hash and returns the data removed
 /**
-    @param ... the key names should be given directly in the argument list with this variant.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
+    @param ... the key names should be given directly in the argument list with this variant.  If the given hash keys
+    do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed or @ref nothing if no arguments were passed to the function
 
@@ -270,7 +281,8 @@ hash<auto> h = remove_thread_data("filename");
 
 //! Removes the data associated to one or more keys in the thread-local data hash from a literal list passed as the first argument and returns the data removed
 /**
-    @param l a list of key names to remove from the thread-local data hash.  If the given hash keys do not exist in the thread-local data hash, then the given key in the return value will have no value assigned
+    @param l a list of key names to remove from the thread-local data hash.  If the given hash keys do not exist in
+    the thread-local data hash, then the given key in the return value will have no value assigned
 
     @return a hash of the data removed
 
@@ -396,9 +408,12 @@ list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INF
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
-/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
+/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for
+    example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when
+    control returns to the "master" program to ensure that no thread-local resources have been left active.
 
-    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e. it clears all marks as well).
+    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e.
+    it clears all marks as well).
 
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
@@ -418,9 +433,12 @@ nothing throwThreadResourceExceptions() [dom=THREAD_CONTROL;flags=DEPRECATED] {
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions
-/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when control returns to the "master" program to ensure that no thread-local resources have been left active.
+/** This function is particularly useful when used in combination with embedded code in order to catch (and log, for
+    example) thread resource errors (ex: uncommitted transactions, unlocked locks, etc) - this can be used when
+    control returns to the "master" program to ensure that no thread-local resources have been left active.
 
-    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e. it clears all marks as well).
+    This function will run all thread resource cleanup routines even if mark_thread_resources() has been called (i.e.
+    it clears all marks as well).
 
     When exceptions are thrown by this function, thread-local resources are also cleaned up at the same time.
 
@@ -433,7 +451,8 @@ try {
 }
     @endcode
 
-    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the
+    @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
 
     @see
     - @ref thread_resources
@@ -470,7 +489,8 @@ try {
 }
     @endcode
 
-    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
+    @note may not throw an exception even if there are thread resources in place that get cleaned up in case the
+    @ref Qore::Thread::AbstractThreadResource::cleanup() method performs the cleanup but does not throw an exception
 
     @see
     - @ref thread_resources
@@ -523,7 +543,8 @@ nothing mark_thread_resources() [dom=THREAD_CONTROL] {
 //! Sets a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started
 /** This code can be used to initialize @ref threading_and_variables "global thread-local variables", for example.
 
-    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is started or @ref nothing to clear any thread initialization code
+    @param init a @ref call_reference "call reference" or @ref closure "closure" to run every time a new thread is
+    started or @ref nothing to clear any thread initialization code
 
     @return @ref True if there was already user initialization code set, @ref False if not
 
@@ -536,7 +557,8 @@ set_thread_init(sub () { var = 123; });
 
     @see @ref Qore::Program::setThreadInit()
 
-    @since %Qore 0.8.13 added the ability to remove the thread initialization code by passing @ref nothing to this function
+    @since %Qore 0.8.13 added the ability to remove the thread initialization code by passing @ref nothing to this
+    function
 */
 bool set_thread_init(*code init) [dom=THREAD_CONTROL] {
     return qore_program_private::setThreadInit(*getProgram(), init, xsink);
@@ -733,8 +755,8 @@ nothing thread_yield() [dom=PROCESS] {
 int size = get_default_thread_stack_size();
     @endcode
 
-    @note if the thread stack size has been changed since this thread was started, then the value returned by this function
-    will not match the current thread's stack size
+    @note if the thread stack size has been changed since this thread was started, then the value returned by this
+    function will not match the current thread's stack size
 
     @since %Qore 0.9.0
  */
@@ -742,7 +764,8 @@ int get_default_thread_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_MANAGE_STACK
     return q_thread_get_stack_size();
 #else
-    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
+    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
+        "support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
 #endif
 }
 
@@ -752,7 +775,7 @@ int get_default_thread_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-size = set_default_thread_stack_size(size);
+int size = set_default_thread_stack_size(size);
     @endcode
 
     @param size the size in bytes for new threads
@@ -767,7 +790,8 @@ int set_default_thread_stack_size(int size) [dom=THREAD_CONTROL] {
 #ifdef QORE_MANAGE_STACK
     return q_thread_set_stack_size((size_t)size, xsink);
 #else
-    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
+    return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
+        "support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
 #endif
 }
 
@@ -783,11 +807,15 @@ int size = get_stack_size();
 
     @return the current thread's stack size in bytes
 
+    @note on Linux, this always returns 8MB for TID 1 (the initial thread) even if the actual stack
+    size is smaller, as Linux automatically extends the initial thread's stack when there is a stack
+    overflow
+
     @since %Qore 0.9.0
  */
 int get_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_HAVE_GET_STACK_SIZE
-    return QorePThreadAttr::getCurrentThreadStackSize();
+    return q_thread_get_this_stack_size();
 #else
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
         "support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
@@ -823,7 +851,7 @@ nothing set_thread_name(string name) [dom=THREAD_CONTROL] {
 
     @par Example:
     @code{.py}
-*string name = get_stack_name();
+*string name = get_thread_name();
     @endcode
 
     @return the current thread's descriptive name if set or @ref nothing if not

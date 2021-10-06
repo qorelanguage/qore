@@ -2,6 +2,19 @@
 
     @tableofcontents
 
+    @section qore_1_0_9 Qore 1.0.9
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_0_9_bug_fixes Bug Fixes in Qore
+    - fixed stack size reporting for the initial thread on Linux; Linux autoextends the initial thread in any case,
+      so a large stack size is reported (8MB) regardless of the actual stack size reported by pthreads APIs; this
+      allows code that requires a larger stack to run normally on Linux platforms that allocate a small initial stack
+      (such as Alpine, for example, current versions allocate a 128KiB stack which caused stack exceptions in %Qore or
+      recursion exceptions in Python to be thrown in the main thread with code that would otherwise work on Linux)
+      (<a href="https://github.com/qorelanguage/qore/issues/4325">issue 4325</a>)
+
     @section qore_1_0_8 Qore 1.0.8
 
     @par Release Summary
