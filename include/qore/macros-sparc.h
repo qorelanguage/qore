@@ -31,6 +31,9 @@
 
 #define _QORE_MACHINE_MACROS_H
 
+// we need at least 22K of stack guard on sparc for background threads
+#define QORE_STACK_GUARD (1024 * 22)
+
 // no atomic support or stack guard for 64-bit sparc yet
 #if !defined(__sparcv9)
 

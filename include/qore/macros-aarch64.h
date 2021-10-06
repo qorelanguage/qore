@@ -5,7 +5,7 @@
 
 #define STACK_DIRECTION_DOWN 1
 
-#define QORE_STACK_GUARD (16 * 1024)
+#define QORE_STACK_GUARD (20 * 1024)
 
 #ifdef __GNUC__
 

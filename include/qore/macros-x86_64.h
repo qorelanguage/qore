@@ -32,6 +32,9 @@
 
 #define STACK_DIRECTION_DOWN 1
 
+// we need 32K of stack guard on x86_64
+#define QORE_STACK_GUARD (1024 * 32)
+
 #ifdef __GNUC__
 
 #define HAVE_CHECK_STACK_POS
