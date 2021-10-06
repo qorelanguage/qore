@@ -783,11 +783,15 @@ int size = get_stack_size();
 
     @return the current thread's stack size in bytes
 
+    @note on Linux, this always returns 8MB for TID 1 (the initial thread) even if the actual stack
+    size is smaller, as Linux automatically extends the initial thread's stack when there is a stack
+    overflow
+
     @since %Qore 0.9.0
  */
 int get_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_HAVE_GET_STACK_SIZE
-    return QorePThreadAttr::getCurrentThreadStackSize();
+    return q_thread_get_this_stack_size();
 #else
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
         "support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
