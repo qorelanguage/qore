@@ -405,16 +405,16 @@ void qore_program_private::doThreadInit(ExceptionSink* xsink) {
 
 // returns true if there was already a thread init closure set, false if not
 bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
-   // check
-   ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
-   {
-      AutoLocker al(tlock);
-      old = thr_init;
-      thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
+    // check
+    ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+    {
+        AutoLocker al(tlock);
+        old = thr_init;
+        thr_init = n_thr_init ? n_thr_init->refRefSelf() : 0;
 
-      //printd(5, "qore_program_private::setThreadInit() this: %p thr_init: %p %d '%s'\n", this, thr_init, get_node_type(thr_init), get_type_name(thr_init));
-   }
-   return (bool)old;
+        //printd(5, "qore_program_private::setThreadInit() this: %p thr_init: %p %d '%s'\n", this, thr_init, get_node_type(thr_init), get_type_name(thr_init));
+    }
+    return (bool)old;
 }
 
 void qore_program_private_base::newProgram() {

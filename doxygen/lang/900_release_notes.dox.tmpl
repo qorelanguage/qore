@@ -2,6 +2,16 @@
 
     @tableofcontents
 
+    @section qore_1_0_10 Qore 1.0.10
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_0_10_bug_fixes Bug Fixes in Qore
+    - fixed C++ foreign thread registration APIs to allow for TID reuse to provide thread affinity for language
+      modules such as Python and Java with successive rapid transitions into %Qore in callbacks
+      (<a href="https://github.com/qorelanguage/qore/issues/4331">issue 4331</a>)
+
     @section qore_1_0_9 Qore 1.0.9
 
     @par Release Summary

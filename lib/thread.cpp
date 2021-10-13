@@ -2276,8 +2276,8 @@ int get_signal_thread_entry() {
 }
 
 // returns tid allocated for thread
-int get_thread_entry() {
-    return thread_list.get();
+int get_thread_entry(bool reuse_last) {
+    return thread_list.get(QTS_NA, reuse_last);
 }
 
 void deregister_thread(int tid) {
@@ -2318,7 +2318,7 @@ int q_register_foreign_thread() {
     }
 
     // get a TID for the new thread
-    int tid = get_thread_entry();
+    int tid = get_thread_entry(true);
 
     if (tid == -1) {
         return QFT_ERROR;
@@ -2415,34 +2415,41 @@ int q_deregister_reserved_foreign_thread() {
 
 class qore_foreign_thread_priv {};
 
-QoreForeignThreadHelper::QoreForeignThreadHelper() : priv(!q_register_foreign_thread() ? (qore_foreign_thread_priv*)1 : 0) {
+QoreForeignThreadHelper::QoreForeignThreadHelper()
+        : priv(!q_register_foreign_thread() ? (qore_foreign_thread_priv*)1 : 0) {
 }
 
-QoreForeignThreadHelper::QoreForeignThreadHelper(int tid) : priv(!q_register_reserved_foreign_thread(tid) ? (qore_foreign_thread_priv*)2 : 0) {
+QoreForeignThreadHelper::QoreForeignThreadHelper(int tid)
+        : priv(!q_register_reserved_foreign_thread(tid) ? (qore_foreign_thread_priv*)2 : 0) {
 }
 
 QoreForeignThreadHelper::~QoreForeignThreadHelper() {
-   if (!priv)
-      return;
-   if (priv == (qore_foreign_thread_priv*)1)
-      q_deregister_foreign_thread();
-   else {
-      assert(priv == (qore_foreign_thread_priv*)2);
-      q_deregister_reserved_foreign_thread();
-   }
+    if (!priv) {
+        return;
+    }
+    if (priv == (qore_foreign_thread_priv*)1) {
+        q_deregister_foreign_thread();
+    } else {
+        assert(priv == (qore_foreign_thread_priv*)2);
+        q_deregister_reserved_foreign_thread();
+    }
+}
+
+QoreForeignThreadHelper::operator bool() const {
+    return priv ? true : false;
 }
 
 struct ThreadArg {
-   q_thread_t f;
-   void* arg;
-   int tid;
+    q_thread_t f;
+    void* arg;
+    int tid;
 
-   DLLLOCAL ThreadArg(q_thread_t n_f, void* a, int n_tid) : f(n_f), arg(a), tid(n_tid) {
-   }
+    DLLLOCAL ThreadArg(q_thread_t n_f, void* a, int n_tid) : f(n_f), arg(a), tid(n_tid) {
+    }
 
-   DLLLOCAL void run(ExceptionSink* xsink) {
-      f(xsink, arg);
-   }
+    DLLLOCAL void run(ExceptionSink* xsink) {
+        f(xsink, arg);
+    }
 };
 
 static void set_tid_thread_name(int tid) {

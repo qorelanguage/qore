@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 1.0.9
+Version: 1.0.10
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -93,8 +93,9 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi)%{?_isa} = 1.0
+Provides: qore-module(abi)%{?_isa} = 1.2
 Provides: qore-module(abi)%{?_isa} = 1.1
+Provides: qore-module(abi)%{?_isa} = 1.0
 %if "%{libname}" == "libqore"
 Provides: libqore7 = %{version}
 Obsoletes: libqore7 < %{version}
@@ -113,7 +114,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.7.2.1
+%{_libdir}/libqore.so.7.2.2
 %{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -277,6 +278,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed Oct 13 2021 David Nichols <david@qore.org> 1.0.10
+- updated version to 1.0.10
+- updated libqore version to 7.2.2
+
 * Wed Oct 6 2021 David Nichols <david@qore.org> 1.0.9
 - updated version to 1.0.9
 - updated libqore version to 7.2.1

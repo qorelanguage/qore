@@ -520,7 +520,7 @@ private:
 };
 
 // acquires a TID and thread entry, returns -1 if not successful
-DLLLOCAL int get_thread_entry();
+DLLLOCAL int get_thread_entry(bool reuse_last = false);
 // acquires TID 0 and sets up the signal thread entry, always returns 0
 DLLLOCAL int get_signal_thread_entry();
 DLLLOCAL void deregister_signal_thread();

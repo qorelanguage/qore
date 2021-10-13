@@ -179,17 +179,21 @@ DLLEXPORT extern ThreadCleanupList tclist;
 #define QFT_REGISTERED -2  //!< thread already registered when calling q_register_foreign_thread()
 //@}
 
-//! registers the current thread as a Qore thread; returns QFT_OK (0) if the thread was successfully registered, QFT_ERROR (-1) if an error occurred, or QFT_REGISTERED (-2) if it was already registered
-/** call q_deregister_foreign_thread() when Qore functionality is no longer required; not calling q_deregister_foreign_thread() will cause a memory leak
+//! registers the current thread as a Qore thread
+/** call q_deregister_foreign_thread() when Qore functionality is no longer required; not calling
+    q_deregister_foreign_thread() will cause a memory leak
 
-    @return see @ref q_register_foreign_thread_rv for return values
+    @return QFT_OK (0) if the thread was successfully registered, QFT_ERROR (-1) if an error occurred, or
+    QFT_REGISTERED (-2) if it was already registered; see @ref q_register_foreign_thread_rv for more info
 
     @see
     - QoreForeignThreadHelper
     - q_deregister_foreign_thread()
     - is_valid_qore_thread();
 
-    @since %Qore 0.8.7
+    @since
+    - %Qore 0.8.7: introduced
+    - %QOre 1.0.10: TIDs are reassigned if possible to supoport %Qore thread affinity in foreign language modules
  */
 DLLEXPORT int q_register_foreign_thread();
 
@@ -252,24 +256,38 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg = nullptr);
 /** @since %Qore 0.8.7
  */
 class QoreForeignThreadHelper {
-private:
-   //! not implemented; defined here as private to preclude usage
-   DLLLOCAL QoreForeignThreadHelper& operator=(const QoreForeignThreadHelper&);
-   DLLLOCAL QoreForeignThreadHelper(const QoreForeignThreadHelper&);
-   DLLLOCAL void* operator new(size_t);
+public:
+    //! registers the current thread as a foreign thread
+    /** the thread will be deregistered with q_deregister_foreign_thread() in the destructor
+
+        @since %Qore 1.0.10 TID are reassigned if possible in order to support %Qore thread affinity in language
+        modules
+    */
+    DLLEXPORT QoreForeignThreadHelper();
+
+    //! registers the current thread as a foreign thread
+    /** The tid given must be already reserved with q_reserve_foreign_thread_id(); the thread will be deregistered
+        with q_deregister_reserved_foreign_thread() in the destructor
+    */
+    DLLEXPORT explicit QoreForeignThreadHelper(int tid);
+
+    //! deregisters the current thread
+    /** deregistration is only performed if the original registration in the constructor was successful.
+        In this case either q_deregister_foreign_thread() or q_reserve_foreign_thread_id() will be called, depending
+        on the action taken in the constructor
+    */
+    DLLEXPORT ~QoreForeignThreadHelper();
+
+    //! returns true if the object is valid, false if not
+    DLLEXPORT operator bool() const;
 
 protected:
-   class qore_foreign_thread_priv* priv;
+    class qore_foreign_thread_priv* priv;
 
-public:
-   //! registers the current thread as a foreign thread; the thread will be deregistered with q_deregister_foreign_thread() in the destructor
-   DLLEXPORT QoreForeignThreadHelper();
-
-   //! registers the current thread as a foreign thread; the tid given must be already reserved with q_reserve_foreign_thread_id(); the thread will be deregistered with q_deregister_reserved_foreign_thread() in the destructor
-   DLLEXPORT explicit QoreForeignThreadHelper(int tid);
-
-   //! deregisters the current thread if the registration was successful using either q_deregister_foreign_thread() or q_reserve_foreign_thread_id(), depending on the constructor used
-   DLLEXPORT ~QoreForeignThreadHelper();
+private:
+    DLLLOCAL QoreForeignThreadHelper& operator=(const QoreForeignThreadHelper&) = delete;
+    DLLLOCAL QoreForeignThreadHelper(const QoreForeignThreadHelper&) = delete;
+    DLLLOCAL void* operator new(size_t) = delete;
 };
 
 typedef std::function<void(void*)> q_thread_local_destructor;

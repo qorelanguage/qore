@@ -105,7 +105,7 @@ public:
     DLLLOCAL QoreThreadList() {
     }
 
-    DLLLOCAL int get(int status = QTS_NA) {
+    DLLLOCAL int get(int status = QTS_NA, bool reuse_last = false) {
         int tid = -1;
         AutoLocker al(lck);
 
@@ -121,6 +121,9 @@ public:
             if (i == MAX_QORE_THREADS) {
                 return -1;
             }
+        } else if (reuse_last && current_tid && entry[current_tid - 1].available()) {
+            // re-assign the last assigned TID
+            tid = current_tid - 1;
         } else {
             tid = current_tid++;
         }
