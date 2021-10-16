@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,80 @@
 #include <string>
 
 struct qore_url_private {
+public:
+    QoreStringNode* protocol, *path, *username, *password, *host;
+    int port;
+
+    DLLLOCAL qore_url_private() {
+        zero();
+    }
+
+    DLLLOCAL ~qore_url_private() {
+        reset();
+    }
+
+    DLLLOCAL void zero() {
+        protocol = path = username = password = host = 0;
+        port = 0;
+    }
+
+    DLLLOCAL void reset() {
+        if (protocol)
+            protocol->deref();
+        if (path)
+            path->deref();
+        if (username)
+            username->deref();
+        if (password)
+            password->deref();
+        if (host)
+            host->deref();
+    }
+
+    DLLLOCAL int parse(const char* url, int options = 0, ExceptionSink* xsink = nullptr) {
+        reset();
+        zero();
+        parse_intern(url, options, xsink);
+        if (xsink && !*xsink && !isValid()) {
+            xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url);
+        }
+        return isValid() ? 0 : -1;
+    }
+
+    DLLLOCAL bool isValid() const {
+        return (host && host->strlen()) || (path && path->strlen());
+    }
+
+    // destructive
+    DLLLOCAL QoreHashNode* getHash() {
+        QoreHashNode* h = new QoreHashNode(hashdeclUrlInfo, nullptr);
+        qore_hash_private* ph = qore_hash_private::get(*h);
+        if (protocol) {
+            ph->setKeyValueIntern("protocol", protocol);
+            protocol = nullptr;
+        }
+        if (path) {
+            ph->setKeyValueIntern("path", path);
+            path = nullptr;
+        }
+        if (username) {
+            ph->setKeyValueIntern("username", username);
+            username = nullptr;
+        }
+        if (password) {
+            ph->setKeyValueIntern("password", password);
+            password = nullptr;
+        }
+        if (host) {
+            ph->setKeyValueIntern("host", host);
+            host = nullptr;
+        }
+        if (port)
+            ph->setKeyValueIntern("port", port);
+
+        return h;
+    }
+
 private:
     DLLLOCAL void invalidate() {
         if (host) {
@@ -51,9 +125,11 @@ private:
         }
     }
 
-    DLLLOCAL void parse_intern(const char* buf, bool keep_brackets, ExceptionSink* xsink) {
-        if (!buf || !buf[0])
+    DLLLOCAL void parse_intern(const char* buf, int options, ExceptionSink* xsink) {
+        if (!buf || !buf[0]) {
             return;
+        }
+        bool keep_brackets = options & QURL_KEEP_BRACKETS;
 
         printd(5, "QoreURL::parse_intern(%s)\n", buf);
 
@@ -67,7 +143,7 @@ private:
             protocol = new QoreStringNode(sbuf.c_str(), protocol_separator);
             // convert to lower case
             protocol->tolwr();
-            //printd(5, "QoreURL::parse_intern protocol: %s\n", protocol->getBuffer());
+            //printd(5, "QoreURL::parse_intern protocol: %s\n", protocol->c_str());
             sbuf = sbuf.substr(protocol_separator + 3);
         }
 
@@ -77,6 +153,9 @@ private:
             || (sbuf[0] == '\\' && sbuf[1] == '\\'))
             && sbuf.find('@') == std::string::npos) {
             path = new QoreStringNode(sbuf.c_str());
+            if (options & QURL_DECODE_ANY) {
+                decodeStrings(options, xsink);
+            }
             return;
         }
 
@@ -95,7 +174,7 @@ private:
             if (first_slash != std::string::npos) {
                 // get pathname if not at EOS
                 path = new QoreStringNode(sbuf.c_str() + first_slash);
-                //printd(5, "QoreURL::parse_intern path: '%s'\n", path->getBuffer());
+                //printd(5, "QoreURL::parse_intern path: '%s'\n", path->c_str());
                 // get copy of hostname string for localized searching and invasive parsing
                 sbuf = sbuf.substr(0, first_slash);
                 //printd(5, "QoreURL::sbuf: '%s' size: %d\n", sbuf.c_str(), sbuf.size());
@@ -194,85 +273,42 @@ private:
                 host = new QoreStringNode(sbuf.c_str());
             }
         }
+
+        // perform percent decoding, if required
+        if (options & QURL_DECODE_ANY) {
+            decodeStrings(options, xsink);
+        }
+    }
+
+    DLLLOCAL void decodeStrings(int options, ExceptionSink* xsink) {
+        if (username && !username->empty()) {
+            SimpleRefHolder<QoreStringNode> holder(username);
+            username = decodeString(username, xsink);
+        }
+        if (password && !password->empty()) {
+            SimpleRefHolder<QoreStringNode> holder(password);
+            password = decodeString(password, xsink);
+        }
+        if (host && !host->empty()) {
+            SimpleRefHolder<QoreStringNode> holder(host);
+            host = decodeString(host, xsink);
+        }
+        if ((options & QURL_DECODE_PATH) && path && !path->empty()) {
+            SimpleRefHolder<QoreStringNode> holder(path);
+            path = decodeString(path, xsink);
+        }
+    }
+
+    static QoreStringNode* decodeString(QoreStringNode* str, ExceptionSink* xsink) {
+        assert(xsink);
+        QoreStringNodeHolder decoded_str(new QoreStringNode(QCS_UTF8));
+        decoded_str->concatDecodeUrl(*str, xsink);
+        return *xsink ? nullptr : decoded_str.release();
     }
 
     static void doInvalidPortException(ExceptionSink* xsink, const char* buf) {
-        xsink->raiseException("PARSE-URL-ERROR",
-                                "URL '%s' has an invalid port value; it must be between 0 and 65535",
-                                buf);
-    }
-
-public:
-    QoreStringNode* protocol, *path, *username, *password, *host;
-    int port;
-
-    DLLLOCAL qore_url_private() {
-        zero();
-    }
-
-    DLLLOCAL ~qore_url_private() {
-        reset();
-    }
-
-    DLLLOCAL void zero() {
-        protocol = path = username = password = host = 0;
-        port = 0;
-    }
-
-    DLLLOCAL void reset() {
-        if (protocol)
-            protocol->deref();
-        if (path)
-            path->deref();
-        if (username)
-            username->deref();
-        if (password)
-            password->deref();
-        if (host)
-            host->deref();
-    }
-
-    DLLLOCAL int parse(const char* url, bool keep_brackets = false, ExceptionSink* xsink = nullptr) {
-        reset();
-        zero();
-        parse_intern(url, keep_brackets, xsink);
-        if (xsink && !*xsink && !isValid())
-            xsink->raiseException("PARSE-URL-ERROR", "URL '%s' cannot be parsed", url);
-        return isValid() ? 0 : -1;
-    }
-
-    DLLLOCAL bool isValid() const {
-        return (host && host->strlen()) || (path && path->strlen());
-    }
-
-    // destructive
-    DLLLOCAL QoreHashNode* getHash() {
-        QoreHashNode* h = new QoreHashNode(hashdeclUrlInfo, nullptr);
-        qore_hash_private* ph = qore_hash_private::get(*h);
-        if (protocol) {
-            ph->setKeyValueIntern("protocol", protocol);
-            protocol = nullptr;
-        }
-        if (path) {
-            ph->setKeyValueIntern("path", path);
-            path = nullptr;
-        }
-        if (username) {
-            ph->setKeyValueIntern("username", username);
-            username = nullptr;
-        }
-        if (password) {
-            ph->setKeyValueIntern("password", password);
-            password = nullptr;
-        }
-        if (host) {
-            ph->setKeyValueIntern("host", host);
-            host = nullptr;
-        }
-        if (port)
-            ph->setKeyValueIntern("port", port);
-
-        return h;
+        xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid port value; it must be between 0 and 65535",
+            buf);
     }
 };
 
@@ -280,97 +316,154 @@ QoreURL::QoreURL() : priv(new qore_url_private) {
 }
 
 QoreURL::QoreURL(const char* url) : priv(new qore_url_private) {
-   parse(url);
+    parse(url);
 }
 
 QoreURL::QoreURL(const QoreString* url) : priv(new qore_url_private) {
-   parse(url->getBuffer());
+    parse(url->c_str());
 }
 
 QoreURL::QoreURL(const char* url, bool keep_brackets) : priv(new qore_url_private) {
-   parse(url, keep_brackets);
+    parse(url, keep_brackets ? QURL_KEEP_BRACKETS : 0);
 }
 
 QoreURL::QoreURL(const QoreString* url, bool keep_brackets) : priv(new qore_url_private) {
-   parse(url->getBuffer(), keep_brackets);
+    parse(url->c_str(), keep_brackets ? QURL_KEEP_BRACKETS : 0);
 }
 
 QoreURL::QoreURL(const QoreString* url, bool keep_brackets, ExceptionSink* xsink) : priv(new qore_url_private) {
-   parse(url, keep_brackets, xsink);
+    parse(url, keep_brackets ? QURL_KEEP_BRACKETS : 0, xsink);
+}
+
+QoreURL::QoreURL(const char* url, int options) : priv(new qore_url_private) {
+    parse(url, options);
+}
+
+QoreURL::QoreURL(const QoreString& url, int options) : priv(new qore_url_private) {
+    parse(url, options);
+}
+
+QoreURL::QoreURL(const std::string& url, int options) : priv(new qore_url_private) {
+    parse(url, options);
+}
+
+QoreURL::QoreURL(ExceptionSink* xsink, const char* url, int options) : priv(new qore_url_private) {
+    parse(xsink, url, options);
+}
+
+QoreURL::QoreURL(ExceptionSink* xsink, const QoreString& url, int options) : priv(new qore_url_private) {
+    parse(xsink, url, options);
+}
+
+QoreURL::QoreURL(ExceptionSink* xsink, const std::string& url, int options) : priv(new qore_url_private) {
+    parse(xsink, url, options);
 }
 
 QoreURL::~QoreURL() {
-   delete priv;
+    delete priv;
 }
 
 int QoreURL::parse(const char* url) {
-   return priv->parse(url);
+    return priv->parse(url);
 }
 
 int QoreURL::parse(const QoreString* url) {
-   return priv->parse(url->getBuffer());
+    return priv->parse(url->c_str());
 }
 
 int QoreURL::parse(const char* url, bool keep_brackets) {
-   return priv->parse(url, keep_brackets);
+    return priv->parse(url, keep_brackets);
 }
 
 int QoreURL::parse(const QoreString* url, bool keep_brackets) {
-   return priv->parse(url->getBuffer(), keep_brackets);
+    return priv->parse(url->c_str(), keep_brackets);
 }
 
 int QoreURL::parse(const QoreString* url, bool keep_brackets, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(url, QCS_UTF8, xsink);
-   if (*xsink)
-      return -1;
-   return priv->parse(tmp->c_str(), keep_brackets, xsink);
+    TempEncodingHelper tmp(url, QCS_UTF8, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    return priv->parse(tmp->c_str(), keep_brackets, xsink);
+}
+
+int QoreURL::parse(const char* url, int options) {
+    return priv->parse(url, options);
+}
+
+int QoreURL::parse(const QoreString& url, int options) {
+    return priv->parse(url.c_str(), options);
+}
+
+int QoreURL::parse(const std::string& url, int options) {
+    return priv->parse(url.c_str(), options);
+}
+
+int QoreURL::parse(ExceptionSink* xsink, const char* url, int options) {
+    return priv->parse(url, options, xsink);
+}
+
+int QoreURL::parse(ExceptionSink* xsink, const QoreString& url, int options) {
+    TempEncodingHelper tmp(url, QCS_UTF8, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    return priv->parse(tmp->c_str(), options, xsink);
+}
+
+int QoreURL::parse(ExceptionSink* xsink, const std::string& url, int options) {
+    TempEncodingHelper tmp(url, QCS_UTF8, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    return priv->parse(tmp->c_str(), options, xsink);
 }
 
 bool QoreURL::isValid() const {
-   return (priv->host && priv->host->strlen()) || (priv->path && priv->path->strlen());
+    return (priv->host && priv->host->strlen()) || (priv->path && priv->path->strlen());
 }
 
 const QoreString* QoreURL::getProtocol() const {
-   return priv->protocol;
+    return priv->protocol;
 }
 
 const QoreString* QoreURL::getUserName() const {
-   return priv->username;
+    return priv->username;
 }
 
 const QoreString* QoreURL::getPassword() const {
-   return priv->password;
+    return priv->password;
 }
 
 const QoreString* QoreURL::getPath() const {
-   return priv->path;
+    return priv->path;
 }
 
 const QoreString* QoreURL::getHost() const {
-   return priv->host;
+    return priv->host;
 }
 
 int QoreURL::getPort() const {
-   return priv->port;
+    return priv->port;
 }
 
 // destructive
 QoreHashNode* QoreURL::getHash() {
-   return priv->getHash();
+    return priv->getHash();
 }
 
 char* QoreURL::take_path() {
-   return priv->path ? priv->path->giveBuffer() : 0;
+    return priv->path ? priv->path->giveBuffer() : nullptr;
 }
 
 char* QoreURL::take_username() {
-   return priv->username ? priv->username->giveBuffer() : 0;
+   return priv->username ? priv->username->giveBuffer() : nullptr;
 }
 
 char* QoreURL::take_password() {
-   return priv->password ? priv->password->giveBuffer() : 0;
+   return priv->password ? priv->password->giveBuffer() : nullptr;
 }
 
 char* QoreURL::take_host() {
-   return priv->host ? priv->host->giveBuffer() : 0;
+   return priv->host ? priv->host->giveBuffer() : nullptr;
 }

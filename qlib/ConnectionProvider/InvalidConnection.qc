@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore InvalidConnection class definition
 
-/*  InvalidConnection.qc Copyright 2016 - 2019 Qore Technologies, s.r.o.
+/*  InvalidConnection.qc Copyright 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ public namespace ConnectionProvider {
          */
         deprecated
         constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh)
-            : AbstractConnection(n_name, n_desc, n_url, {"monitor": False}, n_opts ?? {}) {
+                : AbstractConnection(n_name, n_desc, n_url, {"monitor": False}, n_opts ?? {}) {
             error = n_error;
         }
 
@@ -59,7 +59,7 @@ public namespace ConnectionProvider {
                 - \c error a custom error string
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
+                : AbstractConnection(name, description, url, attributes, options) {
             if (attributes.error.val()) {
                 self.error = attributes.error;
             }
@@ -78,7 +78,8 @@ public namespace ConnectionProvider {
 
         #! throws an exception because the object is invalid
         private object getImpl(bool connect = True, *hash rtopts) {
-            throw "INVALID-CONNECTION", sprintf("connection %y (type %y url %y) is invalid and therefore could not be loaded: %s", name, urlh.protocol, url, error);
+            throw "INVALID-CONNECTION", sprintf("connection %y (type %y url %y) is invalid and therefore could not "
+                "be loaded: %s", name, urlh.protocol, url, error);
         }
 
         #! returns \c "invalid"

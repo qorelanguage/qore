@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,22 +35,13 @@
 
 #define _QORE_QOREURL_H
 
+#define QURL_KEEP_BRACKETS (1 << 0)
+#define QURL_DECODE        (1 << 1)
+#define QURL_DECODE_PATH   (1 << 2)
+#define QURL_DECODE_ANY    (QURL_DECODE | QURL_DECODE_PATH)
+
 //! helps with parsing URLs and provides access to URL components through Qore data structures
 class QoreURL {
-private:
-    //! private implementation of the class
-    struct qore_url_private* priv;
-
-    DLLLOCAL void zero();
-    DLLLOCAL void reset();
-    DLLLOCAL void parseIntern(const char* url, ExceptionSink* xsink);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreURL(const QoreURL&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreURL& operator=(const QoreURL&);
-
 public:
     //! creates an empty structure
     /** @see QoreURL::parse()
@@ -59,27 +50,29 @@ public:
 
     //! parses the URL string passed
     /** you can check if the URL was valid by calling QoreURL::isValid() after this call
-         @param url the URL string to parse
+        @param url the URL string to parse
     */
     DLLEXPORT QoreURL(const char* url);
 
     //! parses the URL string passed
     /** you can check if the URL was valid by calling QoreURL::isValid() after this call
-         @param url the URL string to parse
+        @param url the URL string to parse
     */
     DLLEXPORT QoreURL(const QoreString* url);
 
     //! parses the URL string passed
     /** you can check if the URL was valid by calling QoreURL::isValid() after this call
-         @param url the URL string to parse
-        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+        @param url the URL string to parse
+        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets,
+        then the brackets will be included in the \c "host" key output as well
     */
     DLLEXPORT QoreURL(const char* url, bool keep_brackets);
 
     //! parses the URL string passed
     /** you can check if the URL was valid by calling QoreURL::isValid() after this call
-         @param url the URL string to parse
-        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+        @param url the URL string to parse
+        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets,
+        then the brackets will be included in the \c "host" key output as well
     */
     DLLEXPORT QoreURL(const QoreString* url, bool keep_brackets);
 
@@ -96,29 +89,94 @@ public:
     */
     DLLEXPORT QoreURL(const QoreString* url, bool keep_brackets, ExceptionSink* xsink);
 
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(const char* url, int options);
+
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(const QoreString& url, int options = 0);
+
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(const std::string& url, int options = 0);
+
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(ExceptionSink* xsink, const char* url, int options);
+
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(ExceptionSink* xsink, const QoreString& url, int options = 0);
+
+    //! parses the URL string passed
+    /** you can check if the URL was valid by calling QoreURL::isValid() after this call
+
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT QoreURL(ExceptionSink* xsink, const std::string& url, int options = 0);
+
     //! frees all memory and destroys the structure
     DLLEXPORT ~QoreURL();
 
     //! parses the URL string passed
     /** If a url was already parsed previously, all memory is freed before parsing the new string.
-         You can check if the URL was valid by calling QoreURL::isValid() after this call
+        You can check if the URL was valid by calling QoreURL::isValid() after this call
+
         @param url the URL string to parse
     */
     DLLEXPORT int parse(const char* url);
 
     //! parses the URL string passed
     /** If a url was already parsed previously, all memory is freed before parsing the new string.
-         You can check if the URL was valid by calling QoreURL::isValid() after this call
+        You can check if the URL was valid by calling QoreURL::isValid() after this call
+
         @param url the URL string to parse
     */
     DLLEXPORT int parse(const QoreString* url);
 
     //! parses the URL string passed
     /** If a url was already parsed previously, all memory is freed before parsing the new string.
-         You can check if the URL was valid by calling QoreURL::isValid() after this call
+        You can check if the URL was valid by calling QoreURL::isValid() after this call
 
         @param url the URL string to parse
-        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets,
+        then the brackets will be included in the \c "host" key output as well
 
         @return 0 if the URL was parsed successfully, -1 if not
     */
@@ -126,10 +184,11 @@ public:
 
     //! parses the URL string passed
     /** If a url was already parsed previously, all memory is freed before parsing the new string.
-         You can check if the URL was valid by calling QoreURL::isValid() after this call
+        You can check if the URL was valid by calling QoreURL::isValid() after this call
 
         @param url the URL string to parse
-        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets,
+        then the brackets will be included in the \c "host" key output as well
 
         @return 0 if the URL was parsed successfully, -1 if not
     */
@@ -137,10 +196,11 @@ public:
 
     //! parses the URL string passed
     /** If a url was already parsed previously, all memory is freed before parsing the new string.
-         You can check if the URL was valid by calling QoreURL::isValid() after this call
+        You can check if the URL was valid by calling QoreURL::isValid() after this call
 
         @param url the URL string to parse
-        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well
+        @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets,
+        then the brackets will be included in the \c "host" key output as well
         @param xsink for Qore-language exceptions
 
         @return 0 if the URL was parsed successfully, -1 if not
@@ -150,6 +210,81 @@ public:
         @since Qore 0.8.12.8
     */
     DLLEXPORT int parse(const QoreString* url, bool keep_brackets, ExceptionSink* xsink);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(const char* url, int options);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(const QoreString& url, int options = 0);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(const std::string& url, int options = 0);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(ExceptionSink* xsink, const char* url, int options = 0);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(ExceptionSink* xsink, const QoreString& url, int options = 0);
+
+    //! parses the URL string passed
+    /** If a url was already parsed previously, all memory is freed before parsing the new string.
+
+        @param xsink for Qore-language exceptions
+        @param url the URL string to parse
+        @param options a bitfield of %Qore URL options
+
+        @return 0 if the URL was parsed successfully, -1 if not
+
+        @since %Qore 1.0.10
+    */
+    DLLEXPORT int parse(ExceptionSink* xsink, const std::string& url, int options = 0);
 
     //! returns true if the URL string parsed is valid
     /** @return true if the URL string parsed is valid
@@ -225,6 +360,20 @@ public:
          @return a pointer to the hostname (0 if none present), caller owns the memory returned
     */
     DLLEXPORT char* take_host();
+
+private:
+    //! private implementation of the class
+    struct qore_url_private* priv;
+
+    DLLLOCAL void zero();
+    DLLLOCAL void reset();
+    DLLLOCAL void parseIntern(const char* url, ExceptionSink* xsink);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreURL(const QoreURL&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreURL& operator=(const QoreURL&);
 };
 
 #endif

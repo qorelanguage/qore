@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -195,6 +195,24 @@ static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 #ifndef SIGXRES
 #define SIGXRES 0
 #endif
+
+/** @defgroup parse_url_options URL Parsing Options
+
+    @since %Qore 1.0.10
+ */
+//@{
+//! If the hostname or address is enclosed in square brackets, the brackets will be included in the \c "host" key
+/** Square brackets are used by some %Qore methods to denote IPv6 addresses; for example see
+    @ref Qore::Socket::connect() "Socket::connect()"
+*/
+const QURL_KEEP_BRACKETS = QURL_KEEP_BRACKETS;
+
+//! Perform percent decoding on the \c "host", \c "username", and \c "password" fields
+const QURL_DECODE = QURL_DECODE;
+
+//! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on the \c "path" field
+const QURL_DECODE_PATH = QURL_DECODE_PATH;
+//@}
 
 //! a hash describing a parsed URL
 /** @since %Qore 0.9.3
@@ -1000,30 +1018,48 @@ string get_class_name(object obj) [flags=CONSTANT] {
    return new QoreStringNode(obj->getClass()->getName());
 }
 
-//! Parses a URL string and returns a hash of the components; throws an exception if the string cannot be parsed as a URL
-/** @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or a \c PARSE-URL-ERROR exception is raised
-    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
+//! Parses a URL string and returns a hash of the components
+/** Throws an exception if the string cannot be parsed as a URL; does not perform percent decoding
 
-    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at least either the \c "host" or the \c "path" keys will always be returned if no \c PARSE-URL-ERROR is raised):
+    @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at
+    a minimum or a \c PARSE-URL-ERROR exception is raised
+    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then
+    the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods
+    to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
+
+    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at
+    least either the \c "host" or the \c "path" keys will always be returned if no \c PARSE-URL-ERROR is raised):
     - \c protocol: the scheme in the URL (ex: \c "http")
-    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
-    - \c username: any username given in the URL
-    - \c password: any password given in the URL
-    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
+    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL
+      argument string, otherwise it will not if it was not given as such in the argument string - not subjected to
+      percent decoding (see note below)
+    - \c username: any username given in the URL - not subjected to percent decoding (see note below)
+    - \c password: any password given in the URL - not subjected to percent decoding (see note below)
+    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in
+      the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this
+      function, this may actually be a filename
     - \c port: any port number given in the URL
 
     @par Example:
     @code{.py}
-hash<UrlInfo> h = parse_url(url_string);
+hash<UrlInfo> h = parse_url(url_string, True);
     @endcode
 
     @throw PARSE-URL-ERROR The URL string given could not be parsed
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax:
+      <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a
+      path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+      \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
+      host portion of the URL and for the URL to include a URL path as well.
+    - none of the string fields returned here are subjected to percent decoding; to decode percent encoding, call
+      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url_ex(string, int) variant
+      with the @ref QURL_DECODE or @ref QURL_DECODE_PATH option
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
 */
-hash<UrlInfo> parse_url(string url, bool keep_brackets = False) {
+hash<UrlInfo> parse_url(string url, bool keep_brackets) {
     QoreURL qurl(url, keep_brackets, xsink);
     if (*xsink)
         return QoreValue();
@@ -1031,16 +1067,70 @@ hash<UrlInfo> parse_url(string url, bool keep_brackets = False) {
     return qurl.getHash();
 }
 
-//! Parses a URL string and returns a hash of the components; if the URL cannot be parsed then @ref nothing is returned
-/** @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at a minimum or the function will return @ref nothing
-    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
+//! Parses a URL string and returns a hash of the components
+/** Throws an exception if the string cannot be parsed as a URL
 
-    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at least either the \c "host" or the \c "path" keys will always be returned if a hash is returned):
+    @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at
+    a minimum or a \c PARSE-URL-ERROR exception is raised
+    @param options a bitfield of @ref parse_url_options
+
+    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at
+    least either the \c "host" or the \c "path" keys will always be returned if no \c PARSE-URL-ERROR is raised):
     - \c protocol: the scheme in the URL (ex: \c "http")
-    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL argument string, otherwise it will not if it was not given as such in the argument string
-    - \c username: any username given in the URL
-    - \c password: any password given in the URL
-    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this function, this may actually be a filename
+    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL
+      argument string, otherwise it will not if it was not given as such in the argument string; subject to percent
+      decoding if @ref QURL_DECODE passed in \a options
+    - \c username: any username given in the URL; subject to percent decoding if @ref QURL_DECODE or
+      @ref QURL_DECODE_PATH passed in \a options
+    - \c password: any password given in the URL; subject to percent decoding if @ref QURL_DECODE or
+      @ref QURL_DECODE_PATH passed in \a options
+    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in
+      the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this
+      function, this may actually be a filename; subject to percent decoding if @ref QURL_DECODE or
+      @ref QURL_DECODE_PATH passed in \a options
+    - \c port: any port number given in the URL
+
+    @par Example:
+    @code{.py}
+hash<UrlInfo> h = parse_url(url_string, QURL_DECODE);
+    @endcode
+
+    @throw PARSE-URL-ERROR The URL string given could not be parsed
+
+    @note
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax:
+      <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a
+      path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+      \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
+      host portion of the URL and for the URL to include a URL path as well.
+
+    @see
+    - parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
+*/
+hash<UrlInfo> parse_url(string url, *int options) {
+    QoreURL qurl(xsink, url, options);
+    return qurl.isValid() ? qurl.getHash() : QoreValue();
+}
+
+//! Parses a URL string and returns a hash of the components; if the URL cannot be parsed then @ref nothing is returned
+/** @param url the URL to parse (ex: \c "https://user:pass@host:8080/path"); either a hostname or path is required at
+    a minimum or the function will return @ref nothing
+    @param keep_brackets if this argument is true then if the hostname or address is enclosed in square brackets, then
+    the brackets will be included in the \c "host" key output as well; square brackets are used by some %Qore methods
+    to denote IPv6 addresses; for example see @ref Qore::Socket::connect() "Socket::connect()"
+
+    @return a hash of the components of the URL with the following keys (if data in the URL is present; note that at
+    least either the \c "host" or the \c "path" keys will always be returned if a hash is returned):
+    - \c protocol: the scheme in the URL (ex: \c "http")
+    - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL
+      argument string, otherwise it will not if it was not given as such in the argument string - not subjected to
+      percent decoding (see note below)
+    - \c username: any username given in the URL - not subjected to percent decoding (see note below)
+    - \c password: any password given in the URL - not subjected to percent decoding (see note below)
+    - \c host: any hostname given in the URL; note that this key will be given if no other information can be found in
+      the URL argument and the URL argument string has no \c "/" characters; depending on the usage context for this
+      function, this may actually be a filename - not subjected to percent decoding (see note below)
+
     - \c port: any port number given in the URL
 
     @par Example:
@@ -1048,7 +1138,15 @@ hash<UrlInfo> parse_url(string url, bool keep_brackets = False) {
 *hash<UrlInfo> h = parseURL(url_string);
     @endcode
 
-    @note URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
+    @note
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax:
+      <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a
+      path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+      \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
+      host portion of the URL and for the URL to include a URL path as well.
+    - none of the string fields returned here are subjected to percent decoding; to decode percent encoding, call
+      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url_ex(string, int) variant
+      with the @ref QURL_DECODE or @ref QURL_DECODE_PATH options
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
 */

@@ -8,7 +8,9 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_0_10_bug_fixes Bug Fixes in Qore
-    - fixed C++ foreign thread registration APIs to allow for TID reuse to provide thread affinity for language
+    - implemented the @ref Qore::parse_url(string, int) variant to allow for percent decoding in URL strings
+      (<a href="https://github.com/qorelanguage/qore/issues/4332">issue 4332</a>)
+    - fixed C++ foreign thread registration APIs to support TID reuse to provide thread affinity for language
       modules such as Python and Java with successive rapid transitions into %Qore in callbacks
       (<a href="https://github.com/qorelanguage/qore/issues/4331">issue 4331</a>)
 

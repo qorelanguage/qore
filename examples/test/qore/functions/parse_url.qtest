@@ -12,12 +12,29 @@
 
 public class parseUrlTest inherits QUnit::Test {
     constructor() : Test("parse_url test", "1.0") {
+        addTestCase("decode test", \decodeTest());
         addTestCase("slash test", \slashTest());
         addTestCase("Test 1", \test());
         addTestCase("port test", \portTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    decodeTest() {
+        hash<UrlInfo> h = parse_url("https://user-%3cname%3e%40example.com%2f"
+            "token:pass%3f%3aword@qoretechnologies.zendesk.com/api/v2/users%40str", QURL_DECODE);
+        assertEq("user-<name>@example.com/token", h.username);
+        assertEq("pass?:word", h.password);
+        assertEq("qoretechnologies.zendesk.com", h.host);
+        assertEq("/api/v2/users%40str", h.path);
+
+        h = parse_url("https://user-%3cname%3e%40example.com%2f"
+            "token:pass%3f%3aword@qoretechnologies.zendesk.com/api/v2/users%40str", QURL_DECODE_PATH);
+        assertEq("user-<name>@example.com/token", h.username);
+        assertEq("pass?:word", h.password);
+        assertEq("qoretechnologies.zendesk.com", h.host);
+        assertEq("/api/v2/users@str", h.path);
     }
 
     slashTest() {
