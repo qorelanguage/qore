@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
 
-/*  SalesforceRestClient.qm Copyright (C) 2016 - 2020 Qore Technologies, s.r.o.
+/*  SalesforceRestClient.qm Copyright (C) 2016 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 # require type definitions everywhere
 %require-types
@@ -1007,21 +1007,22 @@ sfrest.logout();
     private loginIntern(*reference<hash> info) {
         # ensure that if json serialization is set, that we do not claim to understand XML responses (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
         if (ds == "json")
-            addDefaultHeaders(("Accept": MimeTypeJson));
+            addDefaultHeaders({"Accept": MimeTypeJson});
         else
             delete headers.Accept;
 
         # save send encoding and retore on error
-        *hash old_seh = seh;
+        *hash<auto> old_seh = seh;
         # turn off compression for the login request (is not currently supported in Salesforce.com)
         setSendEncoding("identity");
         # restore the encoding on exit
         on_exit seh = old_seh;
 
         # create login hash
-        hash lh = self.("client_id", "client_secret", "username", "password") + (
+        hash<auto> lh = self.("client_id", "client_secret", "username", "password") + (
             "grant_type": "password",
         );
+        printf("lh: %y\n", lh);
 
         # use the Salesforce.com OAuth2 authorization URL to get the token
         setURL(oauth_url_token);
@@ -1035,11 +1036,11 @@ sfrest.logout();
         setSerialization("url");
 
         # make the authorization call
-        hash h = RestClient::doRequest("POST", "", lh, \info).body;
+        hash<auto> h = RestClient::doRequest("POST", "", lh, \info).body;
 
         # set the token
         token = h.access_token;
-        addDefaultHeaders(("Authorization": sprintf("%s %s", h.token_type, h.access_token)));
+        addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
 
         # set the URL to the Salesforce.com URL for REST API calls
         setURL(h.instance_url);
@@ -1047,14 +1048,15 @@ sfrest.logout();
         # get as hash of supported APIs
         api_hash = map {$1.version: $1 - "version"}, RestClient::doRequest("GET", "services/data").body;
 
-        hash ah;
+        hash<auto> ah;
         if (api == "auto") {
             api = api_used = api_hash.lastKey();
             ah = api_hash.lastValue();
         } else {
-            *hash aah = api_hash{api};
+            *hash<auto> aah = api_hash{api};
             if (!aah)
-                throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not supported; supported Salesforce.com APIs: %y", api, api_hash.keys());
+                throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not "
+                    "supported; supported Salesforce.com APIs: %y", api, keys api_hash);
             api_used = api;
             ah = aah;
         }
