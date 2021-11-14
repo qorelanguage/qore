@@ -46,7 +46,7 @@ public:
             : AbstractFunctionSignature(n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {
         for (unsigned i = 0; i < typeList.size(); ++i) {
             bool hasDefaultArg = i < defaultArgList.size() && defaultArgList[i];
-            if (typeList[i]) {
+            if (QoreTypeInfo::hasType(typeList[i])) {
                 ++num_param_types;
                 if (!hasDefaultArg)
                     ++min_param_types;
