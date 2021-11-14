@@ -1993,6 +1993,7 @@ public:
     DLLLOCAL void parseCheckAbstractNew(const QoreProgramLocation* loc) const;
 
     DLLLOCAL void parseDoCheckAbstractNew(const QoreProgramLocation* loc) const {
+        assert(initialized);
         ahm.parseCheckAbstractNew(loc, name.c_str());
     }
 
