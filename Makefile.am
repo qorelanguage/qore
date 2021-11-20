@@ -948,6 +948,10 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	modules/reflection/docs/mainpage.dox.tmpl \
 	modules/reflection/CMakeLists.txt \
 	modules/reflection/cmake/cmake_uninstall.cmake.in \
+	doxygen/lang/Doxyfile.in \
+	doxygen/qlib/Doxyfile.in \
+	doxygen/modules/Doxyfile.in \
+	doxygen/lib/Doxyfile.in \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC) \
@@ -956,10 +960,6 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 dist_modver_DATA = $(USER_MODULES)
 
 dist_qoredata_DATA = doxygen/Doxyfile.in \
-	doxygen/lang/Doxyfile.in \
-	doxygen/qlib/Doxyfile.in \
-	doxygen/modules/Doxyfile.in \
-	doxygen/lib/Doxyfile.in \
 	doxygen/qore-logo-55x200.png
 
 include $(srcdir)/qoretests.mk
