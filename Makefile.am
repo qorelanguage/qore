@@ -548,7 +548,7 @@ noinst_HEADERS = \
 	include/qore/intern/unix-config.h \
 	include/qore/intern/win32-config.h \
 	include/qore/intern/git-revision.h \
-	include/qore/intern/glob.h \
+	include/qore/intern/qore_glob.h \
 	include/qore/intern/RSet.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
@@ -910,6 +910,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	AUTHORS BUILDING \
 	README.md README-LICENSE README-MODULES \
 	COPYING.LGPL COPYING.GPL COPYING.MIT \
+	CMakeLists.txt \
 	examples/test \
 	examples/HelloWorld.q \
 	examples/clisrv.q \
@@ -931,9 +932,22 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	qore.spec \
 	qore.spec-fedora \
 	qore.spec-multi \
+	cmake/FindICONV.cmake \
+	cmake/FindMPFR.cmake \
+	cmake/QoreConfig.cmake.in \
+	cmake/QoreConfigVersion.cmake.in \
 	cmake/QoreMacros.cmake \
+	cmake/QoreMacrosIntern.cmake \
+	cmake/qore-version.h.cmake \
+	cmake/stl_hash_map.in \
+	cmake/stl_slist.in \
+	cmake/unix-config.h.cmake \
 	modules/astparser/docs/mainpage.dox.tmpl \
+	modules/astparser/CMakeLists.txt \
+	modules/astparser/cmake/cmake_uninstall.cmake.in \
 	modules/reflection/docs/mainpage.dox.tmpl \
+	modules/reflection/CMakeLists.txt \
+	modules/reflection/cmake/cmake_uninstall.cmake.in \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
 	$(LANG_QPP_SRC) \
@@ -941,7 +955,12 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 
 dist_modver_DATA = $(USER_MODULES)
 
-dist_qoredata_DATA = doxygen/Doxyfile.in doxygen/qore-logo-55x200.png
+dist_qoredata_DATA = doxygen/Doxyfile.in \
+	doxygen/lang/Doxyfile.in \
+	doxygen/qlib/Doxyfile.in \
+	doxygen/modules/Doxyfile.in \
+	doxygen/lib/Doxyfile.in \
+	doxygen/qore-logo-55x200.png
 
 include $(srcdir)/qoretests.mk
 

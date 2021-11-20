@@ -48,7 +48,7 @@
 #ifdef HAVE_GLOB_H
 #include <glob.h>
 #else
-#include "qore/intern/glob.h"
+#include "qore/intern/qore_glob.h"
 #endif
 
 #define QB(x) ((x) ? "true" : "false")

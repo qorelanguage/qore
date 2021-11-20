@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_SUB 10)
+set(VERSION_SUB 11)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -499,7 +499,6 @@ set(LIBQORE_CPP_SRC
     lib/RSection.cpp
     lib/QoreParseListNode.cpp
     lib/QoreListNode.cpp
-    lib/QoreValueList.cpp
     lib/qore-main.cpp
     lib/QoreGetOpt.cpp
     lib/QoreFtpClient.cpp
