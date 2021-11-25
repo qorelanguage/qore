@@ -389,22 +389,26 @@ protected:
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 
 public:
-    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
+    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args)
+            : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
     }
 
     DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args,
-        const QoreMethod* m, const QoreClass* n_qc, const qore_class_private* class_ctx) :
+            const QoreMethod* m, const QoreClass* n_qc, const qore_class_private* class_ctx) :
         AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, n_qc, m), ns(n),
         class_ctx(class_ctx), is_copy(false) {
     }
 
-    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args, const QoreClass* n_qc) : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
+    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args,
+            const QoreClass* n_qc) : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, n_qc), ns(n), is_copy(false) {
     }
 
-    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, NamedScope* n_ns, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n_ns), is_copy(false) {
+    DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, NamedScope* n_ns, QoreParseListNode* n_args)
+            : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n_ns), is_copy(false) {
     }
 
-    DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode& old, QoreListNode* n_args) : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {
+    DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode& old, QoreListNode* n_args)
+            : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {
     }
 
     DLLLOCAL int parseInitCall(QoreValue& val, QoreParseContext& parse_context);
@@ -427,6 +431,30 @@ public:
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
     DLLLOCAL AbstractQoreNode* makeReferenceNodeAndDeref();
+};
+
+//! Used in arguments background expressions to ensure that the object context is set for the call
+/** issue #4344: https://github.com/qorelanguage/qore/issues/4344
+*/
+class SetSelfFunctionCallNode : public SelfFunctionCallNode {
+public:
+    DLLLOCAL SetSelfFunctionCallNode(const SelfFunctionCallNode& old, QoreListNode* n_args);
+
+    using AbstractFunctionCallNode::evalImpl;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    using AbstractFunctionCallNode::deref;
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        assert(self);
+        if (deref_self) {
+            self->deref(xsink);
+        }
+    }
+
+protected:
+    QoreObject* self;
+    const qore_class_private* cls;
+    mutable bool deref_self = true;
 };
 
 class StaticMethodCallNode : public AbstractFunctionCallNode {

@@ -14,14 +14,14 @@
 class Result {
     private {
         Counter c;
-        any res;
+        auto res;
     }
 
     reset() {
         c = new Counter(1);
     }
 
-    test(any r) {
+    test(auto r) {
         res = r;
         c.dec();
     }
@@ -36,16 +36,39 @@ class Result {
         c.dec();
     }
 
-    any get() {
+    auto get() {
         c.waitForZero();
         return res;
     }
 }
 
+sub get_q(Queue q, auto val) {
+    q.push(val);
+}
+
+class BgObjArg {
+    # issue #4344: make sure implicit in-object calls can be made in arguments in a background expression
+    auto test() {
+        Queue q();
+        background get_q(q, val());
+        return q.get();
+    }
+
+    int val() {
+        return 1;
+    }
+}
+
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("background operator", "1.0", \ARGV) {
+        addTestCase("background object arg", \backgroundObjectArg());
         addTestCase("basic case", \basicCase());
         set_return_value(main());
+    }
+
+    backgroundObjectArg() {
+        BgObjArg o();
+        assertEq(1, o.test());
     }
 
     basicCase() {
@@ -57,68 +80,68 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(i & 3);
             assertEq(2, res.get());
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(i | 4);
             assertEq(6, res.get());
         }
 
         res.reset();
         {
-            any i = 1;
+            auto i = 1;
             background res.test(i % 4);
             assertEq(1, res.get());
         }
 
         res.reset();
         {
-            any i = 1;
+            auto i = 1;
             background res.test(~i);
             assertEq(-2, res.get());
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(i ^ 6);
             assertEq(4, res.get());
         }
 
         res.reset();
         {
-            any l = (1, 2);
+            auto l = (1, 2);
             background res.test(elements l);
             assertEq(2, res.get());
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(exists i);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            any i = 1;
+            auto i = 1;
             background res.test(i > 4);
             assertEq(False, res.get());
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 1; background i &= 4;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 1; background i &= 4;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 1; background i = 4;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 1; background i = 4;", ""));
         }
 
         res.reset();
@@ -130,19 +153,19 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any i = 1;
+            auto i = 1;
             background res.testException(sub () { printf("%y\n", cast<Mutex>(i)); });
             assertEq("RUNTIME-CAST-ERROR", res.get().err);
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background chomp str;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background chomp str;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background delete str;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background delete str;", ""));
         }
 
         {
@@ -152,7 +175,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i / 2);
             assertEq(2, res.get());
         }
@@ -167,7 +190,7 @@ class Test inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background extract str, 0, 1;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background extract str, 0, 1;", ""));
         }
 
         res.reset();
@@ -186,7 +209,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any m = new Mutex();
+            auto m = new Mutex();
             background res.test(m instanceof Mutex);
             assertEq(True, res.get());
         }
@@ -216,79 +239,79 @@ class Test inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i -= 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i -= 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i += 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i += 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i--;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i--;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i++;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i++;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background --i;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background --i;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background ++i;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background ++i;", ""));
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i == 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i > 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i >= 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i < 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i <= 4);
             assertEq(True, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i != 4);
             assertEq(False, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(!i);
             assertEq(False, res.get());
         }
@@ -302,21 +325,21 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(map $1, l, $# % 2);
             assertEq(("b",), res.get());
         }
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(map $1, (map $1, l));
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(map $1, (map $1, l, $# % 2));
             assertEq(("b",), res.get());
         }
@@ -338,7 +361,7 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(NOTHING ?? i ?? 5);
             assertEq(4, res.get());
         }
@@ -375,33 +398,33 @@ class Test inherits QUnit::Test {
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(i ? True : False);
             assertEq(True, res.get());
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background remove str;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background remove str;", ""));
         }
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(select (map $1, (map $1, l)), $1);
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(select (map $1, l), $1);
             assertEq(("a", "b"), res.get());
         }
 
         res.reset();
         {
-            any l = ("a", "b");
+            auto l = ("a", "b");
             background res.test(select (map $1, l, $# % 2), $1);
             assertEq(("b",), res.get());
         }
@@ -423,41 +446,41 @@ class Test inherits QUnit::Test {
         res.reset();
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background str =~ s/i/0/;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background str =~ s/i/0/;", ""));
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(i << 1);
             assertEq(4, res.get());
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(i >> 1);
             assertEq(1, res.get());
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i <<= 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i <<= 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i >>= 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i >>= 2;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background splice str, 0, 1, 'nstr';", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background splice str, 0, 1, 'nstr';", ""));
         }
 
         res.reset();
         {
-            any l = (1, 2);
+            auto l = (1, 2);
             background res.test(l[1]);
             assertEq(2, res.get());
         }
@@ -465,38 +488,38 @@ class Test inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background str =~ tr/a-z/A-Z/;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background str =~ tr/a-z/A-Z/;", ""));
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any str = 'str\n'; background trim str;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto str = 'str\n'; background trim str;", ""));
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(-i);
             assertEq(-2, res.get());
         }
 
         res.reset();
         {
-            any i = 2;
+            auto i = 2;
             background res.test(+i);
             assertEq(2, res.get());
         }
 
         res.reset();
         {
-            any i = 4;
+            auto i = 4;
             background res.test(0 ?* i ?* 5);
             assertEq(4, res.get());
         }
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", \p.parse(), ("any i = 4; background i %= 2;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("auto i = 4; background i %= 2;", ""));
         }
     }
 }
