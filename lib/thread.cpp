@@ -2537,7 +2537,8 @@ namespace {
                 ThreadData* td = thread_data.get();
 
                 {
-                    CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
+                    CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator",
+                        btp->getContextObject(), btp->class_ctx);
                     QoreInternalCallStackLocationHelper stack_loc(*btp->loc, "<background operator>", CT_NEWTHREAD);
                     // save runtime location of thread creation call
                     td->runtime_loc = btp->loc;

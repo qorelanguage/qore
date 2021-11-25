@@ -402,6 +402,22 @@ AbstractQoreNode* SelfFunctionCallNode::makeReferenceNodeAndDeref() {
     return rv;
 }
 
+SetSelfFunctionCallNode::SetSelfFunctionCallNode(const SelfFunctionCallNode& old, QoreListNode* args)
+        : SelfFunctionCallNode(old, args) {
+    runtime_get_object_and_class(self, cls);
+    self = runtime_get_stack_object();
+    assert(self);
+    self->ref();
+}
+
+QoreValue SetSelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    ObjectSubstitutionHelper osh(self, cls);
+    QoreValue rv = SelfFunctionCallNode::evalImpl(needs_deref, xsink);
+    self->deref(xsink);
+    deref_self = false;
+    return rv;
+}
+
 /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
    the ExceptionSink is only needed for QoreObject where a method may be executed
    use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly

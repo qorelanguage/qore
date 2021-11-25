@@ -359,56 +359,56 @@ static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xs
 }
 
 static AbstractQoreNode* crlr_hash_copy(const QoreParseHashNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreParseHashNode> h(new QoreParseHashNode(*n, xsink), xsink);
-   return *xsink ? nullptr : h.release();
+    assert(xsink);
+    ReferenceHolder<QoreParseHashNode> h(new QoreParseHashNode(*n, xsink), xsink);
+    return *xsink ? nullptr : h.release();
 }
 
 static AbstractQoreNode* crlr_selfcall_copy(const SelfFunctionCallNode* n, ExceptionSink* xsink) {
-   QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
-   if (na)
-      na = crlr_list_copy(na, xsink);
+    QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
+    if (na) {
+        na = crlr_list_copy(na, xsink);
+    }
 
-   return new SelfFunctionCallNode(*n, na);
+    return new SetSelfFunctionCallNode(*n, na);
 }
 
 static AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, ExceptionSink* xsink) {
-   QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
-   if (na)
-      na = crlr_list_copy(na, xsink);
+    QoreListNode* na = const_cast<QoreListNode*>(n->getArgs());
+    if (na)
+        na = crlr_list_copy(na, xsink);
 
-   return new FunctionCallNode(*n, na);
+    return new FunctionCallNode(*n, na);
 }
 
 static AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
-   assert(xsink);
-   QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
-   //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
-   if (args) {
-      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
-      if (*xsink)
-         return nullptr;
+    assert(xsink);
+    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
+    //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
+    if (args) {
+        ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+        if (*xsink)
+            return nullptr;
 
-      args = args_holder.release();
-   }
+        args = args_holder.release();
+    }
 
-   return new MethodCallNode(*m, args);
+    return new MethodCallNode(*m, args);
 }
 
 static AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, ExceptionSink* xsink) {
-   assert(xsink);
-   QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
-   //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
-   if (args) {
-      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
-      if (*xsink)
-         return 0;
+    assert(xsink);
+    QoreListNode* args = const_cast<QoreListNode*>(m->getArgs());
+    //printd(5, "crlr_mcall_copy() m: %p (%s) args: %p (len: %d)\n", m, m->getName(), args, args ? args->size() : 0);
+    if (args) {
+        ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+        if (*xsink)
+            return 0;
 
-      args = args_holder.release();
-   }
+        args = args_holder.release();
+    }
 
-   return new StaticMethodCallNode(*m, args);
-//   return new StaticMethodCallNode(m->loc, m->getMethod(), args);
+    return new StaticMethodCallNode(*m, args);
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
